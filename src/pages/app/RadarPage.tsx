@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InboxCard } from "@/components/app/InboxCard";
+import { IntegrationsPanel } from "@/components/app/IntegrationsPanel";
 import {
   Dialog,
   DialogContent,
@@ -527,9 +528,10 @@ const RadarPage = () => {
             )}
           </div>
 
-          {/* Sidebar - Learning */}
-          <div className="space-y-4">
-            <InboxCard />
+          {/* Sidebar - Learning & Integrations */}
+          <div className="space-y-6">
+            <InboxCard variant="hero" />
+            <IntegrationsPanel variant="compact" />
           </div>
         </div>
       </div>

@@ -47,6 +47,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GlassCard } from "@/components/app/GlassCard";
 import { AutopilotModeSelector } from "@/components/app/AutopilotModeSelector";
 import { LanguageSelector } from "@/components/app/LanguageSelector";
+import { IntegrationsPanel } from "@/components/app/IntegrationsPanel";
 
 const MorePage = () => {
   const { user, signOut } = useAuth();
@@ -162,12 +163,6 @@ const MorePage = () => {
       items: [
         { icon: Brain, label: "Modo de operación", description: getModeLabel(userMode), action: () => setAutopilotDialog(true) },
         { icon: Globe, label: "Idioma", description: getLanguageLabel(preferredLanguage), action: () => setLanguageDialog(true) },
-      ],
-    },
-    {
-      title: "Integraciones",
-      items: [
-        { icon: LinkIcon, label: "Conectar servicios", description: "Google, Instagram, POS", action: () => toast({ title: "Próximamente" }) },
       ],
     },
     {
@@ -337,6 +332,9 @@ const MorePage = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Integrations Panel - Full */}
+            <IntegrationsPanel />
 
             {/* Settings Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

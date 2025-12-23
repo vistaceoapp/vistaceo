@@ -12,6 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { CheckinCard } from "@/components/app/CheckinCard";
 import { InboxCard } from "@/components/app/InboxCard";
 import { ActionCard } from "@/components/app/ActionCard";
+import { IntegrationsPanel } from "@/components/app/IntegrationsPanel";
 
 interface DailyAction {
   id: string;
@@ -578,8 +579,11 @@ const TodayPage = () => {
               </div>
             )}
 
-            {/* Micro-question Inbox */}
-            <InboxCard variant="compact" />
+            {/* Micro-question Inbox - Hero variant for importance */}
+            <InboxCard variant="full" />
+            
+            {/* Integrations */}
+            <IntegrationsPanel variant="compact" />
 
             {/* Today Stats */}
             <div className="dashboard-card p-6">
