@@ -10,7 +10,8 @@ import {
   Sparkles,
   TrendingUp,
   Zap,
-  HelpCircle
+  HelpCircle,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OwlLogo } from "@/components/ui/OwlLogo";
@@ -26,6 +27,7 @@ const navItems = [
   { path: "/app/chat", icon: MessageCircle, label: "UCEO", description: "Asistente IA", badge: "IA" },
   { path: "/app/missions", icon: Target, label: "Misiones", description: "Proyectos activos", badge: null },
   { path: "/app/radar", icon: Radar, label: "Radar", description: "Oportunidades", badge: "3" },
+  { path: "/app/analytics", icon: BarChart3, label: "Analytics", description: "Métricas y tendencias", badge: "Nuevo" },
 ];
 
 const bottomNavItems = [

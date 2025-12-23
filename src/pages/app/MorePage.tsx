@@ -151,6 +151,12 @@ const MorePage = () => {
 
   const menuSections = [
     {
+      title: "Herramientas",
+      items: [
+        { icon: BarChart3, label: "Analytics", description: "Métricas y tendencias", action: () => navigate("/app/analytics") },
+      ],
+    },
+    {
       title: "Cuenta",
       items: [
         { icon: User, label: "Perfil", description: "Información personal", action: () => setProfileDialog(true) },
