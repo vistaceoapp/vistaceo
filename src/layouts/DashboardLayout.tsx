@@ -3,9 +3,13 @@ import { useState } from "react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { cn } from "@/lib/utils";
+import { useAutoSync } from "@/hooks/use-auto-sync";
 
 export const DashboardLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Auto-sync external data in background
+  useAutoSync();
 
   return (
     <div className="min-h-screen bg-background">
