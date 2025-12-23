@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, ChevronRight, Sparkles, Plus, Zap, TrendingUp, Calendar } from "lucide-react";
+import { Check, Clock, Sparkles, Plus, Zap, TrendingUp, Calendar, ArrowRight, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { ProgressRing } from "@/components/app/ProgressRing";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DailyAction {
   id: string;
@@ -30,6 +31,7 @@ interface WeeklyPriority {
 
 const TodayPage = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
   const [todayAction, setTodayAction] = useState<DailyAction | null>(null);
   const [weeklyPriorities, setWeeklyPriorities] = useState<WeeklyPriority[]>([]);
@@ -267,13 +269,28 @@ const TodayPage = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="h-10 bg-card/50 rounded-xl animate-pulse w-2/3" />
-        <GlassCard className="h-48 animate-pulse" />
-        <div className="grid grid-cols-2 gap-4">
-          <GlassCard className="h-24 animate-pulse" />
-          <GlassCard className="h-24 animate-pulse" />
-        </div>
+      <div className={cn("space-y-6", !isMobile && "grid grid-cols-3 gap-6")}>
+        {!isMobile ? (
+          <>
+            <div className="col-span-2 space-y-6">
+              <div className="h-10 bg-card rounded-xl animate-pulse w-2/3" />
+              <div className="h-48 bg-card rounded-xl animate-pulse" />
+            </div>
+            <div className="space-y-6">
+              <div className="h-24 bg-card rounded-xl animate-pulse" />
+              <div className="h-24 bg-card rounded-xl animate-pulse" />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="h-10 bg-card/50 rounded-xl animate-pulse w-2/3" />
+            <GlassCard className="h-48 animate-pulse" />
+            <div className="grid grid-cols-2 gap-4">
+              <GlassCard className="h-24 animate-pulse" />
+              <GlassCard className="h-24 animate-pulse" />
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -301,9 +318,237 @@ const TodayPage = () => {
     );
   }
 
-  const weeklyGoal = 21; // Example weekly goal
+  const weeklyGoal = 21;
   const weeklyProgress = Math.min((weeklyCompleted / weeklyGoal) * 100, 100);
 
+  // Desktop Layout
+  if (!isMobile) {
+    return (
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <span className="text-3xl">{getTimeEmoji()}</span>
+              <h1 className="text-3xl font-bold text-foreground">
+                {getGreeting()}
+              </h1>
+            </div>
+            <p className="text-muted-foreground text-lg">
+              {currentBusiness.name} • {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}
+            </p>
+          </div>
+          <Button variant="outline" onClick={generateAction} disabled={actionLoading}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nueva acción
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-3 gap-6">
+          {/* Main Content - 2 columns */}
+          <div className="col-span-2 space-y-6">
+            {/* Main Action Card */}
+            {todayAction ? (
+              <div className="dashboard-card p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-start gap-6">
+                  <div className="w-16 h-16 rounded-xl gradient-primary flex items-center justify-center shadow-lg flex-shrink-0">
+                    <Zap className="w-8 h-8 text-primary-foreground" />
+                  </div>
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={cn(
+                        "text-xs font-semibold px-3 py-1.5 rounded-full",
+                        todayAction.priority === "high" || todayAction.priority === "urgent"
+                          ? "bg-destructive/10 text-destructive border border-destructive/20"
+                          : todayAction.priority === "medium"
+                          ? "bg-warning/10 text-warning border border-warning/20"
+                          : "bg-primary/10 text-primary border border-primary/20"
+                      )}>
+                        {todayAction.priority === "urgent" ? "🔥 Urgente" : 
+                         todayAction.priority === "high" ? "⚡ Alta" : 
+                         todayAction.priority === "medium" ? "📌 Media" :
+                         "📋 Normal"}
+                      </span>
+                      {todayAction.category && (
+                        <span className="text-xs text-muted-foreground bg-secondary px-3 py-1.5 rounded-full">
+                          {todayAction.category}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <h2 className="text-2xl font-bold text-foreground mb-2">
+                      {todayAction.title}
+                    </h2>
+                    
+                    {todayAction.description && (
+                      <p className="text-muted-foreground mb-6 text-lg leading-relaxed">
+                        {todayAction.description}
+                      </p>
+                    )}
+
+                    {todayAction.checklist && Array.isArray(todayAction.checklist) && todayAction.checklist.length > 0 && (
+                      <div className="bg-secondary/50 rounded-xl p-4 mb-6 space-y-2">
+                        {(todayAction.checklist as { text: string; done?: boolean }[]).slice(0, 4).map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-3">
+                            <div className={cn(
+                              "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
+                              item.done ? "bg-success border-success" : "border-muted-foreground/30"
+                            )}>
+                              {item.done && <Check className="w-3 h-3 text-white" />}
+                            </div>
+                            <span className={cn("text-sm", item.done && "line-through text-muted-foreground")}>
+                              {item.text}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-4">
+                      <Button 
+                        onClick={handleComplete} 
+                        size="lg"
+                        className="gradient-primary shadow-lg shadow-primary/20 hover:shadow-primary/40"
+                        disabled={actionLoading}
+                      >
+                        <Check className="w-5 h-5 mr-2" />
+                        Completar acción
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        onClick={handleSnooze}
+                        disabled={actionLoading}
+                      >
+                        <Clock className="w-5 h-5 mr-2" />
+                        Posponer
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="dashboard-card p-8 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-4">
+                  <Check className="w-8 h-8 text-success" />
+                </div>
+                <h2 className="text-xl font-bold text-foreground mb-2">
+                  ¡Todo listo por hoy!
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  No hay acciones pendientes. ¿Quieres que UCEO genere una nueva?
+                </p>
+                <Button 
+                  onClick={generateAction}
+                  disabled={actionLoading}
+                  className="gradient-primary"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {actionLoading ? "Generando..." : "Generar acción con IA"}
+                </Button>
+              </div>
+            )}
+
+            {/* Weekly Priorities */}
+            <div className="dashboard-card p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold text-foreground text-lg">Prioridades de la semana</h3>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/app/missions")}>
+                  Ver misiones
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+              
+              {weeklyPriorities.length > 0 ? (
+                <div className="space-y-4">
+                  {weeklyPriorities.map((priority) => (
+                    <div key={priority.id} className="flex items-center gap-4 p-4 bg-secondary/30 rounded-xl hover:bg-secondary/50 transition-colors">
+                      <div className={cn(
+                        "w-3 h-3 rounded-full shadow-lg",
+                        priority.status === "completed" 
+                          ? "bg-success" 
+                          : "bg-primary"
+                      )} />
+                      <div className="flex-1">
+                        <div className="text-sm text-foreground font-medium">{priority.title}</div>
+                        <div className="h-2 bg-secondary rounded-full mt-2 overflow-hidden">
+                          <div 
+                            className={cn(
+                              "h-full rounded-full transition-all",
+                              priority.status === "completed" ? "bg-success" : "gradient-primary"
+                            )}
+                            style={{ width: `${priority.status === "completed" ? 100 : getPriorityProgress(priority)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className="text-sm text-muted-foreground font-medium">
+                        {priority.status === "completed" ? "100%" : `${getPriorityProgress(priority)}%`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-8">
+                  No hay prioridades esta semana. Explora las misiones para crear una.
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar - Stats */}
+          <div className="space-y-6">
+            {/* Today Stats */}
+            <div className="dashboard-card p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Check className="w-5 h-5 text-success" />
+                <span className="text-sm text-muted-foreground font-medium">Hoy</span>
+              </div>
+              <div className="text-4xl font-bold text-foreground mb-1">{completedToday}</div>
+              <div className="text-sm text-muted-foreground">acciones completadas</div>
+            </div>
+
+            {/* Weekly Progress */}
+            <div className="dashboard-card p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                <span className="text-sm text-muted-foreground font-medium">Esta semana</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-4xl font-bold text-foreground mb-1">{weeklyCompleted}</div>
+                  <div className="text-sm text-muted-foreground">de {weeklyGoal} objetivo</div>
+                </div>
+                <ProgressRing progress={weeklyProgress} size={80} strokeWidth={6}>
+                  <span className="text-sm font-bold text-primary">{Math.round(weeklyProgress)}%</span>
+                </ProgressRing>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="dashboard-card p-6">
+              <h4 className="font-medium text-foreground mb-4">Acciones rápidas</h4>
+              <div className="space-y-2">
+                <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/app/chat")}>
+                  <Sparkles className="w-4 h-4 mr-3 text-primary" />
+                  Hablar con UCEO
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/app/radar")}>
+                  <BarChart3 className="w-4 h-4 mr-3 text-accent" />
+                  Ver oportunidades
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile Layout
   return (
     <div className="space-y-6">
       {/* Greeting */}
@@ -323,7 +568,6 @@ const TodayPage = () => {
       {todayAction ? (
         <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
           <GlassCard variant="glow" className="p-6 overflow-hidden">
-            {/* Decorative background */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             
             <div className="relative flex items-start gap-4">
@@ -366,30 +610,10 @@ const TodayPage = () => {
                   </p>
                 )}
 
-                {/* Checklist preview */}
-                {todayAction.checklist && Array.isArray(todayAction.checklist) && todayAction.checklist.length > 0 && (
-                  <div className="bg-background/50 rounded-xl p-3 mb-4 space-y-2 backdrop-blur-sm">
-                    {(todayAction.checklist as { text: string; done?: boolean }[]).slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm">
-                        <div className={cn(
-                          "w-4 h-4 rounded border-2 flex items-center justify-center transition-colors",
-                          item.done ? "bg-success border-success" : "border-muted-foreground/30"
-                        )}>
-                          {item.done && <Check className="w-3 h-3 text-white" />}
-                        </div>
-                        <span className={cn(item.done && "line-through text-muted-foreground")}>
-                          {item.text}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Actions */}
                 <div className="flex items-center gap-3">
                   <Button 
                     onClick={handleComplete} 
-                    className="flex-1 gradient-primary shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="flex-1 gradient-primary shadow-lg shadow-primary/30 hover:shadow-primary/50"
                     disabled={actionLoading}
                   >
                     <Check className="w-4 h-4 mr-2" />
@@ -399,7 +623,6 @@ const TodayPage = () => {
                     variant="outline" 
                     onClick={handleSnooze}
                     disabled={actionLoading}
-                    className="hover:bg-muted/50"
                   >
                     <Clock className="w-4 h-4 mr-2" />
                     Después
@@ -484,13 +707,13 @@ const TodayPage = () => {
               <Calendar className="w-5 h-5 text-primary" />
               <h3 className="font-semibold text-foreground">Prioridades de la semana</h3>
             </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            <ArrowRight className="w-5 h-5 text-muted-foreground" />
           </div>
           
           {weeklyPriorities.length > 0 ? (
             <div className="space-y-4">
               {weeklyPriorities.map((priority, idx) => (
-                <div key={priority.id} className="flex items-center gap-3 animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
+                <div key={priority.id} className="flex items-center gap-3" style={{ animationDelay: `${idx * 50}ms` }}>
                   <div className={cn(
                     "w-3 h-3 rounded-full shadow-lg",
                     priority.status === "completed" 
