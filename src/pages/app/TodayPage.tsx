@@ -406,6 +406,9 @@ const TodayPage = () => {
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="col-span-2 space-y-6">
+            {/* KNOWLEDGE CENTER - InboxCard prominente PRIMERO */}
+            <InboxCard variant="hero" />
+
             {/* Main Action Card */}
             {todayAction ? (
               <div className="dashboard-card p-6 hover:shadow-lg transition-shadow">
@@ -579,9 +582,6 @@ const TodayPage = () => {
               </div>
             )}
 
-            {/* Micro-question Inbox - Hero variant for importance */}
-            <InboxCard variant="full" />
-            
             {/* Integrations */}
             <IntegrationsPanel variant="compact" />
 
