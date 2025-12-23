@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { ProgressRing } from "@/components/app/ProgressRing";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { InboxCard } from "@/components/app/InboxCard";
 import {
   Dialog,
   DialogContent,
@@ -430,8 +431,11 @@ const MissionsPage = () => {
             )}
           </div>
 
-          {/* Sidebar - Suggestions */}
+          {/* Sidebar - Suggestions + Learning */}
           <div className="space-y-4">
+            {/* Micro-question */}
+            <InboxCard variant="compact" />
+            
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-4 h-4 text-primary" />
               <h3 className="font-semibold text-foreground">Sugeridas</h3>
