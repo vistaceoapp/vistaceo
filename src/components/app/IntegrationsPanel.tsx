@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Link2, 
@@ -10,17 +11,15 @@ import {
   MessageCircle,
   TrendingUp,
   CheckCircle2,
-  AlertCircle,
   Loader2,
-  ExternalLink,
   Zap,
-  Globe,
-  Smartphone
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@/components/ui/progress";
 
 interface Integration {
@@ -33,6 +32,8 @@ interface Integration {
   status: "pending" | "connected" | "error" | "disconnected";
   color: string;
   comingSoon?: boolean;
+  oauthEnabled?: boolean;
+  accountEmail?: string;
 }
 
 const AVAILABLE_INTEGRATIONS: Integration[] = [
@@ -45,6 +46,7 @@ const AVAILABLE_INTEGRATIONS: Integration[] = [
     category: "reviews",
     status: "pending",
     color: "text-warning",
+    oauthEnabled: true,
   },
   {
     id: "instagram",
@@ -55,6 +57,7 @@ const AVAILABLE_INTEGRATIONS: Integration[] = [
     category: "social",
     status: "pending",
     color: "text-pink-500",
+    comingSoon: true,
   },
   {
     id: "facebook",
@@ -65,6 +68,7 @@ const AVAILABLE_INTEGRATIONS: Integration[] = [
     category: "social",
     status: "pending",
     color: "text-blue-500",
+    comingSoon: true,
   },
   {
     id: "whatsapp",
@@ -86,6 +90,7 @@ const AVAILABLE_INTEGRATIONS: Integration[] = [
     category: "payments",
     status: "pending",
     color: "text-blue-400",
+    comingSoon: true,
   },
   {
     id: "rappi",
@@ -136,9 +141,37 @@ interface IntegrationsPanelProps {
 
 export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) => {
   const { currentBusiness } = useBusiness();
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [integrations, setIntegrations] = useState<Integration[]>(AVAILABLE_INTEGRATIONS);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState<string | null>(null);
+
+  // Handle OAuth callback
+  useEffect(() => {
+    const oauthStatus = searchParams.get("oauth");
+    const provider = searchParams.get("provider");
+    
+    if (oauthStatus && provider) {
+      if (oauthStatus === "success") {
+        toast({
+          title: `✅ ${provider === "google" ? "Google Reviews" : provider} conectado`,
+          description: "El sistema comenzará a sincronizar datos automáticamente.",
+        });
+        fetchIntegrations();
+      } else if (oauthStatus === "error") {
+        toast({
+          title: "Error de conexión",
+          description: `No se pudo conectar ${provider}. Intenta nuevamente.`,
+          variant: "destructive",
+        });
+      }
+      // Clear the URL params
+      searchParams.delete("oauth");
+      searchParams.delete("provider");
+      setSearchParams(searchParams);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchIntegrations();
@@ -161,10 +194,12 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
       // Merge with available integrations
       const updatedIntegrations = AVAILABLE_INTEGRATIONS.map(integration => {
         const existing = data?.find(d => d.integration_type === integration.type);
+        const metadata = existing?.metadata as { account_email?: string } | null;
         return {
           ...integration,
-          status: existing?.status || "pending",
-        } as Integration;
+          status: (existing?.status || "pending") as Integration["status"],
+          accountEmail: metadata?.account_email,
+        };
       });
 
       setIntegrations(updatedIntegrations);
@@ -176,12 +211,30 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
   };
 
   const handleConnect = async (integration: Integration) => {
-    if (!currentBusiness || integration.comingSoon) return;
+    if (!currentBusiness || !user || integration.comingSoon) return;
     
     setConnecting(integration.type);
 
     try {
-      // For now, we'll simulate connection - in production, this would redirect to OAuth
+      // For Google Reviews, use real OAuth
+      if (integration.type === "google_reviews" && integration.oauthEnabled) {
+        const { data, error } = await supabase.functions.invoke("google-oauth-start", {
+          body: { 
+            businessId: currentBusiness.id,
+            userId: user.id
+          }
+        });
+
+        if (error) throw error;
+
+        if (data?.url) {
+          // Redirect to Google OAuth
+          window.location.href = data.url;
+          return;
+        }
+      }
+
+      // For other integrations (simulation for now)
       const { error } = await supabase
         .from("business_integrations")
         .upsert({
@@ -205,7 +258,7 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
       console.error("Error connecting:", error);
       toast({
         title: "Error de conexión",
-        description: "No se pudo conectar la integración",
+        description: "No se pudo conectar la integración. Verifica tu configuración.",
         variant: "destructive",
       });
     } finally {
@@ -213,9 +266,37 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
     }
   };
 
+  const handleDisconnect = async (integration: Integration) => {
+    if (!currentBusiness) return;
+    
+    try {
+      const { error } = await supabase
+        .from("business_integrations")
+        .update({ status: "disconnected", credentials: null })
+        .eq("business_id", currentBusiness.id)
+        .eq("integration_type", integration.type);
+
+      if (error) throw error;
+
+      toast({
+        title: `${integration.name} desconectado`,
+        description: "La integración ha sido desconectada.",
+      });
+
+      fetchIntegrations();
+    } catch (error) {
+      console.error("Error disconnecting:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo desconectar la integración",
+        variant: "destructive",
+      });
+    }
+  };
+
   const connectedCount = integrations.filter(i => i.status === "connected").length;
   const totalCount = integrations.filter(i => !i.comingSoon).length;
-  const connectionProgress = (connectedCount / totalCount) * 100;
+  const connectionProgress = totalCount > 0 ? (connectedCount / totalCount) * 100 : 0;
 
   if (loading) {
     return (
@@ -363,34 +444,49 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground truncate">
-                        {integration.description}
+                        {isConnected && integration.accountEmail 
+                          ? `Conectado: ${integration.accountEmail}`
+                          : integration.description}
                       </p>
                     </div>
 
                     {!integration.comingSoon && (
-                      <Button
-                        variant={isConnected ? "outline" : "default"}
-                        size="sm"
-                        onClick={() => handleConnect(integration)}
-                        disabled={isConnecting}
-                        className={cn(
-                          isConnected && "text-success border-success/30 hover:bg-success/10"
+                      <div className="flex items-center gap-2">
+                        {isConnected && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDisconnect(integration)}
+                            className="text-muted-foreground hover:text-destructive"
+                          >
+                            Desconectar
+                          </Button>
                         )}
-                      >
-                        {isConnecting ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : isConnected ? (
-                          <>
-                            <CheckCircle2 className="w-4 h-4 mr-1" />
-                            Conectado
-                          </>
-                        ) : (
-                          <>
-                            <Link2 className="w-4 h-4 mr-1" />
-                            Conectar
-                          </>
-                        )}
-                      </Button>
+                        <Button
+                          variant={isConnected ? "outline" : "default"}
+                          size="sm"
+                          onClick={() => handleConnect(integration)}
+                          disabled={isConnecting}
+                          className={cn(
+                            isConnected && "text-success border-success/30 hover:bg-success/10"
+                          )}
+                        >
+                          {isConnecting ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : isConnected ? (
+                            <>
+                              <CheckCircle2 className="w-4 h-4 mr-1" />
+                              Reconectar
+                            </>
+                          ) : (
+                            <>
+                              {integration.oauthEnabled && <ExternalLink className="w-4 h-4 mr-1" />}
+                              {!integration.oauthEnabled && <Link2 className="w-4 h-4 mr-1" />}
+                              Conectar
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     )}
                   </div>
                 );
