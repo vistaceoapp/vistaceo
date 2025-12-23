@@ -209,6 +209,44 @@ export type Database = {
           },
         ]
       }
+      lessons: {
+        Row: {
+          business_id: string
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          importance: number | null
+          source: string | null
+        }
+        Insert: {
+          business_id: string
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          importance?: number | null
+          source?: string | null
+        }
+        Update: {
+          business_id?: string
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          importance?: number | null
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       missions: {
         Row: {
           area: string | null
