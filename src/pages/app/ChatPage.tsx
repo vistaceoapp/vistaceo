@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { GlassCard } from "@/components/app/GlassCard";
 import { TypingIndicator } from "@/components/app/TypingIndicator";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { LessonsPanel } from "@/components/app/LessonsPanel";
 
 interface Message {
   id: string;
@@ -103,7 +104,7 @@ const ChatPage = () => {
 
       if (aiError) {
         console.error("AI error:", aiError);
-        throw new Error(aiError.message || "Error al comunicarse con UCEO");
+        throw new Error(aiError.message || "Error al comunicarse con el asistente");
       }
 
       const aiResponse = aiData?.message || "Lo siento, no pude procesar tu mensaje. Intenta de nuevo.";
@@ -171,10 +172,12 @@ const ChatPage = () => {
     );
   }
 
-  // Desktop Layout - ChatGPT Style
+  // Desktop Layout - ChatGPT Style with Lessons Panel
   if (!isMobile) {
     return (
-      <div className="flex flex-col h-[calc(100vh-120px)]">
+      <div className="flex gap-6 h-[calc(100vh-120px)]">
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -320,8 +323,16 @@ const ChatPage = () => {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground text-center mt-2">
-            UCEO puede cometer errores. Considera verificar información importante.
+            El asistente puede cometer errores. Considera verificar información importante.
           </p>
+        </div>
+        </div>
+        
+        {/* Lessons Sidebar */}
+        <div className="w-80 flex-shrink-0 hidden xl:block">
+          <div className="h-full overflow-y-auto rounded-xl border border-border bg-card/50 p-4">
+            <LessonsPanel />
+          </div>
         </div>
       </div>
     );
