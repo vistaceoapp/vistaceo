@@ -52,6 +52,50 @@ export type Database = {
           },
         ]
       }
+      business_integrations: {
+        Row: {
+          business_id: string
+          created_at: string
+          credentials: Json | null
+          id: string
+          integration_type: string
+          last_sync_at: string | null
+          metadata: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          credentials?: Json | null
+          id?: string
+          integration_type: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          credentials?: Json | null
+          id?: string
+          integration_type?: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_integrations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           address: string | null
@@ -243,6 +287,63 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_data: {
+        Row: {
+          business_id: string
+          content: Json
+          created_at: string
+          data_type: string
+          external_id: string | null
+          id: string
+          importance: number | null
+          integration_id: string
+          processed_at: string | null
+          sentiment_score: number | null
+          synced_at: string
+        }
+        Insert: {
+          business_id: string
+          content?: Json
+          created_at?: string
+          data_type: string
+          external_id?: string | null
+          id?: string
+          importance?: number | null
+          integration_id: string
+          processed_at?: string | null
+          sentiment_score?: number | null
+          synced_at?: string
+        }
+        Update: {
+          business_id?: string
+          content?: Json
+          created_at?: string
+          data_type?: string
+          external_id?: string | null
+          id?: string
+          importance?: number | null
+          integration_id?: string
+          processed_at?: string | null
+          sentiment_score?: number | null
+          synced_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_data_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_data_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "business_integrations"
             referencedColumns: ["id"]
           },
         ]
