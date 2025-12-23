@@ -72,6 +72,12 @@ function buildContextMessage(businessContext: any, memoryContext: any): string {
   }
 
   if (memoryContext) {
+    // Business insights from micro-questions (MOST IMPORTANT)
+    if (memoryContext.businessInsights && memoryContext.businessInsights.length > 0) {
+      context += `\n\n## Conocimiento del Negocio (Respuestas del dueño)
+${memoryContext.businessInsights.slice(0, 15).join("\n")}`;
+    }
+
     if (memoryContext.recentActions && memoryContext.recentActions.length > 0) {
       context += `\n\n## Acciones Recientes
 ${memoryContext.recentActions.map((a: any) => `- ${a.title} (${a.status})`).join("\n")}`;
@@ -90,7 +96,7 @@ ${memoryContext.activeMissions.map((m: any) => `- ${m.title} (paso ${m.current_s
 
     if (memoryContext.lessons && memoryContext.lessons.length > 0) {
       context += `\n\n## Lecciones Aprendidas
-${memoryContext.lessons.slice(0, 3).map((l: string) => `- ${l}`).join("\n")}`;
+${memoryContext.lessons.slice(0, 5).map((l: string) => `- ${l}`).join("\n")}`;
     }
   }
 
@@ -128,7 +134,7 @@ function formatCountry(country: string | null): string {
 // Fetch memory context from database
 async function fetchMemoryContext(supabase: any, businessId: string) {
   try {
-    const [actionsRes, missionsRes, checkinsRes, lessonsRes] = await Promise.all([
+    const [actionsRes, missionsRes, checkinsRes, lessonsRes, insightsRes] = await Promise.all([
       // Recent actions
       supabase
         .from("daily_actions")
@@ -158,6 +164,13 @@ async function fetchMemoryContext(supabase: any, businessId: string) {
         .order("importance", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(10),
+      // Business insights from micro-questions
+      supabase
+        .from("business_insights")
+        .select("category, question, answer")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(30),
     ]);
 
     // Format lessons
@@ -168,11 +181,20 @@ async function fetchMemoryContext(supabase: any, businessId: string) {
       }
     }
 
+    // Format insights
+    const insights: string[] = [];
+    if (insightsRes.data) {
+      for (const insight of insightsRes.data) {
+        insights.push(`${insight.question}: ${insight.answer}`);
+      }
+    }
+
     return {
       recentActions: actionsRes.data || [],
       activeMissions: missionsRes.data || [],
       recentCheckins: checkinsRes.data || [],
       lessons: lessons,
+      businessInsights: insights,
     };
   } catch (error) {
     console.error("Error fetching memory context:", error);

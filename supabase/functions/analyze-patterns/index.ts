@@ -35,7 +35,7 @@ serve(async (req) => {
     }
 
     // Fetch recent data for pattern analysis
-    const [checkinsRes, actionsRes, lessonsRes] = await Promise.all([
+    const [checkinsRes, actionsRes, lessonsRes, insightsRes] = await Promise.all([
       supabase
         .from("checkins")
         .select("*")
@@ -53,14 +53,21 @@ serve(async (req) => {
         .select("*")
         .eq("business_id", businessId)
         .limit(20),
+      supabase
+        .from("business_insights")
+        .select("*")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(50),
     ]);
 
     const checkins = checkinsRes.data || [];
     const actions = actionsRes.data || [];
     const lessons = lessonsRes.data || [];
+    const insights = insightsRes.data || [];
 
     // Build analysis context
-    const analysisContext = buildAnalysisContext(business, checkins, actions, lessons);
+    const analysisContext = buildAnalysisContext(business, checkins, actions, lessons, insights);
 
     console.log("Analyzing patterns for business:", business.name);
 
@@ -215,7 +222,8 @@ function buildAnalysisContext(
   business: any,
   checkins: any[],
   actions: any[],
-  lessons: any[]
+  lessons: any[],
+  insights: any[]
 ): string {
   let context = `## Negocio: ${business.name}
 - Tipo: ${business.category || "No especificado"}
@@ -223,6 +231,26 @@ function buildAnalysisContext(
 - Ticket promedio: ${business.avg_ticket || "No especificado"}
 - Rating: ${business.avg_rating || "No especificado"}
 `;
+
+  // Business insights from micro-questions (MOST IMPORTANT)
+  if (insights.length > 0) {
+    context += `\n## Conocimiento del Negocio (${insights.length} respuestas)\n`;
+    
+    // Group by category
+    const byCategory: Record<string, any[]> = {};
+    for (const insight of insights) {
+      const cat = insight.category || "general";
+      if (!byCategory[cat]) byCategory[cat] = [];
+      byCategory[cat].push(insight);
+    }
+    
+    for (const [cat, catInsights] of Object.entries(byCategory)) {
+      context += `\n[${cat.toUpperCase()}]\n`;
+      for (const insight of catInsights.slice(0, 5)) {
+        context += `- ${insight.question}: ${insight.answer}\n`;
+      }
+    }
+  }
 
   // Check-ins analysis
   if (checkins.length > 0) {
