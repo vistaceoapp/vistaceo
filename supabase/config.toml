@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.analyze-patterns]
 verify_jwt = true
+
+[functions.generate-question]
+verify_jwt = true

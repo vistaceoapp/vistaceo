@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { X, Clock, Sparkles, ChevronRight, MessageSquare, Lightbulb, TrendingUp, HelpCircle } from "lucide-react";
+import { X, Clock, Sparkles, ChevronRight, MessageSquare, Lightbulb, TrendingUp, HelpCircle, Users, DollarSign, Zap, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -8,65 +8,33 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { GlassCard } from "./GlassCard";
 
 interface MicroQuestion {
-  id: string;
   question: string;
   options: string[];
-  category: "operations" | "marketing" | "finance" | "service" | "general";
-  impact: string; // Why this question matters
+  category: string;
+  impact: string;
 }
 
-// Sample questions - In production, these would come from the AI engine
-const SAMPLE_QUESTIONS: MicroQuestion[] = [
-  {
-    id: "q1",
-    question: "¿Cuál es tu horario con más clientes?",
-    options: ["Desayuno", "Almuerzo", "Merienda", "Cena", "Parejo todo el día"],
-    category: "operations",
-    impact: "Optimizar staff y promociones",
-  },
-  {
-    id: "q2", 
-    question: "¿Cuántos empleados tienes normalmente por turno?",
-    options: ["1-2", "3-5", "6-10", "Más de 10"],
-    category: "operations",
-    impact: "Calcular eficiencia operativa",
-  },
-  {
-    id: "q3",
-    question: "¿Qué plataforma de delivery usas más?",
-    options: ["PedidosYa", "Rappi", "Uber Eats", "Propio", "No hago delivery"],
-    category: "marketing",
-    impact: "Recomendaciones de canal",
-  },
-  {
-    id: "q4",
-    question: "¿Cuál es tu producto estrella?",
-    options: ["Café/Bebidas", "Plato principal", "Postres", "Combos", "Otro"],
-    category: "marketing",
-    impact: "Estrategia de promoción",
-  },
-  {
-    id: "q5",
-    question: "¿Qué problema te quita más tiempo?",
-    options: ["Inventario", "Personal", "Marketing", "Clientes difíciles", "Finanzas"],
-    category: "general",
-    impact: "Priorizar recomendaciones",
-  },
-];
-
-const CATEGORY_ICONS = {
-  operations: TrendingUp,
+const CATEGORY_ICONS: Record<string, any> = {
+  operaciones: TrendingUp,
+  equipo: Users,
+  clientes: MessageSquare,
   marketing: Lightbulb,
-  finance: TrendingUp,
-  service: MessageSquare,
+  finanzas: DollarSign,
+  producto: Zap,
+  tecnologia: Target,
+  competencia: Target,
   general: HelpCircle,
 };
 
-const CATEGORY_COLORS = {
-  operations: "text-success",
-  marketing: "text-primary",
-  finance: "text-warning",
-  service: "text-accent",
+const CATEGORY_COLORS: Record<string, string> = {
+  operaciones: "text-success",
+  equipo: "text-primary",
+  clientes: "text-accent",
+  marketing: "text-warning",
+  finanzas: "text-destructive",
+  producto: "text-primary",
+  tecnologia: "text-muted-foreground",
+  competencia: "text-warning",
   general: "text-muted-foreground",
 };
 
@@ -78,65 +46,128 @@ interface InboxCardProps {
 export const InboxCard = ({ variant = "full", onAnswer }: InboxCardProps) => {
   const { currentBusiness } = useBusiness();
   const [currentQuestion, setCurrentQuestion] = useState<MicroQuestion | null>(null);
-  const [answeredIds, setAnsweredIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [questionCount, setQuestionCount] = useState(0);
+
+  // Fetch a new question from AI
+  const fetchQuestion = async () => {
+    if (!currentBusiness) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-question", {
+        body: { businessId: currentBusiness.id }
+      });
+
+      if (error) throw error;
+
+      if (data?.question) {
+        setCurrentQuestion(data.question);
+      }
+    } catch (error) {
+      console.error("Error fetching question:", error);
+      // Fallback question
+      setCurrentQuestion({
+        question: "¿Cuál es tu mayor desafío hoy?",
+        options: ["Ventas", "Personal", "Costos", "Tiempo"],
+        category: "general",
+        impact: "Priorizar recomendaciones",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Count existing insights
+  const fetchInsightCount = async () => {
+    if (!currentBusiness) return;
+    
+    try {
+      const { count } = await supabase
+        .from("business_insights")
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", currentBusiness.id);
+      
+      setQuestionCount(count || 0);
+    } catch (error) {
+      console.error("Error fetching count:", error);
+    }
+  };
 
   useEffect(() => {
-    // Get a random unanswered question
-    const unanswered = SAMPLE_QUESTIONS.filter(q => !answeredIds.includes(q.id));
-    if (unanswered.length > 0) {
-      setCurrentQuestion(unanswered[Math.floor(Math.random() * unanswered.length)]);
-    } else {
-      setCurrentQuestion(null);
-    }
-  }, [answeredIds]);
+    fetchQuestion();
+    fetchInsightCount();
+  }, [currentBusiness]);
 
   const handleAnswer = async (answer: string) => {
     if (!currentQuestion || !currentBusiness) return;
     
     setSaving(true);
     try {
-      // In production, this would save to a proper table and feed the AI engine
-      // For now, we'll save as a chat message with metadata
-      await supabase.from("chat_messages").insert({
+      // Save to business_insights table
+      const { error } = await supabase.from("business_insights").insert({
         business_id: currentBusiness.id,
-        role: "user",
-        content: `[Micro-pregunta] ${currentQuestion.question}: ${answer}`,
+        category: currentQuestion.category,
+        question: currentQuestion.question,
+        answer,
         metadata: {
-          type: "micro_question",
-          question_id: currentQuestion.id,
-          category: currentQuestion.category,
-          answer,
+          impact: currentQuestion.impact,
+          options: currentQuestion.options,
         },
       });
 
-      setAnsweredIds(prev => [...prev, currentQuestion.id]);
-      
+      if (error) throw error;
+
       toast({
-        title: "✨ ¡Gracias!",
-        description: "Esta info mejorará las recomendaciones.",
+        title: "✨ ¡Aprendido!",
+        description: "Esto mejorará las recomendaciones.",
       });
 
+      setQuestionCount(prev => prev + 1);
       onAnswer?.();
+      
+      // Fetch next question automatically
+      fetchQuestion();
     } catch (error) {
       console.error("Error saving answer:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo guardar la respuesta",
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSnooze = () => {
-    if (currentQuestion) {
-      // Move to next question without answering
-      setAnsweredIds(prev => [...prev, currentQuestion.id]);
-    }
+  const handleSkip = () => {
+    // Just fetch a new question without saving
+    fetchQuestion();
   };
+
+  if (loading) {
+    return (
+      <GlassCard className={cn("animate-pulse", variant === "compact" ? "p-4" : "p-6")}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/20 animate-pulse" />
+          <div className="flex-1 space-y-2">
+            <div className="h-4 bg-muted rounded w-3/4" />
+            <div className="h-3 bg-muted rounded w-1/2" />
+          </div>
+        </div>
+      </GlassCard>
+    );
+  }
 
   if (!currentQuestion) {
     return null;
   }
 
-  const CategoryIcon = CATEGORY_ICONS[currentQuestion.category];
+  const CategoryIcon = CATEGORY_ICONS[currentQuestion.category] || HelpCircle;
 
   if (variant === "compact") {
     return (
@@ -175,7 +206,7 @@ export const InboxCard = ({ variant = "full", onAnswer }: InboxCardProps) => {
             </div>
           </div>
           <button
-            onClick={handleSnooze}
+            onClick={handleSkip}
             className="text-muted-foreground hover:text-foreground p-1"
           >
             <X className="w-4 h-4" />
@@ -196,19 +227,24 @@ export const InboxCard = ({ variant = "full", onAnswer }: InboxCardProps) => {
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">Micro-pregunta</h3>
+            <h3 className="font-semibold text-foreground">Conociendo tu negocio</h3>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <CategoryIcon className={cn("w-3 h-3", CATEGORY_COLORS[currentQuestion.category])} />
               {currentQuestion.impact}
             </p>
           </div>
         </div>
-        <button
-          onClick={handleSnooze}
-          className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-secondary transition-colors"
-        >
-          <Clock className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">
+            {questionCount} aprendidos
+          </span>
+          <button
+            onClick={handleSkip}
+            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-secondary transition-colors"
+          >
+            <Clock className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <p className="text-lg font-medium text-foreground mb-4">
@@ -225,7 +261,8 @@ export const InboxCard = ({ variant = "full", onAnswer }: InboxCardProps) => {
               "p-3 rounded-xl text-sm font-medium transition-all text-left",
               "bg-secondary/50 hover:bg-primary hover:text-primary-foreground",
               "border border-transparent hover:border-primary/30",
-              "hover:shadow-md hover:shadow-primary/10"
+              "hover:shadow-md hover:shadow-primary/10",
+              saving && "opacity-50 cursor-not-allowed"
             )}
           >
             {option}
@@ -235,13 +272,13 @@ export const InboxCard = ({ variant = "full", onAnswer }: InboxCardProps) => {
 
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
         <span className="text-xs text-muted-foreground">
-          {SAMPLE_QUESTIONS.length - answeredIds.length} preguntas restantes
+          Cada respuesta personaliza tu asistente
         </span>
         <button
-          onClick={handleSnooze}
+          onClick={handleSkip}
           className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
         >
-          Saltar
+          Otra pregunta
           <ChevronRight className="w-3 h-3" />
         </button>
       </div>

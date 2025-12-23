@@ -38,7 +38,7 @@ async function fetchActionContext(supabase: any, businessId: string) {
     weekAgo.setDate(weekAgo.getDate() - 7);
     const weekAgoStr = weekAgo.toISOString();
 
-    const [checkinsRes, actionsRes, missionsRes] = await Promise.all([
+    const [checkinsRes, actionsRes, missionsRes, insightsRes] = await Promise.all([
       // Recent checkins for traffic patterns
       supabase
         .from("checkins")
@@ -62,12 +62,20 @@ async function fetchActionContext(supabase: any, businessId: string) {
         .eq("business_id", businessId)
         .eq("status", "active")
         .limit(3),
+      // Business insights from micro-questions
+      supabase
+        .from("business_insights")
+        .select("category, question, answer")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(20),
     ]);
 
     return {
       recentCheckins: checkinsRes.data || [],
       recentActions: actionsRes.data || [],
       activeMissions: missionsRes.data || [],
+      businessInsights: insightsRes.data || [],
     };
   } catch (error) {
     console.error("Error fetching action context:", error);
@@ -85,6 +93,14 @@ PAÍS: ${business.country || "AR"}`;
   }
 
   if (context) {
+    // Add business insights from micro-questions
+    if (context.businessInsights?.length > 0) {
+      prompt += "\n\nCONOCIMIENTO DEL NEGOCIO:";
+      context.businessInsights.forEach((insight: any) => {
+        prompt += `\n- ${insight.question}: ${insight.answer}`;
+      });
+    }
+
     if (context.recentCheckins?.length > 0) {
       const avgTraffic = context.recentCheckins.reduce((acc: number, c: any) => acc + (c.traffic_level || 3), 0) / context.recentCheckins.length;
       const lowTrafficSlots = context.recentCheckins.filter((c: any) => c.traffic_level <= 2).map((c: any) => c.slot);

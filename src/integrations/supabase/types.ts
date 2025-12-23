@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_insights: {
+        Row: {
+          answer: string
+          business_id: string
+          category: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          question: string
+        }
+        Insert: {
+          answer: string
+          business_id: string
+          category: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          question: string
+        }
+        Update: {
+          answer?: string
+          business_id?: string
+          category?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          question?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_insights_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           address: string | null
