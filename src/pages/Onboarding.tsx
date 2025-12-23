@@ -113,7 +113,7 @@ const Onboarding = () => {
 
       toast({
         title: "🎉 ¡Negocio creado!",
-        description: "Ya puedes empezar a usar UCEO",
+        description: "Ya puedes empezar a usar tu asistente",
       });
 
       navigate("/app");

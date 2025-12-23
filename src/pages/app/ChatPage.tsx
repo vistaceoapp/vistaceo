@@ -158,10 +158,10 @@ const ChatPage = () => {
           <OwlLogo size={80} className="relative z-10" />
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-3">
-          Hola, soy UCEO
+          Tu asistente de IA
         </h2>
         <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
-          Tu copiloto de IA para gestionar tu negocio gastronómico de manera inteligente.
+          Tu copiloto inteligente para gestionar tu negocio gastronómico de manera eficiente.
         </p>
         <Button variant="hero" size="lg" onClick={() => window.location.href = "/onboarding"}>
           <Sparkles className="w-5 h-5 mr-2" />
@@ -180,9 +180,9 @@ const ChatPage = () => {
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
               <MessageSquare className="w-6 h-6 text-primary" />
-              Chat con UCEO
+              Chat con tu asistente
             </h1>
-            <p className="text-muted-foreground">Tu asistente de IA para {currentBusiness.name}</p>
+            <p className="text-muted-foreground">Asistente de IA para {currentBusiness.name}</p>
           </div>
           {messages.length > 0 && (
             <Button variant="outline" size="sm" onClick={clearChat}>

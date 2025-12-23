@@ -2,3 +2,6 @@ project_id = "nlewrgmcawzcdazhfiyy"
 
 [functions.uceo-chat]
 verify_jwt = true
+
+[functions.generate-action]
+verify_jwt = true
