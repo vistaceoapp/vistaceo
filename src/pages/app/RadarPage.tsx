@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Radar as RadarIcon, TrendingUp, AlertTriangle, Lightbulb, X, Zap, Eye, Sparkles, Target } from "lucide-react";
+import { Radar as RadarIcon, TrendingUp, AlertTriangle, Lightbulb, X, Zap, Eye, Sparkles, Target, ArrowUpRight, BarChart3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Dialog,
   DialogContent,
@@ -24,10 +25,12 @@ interface Opportunity {
   impact_score: number;
   effort_score: number;
   is_converted: boolean;
+  created_at: string;
 }
 
 const RadarPage = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -232,13 +235,12 @@ const RadarPage = () => {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-10 bg-card/50 rounded-xl animate-pulse w-1/2" />
-        <div className="grid grid-cols-3 gap-3">
-          <GlassCard className="h-20 animate-pulse" />
-          <GlassCard className="h-20 animate-pulse" />
-          <GlassCard className="h-20 animate-pulse" />
+        <div className="h-10 bg-card rounded-xl animate-pulse w-1/2" />
+        <div className="grid grid-cols-3 gap-4">
+          <div className="h-24 bg-card rounded-xl animate-pulse" />
+          <div className="h-24 bg-card rounded-xl animate-pulse" />
+          <div className="h-24 bg-card rounded-xl animate-pulse" />
         </div>
-        <GlassCard className="h-32 animate-pulse" />
       </div>
     );
   }
@@ -266,82 +268,260 @@ const RadarPage = () => {
     );
   }
 
+  // Desktop Layout
+  if (!isMobile) {
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+              <RadarIcon className="w-6 h-6 text-accent" />
+              Radar
+            </h1>
+            <p className="text-muted-foreground">Oportunidades de mejora detectadas por UCEO</p>
+          </div>
+          <Button 
+            onClick={generateOpportunities}
+            disabled={actionLoading}
+            className="gradient-primary shadow-lg shadow-primary/20"
+          >
+            <Sparkles className={cn("w-4 h-4 mr-2", actionLoading && "animate-spin")} />
+            {actionLoading ? "Analizando..." : "Escanear con IA"}
+          </Button>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className="dashboard-stat">
+            <div className="flex items-center justify-between mb-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <span className="text-xs text-muted-foreground">Total</span>
+            </div>
+            <div className="text-3xl font-bold text-foreground">{opportunities.length}</div>
+            <div className="text-sm text-muted-foreground">detectadas</div>
+          </div>
+          
+          <div className="dashboard-stat">
+            <div className="flex items-center justify-between mb-2">
+              <TrendingUp className="w-5 h-5 text-success" />
+              <span className="text-xs text-muted-foreground">Alto impacto</span>
+            </div>
+            <div className="text-3xl font-bold text-foreground">{highImpactCount}</div>
+            <div className="text-sm text-muted-foreground">oportunidades</div>
+          </div>
+          
+          <div className="dashboard-stat">
+            <div className="flex items-center justify-between mb-2">
+              <Zap className="w-5 h-5 text-warning" />
+              <span className="text-xs text-muted-foreground">Quick wins</span>
+            </div>
+            <div className="text-3xl font-bold text-foreground">{urgentCount}</div>
+            <div className="text-sm text-muted-foreground">fáciles</div>
+          </div>
+          
+          <div className="dashboard-stat">
+            <div className="flex items-center justify-between mb-2">
+              <Target className="w-5 h-5 text-accent" />
+              <span className="text-xs text-muted-foreground">Convertidas</span>
+            </div>
+            <div className="text-3xl font-bold text-foreground">-</div>
+            <div className="text-sm text-muted-foreground">a misiones</div>
+          </div>
+        </div>
+
+        {/* Opportunities Table */}
+        {opportunities.length === 0 ? (
+          <div className="dashboard-card p-12 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
+              <RadarIcon className="w-8 h-8 text-accent" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">
+              No hay oportunidades detectadas
+            </h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Haz clic en "Escanear con IA" para que UCEO analice tu negocio y encuentre áreas de mejora.
+            </p>
+            <Button 
+              onClick={generateOpportunities}
+              disabled={actionLoading}
+              className="gradient-primary"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Analizar negocio
+            </Button>
+          </div>
+        ) : (
+          <div className="dashboard-card overflow-hidden">
+            <div className="p-4 border-b border-border bg-secondary/30 flex items-center justify-between">
+              <h3 className="font-semibold text-foreground">Oportunidades detectadas</h3>
+              <span className="text-sm text-muted-foreground">{opportunities.length} resultados</span>
+            </div>
+            
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-4 p-4 border-b border-border bg-secondary/20 text-sm font-medium text-muted-foreground">
+              <div className="col-span-1">Fuente</div>
+              <div className="col-span-5">Oportunidad</div>
+              <div className="col-span-2 text-center">Impacto</div>
+              <div className="col-span-2 text-center">Esfuerzo</div>
+              <div className="col-span-2 text-right">Acción</div>
+            </div>
+            
+            {/* Table Rows */}
+            <div className="divide-y divide-border">
+              {opportunities.map((opportunity) => (
+                <div 
+                  key={opportunity.id}
+                  className="grid grid-cols-12 gap-4 p-4 hover:bg-secondary/30 transition-colors items-center"
+                >
+                  <div className="col-span-1">
+                    <span className="text-2xl">{getSourceIcon(opportunity.source)}</span>
+                  </div>
+                  
+                  <div className="col-span-5">
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-foreground truncate">
+                          {opportunity.title}
+                        </h4>
+                        {opportunity.description && (
+                          <p className="text-sm text-muted-foreground truncate mt-0.5">
+                            {opportunity.description}
+                          </p>
+                        )}
+                      </div>
+                      {opportunity.impact_score >= 8 && (
+                        <span className="text-xs font-medium text-warning bg-warning/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+                          Alto
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="col-span-2 text-center">
+                    <div className="inline-flex items-center gap-1">
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div 
+                            key={i} 
+                            className={cn(
+                              "w-2 h-2 rounded-full",
+                              i < Math.ceil(opportunity.impact_score / 2)
+                                ? "bg-success"
+                                : "bg-muted"
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-muted-foreground ml-1">
+                        {opportunity.impact_score}/10
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="col-span-2 text-center">
+                    <div className="inline-flex items-center gap-1">
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div 
+                            key={i} 
+                            className={cn(
+                              "w-2 h-2 rounded-full",
+                              i < Math.ceil(opportunity.effort_score / 2)
+                                ? "bg-warning"
+                                : "bg-muted"
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm text-muted-foreground ml-1">
+                        {opportunity.effort_score}/10
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="col-span-2 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => dismissOpportunity(opportunity.id)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => convertToMission(opportunity)}
+                        disabled={actionLoading}
+                      >
+                        <Target className="w-4 h-4 mr-1" />
+                        Misión
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Mobile Layout (keep existing)
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between animate-fade-in">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <RadarIcon className="w-6 h-6 text-accent" />
             Radar
           </h1>
-          <p className="text-muted-foreground">Oportunidades detectadas por UCEO</p>
+          <p className="text-muted-foreground">Oportunidades detectadas</p>
         </div>
         <Button 
           variant="outline" 
           size="sm"
           onClick={generateOpportunities}
           disabled={actionLoading}
-          className="hover:border-accent/50 hover:bg-accent/10"
         >
-          <RadarIcon className={cn(
-            "w-4 h-4 mr-2",
-            actionLoading && "animate-spin"
-          )} />
-          {actionLoading ? "Analizando..." : "Escanear"}
+          <RadarIcon className={cn("w-4 h-4 mr-2", actionLoading && "animate-spin")} />
+          Escanear
         </Button>
       </div>
 
-      {/* Stats Overview */}
       <div className="grid grid-cols-3 gap-3 animate-fade-in" style={{ animationDelay: "100ms" }}>
         <GlassCard interactive className="p-4 text-center">
-          <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center mx-auto mb-2">
-            <TrendingUp className="w-5 h-5 text-success" />
-          </div>
+          <TrendingUp className="w-5 h-5 text-success mx-auto mb-2" />
           <div className="text-2xl font-bold text-foreground">{opportunities.length}</div>
           <div className="text-xs text-muted-foreground">Detectadas</div>
         </GlassCard>
-        
         <GlassCard interactive className="p-4 text-center">
-          <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center mx-auto mb-2">
-            <Lightbulb className="w-5 h-5 text-warning" />
-          </div>
+          <Lightbulb className="w-5 h-5 text-warning mx-auto mb-2" />
           <div className="text-2xl font-bold text-foreground">{highImpactCount}</div>
           <div className="text-xs text-muted-foreground">Alto impacto</div>
         </GlassCard>
-        
         <GlassCard interactive className="p-4 text-center">
-          <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mx-auto mb-2">
-            <Zap className="w-5 h-5 text-accent" />
-          </div>
+          <Zap className="w-5 h-5 text-accent mx-auto mb-2" />
           <div className="text-2xl font-bold text-foreground">{urgentCount}</div>
           <div className="text-xs text-muted-foreground">Quick wins</div>
         </GlassCard>
       </div>
 
-      {/* Opportunities List */}
       {opportunities.length === 0 ? (
         <GlassCard className="p-8 text-center animate-fade-in" style={{ animationDelay: "200ms" }}>
-          <div className="relative inline-block mb-4">
-            <div className="absolute inset-0 blur-2xl bg-accent/30 rounded-full animate-pulse" />
-            <div className="relative w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center">
-              <RadarIcon className="w-8 h-8 text-accent" />
-            </div>
+          <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-4">
+            <RadarIcon className="w-8 h-8 text-accent" />
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">
-            No hay oportunidades detectadas
+            Sin oportunidades
           </h2>
-          <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-            Haz clic en "Escanear" para que UCEO analice tu negocio y encuentre áreas de mejora.
+          <p className="text-muted-foreground mb-6">
+            Escanea para encontrar áreas de mejora.
           </p>
-          <Button 
-            variant="hero"
-            onClick={generateOpportunities}
-            disabled={actionLoading}
-            className="shadow-lg shadow-primary/30"
-          >
+          <Button onClick={generateOpportunities} disabled={actionLoading}>
             <Sparkles className="w-4 h-4 mr-2" />
-            {actionLoading ? "Analizando..." : "Analizar con IA"}
+            Analizar
           </Button>
         </GlassCard>
       ) : (
@@ -349,92 +529,29 @@ const RadarPage = () => {
           {opportunities.map((opportunity, idx) => (
             <GlassCard
               key={opportunity.id}
-              variant={opportunity.impact_score >= 8 ? "accent" : "default"}
               interactive
-              className="p-5 animate-fade-in"
-              style={{ animationDelay: `${idx * 50}ms` }}
+              className="p-5"
               onClick={() => setSelectedOpportunity(opportunity)}
             >
               <div className="flex items-start gap-4">
-                <div className={cn(
-                  "w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl",
-                  opportunity.impact_score >= 8 ? "bg-warning/20" : "bg-accent/20"
-                )}>
+                <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center text-2xl">
                   {getSourceIcon(opportunity.source)}
                 </div>
-                
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                    <span className="text-xs font-semibold text-accent bg-accent/10 px-2.5 py-1 rounded-full border border-accent/20">
-                      {getSourceLabel(opportunity.source)}
-                    </span>
-                    {opportunity.impact_score >= 8 && (
-                      <span className="text-xs font-semibold text-warning bg-warning/10 px-2.5 py-1 rounded-full border border-warning/20 animate-pulse">
-                        🔥 Alto impacto
-                      </span>
-                    )}
-                    {opportunity.impact_score >= 7 && opportunity.effort_score <= 4 && (
-                      <span className="text-xs font-semibold text-success bg-success/10 px-2.5 py-1 rounded-full border border-success/20">
-                        ⚡ Quick win
-                      </span>
-                    )}
-                  </div>
-                  
-                  <h3 className="font-semibold text-foreground text-lg leading-tight">
-                    {opportunity.title}
-                  </h3>
-                  
+                  <h3 className="font-semibold text-foreground">{opportunity.title}</h3>
                   {opportunity.description && (
-                    <p className="text-muted-foreground line-clamp-2 mt-1 text-sm">
+                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                       {opportunity.description}
                     </p>
                   )}
-
-                  {/* Impact Matrix */}
-                  <div className="flex items-center gap-6 mt-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Impacto</span>
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <div 
-                            key={i} 
-                            className={cn(
-                              "w-2 h-2 rounded-full transition-colors",
-                              i < Math.ceil(opportunity.impact_score / 2)
-                                ? "bg-success shadow-sm shadow-success/50"
-                                : "bg-muted"
-                            )}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Esfuerzo</span>
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <div 
-                            key={i} 
-                            className={cn(
-                              "w-2 h-2 rounded-full transition-colors",
-                              i < Math.ceil(opportunity.effort_score / 2)
-                                ? "bg-warning shadow-sm shadow-warning/50"
-                                : "bg-muted"
-                            )}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
                 </div>
-                
-                <Eye className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                <Eye className="w-5 h-5 text-muted-foreground" />
               </div>
             </GlassCard>
           ))}
         </div>
       )}
 
-      {/* Opportunity Detail Dialog */}
       <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
         <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50">
           {selectedOpportunity && (
@@ -453,32 +570,24 @@ const RadarPage = () => {
               </DialogHeader>
 
               <div className="grid grid-cols-2 gap-4 mt-4">
-                <GlassCard className="p-4 text-center bg-success/5 border-success/20">
+                <GlassCard className="p-4 text-center">
                   <div className="text-3xl font-bold text-success">{selectedOpportunity.impact_score}/10</div>
-                  <div className="text-xs text-muted-foreground mt-1">Impacto potencial</div>
+                  <div className="text-xs text-muted-foreground mt-1">Impacto</div>
                 </GlassCard>
-                <GlassCard className="p-4 text-center bg-warning/5 border-warning/20">
+                <GlassCard className="p-4 text-center">
                   <div className="text-3xl font-bold text-warning">{selectedOpportunity.effort_score}/10</div>
-                  <div className="text-xs text-muted-foreground mt-1">Esfuerzo requerido</div>
+                  <div className="text-xs text-muted-foreground mt-1">Esfuerzo</div>
                 </GlassCard>
               </div>
 
               <div className="flex gap-3 mt-6">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => dismissOpportunity(selectedOpportunity.id)}
-                >
+                <Button variant="outline" className="flex-1" onClick={() => dismissOpportunity(selectedOpportunity.id)}>
                   <X className="w-4 h-4 mr-2" />
                   Descartar
                 </Button>
-                <Button 
-                  className="flex-1 gradient-primary shadow-lg shadow-primary/30"
-                  onClick={() => convertToMission(selectedOpportunity)}
-                  disabled={actionLoading}
-                >
+                <Button className="flex-1 gradient-primary" onClick={() => convertToMission(selectedOpportunity)} disabled={actionLoading}>
                   <Target className="w-4 h-4 mr-2" />
-                  {actionLoading ? "Creando..." : "Crear misión"}
+                  Crear misión
                 </Button>
               </div>
             </>

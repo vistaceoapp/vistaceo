@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Mic, Camera, Sparkles, MessageCircle } from "lucide-react";
+import { Send, Mic, Camera, Sparkles, Plus, MessageSquare, Trash2 } from "lucide-react";
 import { OwlLogo } from "@/components/ui/OwlLogo";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { GlassCard } from "@/components/app/GlassCard";
 import { TypingIndicator } from "@/components/app/TypingIndicator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Message {
   id: string;
@@ -17,8 +18,18 @@ interface Message {
   created_at: string;
 }
 
+const SUGGESTIONS = [
+  { icon: "📊", text: "¿Cómo puedo mejorar mis ventas?", category: "Ventas" },
+  { icon: "⭐", text: "Analiza mis últimas reseñas", category: "Reputación" },
+  { icon: "💡", text: "Dame ideas para promocionar el almuerzo", category: "Marketing" },
+  { icon: "📈", text: "¿Qué métricas debería seguir?", category: "Análisis" },
+  { icon: "👥", text: "Consejos para retener empleados", category: "Equipo" },
+  { icon: "💰", text: "¿Cómo reducir costos sin afectar calidad?", category: "Finanzas" },
+];
+
 const ChatPage = () => {
   const { currentBusiness } = useBusiness();
+  const isMobile = useIsMobile();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,17 +63,17 @@ const ChatPage = () => {
     }
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || !currentBusiness || loading) return;
+  const sendMessage = async (messageText?: string) => {
+    const textToSend = messageText || input.trim();
+    if (!textToSend || !currentBusiness || loading) return;
 
-    const userMessage = input.trim();
     setInput("");
     setLoading(true);
 
     const tempUserMsg: Message = {
       id: `temp-${Date.now()}`,
       role: "user",
-      content: userMessage,
+      content: textToSend,
       created_at: new Date().toISOString(),
     };
     setMessages(prev => [...prev, tempUserMsg]);
@@ -71,7 +82,7 @@ const ChatPage = () => {
       await supabase.from("chat_messages").insert({
         business_id: currentBusiness.id,
         role: "user",
-        content: userMessage,
+        content: textToSend,
       });
 
       const messagesForAI = [...messages, tempUserMsg].map(m => ({
@@ -123,11 +134,21 @@ const ChatPage = () => {
     }
   };
 
-  const quickActions = [
-    { icon: "📊", text: "¿Cómo van mis ventas?" },
-    { icon: "💡", text: "Ideas para el almuerzo" },
-    { icon: "⭐", text: "Analiza mis reseñas" },
-  ];
+  const clearChat = async () => {
+    if (!currentBusiness) return;
+    
+    try {
+      await supabase
+        .from("chat_messages")
+        .delete()
+        .eq("business_id", currentBusiness.id);
+      
+      setMessages([]);
+      toast({ title: "Conversación borrada" });
+    } catch (error) {
+      console.error("Error clearing chat:", error);
+    }
+  };
 
   if (!currentBusiness) {
     return (
@@ -150,13 +171,168 @@ const ChatPage = () => {
     );
   }
 
+  // Desktop Layout - ChatGPT Style
+  if (!isMobile) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-120px)]">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+              <MessageSquare className="w-6 h-6 text-primary" />
+              Chat con UCEO
+            </h1>
+            <p className="text-muted-foreground">Tu asistente de IA para {currentBusiness.name}</p>
+          </div>
+          {messages.length > 0 && (
+            <Button variant="outline" size="sm" onClick={clearChat}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Nueva conversación
+            </Button>
+          )}
+        </div>
+
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto rounded-xl border border-border bg-card/50 p-6">
+          {messages.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center">
+              <div className="relative mb-8">
+                <div className="absolute inset-0 blur-3xl bg-primary/20 rounded-full" />
+                <OwlLogo size={80} className="relative z-10" />
+              </div>
+              
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                ¿En qué puedo ayudarte hoy?
+              </h2>
+              <p className="text-muted-foreground mb-10 max-w-md text-center">
+                Pregúntame sobre tu negocio, estrategias de venta, marketing, operaciones o cualquier desafío que enfrentes.
+              </p>
+              
+              {/* Suggestions Grid */}
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 max-w-3xl w-full">
+                {SUGGESTIONS.map((suggestion, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => sendMessage(suggestion.text)}
+                    className={cn(
+                      "group p-4 rounded-xl border border-border bg-card text-left",
+                      "hover:border-primary/30 hover:shadow-md hover:bg-secondary/50",
+                      "transition-all duration-200"
+                    )}
+                  >
+                    <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">
+                      {suggestion.icon}
+                    </span>
+                    <p className="text-sm font-medium text-foreground line-clamp-2">
+                      {suggestion.text}
+                    </p>
+                    <span className="text-xs text-muted-foreground mt-2 block">
+                      {suggestion.category}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6 max-w-3xl mx-auto">
+              {messages.map((message, idx) => (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "flex gap-4 animate-fade-in",
+                    message.role === "user" ? "flex-row-reverse" : "flex-row"
+                  )}
+                  style={{ animationDelay: `${idx * 30}ms` }}
+                >
+                  {/* Avatar */}
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
+                    message.role === "user" 
+                      ? "bg-primary/10 text-primary"
+                      : "gradient-primary"
+                  )}>
+                    {message.role === "user" ? (
+                      <span className="text-sm font-bold">
+                        {currentBusiness.name.charAt(0).toUpperCase()}
+                      </span>
+                    ) : (
+                      <OwlLogo size={24} />
+                    )}
+                  </div>
+                  
+                  {/* Message */}
+                  <div className={cn(
+                    "flex-1 max-w-[80%]",
+                    message.role === "user" && "text-right"
+                  )}>
+                    <div className={cn(
+                      "inline-block rounded-2xl px-5 py-3",
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-foreground"
+                    )}>
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.content}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 px-2">
+                      {new Date(message.created_at).toLocaleTimeString("es", { 
+                        hour: "2-digit", 
+                        minute: "2-digit" 
+                      })}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              
+              {loading && (
+                <div className="flex gap-4 animate-fade-in">
+                  <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
+                    <OwlLogo size={24} />
+                  </div>
+                  <div className="bg-secondary rounded-2xl px-5 py-4">
+                    <TypingIndicator />
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <div className="mt-4">
+          <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card shadow-sm">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Escribe tu mensaje..."
+              className="flex-1 border-0 bg-transparent focus-visible:ring-0 text-base"
+            />
+            <Button 
+              onClick={() => sendMessage()} 
+              disabled={!input.trim() || loading}
+              className="gradient-primary shadow-lg shadow-primary/20 hover:shadow-primary/40 px-6"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Enviar
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            UCEO puede cometer errores. Considera verificar información importante.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile Layout
   return (
     <div className="flex flex-col h-[calc(100vh-180px)]">
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-4 pb-4 px-1">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            {/* Animated Logo */}
             <div className="relative mb-6">
               <div className="absolute inset-0 blur-3xl bg-primary/20 rounded-full animate-glow-pulse" />
               <div className="relative">
@@ -171,12 +347,11 @@ const ChatPage = () => {
               Pregúntame sobre tu negocio, ventas, reseñas o pídeme ideas creativas.
             </p>
             
-            {/* Quick Actions */}
             <div className="flex flex-wrap gap-3 justify-center max-w-sm">
-              {quickActions.map((action, idx) => (
+              {SUGGESTIONS.slice(0, 3).map((action, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setInput(action.text)}
+                  onClick={() => sendMessage(action.text)}
                   className={cn(
                     "group relative px-4 py-3 rounded-2xl",
                     "bg-card/80 backdrop-blur-sm border border-border/50",
@@ -268,7 +443,7 @@ const ChatPage = () => {
             </Button>
             
             <Button 
-              onClick={sendMessage} 
+              onClick={() => sendMessage()} 
               disabled={!input.trim() || loading}
               size="icon"
               className={cn(
