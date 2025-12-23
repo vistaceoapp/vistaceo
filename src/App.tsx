@@ -2,11 +2,74 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { BusinessProvider } from "@/contexts/BusinessContext";
+
+// Pages
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
+// App Pages
+import AppLayout from "./layouts/AppLayout";
+import TodayPage from "./pages/app/TodayPage";
+import ChatPage from "./pages/app/ChatPage";
+import MissionsPage from "./pages/app/MissionsPage";
+import RadarPage from "./pages/app/RadarPage";
+import MorePage from "./pages/app/MorePage";
+
 const queryClient = new QueryClient();
+
+// Protected route wrapper
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AppRoutes = () => {
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<Index />} />
+      <Route path="/auth" element={<Auth />} />
+
+      {/* Protected app routes */}
+      <Route
+        path="/app"
+        element={
+          <ProtectedRoute>
+            <BusinessProvider>
+              <AppLayout />
+            </BusinessProvider>
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<TodayPage />} />
+        <Route path="chat" element={<ChatPage />} />
+        <Route path="missions" element={<MissionsPage />} />
+        <Route path="radar" element={<RadarPage />} />
+        <Route path="more" element={<MorePage />} />
+      </Route>
+
+      {/* Catch-all */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -14,11 +77,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
