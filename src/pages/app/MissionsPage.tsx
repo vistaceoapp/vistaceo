@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Target, ChevronRight, Plus, Check, Zap, TrendingUp, Clock, Play, Pause } from "lucide-react";
+import { Target, ChevronRight, Plus, Check, Zap, TrendingUp, Clock, Play, Pause, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { GlassCard } from "@/components/app/GlassCard";
+import { ProgressRing } from "@/components/app/ProgressRing";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +37,7 @@ const SUGGESTED_MISSIONS = [
   { 
     title: "Mejora tus reseñas en Google", 
     area: "Reputación", 
+    icon: "⭐",
     description: "Aumenta tu rating promedio respondiendo a reseñas y pidiendo feedback a clientes satisfechos.",
     impact: 8, 
     effort: 4,
@@ -48,6 +51,7 @@ const SUGGESTED_MISSIONS = [
   { 
     title: "Optimiza tu menú digital", 
     area: "Marketing", 
+    icon: "📱",
     description: "Mejora las fotos, descripciones y estructura de tu menú para aumentar el ticket promedio.",
     impact: 7, 
     effort: 5,
@@ -61,6 +65,7 @@ const SUGGESTED_MISSIONS = [
   { 
     title: "Reduce tiempos de espera", 
     area: "Operaciones", 
+    icon: "⚡",
     description: "Analiza y mejora el flujo de trabajo para reducir el tiempo desde el pedido hasta la entrega.",
     impact: 9, 
     effort: 6,
@@ -133,7 +138,7 @@ const MissionsPage = () => {
       if (error) throw error;
 
       toast({
-        title: "¡Misión iniciada!",
+        title: "🚀 ¡Misión iniciada!",
         description: `"${suggestion.title}" añadida a tus misiones activas.`,
       });
 
@@ -157,7 +162,6 @@ const MissionsPage = () => {
     const steps = [...((mission.steps || []) as Step[])];
     steps[stepIndex] = { ...steps[stepIndex], done: !steps[stepIndex].done };
     
-    // Update current_step to the first incomplete step
     let newCurrentStep = steps.findIndex(s => !s.done);
     if (newCurrentStep === -1) newCurrentStep = steps.length;
 
@@ -200,7 +204,7 @@ const MissionsPage = () => {
       if (error) throw error;
 
       toast({
-        title: newStatus === "active" ? "Misión reactivada" : "Misión pausada",
+        title: newStatus === "active" ? "▶️ Misión reactivada" : "⏸️ Misión pausada",
       });
 
       fetchMissions();
@@ -211,10 +215,10 @@ const MissionsPage = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-8 bg-secondary rounded w-1/2" />
-        <div className="h-32 bg-card rounded-2xl" />
-        <div className="h-32 bg-card rounded-2xl" />
+      <div className="space-y-4">
+        <div className="h-10 bg-card/50 rounded-xl animate-pulse w-1/2" />
+        <GlassCard className="h-32 animate-pulse" />
+        <GlassCard className="h-32 animate-pulse" />
       </div>
     );
   }
@@ -222,16 +226,20 @@ const MissionsPage = () => {
   if (!currentBusiness) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mb-4">
-          <Target className="w-8 h-8 text-primary-foreground" />
+        <div className="relative mb-6">
+          <div className="absolute inset-0 blur-3xl bg-primary/30 rounded-full animate-pulse" />
+          <div className="relative w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
+            <Target className="w-10 h-10 text-primary-foreground" />
+          </div>
         </div>
-        <h2 className="text-xl font-bold text-foreground mb-2">
+        <h2 className="text-2xl font-bold text-foreground mb-3">
           Misiones guiadas
         </h2>
-        <p className="text-muted-foreground mb-6 max-w-sm">
-          Configura tu negocio para desbloquear misiones personalizadas.
+        <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
+          Configura tu negocio para desbloquear misiones personalizadas de mejora continua.
         </p>
-        <Button variant="hero" onClick={() => navigate("/onboarding")}>
+        <Button variant="hero" size="lg" onClick={() => navigate("/onboarding")}>
+          <Sparkles className="w-5 h-5 mr-2" />
           Configurar negocio
         </Button>
       </div>
@@ -241,96 +249,90 @@ const MissionsPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Misiones</h1>
-          <p className="text-muted-foreground">Mejoras guiadas paso a paso</p>
-        </div>
+      <div className="animate-fade-in">
+        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <Target className="w-6 h-6 text-primary" />
+          Misiones
+        </h1>
+        <p className="text-muted-foreground">Mejoras guiadas paso a paso</p>
       </div>
 
       {/* Active Missions */}
       {missions.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-            Misiones activas ({missions.length})
+        <div className="space-y-4 animate-fade-in" style={{ animationDelay: "100ms" }}>
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            Activas ({missions.length})
           </h2>
-          {missions.map((mission) => {
+          
+          {missions.map((mission, idx) => {
             const steps = (mission.steps || []) as Step[];
             const completedSteps = steps.filter(s => s.done).length;
             const progress = steps.length > 0 ? (completedSteps / steps.length) * 100 : 0;
 
             return (
-              <div
+              <GlassCard
                 key={mission.id}
-                className="bg-card border border-border rounded-2xl p-5 hover:border-primary/30 transition-all cursor-pointer group"
+                variant={mission.status === "active" ? "glow" : "default"}
+                interactive
+                className="p-5 animate-fade-in"
+                style={{ animationDelay: `${idx * 50}ms` }}
                 onClick={() => setSelectedMission(mission)}
               >
                 <div className="flex items-start gap-4">
-                  <div className={cn(
-                    "w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105",
-                    mission.status === "active" ? "gradient-primary shadow-lg" : "bg-muted"
-                  )}>
+                  <ProgressRing 
+                    progress={progress} 
+                    size={56} 
+                    strokeWidth={4}
+                    showGlow={mission.status === "active"}
+                  >
                     <Target className={cn(
-                      "w-7 h-7",
-                      mission.status === "active" ? "text-primary-foreground" : "text-muted-foreground"
+                      "w-5 h-5",
+                      mission.status === "active" ? "text-primary" : "text-muted-foreground"
                     )} />
-                  </div>
+                  </ProgressRing>
+                  
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1.5">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       {mission.area && (
-                        <span className="text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
+                        <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
                           {mission.area}
                         </span>
                       )}
                       <span className={cn(
                         "text-xs font-medium px-2.5 py-1 rounded-full",
                         mission.status === "active" 
-                          ? "bg-success/20 text-success"
+                          ? "bg-success/20 text-success border border-success/30"
                           : "bg-muted text-muted-foreground"
                       )}>
                         {mission.status === "active" ? "Activa" : "Pausada"}
                       </span>
                     </div>
-                    <h3 className="font-semibold text-foreground text-lg">
+                    
+                    <h3 className="font-semibold text-foreground text-lg leading-tight">
                       {mission.title}
                     </h3>
                     
-                    {/* Progress */}
-                    <div className="mt-3">
-                      <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="text-muted-foreground">
-                          {completedSteps} de {steps.length} pasos
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="text-xs text-muted-foreground">
+                        {completedSteps} de {steps.length} pasos
+                      </div>
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className="flex items-center gap-1 text-success">
+                          <TrendingUp className="w-3 h-3" />
+                          {mission.impact_score}/10
                         </span>
-                        <span className="text-foreground font-bold">
-                          {Math.round(progress)}%
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          {mission.effort_score}/10
                         </span>
                       </div>
-                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <div 
-                          className={cn(
-                            "h-full rounded-full transition-all",
-                            mission.status === "active" ? "bg-primary" : "bg-muted-foreground"
-                          )}
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Impact/Effort */}
-                    <div className="flex items-center gap-4 mt-3 text-xs">
-                      <span className="flex items-center gap-1 text-success">
-                        <TrendingUp className="w-3 h-3" />
-                        Impacto {mission.impact_score}/10
-                      </span>
-                      <span className="flex items-center gap-1 text-muted-foreground">
-                        <Clock className="w-3 h-3" />
-                        Esfuerzo {mission.effort_score}/10
-                      </span>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0 group-hover:text-primary transition-colors" />
+                  
+                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                 </div>
-              </div>
+              </GlassCard>
             );
           })}
         </div>
@@ -338,9 +340,12 @@ const MissionsPage = () => {
 
       {/* No Active Missions */}
       {missions.length === 0 && (
-        <div className="bg-card border border-border rounded-2xl p-8 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4">
-            <Target className="w-8 h-8 text-primary" />
+        <GlassCard className="p-8 text-center animate-fade-in" style={{ animationDelay: "100ms" }}>
+          <div className="relative inline-block mb-4">
+            <div className="absolute inset-0 blur-2xl bg-primary/30 rounded-full animate-pulse" />
+            <div className="relative w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
+              <Target className="w-8 h-8 text-primary" />
+            </div>
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">
             No tienes misiones activas
@@ -348,41 +353,46 @@ const MissionsPage = () => {
           <p className="text-muted-foreground mb-4 max-w-sm mx-auto">
             Las misiones son mejoras guiadas que te ayudan a alcanzar objetivos específicos.
           </p>
-        </div>
+        </GlassCard>
       )}
 
       {/* Suggested Missions */}
-      <div>
-        <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">
+      <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
+        <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-primary" />
           Sugeridas para ti
         </h2>
-        <div className="grid gap-4">
+        
+        <div className="space-y-4">
           {SUGGESTED_MISSIONS.filter(s => 
             !missions.some(m => m.title === s.title)
           ).map((suggestion, idx) => (
-            <div
+            <GlassCard
               key={idx}
-              className="bg-card/50 border border-dashed border-border rounded-xl p-5 hover:border-primary/30 hover:bg-card transition-all group"
+              className="p-5 border-dashed animate-fade-in"
+              style={{ animationDelay: `${(idx + 3) * 50}ms` }}
             >
               <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                    {suggestion.area}
-                  </span>
-                  <h3 className="font-semibold text-foreground mt-2 text-lg">{suggestion.title}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{suggestion.description}</p>
-                  <div className="flex items-center gap-4 mt-3 text-xs">
-                    <span className="flex items-center gap-1 text-success">
-                      <TrendingUp className="w-3 h-3" />
-                      Impacto {suggestion.impact}/10
+                <div className="flex items-start gap-4 flex-1">
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center text-2xl flex-shrink-0">
+                    {suggestion.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs font-semibold text-accent bg-accent/10 px-2 py-1 rounded-full">
+                      {suggestion.area}
                     </span>
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      Esfuerzo {suggestion.effort}/10
-                    </span>
-                    <span className="text-muted-foreground">
-                      {suggestion.steps.length} pasos
-                    </span>
+                    <h3 className="font-semibold text-foreground mt-2 text-lg">{suggestion.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{suggestion.description}</p>
+                    <div className="flex items-center gap-4 mt-3 text-xs">
+                      <span className="flex items-center gap-1 text-success">
+                        <TrendingUp className="w-3 h-3" />
+                        Impacto {suggestion.impact}/10
+                      </span>
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        {suggestion.steps.length} pasos
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <Button 
@@ -396,20 +406,20 @@ const MissionsPage = () => {
                   Iniciar
                 </Button>
               </div>
-            </div>
+            </GlassCard>
           ))}
         </div>
       </div>
 
       {/* Mission Detail Dialog */}
       <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50">
           {selectedMission && (
             <>
               <DialogHeader>
                 <div className="flex items-center gap-2 mb-2">
                   {selectedMission.area && (
-                    <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                    <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
                       {selectedMission.area}
                     </span>
                   )}
@@ -427,14 +437,16 @@ const MissionsPage = () => {
                     key={idx}
                     onClick={() => toggleStep(selectedMission.id, idx)}
                     className={cn(
-                      "flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors",
-                      step.done ? "bg-success/10" : "bg-secondary hover:bg-secondary/80"
+                      "flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all",
+                      step.done 
+                        ? "bg-success/10 border border-success/20" 
+                        : "bg-secondary/50 hover:bg-secondary border border-transparent hover:border-primary/20"
                     )}
                   >
                     <div className={cn(
-                      "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+                      "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
                       step.done 
-                        ? "bg-success border-success" 
+                        ? "bg-success border-success shadow-lg shadow-success/30" 
                         : "border-muted-foreground/30 hover:border-primary"
                     )}>
                       {step.done && <Check className="w-4 h-4 text-white" />}
@@ -468,7 +480,7 @@ const MissionsPage = () => {
                   )}
                 </Button>
                 <Button 
-                  className="flex-1"
+                  className="flex-1 gradient-primary"
                   onClick={() => setSelectedMission(null)}
                 >
                   Cerrar
