@@ -62,7 +62,8 @@ export const PricingSection = () => {
   return (
     <section id="pricing" className="py-24 sm:py-32 relative">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-card/30 to-background" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-card/20 to-background" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px]" />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         {/* Section header */}
@@ -85,16 +86,16 @@ export const PricingSection = () => {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative bg-card border rounded-2xl p-8 flex flex-col ${
+              className={`relative bg-card border rounded-2xl p-8 flex flex-col transition-all duration-300 ${
                 plan.popular
-                  ? "border-primary shadow-lg glow-primary"
-                  : "border-border"
+                  ? "border-primary/50 shadow-lg glow-primary"
+                  : "border-border hover:border-primary/30"
               }`}
             >
               {/* Popular badge */}
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <div className="flex items-center gap-1 px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                  <div className="flex items-center gap-1 px-4 py-1.5 rounded-full gradient-primary text-primary-foreground text-xs font-semibold shadow-lg">
                     <Sparkles className="w-3 h-3" />
                     Más popular
                   </div>

@@ -29,9 +29,9 @@ const testimonials = [
 
 export const TestimonialsSection = () => {
   return (
-    <section className="py-24 sm:py-32 bg-card/30 relative overflow-hidden">
+    <section className="py-24 sm:py-32 bg-card/20 relative overflow-hidden">
       {/* Background accent */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-[150px]" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[150px]" />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         {/* Section header */}
@@ -50,12 +50,12 @@ export const TestimonialsSection = () => {
           {testimonials.map((testimonial) => (
             <div
               key={testimonial.name}
-              className="bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-colors duration-300"
+              className="bg-card border border-border rounded-2xl p-6 hover:border-primary/30 transition-all duration-300 neon-border-hover"
             >
               {/* Rating */}
               <div className="flex gap-1 mb-4">
                 {Array.from({ length: testimonial.rating }).map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-warning text-warning" />
+                  <Star key={i} className="w-4 h-4 fill-primary text-primary" />
                 ))}
               </div>
 
@@ -69,7 +69,7 @@ export const TestimonialsSection = () => {
                 <img
                   src={testimonial.image}
                   alt={testimonial.name}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-primary/30"
                 />
                 <div>
                   <div className="font-semibold text-foreground">

@@ -1,4 +1,5 @@
 import { Globe } from "lucide-react";
+import { OwlLogo } from "@/components/ui/OwlLogo";
 
 const footerLinks = {
   producto: [
@@ -36,16 +37,14 @@ const countries = [
 
 export const Footer = () => {
   return (
-    <footer className="bg-card border-t border-border">
+    <footer className="bg-card/50 border-t border-border">
       <div className="container mx-auto px-4 sm:px-6 py-16">
         {/* Main footer */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2">
-            <a href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">U</span>
-              </div>
+            <a href="/" className="flex items-center gap-3 mb-4">
+              <OwlLogo size={36} />
               <span className="text-xl font-bold text-foreground tracking-tight">UCEO</span>
             </a>
             <p className="text-sm text-muted-foreground mb-4 max-w-xs">
@@ -62,7 +61,7 @@ export const Footer = () => {
               {countries.map((country) => (
                 <span
                   key={country.code}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                 >
                   {country.code}
                 </span>
@@ -78,7 +77,7 @@ export const Footer = () => {
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
                   </a>
@@ -94,7 +93,7 @@ export const Footer = () => {
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
                   </a>
@@ -110,7 +109,7 @@ export const Footer = () => {
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
                   </a>
@@ -126,7 +125,7 @@ export const Footer = () => {
                 <li key={link.label}>
                   <a
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
                   </a>
@@ -142,13 +141,13 @@ export const Footer = () => {
             © {new Date().getFullYear()} UCEO. Todos los derechos reservados.
           </p>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Twitter
             </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               LinkedIn
             </a>
-            <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Instagram
             </a>
           </div>
