@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Mic, Camera, Loader2 } from "lucide-react";
+import { Send, Mic, Camera, Sparkles, MessageCircle } from "lucide-react";
 import { OwlLogo } from "@/components/ui/OwlLogo";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { GlassCard } from "@/components/app/GlassCard";
+import { TypingIndicator } from "@/components/app/TypingIndicator";
 
 interface Message {
   id: string;
@@ -57,7 +59,6 @@ const ChatPage = () => {
     setInput("");
     setLoading(true);
 
-    // Add user message locally first
     const tempUserMsg: Message = {
       id: `temp-${Date.now()}`,
       role: "user",
@@ -67,20 +68,17 @@ const ChatPage = () => {
     setMessages(prev => [...prev, tempUserMsg]);
 
     try {
-      // Save user message
       await supabase.from("chat_messages").insert({
         business_id: currentBusiness.id,
         role: "user",
         content: userMessage,
       });
 
-      // Get all messages for context
       const messagesForAI = [...messages, tempUserMsg].map(m => ({
         role: m.role,
         content: m.content
       }));
 
-      // Call AI edge function
       const { data: aiData, error: aiError } = await supabase.functions.invoke("uceo-chat", {
         body: {
           messages: messagesForAI,
@@ -126,22 +124,26 @@ const ChatPage = () => {
   };
 
   const quickActions = [
-    "¿Cómo van mis ventas hoy?",
-    "Dame ideas para promocionar el almuerzo",
-    "Analiza mis últimas reseñas",
+    { icon: "📊", text: "¿Cómo van mis ventas?" },
+    { icon: "💡", text: "Ideas para el almuerzo" },
+    { icon: "⭐", text: "Analiza mis reseñas" },
   ];
 
   if (!currentBusiness) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <OwlLogo size={64} className="mb-4" />
-        <h2 className="text-xl font-bold text-foreground mb-2">
+        <div className="relative mb-6">
+          <div className="absolute inset-0 blur-2xl bg-primary/30 rounded-full animate-pulse" />
+          <OwlLogo size={80} className="relative z-10" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground mb-3">
           Hola, soy UCEO
         </h2>
-        <p className="text-muted-foreground mb-6 max-w-sm">
-          Primero necesitas configurar tu negocio para poder ayudarte.
+        <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
+          Tu copiloto de IA para gestionar tu negocio gastronómico de manera inteligente.
         </p>
-        <Button variant="hero" onClick={() => window.location.href = "/onboarding"}>
+        <Button variant="hero" size="lg" onClick={() => window.location.href = "/onboarding"}>
+          <Sparkles className="w-5 h-5 mr-2" />
           Configurar negocio
         </Button>
       </div>
@@ -151,59 +153,85 @@ const ChatPage = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-180px)]">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+      <div className="flex-1 overflow-y-auto space-y-4 pb-4 px-1">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <OwlLogo size={64} className="mb-4" />
-            <h2 className="text-xl font-bold text-foreground mb-2">
+            {/* Animated Logo */}
+            <div className="relative mb-6">
+              <div className="absolute inset-0 blur-3xl bg-primary/20 rounded-full animate-glow-pulse" />
+              <div className="relative">
+                <OwlLogo size={72} className="animate-float" />
+              </div>
+            </div>
+            
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               ¿En qué puedo ayudarte?
             </h2>
-            <p className="text-muted-foreground mb-6 max-w-sm">
-              Pregúntame sobre tu negocio, ventas, reseñas o pídeme ideas.
+            <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
+              Pregúntame sobre tu negocio, ventas, reseñas o pídeme ideas creativas.
             </p>
-            <div className="flex flex-wrap gap-2 justify-center">
+            
+            {/* Quick Actions */}
+            <div className="flex flex-wrap gap-3 justify-center max-w-sm">
               {quickActions.map((action, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setInput(action)}
-                  className="text-sm px-4 py-2 rounded-full bg-secondary border border-border hover:border-primary/30 text-foreground transition-colors"
+                  onClick={() => setInput(action.text)}
+                  className={cn(
+                    "group relative px-4 py-3 rounded-2xl",
+                    "bg-card/80 backdrop-blur-sm border border-border/50",
+                    "hover:border-primary/40 hover:shadow-[0_0_20px_-5px_hsl(var(--primary)/0.3)]",
+                    "transition-all duration-300",
+                    "text-sm font-medium text-foreground",
+                    "animate-fade-in"
+                  )}
+                  style={{ animationDelay: `${idx * 100}ms` }}
                 >
-                  {action}
+                  <span className="mr-2">{action.icon}</span>
+                  {action.text}
                 </button>
               ))}
             </div>
           </div>
         ) : (
           <>
-            {messages.map((message) => (
+            {messages.map((message, idx) => (
               <div
                 key={message.id}
                 className={cn(
-                  "flex gap-3",
+                  "flex gap-3 animate-fade-in",
                   message.role === "user" ? "justify-end" : "justify-start"
                 )}
+                style={{ animationDelay: `${idx * 30}ms` }}
               >
                 {message.role === "assistant" && (
-                  <OwlLogo size={32} className="flex-shrink-0 mt-1" />
+                  <div className="relative flex-shrink-0">
+                    <div className="absolute inset-0 blur-lg bg-primary/20 rounded-full" />
+                    <OwlLogo size={36} className="relative z-10" />
+                  </div>
                 )}
                 <div
                   className={cn(
-                    "max-w-[80%] rounded-2xl px-4 py-3",
+                    "max-w-[80%] rounded-2xl px-4 py-3 backdrop-blur-sm",
                     message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-card border border-border text-foreground"
+                      ? "gradient-primary text-primary-foreground shadow-lg shadow-primary/20"
+                      : "bg-card/90 border border-border/50 text-foreground shadow-lg shadow-background/30"
                   )}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                 </div>
               </div>
             ))}
+            
             {loading && (
-              <div className="flex gap-3 justify-start">
-                <OwlLogo size={32} className="flex-shrink-0 mt-1" />
-                <div className="bg-card border border-border rounded-2xl px-4 py-3">
-                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              <div className="flex gap-3 justify-start animate-fade-in">
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 blur-lg bg-primary/30 rounded-full animate-pulse" />
+                  <OwlLogo size={36} className="relative z-10" />
                 </div>
+                <GlassCard className="px-5 py-4">
+                  <TypingIndicator />
+                </GlassCard>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -211,31 +239,50 @@ const ChatPage = () => {
         )}
       </div>
 
-      {/* Input */}
-      <div className="sticky bottom-0 bg-background pt-4">
-        <div className="flex items-center gap-2 bg-card border border-border rounded-2xl p-2">
-          <Button variant="ghost" size="icon" className="flex-shrink-0">
-            <Camera className="w-5 h-5 text-muted-foreground" />
-          </Button>
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Escribe un mensaje..."
-            className="flex-1 border-0 bg-transparent focus-visible:ring-0"
-          />
-          <Button variant="ghost" size="icon" className="flex-shrink-0">
-            <Mic className="w-5 h-5 text-muted-foreground" />
-          </Button>
-          <Button 
-            onClick={sendMessage} 
-            disabled={!input.trim() || loading}
-            size="icon"
-            className="flex-shrink-0"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
+      {/* Input Area */}
+      <div className="sticky bottom-0 pt-4 pb-2">
+        <GlassCard variant="elevated" className="p-2">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="flex-shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
+            >
+              <Camera className="w-5 h-5" />
+            </Button>
+            
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Escribe un mensaje..."
+              className="flex-1 border-0 bg-transparent focus-visible:ring-0 text-foreground placeholder:text-muted-foreground"
+            />
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="flex-shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
+            >
+              <Mic className="w-5 h-5" />
+            </Button>
+            
+            <Button 
+              onClick={sendMessage} 
+              disabled={!input.trim() || loading}
+              size="icon"
+              className={cn(
+                "flex-shrink-0 gradient-primary",
+                "shadow-lg shadow-primary/30",
+                "hover:shadow-primary/50 hover:scale-105",
+                "disabled:opacity-50 disabled:shadow-none disabled:scale-100",
+                "transition-all duration-200"
+              )}
+            >
+              <Send className="w-4 h-4 text-primary-foreground" />
+            </Button>
+          </div>
+        </GlassCard>
       </div>
     </div>
   );
