@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
-import heroBg from "@/assets/hero-bg.jpg";
+import heroBg from "@/assets/hero-bg-violet.jpg";
 
 export const HeroSection = () => {
   const features = [
@@ -13,18 +13,19 @@ export const HeroSection = () => {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Background */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
         style={{ backgroundImage: `url(${heroBg})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background" />
 
-      {/* Glow effect */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 rounded-full blur-[120px]" />
+      {/* Animated glow orbs */}
+      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[150px] animate-pulse-slow" />
+      <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-accent/15 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '1s' }} />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary mb-8 animate-fade-up">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary mb-8 animate-fade-up neon-border">
             <Sparkles className="w-4 h-4" />
             <span className="text-sm font-medium">Tu CEO digital con IA</span>
           </div>
@@ -48,7 +49,7 @@ export const HeroSection = () => {
             {features.map((feature) => (
               <div
                 key={feature}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-border text-sm text-foreground"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 border border-primary/20 text-sm text-foreground"
               >
                 <CheckCircle2 className="w-4 h-4 text-primary" />
                 {feature}
@@ -77,17 +78,17 @@ export const HeroSection = () => {
         <div className="mt-16 max-w-xl mx-auto animate-fade-up">
           <div className="relative">
             {/* Glow behind card */}
-            <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-2xl" />
+            <div className="absolute inset-0 bg-primary/30 rounded-2xl blur-2xl animate-glow-pulse" />
             
             {/* Card */}
-            <div className="relative bg-card border border-border rounded-2xl p-6 shadow-lg">
+            <div className="relative bg-card/90 border border-primary/20 rounded-2xl p-6 shadow-lg neon-border backdrop-blur-sm">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 shadow-lg glow-primary">
                   <span className="text-2xl">🎯</span>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-medium text-primary px-2 py-0.5 rounded-full bg-primary/10">
+                    <span className="text-xs font-medium text-primary px-2 py-0.5 rounded-full bg-primary/20 border border-primary/30">
                       Acción de Hoy
                     </span>
                     <span className="text-xs text-muted-foreground">Alta prioridad</span>

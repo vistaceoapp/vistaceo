@@ -5,14 +5,14 @@ export const CTASection = () => {
   return (
     <section className="py-24 sm:py-32 relative overflow-hidden">
       {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/5" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/15 rounded-full blur-[150px] animate-pulse-slow" />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Icon */}
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/20 mb-8">
-            <Sparkles className="w-8 h-8 text-primary" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl gradient-primary mb-8 shadow-lg glow-primary">
+            <Sparkles className="w-8 h-8 text-primary-foreground" />
           </div>
 
           {/* Headline */}
@@ -41,15 +41,15 @@ export const CTASection = () => {
           {/* Trust badges */}
           <div className="flex flex-wrap items-center justify-center gap-6 mt-12 text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-success" />
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               Activo en 9 países
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-success" />
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               +500 negocios
             </span>
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-success" />
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               Soporte en español
             </span>
           </div>

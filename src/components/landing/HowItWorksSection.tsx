@@ -46,7 +46,7 @@ const steps = [
 
 export const HowItWorksSection = () => {
   return (
-    <section id="how-it-works" className="py-24 sm:py-32 bg-card/50 relative">
+    <section id="how-it-works" className="py-24 sm:py-32 bg-card/30 relative">
       <div className="container mx-auto px-4 sm:px-6">
         {/* Section header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -72,11 +72,11 @@ export const HowItWorksSection = () => {
             >
               {/* Timeline line */}
               {index < steps.length - 1 && (
-                <div className="absolute left-6 top-16 bottom-0 w-px bg-border" />
+                <div className="absolute left-6 top-16 bottom-0 w-px bg-gradient-to-b from-primary/50 to-primary/10" />
               )}
 
               {/* Step number */}
-              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg shadow-lg glow-primary z-10">
+              <div className="flex-shrink-0 w-12 h-12 rounded-2xl gradient-primary text-primary-foreground flex items-center justify-center font-bold text-lg shadow-lg glow-primary z-10">
                 {step.number}
               </div>
 
