@@ -115,7 +115,7 @@ function formatCountry(country: string | null): string {
 // Fetch memory context from database
 async function fetchMemoryContext(supabase: any, businessId: string) {
   try {
-    const [actionsRes, missionsRes, checkinsRes, messagesRes] = await Promise.all([
+    const [actionsRes, missionsRes, checkinsRes, lessonsRes] = await Promise.all([
       // Recent actions
       supabase
         .from("daily_actions")
@@ -137,25 +137,21 @@ async function fetchMemoryContext(supabase: any, businessId: string) {
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(7),
-      // Lessons from retros
+      // Lessons from lessons table
       supabase
-        .from("chat_messages")
-        .select("content, metadata")
+        .from("lessons")
+        .select("content, category, importance")
         .eq("business_id", businessId)
+        .order("importance", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(50),
+        .limit(10),
     ]);
 
-    // Extract lessons from retro messages
+    // Format lessons
     const lessons: string[] = [];
-    if (messagesRes.data) {
-      for (const msg of messagesRes.data) {
-        if (msg.metadata?.type === "weekly_retro" && msg.metadata?.lesson) {
-          lessons.push(msg.metadata.lesson);
-        }
-        if (msg.metadata?.type === "micro_question") {
-          lessons.push(`${msg.metadata.answer} (sobre ${msg.metadata.category})`);
-        }
+    if (lessonsRes.data) {
+      for (const lesson of lessonsRes.data) {
+        lessons.push(`[${lesson.category}] ${lesson.content}`);
       }
     }
 
@@ -163,7 +159,7 @@ async function fetchMemoryContext(supabase: any, businessId: string) {
       recentActions: actionsRes.data || [],
       activeMissions: missionsRes.data || [],
       recentCheckins: checkinsRes.data || [],
-      lessons: lessons.slice(0, 5),
+      lessons: lessons,
     };
   } catch (error) {
     console.error("Error fetching memory context:", error);

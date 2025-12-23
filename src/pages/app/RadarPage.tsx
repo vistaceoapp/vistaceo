@@ -213,7 +213,7 @@ const RadarPage = () => {
 
       toast({
         title: "✨ Análisis completado",
-        description: `UCEO detectó ${opportunitiesData.length} nuevas oportunidades.`,
+        description: `Se detectaron ${opportunitiesData.length} nuevas oportunidades.`,
       });
 
       fetchOpportunities();
@@ -279,7 +279,7 @@ const RadarPage = () => {
               <RadarIcon className="w-6 h-6 text-accent" />
               Radar
             </h1>
-            <p className="text-muted-foreground">Oportunidades de mejora detectadas por UCEO</p>
+            <p className="text-muted-foreground">Oportunidades de mejora detectadas por IA</p>
           </div>
           <Button 
             onClick={generateOpportunities}
@@ -340,7 +340,7 @@ const RadarPage = () => {
               No hay oportunidades detectadas
             </h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Haz clic en "Escanear con IA" para que UCEO analice tu negocio y encuentre áreas de mejora.
+              Haz clic en "Escanear con IA" para analizar tu negocio y encontrar áreas de mejora.
             </p>
             <Button 
               onClick={generateOpportunities}
