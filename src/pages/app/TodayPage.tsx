@@ -128,9 +128,68 @@ const TodayPage = () => {
     }
   };
 
+  // Auto-generate action if none exists
+  const autoGenerateAction = async () => {
+    if (!currentBusiness || actionLoading) return;
+    setActionLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-action", {
+        body: {
+          businessId: currentBusiness.id,
+          business: {
+            name: currentBusiness.name,
+            category: currentBusiness.category,
+            country: currentBusiness.country,
+            avg_rating: currentBusiness.avg_rating,
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      const actionData = data?.action || {
+        title: "Revisar las reseñas de la última semana",
+        description: "Analiza los comentarios de tus clientes y anota 3 puntos de mejora.",
+        priority: "medium",
+        category: "servicio",
+        signals: [],
+        checklist: [],
+      };
+
+      const today = new Date().toISOString().split("T")[0];
+      await supabase
+        .from("daily_actions")
+        .insert({
+          business_id: currentBusiness.id,
+          title: actionData.title,
+          description: actionData.description,
+          priority: actionData.priority || "medium",
+          category: actionData.category,
+          signals: actionData.signals || [],
+          checklist: actionData.checklist || [],
+          scheduled_for: today,
+          status: "pending",
+        });
+
+      fetchData();
+    } catch (error) {
+      console.error("Error auto-generating action:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [currentBusiness]);
+
+  // Proactively generate action if none exists after loading
+  useEffect(() => {
+    if (!loading && currentBusiness && !todayAction && !actionLoading) {
+      autoGenerateAction();
+    }
+  }, [loading, currentBusiness, todayAction]);
 
   const handleComplete = async () => {
     if (!todayAction) return;
@@ -429,23 +488,15 @@ const TodayPage = () => {
               </div>
             ) : (
               <div className="dashboard-card p-8 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-4">
-                  <Check className="w-8 h-8 text-success" />
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+                  <Sparkles className="w-8 h-8 text-primary animate-spin" />
                 </div>
                 <h2 className="text-xl font-bold text-foreground mb-2">
-                  ¡Todo listo por hoy!
+                  Analizando tu negocio...
                 </h2>
-                <p className="text-muted-foreground mb-6">
-                  No hay acciones pendientes. ¿Quieres que UCEO genere una nueva?
+                <p className="text-muted-foreground">
+                  El sistema está generando tu próxima acción personalizada
                 </p>
-                <Button 
-                  onClick={generateAction}
-                  disabled={actionLoading}
-                  className="gradient-primary"
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  {actionLoading ? "Generando..." : "Generar acción con IA"}
-                </Button>
               </div>
             )}
 
@@ -700,26 +751,17 @@ const TodayPage = () => {
         <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
           <GlassCard className="p-8 text-center">
             <div className="relative inline-block mb-4">
-              <div className="absolute inset-0 blur-2xl bg-success/30 rounded-full" />
-              <div className="relative w-16 h-16 rounded-2xl bg-success/20 flex items-center justify-center">
-                <Check className="w-8 h-8 text-success" />
+              <div className="absolute inset-0 blur-2xl bg-primary/30 rounded-full animate-pulse" />
+              <div className="relative w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-primary animate-spin" />
               </div>
             </div>
             <h2 className="text-xl font-bold text-foreground mb-2">
-              ¡Todo listo por hoy!
+              Analizando tu negocio...
             </h2>
-            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-              No hay acciones pendientes. ¿Quieres que UCEO genere una nueva?
+            <p className="text-muted-foreground max-w-sm mx-auto">
+              Generando tu próxima acción personalizada
             </p>
-            <Button 
-              variant="hero" 
-              onClick={generateAction}
-              disabled={actionLoading}
-              className="shadow-lg shadow-primary/30"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              {actionLoading ? "Generando..." : "Generar acción con IA"}
-            </Button>
           </GlassCard>
         </div>
       )}

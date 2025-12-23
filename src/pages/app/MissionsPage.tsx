@@ -95,6 +95,43 @@ const MissionsPage = () => {
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Auto-start a mission if none exist
+  const autoStartMission = async () => {
+    if (!currentBusiness || actionLoading) return;
+    setActionLoading(true);
+
+    try {
+      // Pick the first available suggestion
+      const availableSuggestion = SUGGESTED_MISSIONS.find(s => 
+        !missions.some(m => m.title === s.title)
+      );
+
+      if (availableSuggestion) {
+        const steps = availableSuggestion.steps.map(text => ({ text, done: false }));
+        
+        await supabase
+          .from("missions")
+          .insert({
+            business_id: currentBusiness.id,
+            title: availableSuggestion.title,
+            description: availableSuggestion.description,
+            area: availableSuggestion.area,
+            steps,
+            current_step: 0,
+            impact_score: availableSuggestion.impact,
+            effort_score: availableSuggestion.effort,
+            status: "active",
+          });
+
+        fetchMissions();
+      }
+    } catch (error) {
+      console.error("Error auto-starting mission:", error);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (currentBusiness) {
       fetchMissions();
@@ -102,6 +139,13 @@ const MissionsPage = () => {
       setLoading(false);
     }
   }, [currentBusiness]);
+
+  // Proactively start a mission if none exist
+  useEffect(() => {
+    if (!loading && currentBusiness && missions.length === 0 && !actionLoading) {
+      autoStartMission();
+    }
+  }, [loading, currentBusiness, missions.length]);
 
   const fetchMissions = async () => {
     if (!currentBusiness) return;
@@ -373,14 +417,14 @@ const MissionsPage = () => {
               </div>
             ) : (
               <div className="dashboard-card p-8 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Target className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+                  <Sparkles className="w-8 h-8 text-primary animate-spin" />
                 </div>
                 <h2 className="text-xl font-bold text-foreground mb-2">
-                  No tienes misiones activas
+                  Preparando tu primera misión...
                 </h2>
-                <p className="text-muted-foreground mb-4">
-                  Inicia una misión desde las sugerencias para comenzar a mejorar tu negocio.
+                <p className="text-muted-foreground">
+                  El sistema está seleccionando la mejor misión para tu negocio
                 </p>
               </div>
             )}
@@ -591,14 +635,14 @@ const MissionsPage = () => {
           <div className="relative inline-block mb-4">
             <div className="absolute inset-0 blur-2xl bg-primary/30 rounded-full animate-pulse" />
             <div className="relative w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
-              <Target className="w-8 h-8 text-primary" />
+              <Sparkles className="w-8 h-8 text-primary animate-spin" />
             </div>
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">
-            No tienes misiones activas
+            Preparando tu primera misión...
           </h2>
-          <p className="text-muted-foreground mb-4 max-w-sm mx-auto">
-            Las misiones son mejoras guiadas que te ayudan a alcanzar objetivos específicos.
+          <p className="text-muted-foreground max-w-sm mx-auto">
+            El sistema está seleccionando la mejor misión para tu negocio
           </p>
         </GlassCard>
       )}
