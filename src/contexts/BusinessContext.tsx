@@ -8,6 +8,9 @@ interface Business {
   category: string;
   country: string;
   currency: string;
+  avg_ticket?: number | null;
+  avg_rating?: number | null;
+  created_at?: string | null;
 }
 
 interface BusinessContextType {
@@ -37,7 +40,7 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from("businesses")
-        .select("id, name, category, country, currency")
+        .select("id, name, category, country, currency, avg_ticket, avg_rating, created_at")
         .eq("owner_id", user.id);
 
       if (error) throw error;
