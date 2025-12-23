@@ -397,10 +397,26 @@ const TodayPage = () => {
               {currentBusiness.name} • {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}
             </p>
           </div>
-          <Button variant="outline" onClick={generateAction} disabled={actionLoading}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva acción
-          </Button>
+          
+          {/* Compact Weekly Progress in Header */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-2">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-success" />
+                <span className="text-sm font-medium text-foreground">{completedToday} hoy</span>
+              </div>
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">{weeklyCompleted}/{weeklyGoal}</span>
+                <span className="text-xs text-muted-foreground">semana</span>
+              </div>
+            </div>
+            <Button variant="outline" onClick={generateAction} disabled={actionLoading}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nueva acción
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-6">
@@ -585,33 +601,6 @@ const TodayPage = () => {
             {/* Integrations */}
             <IntegrationsPanel variant="compact" />
 
-            {/* Today Stats */}
-            <div className="dashboard-card p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Check className="w-5 h-5 text-success" />
-                <span className="text-sm text-muted-foreground font-medium">Hoy</span>
-              </div>
-              <div className="text-4xl font-bold text-foreground mb-1">{completedToday}</div>
-              <div className="text-sm text-muted-foreground">acciones completadas</div>
-            </div>
-
-            {/* Weekly Progress */}
-            <div className="dashboard-card p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                <span className="text-sm text-muted-foreground font-medium">Esta semana</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-4xl font-bold text-foreground mb-1">{weeklyCompleted}</div>
-                  <div className="text-sm text-muted-foreground">de {weeklyGoal} objetivo</div>
-                </div>
-                <ProgressRing progress={weeklyProgress} size={80} strokeWidth={6}>
-                  <span className="text-sm font-bold text-primary">{Math.round(weeklyProgress)}%</span>
-                </ProgressRing>
-              </div>
-            </div>
-
             {/* Quick Actions */}
             <div className="dashboard-card p-6">
               <h4 className="font-medium text-foreground mb-4">Acciones rápidas</h4>
@@ -623,6 +612,10 @@ const TodayPage = () => {
                 <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/app/radar")}>
                   <BarChart3 className="w-4 h-4 mr-3 text-accent" />
                   Ver oportunidades
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/app/analytics")}>
+                  <TrendingUp className="w-4 h-4 mr-3 text-success" />
+                  Ver analytics
                 </Button>
               </div>
             </div>
