@@ -1,22 +1,22 @@
 project_id = "nlewrgmcawzcdazhfiyy"
 
 [functions.uceo-chat]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-action]
-verify_jwt = true
+verify_jwt = false
 
 [functions.analyze-patterns]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-question]
-verify_jwt = true
+verify_jwt = false
 
 [functions.sync-external-data]
-verify_jwt = true
+verify_jwt = false
 
 [functions.google-oauth-start]
-verify_jwt = true
+verify_jwt = false
 
 [functions.google-oauth-callback]
 verify_jwt = false
