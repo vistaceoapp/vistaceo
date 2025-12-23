@@ -37,6 +37,42 @@ const RadarPage = () => {
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Auto-generate opportunities if none exist
+  const autoGenerateOpportunities = async () => {
+    if (!currentBusiness || actionLoading) return;
+    setActionLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-patterns", {
+        body: {
+          businessId: currentBusiness.id,
+        }
+      });
+
+      if (error) throw error;
+      fetchOpportunities();
+    } catch (error) {
+      console.error("Error auto-generating opportunities:", error);
+      
+      // Fallback: create a default opportunity
+      try {
+        await supabase.from("opportunities").insert({
+          business_id: currentBusiness.id,
+          title: "Optimiza tu presencia digital",
+          description: "Mejora tu visibilidad online para atraer más clientes.",
+          source: "ai",
+          impact_score: 7,
+          effort_score: 4,
+        });
+        fetchOpportunities();
+      } catch (fallbackError) {
+        console.error("Fallback error:", fallbackError);
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (currentBusiness) {
       fetchOpportunities();
@@ -44,6 +80,13 @@ const RadarPage = () => {
       setLoading(false);
     }
   }, [currentBusiness]);
+
+  // Proactively generate opportunities if none exist
+  useEffect(() => {
+    if (!loading && currentBusiness && opportunities.length === 0 && !actionLoading) {
+      autoGenerateOpportunities();
+    }
+  }, [loading, currentBusiness, opportunities.length]);
 
   const fetchOpportunities = async () => {
     if (!currentBusiness) return;
@@ -355,23 +398,15 @@ const RadarPage = () => {
         {/* Opportunities Table */}
         {opportunities.length === 0 ? (
           <div className="dashboard-card p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
-              <RadarIcon className="w-8 h-8 text-accent" />
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <Sparkles className="w-8 h-8 text-primary animate-spin" />
             </div>
             <h2 className="text-xl font-bold text-foreground mb-2">
-              No hay oportunidades detectadas
+              Escaneando oportunidades...
             </h2>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Haz clic en "Escanear con IA" para analizar tu negocio y encontrar áreas de mejora.
+            <p className="text-muted-foreground max-w-md mx-auto">
+              El sistema está analizando tu negocio para detectar áreas de mejora
             </p>
-            <Button 
-              onClick={generateOpportunities}
-              disabled={actionLoading}
-              className="gradient-primary"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Analizar negocio
-            </Button>
           </div>
         ) : (
           <div className="dashboard-card overflow-hidden">
@@ -532,19 +567,15 @@ const RadarPage = () => {
 
       {opportunities.length === 0 ? (
         <GlassCard className="p-8 text-center animate-fade-in" style={{ animationDelay: "200ms" }}>
-          <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center mx-auto mb-4">
-            <RadarIcon className="w-8 h-8 text-accent" />
+          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <Sparkles className="w-8 h-8 text-primary animate-spin" />
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">
-            Sin oportunidades
+            Escaneando oportunidades...
           </h2>
-          <p className="text-muted-foreground mb-6">
-            Escanea para encontrar áreas de mejora.
+          <p className="text-muted-foreground">
+            Analizando tu negocio con IA
           </p>
-          <Button onClick={generateOpportunities} disabled={actionLoading}>
-            <Sparkles className="w-4 h-4 mr-2" />
-            Analizar
-          </Button>
         </GlassCard>
       ) : (
         <div className="space-y-4 animate-fade-in" style={{ animationDelay: "200ms" }}>
