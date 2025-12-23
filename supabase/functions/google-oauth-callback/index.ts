@@ -14,25 +14,33 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const code = url.searchParams.get("code");
-    const state = url.searchParams.get("state"); // Contains businessId
-    const error = url.searchParams.get("error");
+    const state = url.searchParams.get("state"); // Contains businessId + userId
+    const oauthError = url.searchParams.get("error");
 
-    if (error) {
-      console.error("OAuth error from Google:", error);
+    console.log("OAuth callback hit", {
+      method: req.method,
+      url: req.url,
+      hasCode: Boolean(code),
+      hasState: Boolean(state),
+      error: oauthError,
+    });
+
+    if (oauthError) {
+      console.error("OAuth error from Google:", oauthError);
       return new Response(null, {
         status: 302,
         headers: {
-          Location: `${Deno.env.get("SITE_URL") || "https://preview--uceo-copilot.lovable.app"}/app?oauth=error&provider=google`,
+          Location: `${Deno.env.get("SITE_URL") || "https://preview--uceo-copilot.lovable.app"}/app?oauth=error&provider=google&reason=google_error`,
         },
       });
     }
 
     if (!code || !state) {
-      console.error("Missing code or state");
+      console.error("Missing code or state", { codePresent: Boolean(code), statePresent: Boolean(state) });
       return new Response(null, {
         status: 302,
         headers: {
-          Location: `${Deno.env.get("SITE_URL") || "https://preview--uceo-copilot.lovable.app"}/app?oauth=error&provider=google`,
+          Location: `${Deno.env.get("SITE_URL") || "https://preview--uceo-copilot.lovable.app"}/app?oauth=error&provider=google&reason=missing_params`,
         },
       });
     }
