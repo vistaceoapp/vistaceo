@@ -13,7 +13,9 @@ import {
   CheckCircle2,
   Loader2,
   Zap,
-  ExternalLink
+  ExternalLink,
+  RefreshCw,
+  Store
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +23,7 @@ import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@/components/ui/progress";
+import { GoogleLocationSelector } from "./GoogleLocationSelector";
 
 interface Integration {
   id: string;
@@ -34,6 +37,8 @@ interface Integration {
   comingSoon?: boolean;
   oauthEnabled?: boolean;
   accountEmail?: string;
+  googleLocationName?: string;
+  needsLocationSelection?: boolean;
 }
 
 const AVAILABLE_INTEGRATIONS: Integration[] = [
@@ -146,6 +151,8 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
   const [integrations, setIntegrations] = useState<Integration[]>(AVAILABLE_INTEGRATIONS);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState<string | null>(null);
+  const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   // Handle OAuth callback
   useEffect(() => {
@@ -153,12 +160,14 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
     const provider = searchParams.get("provider");
     
     if (oauthStatus && provider) {
-      if (oauthStatus === "success") {
+      if (oauthStatus === "success" && provider === "google") {
         toast({
-          title: `✅ ${provider === "google" ? "Google Reviews" : provider} conectado`,
-          description: "El sistema comenzará a sincronizar datos automáticamente.",
+          title: "✅ Cuenta Google conectada",
+          description: "Ahora selecciona tu negocio de Google Business Profile.",
         });
         fetchIntegrations();
+        // Auto-open location selector after OAuth success
+        setShowLocationSelector(true);
       } else if (oauthStatus === "error") {
         toast({
           title: "Error de conexión",
@@ -169,6 +178,7 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
       // Clear the URL params
       searchParams.delete("oauth");
       searchParams.delete("provider");
+      searchParams.delete("reason");
       setSearchParams(searchParams);
     }
   }, [searchParams]);
@@ -194,11 +204,24 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
       // Merge with available integrations
       const updatedIntegrations = AVAILABLE_INTEGRATIONS.map(integration => {
         const existing = data?.find(d => d.integration_type === integration.type);
-        const metadata = existing?.metadata as { account_email?: string } | null;
+        const metadata = existing?.metadata as { 
+          account_email?: string;
+          google_location_id?: string;
+          google_location_name?: string;
+        } | null;
+        
+        // Check if Google Reviews needs location selection
+        const needsLocationSelection = 
+          integration.type === "google_reviews" && 
+          existing?.status === "connected" && 
+          !metadata?.google_location_id;
+
         return {
           ...integration,
           status: (existing?.status || "pending") as Integration["status"],
           accountEmail: metadata?.account_email,
+          googleLocationName: metadata?.google_location_name,
+          needsLocationSelection,
         };
       });
 
@@ -291,6 +314,46 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
         description: "No se pudo desconectar la integración",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleSyncReviews = async () => {
+    if (!currentBusiness) return;
+    
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("google-sync-reviews", {
+        body: { businessId: currentBusiness.id }
+      });
+
+      if (error) throw error;
+
+      if (data?.synced > 0) {
+        toast({
+          title: "🔄 Reseñas sincronizadas",
+          description: `${data.synced} reseñas importadas de ${data.location}`,
+        });
+      } else if (data?.error) {
+        toast({
+          title: "Error de sincronización",
+          description: data.error,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sin reseñas nuevas",
+          description: "No hay reseñas nuevas para importar.",
+        });
+      }
+    } catch (error) {
+      console.error("Error syncing:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron sincronizar las reseñas",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -444,15 +507,60 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground truncate">
-                        {isConnected && integration.accountEmail 
+                        {isConnected && integration.googleLocationName 
+                          ? `📍 ${integration.googleLocationName}`
+                          : isConnected && integration.accountEmail 
                           ? `Conectado: ${integration.accountEmail}`
+                          : isConnected && integration.needsLocationSelection
+                          ? "⚠️ Selecciona tu negocio"
                           : integration.description}
                       </p>
                     </div>
 
                     {!integration.comingSoon && (
                       <div className="flex items-center gap-2">
-                        {isConnected && (
+                        {/* Google Reviews specific buttons */}
+                        {integration.type === "google_reviews" && isConnected && (
+                          <>
+                            {integration.needsLocationSelection ? (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => setShowLocationSelector(true)}
+                              >
+                                <Store className="w-4 h-4 mr-1" />
+                                Seleccionar negocio
+                              </Button>
+                            ) : integration.googleLocationName ? (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={handleSyncReviews}
+                                  disabled={syncing}
+                                >
+                                  {syncing ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <RefreshCw className="w-4 h-4 mr-1" />
+                                  )}
+                                  Sincronizar
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setShowLocationSelector(true)}
+                                  className="text-muted-foreground"
+                                >
+                                  Cambiar
+                                </Button>
+                              </>
+                            ) : null}
+                          </>
+                        )}
+
+                        {/* Non-Google integrations */}
+                        {integration.type !== "google_reviews" && isConnected && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -462,30 +570,38 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
                             Desconectar
                           </Button>
                         )}
-                        <Button
-                          variant={isConnected ? "outline" : "default"}
-                          size="sm"
-                          onClick={() => handleConnect(integration)}
-                          disabled={isConnecting}
-                          className={cn(
-                            isConnected && "text-success border-success/30 hover:bg-success/10"
-                          )}
-                        >
-                          {isConnecting ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : isConnected ? (
-                            <>
-                              <CheckCircle2 className="w-4 h-4 mr-1" />
-                              Reconectar
-                            </>
-                          ) : (
-                            <>
-                              {integration.oauthEnabled && <ExternalLink className="w-4 h-4 mr-1" />}
-                              {!integration.oauthEnabled && <Link2 className="w-4 h-4 mr-1" />}
-                              Conectar
-                            </>
-                          )}
-                        </Button>
+
+                        {/* Connect button for non-connected */}
+                        {!isConnected && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleConnect(integration)}
+                            disabled={isConnecting}
+                          >
+                            {isConnecting ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <>
+                                {integration.oauthEnabled && <ExternalLink className="w-4 h-4 mr-1" />}
+                                {!integration.oauthEnabled && <Link2 className="w-4 h-4 mr-1" />}
+                                Conectar
+                              </>
+                            )}
+                          </Button>
+                        )}
+
+                        {/* Disconnect for Google Reviews */}
+                        {integration.type === "google_reviews" && isConnected && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDisconnect(integration)}
+                            className="text-muted-foreground hover:text-destructive"
+                          >
+                            Desconectar
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -506,6 +622,16 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
           Solicitar integración
         </Button>
       </div>
+
+      {/* Google Location Selector Modal */}
+      {currentBusiness && (
+        <GoogleLocationSelector
+          businessId={currentBusiness.id}
+          open={showLocationSelector}
+          onOpenChange={setShowLocationSelector}
+          onLocationSelected={fetchIntegrations}
+        />
+      )}
     </div>
   );
 };
