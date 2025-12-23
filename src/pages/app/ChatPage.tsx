@@ -6,6 +6,7 @@ import { OwlLogo } from "@/components/ui/OwlLogo";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -73,9 +74,30 @@ const ChatPage = () => {
         content: userMessage,
       });
 
-      // For now, add a placeholder AI response
-      // In production, this would call the AI edge function
-      const aiResponse = `Entendido. Estoy analizando tu pregunta sobre "${userMessage.slice(0, 50)}...". Esta funcionalidad estará disponible pronto con IA.`;
+      // Get all messages for context
+      const messagesForAI = [...messages, tempUserMsg].map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
+      // Call AI edge function
+      const { data: aiData, error: aiError } = await supabase.functions.invoke("uceo-chat", {
+        body: {
+          messages: messagesForAI,
+          businessContext: {
+            name: currentBusiness.name,
+            category: currentBusiness.category,
+            country: currentBusiness.country,
+          }
+        }
+      });
+
+      if (aiError) {
+        console.error("AI error:", aiError);
+        throw new Error(aiError.message || "Error al comunicarse con UCEO");
+      }
+
+      const aiResponse = aiData?.message || "Lo siento, no pude procesar tu mensaje. Intenta de nuevo.";
       
       await supabase.from("chat_messages").insert({
         business_id: currentBusiness.id,
@@ -86,6 +108,11 @@ const ChatPage = () => {
       await fetchMessages();
     } catch (error) {
       console.error("Error sending message:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "No se pudo enviar el mensaje",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }

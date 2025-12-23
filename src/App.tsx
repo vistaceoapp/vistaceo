@@ -10,6 +10,7 @@ import { BusinessProvider } from "@/contexts/BusinessContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Onboarding from "./pages/Onboarding";
 
 // App Pages
 import AppLayout from "./layouts/AppLayout";
@@ -46,6 +47,16 @@ const AppRoutes = () => {
       {/* Public routes */}
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
+      <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute>
+            <BusinessProvider>
+              <Onboarding />
+            </BusinessProvider>
+          </ProtectedRoute>
+        }
+      />
 
       {/* Protected app routes */}
       <Route

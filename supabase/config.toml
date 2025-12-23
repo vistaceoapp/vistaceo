@@ -1,1 +1,4 @@
 project_id = "nlewrgmcawzcdazhfiyy"
+
+[functions.uceo-chat]
+verify_jwt = true
