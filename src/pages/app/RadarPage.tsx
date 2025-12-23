@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { InboxCard } from "@/components/app/InboxCard";
 import {
   Dialog,
   DialogContent,
@@ -395,132 +396,142 @@ const RadarPage = () => {
           </div>
         </div>
 
-        {/* Opportunities Table */}
-        {opportunities.length === 0 ? (
-          <div className="dashboard-card p-12 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
-              <Sparkles className="w-8 h-8 text-primary animate-spin" />
-            </div>
-            <h2 className="text-xl font-bold text-foreground mb-2">
-              Escaneando oportunidades...
-            </h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              El sistema está analizando tu negocio para detectar áreas de mejora
-            </p>
-          </div>
-        ) : (
-          <div className="dashboard-card overflow-hidden">
-            <div className="p-4 border-b border-border bg-secondary/30 flex items-center justify-between">
-              <h3 className="font-semibold text-foreground">Oportunidades detectadas</h3>
-              <span className="text-sm text-muted-foreground">{opportunities.length} resultados</span>
-            </div>
-            
-            {/* Table Header */}
-            <div className="grid grid-cols-12 gap-4 p-4 border-b border-border bg-secondary/20 text-sm font-medium text-muted-foreground">
-              <div className="col-span-1">Fuente</div>
-              <div className="col-span-5">Oportunidad</div>
-              <div className="col-span-2 text-center">Impacto</div>
-              <div className="col-span-2 text-center">Esfuerzo</div>
-              <div className="col-span-2 text-right">Acción</div>
-            </div>
-            
-            {/* Table Rows */}
-            <div className="divide-y divide-border">
-              {opportunities.map((opportunity) => (
-                <div 
-                  key={opportunity.id}
-                  className="grid grid-cols-12 gap-4 p-4 hover:bg-secondary/30 transition-colors items-center"
-                >
-                  <div className="col-span-1">
-                    <span className="text-2xl">{getSourceIcon(opportunity.source)}</span>
-                  </div>
-                  
-                  <div className="col-span-5">
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-foreground truncate">
-                          {opportunity.title}
-                        </h4>
-                        {opportunity.description && (
-                          <p className="text-sm text-muted-foreground truncate mt-0.5">
-                            {opportunity.description}
-                          </p>
-                        )}
-                      </div>
-                      {opportunity.impact_score >= 8 && (
-                        <span className="text-xs font-medium text-warning bg-warning/10 px-2 py-0.5 rounded-full whitespace-nowrap">
-                          Alto
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="col-span-2 text-center">
-                    <div className="inline-flex items-center gap-1">
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <div 
-                            key={i} 
-                            className={cn(
-                              "w-2 h-2 rounded-full",
-                              i < Math.ceil(opportunity.impact_score / 2)
-                                ? "bg-success"
-                                : "bg-muted"
-                            )}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-muted-foreground ml-1">
-                        {opportunity.impact_score}/10
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="col-span-2 text-center">
-                    <div className="inline-flex items-center gap-1">
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <div 
-                            key={i} 
-                            className={cn(
-                              "w-2 h-2 rounded-full",
-                              i < Math.ceil(opportunity.effort_score / 2)
-                                ? "bg-warning"
-                                : "bg-muted"
-                            )}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-muted-foreground ml-1">
-                        {opportunity.effort_score}/10
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="col-span-2 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => dismissOpportunity(opportunity.id)}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => convertToMission(opportunity)}
-                        disabled={actionLoading}
-                      >
-                        <Target className="w-4 h-4 mr-1" />
-                        Misión
-                      </Button>
-                    </div>
-                  </div>
+        <div className="grid grid-cols-3 gap-6">
+          {/* Main Content - 2 columns */}
+          <div className="col-span-2">
+            {/* Opportunities Table */}
+            {opportunities.length === 0 ? (
+              <div className="dashboard-card p-12 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
+                  <Sparkles className="w-8 h-8 text-primary animate-spin" />
                 </div>
-              ))}
-            </div>
+                <h2 className="text-xl font-bold text-foreground mb-2">
+                  Escaneando oportunidades...
+                </h2>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  El sistema está analizando tu negocio para detectar áreas de mejora
+                </p>
+              </div>
+            ) : (
+              <div className="dashboard-card overflow-hidden">
+                <div className="p-4 border-b border-border bg-secondary/30 flex items-center justify-between">
+                  <h3 className="font-semibold text-foreground">Oportunidades detectadas</h3>
+                  <span className="text-sm text-muted-foreground">{opportunities.length} resultados</span>
+                </div>
+                
+                {/* Table Header */}
+                <div className="grid grid-cols-12 gap-4 p-4 border-b border-border bg-secondary/20 text-sm font-medium text-muted-foreground">
+                  <div className="col-span-1">Fuente</div>
+                  <div className="col-span-5">Oportunidad</div>
+                  <div className="col-span-2 text-center">Impacto</div>
+                  <div className="col-span-2 text-center">Esfuerzo</div>
+                  <div className="col-span-2 text-right">Acción</div>
+                </div>
+                
+                {/* Table Rows */}
+                <div className="divide-y divide-border">
+                  {opportunities.map((opportunity) => (
+                    <div 
+                      key={opportunity.id}
+                      className="grid grid-cols-12 gap-4 p-4 hover:bg-secondary/30 transition-colors items-center"
+                    >
+                      <div className="col-span-1">
+                        <span className="text-2xl">{getSourceIcon(opportunity.source)}</span>
+                      </div>
+                      
+                      <div className="col-span-5">
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-foreground truncate">
+                              {opportunity.title}
+                            </h4>
+                            {opportunity.description && (
+                              <p className="text-sm text-muted-foreground truncate mt-0.5">
+                                {opportunity.description}
+                              </p>
+                            )}
+                          </div>
+                          {opportunity.impact_score >= 8 && (
+                            <span className="text-xs font-medium text-warning bg-warning/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+                              Alto
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="col-span-2 text-center">
+                        <div className="inline-flex items-center gap-1">
+                          <div className="flex gap-0.5">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <div 
+                                key={i} 
+                                className={cn(
+                                  "w-2 h-2 rounded-full",
+                                  i < Math.ceil(opportunity.impact_score / 2)
+                                    ? "bg-success"
+                                    : "bg-muted"
+                                )}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm text-muted-foreground ml-1">
+                            {opportunity.impact_score}/10
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="col-span-2 text-center">
+                        <div className="inline-flex items-center gap-1">
+                          <div className="flex gap-0.5">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <div 
+                                key={i} 
+                                className={cn(
+                                  "w-2 h-2 rounded-full",
+                                  i < Math.ceil(opportunity.effort_score / 2)
+                                    ? "bg-warning"
+                                    : "bg-muted"
+                                )}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-sm text-muted-foreground ml-1">
+                            {opportunity.effort_score}/10
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="col-span-2 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => dismissOpportunity(opportunity.id)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => convertToMission(opportunity)}
+                            disabled={actionLoading}
+                          >
+                            <Target className="w-4 h-4 mr-1" />
+                            Misión
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Sidebar - Learning */}
+          <div className="space-y-4">
+            <InboxCard />
+          </div>
+        </div>
       </div>
     );
   }
