@@ -166,64 +166,86 @@ const RadarPage = () => {
     setActionLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("uceo-chat", {
+      // Use the new pattern analysis function
+      const { data, error } = await supabase.functions.invoke("analyze-patterns", {
         body: {
-          messages: [{ 
-            role: "user", 
-            content: `Analiza mi negocio y dame 2 oportunidades de mejora específicas. Responde SOLO con un JSON array con objetos que tengan: title (máx 60 chars), description (máx 150 chars), source (reviews/sales/social/operations), impact_score (1-10), effort_score (1-10).` 
-          }],
-          businessContext: {
-            name: currentBusiness.name,
-            category: currentBusiness.category,
-            country: currentBusiness.country,
-          }
+          businessId: currentBusiness.id,
         }
       });
 
       if (error) throw error;
 
-      let opportunitiesData = [];
-      try {
-        const jsonMatch = data.message.match(/\[[\s\S]*\]/);
-        if (jsonMatch) {
-          opportunitiesData = JSON.parse(jsonMatch[0]);
-        }
-      } catch {
-        opportunitiesData = [
-          {
-            title: "Mejorar respuesta a reseñas negativas",
-            description: "Hay reseñas sin responder que afectan tu reputación online.",
-            source: "reviews",
-            impact_score: 7,
-            effort_score: 3,
-          }
-        ];
-      }
-
-      for (const opp of opportunitiesData) {
-        await supabase.from("opportunities").insert({
-          business_id: currentBusiness.id,
-          title: opp.title,
-          description: opp.description,
-          source: opp.source,
-          impact_score: opp.impact_score || 5,
-          effort_score: opp.effort_score || 5,
-        });
-      }
-
       toast({
         title: "✨ Análisis completado",
-        description: `Se detectaron ${opportunitiesData.length} nuevas oportunidades.`,
+        description: `Se detectaron ${data.opportunitiesCreated || 0} oportunidades y ${data.lessonsLearned || 0} lecciones.`,
       });
 
       fetchOpportunities();
     } catch (error) {
-      console.error("Error generating opportunities:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo analizar el negocio",
-        variant: "destructive",
-      });
+      console.error("Error analyzing patterns:", error);
+      
+      // Fallback to simple generation
+      try {
+        const { data, error: chatError } = await supabase.functions.invoke("uceo-chat", {
+          body: {
+            messages: [{ 
+              role: "user", 
+              content: `Analiza mi negocio y dame 2 oportunidades de mejora específicas. Responde SOLO con un JSON array con objetos que tengan: title (máx 60 chars), description (máx 150 chars), source (reviews/sales/social/operations), impact_score (1-10), effort_score (1-10).` 
+            }],
+            businessContext: {
+              id: currentBusiness.id,
+              name: currentBusiness.name,
+              category: currentBusiness.category,
+              country: currentBusiness.country,
+            }
+          }
+        });
+
+        if (chatError) throw chatError;
+
+        let opportunitiesData = [];
+        try {
+          const jsonMatch = data.message.match(/\[[\s\S]*\]/);
+          if (jsonMatch) {
+            opportunitiesData = JSON.parse(jsonMatch[0]);
+          }
+        } catch {
+          opportunitiesData = [
+            {
+              title: "Mejorar presencia en redes sociales",
+              description: "Publicar más contenido para atraer nuevos clientes.",
+              source: "social",
+              impact_score: 7,
+              effort_score: 4,
+            }
+          ];
+        }
+
+        for (const opp of opportunitiesData) {
+          await supabase.from("opportunities").insert({
+            business_id: currentBusiness.id,
+            title: opp.title,
+            description: opp.description,
+            source: opp.source,
+            impact_score: opp.impact_score || 5,
+            effort_score: opp.effort_score || 5,
+          });
+        }
+
+        toast({
+          title: "✨ Análisis completado",
+          description: `Se detectaron ${opportunitiesData.length} nuevas oportunidades.`,
+        });
+
+        fetchOpportunities();
+      } catch (fallbackError) {
+        console.error("Fallback error:", fallbackError);
+        toast({
+          title: "Error",
+          description: "No se pudo analizar el negocio",
+          variant: "destructive",
+        });
+      }
     } finally {
       setActionLoading(false);
     }
