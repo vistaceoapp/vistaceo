@@ -37,22 +37,32 @@ export const WeeklyRetroCard = ({ onComplete }: WeeklyRetroCardProps) => {
     
     setSaving(true);
     try {
-      // Save as a learning for the AI memory
+      // Save outcome as a chat message for context
       await supabase.from("chat_messages").insert({
         business_id: currentBusiness.id,
         role: "user",
-        content: `[Retro semanal] Resultado: ${outcome}${lesson ? `. Lección: ${lesson}` : ""}`,
+        content: `[Retro semanal] Resultado: ${outcome}${lesson ? `. ${lesson}` : ""}`,
         metadata: {
           type: "weekly_retro",
           outcome,
-          lesson: lesson || null,
           week: new Date().toISOString().split("T")[0],
         },
       });
 
+      // If there's a lesson, save it to the lessons table for AI memory
+      if (lesson.trim()) {
+        await supabase.from("lessons").insert({
+          business_id: currentBusiness.id,
+          content: lesson.trim(),
+          category: outcome === "better" ? "ventas" : outcome === "worse" ? "operaciones" : "general",
+          source: "retro",
+          importance: outcome === "better" ? 8 : outcome === "worse" ? 7 : 5,
+        });
+      }
+
       toast({
         title: "🎯 Retro guardada",
-        description: "Estas lecciones mejoran las futuras recomendaciones.",
+        description: "El sistema aprenderá de esta reflexión.",
       });
 
       onComplete?.();
