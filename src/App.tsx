@@ -19,6 +19,7 @@ import ChatPage from "./pages/app/ChatPage";
 import MissionsPage from "./pages/app/MissionsPage";
 import RadarPage from "./pages/app/RadarPage";
 import MorePage from "./pages/app/MorePage";
+import AnalyticsPage from "./pages/app/AnalyticsPage";
 
 const queryClient = new QueryClient();
 
@@ -73,6 +74,7 @@ const AppRoutes = () => {
         <Route path="chat" element={<ChatPage />} />
         <Route path="missions" element={<MissionsPage />} />
         <Route path="radar" element={<RadarPage />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="more" element={<MorePage />} />
       </Route>
 
