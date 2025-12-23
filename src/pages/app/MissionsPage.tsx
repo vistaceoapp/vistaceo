@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Target, ChevronRight, Plus, Check, Zap, TrendingUp, Clock, Play, Pause, Sparkles } from "lucide-react";
+import { Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, Sparkles, Plus, MoreHorizontal } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { ProgressRing } from "@/components/app/ProgressRing";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Mission {
   id: string;
@@ -26,6 +33,7 @@ interface Mission {
   status: string;
   impact_score: number;
   effort_score: number;
+  created_at: string;
 }
 
 interface Step {
@@ -80,6 +88,7 @@ const SUGGESTED_MISSIONS = [
 
 const MissionsPage = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -216,9 +225,9 @@ const MissionsPage = () => {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-10 bg-card/50 rounded-xl animate-pulse w-1/2" />
-        <GlassCard className="h-32 animate-pulse" />
-        <GlassCard className="h-32 animate-pulse" />
+        <div className="h-10 bg-card rounded-xl animate-pulse w-1/2" />
+        <div className="h-32 bg-card rounded-xl animate-pulse" />
+        <div className="h-32 bg-card rounded-xl animate-pulse" />
       </div>
     );
   }
@@ -246,9 +255,267 @@ const MissionsPage = () => {
     );
   }
 
+  // Desktop Layout
+  if (!isMobile) {
+    const activeMissions = missions.filter(m => m.status === "active");
+    const pausedMissions = missions.filter(m => m.status === "paused");
+
+    return (
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+              <Target className="w-6 h-6 text-primary" />
+              Misiones
+            </h1>
+            <p className="text-muted-foreground">Proyectos de mejora guiados paso a paso</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">
+              {activeMissions.length} activas
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-6">
+          {/* Active Missions - 2 columns */}
+          <div className="col-span-2 space-y-6">
+            {/* Active Missions Table */}
+            {missions.length > 0 ? (
+              <div className="dashboard-card overflow-hidden">
+                <div className="p-4 border-b border-border bg-secondary/30">
+                  <h3 className="font-semibold text-foreground">Misiones en progreso</h3>
+                </div>
+                <div className="divide-y divide-border">
+                  {missions.map((mission) => {
+                    const steps = (mission.steps || []) as Step[];
+                    const completedSteps = steps.filter(s => s.done).length;
+                    const progress = steps.length > 0 ? (completedSteps / steps.length) * 100 : 0;
+
+                    return (
+                      <div
+                        key={mission.id}
+                        className="p-4 hover:bg-secondary/30 transition-colors cursor-pointer group"
+                        onClick={() => setSelectedMission(mission)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <ProgressRing 
+                            progress={progress} 
+                            size={48} 
+                            strokeWidth={4}
+                            showGlow={mission.status === "active"}
+                          >
+                            <span className="text-xs font-bold text-primary">
+                              {Math.round(progress)}%
+                            </span>
+                          </ProgressRing>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium text-foreground truncate">
+                                {mission.title}
+                              </h4>
+                              <span className={cn(
+                                "text-xs font-medium px-2 py-0.5 rounded-full",
+                                mission.status === "active" 
+                                  ? "bg-success/10 text-success"
+                                  : "bg-muted text-muted-foreground"
+                              )}>
+                                {mission.status === "active" ? "Activa" : "Pausada"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              {mission.area && (
+                                <span className="text-primary">{mission.area}</span>
+                              )}
+                              <span>{completedSteps}/{steps.length} pasos</span>
+                              <span className="flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3 text-success" />
+                                {mission.impact_score}/10
+                              </span>
+                            </div>
+                          </div>
+
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-card border-border">
+                              <DropdownMenuItem onClick={() => toggleMissionStatus(mission)}>
+                                {mission.status === "active" ? (
+                                  <>
+                                    <Pause className="w-4 h-4 mr-2" />
+                                    Pausar
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play className="w-4 h-4 mr-2" />
+                                    Reactivar
+                                  </>
+                                )}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          
+                          <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="dashboard-card p-8 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Target className="w-8 h-8 text-primary" />
+                </div>
+                <h2 className="text-xl font-bold text-foreground mb-2">
+                  No tienes misiones activas
+                </h2>
+                <p className="text-muted-foreground mb-4">
+                  Inicia una misión desde las sugerencias para comenzar a mejorar tu negocio.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar - Suggestions */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <h3 className="font-semibold text-foreground">Sugeridas</h3>
+            </div>
+            
+            {SUGGESTED_MISSIONS.filter(s => 
+              !missions.some(m => m.title === s.title)
+            ).map((suggestion, idx) => (
+              <div
+                key={idx}
+                className="dashboard-card p-4 border-dashed hover:border-solid"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <span className="text-2xl">{suggestion.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-foreground text-sm">
+                      {suggestion.title}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      {suggestion.description}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="text-success">↑{suggestion.impact}</span>
+                    <span>{suggestion.steps.length} pasos</span>
+                  </div>
+                  <Button 
+                    size="sm"
+                    onClick={() => startMission(suggestion)}
+                    disabled={actionLoading}
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Iniciar
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Mission Detail Dialog */}
+        <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
+          <DialogContent className="max-w-lg bg-card border-border">
+            {selectedMission && (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-2 mb-2">
+                    {selectedMission.area && (
+                      <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                        {selectedMission.area}
+                      </span>
+                    )}
+                  </div>
+                  <DialogTitle className="text-xl">{selectedMission.title}</DialogTitle>
+                  <DialogDescription>
+                    {selectedMission.description}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-3 mt-4">
+                  <div className="text-sm font-medium text-muted-foreground">Pasos</div>
+                  {((selectedMission.steps || []) as Step[]).map((step, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => toggleStep(selectedMission.id, idx)}
+                      className={cn(
+                        "flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all",
+                        step.done 
+                          ? "bg-success/10 border border-success/20" 
+                          : "bg-secondary/50 hover:bg-secondary border border-transparent hover:border-primary/20"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                        step.done 
+                          ? "bg-success border-success" 
+                          : "border-muted-foreground/30 hover:border-primary"
+                      )}>
+                        {step.done && <Check className="w-4 h-4 text-white" />}
+                      </div>
+                      <span className={cn(
+                        "text-sm",
+                        step.done ? "line-through text-muted-foreground" : "text-foreground"
+                      )}>
+                        {step.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => toggleMissionStatus(selectedMission)}
+                  >
+                    {selectedMission.status === "active" ? (
+                      <>
+                        <Pause className="w-4 h-4 mr-2" />
+                        Pausar
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 mr-2" />
+                        Reactivar
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    className="flex-1 gradient-primary"
+                    onClick={() => setSelectedMission(null)}
+                  >
+                    Cerrar
+                  </Button>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
+  // Mobile Layout (keep existing)
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="animate-fade-in">
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Target className="w-6 h-6 text-primary" />
@@ -257,7 +524,6 @@ const MissionsPage = () => {
         <p className="text-muted-foreground">Mejoras guiadas paso a paso</p>
       </div>
 
-      {/* Active Missions */}
       {missions.length > 0 && (
         <div className="space-y-4 animate-fade-in" style={{ animationDelay: "100ms" }}>
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
@@ -299,14 +565,6 @@ const MissionsPage = () => {
                           {mission.area}
                         </span>
                       )}
-                      <span className={cn(
-                        "text-xs font-medium px-2.5 py-1 rounded-full",
-                        mission.status === "active" 
-                          ? "bg-success/20 text-success border border-success/30"
-                          : "bg-muted text-muted-foreground"
-                      )}>
-                        {mission.status === "active" ? "Activa" : "Pausada"}
-                      </span>
                     </div>
                     
                     <h3 className="font-semibold text-foreground text-lg leading-tight">
@@ -316,16 +574,6 @@ const MissionsPage = () => {
                     <div className="flex items-center justify-between mt-3">
                       <div className="text-xs text-muted-foreground">
                         {completedSteps} de {steps.length} pasos
-                      </div>
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className="flex items-center gap-1 text-success">
-                          <TrendingUp className="w-3 h-3" />
-                          {mission.impact_score}/10
-                        </span>
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          {mission.effort_score}/10
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -338,7 +586,6 @@ const MissionsPage = () => {
         </div>
       )}
 
-      {/* No Active Missions */}
       {missions.length === 0 && (
         <GlassCard className="p-8 text-center animate-fade-in" style={{ animationDelay: "100ms" }}>
           <div className="relative inline-block mb-4">
@@ -356,7 +603,6 @@ const MissionsPage = () => {
         </GlassCard>
       )}
 
-      {/* Suggested Missions */}
       <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
         <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />
@@ -378,15 +624,11 @@ const MissionsPage = () => {
                     {suggestion.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-xs font-semibold text-accent bg-accent/10 px-2 py-1 rounded-full">
-                      {suggestion.area}
-                    </span>
-                    <h3 className="font-semibold text-foreground mt-2 text-lg">{suggestion.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{suggestion.description}</p>
-                    <div className="flex items-center gap-4 mt-3 text-xs">
+                    <h3 className="font-semibold text-foreground mt-1">{suggestion.title}</h3>
+                    <div className="flex items-center gap-4 mt-2 text-xs">
                       <span className="flex items-center gap-1 text-success">
                         <TrendingUp className="w-3 h-3" />
-                        Impacto {suggestion.impact}/10
+                        {suggestion.impact}/10
                       </span>
                       <span className="flex items-center gap-1 text-muted-foreground">
                         <Clock className="w-3 h-3" />
@@ -411,19 +653,11 @@ const MissionsPage = () => {
         </div>
       </div>
 
-      {/* Mission Detail Dialog */}
       <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
         <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50">
           {selectedMission && (
             <>
               <DialogHeader>
-                <div className="flex items-center gap-2 mb-2">
-                  {selectedMission.area && (
-                    <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                      {selectedMission.area}
-                    </span>
-                  )}
-                </div>
                 <DialogTitle className="text-xl">{selectedMission.title}</DialogTitle>
                 <DialogDescription>
                   {selectedMission.description}
@@ -431,7 +665,6 @@ const MissionsPage = () => {
               </DialogHeader>
 
               <div className="space-y-3 mt-4">
-                <div className="text-sm font-medium text-muted-foreground">Pasos</div>
                 {((selectedMission.steps || []) as Step[]).map((step, idx) => (
                   <div 
                     key={idx}
@@ -440,14 +673,12 @@ const MissionsPage = () => {
                       "flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all",
                       step.done 
                         ? "bg-success/10 border border-success/20" 
-                        : "bg-secondary/50 hover:bg-secondary border border-transparent hover:border-primary/20"
+                        : "bg-secondary/50 hover:bg-secondary"
                     )}
                   >
                     <div className={cn(
-                      "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
-                      step.done 
-                        ? "bg-success border-success shadow-lg shadow-success/30" 
-                        : "border-muted-foreground/30 hover:border-primary"
+                      "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                      step.done ? "bg-success border-success" : "border-muted-foreground/30"
                     )}>
                       {step.done && <Check className="w-4 h-4 text-white" />}
                     </div>
@@ -462,27 +693,11 @@ const MissionsPage = () => {
               </div>
 
               <div className="flex gap-3 mt-6">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => toggleMissionStatus(selectedMission)}
-                >
-                  {selectedMission.status === "active" ? (
-                    <>
-                      <Pause className="w-4 h-4 mr-2" />
-                      Pausar
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4 mr-2" />
-                      Reactivar
-                    </>
-                  )}
+                <Button variant="outline" className="flex-1" onClick={() => toggleMissionStatus(selectedMission)}>
+                  {selectedMission.status === "active" ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+                  {selectedMission.status === "active" ? "Pausar" : "Reactivar"}
                 </Button>
-                <Button 
-                  className="flex-1 gradient-primary"
-                  onClick={() => setSelectedMission(null)}
-                >
+                <Button className="flex-1 gradient-primary" onClick={() => setSelectedMission(null)}>
                   Cerrar
                 </Button>
               </div>
