@@ -20,7 +20,8 @@ import {
   MapPin,
   Calendar,
   BarChart3,
-  Zap
+  Zap,
+  Brain
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -44,6 +45,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GlassCard } from "@/components/app/GlassCard";
+import { AutopilotModeSelector } from "@/components/app/AutopilotModeSelector";
+import { LanguageSelector } from "@/components/app/LanguageSelector";
 
 const MorePage = () => {
   const { user, signOut } = useAuth();
@@ -55,6 +58,10 @@ const MorePage = () => {
   const [fullName, setFullName] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [autopilotDialog, setAutopilotDialog] = useState(false);
+  const [languageDialog, setLanguageDialog] = useState(false);
+  const [userMode, setUserMode] = useState<"nano" | "standard" | "proactive" | "sos">("standard");
+  const [preferredLanguage, setPreferredLanguage] = useState("es");
 
   useEffect(() => {
     if (currentBusiness) {
@@ -67,10 +74,14 @@ const MorePage = () => {
       if (!user) return;
       const { data } = await supabase
         .from("profiles")
-        .select("full_name")
+        .select("full_name, user_mode, preferred_language")
         .eq("id", user.id)
         .single();
-      if (data?.full_name) setFullName(data.full_name);
+      if (data) {
+        if (data.full_name) setFullName(data.full_name);
+        if (data.user_mode) setUserMode(data.user_mode as typeof userMode);
+        if (data.preferred_language) setPreferredLanguage(data.preferred_language);
+      }
     };
     fetchProfile();
   }, [user]);
@@ -118,6 +129,25 @@ const MorePage = () => {
     }
   };
 
+  const getModeLabel = (mode: string) => {
+    const labels: Record<string, string> = {
+      nano: "Nano - Mínimo",
+      standard: "Estándar",
+      proactive: "Proactivo",
+      sos: "SOS - Crisis"
+    };
+    return labels[mode] || "Estándar";
+  };
+
+  const getLanguageLabel = (lang: string) => {
+    const labels: Record<string, string> = {
+      es: "Español 🇪🇸",
+      en: "English 🇺🇸",
+      pt: "Português 🇧🇷"
+    };
+    return labels[lang] || "Español";
+  };
+
   const menuSections = [
     {
       title: "Cuenta",
@@ -128,10 +158,16 @@ const MorePage = () => {
       ],
     },
     {
+      title: "Autopilot",
+      items: [
+        { icon: Brain, label: "Modo de operación", description: getModeLabel(userMode), action: () => setAutopilotDialog(true) },
+        { icon: Globe, label: "Idioma", description: getLanguageLabel(preferredLanguage), action: () => setLanguageDialog(true) },
+      ],
+    },
+    {
       title: "Integraciones",
       items: [
         { icon: LinkIcon, label: "Conectar servicios", description: "Google, Instagram, POS", action: () => toast({ title: "Próximamente" }) },
-        { icon: Globe, label: "País e idioma", description: "Configuración regional", action: () => toast({ title: "Próximamente" }) },
       ],
     },
     {
@@ -411,7 +447,7 @@ const MorePage = () => {
               Cerrar sesión
             </Button>
 
-            <p className="text-center text-xs text-muted-foreground">UCEO v1.0.0</p>
+            <p className="text-center text-xs text-muted-foreground">v1.0.0</p>
           </div>
         </div>
 
@@ -454,6 +490,54 @@ const MorePage = () => {
             <div className="flex gap-3 mt-6">
               <Button variant="outline" className="flex-1" onClick={() => setBusinessDialog(false)}>Cancelar</Button>
               <Button className="flex-1" onClick={saveBusiness} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Autopilot Mode Dialog */}
+        <Dialog open={autopilotDialog} onOpenChange={setAutopilotDialog}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-primary" />
+                Modo Autopilot
+              </DialogTitle>
+              <DialogDescription>
+                Elige cómo quieres que el asistente interactúe contigo
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              {user && (
+                <AutopilotModeSelector
+                  currentMode={userMode}
+                  userId={user.id}
+                  onModeChange={(mode) => setUserMode(mode)}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Language Dialog */}
+        <Dialog open={languageDialog} onOpenChange={setLanguageDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Globe className="w-5 h-5 text-primary" />
+                Idioma del sistema
+              </DialogTitle>
+              <DialogDescription>
+                Selecciona en qué idioma quieres usar la aplicación
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              {user && (
+                <LanguageSelector
+                  currentLanguage={preferredLanguage}
+                  userId={user.id}
+                  onLanguageChange={(lang) => setPreferredLanguage(lang)}
+                />
+              )}
             </div>
           </DialogContent>
         </Dialog>
@@ -581,7 +665,7 @@ const MorePage = () => {
         Cerrar sesión
       </Button>
 
-      <p className="text-center text-xs text-muted-foreground">UCEO v1.0.0</p>
+      <p className="text-center text-xs text-muted-foreground">v1.0.0</p>
 
       {/* Profile Dialog */}
       <Dialog open={profileDialog} onOpenChange={setProfileDialog}>
@@ -623,6 +707,54 @@ const MorePage = () => {
           <div className="flex gap-3 mt-6">
             <Button variant="outline" className="flex-1" onClick={() => setBusinessDialog(false)}>Cancelar</Button>
             <Button className="flex-1" onClick={saveBusiness} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Autopilot Mode Dialog */}
+      <Dialog open={autopilotDialog} onOpenChange={setAutopilotDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5 text-primary" />
+              Modo Autopilot
+            </DialogTitle>
+            <DialogDescription>
+              Elige cómo quieres que el asistente interactúe contigo
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {user && (
+              <AutopilotModeSelector
+                currentMode={userMode}
+                userId={user.id}
+                onModeChange={(mode) => setUserMode(mode)}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Language Dialog */}
+      <Dialog open={languageDialog} onOpenChange={setLanguageDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-primary" />
+              Idioma del sistema
+            </DialogTitle>
+            <DialogDescription>
+              Selecciona en qué idioma quieres usar la aplicación
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {user && (
+              <LanguageSelector
+                currentLanguage={preferredLanguage}
+                userId={user.id}
+                onLanguageChange={(lang) => setPreferredLanguage(lang)}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>
