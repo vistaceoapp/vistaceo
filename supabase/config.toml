@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.generate-question]
 verify_jwt = true
+
+[functions.sync-external-data]
+verify_jwt = true

@@ -805,6 +805,11 @@ const TodayPage = () => {
         </GlassCard>
       </div>
 
+      {/* Micro-questions - Hero for Mobile */}
+      <div className="animate-fade-in" style={{ animationDelay: "250ms" }}>
+        <InboxCard variant="hero" />
+      </div>
+
       {/* Weekly Priorities Preview */}
       <div className="animate-fade-in" style={{ animationDelay: "300ms" }}>
         <GlassCard 

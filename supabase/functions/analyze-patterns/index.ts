@@ -35,7 +35,7 @@ serve(async (req) => {
     }
 
     // Fetch recent data for pattern analysis
-    const [checkinsRes, actionsRes, lessonsRes, insightsRes] = await Promise.all([
+    const [checkinsRes, actionsRes, lessonsRes, insightsRes, externalDataRes] = await Promise.all([
       supabase
         .from("checkins")
         .select("*")
@@ -59,15 +59,22 @@ serve(async (req) => {
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(50),
+      supabase
+        .from("external_data")
+        .select("*")
+        .eq("business_id", businessId)
+        .order("synced_at", { ascending: false })
+        .limit(50),
     ]);
 
     const checkins = checkinsRes.data || [];
     const actions = actionsRes.data || [];
     const lessons = lessonsRes.data || [];
     const insights = insightsRes.data || [];
+    const externalData = externalDataRes.data || [];
 
     // Build analysis context
-    const analysisContext = buildAnalysisContext(business, checkins, actions, lessons, insights);
+    const analysisContext = buildAnalysisContext(business, checkins, actions, lessons, insights, externalData);
 
     console.log("Analyzing patterns for business:", business.name);
 
@@ -223,7 +230,8 @@ function buildAnalysisContext(
   checkins: any[],
   actions: any[],
   lessons: any[],
-  insights: any[]
+  insights: any[],
+  externalData: any[]
 ): string {
   let context = `## Negocio: ${business.name}
 - Tipo: ${business.category || "No especificado"}
@@ -314,6 +322,50 @@ function buildAnalysisContext(
     context += `\n## Lecciones existentes (${lessons.length} total)\n`;
     for (const lesson of lessons.slice(0, 5)) {
       context += `- [${lesson.category}] ${lesson.content}\n`;
+    }
+  }
+
+  // External data (reviews, metrics, transactions from integrations)
+  if (externalData.length > 0) {
+    context += `\n## Datos Externos (${externalData.length} items sincronizados)\n`;
+    
+    // Group by type
+    const byType: Record<string, any[]> = {};
+    for (const item of externalData) {
+      const type = item.data_type || "other";
+      if (!byType[type]) byType[type] = [];
+      byType[type].push(item);
+    }
+    
+    // Reviews
+    if (byType.review) {
+      context += `\n### Reseñas (${byType.review.length})\n`;
+      for (const review of byType.review.slice(0, 5)) {
+        const content = review.content || {};
+        context += `- Rating: ${content.rating}/5 - "${content.text?.slice(0, 80)}..." (Sentimiento: ${review.sentiment_score || 'N/A'})\n`;
+      }
+      
+      // Calculate average rating
+      const avgRating = byType.review.reduce((sum, r) => sum + (r.content?.rating || 0), 0) / byType.review.length;
+      context += `Rating promedio externo: ${avgRating.toFixed(1)}/5\n`;
+    }
+    
+    // Metrics
+    if (byType.metric) {
+      context += `\n### Métricas externas\n`;
+      for (const metric of byType.metric.slice(0, 5)) {
+        const content = metric.content || {};
+        context += `- ${content.metric_type}: ${content.value} (cambio: ${content.change || 'N/A'})\n`;
+      }
+    }
+    
+    // Transactions
+    if (byType.transaction) {
+      const totalAmount = byType.transaction.reduce((sum, t) => sum + (t.content?.amount || 0), 0);
+      const count = byType.transaction.length;
+      context += `\n### Transacciones (${count} registradas)\n`;
+      context += `- Monto total: $${totalAmount.toLocaleString()}\n`;
+      context += `- Promedio por transacción: $${(totalAmount / count).toFixed(0)}\n`;
     }
   }
 

@@ -5,6 +5,7 @@ import { OwlLogo } from "@/components/ui/OwlLogo";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { PulsingDot } from "@/components/app/PulsingDot";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { useAutoSync } from "@/hooks/use-auto-sync";
 
 const navItems = [
   { path: "/app", icon: Home, label: "Hoy" },
@@ -17,6 +18,9 @@ const navItems = [
 const MobileLayout = () => {
   const location = useLocation();
   const { currentBusiness } = useBusiness();
+  
+  // Auto-sync external data in background
+  useAutoSync();
 
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-hidden">
