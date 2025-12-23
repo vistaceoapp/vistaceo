@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, Sparkles, Plus, Zap, TrendingUp, Calendar, ArrowRight, BarChart3 } from "lucide-react";
+import { Check, Clock, Sparkles, Plus, Zap, TrendingUp, Calendar, ArrowRight, BarChart3, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,9 @@ import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { ProgressRing } from "@/components/app/ProgressRing";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { CheckinCard } from "@/components/app/CheckinCard";
+import { InboxCard } from "@/components/app/InboxCard";
+import { ActionCard } from "@/components/app/ActionCard";
 
 interface DailyAction {
   id: string;
@@ -39,6 +42,8 @@ const TodayPage = () => {
   const [weeklyCompleted, setWeeklyCompleted] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
+  const [showCheckin, setShowCheckin] = useState(false);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -68,48 +73,54 @@ const TodayPage = () => {
       weekStart.setDate(weekStart.getDate() - weekStart.getDay());
       const weekStartStr = weekStart.toISOString().split("T")[0];
 
-      const { data: actionData, error: actionError } = await supabase
-        .from("daily_actions")
-        .select("*")
-        .eq("business_id", currentBusiness.id)
-        .eq("scheduled_for", today)
-        .eq("status", "pending")
-        .order("priority", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // Fetch all data in parallel
+      const [actionRes, todayCountRes, weekCountRes, prioritiesRes, checkinRes] = await Promise.all([
+        supabase
+          .from("daily_actions")
+          .select("*")
+          .eq("business_id", currentBusiness.id)
+          .eq("scheduled_for", today)
+          .eq("status", "pending")
+          .order("priority", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("daily_actions")
+          .select("*", { count: "exact", head: true })
+          .eq("business_id", currentBusiness.id)
+          .eq("scheduled_for", today)
+          .eq("status", "completed"),
+        supabase
+          .from("daily_actions")
+          .select("*", { count: "exact", head: true })
+          .eq("business_id", currentBusiness.id)
+          .gte("scheduled_for", weekStartStr)
+          .eq("status", "completed"),
+        supabase
+          .from("weekly_priorities")
+          .select("*")
+          .eq("business_id", currentBusiness.id)
+          .gte("week_start", weekStartStr)
+          .order("created_at", { ascending: true })
+          .limit(3),
+        supabase
+          .from("checkins")
+          .select("id")
+          .eq("business_id", currentBusiness.id)
+          .gte("created_at", today)
+          .limit(1),
+      ]);
 
-      if (actionError) throw actionError;
-      setTodayAction(actionData);
-
-      const { count: todayCount } = await supabase
-        .from("daily_actions")
-        .select("*", { count: "exact", head: true })
-        .eq("business_id", currentBusiness.id)
-        .eq("scheduled_for", today)
-        .eq("status", "completed");
-
-      setCompletedToday(todayCount || 0);
-
-      const { count: weekCount } = await supabase
-        .from("daily_actions")
-        .select("*", { count: "exact", head: true })
-        .eq("business_id", currentBusiness.id)
-        .gte("scheduled_for", weekStartStr)
-        .eq("status", "completed");
-
-      setWeeklyCompleted(weekCount || 0);
-
-      const { data: prioritiesData, error: prioritiesError } = await supabase
-        .from("weekly_priorities")
-        .select("*")
-        .eq("business_id", currentBusiness.id)
-        .gte("week_start", weekStartStr)
-        .order("created_at", { ascending: true })
-        .limit(3);
-
-      if (prioritiesError) throw prioritiesError;
-      setWeeklyPriorities(prioritiesData || []);
-
+      if (actionRes.error) throw actionRes.error;
+      setTodayAction(actionRes.data);
+      setCompletedToday(todayCountRes.count || 0);
+      setWeeklyCompleted(weekCountRes.count || 0);
+      
+      if (prioritiesRes.error) throw prioritiesRes.error;
+      setWeeklyPriorities(prioritiesRes.data || []);
+      
+      // Check if user already did check-in today
+      setHasCheckedInToday((checkinRes.data?.length || 0) > 0);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -188,43 +199,29 @@ const TodayPage = () => {
     setActionLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("uceo-chat", {
+      // Use the new dedicated generate-action function
+      const { data, error } = await supabase.functions.invoke("generate-action", {
         body: {
-          messages: [{ 
-            role: "user", 
-            content: "Dame una acción concreta y específica que pueda hacer HOY para mejorar mi negocio. Responde SOLO con un JSON con los campos: title (máx 60 chars), description (máx 200 chars), priority (low/medium/high), category (marketing/operaciones/finanzas/servicio)." 
-          }],
-          businessContext: {
+          businessId: currentBusiness.id,
+          business: {
             name: currentBusiness.name,
             category: currentBusiness.category,
             country: currentBusiness.country,
+            avg_rating: currentBusiness.avg_rating,
           }
         }
       });
 
       if (error) throw error;
 
-      let actionData;
-      try {
-        const jsonMatch = data.message.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          actionData = JSON.parse(jsonMatch[0]);
-        } else {
-          actionData = {
-            title: "Revisar las reseñas de la última semana",
-            description: "Analiza los comentarios de tus clientes y anota 3 puntos de mejora.",
-            priority: "medium",
-            category: "servicio"
-          };
-        }
-      } catch {
-        actionData = {
-          title: "Hacer check-in del turno",
-          description: "Registra el nivel de tráfico y observaciones del día.",
-          priority: "medium",
-          category: "operaciones"
-        };
-      }
+      const actionData = data?.action || {
+        title: "Revisar las reseñas de la última semana",
+        description: "Analiza los comentarios de tus clientes y anota 3 puntos de mejora.",
+        priority: "medium",
+        category: "servicio",
+        signals: [],
+        checklist: [],
+      };
 
       const today = new Date().toISOString().split("T")[0];
       const { error: insertError } = await supabase
@@ -235,6 +232,8 @@ const TodayPage = () => {
           description: actionData.description,
           priority: actionData.priority || "medium",
           category: actionData.category,
+          signals: actionData.signals || [],
+          checklist: actionData.checklist || [],
           scheduled_for: today,
           status: "pending",
         });
@@ -243,7 +242,7 @@ const TodayPage = () => {
 
       toast({
         title: "✨ Acción generada",
-        description: "UCEO analizó tu negocio y creó una nueva acción.",
+        description: "Se analizó tu negocio y creó una nueva acción personalizada.",
       });
 
       fetchData();
@@ -499,8 +498,38 @@ const TodayPage = () => {
             </div>
           </div>
 
-          {/* Sidebar - Stats */}
+          {/* Sidebar - Stats & Quick Actions */}
           <div className="space-y-6">
+            {/* Check-in Card */}
+            {!hasCheckedInToday && (
+              <div className="animate-fade-in">
+                {showCheckin ? (
+                  <CheckinCard 
+                    onComplete={() => {
+                      setHasCheckedInToday(true);
+                      setShowCheckin(false);
+                    }} 
+                  />
+                ) : (
+                  <div className="dashboard-card p-4 border-dashed border-primary/30 hover:border-primary/50 cursor-pointer transition-all" onClick={() => setShowCheckin(true)}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                        <Camera className="w-5 h-5 text-accent" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground text-sm">Check-in del turno</p>
+                        <p className="text-xs text-muted-foreground">10 segundos • mejora recomendaciones</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Micro-question Inbox */}
+            <InboxCard variant="compact" />
+
             {/* Today Stats */}
             <div className="dashboard-card p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -534,7 +563,7 @@ const TodayPage = () => {
               <div className="space-y-2">
                 <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/app/chat")}>
                   <Sparkles className="w-4 h-4 mr-3 text-primary" />
-                  Hablar con UCEO
+                  Hablar con el asistente
                 </Button>
                 <Button variant="ghost" className="w-full justify-start" onClick={() => navigate("/app/radar")}>
                   <BarChart3 className="w-4 h-4 mr-3 text-accent" />
@@ -563,6 +592,41 @@ const TodayPage = () => {
           {currentBusiness.name} • {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}
         </p>
       </div>
+
+      {/* Check-in prompt for mobile */}
+      {!hasCheckedInToday && !showCheckin && (
+        <div className="animate-fade-in" style={{ animationDelay: "50ms" }}>
+          <GlassCard 
+            interactive 
+            className="p-4 cursor-pointer" 
+            onClick={() => setShowCheckin(true)}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                <Camera className="w-5 h-5 text-accent" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-foreground text-sm">Check-in del turno</p>
+                <p className="text-xs text-muted-foreground">10 seg • mejora las recomendaciones</p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* Expanded Check-in */}
+      {showCheckin && (
+        <div className="animate-fade-in">
+          <CheckinCard 
+            variant="compact"
+            onComplete={() => {
+              setHasCheckedInToday(true);
+              setShowCheckin(false);
+            }} 
+          />
+        </div>
+      )}
 
       {/* Main Action Card */}
       {todayAction ? (

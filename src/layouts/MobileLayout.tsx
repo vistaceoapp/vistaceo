@@ -8,7 +8,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const navItems = [
   { path: "/app", icon: Home, label: "Hoy" },
-  { path: "/app/chat", icon: MessageCircle, label: "UCEO", hasNotification: true },
+  { path: "/app/chat", icon: MessageCircle, label: "Chat", hasNotification: true },
   { path: "/app/missions", icon: Target, label: "Misiones" },
   { path: "/app/radar", icon: Radar, label: "Radar" },
   { path: "/app/more", icon: MoreHorizontal, label: "Más" },
