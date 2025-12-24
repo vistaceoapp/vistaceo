@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      alerts: {
+        Row: {
+          ai_summary_json: Json | null
+          alert_type: string
+          audio_url: string | null
+          business_id: string
+          category: string
+          created_at: string
+          id: string
+          text_content: string | null
+        }
+        Insert: {
+          ai_summary_json?: Json | null
+          alert_type?: string
+          audio_url?: string | null
+          business_id: string
+          category?: string
+          created_at?: string
+          id?: string
+          text_content?: string | null
+        }
+        Update: {
+          ai_summary_json?: Json | null
+          alert_type?: string
+          audio_url?: string | null
+          business_id?: string
+          category?: string
+          created_at?: string
+          id?: string
+          text_content?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_checkins: {
+        Row: {
+          answers_json: Json | null
+          business_id: string
+          checkin_type: string
+          created_at: string
+          id: string
+          snapshot_id: string | null
+        }
+        Insert: {
+          answers_json?: Json | null
+          business_id: string
+          checkin_type?: string
+          created_at?: string
+          id?: string
+          snapshot_id?: string | null
+        }
+        Update: {
+          answers_json?: Json | null
+          business_id?: string
+          checkin_type?: string
+          created_at?: string
+          id?: string
+          snapshot_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_checkins_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_checkins_snapshot_id_fkey"
+            columns: ["snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_insights: {
         Row: {
           answer: string
@@ -96,11 +179,48 @@ export type Database = {
           },
         ]
       }
+      business_profile_extracted: {
+        Row: {
+          business_id: string
+          created_at: string
+          data_json: Json | null
+          id: string
+          source: string
+          transcript: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          data_json?: Json | null
+          id?: string
+          source?: string
+          transcript?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          data_json?: Json | null
+          id?: string
+          source?: string
+          transcript?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_profile_extracted_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           address: string | null
           avg_rating: number | null
           avg_ticket: number | null
+          baseline_date: string | null
+          baseline_snapshot_id: string | null
           category: Database["public"]["Enums"]["business_category"] | null
           country: Database["public"]["Enums"]["country_code"] | null
           created_at: string | null
@@ -121,6 +241,8 @@ export type Database = {
           address?: string | null
           avg_rating?: number | null
           avg_ticket?: number | null
+          baseline_date?: string | null
+          baseline_snapshot_id?: string | null
           category?: Database["public"]["Enums"]["business_category"] | null
           country?: Database["public"]["Enums"]["country_code"] | null
           created_at?: string | null
@@ -141,6 +263,8 @@ export type Database = {
           address?: string | null
           avg_rating?: number | null
           avg_ticket?: number | null
+          baseline_date?: string | null
+          baseline_snapshot_id?: string | null
           category?: Database["public"]["Enums"]["business_category"] | null
           country?: Database["public"]["Enums"]["country_code"] | null
           created_at?: string | null
@@ -157,7 +281,15 @@ export type Database = {
           timezone?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "businesses_baseline_snapshot_id_fkey"
+            columns: ["baseline_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "snapshots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_messages: {
         Row: {
@@ -344,6 +476,53 @@ export type Database = {
             columns: ["integration_id"]
             isOneToOne: false
             referencedRelation: "business_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_items: {
+        Row: {
+          action_steps: Json | null
+          business_id: string
+          content: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          is_saved: boolean | null
+          item_type: string
+          source: string | null
+          title: string
+        }
+        Insert: {
+          action_steps?: Json | null
+          business_id: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          is_saved?: boolean | null
+          item_type?: string
+          source?: string | null
+          title: string
+        }
+        Update: {
+          action_steps?: Json | null
+          business_id?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          is_saved?: boolean | null
+          item_type?: string
+          source?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_items_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
@@ -537,6 +716,118 @@ export type Database = {
           user_mode?: Database["public"]["Enums"]["user_mode"] | null
         }
         Relationships: []
+      }
+      recommendations_feedback: {
+        Row: {
+          action_id: string | null
+          applied_status: string
+          blocker: string | null
+          business_id: string
+          created_at: string
+          id: string
+          mission_id: string | null
+          notes: string | null
+          opportunity_id: string | null
+        }
+        Insert: {
+          action_id?: string | null
+          applied_status?: string
+          blocker?: string | null
+          business_id: string
+          created_at?: string
+          id?: string
+          mission_id?: string | null
+          notes?: string | null
+          opportunity_id?: string | null
+        }
+        Update: {
+          action_id?: string | null
+          applied_status?: string
+          blocker?: string | null
+          business_id?: string
+          created_at?: string
+          id?: string
+          mission_id?: string | null
+          notes?: string | null
+          opportunity_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendations_feedback_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "daily_actions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendations_feedback_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendations_feedback_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendations_feedback_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      snapshots: {
+        Row: {
+          business_id: string
+          created_at: string
+          dimensions_json: Json | null
+          explanation_json: Json | null
+          id: string
+          source: string
+          strengths: Json | null
+          top_actions: Json | null
+          total_score: number | null
+          weaknesses: Json | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          dimensions_json?: Json | null
+          explanation_json?: Json | null
+          id?: string
+          source?: string
+          strengths?: Json | null
+          top_actions?: Json | null
+          total_score?: number | null
+          weaknesses?: Json | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          dimensions_json?: Json | null
+          explanation_json?: Json | null
+          id?: string
+          source?: string
+          strengths?: Json | null
+          top_actions?: Json | null
+          total_score?: number | null
+          weaknesses?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "snapshots_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       weekly_priorities: {
         Row: {
