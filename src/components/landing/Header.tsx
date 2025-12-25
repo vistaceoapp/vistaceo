@@ -49,14 +49,11 @@ export const Header = () => {
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-12 md:h-14">
           {/* Logo */}
-          <a href="/" className="flex items-center gap-3 group">
+          <a href="/" className="flex items-center group">
             <div className="relative">
-              <OwlLogo size={36} className="transition-transform duration-300 group-hover:scale-110" />
+              <OwlLogo size={40} className="transition-transform duration-300 group-hover:scale-105" />
               <div className="absolute inset-0 bg-primary/30 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
-            <span className="text-xl font-bold text-foreground tracking-tight">
-              UCEO
-            </span>
           </a>
 
           {/* Desktop Navigation */}

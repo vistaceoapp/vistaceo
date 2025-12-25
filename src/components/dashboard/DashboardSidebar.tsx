@@ -24,7 +24,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const navItems = [
   { path: "/app", icon: Home, label: "Hoy", description: "Vista general del día", badge: null },
-  { path: "/app/chat", icon: MessageCircle, label: "UCEO", description: "Asistente IA", badge: "IA" },
+  { path: "/app/chat", icon: MessageCircle, label: "Chat", description: "Asistente IA", badge: "IA" },
   { path: "/app/missions", icon: Target, label: "Misiones", description: "Proyectos activos", badge: null },
   { path: "/app/radar", icon: Radar, label: "Radar", description: "Oportunidades", badge: "3" },
   { path: "/app/analytics", icon: BarChart3, label: "Analytics", description: "Métricas y tendencias", badge: "Nuevo" },
@@ -60,13 +60,15 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
           <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
             <div className="relative group cursor-pointer">
               <div className="absolute inset-0 blur-xl bg-primary/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              <OwlLogo size={collapsed ? 28 : 32} className="relative z-10 transition-transform group-hover:scale-110" />
+              <OwlLogo size={collapsed ? 28 : 36} variant={collapsed ? "round" : "auto"} className="relative z-10 transition-transform group-hover:scale-105" />
             </div>
-            {!collapsed && (
+            {!collapsed && currentBusiness && (
               <div className="overflow-hidden animate-fade-in">
-                <h1 className="font-bold text-foreground text-lg tracking-tight">UCEO</h1>
-                <p className="text-xs text-muted-foreground truncate max-w-[140px]">
-                  {currentBusiness?.name || "Tu CEO digital"}
+                <p className="text-sm font-medium text-foreground truncate max-w-[140px]">
+                  {currentBusiness.name}
+                </p>
+                <p className="text-xs text-muted-foreground capitalize">
+                  {currentBusiness.category?.replace("_", " ") || "Tu negocio"}
                 </p>
               </div>
             )}

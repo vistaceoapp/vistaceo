@@ -13,6 +13,7 @@ import { CheckinCard } from "@/components/app/CheckinCard";
 import { InboxCard } from "@/components/app/InboxCard";
 import { ActionCard } from "@/components/app/ActionCard";
 import { IntegrationsPanel } from "@/components/app/IntegrationsPanel";
+import { AlertFAB } from "@/components/app/AlertFAB";
 
 interface DailyAction {
   id: string;
@@ -853,6 +854,9 @@ const TodayPage = () => {
           )}
         </GlassCard>
       </div>
+      
+      {/* Alert FAB */}
+      <AlertFAB />
     </div>
   );
 };

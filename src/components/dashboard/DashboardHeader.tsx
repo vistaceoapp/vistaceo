@@ -223,7 +223,7 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
               <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase">Acceso rápido</p>
               {[
                 { label: "Ir a Hoy", path: "/app" },
-                { label: "Hablar con UCEO", path: "/app/chat" },
+                { label: "Hablar con el CEO", path: "/app/chat" },
                 { label: "Ver Misiones", path: "/app/missions" },
                 { label: "Explorar Radar", path: "/app/radar" },
               ].map((item) => (

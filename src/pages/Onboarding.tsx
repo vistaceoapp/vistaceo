@@ -137,12 +137,11 @@ const Onboarding = () => {
         <div className="hidden lg:flex lg:w-[480px] bg-card border-r border-border flex-col">
           {/* Logo */}
           <div className="p-8">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center">
               <div className="relative">
                 <div className="absolute inset-0 blur-xl bg-primary/30 rounded-full" />
-                <OwlLogo size={48} className="relative z-10" />
+                <OwlLogo size={80} className="relative z-10" />
               </div>
-              <span className="text-2xl font-bold text-foreground">UCEO</span>
             </div>
           </div>
 
@@ -202,7 +201,7 @@ const Onboarding = () => {
                 ¿Por qué estos datos?
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                UCEO utiliza la información de tu negocio para darte consejos personalizados, 
+                Utilizo la información de tu negocio para darte consejos personalizados, 
                 detectar oportunidades en tu mercado local y crear acciones específicas para tu tipo de negocio.
               </p>
             </div>
@@ -222,8 +221,7 @@ const Onboarding = () => {
           {/* Mobile/Tablet Header */}
           <div className="lg:hidden p-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <OwlLogo size={32} />
-              <span className="font-bold text-foreground">UCEO</span>
+              <OwlLogo size={36} variant="round" />
             </div>
             <ThemeToggle />
           </div>

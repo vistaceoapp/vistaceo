@@ -10,6 +10,9 @@ import { GlassCard } from "@/components/app/GlassCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InboxCard } from "@/components/app/InboxCard";
 import { IntegrationsPanel } from "@/components/app/IntegrationsPanel";
+import { BusinessHealthDashboard } from "@/components/app/BusinessHealthDashboard";
+import { EvolutionPanel } from "@/components/app/EvolutionPanel";
+import { LearningWidget } from "@/components/app/LearningWidget";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Opportunity {
   id: string;
@@ -346,7 +350,7 @@ const RadarPage = () => {
               <RadarIcon className="w-6 h-6 text-accent" />
               Radar
             </h1>
-            <p className="text-muted-foreground">Oportunidades de mejora detectadas por IA</p>
+            <p className="text-muted-foreground">Diagnóstico, evolución y oportunidades</p>
           </div>
           <Button 
             onClick={generateOpportunities}
@@ -358,48 +362,66 @@ const RadarPage = () => {
           </Button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-4 gap-4">
-          <div className="dashboard-stat">
-            <div className="flex items-center justify-between mb-2">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              <span className="text-xs text-muted-foreground">Total</span>
-            </div>
-            <div className="text-3xl font-bold text-foreground">{opportunities.length}</div>
-            <div className="text-sm text-muted-foreground">detectadas</div>
-          </div>
-          
-          <div className="dashboard-stat">
-            <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="w-5 h-5 text-success" />
-              <span className="text-xs text-muted-foreground">Alto impacto</span>
-            </div>
-            <div className="text-3xl font-bold text-foreground">{highImpactCount}</div>
-            <div className="text-sm text-muted-foreground">oportunidades</div>
-          </div>
-          
-          <div className="dashboard-stat">
-            <div className="flex items-center justify-between mb-2">
-              <Zap className="w-5 h-5 text-warning" />
-              <span className="text-xs text-muted-foreground">Quick wins</span>
-            </div>
-            <div className="text-3xl font-bold text-foreground">{urgentCount}</div>
-            <div className="text-sm text-muted-foreground">fáciles</div>
-          </div>
-          
-          <div className="dashboard-stat">
-            <div className="flex items-center justify-between mb-2">
-              <Target className="w-5 h-5 text-accent" />
-              <span className="text-xs text-muted-foreground">Convertidas</span>
-            </div>
-            <div className="text-3xl font-bold text-foreground">-</div>
-            <div className="text-sm text-muted-foreground">a misiones</div>
-          </div>
-        </div>
+        {/* Tabs for different views */}
+        <Tabs defaultValue="diagnostico" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="diagnostico">Diagnóstico</TabsTrigger>
+            <TabsTrigger value="evolucion">Evolución</TabsTrigger>
+            <TabsTrigger value="oportunidades">Oportunidades</TabsTrigger>
+            <TabsTrigger value="learning">Learning</TabsTrigger>
+          </TabsList>
 
-        <div className="grid grid-cols-3 gap-6">
-          {/* Main Content - 2 columns */}
-          <div className="col-span-2">
+          {/* Tab: Diagnóstico */}
+          <TabsContent value="diagnostico" className="space-y-6">
+            <BusinessHealthDashboard />
+          </TabsContent>
+
+          {/* Tab: Evolución */}
+          <TabsContent value="evolucion" className="space-y-6">
+            <EvolutionPanel />
+          </TabsContent>
+
+          {/* Tab: Oportunidades */}
+          <TabsContent value="oportunidades" className="space-y-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-4 gap-4">
+              <div className="dashboard-stat">
+                <div className="flex items-center justify-between mb-2">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  <span className="text-xs text-muted-foreground">Total</span>
+                </div>
+                <div className="text-3xl font-bold text-foreground">{opportunities.length}</div>
+                <div className="text-sm text-muted-foreground">detectadas</div>
+              </div>
+              
+              <div className="dashboard-stat">
+                <div className="flex items-center justify-between mb-2">
+                  <TrendingUp className="w-5 h-5 text-success" />
+                  <span className="text-xs text-muted-foreground">Alto impacto</span>
+                </div>
+                <div className="text-3xl font-bold text-foreground">{highImpactCount}</div>
+                <div className="text-sm text-muted-foreground">oportunidades</div>
+              </div>
+              
+              <div className="dashboard-stat">
+                <div className="flex items-center justify-between mb-2">
+                  <Zap className="w-5 h-5 text-warning" />
+                  <span className="text-xs text-muted-foreground">Quick wins</span>
+                </div>
+                <div className="text-3xl font-bold text-foreground">{urgentCount}</div>
+                <div className="text-sm text-muted-foreground">fáciles</div>
+              </div>
+              
+              <div className="dashboard-stat">
+                <div className="flex items-center justify-between mb-2">
+                  <Target className="w-5 h-5 text-accent" />
+                  <span className="text-xs text-muted-foreground">Convertidas</span>
+                </div>
+                <div className="text-3xl font-bold text-foreground">-</div>
+                <div className="text-sm text-muted-foreground">a misiones</div>
+              </div>
+            </div>
+
             {/* Opportunities Table */}
             {opportunities.length === 0 ? (
               <div className="dashboard-card p-12 text-center">
@@ -526,14 +548,13 @@ const RadarPage = () => {
                 </div>
               </div>
             )}
-          </div>
+          </TabsContent>
 
-          {/* Sidebar - Learning & Integrations */}
-          <div className="space-y-6">
-            <InboxCard variant="hero" />
-            <IntegrationsPanel variant="compact" />
-          </div>
-        </div>
+          {/* Tab: Learning */}
+          <TabsContent value="learning" className="space-y-6">
+            <LearningWidget />
+          </TabsContent>
+        </Tabs>
       </div>
     );
   }
