@@ -36,18 +36,18 @@ const MobileLayout = () => {
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 blur-lg bg-primary/20 rounded-full opacity-60" />
-              <OwlLogo size={36} className="relative z-10" />
+              <OwlLogo size={36} variant="round" className="relative z-10" />
             </div>
-            <div>
-              <h1 className="text-sm font-semibold text-foreground">
-                {currentBusiness?.name || "UCEO"}
-              </h1>
-              {currentBusiness && (
+            {currentBusiness && (
+              <div>
+                <h1 className="text-sm font-semibold text-foreground">
+                  {currentBusiness.name}
+                </h1>
                 <p className="text-xs text-muted-foreground capitalize">
                   {currentBusiness.category?.replace("_", " ")}
                 </p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
           
           <div className="flex items-center gap-2">

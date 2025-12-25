@@ -82,7 +82,7 @@ export const HeroSection = () => {
 
           {/* Subheadline */}
           <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto animate-fade-up leading-relaxed" style={{ animationDelay: '0.1s' }}>
-            UCEO analiza tu restaurante y te da{" "}
+            Analizo tu restaurante y te doy{" "}
             <strong className="text-foreground font-semibold">1 acción prioritaria</strong> cada día.
             <br className="hidden sm:block" />
             Sin dashboards complicados. Sin cargar datos manualmente.
@@ -150,9 +150,9 @@ export const HeroSection = () => {
               {/* Card header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <OwlLogo size={40} className="animate-float" />
+                  <OwlLogo size={40} variant="round" className="animate-float" />
                   <div>
-                    <div className="text-xs text-muted-foreground">UCEO dice:</div>
+                    <div className="text-xs text-muted-foreground">Tu CEO dice:</div>
                     <div className="text-sm font-medium text-primary">Tu acción de hoy</div>
                   </div>
                 </div>

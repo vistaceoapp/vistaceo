@@ -47,7 +47,7 @@ const Auth = () => {
           }
           return;
         }
-        toast.success("¡Cuenta creada! Bienvenido a UCEO");
+        toast.success("¡Cuenta creada! Bienvenido");
         navigate("/onboarding");
       }
     } catch (err) {
@@ -70,11 +70,10 @@ const Auth = () => {
         <div className="w-full max-w-md space-y-8 animate-fade-in">
           {/* Logo */}
           <div className="text-center">
-            <Link to="/" className="inline-flex items-center gap-3 mb-8 group">
-              <div className="transition-transform duration-300 group-hover:scale-110">
-                <OwlLogo size={48} />
+            <Link to="/" className="inline-flex items-center justify-center mb-8 group">
+              <div className="transition-transform duration-300 group-hover:scale-105">
+                <OwlLogo size={120} />
               </div>
-              <span className="text-2xl font-bold text-foreground">UCEO</span>
             </Link>
             <h1 className="text-3xl font-bold text-foreground">
               {isLogin ? "Bienvenido de vuelta" : "Crea tu cuenta"}
@@ -246,7 +245,7 @@ const Auth = () => {
                 Tu CEO digital personal
               </h2>
               <p className="text-lg text-muted-foreground">
-                UCEO analiza tu negocio gastronómico y te guía con acciones simples y efectivas cada día.
+                Analizo tu negocio gastronómico y te guío con acciones simples y efectivas cada día.
               </p>
             </div>
 
