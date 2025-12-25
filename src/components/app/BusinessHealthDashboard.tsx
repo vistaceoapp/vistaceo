@@ -88,8 +88,8 @@ export const BusinessHealthDashboard = ({ variant = "full" }: BusinessHealthDash
 
       if (baselineError) throw baselineError;
 
-      setLatestSnapshot(latest as Snapshot | null);
-      setBaselineSnapshot(baseline as Snapshot | null);
+      setLatestSnapshot(latest as unknown as Snapshot | null);
+      setBaselineSnapshot(baseline as unknown as Snapshot | null);
     } catch (error) {
       console.error("Error fetching snapshots:", error);
     } finally {
