@@ -5,13 +5,31 @@ import {
   Brain, 
   Rocket, 
   AlertTriangle,
-  Check
+  Check,
+  Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type UserMode = "nano" | "standard" | "proactive" | "sos";
+
+interface AutopilotModeSelectorProps {
+  currentMode: UserMode;
+  userId: string;
+  onModeChange?: (mode: UserMode) => void;
+  isPro?: boolean;
+}
 
 interface AutopilotModeSelectorProps {
   currentMode: UserMode;
@@ -81,31 +99,49 @@ const modes: {
   }
 ];
 
+interface AutopilotModeSelectorProps {
+  currentMode: UserMode;
+  userId: string;
+  onModeChange?: (mode: UserMode) => void;
+  isPro?: boolean;
+}
+
 export const AutopilotModeSelector = ({
   currentMode,
   userId,
-  onModeChange
+  onModeChange,
+  isPro = false
 }: AutopilotModeSelectorProps) => {
   const [selectedMode, setSelectedMode] = useState<UserMode>(currentMode);
   const [saving, setSaving] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+  const [pendingMode, setPendingMode] = useState<UserMode | null>(null);
 
   const handleSelectMode = async (mode: UserMode) => {
     if (mode === selectedMode) return;
+    
+    // Show warning dialog
+    setPendingMode(mode);
+    setShowWarning(true);
+  };
+
+  const confirmModeChange = async () => {
+    if (!pendingMode) return;
     
     setSaving(true);
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ user_mode: mode })
+        .update({ user_mode: pendingMode })
         .eq("id", userId);
 
       if (error) throw error;
 
-      setSelectedMode(mode);
-      onModeChange?.(mode);
+      setSelectedMode(pendingMode);
+      onModeChange?.(pendingMode);
       toast({
         title: "Modo actualizado",
-        description: `Ahora estás en modo ${modes.find(m => m.id === mode)?.name}`
+        description: `Ahora estás en modo ${modes.find(m => m.id === pendingMode)?.name}. Podés volver cuando quieras.`
       });
     } catch (error) {
       console.error("Error updating mode:", error);
@@ -116,6 +152,8 @@ export const AutopilotModeSelector = ({
       });
     } finally {
       setSaving(false);
+      setShowWarning(false);
+      setPendingMode(null);
     }
   };
 
