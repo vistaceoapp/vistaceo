@@ -22,7 +22,7 @@ export const OwlLogo = ({ className = "", size = 32, variant = "auto" }: OwlLogo
     return (
       <img
         src={logoRound}
-        alt="UCEO Logo"
+        alt="Logo"
         width={size}
         height={size}
         className={`rounded-full ${className}`}
@@ -37,7 +37,7 @@ export const OwlLogo = ({ className = "", size = 32, variant = "auto" }: OwlLogo
   return (
     <img
       src={logoSrc}
-      alt="UCEO Logo"
+      alt="Logo"
       height={size}
       className={className}
       style={{ height: size, width: 'auto', objectFit: 'contain' }}
