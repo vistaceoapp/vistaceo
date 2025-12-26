@@ -373,10 +373,10 @@ export const AnalyticsDashboard = ({ variant = "full" }: AnalyticsDashboardProps
           color="warning"
         />
         <MetricCard
-          title="Conocimiento"
-          value={metrics.totalInsights}
-          change={metrics.weeklyGrowth}
-          changeLabel="respuestas"
+          title="Acciones Completadas"
+          value={metrics.completedActions}
+          change={metrics.totalActions > 0 ? Math.round((metrics.completedActions / metrics.totalActions) * 100) : 0}
+          changeLabel="% del total"
           icon={TrendingUp}
           color="success"
         />
@@ -589,6 +589,25 @@ export const AnalyticsDashboard = ({ variant = "full" }: AnalyticsDashboardProps
           </CardContent>
         </Card>
       )}
+
+      {/* Persistent message for data connection */}
+      <Card className="border-dashed border-primary/30 bg-primary/5">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-foreground font-medium">
+                Mientras más conectes y más información me des, más preciso voy a ser y más te voy a ayudar a crecer.
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Conecta integraciones para ver métricas reales y obtener recomendaciones personalizadas.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

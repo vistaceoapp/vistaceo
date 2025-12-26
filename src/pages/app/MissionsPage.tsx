@@ -300,11 +300,37 @@ const MissionsPage = () => {
     );
   }
 
+  // Calculate stats
+  const activeMissions = missions.filter(m => m.status === "active");
+  const pausedMissions = missions.filter(m => m.status === "paused");
+  
+  // Calculate total steps and completed
+  const allSteps = missions.flatMap(m => (m.steps || []) as Step[]);
+  const completedStepsCount = allSteps.filter(s => s.done).length;
+  
+  // Get next best step
+  const getNextBestStep = () => {
+    const activeMission = activeMissions.find(m => {
+      const steps = (m.steps || []) as Step[];
+      return steps.some(s => !s.done);
+    });
+    if (!activeMission) return null;
+    
+    const steps = (activeMission.steps || []) as Step[];
+    const nextStepIndex = steps.findIndex(s => !s.done);
+    if (nextStepIndex === -1) return null;
+    
+    return {
+      mission: activeMission,
+      step: steps[nextStepIndex],
+      stepIndex: nextStepIndex
+    };
+  };
+  
+  const nextBestStep = getNextBestStep();
+
   // Desktop Layout
   if (!isMobile) {
-    const activeMissions = missions.filter(m => m.status === "active");
-    const pausedMissions = missions.filter(m => m.status === "paused");
-
     return (
       <div className="space-y-6">
         {/* Header */}
@@ -322,6 +348,65 @@ const MissionsPage = () => {
             </span>
           </div>
         </div>
+
+        {/* Stats Row - Cómo venís */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className="dashboard-stat">
+            <div className="flex items-center gap-2 mb-2">
+              <Play className="w-5 h-5 text-success" />
+            </div>
+            <div className="text-3xl font-bold text-foreground">{activeMissions.length}</div>
+            <div className="text-sm text-muted-foreground">Activas</div>
+          </div>
+          <div className="dashboard-stat">
+            <div className="flex items-center gap-2 mb-2">
+              <Pause className="w-5 h-5 text-warning" />
+            </div>
+            <div className="text-3xl font-bold text-foreground">{pausedMissions.length}</div>
+            <div className="text-sm text-muted-foreground">Pausadas</div>
+          </div>
+          <div className="dashboard-stat">
+            <div className="flex items-center gap-2 mb-2">
+              <Check className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-3xl font-bold text-foreground">{completedStepsCount}</div>
+            <div className="text-sm text-muted-foreground">Pasos completados</div>
+          </div>
+          <div className="dashboard-stat">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-5 h-5 text-accent" />
+            </div>
+            <div className="text-3xl font-bold text-foreground">{allSteps.length}</div>
+            <div className="text-sm text-muted-foreground">Pasos totales</div>
+          </div>
+        </div>
+
+        {/* Next Best Step - Highlighted */}
+        {nextBestStep && (
+          <div className="dashboard-card p-5 border-primary/30 bg-primary/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
+                  <Zap className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Tu siguiente mejor paso hoy</p>
+                  <h3 className="font-semibold text-foreground">{nextBestStep.step.text}</h3>
+                  <p className="text-xs text-primary mt-1">{nextBestStep.mission.title}</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => {
+                  toggleStep(nextBestStep.mission.id, nextBestStep.stepIndex);
+                  toast({ title: "✅ ¡Paso completado!" });
+                }}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Marcar como hecho
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-3 gap-6">
           {/* Active Missions - 2 columns */}
