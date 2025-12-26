@@ -138,6 +138,16 @@ serve(async (req) => {
       }
     }
 
+    // Trigger signal processing pipeline (converts external_data to signals with entities)
+    try {
+      await supabase.functions.invoke("brain-process-signals", {
+        body: { businessId }
+      });
+      console.log(`[sync-external-data] Triggered signal processing pipeline`);
+    } catch (pipelineError) {
+      console.error("Error triggering signal pipeline:", pipelineError);
+    }
+
     // Trigger pattern analysis after sync
     try {
       await supabase.functions.invoke("analyze-patterns", {
