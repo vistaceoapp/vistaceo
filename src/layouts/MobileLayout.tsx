@@ -3,8 +3,10 @@ import { Home, MessageCircle, Target, Radar, MoreHorizontal } from "lucide-react
 import { cn } from "@/lib/utils";
 import { OwlLogo } from "@/components/ui/OwlLogo";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useBrain } from "@/hooks/use-brain";
 import { PulsingDot } from "@/components/app/PulsingDot";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
 import { useAutoSync } from "@/hooks/use-auto-sync";
 
 const navItems = [
@@ -18,6 +20,7 @@ const navItems = [
 const MobileLayout = () => {
   const location = useLocation();
   const { currentBusiness } = useBusiness();
+  const { brain, confidenceLevel, focusLabel, loading: brainLoading } = useBrain();
   
   // Auto-sync external data in background
   useAutoSync();
@@ -52,12 +55,8 @@ const MobileLayout = () => {
           
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <button className="relative w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center hover:border-primary/30 transition-colors group">
-              <span className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">1</span>
-              <span className="absolute -top-1 -right-1">
-                <PulsingDot variant="primary" size="sm" />
-              </span>
-            </button>
+            {/* Brain Status Mini */}
+            <BrainStatusWidget variant="minimal" />
           </div>
         </div>
       </header>
