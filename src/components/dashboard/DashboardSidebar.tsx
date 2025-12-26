@@ -186,26 +186,6 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
           })}
         </nav>
 
-        {/* Stats Card (only when expanded) */}
-        {!collapsed && (
-          <div className="mx-3 mb-4 p-4 rounded-xl bg-gradient-to-br from-primary/5 via-primary/10 to-transparent border border-primary/20">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">Progreso semanal</span>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Acciones completadas</span>
-                <span className="font-medium text-foreground">7/10</span>
-              </div>
-              <Progress value={70} className="h-1.5" />
-            </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-primary">
-              <Sparkles className="w-3 h-3" />
-              <span>¡Vas muy bien esta semana!</span>
-            </div>
-          </div>
-        )}
 
         {/* Upgrade Card (only when expanded) */}
         {!collapsed && (
