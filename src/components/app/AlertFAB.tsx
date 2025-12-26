@@ -143,10 +143,11 @@ export const AlertFAB = () => {
 
   return (
     <>
-      {/* FAB Button */}
+      {/* FAB Button - Rendered in portal-like fixed position */}
       <Button
         onClick={() => setOpen(true)}
-        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 w-14 h-14 rounded-full shadow-2xl z-[60] bg-warning hover:bg-warning/90 border-2 border-warning-foreground/10"
+        className="fixed bottom-24 right-4 md:bottom-8 md:right-8 w-14 h-14 rounded-full shadow-2xl bg-warning hover:bg-warning/90 border-2 border-warning-foreground/10"
+        style={{ zIndex: 9999, position: 'fixed' }}
         size="icon"
         aria-label="Registrar alerta"
       >

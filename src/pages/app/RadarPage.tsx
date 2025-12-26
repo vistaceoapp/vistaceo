@@ -13,8 +13,6 @@ import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { BusinessHealthDashboard } from "@/components/app/BusinessHealthDashboard";
-import { EvolutionPanel } from "@/components/app/EvolutionPanel";
 import {
   Dialog,
   DialogContent,
@@ -432,7 +430,7 @@ const RadarPage = () => {
         <Tabs defaultValue="oportunidades" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="oportunidades" className="text-xs">
-              Oportunidades
+              Oportunidades de mejora
             </TabsTrigger>
             <TabsTrigger value="id" className="text-xs">
               I+D
@@ -548,7 +546,7 @@ const RadarPage = () => {
             <RadarIcon className="w-6 h-6 text-accent" />
             Radar
           </h1>
-          <p className="text-muted-foreground">Diagnóstico, evolución y oportunidades de tu negocio</p>
+          <p className="text-muted-foreground">Oportunidades e investigación para tu negocio</p>
         </div>
         <Button 
           onClick={generateAnalysis}
@@ -560,24 +558,12 @@ const RadarPage = () => {
         </Button>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs - Only 2 tabs: Oportunidades and I+D */}
       <Tabs defaultValue="oportunidades" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="diagnostico">Diagnóstico</TabsTrigger>
-          <TabsTrigger value="evolucion">Evolución</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="oportunidades">Oportunidades de mejora</TabsTrigger>
           <TabsTrigger value="id">Investigación + Desarrollo (I+D)</TabsTrigger>
         </TabsList>
-
-        {/* Tab: Diagnóstico */}
-        <TabsContent value="diagnostico" className="space-y-6">
-          <BusinessHealthDashboard />
-        </TabsContent>
-
-        {/* Tab: Evolución */}
-        <TabsContent value="evolucion" className="space-y-6">
-          <EvolutionPanel />
-        </TabsContent>
 
         {/* Tab: Oportunidades de mejora (INTERNO) */}
         <TabsContent value="oportunidades" className="space-y-6">
