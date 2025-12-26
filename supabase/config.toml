@@ -41,3 +41,9 @@ verify_jwt = false
 
 [functions.brain-record-signal]
 verify_jwt = false
+
+[functions.brain-process-signals]
+verify_jwt = false
+
+[functions.brain-resolve-entity]
+verify_jwt = false

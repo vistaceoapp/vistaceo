@@ -150,12 +150,23 @@ serve(async (req) => {
 
     console.log(`Synced ${syncedCount} reviews for business ${businessId}`);
 
+    // Trigger signal processing pipeline
+    try {
+      await supabase.functions.invoke("brain-process-signals", {
+        body: { businessId }
+      });
+      console.log(`Triggered signal processing for business ${businessId}`);
+    } catch (pipelineError) {
+      console.error("Error triggering signal pipeline:", pipelineError);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         synced: syncedCount,
         total: reviews.length,
-        location: metadata.google_location_name
+        location: metadata.google_location_name,
+        pipelineTriggered: true
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

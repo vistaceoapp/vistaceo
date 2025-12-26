@@ -410,6 +410,59 @@ export type Database = {
           },
         ]
       }
+      canonical_entities: {
+        Row: {
+          business_id: string
+          canonical_name: string
+          confidence: number | null
+          created_at: string
+          display_name: string
+          entity_type: string
+          id: string
+          last_seen_at: string | null
+          mention_count: number | null
+          metadata: Json
+          synonyms: Json
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          canonical_name: string
+          confidence?: number | null
+          created_at?: string
+          display_name: string
+          entity_type: string
+          id?: string
+          last_seen_at?: string | null
+          mention_count?: number | null
+          metadata?: Json
+          synonyms?: Json
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          canonical_name?: string
+          confidence?: number | null
+          created_at?: string
+          display_name?: string
+          entity_type?: string
+          id?: string
+          last_seen_at?: string | null
+          mention_count?: number | null
+          metadata?: Json
+          synonyms?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canonical_entities_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           business_id: string
@@ -614,6 +667,118 @@ export type Database = {
           },
         ]
       }
+      entity_mentions: {
+        Row: {
+          business_id: string
+          context: string | null
+          created_at: string
+          entity_id: string
+          id: string
+          raw_text: string | null
+          sentiment: number | null
+          source_id: string
+          source_type: string
+        }
+        Insert: {
+          business_id: string
+          context?: string | null
+          created_at?: string
+          entity_id: string
+          id?: string
+          raw_text?: string | null
+          sentiment?: number | null
+          source_id: string
+          source_type: string
+        }
+        Update: {
+          business_id?: string
+          context?: string | null
+          created_at?: string
+          entity_id?: string
+          id?: string
+          raw_text?: string | null
+          sentiment?: number | null
+          source_id?: string
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_mentions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_mentions_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "canonical_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entity_relations: {
+        Row: {
+          business_id: string
+          created_at: string
+          entity_a_id: string
+          entity_b_id: string
+          evidence_count: number | null
+          id: string
+          metadata: Json | null
+          relation_type: string
+          strength: number | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          entity_a_id: string
+          entity_b_id: string
+          evidence_count?: number | null
+          id?: string
+          metadata?: Json | null
+          relation_type: string
+          strength?: number | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          entity_a_id?: string
+          entity_b_id?: string
+          evidence_count?: number | null
+          id?: string
+          metadata?: Json | null
+          relation_type?: string
+          strength?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_relations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_relations_entity_a_id_fkey"
+            columns: ["entity_a_id"]
+            isOneToOne: false
+            referencedRelation: "canonical_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_relations_entity_b_id_fkey"
+            columns: ["entity_b_id"]
+            isOneToOne: false
+            referencedRelation: "canonical_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       external_data: {
         Row: {
           business_id: string
@@ -749,6 +914,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "lessons_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metrics_timeseries: {
+        Row: {
+          business_id: string
+          created_at: string
+          granularity: string
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_source: string
+          period_end: string
+          period_start: string
+          value: number
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          granularity?: string
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_source: string
+          period_end: string
+          period_start: string
+          value: number
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          granularity?: string
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_source?: string
+          period_end?: string
+          period_start?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metrics_timeseries_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
