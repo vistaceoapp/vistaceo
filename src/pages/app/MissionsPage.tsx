@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, Sparkles, Plus, MoreHorizontal } from "lucide-react";
+import { Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, Sparkles, Plus, MoreHorizontal, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Mission {
   id: string;
@@ -339,6 +345,23 @@ const MissionsPage = () => {
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
               <Target className="w-6 h-6 text-primary" />
               Misiones
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="text-muted-foreground hover:text-foreground transition-colors">
+                      <Info className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[280px] p-3">
+                    <p className="font-semibold text-foreground mb-1 text-sm">¿Qué son las Misiones?</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Las misiones son proyectos de mejora guiados paso a paso. 
+                      Cada una tiene pasos concretos para que avances de forma estructurada. 
+                      ¡Completa pasos para ver tu progreso!
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </h1>
             <p className="text-muted-foreground">Proyectos de mejora guiados paso a paso</p>
           </div>

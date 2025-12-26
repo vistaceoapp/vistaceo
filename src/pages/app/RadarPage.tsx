@@ -545,6 +545,22 @@ const RadarPage = () => {
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <RadarIcon className="w-6 h-6 text-accent" />
             Radar
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="text-muted-foreground hover:text-foreground transition-colors">
+                    <Info className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[280px] p-3">
+                  <p className="font-semibold text-foreground mb-1 text-sm">¿Qué es el Radar?</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Aquí encontrás oportunidades de mejora basadas en TUS datos (INTERNO) 
+                    y tendencias del mercado (EXTERNO). Mientras más conectes, más preciso será.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </h1>
           <p className="text-muted-foreground">Oportunidades e investigación para tu negocio</p>
         </div>
@@ -675,9 +691,15 @@ const RadarPage = () => {
               <h2 className="text-xl font-bold text-foreground mb-2">
                 {showHighlighted ? "No hay oportunidades destacadas" : "Escaneando oportunidades..."}
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground mb-4">
                 {showHighlighted ? "Prueba quitando el filtro" : "El sistema está analizando tu negocio"}
               </p>
+              <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-primary/5 border border-primary/10">
+                <Lightbulb className="w-3.5 h-3.5 text-primary" />
+                <span className="text-xs text-muted-foreground">
+                  Tip: Conecta más integraciones para detectar más oportunidades
+                </span>
+              </div>
             </div>
           ) : (
             <div className="dashboard-card overflow-hidden">
