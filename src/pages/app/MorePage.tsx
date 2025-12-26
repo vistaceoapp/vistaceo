@@ -48,6 +48,8 @@ import { GlassCard } from "@/components/app/GlassCard";
 import { AutopilotModeSelector } from "@/components/app/AutopilotModeSelector";
 import { LanguageSelector } from "@/components/app/LanguageSelector";
 import { IntegrationsPanel } from "@/components/app/IntegrationsPanel";
+import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
+import { FocusSelector } from "@/components/app/FocusSelector";
 
 const MorePage = () => {
   const { user, signOut } = useAuth();
@@ -341,6 +343,12 @@ const MorePage = () => {
 
             {/* Integrations Panel - Full */}
             <IntegrationsPanel />
+
+            {/* BusinessBrain Status */}
+            <BrainStatusWidget variant="full" />
+
+            {/* Focus Selector */}
+            <FocusSelector variant="card" />
 
             {/* Settings Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

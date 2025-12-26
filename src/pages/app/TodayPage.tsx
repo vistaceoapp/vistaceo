@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, Sparkles, Plus, Zap, TrendingUp, Calendar, ArrowRight, BarChart3, Camera } from "lucide-react";
+import { Check, Clock, Sparkles, Plus, Zap, TrendingUp, Calendar, ArrowRight, BarChart3, Camera, Brain, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useBrain } from "@/hooks/use-brain";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +15,8 @@ import { InboxCard } from "@/components/app/InboxCard";
 import { ActionCard } from "@/components/app/ActionCard";
 import { SocialRatingsPanel } from "@/components/app/SocialRatingsPanel";
 import { AlertFAB } from "@/components/app/AlertFAB";
+import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
+import { FocusSelector } from "@/components/app/FocusSelector";
 
 interface DailyAction {
   id: string;
@@ -38,6 +41,7 @@ const TodayPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
+  const { brain, focusLabel, confidenceLevel, canGenerateSpecific, dataGaps } = useBrain();
   const [todayAction, setTodayAction] = useState<DailyAction | null>(null);
   const [weeklyPriorities, setWeeklyPriorities] = useState<WeeklyPriority[]>([]);
   const [completedToday, setCompletedToday] = useState(0);
@@ -394,16 +398,23 @@ const TodayPage = () => {
                 {getGreeting()}
               </h1>
             </div>
-            <p className="text-muted-foreground text-lg">
-              {currentBusiness.name} • {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}
-            </p>
+            <div className="flex items-center gap-3">
+              <p className="text-muted-foreground text-lg">
+                {currentBusiness.name} • {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}
+              </p>
+              {brain && (
+                <FocusSelector variant="inline" />
+              )}
+            </div>
           </div>
           
           {/* Quick Action */}
-          <Button variant="outline" onClick={generateAction} disabled={actionLoading}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva acción
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={generateAction} disabled={actionLoading}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nueva acción
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-6">
@@ -511,6 +522,9 @@ const TodayPage = () => {
 
           {/* Sidebar - Stats & Quick Actions */}
           <div className="space-y-6">
+            {/* Brain Status Widget */}
+            <BrainStatusWidget variant="compact" />
+
             {/* Check-in Card */}
             {!hasCheckedInToday && (
               <div className="animate-fade-in">
