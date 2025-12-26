@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Zap, Eye, ChevronRight, Check, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GlassCard } from "./GlassCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useBusiness } from "@/contexts/BusinessContext";
+import { toast } from "@/hooks/use-toast";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 
 interface Action {
@@ -21,11 +22,9 @@ interface Action {
 }
 
 interface ActionsListPanelProps {
-  actions: Action[];
-  onViewAction: (action: Action) => void;
-  onCompleteAction: (action: Action) => void;
-  onSnoozeAction: (action: Action) => void;
-  loading?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onRefresh?: () => void;
   className?: string;
 }
 
@@ -37,55 +36,106 @@ const PRIORITY_CONFIG = {
 };
 
 export const ActionsListPanel = ({ 
-  actions, 
-  onViewAction,
-  onCompleteAction,
-  onSnoozeAction,
-  loading = false,
+  open = false,
+  onOpenChange,
+  onRefresh,
   className 
 }: ActionsListPanelProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { currentBusiness } = useBusiness();
+  const [actions, setActions] = useState<Action[]>([]);
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchActions = async () => {
+    if (!currentBusiness) return;
+    
+    setLoading(true);
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const { data, error } = await supabase
+        .from("daily_actions")
+        .select("*")
+        .eq("business_id", currentBusiness.id)
+        .eq("scheduled_for", today)
+        .order("priority", { ascending: false });
+
+      if (error) throw error;
+      setActions(data || []);
+    } catch (error) {
+      console.error("Error fetching actions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      fetchActions();
+    }
+  }, [open, currentBusiness]);
+
+  const handleComplete = async (action: Action) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("daily_actions")
+        .update({ 
+          status: "completed", 
+          completed_at: new Date().toISOString() 
+        })
+        .eq("id", action.id);
+
+      if (error) throw error;
+      
+      toast({
+        title: "🎉 ¡Acción completada!",
+        description: "Excelente trabajo. Sigue así.",
+      });
+      
+      setSelectedAction(null);
+      fetchActions();
+      onRefresh?.();
+    } catch (error) {
+      console.error("Error completing action:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo completar la acción",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSnooze = async (action: Action) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("daily_actions")
+        .update({ status: "snoozed" })
+        .eq("id", action.id);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Acción pospuesta",
+        description: "La verás mañana.",
+      });
+      
+      setSelectedAction(null);
+      fetchActions();
+      onRefresh?.();
+    } catch (error) {
+      console.error("Error snoozing action:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const pendingActions = actions.filter(a => a.status === "pending");
-  const pendingCount = pendingActions.length;
-
-  const handleViewAction = (action: Action) => {
-    setSelectedAction(action);
-  };
-
-  const handleComplete = (action: Action) => {
-    onCompleteAction(action);
-    setSelectedAction(null);
-  };
-
-  const handleSnooze = (action: Action) => {
-    onSnoozeAction(action);
-    setSelectedAction(null);
-  };
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <GlassCard 
-          interactive 
-          className={cn("p-4 cursor-pointer", className)}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <Zap className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-foreground">Acciones disponibles</p>
-              <p className="text-xs text-muted-foreground">
-                {pendingCount > 0 ? `${pendingCount} accion${pendingCount > 1 ? 'es' : ''} pendiente${pendingCount > 1 ? 's' : ''}` : 'Sin acciones pendientes'}
-              </p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </div>
-        </GlassCard>
-      </SheetTrigger>
-
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
@@ -170,7 +220,7 @@ export const ActionsListPanel = ({
                   return (
                     <button
                       key={action.id}
-                      onClick={() => handleViewAction(action)}
+                      onClick={() => setSelectedAction(action)}
                       className="w-full p-4 rounded-xl border border-border bg-card hover:bg-secondary/50 hover:border-primary/30 transition-all text-left"
                     >
                       <div className="flex items-start gap-3">
