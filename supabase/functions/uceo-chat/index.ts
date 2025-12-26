@@ -6,8 +6,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Premium AI Assistant System Prompt
+// Premium AI Assistant System Prompt - with Anti-Generic rules
 const SYSTEM_PROMPT = `Eres un asistente de IA premium para dueños de restaurantes, cafeterías, bares y negocios gastronómicos. Eres como un consultor de negocios experto que está siempre disponible.
+
+## REGLAS ANTI-GENÉRICO (CRÍTICAS)
+1. PROHIBIDO usar frases genéricas como: "mejora tu negocio", "aumenta tus ventas", "optimiza tu operación", "sé más eficiente", "atrae más clientes"
+2. SIEMPRE usa los datos específicos que te doy (nombres de productos, horarios, números)
+3. Si no tenés datos suficientes, SÉ HONESTO y di "necesito saber X para darte un consejo más preciso"
+4. Cada consejo debe mencionar algo específico de ESTE negocio
+5. Si te falta información crítica, sugiere qué datos necesitás
 
 ## Tu Personalidad
 - **Directo y práctico**: Vas al grano con consejos accionables, sin rodeos
@@ -16,6 +23,7 @@ const SYSTEM_PROMPT = `Eres un asistente de IA premium para dueños de restauran
 - **Local**: Entiendes el contexto latinoamericano (economía, cultura gastronómica, estacionalidad, proveedores)
 - **Motivador**: Celebras los logros y das ánimo en momentos difíciles
 - **Analítico**: Detectas patrones y conectas información para dar insights profundos
+- **Honesto**: Si te falta información, lo decís claramente
 
 ## Tu Rol Principal
 1. **Decisiones del día a día**: Ayudar con problemas operativos inmediatos
@@ -23,6 +31,7 @@ const SYSTEM_PROMPT = `Eres un asistente de IA premium para dueños de restauran
 3. **Acciones específicas**: Siempre dar al menos UNA acción concreta que el dueño pueda hacer HOY
 4. **Estrategia práctica**: Guiar hacia mejoras de largo plazo sin abrumar
 5. **Memoria activa**: Usar las lecciones aprendidas y el contexto histórico para personalizar consejos
+6. **Detectar gaps**: Si te falta información clave, preguntá de forma específica
 
 ## Áreas de Expertise
 - **Marketing local**: Redes sociales, promociones, fidelización, delivery apps, Google My Business
@@ -49,6 +58,7 @@ const SYSTEM_PROMPT = `Eres un asistente de IA premium para dueños de restauran
 - Si celebras un logro, usa emojis con moderación
 - Si detectas un patrón importante, menciona "📊 **Patrón detectado:**"
 - Si hay un riesgo, usa "⚠️ **Atención:**"
+- Si necesitas más info, usa "❓ **Necesito saber:**"
 
 ## Uso del Contexto
 Tienes acceso a información del negocio, check-ins recientes, acciones completadas, misiones activas y lecciones aprendidas. USA esta información para:
@@ -58,20 +68,37 @@ Tienes acceso a información del negocio, check-ins recientes, acciones completa
 - Evitar repetir consejos que ya se dieron o no funcionaron`;
 
 // Build rich context from business data and memory
-function buildContextMessage(businessContext: any, memoryContext: any): string {
+function buildContextMessage(businessContext: any, memoryContext: any, brainContext: any): string {
   let context = "";
   
   if (businessContext) {
     context += `\n\n## Contexto del Negocio
 - **Nombre**: ${businessContext.name || "No especificado"}
-- **Tipo**: ${formatCategory(businessContext.category)}
+- **Tipo**: ${formatCategory(brainContext?.primary_business_type || businessContext.category)}
+- **Foco actual**: ${brainContext?.current_focus || "ventas"}
 - **País**: ${formatCountry(businessContext.country)}
 - **Ticket promedio**: ${businessContext.avg_ticket ? `$${businessContext.avg_ticket}` : "No especificado"}
 - **Rating promedio**: ${businessContext.avg_rating ? `${businessContext.avg_rating}★` : "No especificado"}
-- **Horarios configurados**: ${businessContext.service_slots ? JSON.stringify(businessContext.service_slots) : "Estándar"}`;
+- **Nivel de contexto (MVC)**: ${brainContext?.mvc_completion_pct || 0}%`;
+  }
+
+  // Brain factual memory (most important for personalization)
+  if (brainContext?.factual_memory && Object.keys(brainContext.factual_memory).length > 0) {
+    context += `\n\n## Memoria Factual del Negocio`;
+    Object.entries(brainContext.factual_memory).forEach(([key, value]) => {
+      context += `\n- ${key.replace(/_/g, ' ')}: ${value}`;
+    });
   }
 
   if (memoryContext) {
+    // Recent signals (new!)
+    if (memoryContext.recentSignals && memoryContext.recentSignals.length > 0) {
+      context += `\n\n## Señales Recientes`;
+      memoryContext.recentSignals.slice(0, 5).forEach((signal: any) => {
+        context += `\n- [${signal.signal_type}] ${signal.raw_text || JSON.stringify(signal.content).slice(0, 80)}`;
+      });
+    }
+
     // Business insights from micro-questions (MOST IMPORTANT)
     if (memoryContext.businessInsights && memoryContext.businessInsights.length > 0) {
       context += `\n\n## Conocimiento del Negocio (Respuestas del dueño)
@@ -98,6 +125,13 @@ ${memoryContext.activeMissions.map((m: any) => `- ${m.title} (paso ${m.current_s
       context += `\n\n## Lecciones Aprendidas
 ${memoryContext.lessons.slice(0, 5).map((l: string) => `- ${l}`).join("\n")}`;
     }
+  }
+
+  // Data gaps warning
+  const mvcCompletion = brainContext?.mvc_completion_pct || 0;
+  if (mvcCompletion < 60) {
+    context += `\n\n## ⚠️ Nivel de Contexto Bajo (${mvcCompletion}%)
+Te falta información para dar consejos muy específicos. Si es relevante, preguntá por los datos que necesitás.`;
   }
 
   return context;
@@ -131,10 +165,10 @@ function formatCountry(country: string | null): string {
   return country ? countries[country] || country : "No especificado";
 }
 
-// Fetch memory context from database
+// Fetch memory context from database including brain
 async function fetchMemoryContext(supabase: any, businessId: string) {
   try {
-    const [actionsRes, missionsRes, checkinsRes, lessonsRes, insightsRes] = await Promise.all([
+    const [actionsRes, missionsRes, checkinsRes, lessonsRes, insightsRes, brainRes, signalsRes] = await Promise.all([
       // Recent actions
       supabase
         .from("daily_actions")
@@ -171,6 +205,19 @@ async function fetchMemoryContext(supabase: any, businessId: string) {
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(30),
+      // Business brain
+      supabase
+        .from("business_brains")
+        .select("*")
+        .eq("business_id", businessId)
+        .maybeSingle(),
+      // Recent signals
+      supabase
+        .from("signals")
+        .select("signal_type, source, content, raw_text, created_at")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(10),
     ]);
 
     // Format lessons
@@ -195,10 +242,32 @@ async function fetchMemoryContext(supabase: any, businessId: string) {
       recentCheckins: checkinsRes.data || [],
       lessons: lessons,
       businessInsights: insights,
+      brain: brainRes.data,
+      recentSignals: signalsRes.data || [],
     };
   } catch (error) {
     console.error("Error fetching memory context:", error);
     return null;
+  }
+}
+
+// Record chat signal
+async function recordChatSignal(supabase: any, businessId: string, userMessage: string, assistantMessage: string) {
+  try {
+    await supabase.from("signals").insert({
+      business_id: businessId,
+      signal_type: "chat",
+      source: "uceo-chat",
+      content: {
+        user_message: userMessage.slice(0, 500),
+        assistant_response_preview: assistantMessage.slice(0, 200)
+      },
+      raw_text: userMessage.slice(0, 1000),
+      confidence: "high",
+      importance: 5
+    });
+  } catch (error) {
+    console.error("Error recording chat signal:", error);
   }
 }
 
@@ -217,18 +286,22 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY 
+      ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+      : null;
+
     // Fetch memory context if we have business ID
     let memoryContext = null;
-    if (businessContext?.id && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    if (businessContext?.id && supabase) {
       memoryContext = await fetchMemoryContext(supabase, businessContext.id);
     }
 
-    // Build rich context
-    const contextMessage = buildContextMessage(businessContext, memoryContext);
+    // Build rich context including brain
+    const brainContext = memoryContext?.brain;
+    const contextMessage = buildContextMessage(businessContext, memoryContext, brainContext);
     const systemPrompt = SYSTEM_PROMPT + contextMessage;
 
-    console.log("Calling AI gateway with", messages.length, "messages");
+    console.log("Calling AI gateway with", messages.length, "messages, MVC:", brainContext?.mvc_completion_pct || 0);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -277,6 +350,14 @@ serve(async (req) => {
 
     if (!assistantMessage) {
       throw new Error("No response from AI");
+    }
+
+    // Record chat as signal for learning
+    if (supabase && businessContext?.id && messages.length > 0) {
+      const lastUserMessage = messages.filter((m: any) => m.role === 'user').pop();
+      if (lastUserMessage) {
+        await recordChatSignal(supabase, businessContext.id, lastUserMessage.content, assistantMessage);
+      }
     }
 
     console.log("AI response received successfully");
