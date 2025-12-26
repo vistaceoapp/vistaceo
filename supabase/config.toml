@@ -47,3 +47,9 @@ verify_jwt = false
 
 [functions.brain-resolve-entity]
 verify_jwt = false
+
+[functions.brain-focus-engine]
+verify_jwt = false
+
+[functions.brain-playbook]
+verify_jwt = false
