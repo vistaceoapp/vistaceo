@@ -1322,6 +1322,29 @@ const MissionsPage = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Mobile Plan Preview Dialog */}
+      <Dialog open={!!selectedSuggestion} onOpenChange={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}>
+        <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50 max-h-[90vh] overflow-y-auto">
+          {selectedSuggestion && (
+            <MissionPlanPreview
+              plan={generatedPlan || { 
+                planTitle: selectedSuggestion.title,
+                planDescription: selectedSuggestion.description,
+                estimatedDuration: "1-2 semanas",
+                estimatedImpact: "Mejora significativa",
+                steps: [] 
+              }}
+              missionTitle={selectedSuggestion.title}
+              missionArea={selectedSuggestion.area}
+              isLoading={planLoading}
+              onAccept={(steps) => acceptPlan(steps)}
+              onDismiss={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}
+              onRegenerate={() => generatePlanForSuggestion(selectedSuggestion, true)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
