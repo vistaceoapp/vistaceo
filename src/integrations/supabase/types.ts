@@ -174,6 +174,59 @@ export type Database = {
           },
         ]
       }
+      business_focus_config: {
+        Row: {
+          auto_adjust_focus: boolean | null
+          business_id: string
+          created_at: string
+          current_focus: string
+          daily_checkin_enabled: boolean | null
+          focus_history: Json | null
+          focus_weights: Json
+          id: string
+          proactive_suggestions: boolean | null
+          secondary_focus: string | null
+          updated_at: string
+          weekly_action_limit: number | null
+        }
+        Insert: {
+          auto_adjust_focus?: boolean | null
+          business_id: string
+          created_at?: string
+          current_focus?: string
+          daily_checkin_enabled?: boolean | null
+          focus_history?: Json | null
+          focus_weights?: Json
+          id?: string
+          proactive_suggestions?: boolean | null
+          secondary_focus?: string | null
+          updated_at?: string
+          weekly_action_limit?: number | null
+        }
+        Update: {
+          auto_adjust_focus?: boolean | null
+          business_id?: string
+          created_at?: string
+          current_focus?: string
+          daily_checkin_enabled?: boolean | null
+          focus_history?: Json | null
+          focus_weights?: Json
+          id?: string
+          proactive_suggestions?: boolean | null
+          secondary_focus?: string | null
+          updated_at?: string
+          weekly_action_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_focus_config_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_insights: {
         Row: {
           answer: string
@@ -302,7 +355,11 @@ export type Database = {
           id: string
           key_metrics: Json | null
           key_variables: Json | null
+          mission_templates: Json | null
           mvc_fields: Json
+          playbook: Json | null
+          priority_rules: Json | null
+          signal_weights: Json | null
           updated_at: string
         }
         Insert: {
@@ -315,7 +372,11 @@ export type Database = {
           id?: string
           key_metrics?: Json | null
           key_variables?: Json | null
+          mission_templates?: Json | null
           mvc_fields: Json
+          playbook?: Json | null
+          priority_rules?: Json | null
+          signal_weights?: Json | null
           updated_at?: string
         }
         Update: {
@@ -328,7 +389,11 @@ export type Database = {
           id?: string
           key_metrics?: Json | null
           key_variables?: Json | null
+          mission_templates?: Json | null
           mvc_fields?: Json
+          playbook?: Json | null
+          priority_rules?: Json | null
+          signal_weights?: Json | null
           updated_at?: string
         }
         Relationships: []
@@ -967,6 +1032,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mission_templates: {
+        Row: {
+          business_type: string
+          created_at: string
+          description_template: string
+          effort_score: number | null
+          focus_area: string
+          id: string
+          impact_formula: string | null
+          is_active: boolean | null
+          priority_base: number | null
+          required_signals: Json | null
+          required_variables: Json
+          steps_template: Json
+          tags: Json | null
+          template_key: string
+          title_template: string
+          updated_at: string
+        }
+        Insert: {
+          business_type: string
+          created_at?: string
+          description_template: string
+          effort_score?: number | null
+          focus_area: string
+          id?: string
+          impact_formula?: string | null
+          is_active?: boolean | null
+          priority_base?: number | null
+          required_signals?: Json | null
+          required_variables?: Json
+          steps_template?: Json
+          tags?: Json | null
+          template_key: string
+          title_template: string
+          updated_at?: string
+        }
+        Update: {
+          business_type?: string
+          created_at?: string
+          description_template?: string
+          effort_score?: number | null
+          focus_area?: string
+          id?: string
+          impact_formula?: string | null
+          is_active?: boolean | null
+          priority_base?: number | null
+          required_signals?: Json | null
+          required_variables?: Json
+          steps_template?: Json
+          tags?: Json | null
+          template_key?: string
+          title_template?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       missions: {
         Row: {
