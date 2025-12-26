@@ -1,7 +1,24 @@
-import { Database, AlertCircle, ArrowRight, Plus, Link, MessageSquare } from "lucide-react";
+import { Database, AlertCircle, ArrowRight, Link, MessageSquare, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useBusiness } from "@/contexts/BusinessContext";
+
+interface DataGap {
+  id: string;
+  field_name: string;
+  category: string;
+  reason: string;
+  unlocks: string;
+  questions: Array<{
+    question: string;
+    type: string;
+    options?: string[];
+  }>;
+  priority: number;
+}
 
 interface DataNeededStateProps {
   title?: string;
@@ -19,6 +36,36 @@ export const DataNeededState = ({
   className
 }: DataNeededStateProps) => {
   const navigate = useNavigate();
+  const { currentBusiness } = useBusiness();
+  const [gaps, setGaps] = useState<DataGap[]>([]);
+  const [mvcCompletion, setMvcCompletion] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const analyzeGaps = async () => {
+      if (!currentBusiness) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.functions.invoke("brain-analyze-gaps", {
+          body: { businessId: currentBusiness.id }
+        });
+
+        if (error) throw error;
+
+        setGaps(data.gaps || []);
+        setMvcCompletion(data.mvcCompletion || 0);
+      } catch (error) {
+        console.error("Error analyzing gaps:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    analyzeGaps();
+  }, [currentBusiness]);
 
   const getContextDescription = () => {
     switch (context) {
@@ -65,7 +112,53 @@ export const DataNeededState = ({
         <p className="text-muted-foreground max-w-md leading-relaxed">
           {getContextDescription()}
         </p>
+        
+        {/* MVC Progress */}
+        {!loading && (
+          <div className="mt-4 w-full max-w-xs">
+            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+              <span>Nivel de contexto</span>
+              <span>{mvcCompletion}%</span>
+            </div>
+            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500"
+                style={{ width: `${mvcCompletion}%` }}
+              />
+            </div>
+            {mvcCompletion < 60 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Necesito al menos 60% para ser específico
+              </p>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Dynamic Gaps from Brain */}
+      {gaps.length > 0 && (
+        <div className="mb-6">
+          <p className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            Lo que más necesito saber:
+          </p>
+          <div className="space-y-2">
+            {gaps.slice(0, 3).map((gap, idx) => (
+              <div 
+                key={gap.id || idx}
+                className="p-3 rounded-lg bg-secondary/50 border border-border/50"
+              >
+                <p className="text-sm font-medium text-foreground">
+                  {gap.questions[0]?.question || gap.reason}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  🔓 Desbloquea: {gap.unlocks}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Info Banner */}
       <div className="flex items-start gap-3 p-4 rounded-xl bg-warning/10 border border-warning/20 mb-6">

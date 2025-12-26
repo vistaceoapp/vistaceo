@@ -94,19 +94,35 @@ const SORT_OPTIONS = [
   { value: "effort", label: "Menor esfuerzo" },
 ];
 
-// Check if we have enough data for personalized missions
-const checkHasEnoughData = async (businessId: string): Promise<boolean> => {
-  const [integrationsRes, insightsRes, checkinsRes] = await Promise.all([
-    supabase.from("business_integrations").select("id", { count: "exact", head: true }).eq("business_id", businessId).eq("status", "connected"),
-    supabase.from("business_insights").select("id", { count: "exact", head: true }).eq("business_id", businessId),
-    supabase.from("business_checkins").select("id", { count: "exact", head: true }).eq("business_id", businessId)
-  ]);
-  
-  const integrations = integrationsRes.count || 0;
-  const insights = insightsRes.count || 0;
-  const checkins = checkinsRes.count || 0;
-  
-  return integrations >= 1 || insights >= 3 || checkins >= 2;
+// Check if we have enough data for personalized missions using Brain
+const checkHasEnoughData = async (businessId: string): Promise<{ hasData: boolean; mvcCompletion: number }> => {
+  try {
+    const { data, error } = await supabase.functions.invoke("brain-analyze-gaps", {
+      body: { businessId }
+    });
+
+    if (error) throw error;
+
+    return {
+      hasData: data.canGenerateSpecific || false,
+      mvcCompletion: data.mvcCompletion || 0
+    };
+  } catch (error) {
+    console.error("Error checking data:", error);
+    // Fallback to old method
+    const [integrationsRes, insightsRes] = await Promise.all([
+      supabase.from("business_integrations").select("id", { count: "exact", head: true }).eq("business_id", businessId).eq("status", "connected"),
+      supabase.from("business_insights").select("id", { count: "exact", head: true }).eq("business_id", businessId),
+    ]);
+    
+    const integrations = integrationsRes.count || 0;
+    const insights = insightsRes.count || 0;
+    
+    return {
+      hasData: integrations >= 1 || insights >= 3,
+      mvcCompletion: insights >= 5 ? 60 : insights * 10
+    };
+  }
 };
 
 // Placeholder missions
@@ -182,8 +198,8 @@ const MissionsPage = () => {
   useEffect(() => {
     const checkData = async () => {
       if (!currentBusiness) return;
-      const hasData = await checkHasEnoughData(currentBusiness.id);
-      setHasEnoughData(hasData);
+      const result = await checkHasEnoughData(currentBusiness.id);
+      setHasEnoughData(result.hasData);
     };
     checkData();
   }, [currentBusiness]);
