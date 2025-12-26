@@ -1,6 +1,5 @@
-import { Bell, Search, User, Command, Plus, ChevronDown } from "lucide-react";
+import { Bell, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -16,13 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 
 interface DashboardHeaderProps {
@@ -33,7 +25,6 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
   const { currentBusiness } = useBusiness();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [searchOpen, setSearchOpen] = useState(false);
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
@@ -49,17 +40,6 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
     fetchProfile();
   }, [user]);
 
-  // Keyboard shortcut for search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setSearchOpen(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   const getInitials = () => {
     if (fullName) {
@@ -84,37 +64,25 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
           sidebarCollapsed ? "left-[72px]" : "left-[260px]"
         )}
       >
-        {/* Left side - Greeting & Search */}
+        {/* Left side - Greeting */}
         <div className="flex items-center gap-6 flex-1">
-          {/* Greeting */}
           <div className="hidden lg:block">
             <p className="text-sm text-muted-foreground">{getGreeting()},</p>
             <h2 className="text-lg font-semibold text-foreground -mt-0.5">
               {fullName || user?.email?.split("@")[0] || "Usuario"}
             </h2>
           </div>
-
-          {/* Search */}
-          <button 
-            onClick={() => setSearchOpen(true)}
-            className="flex items-center gap-3 h-10 px-4 w-full max-w-md bg-secondary/50 hover:bg-secondary border border-border/50 rounded-xl text-left transition-colors group"
-          >
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground flex-1">Buscar acciones, misiones...</span>
-            <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs text-muted-foreground bg-background border border-border rounded">
-              <Command className="h-3 w-3" />
-              K
-            </kbd>
-          </button>
+          {currentBusiness && (
+            <div className="lg:hidden">
+              <h2 className="text-base font-semibold text-foreground">
+                {currentBusiness.name}
+              </h2>
+            </div>
+          )}
         </div>
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-2">
-          {/* Quick Add */}
-          <Button variant="outline" size="sm" className="hidden md:flex gap-2 border-dashed border-primary/50 text-primary hover:bg-primary/10 hover:border-primary">
-            <Plus className="h-4 w-4" />
-            Nueva acción
-          </Button>
 
           {/* Notifications */}
           <DropdownMenu>
@@ -203,45 +171,6 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
         </div>
       </header>
 
-      {/* Search Dialog */}
-      <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden">
-          <DialogHeader className="px-4 pt-4 pb-2">
-            <DialogTitle className="sr-only">Buscar</DialogTitle>
-            <DialogDescription className="sr-only">Busca acciones, misiones y más</DialogDescription>
-            <div className="flex items-center gap-3">
-              <Search className="h-5 w-5 text-muted-foreground" />
-              <Input 
-                placeholder="Buscar acciones, misiones, oportunidades..." 
-                className="border-0 focus-visible:ring-0 text-base px-0 h-auto"
-                autoFocus
-              />
-            </div>
-          </DialogHeader>
-          <div className="border-t border-border">
-            <div className="p-2">
-              <p className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase">Acceso rápido</p>
-              {[
-                { label: "Ir a Hoy", path: "/app" },
-                { label: "Hablar con el CEO", path: "/app/chat" },
-                { label: "Ver Misiones", path: "/app/missions" },
-                { label: "Explorar Radar", path: "/app/radar" },
-              ].map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => {
-                    navigate(item.path);
-                    setSearchOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary transition-colors text-left"
-                >
-                  <span className="text-sm text-foreground">{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

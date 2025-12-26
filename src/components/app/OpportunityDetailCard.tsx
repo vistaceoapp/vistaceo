@@ -360,10 +360,6 @@ export const OpportunityDetailCard = ({
               <ThumbsDown className="w-4 h-4 mr-1" />
               No me interesa
             </Button>
-            <Button variant="ghost" size="sm" onClick={onDismiss}>
-              <CheckCircle2 className="w-4 h-4 mr-1" />
-              Ya lo hago
-            </Button>
             <Button 
               size="sm" 
               className="flex-1 gradient-primary" 
