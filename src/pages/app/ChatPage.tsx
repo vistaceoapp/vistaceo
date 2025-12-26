@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Mic, Camera, Sparkles, Plus, MessageSquare, Trash2 } from "lucide-react";
@@ -31,9 +32,11 @@ const SUGGESTIONS = [
 const ChatPage = () => {
   const { currentBusiness } = useBusiness();
   const isMobile = useIsMobile();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [initialPromptSent, setInitialPromptSent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -45,6 +48,18 @@ const ChatPage = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Handle URL prompt parameter (from score click)
+  useEffect(() => {
+    const prompt = searchParams.get("prompt");
+    if (prompt && currentBusiness && !loading && !initialPromptSent && messages.length >= 0) {
+      setInitialPromptSent(true);
+      // Clear the URL param
+      setSearchParams({});
+      // Send the pre-filled message
+      setTimeout(() => sendMessage(prompt), 500);
+    }
+  }, [searchParams, currentBusiness, loading, initialPromptSent, messages]);
 
   const fetchMessages = async () => {
     if (!currentBusiness) return;

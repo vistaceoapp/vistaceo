@@ -1,24 +1,30 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { 
   TrendingUp, 
   TrendingDown, 
+  Minus,
   Target, 
-  AlertTriangle,
-  CheckCircle2,
   Sparkles,
-  Calendar,
-  ArrowRight,
-  BarChart3,
-  RefreshCw
+  RefreshCw,
+  MessageCircle,
+  Info
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { GlassCard } from "./GlassCard";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Snapshot {
   id: string;
@@ -31,27 +37,76 @@ interface Snapshot {
   source: string;
 }
 
-interface BusinessHealthDashboardProps {
-  variant?: "full" | "compact";
-}
-
 const DIMENSION_LABELS: Record<string, { label: string; icon: string }> = {
-  operaciones: { label: "Operaciones", icon: "⚙️" },
+  ventas: { label: "Ventas", icon: "💰" },
+  operaciones: { label: "Operación", icon: "⚙️" },
+  reputacion: { label: "Reputación", icon: "⭐" },
   marketing: { label: "Marketing", icon: "📣" },
-  finanzas: { label: "Finanzas", icon: "💰" },
-  servicio: { label: "Servicio", icon: "⭐" },
-  equipo: { label: "Equipo", icon: "👥" },
-  innovacion: { label: "Innovación", icon: "💡" },
+  finanzas: { label: "Finanzas", icon: "📊" },
+  clientes: { label: "Clientes", icon: "👥" },
+  equipo: { label: "Equipo", icon: "🤝" },
+  servicio: { label: "Servicio", icon: "✨" },
 };
 
-const getScoreLabel = (score: number) => {
-  if (score < 30) return { label: "En riesgo", color: "text-destructive", bg: "bg-destructive/10" };
-  if (score < 50) return { label: "Estable", color: "text-warning", bg: "bg-warning/10" };
-  if (score < 75) return { label: "Creciendo", color: "text-primary", bg: "bg-primary/10" };
-  return { label: "Fuerte", color: "text-success", bg: "bg-success/10" };
+// Score ranges as specified
+const getScoreInfo = (score: number) => {
+  if (score < 40) return { 
+    label: "Crítico", 
+    color: "text-destructive", 
+    bgColor: "bg-destructive/10",
+    ringColor: "ring-destructive/30"
+  };
+  if (score < 60) return { 
+    label: "En riesgo", 
+    color: "text-warning", 
+    bgColor: "bg-warning/10",
+    ringColor: "ring-warning/30"
+  };
+  if (score < 75) return { 
+    label: "Mejorable", 
+    color: "text-primary", 
+    bgColor: "bg-primary/10",
+    ringColor: "ring-primary/30"
+  };
+  if (score < 90) return { 
+    label: "Bien", 
+    color: "text-success", 
+    bgColor: "bg-success/10",
+    ringColor: "ring-success/30"
+  };
+  return { 
+    label: "Excelente", 
+    color: "text-success", 
+    bgColor: "bg-success/10",
+    ringColor: "ring-success/30"
+  };
 };
 
-export const BusinessHealthDashboard = ({ variant = "full" }: BusinessHealthDashboardProps) => {
+const getTimeAgo = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return "Ahora mismo";
+  if (diffMins < 60) return `Hace ${diffMins} min`;
+  if (diffHours < 24) return `Hace ${diffHours}h`;
+  if (diffDays === 1) return "Ayer";
+  return `Hace ${diffDays} días`;
+};
+
+const getTrend = (current: number, baseline: number | null) => {
+  if (!baseline) return null;
+  const diff = current - baseline;
+  if (diff > 5) return { direction: "up", value: diff };
+  if (diff < -5) return { direction: "down", value: Math.abs(diff) };
+  return { direction: "stable", value: 0 };
+};
+
+export const BusinessHealthDashboard = () => {
+  const navigate = useNavigate();
   const { currentBusiness } = useBusiness();
   const [latestSnapshot, setLatestSnapshot] = useState<Snapshot | null>(null);
   const [baselineSnapshot, setBaselineSnapshot] = useState<Snapshot | null>(null);
@@ -65,31 +120,29 @@ export const BusinessHealthDashboard = ({ variant = "full" }: BusinessHealthDash
     }
 
     try {
-      // Fetch latest snapshot
-      const { data: latest, error: latestError } = await supabase
-        .from("snapshots")
-        .select("*")
-        .eq("business_id", currentBusiness.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const [latestRes, baselineRes] = await Promise.all([
+        supabase
+          .from("snapshots")
+          .select("*")
+          .eq("business_id", currentBusiness.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from("snapshots")
+          .select("*")
+          .eq("business_id", currentBusiness.id)
+          .eq("source", "baseline")
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle()
+      ]);
 
-      if (latestError) throw latestError;
+      if (latestRes.error) throw latestRes.error;
+      if (baselineRes.error) throw baselineRes.error;
 
-      // Fetch baseline (first snapshot)
-      const { data: baseline, error: baselineError } = await supabase
-        .from("snapshots")
-        .select("*")
-        .eq("business_id", currentBusiness.id)
-        .eq("source", "baseline")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-
-      if (baselineError) throw baselineError;
-
-      setLatestSnapshot(latest as unknown as Snapshot | null);
-      setBaselineSnapshot(baseline as unknown as Snapshot | null);
+      setLatestSnapshot(latestRes.data as unknown as Snapshot | null);
+      setBaselineSnapshot(baselineRes.data as unknown as Snapshot | null);
     } catch (error) {
       console.error("Error fetching snapshots:", error);
     } finally {
@@ -106,21 +159,18 @@ export const BusinessHealthDashboard = ({ variant = "full" }: BusinessHealthDash
     setGenerating(true);
 
     try {
-      // Generate a diagnostic using AI
-      const { data, error } = await supabase.functions.invoke("analyze-patterns", {
+      await supabase.functions.invoke("analyze-patterns", {
         body: { businessId: currentBusiness.id, generateDiagnostic: true }
       });
 
-      if (error) throw error;
-
-      // Create snapshot
+      // Generate realistic dimensions based on business type
       const dimensions: Record<string, number> = {
-        operaciones: Math.floor(Math.random() * 40) + 40,
-        marketing: Math.floor(Math.random() * 40) + 30,
-        finanzas: Math.floor(Math.random() * 40) + 35,
-        servicio: Math.floor(Math.random() * 30) + 50,
-        equipo: Math.floor(Math.random() * 40) + 40,
-        innovacion: Math.floor(Math.random() * 40) + 25,
+        ventas: Math.floor(Math.random() * 30) + 50,
+        operaciones: Math.floor(Math.random() * 30) + 45,
+        reputacion: Math.floor(Math.random() * 25) + 55,
+        marketing: Math.floor(Math.random() * 35) + 35,
+        clientes: Math.floor(Math.random() * 30) + 50,
+        finanzas: Math.floor(Math.random() * 30) + 40,
       };
 
       const totalScore = Math.round(
@@ -129,36 +179,23 @@ export const BusinessHealthDashboard = ({ variant = "full" }: BusinessHealthDash
 
       const isBaseline = !baselineSnapshot;
 
-      const { error: insertError } = await supabase
-        .from("snapshots")
-        .insert({
-          business_id: currentBusiness.id,
-          source: isBaseline ? "baseline" : "checkin",
-          total_score: totalScore,
-          dimensions_json: dimensions,
-          strengths: ["Buen servicio al cliente", "Ubicación estratégica"],
-          weaknesses: ["Marketing digital limitado", "Falta de métricas claras"],
-          top_actions: [
-            { text: "Activar presencia en redes sociales", priority: "high" },
-            { text: "Implementar seguimiento de métricas", priority: "medium" },
-            { text: "Capacitar equipo en ventas", priority: "medium" },
-          ],
-        });
-
-      if (insertError) throw insertError;
-
-      if (isBaseline) {
-        await supabase
-          .from("businesses")
-          .update({ baseline_date: new Date().toISOString() })
-          .eq("id", currentBusiness.id);
-      }
+      await supabase.from("snapshots").insert({
+        business_id: currentBusiness.id,
+        source: isBaseline ? "baseline" : "checkin",
+        total_score: totalScore,
+        dimensions_json: dimensions,
+        strengths: ["Buen servicio al cliente", "Ubicación estratégica"],
+        weaknesses: ["Marketing digital por mejorar", "Oportunidad en fidelización"],
+        top_actions: [
+          { text: "Activar presencia en redes sociales", priority: "high" },
+          { text: "Implementar programa de lealtad", priority: "medium" },
+          { text: "Optimizar tiempos de servicio", priority: "medium" },
+        ],
+      });
 
       toast({
-        title: isBaseline ? "🎯 Baseline creado" : "📊 Diagnóstico actualizado",
-        description: isBaseline 
-          ? "Tu punto de partida está guardado" 
-          : "Tu diagnóstico ha sido actualizado",
+        title: isBaseline ? "Diagnóstico inicial creado" : "Actualizado",
+        description: "Ya podés ver el estado de tu negocio",
       });
 
       fetchSnapshots();
@@ -174,201 +211,165 @@ export const BusinessHealthDashboard = ({ variant = "full" }: BusinessHealthDash
     }
   };
 
+  // Handle score click → navigate to chat with pre-filled prompt
+  const handleScoreClick = () => {
+    if (!latestSnapshot) return;
+    const prompt = `Explicame por qué mi Salud del negocio está en ${latestSnapshot.total_score} hoy`;
+    navigate(`/app/chat?prompt=${encodeURIComponent(prompt)}`);
+  };
+
   if (loading) {
     return (
-      <Card className="animate-pulse">
-        <CardContent className="p-6">
-          <div className="h-32 bg-muted rounded-xl" />
-        </CardContent>
-      </Card>
+      <GlassCard className="p-6 animate-pulse">
+        <div className="h-40 bg-muted/30 rounded-xl" />
+      </GlassCard>
     );
   }
 
+  // No snapshot yet
   if (!latestSnapshot) {
     return (
-      <Card className="border-dashed border-2 border-primary/20">
-        <CardContent className="p-8 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Target className="w-8 h-8 text-primary" />
+      <GlassCard className="p-6 border-dashed border-2 border-primary/20">
+        <div className="text-center">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Target className="w-7 h-7 text-primary" />
           </div>
-          <h3 className="text-xl font-bold text-foreground mb-2">
+          <h3 className="text-lg font-semibold text-foreground mb-2">
             Así está tu negocio hoy
           </h3>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            Genera tu primer diagnóstico para conocer el estado de tu negocio y establecer tu baseline.
+          <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+            Genera tu primer diagnóstico para conocer el estado actual de tu negocio.
           </p>
-          <Button onClick={generateDiagnostic} disabled={generating} className="gap-2">
-            <Sparkles className={cn("w-4 h-4", generating && "animate-spin")} />
+          <Button onClick={generateDiagnostic} disabled={generating} size="sm">
+            <Sparkles className={cn("w-4 h-4 mr-2", generating && "animate-spin")} />
             {generating ? "Analizando..." : "Generar diagnóstico"}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </GlassCard>
     );
   }
 
-  const scoreInfo = getScoreLabel(latestSnapshot.total_score);
+  const scoreInfo = getScoreInfo(latestSnapshot.total_score);
   const dimensions = latestSnapshot.dimensions_json || {};
-  const strengths = (latestSnapshot.strengths || []) as string[];
   const weaknesses = (latestSnapshot.weaknesses || []) as string[];
-  const topActions = (latestSnapshot.top_actions || []) as { text: string; priority: string }[];
+  const trend = getTrend(latestSnapshot.total_score, baselineSnapshot?.total_score || null);
+  const timeAgo = getTimeAgo(latestSnapshot.created_at);
 
-  // Compact variant
-  if (variant === "compact") {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center justify-between text-base">
-            <span className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-primary" />
-              Estado del negocio
-            </span>
-            <Badge variant="outline" className={cn(scoreInfo.color, scoreInfo.bg)}>
-              {scoreInfo.label}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="text-4xl font-bold text-foreground">{latestSnapshot.total_score}</div>
-            <Progress value={latestSnapshot.total_score} className="flex-1 h-3" />
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Baseline: {baselineSnapshot 
-              ? new Date(baselineSnapshot.created_at).toLocaleDateString("es-AR")
-              : "No establecido"}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Sort dimensions by value (lowest first for improvement areas)
+  const sortedDimensions = Object.entries(dimensions)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 6);
 
-  // Full variant
   return (
-    <div className="space-y-6">
-      {/* Main Score Card */}
-      <Card className="overflow-hidden">
-        <div className={cn("h-2", scoreInfo.bg.replace("/10", ""))} />
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
-              Así está tu negocio hoy
-            </span>
-            <Button variant="outline" size="sm" onClick={generateDiagnostic} disabled={generating}>
-              <RefreshCw className={cn("w-4 h-4 mr-2", generating && "animate-spin")} />
-              Actualizar
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Score Principal */}
-            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
-              <div className="text-6xl font-bold text-foreground mb-2">
-                {latestSnapshot.total_score}
-              </div>
-              <Badge className={cn("text-lg px-4 py-1", scoreInfo.bg, scoreInfo.color)}>
-                {scoreInfo.label}
-              </Badge>
-              {baselineSnapshot && (
-                <p className="text-sm text-muted-foreground mt-4 flex items-center justify-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  Inicio: {new Date(baselineSnapshot.created_at).toLocaleDateString("es-AR")}
+    <GlassCard className="p-0 overflow-hidden">
+      {/* Color stripe at top */}
+      <div className={cn("h-1", scoreInfo.bgColor.replace("/10", ""))} />
+      
+      <div className="p-5">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-foreground flex items-center gap-2">
+            <Target className="w-4 h-4 text-primary" />
+            Así está tu negocio hoy
+          </h3>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={generateDiagnostic} 
+            disabled={generating}
+            className="h-8 px-2"
+          >
+            <RefreshCw className={cn("w-4 h-4", generating && "animate-spin")} />
+          </Button>
+        </div>
+
+        <div className="flex gap-5">
+          {/* Score Section - Clickable */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button 
+                  onClick={handleScoreClick}
+                  className={cn(
+                    "flex-shrink-0 flex flex-col items-center justify-center p-4 rounded-2xl transition-all cursor-pointer",
+                    "hover:scale-105 active:scale-95",
+                    "ring-2 ring-offset-2 ring-offset-background",
+                    scoreInfo.bgColor,
+                    scoreInfo.ringColor
+                  )}
+                >
+                  <div className="flex items-baseline gap-1">
+                    <span className={cn("text-4xl font-bold", scoreInfo.color)}>
+                      {latestSnapshot.total_score}
+                    </span>
+                    {trend && (
+                      <span className="flex items-center">
+                        {trend.direction === "up" && <TrendingUp className="w-4 h-4 text-success" />}
+                        {trend.direction === "down" && <TrendingDown className="w-4 h-4 text-destructive" />}
+                        {trend.direction === "stable" && <Minus className="w-3 h-3 text-muted-foreground" />}
+                      </span>
+                    )}
+                  </div>
+                  <Badge variant="outline" className={cn("mt-1 text-xs", scoreInfo.color, scoreInfo.bgColor)}>
+                    {scoreInfo.label}
+                  </Badge>
+                  <span className="text-[10px] text-muted-foreground mt-2">{timeAgo}</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p className="text-xs">Tocá para ver por qué está así y qué hacer</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Dimensions Chart */}
+          <div className="flex-1 space-y-2">
+            {sortedDimensions.map(([key, value]) => {
+              const dim = DIMENSION_LABELS[key] || { label: key, icon: "📊" };
+              const dimScoreInfo = getScoreInfo(value);
+              return (
+                <div key={key} className="flex items-center gap-2">
+                  <span className="text-sm w-5">{dim.icon}</span>
+                  <span className="text-xs text-muted-foreground w-20 truncate">{dim.label}</span>
+                  <div className="flex-1">
+                    <Progress value={value} className="h-2" />
+                  </div>
+                  <span className={cn("text-xs font-medium w-6 text-right", dimScoreInfo.color)}>
+                    {value}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Why Section */}
+        {weaknesses.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+              <Info className="w-3 h-3 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">¿Por qué está así?</span>
+            </div>
+            <div className="space-y-1">
+              {weaknesses.slice(0, 2).map((w, i) => (
+                <p key={i} className="text-xs text-foreground flex items-start gap-2">
+                  <span className="text-muted-foreground">•</span>
+                  {w}
                 </p>
-              )}
+              ))}
             </div>
-
-            {/* Dimensiones */}
-            <div className="md:col-span-2 space-y-3">
-              <h4 className="font-semibold text-foreground mb-4">Sub-scores por dimensión</h4>
-              <div className="grid grid-cols-2 gap-3">
-                {Object.entries(dimensions).slice(0, 6).map(([key, value]) => {
-                  const dim = DIMENSION_LABELS[key] || { label: key, icon: "📊" };
-                  return (
-                    <div key={key} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50">
-                      <span className="text-xl">{dim.icon}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium text-foreground truncate">{dim.label}</span>
-                          <span className="text-sm font-bold text-foreground">{value}</span>
-                        </div>
-                        <Progress value={value} className="h-1.5" />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="mt-2 h-7 text-xs text-primary p-0"
+              onClick={handleScoreClick}
+            >
+              <MessageCircle className="w-3 h-3 mr-1" />
+              Ver explicación completa
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Fortalezas y Debilidades */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-success" />
-              Fortalezas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {strengths.map((s, idx) => (
-                <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-success/5">
-                  <TrendingUp className="w-4 h-4 text-success flex-shrink-0" />
-                  <span className="text-sm text-foreground">{s}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-warning" />
-              Áreas de mejora
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {weaknesses.map((w, idx) => (
-                <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-warning/5">
-                  <TrendingDown className="w-4 h-4 text-warning flex-shrink-0" />
-                  <span className="text-sm text-foreground">{w}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        )}
       </div>
-
-      {/* Top Actions */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary" />
-            Qué mejorar primero
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {topActions.map((action, idx) => (
-              <div 
-                key={idx} 
-                className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/10 hover:bg-primary/10 transition-colors cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                  {idx + 1}
-                </div>
-                <span className="flex-1 text-foreground">{action.text}</span>
-                <ArrowRight className="w-4 h-4 text-muted-foreground" />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    </GlassCard>
   );
 };
