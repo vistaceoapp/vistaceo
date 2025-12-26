@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, 
   Sparkles, Plus, MoreHorizontal, Info, Filter, LayoutGrid, List,
-  ChevronDown, ArrowUpDown, Layers, BarChart3, Calendar, Star
+  ChevronDown, ArrowUpDown, Layers, BarChart3, Calendar, Star, Eye
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -16,6 +16,7 @@ import { ProgressRing } from "@/components/app/ProgressRing";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InboxCard } from "@/components/app/InboxCard";
 import { DataNeededState } from "@/components/app/DataNeededState";
+import { MissionPlanPreview } from "@/components/app/MissionPlanPreview";
 import {
   Dialog,
   DialogContent,
@@ -165,6 +166,11 @@ const MissionsPage = () => {
   const [hasEnoughData, setHasEnoughData] = useState<boolean | null>(null);
   const [starredMissions, setStarredMissions] = useState<Set<string>>(new Set());
   
+  // Plan preview state
+  const [selectedSuggestion, setSelectedSuggestion] = useState<typeof PLACEHOLDER_MISSIONS[0] | null>(null);
+  const [generatedPlan, setGeneratedPlan] = useState<any>(null);
+  const [planLoading, setPlanLoading] = useState(false);
+  
   // Filters
   const [areaFilter, setAreaFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -210,24 +216,56 @@ const MissionsPage = () => {
     }
   };
 
-  const startMission = async (suggestion: typeof PLACEHOLDER_MISSIONS[0]) => {
+  // Generate AI plan for suggestion
+  const generatePlanForSuggestion = async (suggestion: typeof PLACEHOLDER_MISSIONS[0], regenerate = false) => {
     if (!currentBusiness) return;
+    
+    setSelectedSuggestion(suggestion);
+    setPlanLoading(true);
+    setGeneratedPlan(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-mission-plan", {
+        body: {
+          businessId: currentBusiness.id,
+          missionTitle: suggestion.title,
+          missionDescription: suggestion.description,
+          missionArea: suggestion.area,
+          regenerate,
+        }
+      });
+
+      if (error) throw error;
+      setGeneratedPlan(data.plan);
+    } catch (error) {
+      console.error("Error generating plan:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo generar el plan. Intenta de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setPlanLoading(false);
+    }
+  };
+
+  // Accept AI-generated plan
+  const acceptPlan = async (steps: Step[]) => {
+    if (!currentBusiness || !selectedSuggestion) return;
     setActionLoading(true);
 
     try {
-      const steps = suggestion.steps.map(text => ({ text, done: false }));
-      
       const { error } = await supabase
         .from("missions")
         .insert({
           business_id: currentBusiness.id,
-          title: suggestion.title,
-          description: suggestion.description,
-          area: suggestion.area,
-          steps,
+          title: generatedPlan?.planTitle || selectedSuggestion.title,
+          description: generatedPlan?.planDescription || selectedSuggestion.description,
+          area: selectedSuggestion.area,
+          steps: steps.map(s => ({ ...s, done: false })),
           current_step: 0,
-          impact_score: suggestion.impact,
-          effort_score: suggestion.effort,
+          impact_score: selectedSuggestion.impact,
+          effort_score: selectedSuggestion.effort,
           status: "active",
         });
 
@@ -235,9 +273,11 @@ const MissionsPage = () => {
 
       toast({
         title: "🚀 ¡Misión iniciada!",
-        description: `"${suggestion.title}" añadida a tus misiones activas.`,
+        description: `"${selectedSuggestion.title}" con plan personalizado añadida.`,
       });
 
+      setSelectedSuggestion(null);
+      setGeneratedPlan(null);
       fetchMissions();
     } catch (error) {
       console.error("Error starting mission:", error);
@@ -249,6 +289,11 @@ const MissionsPage = () => {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const startMission = async (suggestion: typeof PLACEHOLDER_MISSIONS[0]) => {
+    // Open plan preview instead of directly starting
+    generatePlanForSuggestion(suggestion);
   };
 
   const toggleStep = async (missionId: string, stepIndex: number) => {
@@ -977,6 +1022,29 @@ const MissionsPage = () => {
                   </Button>
                 </div>
               </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Plan Preview Dialog */}
+        <Dialog open={!!selectedSuggestion} onOpenChange={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}>
+          <DialogContent className="max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto">
+            {selectedSuggestion && (
+              <MissionPlanPreview
+                plan={generatedPlan || { 
+                  planTitle: selectedSuggestion.title,
+                  planDescription: selectedSuggestion.description,
+                  estimatedDuration: "1-2 semanas",
+                  estimatedImpact: "Mejora significativa",
+                  steps: [] 
+                }}
+                missionTitle={selectedSuggestion.title}
+                missionArea={selectedSuggestion.area}
+                isLoading={planLoading}
+                onAccept={(steps) => acceptPlan(steps)}
+                onDismiss={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}
+                onRegenerate={() => generatePlanForSuggestion(selectedSuggestion, true)}
+              />
             )}
           </DialogContent>
         </Dialog>
