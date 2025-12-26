@@ -12,7 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { CheckinCard } from "@/components/app/CheckinCard";
 import { InboxCard } from "@/components/app/InboxCard";
 import { ActionCard } from "@/components/app/ActionCard";
-import { IntegrationsPanel } from "@/components/app/IntegrationsPanel";
+import { SocialRatingsPanel } from "@/components/app/SocialRatingsPanel";
 import { AlertFAB } from "@/components/app/AlertFAB";
 
 interface DailyAction {
@@ -507,53 +507,6 @@ const TodayPage = () => {
               </div>
             )}
 
-            {/* Weekly Priorities */}
-            <div className="dashboard-card p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  <h3 className="font-semibold text-foreground text-lg">Prioridades de la semana</h3>
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/app/missions")}>
-                  Ver misiones
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-              
-              {weeklyPriorities.length > 0 ? (
-                <div className="space-y-4">
-                  {weeklyPriorities.map((priority) => (
-                    <div key={priority.id} className="flex items-center gap-4 p-4 bg-secondary/30 rounded-xl hover:bg-secondary/50 transition-colors">
-                      <div className={cn(
-                        "w-3 h-3 rounded-full shadow-lg",
-                        priority.status === "completed" 
-                          ? "bg-success" 
-                          : "bg-primary"
-                      )} />
-                      <div className="flex-1">
-                        <div className="text-sm text-foreground font-medium">{priority.title}</div>
-                        <div className="h-2 bg-secondary rounded-full mt-2 overflow-hidden">
-                          <div 
-                            className={cn(
-                              "h-full rounded-full transition-all",
-                              priority.status === "completed" ? "bg-success" : "gradient-primary"
-                            )}
-                            style={{ width: `${priority.status === "completed" ? 100 : getPriorityProgress(priority)}%` }}
-                          />
-                        </div>
-                      </div>
-                      <span className="text-sm text-muted-foreground font-medium">
-                        {priority.status === "completed" ? "100%" : `${getPriorityProgress(priority)}%`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  No hay prioridades esta semana. Explora las misiones para crear una.
-                </p>
-              )}
-            </div>
           </div>
 
           {/* Sidebar - Stats & Quick Actions */}
@@ -585,8 +538,8 @@ const TodayPage = () => {
               </div>
             )}
 
-            {/* Integrations */}
-            <IntegrationsPanel variant="compact" />
+            {/* Social Ratings */}
+            <SocialRatingsPanel variant="compact" />
 
             {/* Quick Actions */}
             <div className="dashboard-card p-6">

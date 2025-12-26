@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, 
   Sparkles, Plus, MoreHorizontal, Info, Filter, LayoutGrid, List,
-  ChevronDown, ArrowUpDown, Layers, BarChart3, Calendar
+  ChevronDown, ArrowUpDown, Layers, BarChart3, Calendar, Star
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -163,12 +163,14 @@ const MissionsPage = () => {
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [hasEnoughData, setHasEnoughData] = useState<boolean | null>(null);
+  const [starredMissions, setStarredMissions] = useState<Set<string>>(new Set());
   
   // Filters
   const [areaFilter, setAreaFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [showNextStepSelector, setShowNextStepSelector] = useState(false);
+  const [showStarredOnly, setShowStarredOnly] = useState(false);
 
   // Check if we have enough data for personalized missions
   useEffect(() => {
@@ -307,9 +309,28 @@ const MissionsPage = () => {
     }
   };
 
+  // Toggle starred
+  const toggleStarred = (missionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setStarredMissions(prev => {
+      const next = new Set(prev);
+      if (next.has(missionId)) {
+        next.delete(missionId);
+      } else {
+        next.add(missionId);
+      }
+      return next;
+    });
+  };
+
   // Filter and sort missions
   const getFilteredMissions = () => {
     let filtered = [...missions];
+    
+    // Starred filter
+    if (showStarredOnly) {
+      filtered = filtered.filter(m => starredMissions.has(m.id));
+    }
     
     // Area filter
     if (areaFilter !== "all") {
@@ -321,7 +342,7 @@ const MissionsPage = () => {
       filtered = filtered.filter(m => m.status === statusFilter);
     }
     
-    // Sort
+    // Sort - starred first, then by selected criteria
     switch (sortBy) {
       case "impact":
         filtered.sort((a, b) => b.impact_score - a.impact_score);
@@ -343,6 +364,13 @@ const MissionsPage = () => {
         filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         break;
     }
+    
+    // Always put starred missions first
+    filtered.sort((a, b) => {
+      const aStarred = starredMissions.has(a.id) ? 1 : 0;
+      const bStarred = starredMissions.has(b.id) ? 1 : 0;
+      return bStarred - aStarred;
+    });
     
     return filtered;
   };
@@ -609,6 +637,17 @@ const MissionsPage = () => {
               </SelectContent>
             </Select>
 
+            {/* Starred filter */}
+            <Button
+              variant={showStarredOnly ? "default" : "outline"}
+              size="sm"
+              className="h-9"
+              onClick={() => setShowStarredOnly(!showStarredOnly)}
+            >
+              <Star className={cn("w-4 h-4 mr-2", showStarredOnly && "fill-current")} />
+              Destacadas ({starredMissions.size})
+            </Button>
+
             <div className="flex items-center gap-2 ml-auto">
               <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
               <Select value={sortBy} onValueChange={setSortBy}>
@@ -694,7 +733,20 @@ const MissionsPage = () => {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            {/* Star button */}
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={(e) => toggleStarred(mission.id, e)}
+                              className={cn(
+                                "transition-colors",
+                                starredMissions.has(mission.id) && "text-warning"
+                              )}
+                            >
+                              <Star className={cn("w-4 h-4", starredMissions.has(mission.id) && "fill-current")} />
+                            </Button>
+                            
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button 

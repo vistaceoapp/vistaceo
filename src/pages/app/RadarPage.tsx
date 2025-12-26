@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Radar as RadarIcon, TrendingUp, X, Zap, Eye, Sparkles, Target, 
   BarChart3, Filter, Bookmark, BookmarkCheck, ThumbsDown, CheckCircle2,
-  ArrowUpDown, Info, Lightbulb, Globe, Building2, ExternalLink
+  ArrowUpDown, Info, Lightbulb, Globe, Building2, ExternalLink, MessageCirclePlus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -35,6 +35,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { OpportunityDetailCard } from "@/components/app/OpportunityDetailCard";
 import { LearningDetailCard } from "@/components/app/LearningDetailCard";
+import { AlertFAB } from "@/components/app/AlertFAB";
 
 // Types
 interface Opportunity {
@@ -532,6 +533,9 @@ const RadarPage = () => {
             )}
           </DialogContent>
         </Dialog>
+        
+        {/* Alert FAB */}
+        <AlertFAB />
       </div>
     );
   }
