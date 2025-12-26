@@ -55,6 +55,83 @@ export type Database = {
           },
         ]
       }
+      business_brains: {
+        Row: {
+          business_id: string
+          confidence_score: number | null
+          created_at: string
+          current_focus: string
+          decisions_memory: Json
+          dynamic_memory: Json
+          factual_memory: Json
+          focus_priority: number | null
+          id: string
+          last_learning_at: string | null
+          mvc_completion_pct: number | null
+          mvc_gaps: Json | null
+          preferences_memory: Json
+          primary_business_type: string
+          secondary_business_type: string | null
+          secondary_type_weight: number | null
+          total_signals: number | null
+          updated_at: string
+          version: number | null
+          version_history: Json | null
+        }
+        Insert: {
+          business_id: string
+          confidence_score?: number | null
+          created_at?: string
+          current_focus?: string
+          decisions_memory?: Json
+          dynamic_memory?: Json
+          factual_memory?: Json
+          focus_priority?: number | null
+          id?: string
+          last_learning_at?: string | null
+          mvc_completion_pct?: number | null
+          mvc_gaps?: Json | null
+          preferences_memory?: Json
+          primary_business_type?: string
+          secondary_business_type?: string | null
+          secondary_type_weight?: number | null
+          total_signals?: number | null
+          updated_at?: string
+          version?: number | null
+          version_history?: Json | null
+        }
+        Update: {
+          business_id?: string
+          confidence_score?: number | null
+          created_at?: string
+          current_focus?: string
+          decisions_memory?: Json
+          dynamic_memory?: Json
+          factual_memory?: Json
+          focus_priority?: number | null
+          id?: string
+          last_learning_at?: string | null
+          mvc_completion_pct?: number | null
+          mvc_gaps?: Json | null
+          preferences_memory?: Json
+          primary_business_type?: string
+          secondary_business_type?: string | null
+          secondary_type_weight?: number | null
+          total_signals?: number | null
+          updated_at?: string
+          version?: number | null
+          version_history?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_brains_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_checkins: {
         Row: {
           answers_json: Json | null
@@ -213,6 +290,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      business_type_configs: {
+        Row: {
+          blocked_phrases: Json | null
+          business_type: string
+          common_issues: Json | null
+          created_at: string
+          display_name: string
+          focus_weights: Json | null
+          id: string
+          key_metrics: Json | null
+          key_variables: Json | null
+          mvc_fields: Json
+          updated_at: string
+        }
+        Insert: {
+          blocked_phrases?: Json | null
+          business_type: string
+          common_issues?: Json | null
+          created_at?: string
+          display_name: string
+          focus_weights?: Json | null
+          id?: string
+          key_metrics?: Json | null
+          key_variables?: Json | null
+          mvc_fields: Json
+          updated_at?: string
+        }
+        Update: {
+          blocked_phrases?: Json | null
+          business_type?: string
+          common_issues?: Json | null
+          created_at?: string
+          display_name?: string
+          focus_weights?: Json | null
+          id?: string
+          key_metrics?: Json | null
+          key_variables?: Json | null
+          mvc_fields?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       businesses: {
         Row: {
@@ -416,6 +535,78 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "daily_actions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_gaps: {
+        Row: {
+          answer: Json | null
+          answered_at: string | null
+          answered_via: string | null
+          brain_id: string | null
+          business_id: string
+          category: string
+          created_at: string
+          field_name: string
+          gap_type: string
+          id: string
+          priority: number | null
+          questions: Json
+          reason: string
+          status: string | null
+          unlocks: string
+          updated_at: string
+        }
+        Insert: {
+          answer?: Json | null
+          answered_at?: string | null
+          answered_via?: string | null
+          brain_id?: string | null
+          business_id: string
+          category: string
+          created_at?: string
+          field_name: string
+          gap_type: string
+          id?: string
+          priority?: number | null
+          questions?: Json
+          reason: string
+          status?: string | null
+          unlocks: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: Json | null
+          answered_at?: string | null
+          answered_via?: string | null
+          brain_id?: string | null
+          business_id?: string
+          category?: string
+          created_at?: string
+          field_name?: string
+          gap_type?: string
+          id?: string
+          priority?: number | null
+          questions?: Json
+          reason?: string
+          status?: string | null
+          unlocks?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_gaps_brain_id_fkey"
+            columns: ["brain_id"]
+            isOneToOne: false
+            referencedRelation: "business_brains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_gaps_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
@@ -717,6 +908,90 @@ export type Database = {
         }
         Relationships: []
       }
+      recommendation_traces: {
+        Row: {
+          based_on: Json
+          block_reason: string | null
+          brain_id: string | null
+          business_id: string
+          confidence: string
+          created_at: string
+          feedback_at: string | null
+          feedback_notes: string | null
+          generic_phrases_detected: Json | null
+          id: string
+          is_blocked: boolean | null
+          output_content: Json
+          output_id: string | null
+          output_type: string
+          passed_quality_gate: boolean | null
+          quality_gate_details: Json | null
+          quality_gate_score: number | null
+          user_feedback: string | null
+          variables_used: Json | null
+          why_summary: string
+        }
+        Insert: {
+          based_on?: Json
+          block_reason?: string | null
+          brain_id?: string | null
+          business_id: string
+          confidence: string
+          created_at?: string
+          feedback_at?: string | null
+          feedback_notes?: string | null
+          generic_phrases_detected?: Json | null
+          id?: string
+          is_blocked?: boolean | null
+          output_content: Json
+          output_id?: string | null
+          output_type: string
+          passed_quality_gate?: boolean | null
+          quality_gate_details?: Json | null
+          quality_gate_score?: number | null
+          user_feedback?: string | null
+          variables_used?: Json | null
+          why_summary: string
+        }
+        Update: {
+          based_on?: Json
+          block_reason?: string | null
+          brain_id?: string | null
+          business_id?: string
+          confidence?: string
+          created_at?: string
+          feedback_at?: string | null
+          feedback_notes?: string | null
+          generic_phrases_detected?: Json | null
+          id?: string
+          is_blocked?: boolean | null
+          output_content?: Json
+          output_id?: string | null
+          output_type?: string
+          passed_quality_gate?: boolean | null
+          quality_gate_details?: Json | null
+          quality_gate_score?: number | null
+          user_feedback?: string | null
+          variables_used?: Json | null
+          why_summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendation_traces_brain_id_fkey"
+            columns: ["brain_id"]
+            isOneToOne: false
+            referencedRelation: "business_brains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recommendation_traces_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recommendations_feedback: {
         Row: {
           action_id: string | null
@@ -778,6 +1053,69 @@ export type Database = {
             columns: ["opportunity_id"]
             isOneToOne: false
             referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signals: {
+        Row: {
+          brain_id: string | null
+          business_id: string
+          confidence: string | null
+          content: Json
+          created_at: string
+          entities: Json | null
+          id: string
+          importance: number | null
+          processed: boolean | null
+          processed_at: string | null
+          raw_text: string | null
+          signal_type: string
+          source: string
+        }
+        Insert: {
+          brain_id?: string | null
+          business_id: string
+          confidence?: string | null
+          content?: Json
+          created_at?: string
+          entities?: Json | null
+          id?: string
+          importance?: number | null
+          processed?: boolean | null
+          processed_at?: string | null
+          raw_text?: string | null
+          signal_type: string
+          source: string
+        }
+        Update: {
+          brain_id?: string | null
+          business_id?: string
+          confidence?: string | null
+          content?: Json
+          created_at?: string
+          entities?: Json | null
+          id?: string
+          importance?: number | null
+          processed?: boolean | null
+          processed_at?: string | null
+          raw_text?: string | null
+          signal_type?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signals_brain_id_fkey"
+            columns: ["brain_id"]
+            isOneToOne: false
+            referencedRelation: "business_brains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signals_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
