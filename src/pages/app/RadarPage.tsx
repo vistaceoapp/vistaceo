@@ -63,25 +63,26 @@ interface LearningItem {
 }
 
 // Constants
+// Area categories - aligned with MissionsPage
 const AREA_CATEGORIES = [
-  { value: "all", label: "Todas las áreas" },
-  { value: "ventas", label: "Ventas" },
-  { value: "marketing", label: "Marketing/Social" },
-  { value: "reputacion", label: "Reputación" },
-  { value: "operaciones", label: "Operaciones" },
-  { value: "finanzas", label: "Finanzas" },
-  { value: "producto", label: "Producto/Servicio" },
-  { value: "equipo", label: "Equipo" },
-  { value: "trafico", label: "Tráfico/Web" },
-  { value: "retencion", label: "Retención" },
-  { value: "local", label: "Local/Maps" },
+  { value: "all", label: "Todas las áreas", icon: "🎯" },
+  { value: "Reputación", label: "Reputación", icon: "⭐" },
+  { value: "Marketing", label: "Marketing", icon: "📱" },
+  { value: "Operaciones", label: "Operaciones", icon: "⚙️" },
+  { value: "Ventas", label: "Ventas", icon: "💰" },
+  { value: "Equipo", label: "Equipo", icon: "👥" },
+  { value: "Producto", label: "Producto", icon: "📦" },
+  { value: "Finanzas", label: "Finanzas", icon: "📊" },
+  { value: "Tráfico", label: "Tráfico/Web", icon: "🌐" },
+  { value: "Retención", label: "Retención", icon: "🔄" },
+  { value: "Local", label: "Local/Maps", icon: "📍" },
 ];
 
 const SORT_OPTIONS = [
-  { value: "balance", label: "Mejor balance" },
-  { value: "impact", label: "Más impacto" },
-  { value: "effort", label: "Menos esfuerzo" },
-  { value: "recent", label: "Más recientes" },
+  { value: "balance", label: "Mejor balance", icon: "⚖️" },
+  { value: "impact", label: "Mayor impacto", icon: "🚀" },
+  { value: "effort", label: "Menor esfuerzo", icon: "⚡" },
+  { value: "recent", label: "Más recientes", icon: "🕐" },
 ];
 
 const ID_NATURES = [
@@ -635,13 +636,16 @@ const RadarPage = () => {
               </div>
               
               <Select value={areaFilter} onValueChange={setAreaFilter}>
-                <SelectTrigger className="w-[180px] h-9">
+                <SelectTrigger className="w-[200px] h-9">
                   <SelectValue placeholder="Área" />
                 </SelectTrigger>
                 <SelectContent>
                   {AREA_CATEGORIES.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
+                      <span className="flex items-center gap-2">
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -673,13 +677,16 @@ const RadarPage = () => {
               <div className="flex items-center gap-2 ml-auto">
                 <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[160px] h-9">
+                  <SelectTrigger className="w-[180px] h-9">
                     <SelectValue placeholder="Ordenar" />
                   </SelectTrigger>
                   <SelectContent>
                     {SORT_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
+                        <span className="flex items-center gap-2">
+                          <span>{opt.icon}</span>
+                          <span>{opt.label}</span>
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
