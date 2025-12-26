@@ -8,11 +8,17 @@ const corsHeaders = {
 
 const SYSTEM_PROMPT = `Eres un consultor experto en negocios gastronómicos con 20 años de experiencia. Tu tarea es generar un PLAN DE ACCIÓN DETALLADO y 100% PERSONALIZADO para una misión específica de mejora.
 
-REGLAS ESTRICTAS:
+REGLAS ANTI-GENÉRICO (CRÍTICAS - SI LAS VIOLÁS, EL PLAN SE BLOQUEA):
+1. PROHIBIDO usar frases genéricas como: "mejora tu negocio", "aumenta tus ventas", "optimiza tu operación", "sé más eficiente", "atrae más clientes"
+2. Cada paso DEBE incluir nombres específicos, números concretos, fechas, o referencias a datos del negocio
+3. Si no tenés datos suficientes, SÉ HONESTO y di "basado en [lo que sé]" o "necesito saber X para ser más preciso"
+4. Usa SIEMPRE los datos que te paso - si hay un producto específico, úsalo. Si hay un horario pico, mencionalo.
+
+REGLAS DE PERSONALIZACIÓN:
 1. El plan debe ser ÚNICO para este negocio específico - usa TODOS los datos disponibles
 2. Cada paso debe ser ACCIONABLE con tiempo estimado, métricas y recursos necesarios
 3. Incluye tips específicos basados en el tipo de negocio, país y contexto
-4. Explica el POR QUÉ detrás de cada paso
+4. Explica el POR QUÉ detrás de cada paso, conectando con datos reales del negocio
 5. Indica la confianza de cada recomendación (alta/media/baja) según los datos disponibles
 6. Personaliza TODO según la categoría del negocio (cafetería, bar, restaurante, etc.)
 7. Considera el país y cultura local para las recomendaciones
@@ -20,38 +26,58 @@ REGLAS ESTRICTAS:
 
 RESPONDE SOLO EN FORMATO JSON:
 {
-  "planTitle": "Título del plan personalizado para [nombre del negocio]",
-  "planDescription": "Descripción corta del enfoque elegido (máx 150 chars)",
+  "planTitle": "Título específico mencionando algo único del negocio",
+  "planDescription": "Descripción que mencione datos concretos del negocio (máx 150 chars)",
   "estimatedDuration": "X días/semanas",
-  "estimatedImpact": "Descripción del resultado esperado específico",
+  "estimatedImpact": "Resultado específico y medible esperado",
+  "confidence": "high|medium|low",
+  "basedOn": ["Dato o señal específica que justifica este plan", "Otra evidencia"],
   "steps": [
     {
-      "text": "Paso concreto y específico para ESTE negocio",
+      "text": "Paso concreto con números/datos específicos para ESTE negocio",
       "done": false,
       "howTo": [
-        "Sub-paso detallado 1",
-        "Sub-paso detallado 2",
-        "Sub-paso detallado 3"
+        "Sub-paso con detalle específico",
+        "Otro sub-paso concreto",
+        "Sub-paso con dato del negocio"
       ],
-      "why": "Explicación personalizada de por qué esto es relevante para este negocio",
+      "why": "Explicación que referencia datos concretos del negocio",
       "timeEstimate": "X minutos/horas",
-      "metric": "Cómo medir el éxito de este paso",
+      "metric": "Métrica específica y medible",
       "confidence": "high|medium|low",
-      "resources": ["Recurso o herramienta necesaria"],
-      "tips": ["Tip específico para este tipo de negocio"]
+      "resources": ["Recurso específico necesario"],
+      "tips": ["Tip específico para este tipo de negocio y contexto"]
     }
   ],
   "businessSpecificTips": [
-    "Tip personalizado basado en los datos del negocio",
-    "Otro tip relevante para su situación"
+    "Tip que menciona algo único de este negocio específico"
   ],
   "potentialChallenges": [
-    "Desafío que podría enfrentar según su contexto"
+    "Desafío específico basado en el contexto del negocio"
   ],
   "successMetrics": [
-    "Métrica de éxito a trackear"
+    "Métrica concreta con número objetivo"
+  ],
+  "dataGapsIdentified": [
+    "Dato que me falta para ser más preciso (si aplica)"
   ]
 }`;
+
+// Global blocked phrases - Quality Gate will check these
+const BLOCKED_PHRASES = [
+  "mejora tu negocio",
+  "aumenta tus ventas",
+  "optimiza tu operación",
+  "sé más eficiente",
+  "atrae más clientes",
+  "implementa mejoras",
+  "considera hacer",
+  "podrías intentar",
+  "una buena idea sería",
+  "te recomiendo mejorar",
+  "es importante que",
+  "deberías pensar en",
+];
 
 async function fetchBusinessContext(supabase: any, businessId: string) {
   try {
@@ -61,13 +87,15 @@ async function fetchBusinessContext(supabase: any, businessId: string) {
 
     const [
       businessRes,
+      brainRes,
       checkinsRes, 
       actionsRes, 
       missionsRes, 
       insightsRes,
       alertsRes,
       integrationsRes,
-      snapshotsRes
+      snapshotsRes,
+      signalsRes
     ] = await Promise.all([
       // Business details
       supabase
@@ -75,6 +103,12 @@ async function fetchBusinessContext(supabase: any, businessId: string) {
         .select("*")
         .eq("id", businessId)
         .single(),
+      // Business brain
+      supabase
+        .from("business_brains")
+        .select("*")
+        .eq("business_id", businessId)
+        .maybeSingle(),
       // Recent checkins for traffic patterns
       supabase
         .from("checkins")
@@ -123,10 +157,18 @@ async function fetchBusinessContext(supabase: any, businessId: string) {
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(1),
+      // Recent signals (new!)
+      supabase
+        .from("signals")
+        .select("*")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(20),
     ]);
 
     return {
       business: businessRes.data,
+      brain: brainRes.data,
       recentCheckins: checkinsRes.data || [],
       recentActions: actionsRes.data || [],
       allMissions: missionsRes.data || [],
@@ -134,6 +176,7 @@ async function fetchBusinessContext(supabase: any, businessId: string) {
       alerts: alertsRes.data || [],
       integrations: integrationsRes.data || [],
       latestSnapshot: snapshotsRes.data?.[0] || null,
+      recentSignals: signalsRes.data || [],
     };
   } catch (error) {
     console.error("Error fetching business context:", error);
@@ -149,23 +192,34 @@ function buildContextPrompt(
   regenerate: boolean
 ): string {
   const business = context?.business || {};
+  const brain = context?.brain || {};
   
   let prompt = `MISIÓN A PLANIFICAR: "${missionTitle}"
 ${missionDescription ? `DESCRIPCIÓN: ${missionDescription}` : ""}
 ÁREA: ${missionArea || "General"}
 
-===== DATOS DEL NEGOCIO =====
+===== DATOS DEL NEGOCIO (USA ESTOS DATOS EN TU RESPUESTA) =====
 NOMBRE: ${business.name || "Sin nombre"}
-TIPO: ${business.category || "restaurant"}
+TIPO DE NEGOCIO: ${brain.primary_business_type || business.category || "restaurant"}
+FOCO ACTUAL DEL DUEÑO: ${brain.current_focus || "ventas"}
 PAÍS: ${business.country || "AR"}
 CIUDAD/ZONA: ${business.address || "No especificado"}
 RATING GOOGLE: ${business.avg_rating ? `${business.avg_rating}★` : "Sin datos"}
-TICKET PROMEDIO: ${business.avg_ticket ? `$${business.avg_ticket}` : "Sin datos"}`;
+TICKET PROMEDIO: ${business.avg_ticket ? `$${business.avg_ticket}` : "Sin datos"}
+NIVEL DE CONTEXTO (MVC): ${brain.mvc_completion_pct || 0}%`;
+
+  // Add brain memories if available
+  if (brain.factual_memory && Object.keys(brain.factual_memory).length > 0) {
+    prompt += "\n\n===== MEMORIA FACTUAL DEL NEGOCIO =====";
+    Object.entries(brain.factual_memory).forEach(([key, value]) => {
+      prompt += `\n• ${key.replace(/_/g, ' ')}: ${value}`;
+    });
+  }
 
   if (context) {
     // Business insights - very important for personalization
     if (context.businessInsights?.length > 0) {
-      prompt += "\n\n===== CONOCIMIENTO PROFUNDO DEL NEGOCIO =====";
+      prompt += "\n\n===== CONOCIMIENTO PROFUNDO DEL NEGOCIO (USALO!) =====";
       const groupedInsights: Record<string, any[]> = {};
       context.businessInsights.forEach((insight: any) => {
         const cat = insight.category || "general";
@@ -178,6 +232,14 @@ TICKET PROMEDIO: ${business.avg_ticket ? `$${business.avg_ticket}` : "Sin datos"
         insights.slice(0, 5).forEach((insight: any) => {
           prompt += `\n• ${insight.question}: ${insight.answer}`;
         });
+      });
+    }
+
+    // Recent signals for latest context
+    if (context.recentSignals?.length > 0) {
+      prompt += "\n\n===== SEÑALES RECIENTES =====";
+      context.recentSignals.slice(0, 5).forEach((signal: any) => {
+        prompt += `\n• [${signal.signal_type}/${signal.source}]: ${signal.raw_text || JSON.stringify(signal.content).slice(0, 100)}`;
       });
     }
 
@@ -201,7 +263,6 @@ TICKET PROMEDIO: ${business.avg_ticket ? `$${business.avg_ticket}` : "Sin datos"
         prompt += `\nTurnos fuertes: ${[...new Set(highTrafficSlots)].join(", ")}`;
       }
       
-      // Notes from checkins
       const checkinNotes = context.recentCheckins
         .filter((c: any) => c.notes)
         .map((c: any) => c.notes);
@@ -212,7 +273,7 @@ TICKET PROMEDIO: ${business.avg_ticket ? `$${business.avg_ticket}` : "Sin datos"
 
     // Learn from past actions
     if (context.recentActions?.length > 0) {
-      prompt += "\n\n===== HISTORIAL DE ACCIONES =====";
+      prompt += "\n\n===== HISTORIAL DE ACCIONES (APRENDE DE ESTO) =====";
       const goodOutcomes = context.recentActions.filter((a: any) => a.outcome_rating >= 4);
       const badOutcomes = context.recentActions.filter((a: any) => a.outcome_rating <= 2);
       
@@ -223,7 +284,7 @@ TICKET PROMEDIO: ${business.avg_ticket ? `$${business.avg_ticket}` : "Sin datos"
         });
       }
       if (badOutcomes.length > 0) {
-        prompt += "\nNO FUNCIONARON:";
+        prompt += "\nNO FUNCIONARON (EVITAR SIMILARES):";
         badOutcomes.slice(0, 3).forEach((a: any) => {
           prompt += `\n• ${a.title}: ${a.outcome || "No dio resultados"}`;
         });
@@ -238,17 +299,17 @@ TICKET PROMEDIO: ${business.avg_ticket ? `$${business.avg_ticket}` : "Sin datos"
       if (completedMissions.length > 0 || abandonedMissions.length > 0) {
         prompt += "\n\n===== EXPERIENCIA CON MISIONES =====";
         if (completedMissions.length > 0) {
-          prompt += `\nCompletadas exitosamente: ${completedMissions.map((m: any) => m.title).join(", ")}`;
+          prompt += `\nCompletadas: ${completedMissions.map((m: any) => m.title).join(", ")}`;
         }
         if (abandonedMissions.length > 0) {
-          prompt += `\nAbandonadas: ${abandonedMissions.map((m: any) => m.title).join(", ")} (considera hacer pasos más pequeños)`;
+          prompt += `\nAbandonadas: ${abandonedMissions.map((m: any) => m.title).join(", ")} (hacer pasos más pequeños)`;
         }
       }
     }
 
     // Recent alerts
     if (context.alerts?.length > 0) {
-      prompt += "\n\n===== ALERTAS RECIENTES =====";
+      prompt += "\n\n===== ALERTAS RECIENTES (CONSIDERALAS) =====";
       context.alerts.slice(0, 5).forEach((alert: any) => {
         prompt += `\n• [${alert.category}] ${alert.text_content || "Alerta sin detalle"}`;
       });
@@ -289,11 +350,95 @@ MES: ${month}`;
     prompt += `\n\n⚠️ IMPORTANTE: El usuario pidió un PLAN ALTERNATIVO. Genera un enfoque DIFERENTE al anterior - puede ser más rápido, más gradual, con otras tácticas, o diferente secuencia.`;
   }
 
+  // Data gap warning
+  const mvcCompletion = brain.mvc_completion_pct || 0;
+  if (mvcCompletion < 60) {
+    prompt += `\n\n⚠️ NIVEL DE CONTEXTO BAJO (${mvcCompletion}%): Indica claramente en "dataGapsIdentified" qué información te falta para ser más preciso. Sé honesto sobre la confianza de tus recomendaciones.`;
+  }
+
   prompt += `\n\n===== INSTRUCCIÓN FINAL =====
-Genera un plan de acción ÚNICO y ALTAMENTE PERSONALIZADO para "${missionTitle}" considerando TODOS los datos anteriores.
-El plan debe sentirse como si un consultor experto hubiera pasado horas estudiando este negocio específico.`;
+Genera un plan de acción ÚNICO y ALTAMENTE PERSONALIZADO para "${missionTitle}".
+- USA los datos específicos que te di (nombres, números, productos, horarios)
+- NO uses frases genéricas como "mejora tus ventas" o "optimiza tu operación"
+- Cada paso debe mencionar algo específico de ESTE negocio
+- Si te falta información, dilo honestamente en "dataGapsIdentified"`;
 
   return prompt;
+}
+
+function checkForGenericPhrases(plan: any): string[] {
+  const foundPhrases: string[] = [];
+  const textToCheck = JSON.stringify(plan).toLowerCase();
+  
+  for (const phrase of BLOCKED_PHRASES) {
+    if (textToCheck.includes(phrase.toLowerCase())) {
+      foundPhrases.push(phrase);
+    }
+  }
+  
+  return foundPhrases;
+}
+
+async function saveRecommendationTrace(
+  supabase: any,
+  businessId: string,
+  plan: any,
+  context: any,
+  passed: boolean
+) {
+  try {
+    const brain = context?.brain;
+    
+    // Build based_on from context
+    const basedOn: any[] = [];
+    
+    if (context?.businessInsights?.length > 0) {
+      basedOn.push({
+        type: 'insights',
+        summary: `${context.businessInsights.length} insights del negocio`
+      });
+    }
+    if (context?.recentSignals?.length > 0) {
+      basedOn.push({
+        type: 'signals',
+        summary: `${context.recentSignals.length} señales recientes`
+      });
+    }
+    if (context?.recentCheckins?.length > 0) {
+      basedOn.push({
+        type: 'checkins',
+        summary: `${context.recentCheckins.length} check-ins de tráfico`
+      });
+    }
+    if (plan.basedOn) {
+      plan.basedOn.forEach((reason: string) => {
+        basedOn.push({ type: 'ai_identified', summary: reason });
+      });
+    }
+
+    await supabase
+      .from('recommendation_traces')
+      .insert({
+        business_id: businessId,
+        brain_id: brain?.id,
+        output_type: 'mission',
+        output_content: plan,
+        based_on: basedOn,
+        confidence: plan.confidence || 'medium',
+        why_summary: `Plan para "${plan.planTitle}" basado en ${basedOn.length} fuentes de datos`,
+        passed_quality_gate: passed,
+        quality_gate_score: passed ? 80 : 40,
+        generic_phrases_detected: plan._genericPhrases || [],
+        is_blocked: !passed,
+        variables_used: {
+          business_type: context?.brain?.primary_business_type || context?.business?.category,
+          focus: context?.brain?.current_focus,
+          mvc_completion: context?.brain?.mvc_completion_pct
+        }
+      });
+  } catch (error) {
+    console.error('Error saving trace:', error);
+  }
 }
 
 serve(async (req) => {
@@ -318,11 +463,18 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY 
+      ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+      : null;
+
     // Fetch comprehensive context
     let context = null;
-    if (businessId && SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    if (businessId && supabase) {
       context = await fetchBusinessContext(supabase, businessId);
+      
+      // Check if we have enough context (MVC)
+      const mvcCompletion = context?.brain?.mvc_completion_pct || 0;
+      console.log(`MVC Completion: ${mvcCompletion}%`);
     }
 
     // Build context prompt
@@ -350,7 +502,7 @@ serve(async (req) => {
           { role: "user", content: contextPrompt },
         ],
         stream: false,
-        temperature: regenerate ? 0.9 : 0.7, // More creative for regeneration
+        temperature: regenerate ? 0.9 : 0.7,
         max_tokens: 2048,
       }),
     });
@@ -393,51 +545,42 @@ serve(async (req) => {
       }
     } catch (parseError) {
       console.error("Error parsing AI response:", parseError);
-      // Return fallback plan
-      planData = {
-        planTitle: `Plan para ${missionTitle}`,
-        planDescription: "Plan generado automáticamente",
-        estimatedDuration: "1-2 semanas",
-        estimatedImpact: "Mejora en el área objetivo",
-        steps: [
-          {
-            text: "Analizar la situación actual",
-            done: false,
-            howTo: ["Revisar datos disponibles", "Identificar puntos de mejora"],
-            why: "Es importante entender el punto de partida",
-            timeEstimate: "30 minutos",
-            metric: "Diagnóstico completado",
-            confidence: "medium",
-          },
-          {
-            text: "Definir acciones concretas",
-            done: false,
-            howTo: ["Priorizar por impacto", "Asignar responsables"],
-            why: "La planificación es clave para el éxito",
-            timeEstimate: "45 minutos",
-            metric: "Plan definido",
-            confidence: "medium",
-          },
-          {
-            text: "Implementar y medir",
-            done: false,
-            howTo: ["Ejecutar las acciones", "Medir resultados semanalmente"],
-            why: "La ejecución consistente genera resultados",
-            timeEstimate: "Continuo",
-            metric: "KPIs mejorados",
-            confidence: "medium",
-          },
-        ],
-        businessSpecificTips: ["Adapta el plan a tu realidad diaria"],
-        potentialChallenges: ["Falta de tiempo es común, prioriza lo esencial"],
-        successMetrics: ["Progreso semanal visible"],
-      };
+      // Return a data-needed response instead of fallback
+      return new Response(
+        JSON.stringify({ 
+          needsMoreData: true,
+          message: "No pude generar un plan específico. Necesito más información sobre tu negocio.",
+          plan: null
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    console.log("Generated plan with", planData.steps?.length || 0, "steps");
+    // Quality Gate: Check for generic phrases
+    const genericPhrases = checkForGenericPhrases(planData);
+    const passed = genericPhrases.length === 0;
+    
+    if (!passed) {
+      console.warn("Quality Gate: Generic phrases detected:", genericPhrases);
+      planData._genericPhrases = genericPhrases;
+    }
+
+    // Save trace for auditing
+    if (supabase && businessId) {
+      await saveRecommendationTrace(supabase, businessId, planData, context, passed);
+    }
+
+    console.log("Generated plan with", planData.steps?.length || 0, "steps, passed QG:", passed);
 
     return new Response(
-      JSON.stringify({ plan: planData }),
+      JSON.stringify({ 
+        plan: planData,
+        qualityGate: {
+          passed,
+          genericPhrasesFound: genericPhrases,
+          mvcCompletion: context?.brain?.mvc_completion_pct || 0
+        }
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
