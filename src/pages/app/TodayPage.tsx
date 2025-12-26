@@ -20,6 +20,7 @@ import { TellMeMoreCard } from "@/components/app/TellMeMoreCard";
 import { KnowledgeByAreaCard } from "@/components/app/KnowledgeByAreaCard";
 import { FocusCard } from "@/components/app/FocusCard";
 import { ActionsListPanel } from "@/components/app/ActionsListPanel";
+import { BusinessHealthDashboard } from "@/components/app/BusinessHealthDashboard";
 
 interface DailyAction {
   id: string;
@@ -411,6 +412,9 @@ const TodayPage = () => {
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="col-span-2 space-y-6">
+            {/* HERO: Business Health Dashboard */}
+            <BusinessHealthDashboard />
+
             {/* Check-in del turno */}
             {!hasCheckedInToday && !showCheckin && (
               <GlassCard 
@@ -562,6 +566,11 @@ const TodayPage = () => {
         <p className="text-muted-foreground">
           {currentBusiness.name} • {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}
         </p>
+      </div>
+
+      {/* HERO: Business Health Dashboard */}
+      <div className="animate-fade-in" style={{ animationDelay: "25ms" }}>
+        <BusinessHealthDashboard />
       </div>
 
       {/* Check-in prompt for mobile */}

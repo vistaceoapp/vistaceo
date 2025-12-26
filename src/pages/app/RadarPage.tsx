@@ -90,6 +90,33 @@ const ID_NATURES = [
   "Nueva táctica", "Estacionalidad", "Insight de audiencia", "Movimiento de competidores"
 ];
 
+// Quality gate - checks if an opportunity is truly personalized (not generic)
+const passesQualityGate = (opportunity: Opportunity): boolean => {
+  const evidence = opportunity.evidence as Record<string, any> | null;
+  
+  // Must have a trigger or evidence
+  const hasTrigger = Boolean(evidence?.trigger || evidence?.source || opportunity.source);
+  
+  // Must have meaningful scores (not default 5/5)
+  const hasNonDefaultScores = !(opportunity.impact_score === 5 && opportunity.effort_score === 5);
+  
+  // Title should be specific (not generic phrases)
+  const genericPhrases = [
+    "mejorar ventas",
+    "aumentar clientes",
+    "optimizar operaciones",
+    "mejorar servicio",
+    "incrementar ingresos"
+  ];
+  const titleLower = opportunity.title.toLowerCase();
+  const hasGenericTitle = genericPhrases.some(phrase => titleLower === phrase);
+  
+  // Must have a description
+  const hasDescription = Boolean(opportunity.description && opportunity.description.length > 20);
+  
+  return hasTrigger && hasNonDefaultScores && !hasGenericTitle && hasDescription;
+};
+
 const RadarPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -163,15 +190,17 @@ const RadarPage = () => {
     }
   };
 
-  // Filter and sort opportunities
+  // Filter and sort opportunities - with Quality Gate
   const getFilteredOpportunities = () => {
-    let filtered = [...opportunities];
+    // First apply quality gate - only show personalized opportunities
+    let filtered = opportunities.filter(passesQualityGate);
     
     // Area filter
     if (areaFilter !== "all") {
       filtered = filtered.filter(o => 
-        o.source?.toLowerCase().includes(areaFilter) || 
-        o.description?.toLowerCase().includes(areaFilter)
+        o.source?.toLowerCase().includes(areaFilter.toLowerCase()) || 
+        o.description?.toLowerCase().includes(areaFilter.toLowerCase()) ||
+        o.title?.toLowerCase().includes(areaFilter.toLowerCase())
       );
     }
     
@@ -199,6 +228,9 @@ const RadarPage = () => {
     
     return filtered;
   };
+
+  // Count opportunities that failed quality gate (for data needed state)
+  const failedQualityGateCount = opportunities.filter(o => !passesQualityGate(o)).length;
 
   // Actions
   const dismissOpportunity = async (id: string) => {
@@ -364,8 +396,10 @@ const RadarPage = () => {
   };
 
   const filteredOpportunities = getFilteredOpportunities();
-  const highImpactCount = opportunities.filter(o => o.impact_score >= 7).length;
-  const quickWinsCount = opportunities.filter(o => o.impact_score >= 7 && o.effort_score <= 4).length;
+  // Count only quality-gated opportunities
+  const qualityOpportunities = opportunities.filter(passesQualityGate);
+  const highImpactCount = qualityOpportunities.filter(o => o.impact_score >= 7).length;
+  const quickWinsCount = qualityOpportunities.filter(o => o.impact_score >= 7 && o.effort_score <= 4).length;
 
   // Loading state
   if (loading) {
@@ -698,19 +732,60 @@ const RadarPage = () => {
           {/* Opportunities Table */}
           {filteredOpportunities.length === 0 ? (
             <div className="dashboard-card p-12 text-center">
-              <Sparkles className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
-              <h2 className="text-xl font-bold text-foreground mb-2">
-                {showHighlighted ? "No hay oportunidades destacadas" : "Escaneando oportunidades..."}
-              </h2>
-              <p className="text-muted-foreground mb-4">
-                {showHighlighted ? "Prueba quitando el filtro" : "El sistema está analizando tu negocio"}
-              </p>
-              <div className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-primary/5 border border-primary/10">
-                <Lightbulb className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs text-muted-foreground">
-                  Tip: Conecta más integraciones para detectar más oportunidades
-                </span>
-              </div>
+              {failedQualityGateCount > 0 ? (
+                // Data Needed state - opportunities exist but are too generic
+                <>
+                  <Target className="w-12 h-12 text-warning mx-auto mb-4" />
+                  <h2 className="text-xl font-bold text-foreground mb-2">
+                    Necesito más datos para personalizar
+                  </h2>
+                  <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                    Detecté {failedQualityGateCount} oportunidades potenciales, pero necesito conocer mejor tu negocio para que sean útiles.
+                  </p>
+                  <div className="flex flex-col items-center gap-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => navigate("/app")}
+                    >
+                      <MessageCirclePlus className="w-4 h-4 mr-2" />
+                      Completar datos del negocio
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Esto mejora la precisión de todas las recomendaciones
+                    </p>
+                  </div>
+                </>
+              ) : showHighlighted ? (
+                // Filter is active but no matches
+                <>
+                  <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
+                  <h2 className="text-xl font-bold text-foreground mb-2">
+                    No hay oportunidades destacadas
+                  </h2>
+                  <p className="text-muted-foreground mb-4">
+                    Prueba quitando el filtro de destacadas
+                  </p>
+                </>
+              ) : (
+                // Truly empty state
+                <>
+                  <Sparkles className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
+                  <h2 className="text-xl font-bold text-foreground mb-2">
+                    Buscando oportunidades...
+                  </h2>
+                  <p className="text-muted-foreground mb-4">
+                    Escanea tu negocio para detectar nuevas oportunidades personalizadas
+                  </p>
+                  <Button 
+                    onClick={generateAnalysis}
+                    disabled={actionLoading}
+                    className="gradient-primary"
+                  >
+                    <Sparkles className={cn("w-4 h-4 mr-2", actionLoading && "animate-spin")} />
+                    Escanear con IA
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             <div className="dashboard-card overflow-hidden">
