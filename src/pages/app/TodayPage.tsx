@@ -399,25 +399,11 @@ const TodayPage = () => {
             </p>
           </div>
           
-          {/* Compact Weekly Progress in Header */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-2">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-success" />
-                <span className="text-sm font-medium text-foreground">{completedToday} hoy</span>
-              </div>
-              <div className="w-px h-4 bg-border" />
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">{weeklyCompleted}/{weeklyGoal}</span>
-                <span className="text-xs text-muted-foreground">semana</span>
-              </div>
-            </div>
-            <Button variant="outline" onClick={generateAction} disabled={actionLoading}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva acción
-            </Button>
-          </div>
+          {/* Quick Action */}
+          <Button variant="outline" onClick={generateAction} disabled={actionLoading}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nueva acción
+          </Button>
         </div>
 
         <div className="grid grid-cols-3 gap-6">

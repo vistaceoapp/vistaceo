@@ -5,7 +5,7 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip, 
+  Tooltip as RechartsTooltip, 
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -31,12 +31,19 @@ import {
   BarChart3,
   RefreshCw,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Chart colors using CSS variables
 const CHART_COLORS = {
@@ -324,7 +331,25 @@ export const AnalyticsDashboard = ({ variant = "full" }: AnalyticsDashboardProps
       {/* Header with period selector */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Métricas del Negocio</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-foreground">Métricas del Negocio</h2>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="text-muted-foreground hover:text-foreground transition-colors">
+                    <Info className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[280px] p-3">
+                  <p className="font-semibold text-foreground mb-1 text-sm">¿Cómo se calculan?</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Las métricas se calculan a partir de tus check-ins, acciones completadas, 
+                    reseñas y datos conectados. Mientras más información des, más precisas serán.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <p className="text-muted-foreground">Análisis de rendimiento y tendencias</p>
         </div>
         <div className="flex items-center gap-3">
@@ -406,7 +431,7 @@ export const AnalyticsDashboard = ({ variant = "full" }: AnalyticsDashboardProps
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip 
+                  <RechartsTooltip 
                     contentStyle={{ 
                       backgroundColor: "hsl(var(--card))", 
                       border: "1px solid hsl(var(--border))",
@@ -447,7 +472,7 @@ export const AnalyticsDashboard = ({ variant = "full" }: AnalyticsDashboardProps
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip 
+                  <RechartsTooltip 
                     contentStyle={{ 
                       backgroundColor: "hsl(var(--card))", 
                       border: "1px solid hsl(var(--border))",
@@ -495,7 +520,7 @@ export const AnalyticsDashboard = ({ variant = "full" }: AnalyticsDashboardProps
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <RechartsTooltip 
                     contentStyle={{ 
                       backgroundColor: "hsl(var(--card))", 
                       border: "1px solid hsl(var(--border))",
@@ -529,7 +554,7 @@ export const AnalyticsDashboard = ({ variant = "full" }: AnalyticsDashboardProps
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="week" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip 
+                  <RechartsTooltip 
                     contentStyle={{ 
                       backgroundColor: "hsl(var(--card))", 
                       border: "1px solid hsl(var(--border))",
@@ -570,7 +595,7 @@ export const AnalyticsDashboard = ({ variant = "full" }: AnalyticsDashboardProps
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                 <YAxis domain={[0, 5]} stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                <Tooltip 
+                <RechartsTooltip 
                   contentStyle={{ 
                     backgroundColor: "hsl(var(--card))", 
                     border: "1px solid hsl(var(--border))",
