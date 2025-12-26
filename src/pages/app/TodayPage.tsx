@@ -16,7 +16,10 @@ import { ActionCard } from "@/components/app/ActionCard";
 import { SocialRatingsPanel } from "@/components/app/SocialRatingsPanel";
 import { AlertFAB } from "@/components/app/AlertFAB";
 import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
-import { FocusSelector } from "@/components/app/FocusSelector";
+import { TellMeMoreCard } from "@/components/app/TellMeMoreCard";
+import { KnowledgeByAreaCard } from "@/components/app/KnowledgeByAreaCard";
+import { FocusCard } from "@/components/app/FocusCard";
+import { ActionsListPanel } from "@/components/app/ActionsListPanel";
 
 interface DailyAction {
   id: string;
@@ -50,6 +53,7 @@ const TodayPage = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
   const [showCheckin, setShowCheckin] = useState(false);
+  const [showActionsPanel, setShowActionsPanel] = useState(false);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -398,125 +402,107 @@ const TodayPage = () => {
                 {getGreeting()}
               </h1>
             </div>
-            <div className="flex items-center gap-3">
-              <p className="text-muted-foreground text-lg">
-                {currentBusiness.name} • {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}
-              </p>
-              {brain && (
-                <FocusSelector variant="inline" />
-              )}
-            </div>
-          </div>
-          
-          {/* Quick Action */}
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={generateAction} disabled={actionLoading}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva acción
-            </Button>
+            <p className="text-muted-foreground text-lg">
+              {currentBusiness.name} • {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}
+            </p>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="col-span-2 space-y-6">
-            {/* KNOWLEDGE CENTER - InboxCard prominente PRIMERO */}
-            <InboxCard variant="hero" />
-
-            {/* Main Action Card */}
-            {todayAction ? (
-              <div className="dashboard-card p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-start gap-6">
-                  <div className="w-16 h-16 rounded-xl gradient-primary flex items-center justify-center shadow-lg flex-shrink-0">
-                    <Zap className="w-8 h-8 text-primary-foreground" />
+            {/* Check-in del turno */}
+            {!hasCheckedInToday && !showCheckin && (
+              <GlassCard 
+                interactive 
+                className="p-4 cursor-pointer" 
+                onClick={() => setShowCheckin(true)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                    <Camera className="w-5 h-5 text-accent" />
                   </div>
-                  
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className={cn(
-                        "text-xs font-semibold px-3 py-1.5 rounded-full",
-                        todayAction.priority === "high" || todayAction.priority === "urgent"
-                          ? "bg-destructive/10 text-destructive border border-destructive/20"
-                          : todayAction.priority === "medium"
-                          ? "bg-warning/10 text-warning border border-warning/20"
-                          : "bg-primary/10 text-primary border border-primary/20"
-                      )}>
-                        {todayAction.priority === "urgent" ? "🔥 Urgente" : 
-                         todayAction.priority === "high" ? "⚡ Alta" : 
-                         todayAction.priority === "medium" ? "📌 Media" :
-                         "📋 Normal"}
-                      </span>
-                      {todayAction.category && (
-                        <span className="text-xs text-muted-foreground bg-secondary px-3 py-1.5 rounded-full">
-                          {todayAction.category}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <h2 className="text-2xl font-bold text-foreground mb-2">
-                      {todayAction.title}
-                    </h2>
-                    
-                    {todayAction.description && (
-                      <p className="text-muted-foreground mb-6 text-lg leading-relaxed">
-                        {todayAction.description}
-                      </p>
-                    )}
+                    <p className="font-medium text-foreground text-sm">Check-in del turno</p>
+                    <p className="text-xs text-muted-foreground">10 segundos • mejora recomendaciones</p>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </GlassCard>
+            )}
 
-                    {todayAction.checklist && Array.isArray(todayAction.checklist) && todayAction.checklist.length > 0 && (
-                      <div className="bg-secondary/50 rounded-xl p-4 mb-6 space-y-2">
-                        {(todayAction.checklist as { text: string; done?: boolean }[]).slice(0, 4).map((item, idx) => (
-                          <div key={idx} className="flex items-center gap-3">
-                            <div className={cn(
-                              "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
-                              item.done ? "bg-success border-success" : "border-muted-foreground/30"
-                            )}>
-                              {item.done && <Check className="w-3 h-3 text-white" />}
-                            </div>
-                            <span className={cn("text-sm", item.done && "line-through text-muted-foreground")}>
-                              {item.text}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+            {showCheckin && (
+              <CheckinCard 
+                onComplete={() => {
+                  setHasCheckedInToday(true);
+                  setShowCheckin(false);
+                }} 
+              />
+            )}
 
-                    <div className="flex items-center gap-4">
-                      <Button 
-                        onClick={handleComplete} 
-                        size="lg"
-                        className="gradient-primary shadow-lg shadow-primary/20 hover:shadow-primary/40"
-                        disabled={actionLoading}
-                      >
-                        <Check className="w-5 h-5 mr-2" />
-                        Completar acción
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="lg"
-                        onClick={handleSnooze}
-                        disabled={actionLoading}
-                      >
-                        <Clock className="w-5 h-5 mr-2" />
-                        Posponer
-                      </Button>
+            {/* Acciones disponibles - CTA compacto */}
+            <GlassCard 
+              interactive 
+              className="p-6 cursor-pointer" 
+              onClick={() => setShowActionsPanel(true)}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
+                  <Zap className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-foreground mb-1">Acciones disponibles</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {todayAction ? "1 acción pendiente" : "Generando acciones personalizadas..."}
+                  </p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-muted-foreground" />
+              </div>
+            </GlassCard>
+
+            {/* Tengo tiempo, quiero contarte más */}
+            <TellMeMoreCard />
+
+            {/* Qué tanto te conozco por área */}
+            <KnowledgeByAreaCard />
+
+            {/* Quiero potenciar... */}
+            <FocusCard />
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <GlassCard className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Check className="w-4 h-4 text-success" />
+                      <span className="text-xs text-muted-foreground font-medium">Hoy</span>
                     </div>
+                    <div className="text-3xl font-bold text-foreground">{completedToday}</div>
+                    <div className="text-xs text-muted-foreground">completadas</div>
+                  </div>
+                  <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
+                    <Check className="w-6 h-6 text-success" />
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="dashboard-card p-8 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
-                  <Sparkles className="w-8 h-8 text-primary animate-spin" />
+              </GlassCard>
+              
+              <GlassCard className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <TrendingUp className="w-4 h-4 text-primary" />
+                      <span className="text-xs text-muted-foreground font-medium">Semana</span>
+                    </div>
+                    <div className="text-3xl font-bold text-foreground">{weeklyCompleted}</div>
+                    <div className="text-xs text-muted-foreground">acciones</div>
+                  </div>
+                  <ProgressRing progress={weeklyProgress} size={48} strokeWidth={4} showGlow={false}>
+                    <span className="text-xs font-bold text-primary">{Math.round(weeklyProgress)}%</span>
+                  </ProgressRing>
                 </div>
-                <h2 className="text-xl font-bold text-foreground mb-2">
-                  Analizando tu negocio...
-                </h2>
-                <p className="text-muted-foreground">
-                  El sistema está generando tu próxima acción personalizada
-                </p>
-              </div>
-            )}
+              </GlassCard>
+            </div>
 
           </div>
 
@@ -525,35 +511,11 @@ const TodayPage = () => {
             {/* Brain Status Widget */}
             <BrainStatusWidget variant="compact" />
 
-            {/* Check-in Card */}
-            {!hasCheckedInToday && (
-              <div className="animate-fade-in">
-                {showCheckin ? (
-                  <CheckinCard 
-                    onComplete={() => {
-                      setHasCheckedInToday(true);
-                      setShowCheckin(false);
-                    }} 
-                  />
-                ) : (
-                  <div className="dashboard-card p-4 border-dashed border-primary/30 hover:border-primary/50 cursor-pointer transition-all" onClick={() => setShowCheckin(true)}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                        <Camera className="w-5 h-5 text-accent" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground text-sm">Check-in del turno</p>
-                        <p className="text-xs text-muted-foreground">10 segundos • mejora recomendaciones</p>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Social Ratings */}
             <SocialRatingsPanel variant="compact" />
+
+            {/* KNOWLEDGE CENTER */}
+            <InboxCard variant="compact" />
 
             {/* Quick Actions */}
             <div className="dashboard-card p-6">
@@ -575,6 +537,13 @@ const TodayPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Actions Panel */}
+        <ActionsListPanel 
+          open={showActionsPanel}
+          onOpenChange={setShowActionsPanel}
+          onRefresh={fetchData}
+        />
       </div>
     );
   }
@@ -630,95 +599,45 @@ const TodayPage = () => {
         </div>
       )}
 
-      {/* Main Action Card */}
-      {todayAction ? (
-        <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
-          <GlassCard variant="glow" className="p-6 overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            
-            <div className="relative flex items-start gap-4">
-              <div className="relative">
-                <div className="absolute inset-0 blur-xl bg-primary/40 rounded-xl" />
-                <div className="relative w-14 h-14 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
-                  <Zap className="w-7 h-7 text-primary-foreground" />
-                </div>
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className={cn(
-                    "text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-sm",
-                    todayAction.priority === "high" || todayAction.priority === "urgent"
-                      ? "bg-destructive/20 text-destructive border border-destructive/30"
-                      : todayAction.priority === "medium"
-                      ? "bg-warning/20 text-warning border border-warning/30"
-                      : "bg-primary/20 text-primary border border-primary/30"
-                  )}>
-                    {todayAction.priority === "urgent" ? "🔥 Urgente" : 
-                     todayAction.priority === "high" ? "⚡ Alta" : 
-                     todayAction.priority === "medium" ? "📌 Media" :
-                     "📋 Normal"}
-                  </span>
-                  {todayAction.category && (
-                    <span className="text-xs text-muted-foreground bg-secondary/80 px-3 py-1 rounded-full backdrop-blur-sm">
-                      {todayAction.category}
-                    </span>
-                  )}
-                </div>
-                
-                <h2 className="text-xl font-bold text-foreground mb-2 leading-tight">
-                  {todayAction.title}
-                </h2>
-                
-                {todayAction.description && (
-                  <p className="text-muted-foreground mb-4 leading-relaxed">
-                    {todayAction.description}
-                  </p>
-                )}
+      {/* Acciones disponibles - CTA compacto */}
+      <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
+        <GlassCard 
+          interactive 
+          className="p-6 cursor-pointer" 
+          onClick={() => setShowActionsPanel(true)}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
+              <Zap className="w-6 h-6 text-primary-foreground" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground mb-1">Acciones disponibles</h3>
+              <p className="text-sm text-muted-foreground">
+                {todayAction ? "1 acción pendiente" : "Generando acciones personalizadas..."}
+              </p>
+            </div>
+            <ArrowRight className="w-5 h-5 text-muted-foreground" />
+          </div>
+        </GlassCard>
+      </div>
 
-                <div className="flex items-center gap-3">
-                  <Button 
-                    onClick={handleComplete} 
-                    className="flex-1 gradient-primary shadow-lg shadow-primary/30 hover:shadow-primary/50"
-                    disabled={actionLoading}
-                  >
-                    <Check className="w-4 h-4 mr-2" />
-                    Completar
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={handleSnooze}
-                    disabled={actionLoading}
-                  >
-                    <Clock className="w-4 h-4 mr-2" />
-                    Después
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </GlassCard>
-        </div>
-      ) : (
-        <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
-          <GlassCard className="p-8 text-center">
-            <div className="relative inline-block mb-4">
-              <div className="absolute inset-0 blur-2xl bg-primary/30 rounded-full animate-pulse" />
-              <div className="relative w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-primary animate-spin" />
-              </div>
-            </div>
-            <h2 className="text-xl font-bold text-foreground mb-2">
-              Analizando tu negocio...
-            </h2>
-            <p className="text-muted-foreground max-w-sm mx-auto">
-              Generando tu próxima acción personalizada
-            </p>
-          </GlassCard>
-        </div>
-      )}
+      {/* Tengo tiempo, quiero contarte más */}
+      <div className="animate-fade-in" style={{ animationDelay: "150ms" }}>
+        <TellMeMoreCard />
+      </div>
+
+      {/* Qué tanto te conozco por área */}
+      <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
+        <KnowledgeByAreaCard />
+      </div>
+
+      {/* Quiero potenciar... */}
+      <div className="animate-fade-in" style={{ animationDelay: "250ms" }}>
+        <FocusCard />
+      </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 gap-4 animate-fade-in" style={{ animationDelay: "200ms" }}>
+      <div className="grid grid-cols-2 gap-4 animate-fade-in" style={{ animationDelay: "300ms" }}>
         <GlassCard interactive className="p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -752,13 +671,13 @@ const TodayPage = () => {
         </GlassCard>
       </div>
 
-      {/* Micro-questions - Hero for Mobile */}
-      <div className="animate-fade-in" style={{ animationDelay: "250ms" }}>
-        <InboxCard variant="hero" />
+      {/* Micro-questions */}
+      <div className="animate-fade-in" style={{ animationDelay: "350ms" }}>
+        <InboxCard variant="compact" />
       </div>
 
       {/* Weekly Priorities Preview */}
-      <div className="animate-fade-in" style={{ animationDelay: "300ms" }}>
+      <div className="animate-fade-in" style={{ animationDelay: "400ms" }}>
         <GlassCard 
           interactive
           className="p-5 cursor-pointer"
@@ -807,6 +726,13 @@ const TodayPage = () => {
           )}
         </GlassCard>
       </div>
+      
+      {/* Actions Panel */}
+      <ActionsListPanel 
+        open={showActionsPanel}
+        onOpenChange={setShowActionsPanel}
+        onRefresh={fetchData}
+      />
       
       {/* Alert FAB */}
       <AlertFAB />
