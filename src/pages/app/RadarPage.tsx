@@ -16,9 +16,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -36,6 +33,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { OpportunityDetailCard } from "@/components/app/OpportunityDetailCard";
+import { LearningDetailCard } from "@/components/app/LearningDetailCard";
 
 // Types
 interface Opportunity {
@@ -506,14 +505,14 @@ const RadarPage = () => {
 
         {/* Opportunity Preview Dialog */}
         <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-xl">
             {selectedOpportunity && (
-              <OpportunityPreview 
+              <OpportunityDetailCard 
                 opportunity={selectedOpportunity}
+                business={currentBusiness}
                 onDismiss={() => dismissOpportunity(selectedOpportunity.id)}
                 onAccept={() => convertToMission(selectedOpportunity)}
                 actionLoading={actionLoading}
-                getConfidenceLabel={getConfidenceLabel}
               />
             )}
           </DialogContent>
@@ -521,10 +520,11 @@ const RadarPage = () => {
 
         {/* Learning Preview Dialog */}
         <Dialog open={!!selectedLearning} onOpenChange={() => setSelectedLearning(null)}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-xl">
             {selectedLearning && (
-              <LearningPreview 
+              <LearningDetailCard 
                 item={selectedLearning}
+                business={currentBusiness}
                 onDismiss={() => dismissLearning(selectedLearning.id)}
                 onSave={() => toggleSaveLearning(selectedLearning.id)}
                 onClose={() => setSelectedLearning(null)}
@@ -929,14 +929,14 @@ const RadarPage = () => {
 
       {/* Opportunity Preview Dialog */}
       <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-xl">
           {selectedOpportunity && (
-            <OpportunityPreview 
+            <OpportunityDetailCard 
               opportunity={selectedOpportunity}
+              business={currentBusiness}
               onDismiss={() => dismissOpportunity(selectedOpportunity.id)}
               onAccept={() => convertToMission(selectedOpportunity)}
               actionLoading={actionLoading}
-              getConfidenceLabel={getConfidenceLabel}
             />
           )}
         </DialogContent>
@@ -944,10 +944,11 @@ const RadarPage = () => {
 
       {/* Learning Preview Dialog */}
       <Dialog open={!!selectedLearning} onOpenChange={() => setSelectedLearning(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-xl">
           {selectedLearning && (
-            <LearningPreview 
+            <LearningDetailCard 
               item={selectedLearning}
+              business={currentBusiness}
               onDismiss={() => dismissLearning(selectedLearning.id)}
               onSave={() => toggleSaveLearning(selectedLearning.id)}
               onClose={() => setSelectedLearning(null)}
@@ -980,217 +981,5 @@ const ImpactDots = ({ score, type }: { score: number; type: "impact" | "effort" 
     </span>
   </div>
 );
-
-const OpportunityPreview = ({ 
-  opportunity, 
-  onDismiss, 
-  onAccept, 
-  actionLoading,
-  getConfidenceLabel 
-}: { 
-  opportunity: Opportunity;
-  onDismiss: () => void;
-  onAccept: () => void;
-  actionLoading: boolean;
-  getConfidenceLabel: (impact: number, hasData: boolean) => { label: string; color: string; note: string };
-}) => {
-  const hasIntegrations = true; // TODO: Check actual integrations
-  const confidence = getConfidenceLabel(opportunity.impact_score, hasIntegrations);
-  
-  return (
-    <>
-      <DialogHeader>
-        <div className="flex items-center gap-2 mb-2">
-          <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20">
-            <Building2 className="w-3 h-3 mr-1" />
-            INTERNO
-          </Badge>
-        </div>
-        <DialogTitle className="text-xl">{opportunity.title}</DialogTitle>
-        <DialogDescription>
-          Basado en tus datos e integraciones
-        </DialogDescription>
-      </DialogHeader>
-
-      <div className="space-y-4 mt-4">
-        {/* What it provides */}
-        <div className="p-4 rounded-xl bg-success/5 border border-success/20">
-          <h4 className="font-semibold text-success mb-2 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4" />
-            Qué te brinda esta oportunidad
-          </h4>
-          <p className="text-sm text-foreground">
-            {opportunity.description || "Mejora potencial en el área detectada para tu negocio."}
-          </p>
-        </div>
-
-        {/* Why it appeared */}
-        <div className="p-4 rounded-xl bg-secondary/50">
-          <h4 className="font-semibold text-foreground mb-2">Por qué apareció</h4>
-          <p className="text-sm text-muted-foreground">
-            Detectada a partir del análisis de tu diagnóstico y datos disponibles.
-          </p>
-        </div>
-
-        {/* Suggested steps */}
-        <div>
-          <h4 className="font-semibold text-foreground mb-3">Pasos sugeridos</h4>
-          <div className="space-y-2">
-            {["Analizar la situación actual", "Definir objetivos concretos", "Implementar cambios", "Medir resultados"].map((step, idx) => (
-              <div key={idx} className="flex items-center gap-3 p-2 rounded-lg bg-secondary/30">
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-medium">
-                  {idx + 1}
-                </div>
-                <span className="text-sm text-foreground">{step}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Impact estimation */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-success/5 border border-success/20 text-center">
-            <div className="text-3xl font-bold text-success">{opportunity.impact_score}/10</div>
-            <div className="text-xs text-muted-foreground mt-1">Impacto estimado</div>
-          </div>
-          <div className="p-4 rounded-xl bg-warning/5 border border-warning/20 text-center">
-            <div className="text-3xl font-bold text-warning">{opportunity.effort_score}/10</div>
-            <div className="text-xs text-muted-foreground mt-1">Esfuerzo requerido</div>
-          </div>
-        </div>
-
-        {/* Confidence note */}
-        <div className="p-3 rounded-lg bg-muted/50 text-center">
-          <p className={cn("text-sm font-medium", confidence.color)}>
-            Confianza: {confidence.label}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {confidence.note}. Con más integraciones/datos, será más precisa.
-          </p>
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={onDismiss}>
-            <ThumbsDown className="w-4 h-4 mr-1" />
-            No me interesa
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onDismiss}>
-            <CheckCircle2 className="w-4 h-4 mr-1" />
-            Ya lo sé
-          </Button>
-          <Button size="sm" className="flex-1 gradient-primary" onClick={onAccept} disabled={actionLoading}>
-            <Target className="w-4 h-4 mr-1" />
-            Aplicar
-          </Button>
-        </div>
-      </div>
-    </>
-  );
-};
-
-const LearningPreview = ({ 
-  item, 
-  onDismiss, 
-  onSave,
-  onClose
-}: { 
-  item: LearningItem;
-  onDismiss: () => void;
-  onSave: () => void;
-  onClose: () => void;
-}) => {
-  const steps = item.action_steps as string[] || [];
-  
-  return (
-    <>
-      <DialogHeader>
-        <div className="flex items-center gap-2 mb-2">
-          <Badge variant="outline" className="text-[10px] bg-accent/5 border-accent/20">
-            <ExternalLink className="w-3 h-3 mr-1" />
-            EXTERNO
-          </Badge>
-          <Badge variant="secondary" className="text-[10px] capitalize">
-            I+D | {item.item_type === "trend" ? "Investigación" : "Desarrollo"}
-          </Badge>
-        </div>
-        <DialogTitle className="text-xl">{item.title}</DialogTitle>
-        <DialogDescription>
-          Basado en tendencias y señales del mercado
-        </DialogDescription>
-      </DialogHeader>
-
-      <div className="space-y-4 mt-4">
-        {/* Why we suggest it */}
-        <div className="p-4 rounded-xl bg-accent/5 border border-accent/20">
-          <h4 className="font-semibold text-accent mb-2 flex items-center gap-2">
-            <Globe className="w-4 h-4" />
-            Por qué te lo sugiero
-          </h4>
-          <p className="text-sm text-foreground">
-            {item.content || "Tendencia detectada en tu industria que podría beneficiar a tu negocio."}
-          </p>
-        </div>
-
-        {/* Action steps */}
-        {steps.length > 0 && (
-          <div>
-            <h4 className="font-semibold text-foreground mb-3">Acción concreta</h4>
-            <div className="space-y-2">
-              {steps.map((step, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-2 rounded-lg bg-secondary/30">
-                  <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center text-accent text-xs font-medium">
-                    {idx + 1}
-                  </div>
-                  <span className="text-sm text-foreground">{step}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Confidence */}
-        <div className="p-3 rounded-lg bg-muted/50">
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-sm text-muted-foreground">Confianza:</span>
-            <Badge variant="outline" className="text-success">Alta</Badge>
-          </div>
-          <p className="text-xs text-muted-foreground text-center mt-1">
-            Basado en: Tendencia de mercado
-          </p>
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={onDismiss}>
-            <ThumbsDown className="w-4 h-4 mr-1" />
-            No me interesa
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onDismiss}>
-            <CheckCircle2 className="w-4 h-4 mr-1" />
-            Ya lo sé
-          </Button>
-          <Button variant="outline" size="sm" onClick={onSave}>
-            {item.is_saved ? (
-              <>
-                <BookmarkCheck className="w-4 h-4 mr-1" />
-                Guardado
-              </>
-            ) : (
-              <>
-                <Bookmark className="w-4 h-4 mr-1" />
-                Guardar
-              </>
-            )}
-          </Button>
-          <Button size="sm" className="flex-1" onClick={onClose}>
-            <Sparkles className="w-4 h-4 mr-1" />
-            Probar
-          </Button>
-        </div>
-      </div>
-    </>
-  );
-};
 
 export default RadarPage;
