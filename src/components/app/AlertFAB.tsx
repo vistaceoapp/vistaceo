@@ -146,10 +146,11 @@ export const AlertFAB = () => {
       {/* FAB Button */}
       <Button
         onClick={() => setOpen(true)}
-        className="fixed bottom-24 right-4 md:bottom-6 md:right-6 w-14 h-14 rounded-full shadow-xl z-50 bg-warning hover:bg-warning/90"
+        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 w-14 h-14 rounded-full shadow-2xl z-[60] bg-warning hover:bg-warning/90 border-2 border-warning-foreground/10"
         size="icon"
+        aria-label="Registrar alerta"
       >
-        <AlertTriangle className="w-6 h-6" />
+        <AlertTriangle className="w-6 h-6 text-warning-foreground" />
       </Button>
 
       {/* Alert Dialog */}
