@@ -1048,13 +1048,17 @@ const OpportunityPreview = ({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3">
-          <Button variant="outline" className="flex-1" onClick={onDismiss}>
-            <ThumbsDown className="w-4 h-4 mr-2" />
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={onDismiss}>
+            <ThumbsDown className="w-4 h-4 mr-1" />
             No me interesa
           </Button>
-          <Button className="flex-1 gradient-primary" onClick={onAccept} disabled={actionLoading}>
-            <Target className="w-4 h-4 mr-2" />
+          <Button variant="ghost" size="sm" onClick={onDismiss}>
+            <CheckCircle2 className="w-4 h-4 mr-1" />
+            Ya lo sé
+          </Button>
+          <Button size="sm" className="flex-1 gradient-primary" onClick={onAccept} disabled={actionLoading}>
+            <Target className="w-4 h-4 mr-1" />
             Aplicar
           </Button>
         </div>
@@ -1135,10 +1139,14 @@ const LearningPreview = ({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={onDismiss}>
             <ThumbsDown className="w-4 h-4 mr-1" />
             No me interesa
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onDismiss}>
+            <CheckCircle2 className="w-4 h-4 mr-1" />
+            Ya lo sé
           </Button>
           <Button variant="outline" size="sm" onClick={onSave}>
             {item.is_saved ? (
