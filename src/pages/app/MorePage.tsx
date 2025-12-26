@@ -516,6 +516,7 @@ const MorePage = () => {
                   currentMode={userMode}
                   userId={user.id}
                   onModeChange={(mode) => setUserMode(mode)}
+                  isPro={false}  // TODO: Check actual user plan
                 />
               )}
             </div>

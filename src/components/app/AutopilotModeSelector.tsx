@@ -6,7 +6,8 @@ import {
   Rocket, 
   AlertTriangle,
   Check,
-  Lock
+  Lock,
+  Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,12 +30,6 @@ interface AutopilotModeSelectorProps {
   userId: string;
   onModeChange?: (mode: UserMode) => void;
   isPro?: boolean;
-}
-
-interface AutopilotModeSelectorProps {
-  currentMode: UserMode;
-  userId: string;
-  onModeChange?: (mode: UserMode) => void;
 }
 
 const modes: {
@@ -99,13 +94,6 @@ const modes: {
   }
 ];
 
-interface AutopilotModeSelectorProps {
-  currentMode: UserMode;
-  userId: string;
-  onModeChange?: (mode: UserMode) => void;
-  isPro?: boolean;
-}
-
 export const AutopilotModeSelector = ({
   currentMode,
   userId,
@@ -117,10 +105,10 @@ export const AutopilotModeSelector = ({
   const [showWarning, setShowWarning] = useState(false);
   const [pendingMode, setPendingMode] = useState<UserMode | null>(null);
 
-  const handleSelectMode = async (mode: UserMode) => {
+  const handleSelectMode = (mode: UserMode) => {
     if (mode === selectedMode) return;
     
-    // Show warning dialog
+    // Show warning dialog before changing
     setPendingMode(mode);
     setShowWarning(true);
   };
@@ -157,69 +145,173 @@ export const AutopilotModeSelector = ({
     }
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {modes.map((mode) => {
-          const Icon = mode.icon;
-          const isSelected = selectedMode === mode.id;
-          
-          return (
-            <button
-              key={mode.id}
-              onClick={() => handleSelectMode(mode.id)}
-              disabled={saving}
-              className={cn(
-                "relative p-5 rounded-xl border-2 text-left transition-all duration-200",
-                "hover:shadow-lg hover:scale-[1.02]",
-                isSelected
-                  ? "border-primary bg-primary/5 shadow-md"
-                  : "border-border bg-card hover:border-primary/50"
-              )}
-            >
-              {/* Selected indicator */}
-              {isSelected && (
+  const cancelModeChange = () => {
+    setShowWarning(false);
+    setPendingMode(null);
+  };
+
+  // If not Pro, show upgrade prompt
+  if (!isPro) {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-transparent p-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Crown className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="text-xl font-bold text-foreground mb-2">
+            Autopilot es una función Pro
+          </h3>
+          <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+            Personaliza cómo interactúa el sistema con vos: desde modo mínimo hasta proactivo. 
+            Actualiza a Pro para desbloquear esta y otras funciones avanzadas.
+          </p>
+          <Button onClick={() => toast({ title: "Próximamente" })}>
+            <Crown className="w-4 h-4 mr-2" />
+            Ver planes Pro
+          </Button>
+        </div>
+
+        {/* Show modes as preview (locked) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-60">
+          {modes.map((mode) => {
+            const Icon = mode.icon;
+            const isSelected = selectedMode === mode.id;
+            
+            return (
+              <div
+                key={mode.id}
+                className={cn(
+                  "relative p-5 rounded-xl border-2 text-left",
+                  isSelected
+                    ? "border-primary bg-primary/5"
+                    : "border-border bg-card"
+                )}
+              >
+                {/* Lock indicator */}
                 <div className="absolute top-3 right-3">
-                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                    <Check className="w-4 h-4 text-primary-foreground" />
+                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                    <Lock className="w-3 h-3 text-muted-foreground" />
                   </div>
                 </div>
-              )}
 
-              {/* Mode header */}
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center",
-                  isSelected ? "bg-primary/20" : "bg-secondary"
-                )}>
-                  <Icon className={cn("w-5 h-5", mode.color)} />
+                {/* Mode header */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                    <Icon className={cn("w-5 h-5", mode.color)} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{mode.name}</h3>
+                    <p className="text-sm text-muted-foreground">{mode.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{mode.name}</h3>
-                  <p className="text-sm text-muted-foreground">{mode.description}</p>
-                </div>
+
+                {/* Features */}
+                <ul className="space-y-1.5">
+                  {mode.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
               </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
-              {/* Features */}
-              <ul className="space-y-1.5">
-                {mode.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      isSelected ? "bg-primary" : "bg-muted-foreground/50"
-                    )} />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-            </button>
-          );
-        })}
+  return (
+    <>
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {modes.map((mode) => {
+            const Icon = mode.icon;
+            const isSelected = selectedMode === mode.id;
+            
+            return (
+              <button
+                key={mode.id}
+                onClick={() => handleSelectMode(mode.id)}
+                disabled={saving}
+                className={cn(
+                  "relative p-5 rounded-xl border-2 text-left transition-all duration-200",
+                  "hover:shadow-lg hover:scale-[1.02]",
+                  isSelected
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-border bg-card hover:border-primary/50"
+                )}
+              >
+                {/* Selected indicator */}
+                {isSelected && (
+                  <div className="absolute top-3 right-3">
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Mode header */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={cn(
+                    "w-10 h-10 rounded-lg flex items-center justify-center",
+                    isSelected ? "bg-primary/20" : "bg-secondary"
+                  )}>
+                    <Icon className={cn("w-5 h-5", mode.color)} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{mode.name}</h3>
+                    <p className="text-sm text-muted-foreground">{mode.description}</p>
+                  </div>
+                </div>
+
+                {/* Features */}
+                <ul className="space-y-1.5">
+                  {mode.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        isSelected ? "bg-primary" : "bg-muted-foreground/50"
+                      )} />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center">
+          Puedes cambiar el modo en cualquier momento según tus necesidades
+        </p>
       </div>
 
-      <p className="text-xs text-muted-foreground text-center">
-        Puedes cambiar el modo en cualquier momento según tus necesidades
-      </p>
-    </div>
+      {/* Warning Dialog */}
+      <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Cambiar modo de operación?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Vas a cambiar de <span className="font-medium text-foreground">{modes.find(m => m.id === selectedMode)?.name}</span> a{" "}
+                <span className="font-medium text-foreground">{modes.find(m => m.id === pendingMode)?.name}</span>.
+              </p>
+              <p>
+                Este cambio modificará tu interacción con el sistema, pero <strong>no borra ningún historial</strong>. 
+                Podés volver cuando quieras.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelModeChange}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmModeChange} disabled={saving}>
+              {saving ? "Guardando..." : "Confirmar cambio"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
