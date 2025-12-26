@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, Sparkles, Plus, MoreHorizontal, Info, HelpCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, 
+  Sparkles, Plus, MoreHorizontal, Info, Filter, LayoutGrid, List,
+  ChevronDown, ArrowUpDown, Layers, BarChart3, Calendar
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
@@ -11,7 +16,6 @@ import { ProgressRing } from "@/components/app/ProgressRing";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InboxCard } from "@/components/app/InboxCard";
 import { DataNeededState } from "@/components/app/DataNeededState";
-import { MissionStepCard } from "@/components/app/MissionStepCard";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +35,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Progress } from "@/components/ui/progress";
 
 interface Mission {
   id: string;
@@ -55,6 +68,31 @@ interface Step {
   confidence?: "high" | "medium" | "low";
 }
 
+// Area categories for filtering
+const AREA_CATEGORIES = [
+  { value: "all", label: "Todas las áreas", icon: "🎯" },
+  { value: "Reputación", label: "Reputación", icon: "⭐" },
+  { value: "Marketing", label: "Marketing", icon: "📱" },
+  { value: "Operaciones", label: "Operaciones", icon: "⚙️" },
+  { value: "Ventas", label: "Ventas", icon: "💰" },
+  { value: "Equipo", label: "Equipo", icon: "👥" },
+  { value: "Producto", label: "Producto", icon: "📦" },
+  { value: "Finanzas", label: "Finanzas", icon: "📊" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "all", label: "Todos los estados" },
+  { value: "active", label: "Activas" },
+  { value: "paused", label: "Pausadas" },
+];
+
+const SORT_OPTIONS = [
+  { value: "recent", label: "Más recientes" },
+  { value: "impact", label: "Mayor impacto" },
+  { value: "progress", label: "Más avanzadas" },
+  { value: "effort", label: "Menor esfuerzo" },
+];
+
 // Check if we have enough data for personalized missions
 const checkHasEnoughData = async (businessId: string): Promise<boolean> => {
   const [integrationsRes, insightsRes, checkinsRes] = await Promise.all([
@@ -67,11 +105,10 @@ const checkHasEnoughData = async (businessId: string): Promise<boolean> => {
   const insights = insightsRes.count || 0;
   const checkins = checkinsRes.count || 0;
   
-  // Need at least 1 integration OR 3+ insights OR 2+ checkins
   return integrations >= 1 || insights >= 3 || checkins >= 2;
 };
 
-// These are placeholder suggestions - in production, these would be AI-generated based on actual data
+// Placeholder missions
 const PLACEHOLDER_MISSIONS = [
   { 
     title: "Mejora tus reseñas en Google",
@@ -126,6 +163,12 @@ const MissionsPage = () => {
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [hasEnoughData, setHasEnoughData] = useState<boolean | null>(null);
+  
+  // Filters
+  const [areaFilter, setAreaFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
+  const [showNextStepSelector, setShowNextStepSelector] = useState(false);
 
   // Check if we have enough data for personalized missions
   useEffect(() => {
@@ -264,6 +307,81 @@ const MissionsPage = () => {
     }
   };
 
+  // Filter and sort missions
+  const getFilteredMissions = () => {
+    let filtered = [...missions];
+    
+    // Area filter
+    if (areaFilter !== "all") {
+      filtered = filtered.filter(m => m.area === areaFilter);
+    }
+    
+    // Status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(m => m.status === statusFilter);
+    }
+    
+    // Sort
+    switch (sortBy) {
+      case "impact":
+        filtered.sort((a, b) => b.impact_score - a.impact_score);
+        break;
+      case "effort":
+        filtered.sort((a, b) => a.effort_score - b.effort_score);
+        break;
+      case "progress":
+        filtered.sort((a, b) => {
+          const aSteps = (a.steps || []) as Step[];
+          const bSteps = (b.steps || []) as Step[];
+          const aProgress = aSteps.length > 0 ? aSteps.filter(s => s.done).length / aSteps.length : 0;
+          const bProgress = bSteps.length > 0 ? bSteps.filter(s => s.done).length / bSteps.length : 0;
+          return bProgress - aProgress;
+        });
+        break;
+      case "recent":
+      default:
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+    }
+    
+    return filtered;
+  };
+
+  const filteredMissions = getFilteredMissions();
+  
+  // Calculate stats
+  const activeMissions = missions.filter(m => m.status === "active");
+  const pausedMissions = missions.filter(m => m.status === "paused");
+  const allSteps = missions.flatMap(m => (m.steps || []) as Step[]);
+  const completedStepsCount = allSteps.filter(s => s.done).length;
+  const totalProgress = allSteps.length > 0 ? (completedStepsCount / allSteps.length) * 100 : 0;
+  
+  // Get all next steps from active missions
+  const getNextStepsFromAllMissions = () => {
+    return activeMissions
+      .map(mission => {
+        const steps = (mission.steps || []) as Step[];
+        const nextStepIndex = steps.findIndex(s => !s.done);
+        if (nextStepIndex === -1) return null;
+        
+        return {
+          mission,
+          step: steps[nextStepIndex],
+          stepIndex: nextStepIndex,
+          area: mission.area,
+          impact: mission.impact_score
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => (b?.impact || 0) - (a?.impact || 0));
+  };
+  
+  const allNextSteps = getNextStepsFromAllMissions();
+  const topNextStep = allNextSteps[0];
+
+  // Get unique areas from missions
+  const uniqueAreas = [...new Set(missions.map(m => m.area).filter(Boolean))];
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -297,35 +415,6 @@ const MissionsPage = () => {
     );
   }
 
-  // Calculate stats
-  const activeMissions = missions.filter(m => m.status === "active");
-  const pausedMissions = missions.filter(m => m.status === "paused");
-  
-  // Calculate total steps and completed
-  const allSteps = missions.flatMap(m => (m.steps || []) as Step[]);
-  const completedStepsCount = allSteps.filter(s => s.done).length;
-  
-  // Get next best step
-  const getNextBestStep = () => {
-    const activeMission = activeMissions.find(m => {
-      const steps = (m.steps || []) as Step[];
-      return steps.some(s => !s.done);
-    });
-    if (!activeMission) return null;
-    
-    const steps = (activeMission.steps || []) as Step[];
-    const nextStepIndex = steps.findIndex(s => !s.done);
-    if (nextStepIndex === -1) return null;
-    
-    return {
-      mission: activeMission,
-      step: steps[nextStepIndex],
-      stepIndex: nextStepIndex
-    };
-  };
-  
-  const nextBestStep = getNextBestStep();
-
   // Desktop Layout
   if (!isMobile) {
     return (
@@ -347,8 +436,7 @@ const MissionsPage = () => {
                     <p className="font-semibold text-foreground mb-1 text-sm">¿Qué son las Misiones?</p>
                     <p className="text-xs text-muted-foreground leading-relaxed">
                       Las misiones son proyectos de mejora guiados paso a paso. 
-                      Cada una tiene pasos concretos para que avances de forma estructurada. 
-                      ¡Completa pasos para ver tu progreso!
+                      Cada una tiene pasos concretos para que avances de forma estructurada.
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -356,15 +444,25 @@ const MissionsPage = () => {
             </h1>
             <p className="text-muted-foreground">Proyectos de mejora guiados paso a paso</p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">
-              {activeMissions.length} activas
-            </span>
-          </div>
         </div>
 
-        {/* Stats Row - Cómo venís */}
-        <div className="grid grid-cols-4 gap-4">
+        {/* Progress Overview */}
+        <div className="grid grid-cols-5 gap-4">
+          <div className="dashboard-stat col-span-2">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium text-foreground">Progreso general</span>
+              </div>
+              <span className="text-2xl font-bold text-primary">{Math.round(totalProgress)}%</span>
+            </div>
+            <Progress value={totalProgress} className="h-2" />
+            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+              <span>{completedStepsCount} pasos completados</span>
+              <span>{allSteps.length} totales</span>
+            </div>
+          </div>
+          
           <div className="dashboard-stat">
             <div className="flex items-center gap-2 mb-2">
               <Play className="w-5 h-5 text-success" />
@@ -372,6 +470,7 @@ const MissionsPage = () => {
             <div className="text-3xl font-bold text-foreground">{activeMissions.length}</div>
             <div className="text-sm text-muted-foreground">Activas</div>
           </div>
+          
           <div className="dashboard-stat">
             <div className="flex items-center gap-2 mb-2">
               <Pause className="w-5 h-5 text-warning" />
@@ -379,63 +478,172 @@ const MissionsPage = () => {
             <div className="text-3xl font-bold text-foreground">{pausedMissions.length}</div>
             <div className="text-sm text-muted-foreground">Pausadas</div>
           </div>
+          
           <div className="dashboard-stat">
             <div className="flex items-center gap-2 mb-2">
-              <Check className="w-5 h-5 text-primary" />
+              <Layers className="w-5 h-5 text-accent" />
             </div>
-            <div className="text-3xl font-bold text-foreground">{completedStepsCount}</div>
-            <div className="text-sm text-muted-foreground">Pasos completados</div>
-          </div>
-          <div className="dashboard-stat">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-5 h-5 text-accent" />
-            </div>
-            <div className="text-3xl font-bold text-foreground">{allSteps.length}</div>
-            <div className="text-sm text-muted-foreground">Pasos totales</div>
+            <div className="text-3xl font-bold text-foreground">{uniqueAreas.length}</div>
+            <div className="text-sm text-muted-foreground">Áreas activas</div>
           </div>
         </div>
 
-        {/* Next Best Step - Highlighted */}
-        {nextBestStep && (
+        {/* Next Best Step - With options */}
+        {topNextStep && (
           <div className="dashboard-card p-5 border-primary/30 bg-primary/5">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-primary" />
+                <h3 className="font-semibold text-foreground">Tu siguiente mejor paso</h3>
+              </div>
+              {allNextSteps.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowNextStepSelector(!showNextStepSelector)}
+                  className="text-muted-foreground"
+                >
+                  {showNextStepSelector ? "Ocultar opciones" : `Ver ${allNextSteps.length - 1} opciones más`}
+                  <ChevronDown className={cn("w-4 h-4 ml-1 transition-transform", showNextStepSelector && "rotate-180")} />
+                </Button>
+              )}
+            </div>
+
+            {/* Primary Step */}
+            <div className="flex items-center justify-between p-4 rounded-xl bg-background/50 border border-primary/20 mb-3">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
-                  <Zap className="w-6 h-6 text-primary-foreground" />
+                  <span className="text-xl">
+                    {AREA_CATEGORIES.find(c => c.value === topNextStep.area)?.icon || "🎯"}
+                  </span>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Tu siguiente mejor paso hoy</p>
-                  <h3 className="font-semibold text-foreground">{nextBestStep.step.text}</h3>
-                  <p className="text-xs text-primary mt-1">{nextBestStep.mission.title}</p>
+                  <Badge variant="outline" className="mb-1 text-[10px]">
+                    {topNextStep.area} • Impacto {topNextStep.impact}/10
+                  </Badge>
+                  <h4 className="font-medium text-foreground">{topNextStep.step.text}</h4>
+                  <p className="text-xs text-muted-foreground mt-1">{topNextStep.mission.title}</p>
                 </div>
               </div>
               <Button 
                 onClick={() => {
-                  toggleStep(nextBestStep.mission.id, nextBestStep.stepIndex);
+                  toggleStep(topNextStep.mission.id, topNextStep.stepIndex);
                   toast({ title: "✅ ¡Paso completado!" });
                 }}
               >
                 <Check className="w-4 h-4 mr-2" />
-                Marcar como hecho
+                Completar
               </Button>
             </div>
+
+            {/* Other options */}
+            {showNextStepSelector && allNextSteps.length > 1 && (
+              <div className="space-y-2 animate-fade-in">
+                <p className="text-xs text-muted-foreground mb-2">
+                  También puedes avanzar en estas áreas:
+                </p>
+                {allNextSteps.slice(1).map((item, idx) => item && (
+                  <div 
+                    key={idx}
+                    className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">
+                        {AREA_CATEGORIES.find(c => c.value === item.area)?.icon || "🎯"}
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{item.step.text}</p>
+                        <p className="text-xs text-muted-foreground">{item.area} • {item.mission.title}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        toggleStep(item.mission.id, item.stepIndex);
+                        toast({ title: "✅ ¡Paso completado!" });
+                      }}
+                    >
+                      <Check className="w-3 h-3 mr-1" />
+                      Hecho
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
+        {/* Filters Bar */}
+        <div className="dashboard-card p-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">Filtros:</span>
+            </div>
+            
+            <Select value={areaFilter} onValueChange={setAreaFilter}>
+              <SelectTrigger className="w-[180px] h-9">
+                <SelectValue placeholder="Área" />
+              </SelectTrigger>
+              <SelectContent>
+                {AREA_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    <span className="mr-2">{cat.icon}</span>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px] h-9">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="flex items-center gap-2 ml-auto">
+              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[160px] h-9">
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-3 gap-6">
-          {/* Active Missions - 2 columns */}
-          <div className="col-span-2 space-y-6">
-            {/* Active Missions Table */}
-            {missions.length > 0 ? (
+          {/* Missions List - 2 columns */}
+          <div className="col-span-2 space-y-4">
+            {filteredMissions.length > 0 ? (
               <div className="dashboard-card overflow-hidden">
-                <div className="p-4 border-b border-border bg-secondary/30">
-                  <h3 className="font-semibold text-foreground">Misiones en progreso</h3>
+                <div className="p-4 border-b border-border bg-secondary/30 flex items-center justify-between">
+                  <h3 className="font-semibold text-foreground">
+                    Misiones {areaFilter !== "all" ? `de ${areaFilter}` : "en progreso"}
+                  </h3>
+                  <span className="text-sm text-muted-foreground">{filteredMissions.length} resultados</span>
                 </div>
                 <div className="divide-y divide-border">
-                  {missions.map((mission) => {
+                  {filteredMissions.map((mission) => {
                     const steps = (mission.steps || []) as Step[];
                     const completedSteps = steps.filter(s => s.done).length;
                     const progress = steps.length > 0 ? (completedSteps / steps.length) * 100 : 0;
+                    const nextStep = steps.find(s => !s.done);
 
                     return (
                       <div
@@ -446,69 +654,76 @@ const MissionsPage = () => {
                         <div className="flex items-center gap-4">
                           <ProgressRing 
                             progress={progress} 
-                            size={48} 
+                            size={56} 
                             strokeWidth={4}
                             showGlow={mission.status === "active"}
                           >
-                            <span className="text-xs font-bold text-primary">
-                              {Math.round(progress)}%
+                            <span className="text-lg">
+                              {AREA_CATEGORIES.find(c => c.value === mission.area)?.icon || "🎯"}
                             </span>
                           </ProgressRing>
                           
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <h4 className="font-medium text-foreground truncate">
                                 {mission.title}
                               </h4>
-                              <span className={cn(
-                                "text-xs font-medium px-2 py-0.5 rounded-full",
-                                mission.status === "active" 
-                                  ? "bg-success/10 text-success"
-                                  : "bg-muted text-muted-foreground"
-                              )}>
+                              <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px]">
                                 {mission.status === "active" ? "Activa" : "Pausada"}
-                              </span>
+                              </Badge>
                             </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            
+                            {/* Next step preview */}
+                            {nextStep && mission.status === "active" && (
+                              <p className="text-sm text-muted-foreground truncate mb-1">
+                                Próximo: {nextStep.text}
+                              </p>
+                            )}
+                            
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
                               {mission.area && (
-                                <span className="text-primary">{mission.area}</span>
+                                <Badge variant="outline" className="text-[10px]">
+                                  {mission.area}
+                                </Badge>
                               )}
                               <span>{completedSteps}/{steps.length} pasos</span>
                               <span className="flex items-center gap-1">
                                 <TrendingUp className="w-3 h-3 text-success" />
-                                {mission.impact_score}/10
+                                Impacto {mission.impact_score}/10
                               </span>
                             </div>
                           </div>
 
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-card border-border">
-                              <DropdownMenuItem onClick={() => toggleMissionStatus(mission)}>
-                                {mission.status === "active" ? (
-                                  <>
-                                    <Pause className="w-4 h-4 mr-2" />
-                                    Pausar
-                                  </>
-                                ) : (
-                                  <>
-                                    <Play className="w-4 h-4 mr-2" />
-                                    Reactivar
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          
-                          <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div className="flex items-center gap-2">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-card border-border">
+                                <DropdownMenuItem onClick={() => toggleMissionStatus(mission)}>
+                                  {mission.status === "active" ? (
+                                    <>
+                                      <Pause className="w-4 h-4 mr-2" />
+                                      Pausar
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Play className="w-4 h-4 mr-2" />
+                                      Reactivar
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            
+                            <ChevronRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
                         </div>
                       </div>
                     );
@@ -520,6 +735,19 @@ const MissionsPage = () => {
                 context="missions"
                 onAskQuestion={() => navigate("/app/chat")}
               />
+            ) : areaFilter !== "all" || statusFilter !== "all" ? (
+              <div className="dashboard-card p-8 text-center">
+                <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h2 className="text-xl font-bold text-foreground mb-2">
+                  No hay misiones con estos filtros
+                </h2>
+                <p className="text-muted-foreground mb-4">
+                  Prueba cambiando los filtros o inicia una nueva misión
+                </p>
+                <Button variant="outline" onClick={() => { setAreaFilter("all"); setStatusFilter("all"); }}>
+                  Limpiar filtros
+                </Button>
+              </div>
             ) : (
               <div className="dashboard-card p-8 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -535,14 +763,13 @@ const MissionsPage = () => {
             )}
           </div>
 
-          {/* Sidebar - Suggestions + Learning */}
+          {/* Sidebar - Suggestions */}
           <div className="space-y-4">
-            {/* Micro-question */}
             <InboxCard variant="compact" />
             
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              <h3 className="font-semibold text-foreground">Sugeridas</h3>
+              <h3 className="font-semibold text-foreground">Sugeridas para ti</h3>
             </div>
             
             {hasEnoughData && PLACEHOLDER_MISSIONS.filter(s => 
@@ -555,6 +782,9 @@ const MissionsPage = () => {
                 <div className="flex items-start gap-3 mb-3">
                   <span className="text-2xl">{suggestion.icon}</span>
                   <div className="flex-1 min-w-0">
+                    <Badge variant="outline" className="text-[10px] mb-1">
+                      {suggestion.area}
+                    </Badge>
                     <h4 className="font-medium text-foreground text-sm">
                       {suggestion.title}
                     </h4>
@@ -565,8 +795,14 @@ const MissionsPage = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="text-success">↑{suggestion.impact}</span>
-                    <span>{suggestion.steps.length} pasos</span>
+                    <span className="text-success flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      {suggestion.impact}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {suggestion.steps.length} pasos
+                    </span>
                   </div>
                   <Button 
                     size="sm"
@@ -584,16 +820,19 @@ const MissionsPage = () => {
 
         {/* Mission Detail Dialog */}
         <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
-          <DialogContent className="max-w-lg bg-card border-border">
+          <DialogContent className="max-w-xl bg-card border-border">
             {selectedMission && (
               <>
                 <DialogHeader>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     {selectedMission.area && (
-                      <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                        {selectedMission.area}
-                      </span>
+                      <Badge variant="default" className="text-xs">
+                        {AREA_CATEGORIES.find(c => c.value === selectedMission.area)?.icon} {selectedMission.area}
+                      </Badge>
                     )}
+                    <Badge variant={selectedMission.status === "active" ? "outline" : "secondary"} className="text-xs">
+                      {selectedMission.status === "active" ? "Activa" : "Pausada"}
+                    </Badge>
                   </div>
                   <DialogTitle className="text-xl">{selectedMission.title}</DialogTitle>
                   <DialogDescription>
@@ -601,38 +840,66 @@ const MissionsPage = () => {
                   </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-3 mt-4">
-                  <div className="text-sm font-medium text-muted-foreground">Pasos</div>
-                  {((selectedMission.steps || []) as Step[]).map((step, idx) => (
-                    <div 
-                      key={idx}
-                      onClick={() => toggleStep(selectedMission.id, idx)}
-                      className={cn(
-                        "flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all",
-                        step.done 
-                          ? "bg-success/10 border border-success/20" 
-                          : "bg-secondary/50 hover:bg-secondary border border-transparent hover:border-primary/20"
-                      )}
-                    >
-                      <div className={cn(
-                        "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
-                        step.done 
-                          ? "bg-success border-success" 
-                          : "border-muted-foreground/30 hover:border-primary"
-                      )}>
-                        {step.done && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <span className={cn(
-                        "text-sm",
-                        step.done ? "line-through text-muted-foreground" : "text-foreground"
-                      )}>
-                        {step.text}
-                      </span>
-                    </div>
-                  ))}
+                {/* Progress in dialog */}
+                <div className="p-4 rounded-xl bg-secondary/30 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-foreground">Progreso de la misión</span>
+                    <span className="text-sm font-bold text-primary">
+                      {Math.round(((selectedMission.steps as Step[])?.filter(s => s.done).length / ((selectedMission.steps as Step[])?.length || 1)) * 100)}%
+                    </span>
+                  </div>
+                  <Progress 
+                    value={((selectedMission.steps as Step[])?.filter(s => s.done).length / ((selectedMission.steps as Step[])?.length || 1)) * 100} 
+                    className="h-2" 
+                  />
+                  <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+                    <span>Impacto: {selectedMission.impact_score}/10</span>
+                    <span>Esfuerzo: {selectedMission.effort_score}/10</span>
+                  </div>
                 </div>
 
-                <div className="flex gap-3 mt-6">
+                <ScrollArea className="max-h-[40vh]">
+                  <div className="space-y-3">
+                    <div className="text-sm font-medium text-muted-foreground">Pasos</div>
+                    {((selectedMission.steps || []) as Step[]).map((step, idx) => (
+                      <div 
+                        key={idx}
+                        onClick={() => toggleStep(selectedMission.id, idx)}
+                        className={cn(
+                          "flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all",
+                          step.done 
+                            ? "bg-success/10 border border-success/20" 
+                            : "bg-secondary/50 hover:bg-secondary border border-transparent hover:border-primary/20"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                          step.done 
+                            ? "bg-success border-success" 
+                            : "border-muted-foreground/30 hover:border-primary"
+                        )}>
+                          {step.done && <Check className="w-4 h-4 text-white" />}
+                        </div>
+                        <div className="flex-1">
+                          <span className={cn(
+                            "text-sm",
+                            step.done ? "line-through text-muted-foreground" : "text-foreground"
+                          )}>
+                            {step.text}
+                          </span>
+                          {step.timeEstimate && (
+                            <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {step.timeEstimate}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+
+                <div className="flex gap-3 mt-4">
                   <Button
                     variant="outline"
                     className="flex-1"
@@ -665,7 +932,7 @@ const MissionsPage = () => {
     );
   }
 
-  // Mobile Layout (keep existing)
+  // Mobile Layout
   return (
     <div className="space-y-6">
       <div className="animate-fade-in">
@@ -676,14 +943,64 @@ const MissionsPage = () => {
         <p className="text-muted-foreground">Mejoras guiadas paso a paso</p>
       </div>
 
-      {missions.length > 0 && (
-        <div className="space-y-4 animate-fade-in" style={{ animationDelay: "100ms" }}>
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            Activas ({missions.length})
-          </h2>
-          
-          {missions.map((mission, idx) => {
+      {/* Mobile Progress */}
+      <GlassCard className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-foreground">Tu progreso</span>
+          <span className="text-lg font-bold text-primary">{Math.round(totalProgress)}%</span>
+        </div>
+        <Progress value={totalProgress} className="h-2" />
+        <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+          <span>{activeMissions.length} activas</span>
+          <span>{completedStepsCount}/{allSteps.length} pasos</span>
+        </div>
+      </GlassCard>
+
+      {/* Mobile Next Step */}
+      {topNextStep && (
+        <GlassCard className="p-4 border-primary/30 bg-primary/5">
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">Tu siguiente paso</span>
+          </div>
+          <p className="text-sm text-foreground mb-2">{topNextStep.step.text}</p>
+          <p className="text-xs text-muted-foreground mb-3">{topNextStep.mission.title}</p>
+          <Button 
+            className="w-full"
+            size="sm"
+            onClick={() => {
+              toggleStep(topNextStep.mission.id, topNextStep.stepIndex);
+              toast({ title: "✅ ¡Paso completado!" });
+            }}
+          >
+            <Check className="w-4 h-4 mr-2" />
+            Completar
+          </Button>
+        </GlassCard>
+      )}
+
+      {/* Mobile Area Filter */}
+      <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
+        {AREA_CATEGORIES.slice(0, 5).map((cat) => (
+          <button
+            key={cat.value}
+            onClick={() => setAreaFilter(areaFilter === cat.value ? "all" : cat.value)}
+            className={cn(
+              "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all",
+              areaFilter === cat.value
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-muted-foreground"
+            )}
+          >
+            {cat.icon} {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Mobile Missions List */}
+      {filteredMissions.length > 0 && (
+        <div className="space-y-4 animate-fade-in">
+          {filteredMissions.map((mission, idx) => {
             const steps = (mission.steps || []) as Step[];
             const completedSteps = steps.filter(s => s.done).length;
             const progress = steps.length > 0 ? (completedSteps / steps.length) * 100 : 0;
@@ -704,18 +1021,17 @@ const MissionsPage = () => {
                     strokeWidth={4}
                     showGlow={mission.status === "active"}
                   >
-                    <Target className={cn(
-                      "w-5 h-5",
-                      mission.status === "active" ? "text-primary" : "text-muted-foreground"
-                    )} />
+                    <span className="text-lg">
+                      {AREA_CATEGORIES.find(c => c.value === mission.area)?.icon || "🎯"}
+                    </span>
                   </ProgressRing>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                       {mission.area && (
-                        <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
+                        <Badge variant="outline" className="text-[10px]">
                           {mission.area}
-                        </span>
+                        </Badge>
                       )}
                     </div>
                     
@@ -738,24 +1054,25 @@ const MissionsPage = () => {
         </div>
       )}
 
-      {missions.length === 0 && (
-        <GlassCard className="p-8 text-center animate-fade-in" style={{ animationDelay: "100ms" }}>
+      {filteredMissions.length === 0 && (
+        <GlassCard className="p-8 text-center animate-fade-in">
           <div className="relative inline-block mb-4">
             <div className="absolute inset-0 blur-2xl bg-primary/30 rounded-full animate-pulse" />
             <div className="relative w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-primary animate-spin" />
+              <Sparkles className="w-8 h-8 text-primary" />
             </div>
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">
-            Preparando tu primera misión...
+            {areaFilter !== "all" ? "Sin misiones en esta área" : "Preparando misiones..."}
           </h2>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            El sistema está seleccionando la mejor misión para tu negocio
+            {areaFilter !== "all" ? "Prueba con otra área o inicia una nueva misión" : "El sistema está seleccionando la mejor misión"}
           </p>
         </GlassCard>
       )}
 
-      <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
+      {/* Mobile Suggestions */}
+      <div className="animate-fade-in">
         <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />
           Sugeridas para ti
@@ -768,7 +1085,6 @@ const MissionsPage = () => {
             <GlassCard
               key={idx}
               className="p-5 border-dashed animate-fade-in"
-              style={{ animationDelay: `${(idx + 3) * 50}ms` }}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-4 flex-1">
@@ -776,7 +1092,10 @@ const MissionsPage = () => {
                     {suggestion.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground mt-1">{suggestion.title}</h3>
+                    <Badge variant="outline" className="text-[10px] mb-1">
+                      {suggestion.area}
+                    </Badge>
+                    <h3 className="font-semibold text-foreground">{suggestion.title}</h3>
                     <div className="flex items-center gap-4 mt-2 text-xs">
                       <span className="flex items-center gap-1 text-success">
                         <TrendingUp className="w-3 h-3" />
@@ -805,46 +1124,72 @@ const MissionsPage = () => {
         </div>
       </div>
 
+      {/* Mobile Dialog */}
       <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
         <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50">
           {selectedMission && (
             <>
               <DialogHeader>
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {selectedMission.area && (
+                    <Badge variant="default" className="text-xs">
+                      {AREA_CATEGORIES.find(c => c.value === selectedMission.area)?.icon} {selectedMission.area}
+                    </Badge>
+                  )}
+                </div>
                 <DialogTitle className="text-xl">{selectedMission.title}</DialogTitle>
                 <DialogDescription>
                   {selectedMission.description}
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-3 mt-4">
-                {((selectedMission.steps || []) as Step[]).map((step, idx) => (
-                  <div 
-                    key={idx}
-                    onClick={() => toggleStep(selectedMission.id, idx)}
-                    className={cn(
-                      "flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all",
-                      step.done 
-                        ? "bg-success/10 border border-success/20" 
-                        : "bg-secondary/50 hover:bg-secondary"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0",
-                      step.done ? "bg-success border-success" : "border-muted-foreground/30"
-                    )}>
-                      {step.done && <Check className="w-4 h-4 text-white" />}
-                    </div>
-                    <span className={cn(
-                      "text-sm",
-                      step.done ? "line-through text-muted-foreground" : "text-foreground"
-                    )}>
-                      {step.text}
-                    </span>
-                  </div>
-                ))}
+              <div className="p-3 rounded-xl bg-secondary/30 mb-3">
+                <Progress 
+                  value={((selectedMission.steps as Step[])?.filter(s => s.done).length / ((selectedMission.steps as Step[])?.length || 1)) * 100} 
+                  className="h-2" 
+                />
+                <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+                  <span>
+                    {((selectedMission.steps as Step[])?.filter(s => s.done).length || 0)}/
+                    {((selectedMission.steps as Step[])?.length || 0)} pasos
+                  </span>
+                  <span>
+                    {Math.round(((selectedMission.steps as Step[])?.filter(s => s.done).length / ((selectedMission.steps as Step[])?.length || 1)) * 100)}%
+                  </span>
+                </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <ScrollArea className="max-h-[40vh]">
+                <div className="space-y-3">
+                  {((selectedMission.steps || []) as Step[]).map((step, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => toggleStep(selectedMission.id, idx)}
+                      className={cn(
+                        "flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all",
+                        step.done 
+                          ? "bg-success/10 border border-success/20" 
+                          : "bg-secondary/50 hover:bg-secondary"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+                        step.done ? "bg-success border-success" : "border-muted-foreground/30"
+                      )}>
+                        {step.done && <Check className="w-4 h-4 text-white" />}
+                      </div>
+                      <span className={cn(
+                        "text-sm",
+                        step.done ? "line-through text-muted-foreground" : "text-foreground"
+                      )}>
+                        {step.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              <div className="flex gap-3 mt-4">
                 <Button variant="outline" className="flex-1" onClick={() => toggleMissionStatus(selectedMission)}>
                   {selectedMission.status === "active" ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
                   {selectedMission.status === "active" ? "Pausar" : "Reactivar"}
