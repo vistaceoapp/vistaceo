@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, Sparkles, Plus, MoreHorizontal, Info } from "lucide-react";
+import { Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, Sparkles, Plus, MoreHorizontal, Info, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,8 @@ import { GlassCard } from "@/components/app/GlassCard";
 import { ProgressRing } from "@/components/app/ProgressRing";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InboxCard } from "@/components/app/InboxCard";
+import { DataNeededState } from "@/components/app/DataNeededState";
+import { MissionStepCard } from "@/components/app/MissionStepCard";
 import {
   Dialog,
   DialogContent,
@@ -46,11 +48,33 @@ interface Mission {
 interface Step {
   text: string;
   done: boolean;
+  howTo?: string[];
+  why?: string;
+  timeEstimate?: string;
+  metric?: string;
+  confidence?: "high" | "medium" | "low";
 }
 
-const SUGGESTED_MISSIONS = [
+// Check if we have enough data for personalized missions
+const checkHasEnoughData = async (businessId: string): Promise<boolean> => {
+  const [integrationsRes, insightsRes, checkinsRes] = await Promise.all([
+    supabase.from("business_integrations").select("id", { count: "exact", head: true }).eq("business_id", businessId).eq("status", "connected"),
+    supabase.from("business_insights").select("id", { count: "exact", head: true }).eq("business_id", businessId),
+    supabase.from("business_checkins").select("id", { count: "exact", head: true }).eq("business_id", businessId)
+  ]);
+  
+  const integrations = integrationsRes.count || 0;
+  const insights = insightsRes.count || 0;
+  const checkins = checkinsRes.count || 0;
+  
+  // Need at least 1 integration OR 3+ insights OR 2+ checkins
+  return integrations >= 1 || insights >= 3 || checkins >= 2;
+};
+
+// These are placeholder suggestions - in production, these would be AI-generated based on actual data
+const PLACEHOLDER_MISSIONS = [
   { 
-    title: "Mejora tus reseñas en Google", 
+    title: "Mejora tus reseñas en Google",
     area: "Reputación", 
     icon: "⭐",
     description: "Aumenta tu rating promedio respondiendo a reseñas y pidiendo feedback a clientes satisfechos.",
@@ -101,43 +125,17 @@ const MissionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [hasEnoughData, setHasEnoughData] = useState<boolean | null>(null);
 
-  // Auto-start a mission if none exist
-  const autoStartMission = async () => {
-    if (!currentBusiness || actionLoading) return;
-    setActionLoading(true);
-
-    try {
-      // Pick the first available suggestion
-      const availableSuggestion = SUGGESTED_MISSIONS.find(s => 
-        !missions.some(m => m.title === s.title)
-      );
-
-      if (availableSuggestion) {
-        const steps = availableSuggestion.steps.map(text => ({ text, done: false }));
-        
-        await supabase
-          .from("missions")
-          .insert({
-            business_id: currentBusiness.id,
-            title: availableSuggestion.title,
-            description: availableSuggestion.description,
-            area: availableSuggestion.area,
-            steps,
-            current_step: 0,
-            impact_score: availableSuggestion.impact,
-            effort_score: availableSuggestion.effort,
-            status: "active",
-          });
-
-        fetchMissions();
-      }
-    } catch (error) {
-      console.error("Error auto-starting mission:", error);
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  // Check if we have enough data for personalized missions
+  useEffect(() => {
+    const checkData = async () => {
+      if (!currentBusiness) return;
+      const hasData = await checkHasEnoughData(currentBusiness.id);
+      setHasEnoughData(hasData);
+    };
+    checkData();
+  }, [currentBusiness]);
 
   useEffect(() => {
     if (currentBusiness) {
@@ -146,13 +144,6 @@ const MissionsPage = () => {
       setLoading(false);
     }
   }, [currentBusiness]);
-
-  // Proactively start a mission if none exist
-  useEffect(() => {
-    if (!loading && currentBusiness && missions.length === 0 && !actionLoading) {
-      autoStartMission();
-    }
-  }, [loading, currentBusiness, missions.length]);
 
   const fetchMissions = async () => {
     if (!currentBusiness) return;
@@ -174,7 +165,7 @@ const MissionsPage = () => {
     }
   };
 
-  const startMission = async (suggestion: typeof SUGGESTED_MISSIONS[0]) => {
+  const startMission = async (suggestion: typeof PLACEHOLDER_MISSIONS[0]) => {
     if (!currentBusiness) return;
     setActionLoading(true);
 
@@ -524,16 +515,21 @@ const MissionsPage = () => {
                   })}
                 </div>
               </div>
+            ) : hasEnoughData === false ? (
+              <DataNeededState 
+                context="missions"
+                onAskQuestion={() => navigate("/app/chat")}
+              />
             ) : (
               <div className="dashboard-card p-8 text-center">
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
-                  <Sparkles className="w-8 h-8 text-primary animate-spin" />
+                  <Sparkles className="w-8 h-8 text-primary" />
                 </div>
                 <h2 className="text-xl font-bold text-foreground mb-2">
-                  Preparando tu primera misión...
+                  Analizando tu negocio...
                 </h2>
                 <p className="text-muted-foreground">
-                  El sistema está seleccionando la mejor misión para tu negocio
+                  Estamos preparando misiones personalizadas para ti
                 </p>
               </div>
             )}
@@ -549,7 +545,7 @@ const MissionsPage = () => {
               <h3 className="font-semibold text-foreground">Sugeridas</h3>
             </div>
             
-            {SUGGESTED_MISSIONS.filter(s => 
+            {hasEnoughData && PLACEHOLDER_MISSIONS.filter(s => 
               !missions.some(m => m.title === s.title)
             ).map((suggestion, idx) => (
               <div
@@ -766,7 +762,7 @@ const MissionsPage = () => {
         </h2>
         
         <div className="space-y-4">
-          {SUGGESTED_MISSIONS.filter(s => 
+          {hasEnoughData && PLACEHOLDER_MISSIONS.filter(s => 
             !missions.some(m => m.title === s.title)
           ).map((suggestion, idx) => (
             <GlassCard
