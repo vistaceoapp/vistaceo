@@ -156,6 +156,7 @@ const MorePage = () => {
       title: "Herramientas",
       items: [
         { icon: BarChart3, label: "Analytics", description: "Métricas y tendencias", action: () => navigate("/app/analytics") },
+        { icon: Brain, label: "Auditoría Brain", description: "Trazas y feedback", action: () => navigate("/app/audit") },
       ],
     },
     {
