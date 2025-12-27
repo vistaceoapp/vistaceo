@@ -174,6 +174,62 @@ export type Database = {
           },
         ]
       }
+      business_competitors: {
+        Row: {
+          address: string | null
+          business_id: string
+          created_at: string
+          distance_km: number | null
+          google_place_id: string | null
+          has_verified_prices: boolean | null
+          id: string
+          metadata: Json | null
+          name: string
+          price_level: number | null
+          rating: number | null
+          review_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          business_id: string
+          created_at?: string
+          distance_km?: number | null
+          google_place_id?: string | null
+          has_verified_prices?: boolean | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          price_level?: number | null
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          business_id?: string
+          created_at?: string
+          distance_km?: number | null
+          google_place_id?: string | null
+          has_verified_prices?: boolean | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          price_level?: number | null
+          rating?: number | null
+          review_count?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_competitors_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_focus_config: {
         Row: {
           auto_adjust_focus: boolean | null
@@ -309,6 +365,56 @@ export type Database = {
           },
         ]
       }
+      business_menu_items: {
+        Row: {
+          business_id: string
+          category: string | null
+          channel_prices: Json | null
+          created_at: string
+          id: string
+          is_star_item: boolean | null
+          metadata: Json | null
+          name: string
+          price: number
+          size: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          category?: string | null
+          channel_prices?: Json | null
+          created_at?: string
+          id?: string
+          is_star_item?: boolean | null
+          metadata?: Json | null
+          name: string
+          price: number
+          size?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          category?: string | null
+          channel_prices?: Json | null
+          created_at?: string
+          id?: string
+          is_star_item?: boolean | null
+          metadata?: Json | null
+          name?: string
+          price?: number
+          size?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_menu_items_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_profile_extracted: {
         Row: {
           business_id: string
@@ -339,6 +445,50 @@ export type Database = {
             foreignKeyName: "business_profile_extracted_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_setup_progress: {
+        Row: {
+          business_id: string
+          completed_at: string | null
+          created_at: string
+          current_step: string
+          id: string
+          pmo_status: Json
+          precision_score: number
+          setup_data: Json
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string
+          id?: string
+          pmo_status?: Json
+          precision_score?: number
+          setup_data?: Json
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string
+          id?: string
+          pmo_status?: Json
+          precision_score?: number
+          setup_data?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_setup_progress_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
             referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
@@ -400,69 +550,117 @@ export type Database = {
       }
       businesses: {
         Row: {
+          active_dayparts: string[] | null
           address: string | null
           avg_rating: number | null
           avg_ticket: number | null
+          avg_ticket_range: Json | null
           baseline_date: string | null
           baseline_snapshot_id: string | null
           category: Database["public"]["Enums"]["business_category"] | null
+          channel_mix: Json | null
+          competitive_radius_km: number | null
           country: Database["public"]["Enums"]["country_code"] | null
           created_at: string | null
           currency: string | null
+          daily_transactions_range: Json | null
+          delivery_platforms: string[] | null
+          fixed_costs_range: Json | null
+          food_cost_range: Json | null
           google_place_id: string | null
           id: string
           instagram_handle: string | null
           integrations: Json | null
+          monthly_revenue_range: Json | null
           name: string
           owner_id: string
           phone: string | null
+          precision_score: number | null
+          reservation_platforms: string[] | null
+          sales_tax_percent: number | null
+          service_fee_percent: number | null
+          service_model: string | null
           service_slots: Json | null
           settings: Json | null
+          setup_completed: boolean | null
           timezone: string | null
+          tip_percent: number | null
           updated_at: string | null
         }
         Insert: {
+          active_dayparts?: string[] | null
           address?: string | null
           avg_rating?: number | null
           avg_ticket?: number | null
+          avg_ticket_range?: Json | null
           baseline_date?: string | null
           baseline_snapshot_id?: string | null
           category?: Database["public"]["Enums"]["business_category"] | null
+          channel_mix?: Json | null
+          competitive_radius_km?: number | null
           country?: Database["public"]["Enums"]["country_code"] | null
           created_at?: string | null
           currency?: string | null
+          daily_transactions_range?: Json | null
+          delivery_platforms?: string[] | null
+          fixed_costs_range?: Json | null
+          food_cost_range?: Json | null
           google_place_id?: string | null
           id?: string
           instagram_handle?: string | null
           integrations?: Json | null
+          monthly_revenue_range?: Json | null
           name: string
           owner_id: string
           phone?: string | null
+          precision_score?: number | null
+          reservation_platforms?: string[] | null
+          sales_tax_percent?: number | null
+          service_fee_percent?: number | null
+          service_model?: string | null
           service_slots?: Json | null
           settings?: Json | null
+          setup_completed?: boolean | null
           timezone?: string | null
+          tip_percent?: number | null
           updated_at?: string | null
         }
         Update: {
+          active_dayparts?: string[] | null
           address?: string | null
           avg_rating?: number | null
           avg_ticket?: number | null
+          avg_ticket_range?: Json | null
           baseline_date?: string | null
           baseline_snapshot_id?: string | null
           category?: Database["public"]["Enums"]["business_category"] | null
+          channel_mix?: Json | null
+          competitive_radius_km?: number | null
           country?: Database["public"]["Enums"]["country_code"] | null
           created_at?: string | null
           currency?: string | null
+          daily_transactions_range?: Json | null
+          delivery_platforms?: string[] | null
+          fixed_costs_range?: Json | null
+          food_cost_range?: Json | null
           google_place_id?: string | null
           id?: string
           instagram_handle?: string | null
           integrations?: Json | null
+          monthly_revenue_range?: Json | null
           name?: string
           owner_id?: string
           phone?: string | null
+          precision_score?: number | null
+          reservation_platforms?: string[] | null
+          sales_tax_percent?: number | null
+          service_fee_percent?: number | null
+          service_model?: string | null
           service_slots?: Json | null
           settings?: Json | null
+          setup_completed?: boolean | null
           timezone?: string | null
+          tip_percent?: number | null
           updated_at?: string | null
         }
         Relationships: [
