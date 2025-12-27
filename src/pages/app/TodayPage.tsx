@@ -22,6 +22,9 @@ import { FocusCard } from "@/components/app/FocusCard";
 import { ActionsListPanel } from "@/components/app/ActionsListPanel";
 import { BusinessHealthDashboard } from "@/components/app/BusinessHealthDashboard";
 import { SetupWizard } from "@/components/app/SetupWizard";
+import { DashboardCardsGrid } from "@/components/app/DashboardCardsGrid";
+import { HealthScoreWidget } from "@/components/app/HealthScoreWidget";
+import { CountryCode } from "@/lib/countryPacks";
 
 interface DailyAction {
   id: string;
@@ -455,8 +458,25 @@ const TodayPage = () => {
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="col-span-2 space-y-6">
-            {/* HERO: Business Health Dashboard */}
-            <BusinessHealthDashboard />
+            {/* HERO: Health Score Widget */}
+            <HealthScoreWidget
+              subScores={{
+                market_fit: setupCompleted ? 72 : null,
+                pricing_position: setupCompleted ? 68 : null,
+                unit_economics: setupCompleted ? 55 : null,
+                operational_flow: null,
+                demand_rhythm: setupCompleted ? 78 : null,
+              }}
+              previousScore={setupCompleted ? 65 : null}
+            />
+
+            {/* Dashboard Cards Grid */}
+            <DashboardCardsGrid
+              countryCode={(currentBusiness?.country as CountryCode) || 'AR'}
+              availableData={setupCompleted 
+                ? ['menu', 'sales', 'competitors', 'googleListing', 'channelMix', 'costs'] 
+                : []}
+            />
 
             {/* Check-in del turno */}
             {!hasCheckedInToday && !showCheckin && (
@@ -645,9 +665,28 @@ const TodayPage = () => {
         </p>
       </div>
 
-      {/* HERO: Business Health Dashboard */}
+      {/* HERO: Health Score Widget - Mobile */}
       <div className="animate-fade-in" style={{ animationDelay: "25ms" }}>
-        <BusinessHealthDashboard />
+        <HealthScoreWidget
+          subScores={{
+            market_fit: setupCompleted ? 72 : null,
+            pricing_position: setupCompleted ? 68 : null,
+            unit_economics: setupCompleted ? 55 : null,
+            operational_flow: null,
+            demand_rhythm: setupCompleted ? 78 : null,
+          }}
+          previousScore={setupCompleted ? 65 : null}
+        />
+      </div>
+
+      {/* Dashboard Cards Grid - Mobile */}
+      <div className="animate-fade-in" style={{ animationDelay: "30ms" }}>
+        <DashboardCardsGrid
+          countryCode={(currentBusiness?.country as CountryCode) || 'AR'}
+          availableData={setupCompleted 
+            ? ['menu', 'sales', 'competitors', 'googleListing', 'channelMix', 'costs'] 
+            : []}
+        />
       </div>
 
       {/* Check-in prompt for mobile */}
