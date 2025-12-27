@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, Sparkles, Plus, Zap, TrendingUp, Calendar, ArrowRight, BarChart3, Camera, Brain, Target } from "lucide-react";
+import { Check, Clock, Sparkles, Plus, Zap, TrendingUp, Calendar, ArrowRight, BarChart3, Camera, Brain, Target, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useBrain } from "@/hooks/use-brain";
@@ -21,6 +21,7 @@ import { KnowledgeByAreaCard } from "@/components/app/KnowledgeByAreaCard";
 import { FocusCard } from "@/components/app/FocusCard";
 import { ActionsListPanel } from "@/components/app/ActionsListPanel";
 import { BusinessHealthDashboard } from "@/components/app/BusinessHealthDashboard";
+import { SetupWizard } from "@/components/app/SetupWizard";
 
 interface DailyAction {
   id: string;
@@ -55,6 +56,23 @@ const TodayPage = () => {
   const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
   const [showCheckin, setShowCheckin] = useState(false);
   const [showActionsPanel, setShowActionsPanel] = useState(false);
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
+
+  // Check if setup is completed
+  const [setupCompleted, setSetupCompleted] = useState(true);
+
+  useEffect(() => {
+    const checkSetupStatus = async () => {
+      if (!currentBusiness?.id) return;
+      const { data } = await supabase
+        .from('businesses')
+        .select('setup_completed')
+        .eq('id', currentBusiness.id)
+        .single();
+      setSetupCompleted(data?.setup_completed ?? false);
+    };
+    checkSetupStatus();
+  }, [currentBusiness?.id]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -394,6 +412,31 @@ const TodayPage = () => {
   if (!isMobile) {
     return (
       <div className="space-y-6">
+        {/* Setup Wizard CTA if not completed */}
+        {!setupCompleted && (
+          <GlassCard 
+            interactive 
+            className="p-5 cursor-pointer border-primary/30 bg-primary/5" 
+            onClick={() => setShowSetupWizard(true)}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
+                <Brain className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground mb-1">Completá el Setup Inteligente</h3>
+                <p className="text-sm text-muted-foreground">
+                  7-12 minutos para un dashboard personalizado con datos reales
+                </p>
+              </div>
+              <Button size="sm" className="gradient-primary">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Comenzar
+              </Button>
+            </div>
+          </GlassCard>
+        )}
+
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -548,6 +591,16 @@ const TodayPage = () => {
           onOpenChange={setShowActionsPanel}
           onRefresh={fetchData}
         />
+
+        {/* Setup Wizard */}
+        <SetupWizard 
+          open={showSetupWizard}
+          onOpenChange={setShowSetupWizard}
+          onComplete={() => {
+            setSetupCompleted(true);
+            fetchData();
+          }}
+        />
       </div>
     );
   }
@@ -555,6 +608,30 @@ const TodayPage = () => {
   // Mobile Layout
   return (
     <div className="space-y-6">
+      {/* Setup Wizard CTA if not completed - Mobile */}
+      {!setupCompleted && (
+        <div className="animate-fade-in">
+          <GlassCard 
+            interactive 
+            className="p-5 cursor-pointer border-primary/30 bg-primary/5" 
+            onClick={() => setShowSetupWizard(true)}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
+                <Brain className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-foreground text-sm">Setup Inteligente</h3>
+                <p className="text-xs text-muted-foreground">
+                  Dashboard personalizado en minutos
+                </p>
+              </div>
+              <ArrowRight className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </GlassCard>
+        </div>
+      )}
+
       {/* Greeting */}
       <div className="animate-fade-in">
         <div className="flex items-center gap-2 mb-1">
@@ -741,6 +818,16 @@ const TodayPage = () => {
         open={showActionsPanel}
         onOpenChange={setShowActionsPanel}
         onRefresh={fetchData}
+      />
+      
+      {/* Setup Wizard */}
+      <SetupWizard 
+        open={showSetupWizard}
+        onOpenChange={setShowSetupWizard}
+        onComplete={() => {
+          setSetupCompleted(true);
+          fetchData();
+        }}
       />
       
       {/* Alert FAB */}
