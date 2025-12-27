@@ -25,6 +25,7 @@ import { SetupWizard } from "@/components/app/SetupWizard";
 import { DashboardCardsGrid } from "@/components/app/DashboardCardsGrid";
 import { HealthScoreWidget } from "@/components/app/HealthScoreWidget";
 import { CountryCode } from "@/lib/countryPacks";
+import { useDashboardData } from "@/hooks/use-dashboard-data";
 
 interface DailyAction {
   id: string;
@@ -50,6 +51,7 @@ const TodayPage = () => {
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
   const { brain, focusLabel, confidenceLevel, canGenerateSpecific, dataGaps } = useBrain();
+  const { data: dashboardData, loading: dashboardLoading } = useDashboardData();
   const [todayAction, setTodayAction] = useState<DailyAction | null>(null);
   const [weeklyPriorities, setWeeklyPriorities] = useState<WeeklyPriority[]>([]);
   const [completedToday, setCompletedToday] = useState(0);
@@ -61,21 +63,15 @@ const TodayPage = () => {
   const [showActionsPanel, setShowActionsPanel] = useState(false);
   const [showSetupWizard, setShowSetupWizard] = useState(false);
 
-  // Check if setup is completed
-  const [setupCompleted, setSetupCompleted] = useState(true);
+  // Use setup status from dashboard data
+  const setupCompleted = dashboardData.setupCompleted;
 
+  // Auto-open setup wizard if not completed
   useEffect(() => {
-    const checkSetupStatus = async () => {
-      if (!currentBusiness?.id) return;
-      const { data } = await supabase
-        .from('businesses')
-        .select('setup_completed')
-        .eq('id', currentBusiness.id)
-        .single();
-      setSetupCompleted(data?.setup_completed ?? false);
-    };
-    checkSetupStatus();
-  }, [currentBusiness?.id]);
+    if (!dashboardLoading && currentBusiness && !setupCompleted) {
+      setShowSetupWizard(true);
+    }
+  }, [dashboardLoading, currentBusiness, setupCompleted]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -460,22 +456,14 @@ const TodayPage = () => {
           <div className="col-span-2 space-y-6">
             {/* HERO: Health Score Widget */}
             <HealthScoreWidget
-              subScores={{
-                market_fit: setupCompleted ? 72 : null,
-                pricing_position: setupCompleted ? 68 : null,
-                unit_economics: setupCompleted ? 55 : null,
-                operational_flow: null,
-                demand_rhythm: setupCompleted ? 78 : null,
-              }}
-              previousScore={setupCompleted ? 65 : null}
+              subScores={dashboardData.subScores}
+              previousScore={dashboardData.previousScore}
             />
 
             {/* Dashboard Cards Grid */}
             <DashboardCardsGrid
               countryCode={(currentBusiness?.country as CountryCode) || 'AR'}
-              availableData={setupCompleted 
-                ? ['menu', 'sales', 'competitors', 'googleListing', 'channelMix', 'costs'] 
-                : []}
+              availableData={dashboardData.availableData}
             />
 
             {/* Check-in del turno */}
@@ -617,8 +605,8 @@ const TodayPage = () => {
           open={showSetupWizard}
           onOpenChange={setShowSetupWizard}
           onComplete={() => {
-            setSetupCompleted(true);
             fetchData();
+            window.location.reload(); // Refresh to get updated data
           }}
         />
       </div>
@@ -668,14 +656,8 @@ const TodayPage = () => {
       {/* HERO: Health Score Widget - Mobile */}
       <div className="animate-fade-in" style={{ animationDelay: "25ms" }}>
         <HealthScoreWidget
-          subScores={{
-            market_fit: setupCompleted ? 72 : null,
-            pricing_position: setupCompleted ? 68 : null,
-            unit_economics: setupCompleted ? 55 : null,
-            operational_flow: null,
-            demand_rhythm: setupCompleted ? 78 : null,
-          }}
-          previousScore={setupCompleted ? 65 : null}
+          subScores={dashboardData.subScores}
+          previousScore={dashboardData.previousScore}
         />
       </div>
 
@@ -683,9 +665,7 @@ const TodayPage = () => {
       <div className="animate-fade-in" style={{ animationDelay: "30ms" }}>
         <DashboardCardsGrid
           countryCode={(currentBusiness?.country as CountryCode) || 'AR'}
-          availableData={setupCompleted 
-            ? ['menu', 'sales', 'competitors', 'googleListing', 'channelMix', 'costs'] 
-            : []}
+          availableData={dashboardData.availableData}
         />
       </div>
 
@@ -864,8 +844,8 @@ const TodayPage = () => {
         open={showSetupWizard}
         onOpenChange={setShowSetupWizard}
         onComplete={() => {
-          setSetupCompleted(true);
           fetchData();
+          window.location.reload(); // Refresh to get updated data
         }}
       />
       
