@@ -81,10 +81,12 @@ export const HealthScoreWidget = ({ subScores, previousScore }: HealthScoreWidge
             {isEstimated && (
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/30">
-                      ~ESTIMADO
-                    </Badge>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/30">
+                        ~ESTIMADO
+                      </Badge>
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="text-xs">Cobertura de datos: {coverage}%</p>

@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
+import type { Json } from "@/integrations/supabase/types";
 
 interface Business {
   id: string;
@@ -11,7 +12,21 @@ interface Business {
   avg_ticket?: number | null;
   avg_rating?: number | null;
   created_at?: string | null;
+  // Setup and dashboard fields
+  setup_completed?: boolean | null;
+  precision_score?: number | null;
+  service_model?: string | null;
+  channel_mix?: Json | null;
+  monthly_revenue_range?: Json | null;
+  avg_ticket_range?: Json | null;
+  daily_transactions_range?: Json | null;
+  food_cost_range?: Json | null;
+  active_dayparts?: string[] | null;
+  delivery_platforms?: string[] | null;
+  competitive_radius_km?: number | null;
 }
+
+export type { Business };
 
 interface BusinessContextType {
   currentBusiness: Business | null;
@@ -40,7 +55,7 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from("businesses")
-        .select("id, name, category, country, currency, avg_ticket, avg_rating, created_at")
+        .select("id, name, category, country, currency, avg_ticket, avg_rating, created_at, setup_completed, precision_score, service_model, channel_mix, monthly_revenue_range, avg_ticket_range, daily_transactions_range, food_cost_range, active_dayparts, delivery_platforms, competitive_radius_km")
         .eq("owner_id", user.id);
 
       if (error) throw error;

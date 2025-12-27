@@ -93,16 +93,34 @@ const Onboarding = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.from("businesses").insert({
+      // Create business
+      const { data: businessData, error } = await supabase.from("businesses").insert({
         name: formData.name.trim(),
         category: formData.category as BusinessCategory,
         country: formData.country as CountryCode,
         address: formData.address.trim() || null,
         phone: formData.phone.trim() || null,
         owner_id: user.id,
-      });
+        setup_completed: false, // Require full setup
+      }).select().single();
 
       if (error) throw error;
+
+      // Create initial setup progress
+      if (businessData) {
+        await supabase.from("business_setup_progress").insert({
+          business_id: businessData.id,
+          current_step: 'S00',
+          setup_data: {
+            countryCode: formData.country,
+            address: formData.address.trim(),
+            city: '',
+            primaryType: formData.category,
+            started: true,
+          },
+          precision_score: 15, // Base score from basic info
+        });
+      }
 
       await supabase
         .from("profiles")
@@ -112,10 +130,11 @@ const Onboarding = () => {
       await refreshBusinesses();
 
       toast({
-        title: "🎉 ¡Negocio creado!",
-        description: "Ya puedes empezar a usar tu asistente",
+        title: "🚀 Negocio creado",
+        description: "Ahora completemos tu Setup Inteligente para un dashboard personalizado.",
       });
 
+      // Navigate to app - the setup wizard will show automatically
       navigate("/app");
     } catch (error) {
       console.error("Error creating business:", error);
