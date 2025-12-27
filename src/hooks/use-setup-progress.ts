@@ -4,6 +4,7 @@ import { useBusiness } from '@/contexts/BusinessContext';
 import { SetupData, getDefaultSetupData, validatePMO } from '@/lib/setupSteps';
 import { CountryCode } from '@/lib/countryPacks';
 import { toast } from '@/hooks/use-toast';
+import type { Json } from '@/integrations/supabase/types';
 
 interface SetupProgress {
   id: string;
@@ -63,11 +64,11 @@ export const useSetupProgress = () => {
         
         const { data: newProgress, error: createError } = await supabase
           .from('business_setup_progress')
-          .insert({
+          .insert([{
             business_id: currentBusiness.id,
             current_step: 'S00',
-            setup_data: initialData as unknown as Record<string, unknown>,
-          })
+            setup_data: initialData as Json,
+          }])
           .select()
           .single();
 
@@ -119,7 +120,7 @@ export const useSetupProgress = () => {
         .from('business_setup_progress')
         .update({
           current_step: step,
-          setup_data: newData as unknown as Record<string, unknown>,
+          setup_data: newData as Json,
           pmo_status: {
             identity: !!newData.address && !!newData.city && !!newData.countryCode,
             model: !!newData.primaryType && !!newData.serviceModel,
@@ -127,7 +128,7 @@ export const useSetupProgress = () => {
             menu: (newData.menuItems?.length || 0) >= 8,
             costs: !!newData.foodCostPercentMin,
             competition: (newData.competitors?.length || 0) >= 5,
-          },
+          } as Json,
           precision_score: newPrecision,
         })
         .eq('id', progress.id);
