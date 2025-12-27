@@ -22,6 +22,11 @@ import { cn } from '@/lib/utils';
 import { SetupStepChips } from './SetupStepChips';
 import { SetupStepSlider } from './SetupStepSlider';
 import { SetupStepMix } from './SetupStepMix';
+import { SetupStepLocation } from './SetupStepLocation';
+import { SetupStepToggle } from './SetupStepToggle';
+import { SetupStepMenu } from './SetupStepMenu';
+import { SetupStepSearch } from './SetupStepSearch';
+import { SetupStepPreview } from './SetupStepPreview';
 
 interface SetupWizardProps {
   open: boolean;
@@ -190,12 +195,46 @@ export const SetupWizard = ({ open, onOpenChange, onComplete }: SetupWizardProps
                   </div>
                 )}
 
+                {currentStep?.inputType === 'map' && (
+                  <SetupStepLocation
+                    countryCode={countryCode}
+                    data={progress?.setup_data || {}}
+                    onUpdate={handleDataUpdate}
+                  />
+                )}
+
+                {currentStep?.inputType === 'toggle' && (
+                  <SetupStepToggle
+                    stepId={currentStep.id}
+                    data={progress?.setup_data || {}}
+                    onUpdate={handleDataUpdate}
+                  />
+                )}
+
+                {currentStep?.inputType === 'menu' && (
+                  <SetupStepMenu
+                    countryCode={countryCode}
+                    data={progress?.setup_data || {}}
+                    onUpdate={handleDataUpdate}
+                  />
+                )}
+
+                {currentStep?.inputType === 'search' && (
+                  <SetupStepSearch
+                    stepId={currentStep.id}
+                    countryCode={countryCode}
+                    data={progress?.setup_data || {}}
+                    onUpdate={handleDataUpdate}
+                  />
+                )}
+
                 {currentStep?.inputType === 'preview' && (
-                  <div className="p-6 bg-card rounded-xl border border-border">
-                    <p className="text-muted-foreground text-center">
-                      Vista previa en desarrollo...
-                    </p>
-                  </div>
+                  <SetupStepPreview
+                    stepId={currentStep.id}
+                    countryCode={countryCode}
+                    data={progress?.setup_data || {}}
+                    precisionScore={progress?.precision_score || 0}
+                  />
                 )}
               </motion.div>
             </AnimatePresence>
