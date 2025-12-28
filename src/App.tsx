@@ -4,13 +4,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { BusinessProvider } from "@/contexts/BusinessContext";
+import { BusinessProvider, useBusiness } from "@/contexts/BusinessContext";
 
 // Pages
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
+import SetupPage from "./pages/SetupPage";
 
 // App Pages
 import AppLayout from "./layouts/AppLayout";
@@ -43,12 +44,39 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Setup gate - blocks access until setup is complete
+const SetupGate = ({ children }: { children: React.ReactNode }) => {
+  const { currentBusiness, loading } = useBusiness();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // No business yet - redirect to onboarding
+  if (!currentBusiness) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // Business exists but setup not complete - redirect to setup
+  if (!currentBusiness.setup_completed) {
+    return <Navigate to="/setup" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
+      
+      {/* Onboarding - create business */}
       <Route
         path="/onboarding"
         element={
@@ -60,13 +88,27 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Protected app routes */}
+      {/* Setup - full screen mandatory wizard */}
+      <Route
+        path="/setup"
+        element={
+          <ProtectedRoute>
+            <BusinessProvider>
+              <SetupPage />
+            </BusinessProvider>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected app routes - requires completed setup */}
       <Route
         path="/app"
         element={
           <ProtectedRoute>
             <BusinessProvider>
-              <AppLayout />
+              <SetupGate>
+                <AppLayout />
+              </SetupGate>
             </BusinessProvider>
           </ProtectedRoute>
         }
