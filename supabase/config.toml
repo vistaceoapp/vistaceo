@@ -53,3 +53,12 @@ verify_jwt = false
 
 [functions.brain-playbook]
 verify_jwt = false
+
+[functions.google-places-autocomplete]
+verify_jwt = false
+
+[functions.google-place-details]
+verify_jwt = false
+
+[functions.google-nearby-competitors]
+verify_jwt = false
