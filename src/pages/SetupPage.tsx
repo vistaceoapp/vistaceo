@@ -33,6 +33,8 @@ import { COUNTRY_PACKS, CountryCode } from '@/lib/countryPacks';
 import { SetupStepChips } from '@/components/app/SetupStepChips';
 import { SetupStepSlider } from '@/components/app/SetupStepSlider';
 import { SetupStepMix } from '@/components/app/SetupStepMix';
+import { SetupStepSearch } from '@/components/app/SetupStepSearch';
+import { CompetitorData } from '@/lib/setupSteps';
 
 // Step definitions for new flow
 interface SetupStepDef {
@@ -48,6 +50,7 @@ const SETUP_STEPS: SetupStepDef[] = [
   { id: 'welcome', title: '¡Bienvenido!', subtitle: 'En 5-8 minutos armamos tu dashboard personalizado.', icon: Brain, required: true, fastTrack: true },
   { id: 'mode', title: 'Elegí tu camino', subtitle: '¿Cuánto tiempo tenés?', icon: Zap, required: true, fastTrack: true },
   { id: 'type', title: '¿Qué tipo de negocio tenés?', subtitle: 'Esto define cómo te analizo.', icon: Store, required: true, fastTrack: true },
+  { id: 'google_business', title: 'Encontrá tu negocio', subtitle: 'Conectamos tu ficha de Google para reseñas reales.', icon: MapPin, required: false, fastTrack: true },
   { id: 'positioning', title: 'Tu negocio en una frase', subtitle: '¿Qué hacés y para quién?', icon: Target, required: true, fastTrack: true },
   { id: 'service_model', title: '¿Cómo vendés principalmente?', subtitle: 'Tu modelo de servicio.', icon: Users, required: true, fastTrack: true },
   { id: 'dayparts', title: '¿En qué horarios competís fuerte?', subtitle: 'Seleccioná tus franjas principales.', icon: Calendar, required: true, fastTrack: true },
@@ -55,6 +58,7 @@ const SETUP_STEPS: SetupStepDef[] = [
   { id: 'ticket', title: 'Ticket promedio', subtitle: 'Aproximado en tu moneda local.', icon: DollarSign, required: true, fastTrack: true },
   { id: 'focus', title: '¿En qué querés enfocarte?', subtitle: 'Tu prioridad principal ahora.', icon: Target, required: true, fastTrack: true },
   { id: 'constraints', title: 'Restricciones reales', subtitle: 'Para darte recomendaciones realistas.', icon: Clock, required: true, fastTrack: true },
+  { id: 'competitors', title: 'Tu competencia', subtitle: 'Seleccioná competidores reales en tu zona.', icon: Store, required: true, fastTrack: true },
   { id: 'channel_mix', title: 'Mix de canales', subtitle: 'Repartí 100% de tu venta.', icon: TrendingUp, required: false, fastTrack: false },
   { id: 'capacity', title: 'Tu capacidad real', subtitle: 'Cuánto podés atender.', icon: Users, required: false, fastTrack: false },
   { id: 'costs', title: 'Costos clave', subtitle: 'Con rangos alcanza.', icon: DollarSign, required: false, fastTrack: false },
@@ -79,6 +83,14 @@ interface SetupData {
   capacity: number;
   foodCostPercent: number;
   fixedCosts: number;
+  // Google Business
+  googlePlaceId?: string;
+  googleRating?: number;
+  googleReviewCount?: number;
+  googleLat?: number;
+  googleLng?: number;
+  // Competitors
+  competitors: CompetitorData[];
 }
 
 const SetupPage = () => {
@@ -109,6 +121,7 @@ const SetupPage = () => {
     capacity: 50,
     foodCostPercent: 30,
     fixedCosts: 0,
+    competitors: [],
   });
 
   // Filter steps based on mode
@@ -238,6 +251,7 @@ const SetupPage = () => {
       case 'welcome': return true;
       case 'mode': return true;
       case 'type': return !!setupData.primaryType;
+      case 'google_business': return true; // Optional step
       case 'positioning': return setupData.positioning.length > 5;
       case 'service_model': return !!setupData.serviceModel;
       case 'dayparts': return setupData.activeDayparts.length > 0;
@@ -245,12 +259,18 @@ const SetupPage = () => {
       case 'ticket': return !!setupData.ticketRange;
       case 'focus': return !!setupData.currentFocus;
       case 'constraints': return !!setupData.constraints.weeklyTime;
+      case 'competitors': return setupData.competitors.length >= 1;
       case 'channel_mix': return true;
       case 'capacity': return true;
       case 'costs': return true;
       case 'complete': return true;
       default: return true;
     }
+  };
+
+  // Handler for search step updates
+  const handleSearchUpdate = (updates: Partial<SetupData>, precisionDelta?: number) => {
+    setSetupData(d => ({ ...d, ...updates }));
   };
 
   // Render step content
@@ -363,6 +383,29 @@ const SetupPage = () => {
               </button>
             ))}
           </div>
+        );
+
+      case 'google_business':
+        return (
+          <SetupStepSearch
+            stepId="google_business"
+            countryCode={countryCode}
+            data={setupData}
+            onUpdate={handleSearchUpdate}
+          />
+        );
+
+      case 'competitors':
+        return (
+          <SetupStepSearch
+            stepId="competitors"
+            countryCode={countryCode}
+            data={setupData}
+            onUpdate={handleSearchUpdate}
+            businessLat={setupData.googleLat}
+            businessLng={setupData.googleLng}
+            businessType={setupData.primaryType}
+          />
         );
 
       case 'positioning':
