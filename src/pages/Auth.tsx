@@ -40,11 +40,11 @@ const Auth = () => {
       .limit(1);
 
     if (businesses && businesses.length > 0) {
-      // Has business - go to app (setup wizard will show if needed)
-      navigate("/app");
+      // Has business - go to app (setup gate will redirect to /setup if needed)
+      navigate("/app", { replace: true });
     } else {
-      // No business - go to onboarding
-      navigate("/onboarding");
+      // No business - start intelligent setup
+      navigate("/setup", { replace: true });
     }
   };
 
@@ -90,7 +90,7 @@ const Auth = () => {
           return;
         }
         toast.success("¡Cuenta creada! Bienvenido");
-        navigate("/onboarding");
+        navigate("/setup", { replace: true });
       }
     } catch (err) {
       toast.error("Algo salió mal. Intenta de nuevo.");
