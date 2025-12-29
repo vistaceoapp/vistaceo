@@ -69,7 +69,10 @@ const AppRoutes = () => {
       {/* Public routes */}
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
-      
+
+      {/* Back-compat redirect: onboarding was removed */}
+      <Route path="/onboarding" element={<Navigate to="/setup" replace />} />
+
       {/* Setup - full screen mandatory wizard (includes business creation if needed) */}
       <Route
         path="/setup"

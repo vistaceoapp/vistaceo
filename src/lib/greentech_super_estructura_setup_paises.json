@@ -1,0 +1,8354 @@
+{
+  "meta": {
+    "version": "1.0",
+    "generated_at": "2025-12-29T03:12:02",
+    "countries_supported": [
+      "AR",
+      "UY",
+      "BR",
+      "CL",
+      "CO",
+      "EC",
+      "MX",
+      "CR",
+      "PA"
+    ],
+    "default_language_by_country": {
+      "AR": "es-AR",
+      "UY": "es-UY",
+      "BR": "pt-BR",
+      "CL": "es-CL",
+      "CO": "es-CO",
+      "EC": "es-EC",
+      "MX": "es-MX",
+      "CR": "es-CR",
+      "PA": "es-PA"
+    },
+    "selection_rules": {
+      "max_types_per_user": 2,
+      "require_primary": true,
+      "allow_secondary": true
+    },
+    "display_logic": {
+      "country_first": true,
+      "brazil_portuguese": true,
+      "label_priority": [
+        "labels_by_country[country]",
+        "labels_by_country[language_fallback]",
+        "canonical_default"
+      ],
+      "show_definition_tooltip": true
+    },
+    "normalization_rules": {
+      "lowercase": true,
+      "strip_accents": true,
+      "strip_punctuation": true,
+      "collapse_spaces": true
+    },
+    "search_ranking_rules": [
+      "exact_match(label_local)",
+      "prefix_match(label_local)",
+      "contains_match(label_local)",
+      "exact_match(alias_local)",
+      "prefix_match(alias_local)",
+      "fuzzy_match(label_or_alias)"
+    ],
+    "compatibility_rules": {
+      "secondary_type_max": 1,
+      "suggest_secondary_by_shared_tags": true,
+      "avoid_same_type_duplicate": true
+    }
+  },
+  "countries": [
+    {
+      "code": "AR",
+      "name": "Argentina",
+      "language": "es-AR"
+    },
+    {
+      "code": "UY",
+      "name": "Uruguay",
+      "language": "es-UY"
+    },
+    {
+      "code": "BR",
+      "name": "Brasil",
+      "language": "pt-BR"
+    },
+    {
+      "code": "CL",
+      "name": "Chile",
+      "language": "es-CL"
+    },
+    {
+      "code": "CO",
+      "name": "Colombia",
+      "language": "es-CO"
+    },
+    {
+      "code": "EC",
+      "name": "Ecuador",
+      "language": "es-EC"
+    },
+    {
+      "code": "MX",
+      "name": "México",
+      "language": "es-MX"
+    },
+    {
+      "code": "CR",
+      "name": "Costa Rica",
+      "language": "es-CR"
+    },
+    {
+      "code": "PA",
+      "name": "Panamá",
+      "language": "es-PA"
+    }
+  ],
+  "modules": [
+    {
+      "id": "M_RESERVAS",
+      "name": {
+        "es": "Reservas y turnos",
+        "pt-BR": "Reservas e agendamentos"
+      },
+      "description": {
+        "es": "Gestión de reservas/turnos, recordatorios, no-show, agenda.",
+        "pt-BR": "Gestão de reservas/agendamentos, lembretes, faltas, agenda."
+      }
+    },
+    {
+      "id": "M_VENTAS_POS",
+      "name": {
+        "es": "Ventas y POS",
+        "pt-BR": "Vendas e PDV"
+      },
+      "description": {
+        "es": "Caja, ventas, tickets, productos/servicios, reportes.",
+        "pt-BR": "Caixa, vendas, cupons, produtos/serviços, relatórios."
+      }
+    },
+    {
+      "id": "M_INVENTARIO",
+      "name": {
+        "es": "Inventario y compras",
+        "pt-BR": "Estoque e compras"
+      },
+      "description": {
+        "es": "Stock, mermas, reposición, proveedores, costos.",
+        "pt-BR": "Estoque, perdas, reposição, fornecedores, custos."
+      }
+    },
+    {
+      "id": "M_MARKETING",
+      "name": {
+        "es": "Marketing y promociones",
+        "pt-BR": "Marketing e promoções"
+      },
+      "description": {
+        "es": "Campañas, segmentación, ofertas, fidelización.",
+        "pt-BR": "Campanhas, segmentação, ofertas, fidelização."
+      }
+    },
+    {
+      "id": "M_ATENCION",
+      "name": {
+        "es": "Atención al cliente",
+        "pt-BR": "Atendimento ao cliente"
+      },
+      "description": {
+        "es": "WhatsApp, chat, respuestas rápidas, NPS, reseñas.",
+        "pt-BR": "WhatsApp, chat, respostas rápidas, NPS, avaliações."
+      }
+    },
+    {
+      "id": "M_OPERACIONES",
+      "name": {
+        "es": "Operaciones y personal",
+        "pt-BR": "Operações e equipe"
+      },
+      "description": {
+        "es": "Turnos, checklists, productividad, estándares.",
+        "pt-BR": "Escalas, checklists, produtividade, padrões."
+      }
+    },
+    {
+      "id": "M_FINANZAS",
+      "name": {
+        "es": "Finanzas y control",
+        "pt-BR": "Finanças e controle"
+      },
+      "description": {
+        "es": "Costeo, márgenes, caja, proyecciones, alertas.",
+        "pt-BR": "Custos, margens, caixa, projeções, alertas."
+      }
+    },
+    {
+      "id": "M_ANALITICA",
+      "name": {
+        "es": "Analítica y BI",
+        "pt-BR": "Análises e BI"
+      },
+      "description": {
+        "es": "Dashboards, KPIs, predicciones, insights.",
+        "pt-BR": "Dashboards, KPIs, previsões, insights."
+      }
+    },
+    {
+      "id": "M_DOCUMENTOS",
+      "name": {
+        "es": "Documentos y automatización",
+        "pt-BR": "Documentos e automação"
+      },
+      "description": {
+        "es": "Presupuestos, contratos, facturas, flujos.",
+        "pt-BR": "Orçamentos, contratos, notas, fluxos."
+      }
+    },
+    {
+      "id": "M_LOGISTICA",
+      "name": {
+        "es": "Logística y rutas",
+        "pt-BR": "Logística e rotas"
+      },
+      "description": {
+        "es": "Envíos, flotas, rutas, entregas, tracking.",
+        "pt-BR": "Entregas, frotas, rotas, rastreio."
+      }
+    }
+  ],
+  "areas": [
+    {
+      "id": "A1_GASTRO",
+      "order": 1,
+      "labels_by_country": {
+        "AR": "Gastronomía y bebidas",
+        "UY": "Gastronomía y bebidas",
+        "CL": "Gastronomía y bebidas",
+        "CO": "Gastronomía y bebidas",
+        "EC": "Gastronomía y bebidas",
+        "MX": "Gastronomía y bebidas",
+        "CR": "Gastronomía y bebidas",
+        "PA": "Gastronomía y bebidas",
+        "BR": "Alimentação e bebidas"
+      },
+      "default_tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ]
+    },
+    {
+      "id": "A2_TURISMO",
+      "order": 2,
+      "labels_by_country": {
+        "AR": "Turismo, hotelería, ocio y eventos",
+        "UY": "Turismo, hotelería, ocio y eventos",
+        "CL": "Turismo, hotelería, ocio y eventos",
+        "CO": "Turismo, hotelería, ocio y eventos",
+        "EC": "Turismo, hotelería, ocio y eventos",
+        "MX": "Turismo, hotelería, ocio y eventos",
+        "CR": "Turismo, hotelería, ocio y eventos",
+        "PA": "Turismo, hotelería, ocio y eventos",
+        "BR": "Turismo, hotelaria, lazer e eventos"
+      },
+      "default_tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_DOCUMENTOS"
+      ]
+    },
+    {
+      "id": "A3_RETAIL",
+      "order": 3,
+      "labels_by_country": {
+        "AR": "Comercio minorista y e-commerce",
+        "UY": "Comercio minorista y e-commerce",
+        "CL": "Comercio minorista y e-commerce",
+        "CO": "Comercio minorista y e-commerce",
+        "EC": "Comercio minorista y e-commerce",
+        "MX": "Comercio minorista y e-commerce",
+        "CR": "Comercio minorista y e-commerce",
+        "PA": "Comercio minorista y e-commerce",
+        "BR": "Varejo e e-commerce"
+      },
+      "default_tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_ATENCION",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ]
+    },
+    {
+      "id": "A4_SALUD",
+      "order": 4,
+      "labels_by_country": {
+        "AR": "Salud, bienestar y belleza",
+        "UY": "Salud, bienestar y belleza",
+        "CL": "Salud, bienestar y belleza",
+        "CO": "Salud, bienestar y belleza",
+        "EC": "Salud, bienestar y belleza",
+        "MX": "Salud, bienestar y belleza",
+        "CR": "Salud, bienestar y belleza",
+        "PA": "Salud, bienestar y belleza",
+        "BR": "Saúde, bem-estar e beleza"
+      },
+      "default_tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_MARKETING",
+        "M_DOCUMENTOS"
+      ]
+    },
+    {
+      "id": "A5_EDUCACION",
+      "order": 5,
+      "labels_by_country": {
+        "AR": "Educación, formación y academias",
+        "UY": "Educación, formación y academias",
+        "CL": "Educación, formación y academias",
+        "CO": "Educación, formación y academias",
+        "EC": "Educación, formación y academias",
+        "MX": "Educación, formación y academias",
+        "CR": "Educación, formación y academias",
+        "PA": "Educación, formación y academias",
+        "BR": "Educação, cursos e academias"
+      },
+      "default_tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_DOCUMENTOS"
+      ]
+    },
+    {
+      "id": "A6_B2B",
+      "order": 6,
+      "labels_by_country": {
+        "AR": "Servicios profesionales y B2B",
+        "UY": "Servicios profesionales y B2B",
+        "CL": "Servicios profesionales y B2B",
+        "CO": "Servicios profesionales y B2B",
+        "EC": "Servicios profesionales y B2B",
+        "MX": "Servicios profesionales y B2B",
+        "CR": "Servicios profesionales y B2B",
+        "PA": "Servicios profesionales y B2B",
+        "BR": "Serviços profissionais e B2B"
+      },
+      "default_tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_MARKETING",
+        "M_OPERACIONES"
+      ]
+    },
+    {
+      "id": "A7_HOGAR_SERV",
+      "order": 7,
+      "labels_by_country": {
+        "AR": "Hogar, mantenimiento y servicios técnicos",
+        "UY": "Hogar, mantenimiento y servicios técnicos",
+        "CL": "Hogar, mantenimiento y servicios técnicos",
+        "CO": "Hogar, mantenimiento y servicios técnicos",
+        "EC": "Hogar, mantenimiento y servicios técnicos",
+        "MX": "Hogar, mantenimiento y servicios técnicos",
+        "CR": "Hogar, mantenimiento y servicios técnicos",
+        "PA": "Hogar, mantenimiento y servicios técnicos",
+        "BR": "Casa, manutenção e serviços técnicos"
+      },
+      "default_tags": [
+        "M_RESERVAS",
+        "M_LOGISTICA",
+        "M_DOCUMENTOS",
+        "M_FINANZAS",
+        "M_ATENCION",
+        "M_ANALITICA"
+      ]
+    },
+    {
+      "id": "A8_CONSTRU_INMO",
+      "order": 8,
+      "labels_by_country": {
+        "AR": "Construcción, inmobiliario y gestión de propiedades",
+        "UY": "Construcción, inmobiliario y gestión de propiedades",
+        "CL": "Construcción, inmobiliario y gestión de propiedades",
+        "CO": "Construcción, inmobiliario y gestión de propiedades",
+        "EC": "Construcción, inmobiliario y gestión de propiedades",
+        "MX": "Construcción, inmobiliario y gestión de propiedades",
+        "CR": "Construcción, inmobiliario y gestión de propiedades",
+        "PA": "Construcción, inmobiliario y gestión de propiedades",
+        "BR": "Construção, imobiliário e gestão de propriedades"
+      },
+      "default_tags": [
+        "M_DOCUMENTOS",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_ATENCION",
+        "M_OPERACIONES"
+      ]
+    },
+    {
+      "id": "A9_LOGISTICA",
+      "order": 9,
+      "labels_by_country": {
+        "AR": "Transporte, logística y movilidad",
+        "UY": "Transporte, logística y movilidad",
+        "CL": "Transporte, logística y movilidad",
+        "CO": "Transporte, logística y movilidad",
+        "EC": "Transporte, logística y movilidad",
+        "MX": "Transporte, logística y movilidad",
+        "CR": "Transporte, logística y movilidad",
+        "PA": "Transporte, logística y movilidad",
+        "BR": "Transporte, logística e mobilidade"
+      },
+      "default_tags": [
+        "M_LOGISTICA",
+        "M_OPERACIONES",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_ATENCION"
+      ]
+    },
+    {
+      "id": "A10_AGRO",
+      "order": 10,
+      "labels_by_country": {
+        "AR": "Agro, ganadería y agroindustria",
+        "UY": "Agro, ganadería y agroindustria",
+        "CL": "Agro, ganadería y agroindustria",
+        "CO": "Agro, ganadería y agroindustria",
+        "EC": "Agro, ganadería y agroindustria",
+        "MX": "Agro, ganadería y agroindustria",
+        "CR": "Agro, ganadería y agroindustria",
+        "PA": "Agro, ganadería y agroindustria",
+        "BR": "Agro, pecuária e agroindústria"
+      },
+      "default_tags": [
+        "M_OPERACIONES",
+        "M_INVENTARIO",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_LOGISTICA",
+        "M_DOCUMENTOS"
+      ]
+    }
+  ],
+  "business_types": [
+    {
+      "id": "A1_T001_RESTAURANTE",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Restaurante",
+        "UY": "Restaurante",
+        "CL": "Restaurante",
+        "CO": "Restaurante",
+        "EC": "Restaurante",
+        "MX": "Restaurante",
+        "CR": "Restaurante",
+        "PA": "Restaurante",
+        "BR": "Restaurante"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "restaurant",
+          "restaurante"
+        ],
+        "UY": [
+          "restaurant",
+          "restaurante"
+        ],
+        "CL": [
+          "restaurant",
+          "restaurante"
+        ],
+        "CO": [
+          "restaurant",
+          "restaurante"
+        ],
+        "EC": [
+          "restaurant",
+          "restaurante"
+        ],
+        "MX": [
+          "restaurant",
+          "restaurante"
+        ],
+        "CR": [
+          "restaurant",
+          "restaurante"
+        ],
+        "PA": [
+          "restaurant",
+          "restaurante"
+        ],
+        "BR": [
+          "restaurante"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_RESERVAS",
+        "M_INVENTARIO",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": [
+        "restaurante familiar",
+        "cocina local",
+        "cocina internacional"
+      ]
+    },
+    {
+      "id": "A1_T002_ALTA_COCINA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Alta cocina",
+        "UY": "Alta cocina",
+        "CL": "Alta cocina",
+        "CO": "Alta cocina",
+        "EC": "Alta cocina",
+        "MX": "Alta cocina",
+        "CR": "Alta cocina",
+        "PA": "Alta cocina",
+        "BR": "Alta gastronomia"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "fine dining",
+          "gourmet",
+          "alta cocina"
+        ],
+        "UY": [
+          "fine dining",
+          "gourmet",
+          "alta cocina"
+        ],
+        "CL": [
+          "fine dining",
+          "gourmet",
+          "alta cocina"
+        ],
+        "CO": [
+          "fine dining",
+          "gourmet",
+          "alta cocina"
+        ],
+        "EC": [
+          "fine dining",
+          "gourmet",
+          "alta cocina"
+        ],
+        "MX": [
+          "fine dining",
+          "gourmet",
+          "alta cocina"
+        ],
+        "CR": [
+          "fine dining",
+          "gourmet",
+          "alta cocina"
+        ],
+        "PA": [
+          "fine dining",
+          "gourmet",
+          "alta cocina"
+        ],
+        "BR": [
+          "alta gastronomia",
+          "fine dining"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_INVENTARIO"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T003_BISTRO",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Bistró / Brasserie",
+        "UY": "Bistró / Brasserie",
+        "CL": "Bistró / Brasserie",
+        "CO": "Bistró / Brasserie",
+        "EC": "Bistró / Brasserie",
+        "MX": "Bistró / Brasserie",
+        "CR": "Bistró / Brasserie",
+        "PA": "Bistró / Brasserie",
+        "BR": "Bistrô / Brasserie"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "bistro",
+          "brasserie"
+        ],
+        "UY": [
+          "bistro",
+          "brasserie"
+        ],
+        "CL": [
+          "bistro",
+          "brasserie"
+        ],
+        "CO": [
+          "bistro",
+          "brasserie"
+        ],
+        "EC": [
+          "bistro",
+          "brasserie"
+        ],
+        "MX": [
+          "bistro",
+          "brasserie"
+        ],
+        "CR": [
+          "bistro",
+          "brasserie"
+        ],
+        "PA": [
+          "bistro",
+          "brasserie"
+        ],
+        "BR": [
+          "bistrô",
+          "brasserie"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T004_PARRILLA_ASADOR",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Parrilla / Asador",
+        "UY": "Parrilla / Asador",
+        "CL": "Parrillada",
+        "CO": "Asadero / Parrilla",
+        "EC": "Parrilla / Asador",
+        "MX": "Asador",
+        "CR": "Asador",
+        "PA": "Asador",
+        "BR": "Churrascaria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "parrilla",
+          "asador",
+          "parrillada",
+          "asadero",
+          "steakhouse"
+        ],
+        "UY": [
+          "parrilla",
+          "asador",
+          "parrillada",
+          "asadero",
+          "steakhouse"
+        ],
+        "CL": [
+          "parrilla",
+          "asador",
+          "parrillada",
+          "asadero",
+          "steakhouse"
+        ],
+        "CO": [
+          "parrilla",
+          "asador",
+          "parrillada",
+          "asadero",
+          "steakhouse"
+        ],
+        "EC": [
+          "parrilla",
+          "asador",
+          "parrillada",
+          "asadero",
+          "steakhouse"
+        ],
+        "MX": [
+          "parrilla",
+          "asador",
+          "parrillada",
+          "asadero",
+          "steakhouse"
+        ],
+        "CR": [
+          "parrilla",
+          "asador",
+          "parrillada",
+          "asadero",
+          "steakhouse"
+        ],
+        "PA": [
+          "parrilla",
+          "asador",
+          "parrillada",
+          "asadero",
+          "steakhouse"
+        ],
+        "BR": [
+          "churrascaria",
+          "churrasco",
+          "rodízio"
+        ]
+      },
+      "definitions_by_country": {
+        "AR": "Local centrado en carnes a la parrilla y guarniciones.",
+        "UY": "Local centrado en carnes a la parrilla y guarniciones.",
+        "CL": "Local centrado en carnes a la parrilla y guarniciones.",
+        "CO": "Local centrado en carnes a la parrilla y guarniciones.",
+        "EC": "Local centrado en carnes a la parrilla y guarniciones.",
+        "MX": "Local centrado en carnes a la parrilla y guarniciones.",
+        "CR": "Local centrado en carnes a la parrilla y guarniciones.",
+        "PA": "Local centrado en carnes a la parrilla y guarniciones.",
+        "BR": "Estabelecimento focado em churrasco e cortes assados."
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_INVENTARIO",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T005_MARISQUERIA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Marisquería",
+        "UY": "Marisquería",
+        "CL": "Marisquería",
+        "CO": "Marisquería",
+        "EC": "Marisquería",
+        "MX": "Marisquería",
+        "CR": "Marisquería",
+        "PA": "Marisquería",
+        "BR": "Marisqueira"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "marisqueria",
+          "mariscos"
+        ],
+        "UY": [
+          "marisqueria",
+          "mariscos"
+        ],
+        "CL": [
+          "marisqueria",
+          "mariscos"
+        ],
+        "CO": [
+          "marisqueria",
+          "mariscos"
+        ],
+        "EC": [
+          "marisqueria",
+          "mariscos"
+        ],
+        "MX": [
+          "marisqueria",
+          "mariscos"
+        ],
+        "CR": [
+          "marisqueria",
+          "mariscos"
+        ],
+        "PA": [
+          "marisqueria",
+          "mariscos"
+        ],
+        "BR": [
+          "marisqueira",
+          "frutos do mar"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_FINANZAS",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T006_CEVICHERIA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Cevichería",
+        "UY": "Cevichería",
+        "CL": "Cevichería",
+        "CO": "Cevichería",
+        "EC": "Cevichería",
+        "MX": "Cevichería",
+        "CR": "Cevichería",
+        "PA": "Cevichería",
+        "BR": "Cevicheria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "cevicheria",
+          "ceviche"
+        ],
+        "UY": [
+          "cevicheria",
+          "ceviche"
+        ],
+        "CL": [
+          "cevicheria",
+          "ceviche"
+        ],
+        "CO": [
+          "cevicheria",
+          "ceviche"
+        ],
+        "EC": [
+          "cevicheria",
+          "ceviche"
+        ],
+        "MX": [
+          "cevicheria",
+          "ceviche"
+        ],
+        "CR": [
+          "cevicheria",
+          "ceviche"
+        ],
+        "PA": [
+          "cevicheria",
+          "ceviche"
+        ],
+        "BR": [
+          "cevicheria",
+          "ceviche"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T007_PIZZERIA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Pizzería",
+        "UY": "Pizzería",
+        "CL": "Pizzería",
+        "CO": "Pizzería",
+        "EC": "Pizzería",
+        "MX": "Pizzería",
+        "CR": "Pizzería",
+        "PA": "Pizzería",
+        "BR": "Pizzaria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "pizzeria",
+          "pizza"
+        ],
+        "UY": [
+          "pizzeria",
+          "pizza"
+        ],
+        "CL": [
+          "pizzeria",
+          "pizza"
+        ],
+        "CO": [
+          "pizzeria",
+          "pizza"
+        ],
+        "EC": [
+          "pizzeria",
+          "pizza"
+        ],
+        "MX": [
+          "pizzeria",
+          "pizza"
+        ],
+        "CR": [
+          "pizzeria",
+          "pizza"
+        ],
+        "PA": [
+          "pizzeria",
+          "pizza"
+        ],
+        "BR": [
+          "pizzaria",
+          "pizza"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T008_HAMBURGUESERIA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Hamburguesería",
+        "UY": "Hamburguesería",
+        "CL": "Hamburguesería",
+        "CO": "Hamburguesería",
+        "EC": "Hamburguesería",
+        "MX": "Hamburguesería",
+        "CR": "Hamburguesería",
+        "PA": "Hamburguesería",
+        "BR": "Hamburgueria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "hamburgueseria",
+          "burgers",
+          "hamburguesas"
+        ],
+        "UY": [
+          "hamburgueseria",
+          "burgers",
+          "hamburguesas"
+        ],
+        "CL": [
+          "hamburgueseria",
+          "burgers",
+          "hamburguesas"
+        ],
+        "CO": [
+          "hamburgueseria",
+          "burgers",
+          "hamburguesas"
+        ],
+        "EC": [
+          "hamburgueseria",
+          "burgers",
+          "hamburguesas"
+        ],
+        "MX": [
+          "hamburgueseria",
+          "burgers",
+          "hamburguesas"
+        ],
+        "CR": [
+          "hamburgueseria",
+          "burgers",
+          "hamburguesas"
+        ],
+        "PA": [
+          "hamburgueseria",
+          "burgers",
+          "hamburguesas"
+        ],
+        "BR": [
+          "hamburgueria",
+          "hambúrguer"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T009_SUSHI_JAPONES",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Sushi bar / Japonés",
+        "UY": "Sushi bar / Japonés",
+        "CL": "Sushi bar / Japonés",
+        "CO": "Sushi bar / Japonés",
+        "EC": "Sushi bar / Japonés",
+        "MX": "Sushi bar / Japonés",
+        "CR": "Sushi bar / Japonés",
+        "PA": "Sushi bar / Japonés",
+        "BR": "Sushi bar / Japonês"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "sushi",
+          "japones",
+          "ramen"
+        ],
+        "UY": [
+          "sushi",
+          "japones",
+          "ramen"
+        ],
+        "CL": [
+          "sushi",
+          "japones",
+          "ramen"
+        ],
+        "CO": [
+          "sushi",
+          "japones",
+          "ramen"
+        ],
+        "EC": [
+          "sushi",
+          "japones",
+          "ramen"
+        ],
+        "MX": [
+          "sushi",
+          "japones",
+          "ramen"
+        ],
+        "CR": [
+          "sushi",
+          "japones",
+          "ramen"
+        ],
+        "PA": [
+          "sushi",
+          "japones",
+          "ramen"
+        ],
+        "BR": [
+          "sushi",
+          "japonês",
+          "ramen"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T010_ASIATICA_GENERAL",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Cocina asiática (general)",
+        "UY": "Cocina asiática (general)",
+        "CL": "Cocina asiática (general)",
+        "CO": "Cocina asiática (general)",
+        "EC": "Cocina asiática (general)",
+        "MX": "Cocina asiática (general)",
+        "CR": "Cocina asiática (general)",
+        "PA": "Cocina asiática (general)",
+        "BR": "Culinária asiática (geral)"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "china",
+          "thai",
+          "asiatica",
+          "asiático"
+        ],
+        "UY": [
+          "china",
+          "thai",
+          "asiatica",
+          "asiático"
+        ],
+        "CL": [
+          "china",
+          "thai",
+          "asiatica",
+          "asiático"
+        ],
+        "CO": [
+          "china",
+          "thai",
+          "asiatica",
+          "asiático"
+        ],
+        "EC": [
+          "china",
+          "thai",
+          "asiatica",
+          "asiático"
+        ],
+        "MX": [
+          "china",
+          "thai",
+          "asiatica",
+          "asiático"
+        ],
+        "CR": [
+          "china",
+          "thai",
+          "asiatica",
+          "asiático"
+        ],
+        "PA": [
+          "china",
+          "thai",
+          "asiatica",
+          "asiático"
+        ],
+        "BR": [
+          "asiática",
+          "chinesa",
+          "tailandesa"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T011_MEXICANA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Cocina mexicana (general)",
+        "UY": "Cocina mexicana (general)",
+        "CL": "Cocina mexicana (general)",
+        "CO": "Cocina mexicana (general)",
+        "EC": "Cocina mexicana (general)",
+        "MX": "Taquería / Cocina mexicana",
+        "CR": "Cocina mexicana (general)",
+        "PA": "Cocina mexicana (general)",
+        "BR": "Culinária mexicana (geral)"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "mexicana",
+          "tacos",
+          "antojitos"
+        ],
+        "UY": [
+          "mexicana",
+          "tacos",
+          "antojitos"
+        ],
+        "CL": [
+          "mexicana",
+          "tacos",
+          "antojitos"
+        ],
+        "CO": [
+          "mexicana",
+          "tacos",
+          "antojitos"
+        ],
+        "EC": [
+          "mexicana",
+          "tacos",
+          "antojitos"
+        ],
+        "MX": [
+          "mexicana",
+          "tacos",
+          "antojitos"
+        ],
+        "CR": [
+          "mexicana",
+          "tacos",
+          "antojitos"
+        ],
+        "PA": [
+          "mexicana",
+          "tacos",
+          "antojitos"
+        ],
+        "BR": [
+          "mexicana",
+          "tacos"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T012_COMIDA_RAPIDA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Comida rápida",
+        "UY": "Comida rápida",
+        "CL": "Comida rápida",
+        "CO": "Comida rápida",
+        "EC": "Comida rápida",
+        "MX": "Comida rápida",
+        "CR": "Comida rápida",
+        "PA": "Comida rápida",
+        "BR": "Fast food"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "fast food",
+          "comida rapida",
+          "comida rápida"
+        ],
+        "UY": [
+          "fast food",
+          "comida rapida",
+          "comida rápida"
+        ],
+        "CL": [
+          "fast food",
+          "comida rapida",
+          "comida rápida"
+        ],
+        "CO": [
+          "fast food",
+          "comida rapida",
+          "comida rápida"
+        ],
+        "EC": [
+          "fast food",
+          "comida rapida",
+          "comida rápida"
+        ],
+        "MX": [
+          "fast food",
+          "comida rapida",
+          "comida rápida"
+        ],
+        "CR": [
+          "fast food",
+          "comida rapida",
+          "comida rápida"
+        ],
+        "PA": [
+          "fast food",
+          "comida rapida",
+          "comida rápida"
+        ],
+        "BR": [
+          "fast food"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_OPERACIONES",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T013_FUENTE_DE_SODA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Local de comidas rápidas-casual",
+        "UY": "Local de comidas rápidas-casual",
+        "CL": "Fuente de soda",
+        "CO": "Local de comidas rápidas-casual",
+        "EC": "Local de comidas rápidas-casual",
+        "MX": "Fonda (comida económica)",
+        "CR": "Soda (comida típica)",
+        "PA": "Fonda (comida económica)",
+        "BR": "Lanchonete (casual)"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "fuente de soda",
+          "soda",
+          "fonda",
+          "comedor",
+          "casero",
+          "comida corrida"
+        ],
+        "UY": [
+          "fuente de soda",
+          "soda",
+          "fonda",
+          "comedor",
+          "casero",
+          "comida corrida"
+        ],
+        "CL": [
+          "fuente de soda",
+          "soda",
+          "fonda",
+          "comedor",
+          "casero",
+          "comida corrida"
+        ],
+        "CO": [
+          "fuente de soda",
+          "soda",
+          "fonda",
+          "comedor",
+          "casero",
+          "comida corrida"
+        ],
+        "EC": [
+          "fuente de soda",
+          "soda",
+          "fonda",
+          "comedor",
+          "casero",
+          "comida corrida"
+        ],
+        "MX": [
+          "fuente de soda",
+          "soda",
+          "fonda",
+          "comedor",
+          "casero",
+          "comida corrida"
+        ],
+        "CR": [
+          "fuente de soda",
+          "soda",
+          "fonda",
+          "comedor",
+          "casero",
+          "comida corrida"
+        ],
+        "PA": [
+          "fuente de soda",
+          "soda",
+          "fonda",
+          "comedor",
+          "casero",
+          "comida corrida"
+        ],
+        "BR": [
+          "lanchonete",
+          "refeição rápida",
+          "prato feito"
+        ]
+      },
+      "definitions_by_country": {
+        "AR": "Local de comida simple y rápida, con alta rotación de clientes.",
+        "UY": "Local de comida simple y rápida, con alta rotación de clientes.",
+        "CL": "Local típico de comida rápida-casual (sándwiches, completos, platos del día).",
+        "CO": "Local de comida simple y rápida, con alta rotación de clientes.",
+        "EC": "Local de comida simple y rápida, con alta rotación de clientes.",
+        "MX": "Comedor económico de comida casera (menú del día).",
+        "CR": "Pequeño restaurante de comida casera/típica.",
+        "PA": "Comedor económico de comida casera (menú del día).",
+        "BR": "Estabelecimento de refeições rápidas e simples."
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T014_BUFFET",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Buffet / Tenedor libre",
+        "UY": "Buffet / Tenedor libre",
+        "CL": "Buffet / Tenedor libre",
+        "CO": "Buffet / Tenedor libre",
+        "EC": "Buffet / Tenedor libre",
+        "MX": "Buffet / Tenedor libre",
+        "CR": "Buffet / Tenedor libre",
+        "PA": "Buffet / Tenedor libre",
+        "BR": "Self-service / Rodízio"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "buffet",
+          "tenedor libre",
+          "rodizio",
+          "rodízio"
+        ],
+        "UY": [
+          "buffet",
+          "tenedor libre",
+          "rodizio",
+          "rodízio"
+        ],
+        "CL": [
+          "buffet",
+          "tenedor libre",
+          "rodizio",
+          "rodízio"
+        ],
+        "CO": [
+          "buffet",
+          "tenedor libre",
+          "rodizio",
+          "rodízio"
+        ],
+        "EC": [
+          "buffet",
+          "tenedor libre",
+          "rodizio",
+          "rodízio"
+        ],
+        "MX": [
+          "buffet",
+          "tenedor libre",
+          "rodizio",
+          "rodízio"
+        ],
+        "CR": [
+          "buffet",
+          "tenedor libre",
+          "rodizio",
+          "rodízio"
+        ],
+        "PA": [
+          "buffet",
+          "tenedor libre",
+          "rodizio",
+          "rodízio"
+        ],
+        "BR": [
+          "self-service",
+          "rodízio",
+          "buffet"
+        ]
+      },
+      "tags": [
+        "M_INVENTARIO",
+        "M_OPERACIONES",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T015_CAFETERIA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Cafetería",
+        "UY": "Cafetería",
+        "CL": "Cafetería",
+        "CO": "Cafetería",
+        "EC": "Cafetería",
+        "MX": "Cafetería",
+        "CR": "Cafetería",
+        "PA": "Cafetería",
+        "BR": "Cafeteria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "cafe",
+          "cafeteria",
+          "coffee"
+        ],
+        "UY": [
+          "cafe",
+          "cafeteria",
+          "coffee"
+        ],
+        "CL": [
+          "cafe",
+          "cafeteria",
+          "coffee"
+        ],
+        "CO": [
+          "cafe",
+          "cafeteria",
+          "coffee"
+        ],
+        "EC": [
+          "cafe",
+          "cafeteria",
+          "coffee"
+        ],
+        "MX": [
+          "cafe",
+          "cafeteria",
+          "coffee"
+        ],
+        "CR": [
+          "cafe",
+          "cafeteria",
+          "coffee"
+        ],
+        "PA": [
+          "cafe",
+          "cafeteria",
+          "coffee"
+        ],
+        "BR": [
+          "cafeteria",
+          "café"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_MARKETING",
+        "M_ATENCION",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T016_CAFE_ESPECIALIDAD",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Café de especialidad",
+        "UY": "Café de especialidad",
+        "CL": "Café de especialidad",
+        "CO": "Café de especialidad",
+        "EC": "Café de especialidad",
+        "MX": "Café de especialidad",
+        "CR": "Café de especialidad",
+        "PA": "Café de especialidad",
+        "BR": "Café especial"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "cafe de especialidad",
+          "barista"
+        ],
+        "UY": [
+          "cafe de especialidad",
+          "barista"
+        ],
+        "CL": [
+          "cafe de especialidad",
+          "barista"
+        ],
+        "CO": [
+          "cafe de especialidad",
+          "barista"
+        ],
+        "EC": [
+          "cafe de especialidad",
+          "barista"
+        ],
+        "MX": [
+          "cafe de especialidad",
+          "barista"
+        ],
+        "CR": [
+          "cafe de especialidad",
+          "barista"
+        ],
+        "PA": [
+          "cafe de especialidad",
+          "barista"
+        ],
+        "BR": [
+          "café especial",
+          "barista"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_MARKETING",
+        "M_ATENCION",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T017_PANADERIA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Panadería",
+        "UY": "Panadería",
+        "CL": "Panadería",
+        "CO": "Panadería",
+        "EC": "Panadería",
+        "MX": "Panadería",
+        "CR": "Panadería",
+        "PA": "Panadería",
+        "BR": "Padaria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "panaderia",
+          "pan"
+        ],
+        "UY": [
+          "panaderia",
+          "pan"
+        ],
+        "CL": [
+          "panaderia",
+          "pan"
+        ],
+        "CO": [
+          "panaderia",
+          "pan"
+        ],
+        "EC": [
+          "panaderia",
+          "pan"
+        ],
+        "MX": [
+          "panaderia",
+          "pan"
+        ],
+        "CR": [
+          "panaderia",
+          "pan"
+        ],
+        "PA": [
+          "panaderia",
+          "pan"
+        ],
+        "BR": [
+          "padaria",
+          "pão"
+        ]
+      },
+      "tags": [
+        "M_INVENTARIO",
+        "M_VENTAS_POS",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T018_PASTELERIA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Pastelería / Repostería",
+        "UY": "Pastelería / Repostería",
+        "CL": "Pastelería / Repostería",
+        "CO": "Pastelería / Repostería",
+        "EC": "Pastelería / Repostería",
+        "MX": "Pastelería / Repostería",
+        "CR": "Pastelería / Repostería",
+        "PA": "Pastelería / Repostería",
+        "BR": "Confeitaria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "pasteleria",
+          "reposteria",
+          "tortas"
+        ],
+        "UY": [
+          "pasteleria",
+          "reposteria",
+          "tortas"
+        ],
+        "CL": [
+          "pasteleria",
+          "reposteria",
+          "tortas"
+        ],
+        "CO": [
+          "pasteleria",
+          "reposteria",
+          "tortas"
+        ],
+        "EC": [
+          "pasteleria",
+          "reposteria",
+          "tortas"
+        ],
+        "MX": [
+          "pasteleria",
+          "reposteria",
+          "tortas"
+        ],
+        "CR": [
+          "pasteleria",
+          "reposteria",
+          "tortas"
+        ],
+        "PA": [
+          "pasteleria",
+          "reposteria",
+          "tortas"
+        ],
+        "BR": [
+          "confeitaria",
+          "doces",
+          "bolos"
+        ]
+      },
+      "tags": [
+        "M_INVENTARIO",
+        "M_VENTAS_POS",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T019_HELADERIA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Heladería",
+        "UY": "Heladería",
+        "CL": "Heladería",
+        "CO": "Heladería",
+        "EC": "Heladería",
+        "MX": "Heladería",
+        "CR": "Heladería",
+        "PA": "Heladería",
+        "BR": "Sorveteria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "heladeria",
+          "helado",
+          "gelato"
+        ],
+        "UY": [
+          "heladeria",
+          "helado",
+          "gelato"
+        ],
+        "CL": [
+          "heladeria",
+          "helado",
+          "gelato"
+        ],
+        "CO": [
+          "heladeria",
+          "helado",
+          "gelato"
+        ],
+        "EC": [
+          "heladeria",
+          "helado",
+          "gelato"
+        ],
+        "MX": [
+          "heladeria",
+          "helado",
+          "gelato"
+        ],
+        "CR": [
+          "heladeria",
+          "helado",
+          "gelato"
+        ],
+        "PA": [
+          "heladeria",
+          "helado",
+          "gelato"
+        ],
+        "BR": [
+          "sorveteria",
+          "sorvete",
+          "gelato"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T020_BAR",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Bar",
+        "UY": "Bar",
+        "CL": "Bar",
+        "CO": "Bar",
+        "EC": "Bar",
+        "MX": "Bar",
+        "CR": "Bar",
+        "PA": "Bar",
+        "BR": "Bar"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "bar",
+          "copas"
+        ],
+        "UY": [
+          "bar",
+          "copas"
+        ],
+        "CL": [
+          "bar",
+          "copas"
+        ],
+        "CO": [
+          "bar",
+          "copas"
+        ],
+        "EC": [
+          "bar",
+          "copas"
+        ],
+        "MX": [
+          "bar",
+          "copas"
+        ],
+        "CR": [
+          "bar",
+          "copas"
+        ],
+        "PA": [
+          "bar",
+          "copas"
+        ],
+        "BR": [
+          "bar"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_ATENCION",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T021_PUB",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Pub",
+        "UY": "Pub",
+        "CL": "Pub",
+        "CO": "Pub",
+        "EC": "Pub",
+        "MX": "Pub",
+        "CR": "Pub",
+        "PA": "Pub",
+        "BR": "Pub"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "pub"
+        ],
+        "UY": [
+          "pub"
+        ],
+        "CL": [
+          "pub"
+        ],
+        "CO": [
+          "pub"
+        ],
+        "EC": [
+          "pub"
+        ],
+        "MX": [
+          "pub"
+        ],
+        "CR": [
+          "pub"
+        ],
+        "PA": [
+          "pub"
+        ],
+        "BR": [
+          "pub"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T022_CERVECERIA_BAR",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Cervecería (bar cervecero)",
+        "UY": "Cervecería (bar cervecero)",
+        "CL": "Cervecería (bar cervecero)",
+        "CO": "Cervecería (bar cervecero)",
+        "EC": "Cervecería (bar cervecero)",
+        "MX": "Cervecería (bar cervecero)",
+        "CR": "Cervecería (bar cervecero)",
+        "PA": "Cervecería (bar cervecero)",
+        "BR": "Cervejaria (bar)"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "cerveceria",
+          "beer",
+          "craft"
+        ],
+        "UY": [
+          "cerveceria",
+          "beer",
+          "craft"
+        ],
+        "CL": [
+          "cerveceria",
+          "beer",
+          "craft"
+        ],
+        "CO": [
+          "cerveceria",
+          "beer",
+          "craft"
+        ],
+        "EC": [
+          "cerveceria",
+          "beer",
+          "craft"
+        ],
+        "MX": [
+          "cerveceria",
+          "beer",
+          "craft"
+        ],
+        "CR": [
+          "cerveceria",
+          "beer",
+          "craft"
+        ],
+        "PA": [
+          "cerveceria",
+          "beer",
+          "craft"
+        ],
+        "BR": [
+          "cervejaria",
+          "cerveja artesanal"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T023_COCTELERIA",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Coctelería",
+        "UY": "Coctelería",
+        "CL": "Coctelería",
+        "CO": "Coctelería",
+        "EC": "Coctelería",
+        "MX": "Coctelería",
+        "CR": "Coctelería",
+        "PA": "Coctelería",
+        "BR": "Coquetelaria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "cocteleria",
+          "cocktails"
+        ],
+        "UY": [
+          "cocteleria",
+          "cocktails"
+        ],
+        "CL": [
+          "cocteleria",
+          "cocktails"
+        ],
+        "CO": [
+          "cocteleria",
+          "cocktails"
+        ],
+        "EC": [
+          "cocteleria",
+          "cocktails"
+        ],
+        "MX": [
+          "cocteleria",
+          "cocktails"
+        ],
+        "CR": [
+          "cocteleria",
+          "cocktails"
+        ],
+        "PA": [
+          "cocteleria",
+          "cocktails"
+        ],
+        "BR": [
+          "coquetelaria",
+          "drinks"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T024_WINE_BAR",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Vinoteca / Bar de vinos",
+        "UY": "Vinoteca / Bar de vinos",
+        "CL": "Bar de vinos",
+        "CO": "Bar de vinos",
+        "EC": "Bar de vinos",
+        "MX": "Bar de vinos",
+        "CR": "Bar de vinos",
+        "PA": "Bar de vinos",
+        "BR": "Wine bar"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "wine bar",
+          "bar de vinos",
+          "vinoteca"
+        ],
+        "UY": [
+          "wine bar",
+          "bar de vinos",
+          "vinoteca"
+        ],
+        "CL": [
+          "wine bar",
+          "bar de vinos",
+          "vinoteca"
+        ],
+        "CO": [
+          "wine bar",
+          "bar de vinos",
+          "vinoteca"
+        ],
+        "EC": [
+          "wine bar",
+          "bar de vinos",
+          "vinoteca"
+        ],
+        "MX": [
+          "wine bar",
+          "bar de vinos",
+          "vinoteca"
+        ],
+        "CR": [
+          "wine bar",
+          "bar de vinos",
+          "vinoteca"
+        ],
+        "PA": [
+          "wine bar",
+          "bar de vinos",
+          "vinoteca"
+        ],
+        "BR": [
+          "wine bar",
+          "bar de vinhos",
+          "adega (consumo)"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T025_TAKEAWAY",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Comida para llevar",
+        "UY": "Comida para llevar",
+        "CL": "Comida para llevar",
+        "CO": "Comida para llevar",
+        "EC": "Comida para llevar",
+        "MX": "Comida para llevar",
+        "CR": "Comida para llevar",
+        "PA": "Comida para llevar",
+        "BR": "Para viagem"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "para llevar",
+          "take away",
+          "takeaway"
+        ],
+        "UY": [
+          "para llevar",
+          "take away",
+          "takeaway"
+        ],
+        "CL": [
+          "para llevar",
+          "take away",
+          "takeaway"
+        ],
+        "CO": [
+          "para llevar",
+          "take away",
+          "takeaway"
+        ],
+        "EC": [
+          "para llevar",
+          "take away",
+          "takeaway"
+        ],
+        "MX": [
+          "para llevar",
+          "take away",
+          "takeaway"
+        ],
+        "CR": [
+          "para llevar",
+          "take away",
+          "takeaway"
+        ],
+        "PA": [
+          "para llevar",
+          "take away",
+          "takeaway"
+        ],
+        "BR": [
+          "para viagem",
+          "retirada"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_LOGISTICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T026_FOODTRUCK",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Food truck",
+        "UY": "Food truck",
+        "CL": "Food truck",
+        "CO": "Food truck",
+        "EC": "Food truck",
+        "MX": "Food truck",
+        "CR": "Food truck",
+        "PA": "Food truck",
+        "BR": "Food truck"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "food truck",
+          "camion de comida",
+          "camión de comida"
+        ],
+        "UY": [
+          "food truck",
+          "camion de comida",
+          "camión de comida"
+        ],
+        "CL": [
+          "food truck",
+          "camion de comida",
+          "camión de comida"
+        ],
+        "CO": [
+          "food truck",
+          "camion de comida",
+          "camión de comida"
+        ],
+        "EC": [
+          "food truck",
+          "camion de comida",
+          "camión de comida"
+        ],
+        "MX": [
+          "food truck",
+          "camion de comida",
+          "camión de comida"
+        ],
+        "CR": [
+          "food truck",
+          "camion de comida",
+          "camión de comida"
+        ],
+        "PA": [
+          "food truck",
+          "camion de comida",
+          "camión de comida"
+        ],
+        "BR": [
+          "food truck"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_MARKETING",
+        "M_LOGISTICA",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T027_PUESTO_STREETFOOD",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Puesto / Carrito (street food)",
+        "UY": "Puesto / Carrito (street food)",
+        "CL": "Puesto / Carrito (street food)",
+        "CO": "Puesto / Carrito (street food)",
+        "EC": "Puesto / Carrito (street food)",
+        "MX": "Puesto / Carrito (street food)",
+        "CR": "Puesto / Carrito (street food)",
+        "PA": "Puesto / Carrito (street food)",
+        "BR": "Barraca / Comida de rua"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "puesto",
+          "carrito",
+          "feria",
+          "street food"
+        ],
+        "UY": [
+          "puesto",
+          "carrito",
+          "feria",
+          "street food"
+        ],
+        "CL": [
+          "puesto",
+          "carrito",
+          "feria",
+          "street food"
+        ],
+        "CO": [
+          "puesto",
+          "carrito",
+          "feria",
+          "street food"
+        ],
+        "EC": [
+          "puesto",
+          "carrito",
+          "feria",
+          "street food"
+        ],
+        "MX": [
+          "puesto",
+          "carrito",
+          "feria",
+          "street food"
+        ],
+        "CR": [
+          "puesto",
+          "carrito",
+          "feria",
+          "street food"
+        ],
+        "PA": [
+          "puesto",
+          "carrito",
+          "feria",
+          "street food"
+        ],
+        "BR": [
+          "barraca",
+          "comida de rua"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_MARKETING",
+        "M_LOGISTICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T028_GHOST_KITCHEN",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Cocina oculta (dark/ghost kitchen)",
+        "UY": "Cocina oculta (dark/ghost kitchen)",
+        "CL": "Cocina oculta (dark/ghost kitchen)",
+        "CO": "Cocina oculta (dark/ghost kitchen)",
+        "EC": "Cocina oculta (dark/ghost kitchen)",
+        "MX": "Cocina oculta (dark/ghost kitchen)",
+        "CR": "Cocina oculta (dark/ghost kitchen)",
+        "PA": "Cocina oculta (dark/ghost kitchen)",
+        "BR": "Dark kitchen"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "dark kitchen",
+          "ghost kitchen",
+          "cocina oculta"
+        ],
+        "UY": [
+          "dark kitchen",
+          "ghost kitchen",
+          "cocina oculta"
+        ],
+        "CL": [
+          "dark kitchen",
+          "ghost kitchen",
+          "cocina oculta"
+        ],
+        "CO": [
+          "dark kitchen",
+          "ghost kitchen",
+          "cocina oculta"
+        ],
+        "EC": [
+          "dark kitchen",
+          "ghost kitchen",
+          "cocina oculta"
+        ],
+        "MX": [
+          "dark kitchen",
+          "ghost kitchen",
+          "cocina oculta"
+        ],
+        "CR": [
+          "dark kitchen",
+          "ghost kitchen",
+          "cocina oculta"
+        ],
+        "PA": [
+          "dark kitchen",
+          "ghost kitchen",
+          "cocina oculta"
+        ],
+        "BR": [
+          "dark kitchen",
+          "ghost kitchen"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_LOGISTICA",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T029_MEAL_PREP",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Viandas por suscripción",
+        "UY": "Viandas por suscripción",
+        "CL": "Viandas por suscripción",
+        "CO": "Viandas por suscripción",
+        "EC": "Viandas por suscripción",
+        "MX": "Viandas por suscripción",
+        "CR": "Viandas por suscripción",
+        "PA": "Viandas por suscripción",
+        "BR": "Marmitas por assinatura"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "viandas",
+          "meal prep",
+          "suscripcion"
+        ],
+        "UY": [
+          "viandas",
+          "meal prep",
+          "suscripcion"
+        ],
+        "CL": [
+          "viandas",
+          "meal prep",
+          "suscripcion"
+        ],
+        "CO": [
+          "viandas",
+          "meal prep",
+          "suscripcion"
+        ],
+        "EC": [
+          "viandas",
+          "meal prep",
+          "suscripcion"
+        ],
+        "MX": [
+          "viandas",
+          "meal prep",
+          "suscripcion"
+        ],
+        "CR": [
+          "viandas",
+          "meal prep",
+          "suscripcion"
+        ],
+        "PA": [
+          "viandas",
+          "meal prep",
+          "suscripcion"
+        ],
+        "BR": [
+          "marmitas",
+          "assinatura",
+          "meal prep"
+        ]
+      },
+      "tags": [
+        "M_INVENTARIO",
+        "M_LOGISTICA",
+        "M_MARKETING",
+        "M_ATENCION",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T030_CATERING",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Catering / Banquetería",
+        "UY": "Catering / Banquetería",
+        "CL": "Banquetería",
+        "CO": "Catering / Banquetería",
+        "EC": "Catering / Banquetería",
+        "MX": "Catering / Banquetería",
+        "CR": "Catering / Banquetería",
+        "PA": "Catering / Banquetería",
+        "BR": "Buffet (eventos)"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "catering",
+          "banqueteria",
+          "banquetería"
+        ],
+        "UY": [
+          "catering",
+          "banqueteria",
+          "banquetería"
+        ],
+        "CL": [
+          "catering",
+          "banqueteria",
+          "banquetería"
+        ],
+        "CO": [
+          "catering",
+          "banqueteria",
+          "banquetería"
+        ],
+        "EC": [
+          "catering",
+          "banqueteria",
+          "banquetería"
+        ],
+        "MX": [
+          "catering",
+          "banqueteria",
+          "banquetería"
+        ],
+        "CR": [
+          "catering",
+          "banqueteria",
+          "banquetería"
+        ],
+        "PA": [
+          "catering",
+          "banqueteria",
+          "banquetería"
+        ],
+        "BR": [
+          "buffet",
+          "catering",
+          "eventos"
+        ]
+      },
+      "tags": [
+        "M_DOCUMENTOS",
+        "M_FINANZAS",
+        "M_OPERACIONES",
+        "M_ATENCION",
+        "M_LOGISTICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A1_T031_COMEDOR_INSTITUCIONAL",
+      "area_id": "A1_GASTRO",
+      "labels_by_country": {
+        "AR": "Comedor institucional",
+        "UY": "Comedor institucional",
+        "CL": "Comedor institucional",
+        "CO": "Comedor institucional",
+        "EC": "Comedor institucional",
+        "MX": "Comedor institucional",
+        "CR": "Comedor institucional",
+        "PA": "Comedor institucional",
+        "BR": "Refeitório (institucional)"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "comedor industrial",
+          "comedor escolar",
+          "comedor universitario"
+        ],
+        "UY": [
+          "comedor industrial",
+          "comedor escolar",
+          "comedor universitario"
+        ],
+        "CL": [
+          "comedor industrial",
+          "comedor escolar",
+          "comedor universitario"
+        ],
+        "CO": [
+          "comedor industrial",
+          "comedor escolar",
+          "comedor universitario"
+        ],
+        "EC": [
+          "comedor industrial",
+          "comedor escolar",
+          "comedor universitario"
+        ],
+        "MX": [
+          "comedor industrial",
+          "comedor escolar",
+          "comedor universitario"
+        ],
+        "CR": [
+          "comedor industrial",
+          "comedor escolar",
+          "comedor universitario"
+        ],
+        "PA": [
+          "comedor industrial",
+          "comedor escolar",
+          "comedor universitario"
+        ],
+        "BR": [
+          "refeitório",
+          "restaurante corporativo"
+        ]
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_INVENTARIO",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T001_HOTEL",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Hotel",
+        "UY": "Hotel",
+        "CL": "Hotel",
+        "CO": "Hotel",
+        "EC": "Hotel",
+        "MX": "Hotel",
+        "CR": "Hotel",
+        "PA": "Hotel",
+        "BR": "Hotel"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_OPERACIONES"
+      ],
+      "examples": [
+        "hotel urbano",
+        "hotel de playa"
+      ]
+    },
+    {
+      "id": "A2_T002_HOTEL_BOUTIQUE",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Hotel boutique",
+        "UY": "Hotel boutique",
+        "CL": "Hotel boutique",
+        "CO": "Hotel boutique",
+        "EC": "Hotel boutique",
+        "MX": "Hotel boutique",
+        "CR": "Hotel boutique",
+        "PA": "Hotel boutique",
+        "BR": "Hotel boutique"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_ANALITICA",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T003_APART_HOTEL",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Apart hotel",
+        "UY": "Apart hotel",
+        "CL": "Apart-hotel",
+        "CO": "Apart-hotel",
+        "EC": "Apart-hotel",
+        "MX": "Apart-hotel",
+        "CR": "Apart-hotel",
+        "PA": "Apart-hotel",
+        "BR": "Flat / Apart-hotel"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_OPERACIONES",
+        "M_FINANZAS",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T004_HOSTEL",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Hostel",
+        "UY": "Hostel",
+        "CL": "Hostal",
+        "CO": "Hostal",
+        "EC": "Hostal",
+        "MX": "Hostal",
+        "CR": "Hostal",
+        "PA": "Hostal",
+        "BR": "Hostel"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "hostel",
+          "hostal",
+          "albergue"
+        ],
+        "UY": [
+          "hostel",
+          "hostal",
+          "albergue"
+        ],
+        "CL": [
+          "hostel",
+          "hostal",
+          "albergue"
+        ],
+        "CO": [
+          "hostel",
+          "hostal",
+          "albergue"
+        ],
+        "EC": [
+          "hostel",
+          "hostal",
+          "albergue"
+        ],
+        "MX": [
+          "hostel",
+          "hostal",
+          "albergue"
+        ],
+        "CR": [
+          "hostel",
+          "hostal",
+          "albergue"
+        ],
+        "PA": [
+          "hostel",
+          "hostal",
+          "albergue"
+        ],
+        "BR": [
+          "hostel",
+          "albergue"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T005_POSADA",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Hostería / Posada",
+        "UY": "Hostería / Posada",
+        "CL": "Hostería / Posada",
+        "CO": "Posada / Hostería",
+        "EC": "Posada / Hostería",
+        "MX": "Posada / Hostería",
+        "CR": "Posada / Hostería",
+        "PA": "Posada / Hostería",
+        "BR": "Pousada"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "posada",
+          "hosteria",
+          "hostería"
+        ],
+        "UY": [
+          "posada",
+          "hosteria",
+          "hostería"
+        ],
+        "CL": [
+          "posada",
+          "hosteria",
+          "hostería"
+        ],
+        "CO": [
+          "posada",
+          "hosteria",
+          "hostería"
+        ],
+        "EC": [
+          "posada",
+          "hosteria",
+          "hostería"
+        ],
+        "MX": [
+          "posada",
+          "hosteria",
+          "hostería"
+        ],
+        "CR": [
+          "posada",
+          "hosteria",
+          "hostería"
+        ],
+        "PA": [
+          "posada",
+          "hosteria",
+          "hostería"
+        ],
+        "BR": [
+          "pousada",
+          "hospedaria"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T006_RESORT",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Resort / All inclusive",
+        "UY": "Resort / All inclusive",
+        "CL": "Resort / All inclusive",
+        "CO": "Resort / All inclusive",
+        "EC": "Resort / All inclusive",
+        "MX": "Resort / All inclusive",
+        "CR": "Resort / All inclusive",
+        "PA": "Resort / All inclusive",
+        "BR": "Resort / All inclusive"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_OPERACIONES",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T007_CABANAS",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Cabañas / Glamping / Camping",
+        "UY": "Cabañas / Glamping / Camping",
+        "CL": "Cabañas / Glamping / Camping",
+        "CO": "Cabañas / Glamping / Camping",
+        "EC": "Cabañas / Glamping / Camping",
+        "MX": "Cabañas / Glamping / Camping",
+        "CR": "Cabañas / Glamping / Camping",
+        "PA": "Cabañas / Glamping / Camping",
+        "BR": "Chalés / Glamping / Camping"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_OPERACIONES",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T008_ALQUILER_TEMPORARIO",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Alquiler temporario (gestión)",
+        "UY": "Alquiler temporario (gestión)",
+        "CL": "Alquiler temporario (gestión)",
+        "CO": "Alquiler temporario (gestión)",
+        "EC": "Alquiler temporario (gestión)",
+        "MX": "Alquiler temporario (gestión)",
+        "CR": "Alquiler temporario (gestión)",
+        "PA": "Alquiler temporario (gestión)",
+        "BR": "Aluguel por temporada (gestão)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_OPERACIONES",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_DOCUMENTOS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T009_AGENCIA_VIAJES",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Agencia de viajes",
+        "UY": "Agencia de viajes",
+        "CL": "Agencia de viajes",
+        "CO": "Agencia de viajes",
+        "EC": "Agencia de viajes",
+        "MX": "Agencia de viajes",
+        "CR": "Agencia de viajes",
+        "PA": "Agencia de viajes",
+        "BR": "Agência de viagens"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_MARKETING",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T010_OPERADOR_TURISTICO",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Operador turístico / Receptivo",
+        "UY": "Operador turístico / Receptivo",
+        "CL": "Operador turístico / Receptivo",
+        "CO": "Operador turístico / Receptivo",
+        "EC": "Operador turístico / Receptivo",
+        "MX": "Operador turístico / Receptivo",
+        "CR": "Operador turístico / Receptivo",
+        "PA": "Operador turístico / Receptivo",
+        "BR": "Operadora de turismo / Receptivo"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_LOGISTICA",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T011_GUIA_TURISTICO",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Guía turístico",
+        "UY": "Guía turístico",
+        "CL": "Guía turístico",
+        "CO": "Guía turístico",
+        "EC": "Guía turístico",
+        "MX": "Guía turístico",
+        "CR": "Guía turístico",
+        "PA": "Guía turístico",
+        "BR": "Guia de turismo"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T012_TOURS_AVENTURA",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Tours de aventura",
+        "UY": "Tours de aventura",
+        "CL": "Tours de aventura",
+        "CO": "Tours de aventura",
+        "EC": "Tours de aventura",
+        "MX": "Tours de aventura",
+        "CR": "Tours de aventura",
+        "PA": "Tours de aventura",
+        "BR": "Turismo de aventura"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_LOGISTICA",
+        "M_ATENCION",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T013_RENTACAR",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Rent a car (alquiler de autos)",
+        "UY": "Rent a car (alquiler de autos)",
+        "CL": "Rent a car (alquiler de autos)",
+        "CO": "Rent a car (alquiler de autos)",
+        "EC": "Rent a car (alquiler de autos)",
+        "MX": "Rent a car (alquiler de autos)",
+        "CR": "Rent a car (alquiler de autos)",
+        "PA": "Rent a car (alquiler de autos)",
+        "BR": "Locadora de veículos"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_LOGISTICA",
+        "M_OPERACIONES",
+        "M_DOCUMENTOS",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T014_TRANSFERS",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Traslados / Transfers",
+        "UY": "Traslados / Transfers",
+        "CL": "Traslados / Transfers",
+        "CO": "Traslados / Transfers",
+        "EC": "Traslados / Transfers",
+        "MX": "Traslados / Transfers",
+        "CR": "Traslados / Transfers",
+        "PA": "Traslados / Transfers",
+        "BR": "Transfer"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T015_SALON_EVENTOS",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Salón de eventos",
+        "UY": "Salón de eventos",
+        "CL": "Salón de eventos",
+        "CO": "Salón de eventos",
+        "EC": "Salón de eventos",
+        "MX": "Salón de eventos",
+        "CR": "Salón de eventos",
+        "PA": "Salón de eventos",
+        "BR": "Espaço de eventos"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_DOCUMENTOS",
+        "M_ATENCION",
+        "M_OPERACIONES",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T016_PRODUCTORA_EVENTOS",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Productora de eventos",
+        "UY": "Productora de eventos",
+        "CL": "Productora de eventos",
+        "CO": "Productora de eventos",
+        "EC": "Productora de eventos",
+        "MX": "Productora de eventos",
+        "CR": "Productora de eventos",
+        "PA": "Productora de eventos",
+        "BR": "Produtora de eventos"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_DOCUMENTOS",
+        "M_ATENCION",
+        "M_OPERACIONES",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T017_WEDDING_PLANNER",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Wedding planner",
+        "UY": "Wedding planner",
+        "CL": "Wedding planner",
+        "CO": "Wedding planner",
+        "EC": "Wedding planner",
+        "MX": "Wedding planner",
+        "CR": "Wedding planner",
+        "PA": "Wedding planner",
+        "BR": "Assessoria de casamento"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_DOCUMENTOS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T018_MUSEO_CULTURA",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Museo / Centro cultural",
+        "UY": "Museo / Centro cultural",
+        "CL": "Museo / Centro cultural",
+        "CO": "Museo / Centro cultural",
+        "EC": "Museo / Centro cultural",
+        "MX": "Museo / Centro cultural",
+        "CR": "Museo / Centro cultural",
+        "PA": "Museo / Centro cultural",
+        "BR": "Museu / Centro cultural"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_MARKETING",
+        "M_ATENCION",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A2_T019_PARQUE_TEMATICO",
+      "area_id": "A2_TURISMO",
+      "labels_by_country": {
+        "AR": "Parque temático / acuático",
+        "UY": "Parque temático / acuático",
+        "CL": "Parque temático / acuático",
+        "CO": "Parque temático / acuático",
+        "EC": "Parque temático / acuático",
+        "MX": "Parque temático / acuático",
+        "CR": "Parque temático / acuático",
+        "PA": "Parque temático / acuático",
+        "BR": "Parque temático / aquático"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_OPERACIONES",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T001_TIENDA_BARRIO",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Almacén",
+        "UY": "Almacén",
+        "CL": "Almacén / Negocio",
+        "CO": "Tienda",
+        "EC": "Tienda",
+        "MX": "Tienda de abarrotes / Tiendita",
+        "CR": "Pulpería",
+        "PA": "Tienda / Mini súper",
+        "BR": "Mercearia / Mercadinho"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "tienda",
+          "almacen",
+          "almacén",
+          "abarrotes",
+          "pulperia",
+          "pulpería",
+          "bodega"
+        ],
+        "UY": [
+          "tienda",
+          "almacen",
+          "almacén",
+          "abarrotes",
+          "pulperia",
+          "pulpería",
+          "bodega"
+        ],
+        "CL": [
+          "tienda",
+          "almacen",
+          "almacén",
+          "abarrotes",
+          "pulperia",
+          "pulpería",
+          "bodega"
+        ],
+        "CO": [
+          "tienda",
+          "almacen",
+          "almacén",
+          "abarrotes",
+          "pulperia",
+          "pulpería",
+          "bodega"
+        ],
+        "EC": [
+          "tienda",
+          "almacen",
+          "almacén",
+          "abarrotes",
+          "pulperia",
+          "pulpería",
+          "bodega"
+        ],
+        "MX": [
+          "tienda",
+          "almacen",
+          "almacén",
+          "abarrotes",
+          "pulperia",
+          "pulpería",
+          "bodega"
+        ],
+        "CR": [
+          "tienda",
+          "almacen",
+          "almacén",
+          "abarrotes",
+          "pulperia",
+          "pulpería",
+          "bodega"
+        ],
+        "PA": [
+          "tienda",
+          "almacen",
+          "almacén",
+          "abarrotes",
+          "pulperia",
+          "pulpería",
+          "bodega"
+        ],
+        "BR": [
+          "mercearia",
+          "mercadinho",
+          "mercado de bairro"
+        ]
+      },
+      "definitions_by_country": {
+        "AR": "Pequeño comercio de proximidad con surtido básico.",
+        "UY": "Pequeño comercio de proximidad con surtido básico.",
+        "CL": "Pequeño comercio de proximidad con surtido básico.",
+        "CO": "Pequeño comercio de proximidad con surtido básico.",
+        "EC": "Pequeño comercio de proximidad con surtido básico.",
+        "MX": "Pequeño comercio de proximidad con surtido básico.",
+        "CR": "Pequeño comercio de proximidad con surtido básico.",
+        "PA": "Pequeño comercio de proximidad con surtido básico.",
+        "BR": "Comércio de bairro com mix básico de produtos."
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T002_SUPERMERCADO",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Supermercado",
+        "UY": "Supermercado",
+        "CL": "Supermercado / Minimarket",
+        "CO": "Supermercado",
+        "EC": "Supermercado",
+        "MX": "Supermercado / Mini súper",
+        "CR": "Supermercado",
+        "PA": "Supermercado / Mini súper",
+        "BR": "Supermercado"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "supermercado",
+          "minimarket",
+          "mini super",
+          "mini súper"
+        ],
+        "UY": [
+          "supermercado",
+          "minimarket",
+          "mini super",
+          "mini súper"
+        ],
+        "CL": [
+          "supermercado",
+          "minimarket",
+          "mini super",
+          "mini súper"
+        ],
+        "CO": [
+          "supermercado",
+          "minimarket",
+          "mini super",
+          "mini súper"
+        ],
+        "EC": [
+          "supermercado",
+          "minimarket",
+          "mini super",
+          "mini súper"
+        ],
+        "MX": [
+          "supermercado",
+          "minimarket",
+          "mini super",
+          "mini súper"
+        ],
+        "CR": [
+          "supermercado",
+          "minimarket",
+          "mini super",
+          "mini súper"
+        ],
+        "PA": [
+          "supermercado",
+          "minimarket",
+          "mini super",
+          "mini súper"
+        ],
+        "BR": [
+          "supermercado",
+          "mercado"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ANALITICA",
+        "M_FINANZAS",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T003_KIOSCO",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Kiosco",
+        "UY": "Kiosco",
+        "CL": "Kiosco",
+        "CO": "Kiosco",
+        "EC": "Kiosco",
+        "MX": "Kiosco",
+        "CR": "Kiosco",
+        "PA": "Kiosco",
+        "BR": "Quiosque"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "kiosco",
+          "kiosk"
+        ],
+        "UY": [
+          "kiosco",
+          "kiosk"
+        ],
+        "CL": [
+          "kiosco",
+          "kiosk"
+        ],
+        "CO": [
+          "kiosco",
+          "kiosk"
+        ],
+        "EC": [
+          "kiosco",
+          "kiosk"
+        ],
+        "MX": [
+          "kiosco",
+          "kiosk"
+        ],
+        "CR": [
+          "kiosco",
+          "kiosk"
+        ],
+        "PA": [
+          "kiosco",
+          "kiosk"
+        ],
+        "BR": [
+          "quiosque"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T004_VERDULERIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Verdulería / Frutería",
+        "UY": "Verdulería / Frutería",
+        "CL": "Verdulería / Frutería",
+        "CO": "Verdulería / Frutería",
+        "EC": "Verdulería / Frutería",
+        "MX": "Verdulería / Frutería",
+        "CR": "Verdulería / Frutería",
+        "PA": "Verdulería / Frutería",
+        "BR": "Hortifruti"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "verduleria",
+          "verdulería",
+          "fruteria",
+          "frutería"
+        ],
+        "UY": [
+          "verduleria",
+          "verdulería",
+          "fruteria",
+          "frutería"
+        ],
+        "CL": [
+          "verduleria",
+          "verdulería",
+          "fruteria",
+          "frutería"
+        ],
+        "CO": [
+          "verduleria",
+          "verdulería",
+          "fruteria",
+          "frutería"
+        ],
+        "EC": [
+          "verduleria",
+          "verdulería",
+          "fruteria",
+          "frutería"
+        ],
+        "MX": [
+          "verduleria",
+          "verdulería",
+          "fruteria",
+          "frutería"
+        ],
+        "CR": [
+          "verduleria",
+          "verdulería",
+          "fruteria",
+          "frutería"
+        ],
+        "PA": [
+          "verduleria",
+          "verdulería",
+          "fruteria",
+          "frutería"
+        ],
+        "BR": [
+          "hortifruti",
+          "frutas e verduras"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ANALITICA",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T005_CARNICERIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Carnicería",
+        "UY": "Carnicería",
+        "CL": "Carnicería",
+        "CO": "Carnicería",
+        "EC": "Carnicería",
+        "MX": "Carnicería",
+        "CR": "Carnicería",
+        "PA": "Carnicería",
+        "BR": "Açougue"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "carniceria",
+          "carnicería"
+        ],
+        "UY": [
+          "carniceria",
+          "carnicería"
+        ],
+        "CL": [
+          "carniceria",
+          "carnicería"
+        ],
+        "CO": [
+          "carniceria",
+          "carnicería"
+        ],
+        "EC": [
+          "carniceria",
+          "carnicería"
+        ],
+        "MX": [
+          "carniceria",
+          "carnicería"
+        ],
+        "CR": [
+          "carniceria",
+          "carnicería"
+        ],
+        "PA": [
+          "carniceria",
+          "carnicería"
+        ],
+        "BR": [
+          "açougue"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T006_PESCADERIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Pescadería",
+        "UY": "Pescadería",
+        "CL": "Pescadería",
+        "CO": "Pescadería",
+        "EC": "Pescadería",
+        "MX": "Pescadería",
+        "CR": "Pescadería",
+        "PA": "Pescadería",
+        "BR": "Peixaria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "pescaderia",
+          "pescadería"
+        ],
+        "UY": [
+          "pescaderia",
+          "pescadería"
+        ],
+        "CL": [
+          "pescaderia",
+          "pescadería"
+        ],
+        "CO": [
+          "pescaderia",
+          "pescadería"
+        ],
+        "EC": [
+          "pescaderia",
+          "pescadería"
+        ],
+        "MX": [
+          "pescaderia",
+          "pescadería"
+        ],
+        "CR": [
+          "pescaderia",
+          "pescadería"
+        ],
+        "PA": [
+          "pescaderia",
+          "pescadería"
+        ],
+        "BR": [
+          "peixaria"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T007_FIAMBRERIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Fiambrería / Charcutería",
+        "UY": "Fiambrería / Charcutería",
+        "CL": "Fiambrería / Charcutería",
+        "CO": "Fiambrería / Charcutería",
+        "EC": "Fiambrería / Charcutería",
+        "MX": "Fiambrería / Charcutería",
+        "CR": "Fiambrería / Charcutería",
+        "PA": "Fiambrería / Charcutería",
+        "BR": "Charcutaria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "fiambreria",
+          "fiambrería",
+          "charcuteria",
+          "charcutería",
+          "deli"
+        ],
+        "UY": [
+          "fiambreria",
+          "fiambrería",
+          "charcuteria",
+          "charcutería",
+          "deli"
+        ],
+        "CL": [
+          "fiambreria",
+          "fiambrería",
+          "charcuteria",
+          "charcutería",
+          "deli"
+        ],
+        "CO": [
+          "fiambreria",
+          "fiambrería",
+          "charcuteria",
+          "charcutería",
+          "deli"
+        ],
+        "EC": [
+          "fiambreria",
+          "fiambrería",
+          "charcuteria",
+          "charcutería",
+          "deli"
+        ],
+        "MX": [
+          "fiambreria",
+          "fiambrería",
+          "charcuteria",
+          "charcutería",
+          "deli"
+        ],
+        "CR": [
+          "fiambreria",
+          "fiambrería",
+          "charcuteria",
+          "charcutería",
+          "deli"
+        ],
+        "PA": [
+          "fiambreria",
+          "fiambrería",
+          "charcuteria",
+          "charcutería",
+          "deli"
+        ],
+        "BR": [
+          "charcutaria"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T008_DIETETICA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Dietética / Productos naturales",
+        "UY": "Dietética / Productos naturales",
+        "CL": "Dietética / Productos naturales",
+        "CO": "Dietética / Productos naturales",
+        "EC": "Dietética / Productos naturales",
+        "MX": "Dietética / Productos naturales",
+        "CR": "Dietética / Productos naturales",
+        "PA": "Dietética / Productos naturales",
+        "BR": "Loja de produtos naturais"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "dietetica",
+          "dietética",
+          "naturales",
+          "organicos",
+          "orgánicos"
+        ],
+        "UY": [
+          "dietetica",
+          "dietética",
+          "naturales",
+          "organicos",
+          "orgánicos"
+        ],
+        "CL": [
+          "dietetica",
+          "dietética",
+          "naturales",
+          "organicos",
+          "orgánicos"
+        ],
+        "CO": [
+          "dietetica",
+          "dietética",
+          "naturales",
+          "organicos",
+          "orgánicos"
+        ],
+        "EC": [
+          "dietetica",
+          "dietética",
+          "naturales",
+          "organicos",
+          "orgánicos"
+        ],
+        "MX": [
+          "dietetica",
+          "dietética",
+          "naturales",
+          "organicos",
+          "orgánicos"
+        ],
+        "CR": [
+          "dietetica",
+          "dietética",
+          "naturales",
+          "organicos",
+          "orgánicos"
+        ],
+        "PA": [
+          "dietetica",
+          "dietética",
+          "naturales",
+          "organicos",
+          "orgánicos"
+        ],
+        "BR": [
+          "produtos naturais",
+          "loja natural"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T009_BEBIDAS",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Vinoteca",
+        "UY": "Vinoteca",
+        "CL": "Botillería / Licorería",
+        "CO": "Licorera",
+        "EC": "Licorería",
+        "MX": "Licorería",
+        "CR": "Tienda de bebidas",
+        "PA": "Licorería",
+        "BR": "Adega / Distribuidora de bebidas"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "vinoteca",
+          "licoreria",
+          "licorería",
+          "botilleria",
+          "botillería"
+        ],
+        "UY": [
+          "vinoteca",
+          "licoreria",
+          "licorería",
+          "botilleria",
+          "botillería"
+        ],
+        "CL": [
+          "vinoteca",
+          "licoreria",
+          "licorería",
+          "botilleria",
+          "botillería"
+        ],
+        "CO": [
+          "vinoteca",
+          "licoreria",
+          "licorería",
+          "botilleria",
+          "botillería"
+        ],
+        "EC": [
+          "vinoteca",
+          "licoreria",
+          "licorería",
+          "botilleria",
+          "botillería"
+        ],
+        "MX": [
+          "vinoteca",
+          "licoreria",
+          "licorería",
+          "botilleria",
+          "botillería"
+        ],
+        "CR": [
+          "vinoteca",
+          "licoreria",
+          "licorería",
+          "botilleria",
+          "botillería"
+        ],
+        "PA": [
+          "vinoteca",
+          "licoreria",
+          "licorería",
+          "botilleria",
+          "botillería"
+        ],
+        "BR": [
+          "adega",
+          "distribuidora de bebidas"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T010_FARMACIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Farmacia",
+        "UY": "Farmacia",
+        "CL": "Farmacia",
+        "CO": "Farmacia",
+        "EC": "Farmacia",
+        "MX": "Farmacia",
+        "CR": "Farmacia",
+        "PA": "Farmacia",
+        "BR": "Farmácia"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "farmacia",
+          "farmacia de barrio"
+        ],
+        "UY": [
+          "farmacia",
+          "farmacia de barrio"
+        ],
+        "CL": [
+          "farmacia",
+          "farmacia de barrio"
+        ],
+        "CO": [
+          "farmacia",
+          "farmacia de barrio"
+        ],
+        "EC": [
+          "farmacia",
+          "farmacia de barrio"
+        ],
+        "MX": [
+          "farmacia",
+          "farmacia de barrio"
+        ],
+        "CR": [
+          "farmacia",
+          "farmacia de barrio"
+        ],
+        "PA": [
+          "farmacia",
+          "farmacia de barrio"
+        ],
+        "BR": [
+          "farmácia",
+          "drogaria"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ANALITICA",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T011_PERFUMERIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Perfumería / Cosmética",
+        "UY": "Perfumería / Cosmética",
+        "CL": "Perfumería / Cosmética",
+        "CO": "Perfumería / Cosmética",
+        "EC": "Perfumería / Cosmética",
+        "MX": "Perfumería / Cosmética",
+        "CR": "Perfumería / Cosmética",
+        "PA": "Perfumería / Cosmética",
+        "BR": "Perfumaria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "perfumeria",
+          "perfumería",
+          "cosmetica",
+          "cosmética"
+        ],
+        "UY": [
+          "perfumeria",
+          "perfumería",
+          "cosmetica",
+          "cosmética"
+        ],
+        "CL": [
+          "perfumeria",
+          "perfumería",
+          "cosmetica",
+          "cosmética"
+        ],
+        "CO": [
+          "perfumeria",
+          "perfumería",
+          "cosmetica",
+          "cosmética"
+        ],
+        "EC": [
+          "perfumeria",
+          "perfumería",
+          "cosmetica",
+          "cosmética"
+        ],
+        "MX": [
+          "perfumeria",
+          "perfumería",
+          "cosmetica",
+          "cosmética"
+        ],
+        "CR": [
+          "perfumeria",
+          "perfumería",
+          "cosmetica",
+          "cosmética"
+        ],
+        "PA": [
+          "perfumeria",
+          "perfumería",
+          "cosmetica",
+          "cosmética"
+        ],
+        "BR": [
+          "perfumaria",
+          "cosméticos"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T012_LIBRERIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Librería / Papelería",
+        "UY": "Librería / Papelería",
+        "CL": "Librería / Papelería",
+        "CO": "Librería / Papelería",
+        "EC": "Librería / Papelería",
+        "MX": "Librería / Papelería",
+        "CR": "Librería / Papelería",
+        "PA": "Librería / Papelería",
+        "BR": "Livraria / Papelaria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "libreria",
+          "librería",
+          "papeleria",
+          "papelería"
+        ],
+        "UY": [
+          "libreria",
+          "librería",
+          "papeleria",
+          "papelería"
+        ],
+        "CL": [
+          "libreria",
+          "librería",
+          "papeleria",
+          "papelería"
+        ],
+        "CO": [
+          "libreria",
+          "librería",
+          "papeleria",
+          "papelería"
+        ],
+        "EC": [
+          "libreria",
+          "librería",
+          "papeleria",
+          "papelería"
+        ],
+        "MX": [
+          "libreria",
+          "librería",
+          "papeleria",
+          "papelería"
+        ],
+        "CR": [
+          "libreria",
+          "librería",
+          "papeleria",
+          "papelería"
+        ],
+        "PA": [
+          "libreria",
+          "librería",
+          "papeleria",
+          "papelería"
+        ],
+        "BR": [
+          "livraria",
+          "papelaria"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T013_FERRETERIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Ferretería",
+        "UY": "Ferretería",
+        "CL": "Ferretería",
+        "CO": "Ferretería",
+        "EC": "Ferretería",
+        "MX": "Ferretería",
+        "CR": "Ferretería",
+        "PA": "Ferretería",
+        "BR": "Loja de ferragens"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "ferreteria",
+          "ferretería"
+        ],
+        "UY": [
+          "ferreteria",
+          "ferretería"
+        ],
+        "CL": [
+          "ferreteria",
+          "ferretería"
+        ],
+        "CO": [
+          "ferreteria",
+          "ferretería"
+        ],
+        "EC": [
+          "ferreteria",
+          "ferretería"
+        ],
+        "MX": [
+          "ferreteria",
+          "ferretería"
+        ],
+        "CR": [
+          "ferreteria",
+          "ferretería"
+        ],
+        "PA": [
+          "ferreteria",
+          "ferretería"
+        ],
+        "BR": [
+          "ferragens",
+          "loja de ferragens"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T014_HOGAR_DECORACION",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Hogar y decoración",
+        "UY": "Hogar y decoración",
+        "CL": "Hogar y decoración",
+        "CO": "Hogar y decoración",
+        "EC": "Hogar y decoración",
+        "MX": "Hogar y decoración",
+        "CR": "Hogar y decoración",
+        "PA": "Hogar y decoración",
+        "BR": "Casa e decoração"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "decoracion",
+          "decoración",
+          "bazar",
+          "hogar"
+        ],
+        "UY": [
+          "decoracion",
+          "decoración",
+          "bazar",
+          "hogar"
+        ],
+        "CL": [
+          "decoracion",
+          "decoración",
+          "bazar",
+          "hogar"
+        ],
+        "CO": [
+          "decoracion",
+          "decoración",
+          "bazar",
+          "hogar"
+        ],
+        "EC": [
+          "decoracion",
+          "decoración",
+          "bazar",
+          "hogar"
+        ],
+        "MX": [
+          "decoracion",
+          "decoración",
+          "bazar",
+          "hogar"
+        ],
+        "CR": [
+          "decoracion",
+          "decoración",
+          "bazar",
+          "hogar"
+        ],
+        "PA": [
+          "decoracion",
+          "decoración",
+          "bazar",
+          "hogar"
+        ],
+        "BR": [
+          "casa e decoração",
+          "utilidades"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T015_MUEBLERIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Mueblería",
+        "UY": "Mueblería",
+        "CL": "Mueblería",
+        "CO": "Mueblería",
+        "EC": "Mueblería",
+        "MX": "Mueblería",
+        "CR": "Mueblería",
+        "PA": "Mueblería",
+        "BR": "Loja de móveis"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "muebleria",
+          "mueblería"
+        ],
+        "UY": [
+          "muebleria",
+          "mueblería"
+        ],
+        "CL": [
+          "muebleria",
+          "mueblería"
+        ],
+        "CO": [
+          "muebleria",
+          "mueblería"
+        ],
+        "EC": [
+          "muebleria",
+          "mueblería"
+        ],
+        "MX": [
+          "muebleria",
+          "mueblería"
+        ],
+        "CR": [
+          "muebleria",
+          "mueblería"
+        ],
+        "PA": [
+          "muebleria",
+          "mueblería"
+        ],
+        "BR": [
+          "móveis",
+          "loja de móveis"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_DOCUMENTOS",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T016_ELECTRONICA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Tecnología / Electrónica",
+        "UY": "Tecnología / Electrónica",
+        "CL": "Tecnología / Electrónica",
+        "CO": "Tecnología / Electrónica",
+        "EC": "Tecnología / Electrónica",
+        "MX": "Tecnología / Electrónica",
+        "CR": "Tecnología / Electrónica",
+        "PA": "Tecnología / Electrónica",
+        "BR": "Eletrônicos"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "electronica",
+          "electrónica",
+          "tecnologia",
+          "tecnología"
+        ],
+        "UY": [
+          "electronica",
+          "electrónica",
+          "tecnologia",
+          "tecnología"
+        ],
+        "CL": [
+          "electronica",
+          "electrónica",
+          "tecnologia",
+          "tecnología"
+        ],
+        "CO": [
+          "electronica",
+          "electrónica",
+          "tecnologia",
+          "tecnología"
+        ],
+        "EC": [
+          "electronica",
+          "electrónica",
+          "tecnologia",
+          "tecnología"
+        ],
+        "MX": [
+          "electronica",
+          "electrónica",
+          "tecnologia",
+          "tecnología"
+        ],
+        "CR": [
+          "electronica",
+          "electrónica",
+          "tecnologia",
+          "tecnología"
+        ],
+        "PA": [
+          "electronica",
+          "electrónica",
+          "tecnologia",
+          "tecnología"
+        ],
+        "BR": [
+          "eletrônicos",
+          "tecnologia"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T017_ELECTRODOMESTICOS",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Electrodomésticos",
+        "UY": "Electrodomésticos",
+        "CL": "Electrodomésticos",
+        "CO": "Electrodomésticos",
+        "EC": "Electrodomésticos",
+        "MX": "Electrodomésticos",
+        "CR": "Electrodomésticos",
+        "PA": "Electrodomésticos",
+        "BR": "Eletrodomésticos"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "electrodomesticos",
+          "electrodomésticos"
+        ],
+        "UY": [
+          "electrodomesticos",
+          "electrodomésticos"
+        ],
+        "CL": [
+          "electrodomesticos",
+          "electrodomésticos"
+        ],
+        "CO": [
+          "electrodomesticos",
+          "electrodomésticos"
+        ],
+        "EC": [
+          "electrodomesticos",
+          "electrodomésticos"
+        ],
+        "MX": [
+          "electrodomesticos",
+          "electrodomésticos"
+        ],
+        "CR": [
+          "electrodomesticos",
+          "electrodomésticos"
+        ],
+        "PA": [
+          "electrodomesticos",
+          "electrodomésticos"
+        ],
+        "BR": [
+          "eletrodomésticos"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T018_ROPA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Tienda de ropa",
+        "UY": "Tienda de ropa",
+        "CL": "Tienda de ropa",
+        "CO": "Tienda de ropa",
+        "EC": "Tienda de ropa",
+        "MX": "Tienda de ropa",
+        "CR": "Tienda de ropa",
+        "PA": "Tienda de ropa",
+        "BR": "Loja de roupas"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "ropa",
+          "boutique",
+          "indumentaria"
+        ],
+        "UY": [
+          "ropa",
+          "boutique",
+          "indumentaria"
+        ],
+        "CL": [
+          "ropa",
+          "boutique",
+          "indumentaria"
+        ],
+        "CO": [
+          "ropa",
+          "boutique",
+          "indumentaria"
+        ],
+        "EC": [
+          "ropa",
+          "boutique",
+          "indumentaria"
+        ],
+        "MX": [
+          "ropa",
+          "boutique",
+          "indumentaria"
+        ],
+        "CR": [
+          "ropa",
+          "boutique",
+          "indumentaria"
+        ],
+        "PA": [
+          "ropa",
+          "boutique",
+          "indumentaria"
+        ],
+        "BR": [
+          "roupas",
+          "boutique"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T019_CALZADO",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Zapatería",
+        "UY": "Zapatería",
+        "CL": "Zapatería",
+        "CO": "Zapatería",
+        "EC": "Zapatería",
+        "MX": "Zapatería",
+        "CR": "Zapatería",
+        "PA": "Zapatería",
+        "BR": "Loja de calçados"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "zapateria",
+          "zapatería",
+          "calzado"
+        ],
+        "UY": [
+          "zapateria",
+          "zapatería",
+          "calzado"
+        ],
+        "CL": [
+          "zapateria",
+          "zapatería",
+          "calzado"
+        ],
+        "CO": [
+          "zapateria",
+          "zapatería",
+          "calzado"
+        ],
+        "EC": [
+          "zapateria",
+          "zapatería",
+          "calzado"
+        ],
+        "MX": [
+          "zapateria",
+          "zapatería",
+          "calzado"
+        ],
+        "CR": [
+          "zapateria",
+          "zapatería",
+          "calzado"
+        ],
+        "PA": [
+          "zapateria",
+          "zapatería",
+          "calzado"
+        ],
+        "BR": [
+          "calçados"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T020_JOYERIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Joyería / Relojería",
+        "UY": "Joyería / Relojería",
+        "CL": "Joyería / Relojería",
+        "CO": "Joyería / Relojería",
+        "EC": "Joyería / Relojería",
+        "MX": "Joyería / Relojería",
+        "CR": "Joyería / Relojería",
+        "PA": "Joyería / Relojería",
+        "BR": "Joalheria / Relojoaria"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "joyeria",
+          "joyería",
+          "relojeria",
+          "relojería"
+        ],
+        "UY": [
+          "joyeria",
+          "joyería",
+          "relojeria",
+          "relojería"
+        ],
+        "CL": [
+          "joyeria",
+          "joyería",
+          "relojeria",
+          "relojería"
+        ],
+        "CO": [
+          "joyeria",
+          "joyería",
+          "relojeria",
+          "relojería"
+        ],
+        "EC": [
+          "joyeria",
+          "joyería",
+          "relojeria",
+          "relojería"
+        ],
+        "MX": [
+          "joyeria",
+          "joyería",
+          "relojeria",
+          "relojería"
+        ],
+        "CR": [
+          "joyeria",
+          "joyería",
+          "relojeria",
+          "relojería"
+        ],
+        "PA": [
+          "joyeria",
+          "joyería",
+          "relojeria",
+          "relojería"
+        ],
+        "BR": [
+          "joalheria",
+          "relojoaria"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T021_JUGUETERIA",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Juguetería",
+        "UY": "Juguetería",
+        "CL": "Juguetería",
+        "CO": "Juguetería",
+        "EC": "Juguetería",
+        "MX": "Juguetería",
+        "CR": "Juguetería",
+        "PA": "Juguetería",
+        "BR": "Loja de brinquedos"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "jugueteria",
+          "juguetería"
+        ],
+        "UY": [
+          "jugueteria",
+          "juguetería"
+        ],
+        "CL": [
+          "jugueteria",
+          "juguetería"
+        ],
+        "CO": [
+          "jugueteria",
+          "juguetería"
+        ],
+        "EC": [
+          "jugueteria",
+          "juguetería"
+        ],
+        "MX": [
+          "jugueteria",
+          "juguetería"
+        ],
+        "CR": [
+          "jugueteria",
+          "juguetería"
+        ],
+        "PA": [
+          "jugueteria",
+          "juguetería"
+        ],
+        "BR": [
+          "brinquedos"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T022_PETSHOP",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Pet shop",
+        "UY": "Pet shop",
+        "CL": "Pet shop",
+        "CO": "Pet shop",
+        "EC": "Pet shop",
+        "MX": "Pet shop",
+        "CR": "Pet shop",
+        "PA": "Pet shop",
+        "BR": "Pet shop"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "petshop",
+          "tienda de mascotas"
+        ],
+        "UY": [
+          "petshop",
+          "tienda de mascotas"
+        ],
+        "CL": [
+          "petshop",
+          "tienda de mascotas"
+        ],
+        "CO": [
+          "petshop",
+          "tienda de mascotas"
+        ],
+        "EC": [
+          "petshop",
+          "tienda de mascotas"
+        ],
+        "MX": [
+          "petshop",
+          "tienda de mascotas"
+        ],
+        "CR": [
+          "petshop",
+          "tienda de mascotas"
+        ],
+        "PA": [
+          "petshop",
+          "tienda de mascotas"
+        ],
+        "BR": [
+          "pet shop",
+          "loja pet"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T023_VIVERO",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Vivero",
+        "UY": "Vivero",
+        "CL": "Vivero",
+        "CO": "Vivero",
+        "EC": "Vivero",
+        "MX": "Vivero",
+        "CR": "Vivero",
+        "PA": "Vivero",
+        "BR": "Viveiro"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "vivero",
+          "plantas",
+          "jardineria"
+        ],
+        "UY": [
+          "vivero",
+          "plantas",
+          "jardineria"
+        ],
+        "CL": [
+          "vivero",
+          "plantas",
+          "jardineria"
+        ],
+        "CO": [
+          "vivero",
+          "plantas",
+          "jardineria"
+        ],
+        "EC": [
+          "vivero",
+          "plantas",
+          "jardineria"
+        ],
+        "MX": [
+          "vivero",
+          "plantas",
+          "jardineria"
+        ],
+        "CR": [
+          "vivero",
+          "plantas",
+          "jardineria"
+        ],
+        "PA": [
+          "vivero",
+          "plantas",
+          "jardineria"
+        ],
+        "BR": [
+          "viveiro",
+          "plantas"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T024_ECOMMERCE_D2C",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "E-commerce (tienda online propia)",
+        "UY": "E-commerce (tienda online propia)",
+        "CL": "E-commerce (tienda online propia)",
+        "CO": "E-commerce (tienda online propia)",
+        "EC": "E-commerce (tienda online propia)",
+        "MX": "E-commerce (tienda online propia)",
+        "CR": "E-commerce (tienda online propia)",
+        "PA": "E-commerce (tienda online propia)",
+        "BR": "E-commerce (loja própria)"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "ecommerce",
+          "tienda online",
+          "online"
+        ],
+        "UY": [
+          "ecommerce",
+          "tienda online",
+          "online"
+        ],
+        "CL": [
+          "ecommerce",
+          "tienda online",
+          "online"
+        ],
+        "CO": [
+          "ecommerce",
+          "tienda online",
+          "online"
+        ],
+        "EC": [
+          "ecommerce",
+          "tienda online",
+          "online"
+        ],
+        "MX": [
+          "ecommerce",
+          "tienda online",
+          "online"
+        ],
+        "CR": [
+          "ecommerce",
+          "tienda online",
+          "online"
+        ],
+        "PA": [
+          "ecommerce",
+          "tienda online",
+          "online"
+        ],
+        "BR": [
+          "e-commerce",
+          "loja online"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_MARKETING",
+        "M_ATENCION",
+        "M_LOGISTICA",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T025_MARKETPLACE",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Vendedor en marketplace",
+        "UY": "Vendedor en marketplace",
+        "CL": "Vendedor en marketplace",
+        "CO": "Vendedor en marketplace",
+        "EC": "Vendedor en marketplace",
+        "MX": "Vendedor en marketplace",
+        "CR": "Vendedor en marketplace",
+        "PA": "Vendedor en marketplace",
+        "BR": "Vendedor em marketplace"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "mercado libre",
+          "marketplace",
+          "seller"
+        ],
+        "UY": [
+          "mercado libre",
+          "marketplace",
+          "seller"
+        ],
+        "CL": [
+          "mercado libre",
+          "marketplace",
+          "seller"
+        ],
+        "CO": [
+          "mercado libre",
+          "marketplace",
+          "seller"
+        ],
+        "EC": [
+          "mercado libre",
+          "marketplace",
+          "seller"
+        ],
+        "MX": [
+          "mercado libre",
+          "marketplace",
+          "seller"
+        ],
+        "CR": [
+          "mercado libre",
+          "marketplace",
+          "seller"
+        ],
+        "PA": [
+          "mercado libre",
+          "marketplace",
+          "seller"
+        ],
+        "BR": [
+          "marketplace",
+          "seller",
+          "mercado livre"
+        ]
+      },
+      "tags": [
+        "M_MARKETING",
+        "M_INVENTARIO",
+        "M_ANALITICA",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A3_T026_SOCIAL_COMMERCE",
+      "area_id": "A3_RETAIL",
+      "labels_by_country": {
+        "AR": "Ventas por WhatsApp / redes",
+        "UY": "Ventas por WhatsApp / redes",
+        "CL": "Ventas por WhatsApp / redes",
+        "CO": "Ventas por WhatsApp / redes",
+        "EC": "Ventas por WhatsApp / redes",
+        "MX": "Ventas por WhatsApp / redes",
+        "CR": "Ventas por WhatsApp / redes",
+        "PA": "Ventas por WhatsApp / redes",
+        "BR": "Vendas por WhatsApp / redes"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "whatsapp",
+          "instagram",
+          "facebook",
+          "redes"
+        ],
+        "UY": [
+          "whatsapp",
+          "instagram",
+          "facebook",
+          "redes"
+        ],
+        "CL": [
+          "whatsapp",
+          "instagram",
+          "facebook",
+          "redes"
+        ],
+        "CO": [
+          "whatsapp",
+          "instagram",
+          "facebook",
+          "redes"
+        ],
+        "EC": [
+          "whatsapp",
+          "instagram",
+          "facebook",
+          "redes"
+        ],
+        "MX": [
+          "whatsapp",
+          "instagram",
+          "facebook",
+          "redes"
+        ],
+        "CR": [
+          "whatsapp",
+          "instagram",
+          "facebook",
+          "redes"
+        ],
+        "PA": [
+          "whatsapp",
+          "instagram",
+          "facebook",
+          "redes"
+        ],
+        "BR": [
+          "whatsapp",
+          "instagram",
+          "redes sociais"
+        ]
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_VENTAS_POS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T001_CLINICA",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Clínica / Consultorio médico",
+        "UY": "Clínica / Consultorio médico",
+        "CL": "Clínica / Consultorio médico",
+        "CO": "Clínica / Consultorio médico",
+        "EC": "Clínica / Consultorio médico",
+        "MX": "Clínica / Consultorio médico",
+        "CR": "Clínica / Consultorio médico",
+        "PA": "Clínica / Consultorio médico",
+        "BR": "Clínica médica"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "clinica",
+          "clínica",
+          "consultorio"
+        ],
+        "UY": [
+          "clinica",
+          "clínica",
+          "consultorio"
+        ],
+        "CL": [
+          "clinica",
+          "clínica",
+          "consultorio"
+        ],
+        "CO": [
+          "clinica",
+          "clínica",
+          "consultorio"
+        ],
+        "EC": [
+          "clinica",
+          "clínica",
+          "consultorio"
+        ],
+        "MX": [
+          "clinica",
+          "clínica",
+          "consultorio"
+        ],
+        "CR": [
+          "clinica",
+          "clínica",
+          "consultorio"
+        ],
+        "PA": [
+          "clinica",
+          "clínica",
+          "consultorio"
+        ],
+        "BR": [
+          "clínica",
+          "consultório"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T002_ODONTOLOGIA",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Odontología",
+        "UY": "Odontología",
+        "CL": "Odontología",
+        "CO": "Odontología",
+        "EC": "Odontología",
+        "MX": "Odontología",
+        "CR": "Odontología",
+        "PA": "Odontología",
+        "BR": "Odontologia"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "odontologia",
+          "odontología",
+          "dentista"
+        ],
+        "UY": [
+          "odontologia",
+          "odontología",
+          "dentista"
+        ],
+        "CL": [
+          "odontologia",
+          "odontología",
+          "dentista"
+        ],
+        "CO": [
+          "odontologia",
+          "odontología",
+          "dentista"
+        ],
+        "EC": [
+          "odontologia",
+          "odontología",
+          "dentista"
+        ],
+        "MX": [
+          "odontologia",
+          "odontología",
+          "dentista"
+        ],
+        "CR": [
+          "odontologia",
+          "odontología",
+          "dentista"
+        ],
+        "PA": [
+          "odontologia",
+          "odontología",
+          "dentista"
+        ],
+        "BR": [
+          "odontologia",
+          "dentista"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_FINANZAS",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T003_LABORATORIO",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Laboratorio de análisis",
+        "UY": "Laboratorio de análisis",
+        "CL": "Laboratorio de análisis",
+        "CO": "Laboratorio de análisis",
+        "EC": "Laboratorio de análisis",
+        "MX": "Laboratorio de análisis",
+        "CR": "Laboratorio de análisis",
+        "PA": "Laboratorio de análisis",
+        "BR": "Laboratório"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "laboratorio",
+          "análisis"
+        ],
+        "UY": [
+          "laboratorio",
+          "análisis"
+        ],
+        "CL": [
+          "laboratorio",
+          "análisis"
+        ],
+        "CO": [
+          "laboratorio",
+          "análisis"
+        ],
+        "EC": [
+          "laboratorio",
+          "análisis"
+        ],
+        "MX": [
+          "laboratorio",
+          "análisis"
+        ],
+        "CR": [
+          "laboratorio",
+          "análisis"
+        ],
+        "PA": [
+          "laboratorio",
+          "análisis"
+        ],
+        "BR": [
+          "laboratório",
+          "exames"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_OPERACIONES",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T004_IMAGENES",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Centro de diagnóstico por imágenes",
+        "UY": "Centro de diagnóstico por imágenes",
+        "CL": "Centro de diagnóstico por imágenes",
+        "CO": "Centro de diagnóstico por imágenes",
+        "EC": "Centro de diagnóstico por imágenes",
+        "MX": "Centro de diagnóstico por imágenes",
+        "CR": "Centro de diagnóstico por imágenes",
+        "PA": "Centro de diagnóstico por imágenes",
+        "BR": "Diagnóstico por imagem"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "imagenes",
+          "imágenes",
+          "diagnostico",
+          "diagnóstico"
+        ],
+        "UY": [
+          "imagenes",
+          "imágenes",
+          "diagnostico",
+          "diagnóstico"
+        ],
+        "CL": [
+          "imagenes",
+          "imágenes",
+          "diagnostico",
+          "diagnóstico"
+        ],
+        "CO": [
+          "imagenes",
+          "imágenes",
+          "diagnostico",
+          "diagnóstico"
+        ],
+        "EC": [
+          "imagenes",
+          "imágenes",
+          "diagnostico",
+          "diagnóstico"
+        ],
+        "MX": [
+          "imagenes",
+          "imágenes",
+          "diagnostico",
+          "diagnóstico"
+        ],
+        "CR": [
+          "imagenes",
+          "imágenes",
+          "diagnostico",
+          "diagnóstico"
+        ],
+        "PA": [
+          "imagenes",
+          "imágenes",
+          "diagnostico",
+          "diagnóstico"
+        ],
+        "BR": [
+          "imagem",
+          "diagnóstico por imagem"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T005_PSICOLOGIA",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Psicología / Terapia",
+        "UY": "Psicología / Terapia",
+        "CL": "Psicología / Terapia",
+        "CO": "Psicología / Terapia",
+        "EC": "Psicología / Terapia",
+        "MX": "Psicología / Terapia",
+        "CR": "Psicología / Terapia",
+        "PA": "Psicología / Terapia",
+        "BR": "Psicologia / Terapia"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "psicologia",
+          "psicología",
+          "terapia"
+        ],
+        "UY": [
+          "psicologia",
+          "psicología",
+          "terapia"
+        ],
+        "CL": [
+          "psicologia",
+          "psicología",
+          "terapia"
+        ],
+        "CO": [
+          "psicologia",
+          "psicología",
+          "terapia"
+        ],
+        "EC": [
+          "psicologia",
+          "psicología",
+          "terapia"
+        ],
+        "MX": [
+          "psicologia",
+          "psicología",
+          "terapia"
+        ],
+        "CR": [
+          "psicologia",
+          "psicología",
+          "terapia"
+        ],
+        "PA": [
+          "psicologia",
+          "psicología",
+          "terapia"
+        ],
+        "BR": [
+          "psicologia",
+          "terapia"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T006_FISIO",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Fisioterapia / Kinesiología",
+        "UY": "Fisioterapia / Kinesiología",
+        "CL": "Fisioterapia / Kinesiología",
+        "CO": "Fisioterapia / Kinesiología",
+        "EC": "Fisioterapia / Kinesiología",
+        "MX": "Fisioterapia / Kinesiología",
+        "CR": "Fisioterapia / Kinesiología",
+        "PA": "Fisioterapia / Kinesiología",
+        "BR": "Fisioterapia"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "kinesiologia",
+          "kinesiología",
+          "fisioterapia"
+        ],
+        "UY": [
+          "kinesiologia",
+          "kinesiología",
+          "fisioterapia"
+        ],
+        "CL": [
+          "kinesiologia",
+          "kinesiología",
+          "fisioterapia"
+        ],
+        "CO": [
+          "kinesiologia",
+          "kinesiología",
+          "fisioterapia"
+        ],
+        "EC": [
+          "kinesiologia",
+          "kinesiología",
+          "fisioterapia"
+        ],
+        "MX": [
+          "kinesiologia",
+          "kinesiología",
+          "fisioterapia"
+        ],
+        "CR": [
+          "kinesiologia",
+          "kinesiología",
+          "fisioterapia"
+        ],
+        "PA": [
+          "kinesiologia",
+          "kinesiología",
+          "fisioterapia"
+        ],
+        "BR": [
+          "fisioterapia"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T007_NUTRICION",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Nutrición",
+        "UY": "Nutrición",
+        "CL": "Nutrición",
+        "CO": "Nutrición",
+        "EC": "Nutrición",
+        "MX": "Nutrición",
+        "CR": "Nutrición",
+        "PA": "Nutrición",
+        "BR": "Nutrição"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "nutricion",
+          "nutrición"
+        ],
+        "UY": [
+          "nutricion",
+          "nutrición"
+        ],
+        "CL": [
+          "nutricion",
+          "nutrición"
+        ],
+        "CO": [
+          "nutricion",
+          "nutrición"
+        ],
+        "EC": [
+          "nutricion",
+          "nutrición"
+        ],
+        "MX": [
+          "nutricion",
+          "nutrición"
+        ],
+        "CR": [
+          "nutricion",
+          "nutrición"
+        ],
+        "PA": [
+          "nutricion",
+          "nutrición"
+        ],
+        "BR": [
+          "nutrição"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T008_GIMNASIO",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Gimnasio",
+        "UY": "Gimnasio",
+        "CL": "Gimnasio",
+        "CO": "Gimnasio",
+        "EC": "Gimnasio",
+        "MX": "Gimnasio",
+        "CR": "Gimnasio",
+        "PA": "Gimnasio",
+        "BR": "Academia"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "gimnasio",
+          "fitness"
+        ],
+        "UY": [
+          "gimnasio",
+          "fitness"
+        ],
+        "CL": [
+          "gimnasio",
+          "fitness"
+        ],
+        "CO": [
+          "gimnasio",
+          "fitness"
+        ],
+        "EC": [
+          "gimnasio",
+          "fitness"
+        ],
+        "MX": [
+          "gimnasio",
+          "fitness"
+        ],
+        "CR": [
+          "gimnasio",
+          "fitness"
+        ],
+        "PA": [
+          "gimnasio",
+          "fitness"
+        ],
+        "BR": [
+          "academia",
+          "fitness"
+        ]
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_MARKETING",
+        "M_ANALITICA",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T009_YOGA_PILATES",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Yoga / Pilates",
+        "UY": "Yoga / Pilates",
+        "CL": "Yoga / Pilates",
+        "CO": "Yoga / Pilates",
+        "EC": "Yoga / Pilates",
+        "MX": "Yoga / Pilates",
+        "CR": "Yoga / Pilates",
+        "PA": "Yoga / Pilates",
+        "BR": "Yoga / Pilates"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_VENTAS_POS",
+        "M_MARKETING",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T010_BARBERIA",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Barbería",
+        "UY": "Barbería",
+        "CL": "Barbería",
+        "CO": "Barbería",
+        "EC": "Barbería",
+        "MX": "Barbería",
+        "CR": "Barbería",
+        "PA": "Barbería",
+        "BR": "Barbearia"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "barberia",
+          "barbería"
+        ],
+        "UY": [
+          "barberia",
+          "barbería"
+        ],
+        "CL": [
+          "barberia",
+          "barbería"
+        ],
+        "CO": [
+          "barberia",
+          "barbería"
+        ],
+        "EC": [
+          "barberia",
+          "barbería"
+        ],
+        "MX": [
+          "barberia",
+          "barbería"
+        ],
+        "CR": [
+          "barberia",
+          "barbería"
+        ],
+        "PA": [
+          "barberia",
+          "barbería"
+        ],
+        "BR": [
+          "barbearia"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T011_PELUQUERIA",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Peluquería / Salón de belleza",
+        "UY": "Peluquería / Salón de belleza",
+        "CL": "Peluquería / Salón de belleza",
+        "CO": "Peluquería / Salón de belleza",
+        "EC": "Peluquería / Salón de belleza",
+        "MX": "Peluquería / Salón de belleza",
+        "CR": "Peluquería / Salón de belleza",
+        "PA": "Peluquería / Salón de belleza",
+        "BR": "Salão de beleza"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "peluqueria",
+          "peluquería",
+          "salon",
+          "salón"
+        ],
+        "UY": [
+          "peluqueria",
+          "peluquería",
+          "salon",
+          "salón"
+        ],
+        "CL": [
+          "peluqueria",
+          "peluquería",
+          "salon",
+          "salón"
+        ],
+        "CO": [
+          "peluqueria",
+          "peluquería",
+          "salon",
+          "salón"
+        ],
+        "EC": [
+          "peluqueria",
+          "peluquería",
+          "salon",
+          "salón"
+        ],
+        "MX": [
+          "peluqueria",
+          "peluquería",
+          "salon",
+          "salón"
+        ],
+        "CR": [
+          "peluqueria",
+          "peluquería",
+          "salon",
+          "salón"
+        ],
+        "PA": [
+          "peluqueria",
+          "peluquería",
+          "salon",
+          "salón"
+        ],
+        "BR": [
+          "salão",
+          "cabeleireiro"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T012_MANICURIA",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Manicuría / Uñas",
+        "UY": "Manicuría / Uñas",
+        "CL": "Manicuría / Uñas",
+        "CO": "Manicuría / Uñas",
+        "EC": "Manicuría / Uñas",
+        "MX": "Manicuría / Uñas",
+        "CR": "Manicuría / Uñas",
+        "PA": "Manicuría / Uñas",
+        "BR": "Manicure / Unhas"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "manicura",
+          "uñas",
+          "unas",
+          "nails"
+        ],
+        "UY": [
+          "manicura",
+          "uñas",
+          "unas",
+          "nails"
+        ],
+        "CL": [
+          "manicura",
+          "uñas",
+          "unas",
+          "nails"
+        ],
+        "CO": [
+          "manicura",
+          "uñas",
+          "unas",
+          "nails"
+        ],
+        "EC": [
+          "manicura",
+          "uñas",
+          "unas",
+          "nails"
+        ],
+        "MX": [
+          "manicura",
+          "uñas",
+          "unas",
+          "nails"
+        ],
+        "CR": [
+          "manicura",
+          "uñas",
+          "unas",
+          "nails"
+        ],
+        "PA": [
+          "manicura",
+          "uñas",
+          "unas",
+          "nails"
+        ],
+        "BR": [
+          "manicure",
+          "unhas"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T013_SPA_ESTETICA",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Spa / Estética",
+        "UY": "Spa / Estética",
+        "CL": "Spa / Estética",
+        "CO": "Spa / Estética",
+        "EC": "Spa / Estética",
+        "MX": "Spa / Estética",
+        "CR": "Spa / Estética",
+        "PA": "Spa / Estética",
+        "BR": "Spa / Estética"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T014_VETERINARIA",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Veterinaria",
+        "UY": "Veterinaria",
+        "CL": "Veterinaria",
+        "CO": "Veterinaria",
+        "EC": "Veterinaria",
+        "MX": "Veterinaria",
+        "CR": "Veterinaria",
+        "PA": "Veterinaria",
+        "BR": "Veterinária"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "veterinaria",
+          "veterinaria"
+        ],
+        "UY": [
+          "veterinaria",
+          "veterinaria"
+        ],
+        "CL": [
+          "veterinaria",
+          "veterinaria"
+        ],
+        "CO": [
+          "veterinaria",
+          "veterinaria"
+        ],
+        "EC": [
+          "veterinaria",
+          "veterinaria"
+        ],
+        "MX": [
+          "veterinaria",
+          "veterinaria"
+        ],
+        "CR": [
+          "veterinaria",
+          "veterinaria"
+        ],
+        "PA": [
+          "veterinaria",
+          "veterinaria"
+        ],
+        "BR": [
+          "veterinária"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_INVENTARIO",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T015_GROOMING",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Peluquería canina (grooming)",
+        "UY": "Peluquería canina (grooming)",
+        "CL": "Peluquería canina (grooming)",
+        "CO": "Peluquería canina (grooming)",
+        "EC": "Peluquería canina (grooming)",
+        "MX": "Peluquería canina (grooming)",
+        "CR": "Peluquería canina (grooming)",
+        "PA": "Peluquería canina (grooming)",
+        "BR": "Banho e tosa"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "grooming",
+          "peluqueria canina",
+          "peluquería canina"
+        ],
+        "UY": [
+          "grooming",
+          "peluqueria canina",
+          "peluquería canina"
+        ],
+        "CL": [
+          "grooming",
+          "peluqueria canina",
+          "peluquería canina"
+        ],
+        "CO": [
+          "grooming",
+          "peluqueria canina",
+          "peluquería canina"
+        ],
+        "EC": [
+          "grooming",
+          "peluqueria canina",
+          "peluquería canina"
+        ],
+        "MX": [
+          "grooming",
+          "peluqueria canina",
+          "peluquería canina"
+        ],
+        "CR": [
+          "grooming",
+          "peluqueria canina",
+          "peluquería canina"
+        ],
+        "PA": [
+          "grooming",
+          "peluqueria canina",
+          "peluquería canina"
+        ],
+        "BR": [
+          "banho e tosa"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A4_T016_GUARDERIA_MASCOTAS",
+      "area_id": "A4_SALUD",
+      "labels_by_country": {
+        "AR": "Guardería / Hotel para mascotas",
+        "UY": "Guardería / Hotel para mascotas",
+        "CL": "Guardería / Hotel para mascotas",
+        "CO": "Guardería / Hotel para mascotas",
+        "EC": "Guardería / Hotel para mascotas",
+        "MX": "Guardería / Hotel para mascotas",
+        "CR": "Guardería / Hotel para mascotas",
+        "PA": "Guardería / Hotel para mascotas",
+        "BR": "Creche / Hotel para pets"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_OPERACIONES",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A5_T001_GUARDERIA",
+      "area_id": "A5_EDUCACION",
+      "labels_by_country": {
+        "AR": "Guardería / Jardín",
+        "UY": "Guardería / Jardín",
+        "CL": "Guardería / Jardín",
+        "CO": "Guardería / Jardín",
+        "EC": "Guardería / Jardín",
+        "MX": "Guardería / Jardín",
+        "CR": "Guardería / Jardín",
+        "PA": "Guardería / Jardín",
+        "BR": "Creche / Pré-escola"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_FINANZAS",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A5_T002_ESCUELA",
+      "area_id": "A5_EDUCACION",
+      "labels_by_country": {
+        "AR": "Escuela / Colegio",
+        "UY": "Escuela / Colegio",
+        "CL": "Escuela / Colegio",
+        "CO": "Escuela / Colegio",
+        "EC": "Escuela / Colegio",
+        "MX": "Escuela / Colegio",
+        "CR": "Escuela / Colegio",
+        "PA": "Escuela / Colegio",
+        "BR": "Escola / Colégio"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_FINANZAS",
+        "M_DOCUMENTOS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A5_T003_IDIOMAS",
+      "area_id": "A5_EDUCACION",
+      "labels_by_country": {
+        "AR": "Academia de idiomas",
+        "UY": "Academia de idiomas",
+        "CL": "Academia de idiomas",
+        "CO": "Academia de idiomas",
+        "EC": "Academia de idiomas",
+        "MX": "Academia de idiomas",
+        "CR": "Academia de idiomas",
+        "PA": "Academia de idiomas",
+        "BR": "Escola de idiomas"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A5_T004_TUTORIAS",
+      "area_id": "A5_EDUCACION",
+      "labels_by_country": {
+        "AR": "Tutorías / Apoyo escolar",
+        "UY": "Tutorías / Apoyo escolar",
+        "CL": "Tutorías / Apoyo escolar",
+        "CO": "Tutorías / Apoyo escolar",
+        "EC": "Tutorías / Apoyo escolar",
+        "MX": "Tutorías / Apoyo escolar",
+        "CR": "Tutorías / Apoyo escolar",
+        "PA": "Tutorías / Apoyo escolar",
+        "BR": "Reforço escolar"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A5_T005_INSTITUTO_TECNICO",
+      "area_id": "A5_EDUCACION",
+      "labels_by_country": {
+        "AR": "Instituto técnico / terciario",
+        "UY": "Instituto técnico / terciario",
+        "CL": "Instituto técnico / terciario",
+        "CO": "Instituto técnico / terciario",
+        "EC": "Instituto técnico / terciario",
+        "MX": "Instituto técnico / terciario",
+        "CR": "Instituto técnico / terciario",
+        "PA": "Instituto técnico / terciario",
+        "BR": "Instituto técnico"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_DOCUMENTOS",
+        "M_ATENCION",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A5_T006_OFICIOS",
+      "area_id": "A5_EDUCACION",
+      "labels_by_country": {
+        "AR": "Cursos de oficios",
+        "UY": "Cursos de oficios",
+        "CL": "Cursos de oficios",
+        "CO": "Cursos de oficios",
+        "EC": "Cursos de oficios",
+        "MX": "Cursos de oficios",
+        "CR": "Cursos de oficios",
+        "PA": "Cursos de oficios",
+        "BR": "Cursos profissionalizantes"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A5_T007_ARTES",
+      "area_id": "A5_EDUCACION",
+      "labels_by_country": {
+        "AR": "Academia artística",
+        "UY": "Academia artística",
+        "CL": "Academia artística",
+        "CO": "Academia artística",
+        "EC": "Academia artística",
+        "MX": "Academia artística",
+        "CR": "Academia artística",
+        "PA": "Academia artística",
+        "BR": "Escola de artes"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A5_T008_DEPORTIVA",
+      "area_id": "A5_EDUCACION",
+      "labels_by_country": {
+        "AR": "Academia deportiva",
+        "UY": "Academia deportiva",
+        "CL": "Academia deportiva",
+        "CO": "Academia deportiva",
+        "EC": "Academia deportiva",
+        "MX": "Academia deportiva",
+        "CR": "Academia deportiva",
+        "PA": "Academia deportiva",
+        "BR": "Escolinha esportiva"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A5_T009_ELEARNING",
+      "area_id": "A5_EDUCACION",
+      "labels_by_country": {
+        "AR": "Cursos online (e-learning)",
+        "UY": "Cursos online (e-learning)",
+        "CL": "Cursos online (e-learning)",
+        "CO": "Cursos online (e-learning)",
+        "EC": "Cursos online (e-learning)",
+        "MX": "Cursos online (e-learning)",
+        "CR": "Cursos online (e-learning)",
+        "PA": "Cursos online (e-learning)",
+        "BR": "Cursos online (e-learning)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_MARKETING",
+        "M_ATENCION",
+        "M_ANALITICA",
+        "M_VENTAS_POS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A5_T010_CORPORATIVO",
+      "area_id": "A5_EDUCACION",
+      "labels_by_country": {
+        "AR": "Capacitación corporativa",
+        "UY": "Capacitación corporativa",
+        "CL": "Capacitación corporativa",
+        "CO": "Capacitación corporativa",
+        "EC": "Capacitación corporativa",
+        "MX": "Capacitación corporativa",
+        "CR": "Capacitación corporativa",
+        "PA": "Capacitación corporativa",
+        "BR": "Treinamento corporativo"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_DOCUMENTOS",
+        "M_ATENCION",
+        "M_ANALITICA",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T001_CONTABLE",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Estudio contable",
+        "UY": "Estudio contable",
+        "CL": "Estudio contable",
+        "CO": "Estudio contable",
+        "EC": "Estudio contable",
+        "MX": "Estudio contable",
+        "CR": "Estudio contable",
+        "PA": "Estudio contable",
+        "BR": "Contabilidade"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T002_JURIDICO",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Estudio jurídico",
+        "UY": "Estudio jurídico",
+        "CL": "Estudio jurídico",
+        "CO": "Estudio jurídico",
+        "EC": "Estudio jurídico",
+        "MX": "Estudio jurídico",
+        "CR": "Estudio jurídico",
+        "PA": "Estudio jurídico",
+        "BR": "Escritório de advocacia"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_FINANZAS",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T003_CONSULTORIA",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Consultoría",
+        "UY": "Consultoría",
+        "CL": "Consultoría",
+        "CO": "Consultoría",
+        "EC": "Consultoría",
+        "MX": "Consultoría",
+        "CR": "Consultoría",
+        "PA": "Consultoría",
+        "BR": "Consultoria"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_ANALITICA",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T004_MARKETING_AGENCIA",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Agencia de marketing",
+        "UY": "Agencia de marketing",
+        "CL": "Agencia de marketing",
+        "CO": "Agencia de marketing",
+        "EC": "Agencia de marketing",
+        "MX": "Agencia de marketing",
+        "CR": "Agencia de marketing",
+        "PA": "Agencia de marketing",
+        "BR": "Agência de marketing"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_ANALITICA",
+        "M_OPERACIONES",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T005_DISENO",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Estudio de diseño / branding",
+        "UY": "Estudio de diseño / branding",
+        "CL": "Estudio de diseño / branding",
+        "CO": "Estudio de diseño / branding",
+        "EC": "Estudio de diseño / branding",
+        "MX": "Estudio de diseño / branding",
+        "CR": "Estudio de diseño / branding",
+        "PA": "Estudio de diseño / branding",
+        "BR": "Estúdio de design / branding"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T006_AUDIOVISUAL",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Productora audiovisual",
+        "UY": "Productora audiovisual",
+        "CL": "Productora audiovisual",
+        "CO": "Productora audiovisual",
+        "EC": "Productora audiovisual",
+        "MX": "Productora audiovisual",
+        "CR": "Productora audiovisual",
+        "PA": "Productora audiovisual",
+        "BR": "Produtora audiovisual"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T007_RECLUTAMIENTO",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Agencia de RR.HH. / Reclutamiento",
+        "UY": "Agencia de RR.HH. / Reclutamiento",
+        "CL": "Agencia de RR.HH. / Reclutamiento",
+        "CO": "Agencia de RR.HH. / Reclutamiento",
+        "EC": "Agencia de RR.HH. / Reclutamiento",
+        "MX": "Agencia de RR.HH. / Reclutamiento",
+        "CR": "Agencia de RR.HH. / Reclutamiento",
+        "PA": "Agencia de RR.HH. / Reclutamiento",
+        "BR": "Recrutamento e seleção"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_ANALITICA",
+        "M_OPERACIONES",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T008_IT_MSP",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Servicios IT / MSP",
+        "UY": "Servicios IT / MSP",
+        "CL": "Servicios IT / MSP",
+        "CO": "Servicios IT / MSP",
+        "EC": "Servicios IT / MSP",
+        "MX": "Servicios IT / MSP",
+        "CR": "Servicios IT / MSP",
+        "PA": "Servicios IT / MSP",
+        "BR": "Serviços de TI / MSP"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T009_SOFTWARE_FACTORY",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Software factory / Desarrollo",
+        "UY": "Software factory / Desarrollo",
+        "CL": "Software factory / Desarrollo",
+        "CO": "Software factory / Desarrollo",
+        "EC": "Software factory / Desarrollo",
+        "MX": "Software factory / Desarrollo",
+        "CR": "Software factory / Desarrollo",
+        "PA": "Software factory / Desarrollo",
+        "BR": "Fábrica de software / Desenvolvimento"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T010_BPO_CALLCENTER",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Call center / BPO",
+        "UY": "Call center / BPO",
+        "CL": "Call center / BPO",
+        "CO": "Call center / BPO",
+        "EC": "Call center / BPO",
+        "MX": "Call center / BPO",
+        "CR": "Call center / BPO",
+        "PA": "Call center / BPO",
+        "BR": "Call center / BPO"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A6_T011_COWORKING",
+      "area_id": "A6_B2B",
+      "labels_by_country": {
+        "AR": "Coworking",
+        "UY": "Coworking",
+        "CL": "Coworking",
+        "CO": "Coworking",
+        "EC": "Coworking",
+        "MX": "Coworking",
+        "CR": "Coworking",
+        "PA": "Coworking",
+        "BR": "Coworking"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T001_ELECTRICISTA",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Electricista",
+        "UY": "Electricista",
+        "CL": "Electricista",
+        "CO": "Electricista",
+        "EC": "Electricista",
+        "MX": "Electricista",
+        "CR": "Electricista",
+        "PA": "Electricista",
+        "BR": "Eletricista"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_LOGISTICA",
+        "M_DOCUMENTOS",
+        "M_ATENCION",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T002_PLOMERO",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Plomero / Fontanero",
+        "UY": "Plomero / Fontanero",
+        "CL": "Gásfiter / Fontanero",
+        "CO": "Plomero / Fontanero",
+        "EC": "Plomero / Fontanero",
+        "MX": "Plomero / Fontanero",
+        "CR": "Plomero / Fontanero",
+        "PA": "Plomero / Fontanero",
+        "BR": "Encanador"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "plomero",
+          "fontanero",
+          "gasfiter",
+          "gásfiter"
+        ],
+        "UY": [
+          "plomero",
+          "fontanero",
+          "gasfiter",
+          "gásfiter"
+        ],
+        "CL": [
+          "plomero",
+          "fontanero",
+          "gasfiter",
+          "gásfiter"
+        ],
+        "CO": [
+          "plomero",
+          "fontanero",
+          "gasfiter",
+          "gásfiter"
+        ],
+        "EC": [
+          "plomero",
+          "fontanero",
+          "gasfiter",
+          "gásfiter"
+        ],
+        "MX": [
+          "plomero",
+          "fontanero",
+          "gasfiter",
+          "gásfiter"
+        ],
+        "CR": [
+          "plomero",
+          "fontanero",
+          "gasfiter",
+          "gásfiter"
+        ],
+        "PA": [
+          "plomero",
+          "fontanero",
+          "gasfiter",
+          "gásfiter"
+        ],
+        "BR": [
+          "encanador",
+          "bombeiro hidráulico"
+        ]
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_LOGISTICA",
+        "M_DOCUMENTOS",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T003_HVAC",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Aire acondicionado",
+        "UY": "Aire acondicionado",
+        "CL": "Aire acondicionado",
+        "CO": "Aire acondicionado",
+        "EC": "Aire acondicionado",
+        "MX": "Aire acondicionado",
+        "CR": "Aire acondicionado",
+        "PA": "Aire acondicionado",
+        "BR": "Ar-condicionado"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_LOGISTICA",
+        "M_DOCUMENTOS",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T004_CERRAJERIA",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Cerrajería",
+        "UY": "Cerrajería",
+        "CL": "Cerrajería",
+        "CO": "Cerrajería",
+        "EC": "Cerrajería",
+        "MX": "Cerrajería",
+        "CR": "Cerrajería",
+        "PA": "Cerrajería",
+        "BR": "Chaveiro"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_LOGISTICA",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T005_REPARACION_ELECTRO",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Reparación de electrodomésticos",
+        "UY": "Reparación de electrodomésticos",
+        "CL": "Reparación de electrodomésticos",
+        "CO": "Reparación de electrodomésticos",
+        "EC": "Reparación de electrodomésticos",
+        "MX": "Reparación de electrodomésticos",
+        "CR": "Reparación de electrodomésticos",
+        "PA": "Reparación de electrodomésticos",
+        "BR": "Assistência técnica (eletro)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_INVENTARIO"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T006_REPARACION_PC",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Servicio técnico de PC / redes",
+        "UY": "Servicio técnico de PC / redes",
+        "CL": "Servicio técnico de PC / redes",
+        "CO": "Servicio técnico de PC / redes",
+        "EC": "Servicio técnico de PC / redes",
+        "MX": "Servicio técnico de PC / redes",
+        "CR": "Servicio técnico de PC / redes",
+        "PA": "Servicio técnico de PC / redes",
+        "BR": "Assistência técnica (TI)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T007_LIMPIEZA",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Limpieza residencial/comercial",
+        "UY": "Limpieza residencial/comercial",
+        "CL": "Limpieza residencial/comercial",
+        "CO": "Limpieza residencial/comercial",
+        "EC": "Limpieza residencial/comercial",
+        "MX": "Limpieza residencial/comercial",
+        "CR": "Limpieza residencial/comercial",
+        "PA": "Limpieza residencial/comercial",
+        "BR": "Serviço de limpeza"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_OPERACIONES",
+        "M_ATENCION",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T008_PLAGAS",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Control de plagas",
+        "UY": "Control de plagas",
+        "CL": "Control de plagas",
+        "CO": "Control de plagas",
+        "EC": "Control de plagas",
+        "MX": "Control de plagas",
+        "CR": "Control de plagas",
+        "PA": "Control de plagas",
+        "BR": "Controle de pragas"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_LOGISTICA",
+        "M_DOCUMENTOS",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T009_JARDINERIA",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Jardinería / Paisajismo",
+        "UY": "Jardinería / Paisajismo",
+        "CL": "Jardinería / Paisajismo",
+        "CO": "Jardinería / Paisajismo",
+        "EC": "Jardinería / Paisajismo",
+        "MX": "Jardinería / Paisajismo",
+        "CR": "Jardinería / Paisajismo",
+        "PA": "Jardinería / Paisajismo",
+        "BR": "Jardinagem / Paisagismo"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_RESERVAS",
+        "M_LOGISTICA",
+        "M_DOCUMENTOS",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T010_LAVANDERIA",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Lavandería / Tintorería",
+        "UY": "Lavandería / Tintorería",
+        "CL": "Lavandería / Tintorería",
+        "CO": "Lavandería / Tintorería",
+        "EC": "Lavandería / Tintorería",
+        "MX": "Lavandería / Tintorería",
+        "CR": "Lavandería / Tintorería",
+        "PA": "Lavandería / Tintorería",
+        "BR": "Lavanderia"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_ATENCION",
+        "M_MARKETING",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A7_T011_MUDANZAS",
+      "area_id": "A7_HOGAR_SERV",
+      "labels_by_country": {
+        "AR": "Mudanzas / Fletes",
+        "UY": "Mudanzas / Fletes",
+        "CL": "Mudanzas / Fletes",
+        "CO": "Mudanzas / Fletes",
+        "EC": "Mudanzas / Fletes",
+        "MX": "Mudanzas / Fletes",
+        "CR": "Mudanzas / Fletes",
+        "PA": "Mudanzas / Fletes",
+        "BR": "Mudanças / Fretes"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_DOCUMENTOS",
+        "M_ATENCION",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A8_T001_INMOBILIARIA",
+      "area_id": "A8_CONSTRU_INMO",
+      "labels_by_country": {
+        "AR": "Inmobiliaria",
+        "UY": "Inmobiliaria",
+        "CL": "Inmobiliaria",
+        "CO": "Inmobiliaria",
+        "EC": "Inmobiliaria",
+        "MX": "Inmobiliaria",
+        "CR": "Inmobiliaria",
+        "PA": "Inmobiliaria",
+        "BR": "Imobiliária"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_MARKETING",
+        "M_ANALITICA",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A8_T002_ADMIN_CONSORCIOS",
+      "area_id": "A8_CONSTRU_INMO",
+      "labels_by_country": {
+        "AR": "Administración de consorcios",
+        "UY": "Administración de consorcios",
+        "CL": "Administración de consorcios",
+        "CO": "Administración de consorcios",
+        "EC": "Administración de consorcios",
+        "MX": "Administración de consorcios",
+        "CR": "Administración de consorcios",
+        "PA": "Administración de consorcios",
+        "BR": "Administração condominial"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_OPERACIONES",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A8_T003_PROPERTY_MGMT",
+      "area_id": "A8_CONSTRU_INMO",
+      "labels_by_country": {
+        "AR": "Gestión de propiedades (PM)",
+        "UY": "Gestión de propiedades (PM)",
+        "CL": "Gestión de propiedades (PM)",
+        "CO": "Gestión de propiedades (PM)",
+        "EC": "Gestión de propiedades (PM)",
+        "MX": "Gestión de propiedades (PM)",
+        "CR": "Gestión de propiedades (PM)",
+        "PA": "Gestión de propiedades (PM)",
+        "BR": "Gestão de propriedades"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_OPERACIONES",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A8_T004_CONSTRUCTORA",
+      "area_id": "A8_CONSTRU_INMO",
+      "labels_by_country": {
+        "AR": "Constructora",
+        "UY": "Constructora",
+        "CL": "Constructora",
+        "CO": "Constructora",
+        "EC": "Constructora",
+        "MX": "Constructora",
+        "CR": "Constructora",
+        "PA": "Constructora",
+        "BR": "Construtora"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_DOCUMENTOS",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_INVENTARIO"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A8_T005_CONTRATISTA",
+      "area_id": "A8_CONSTRU_INMO",
+      "labels_by_country": {
+        "AR": "Contratista / Maestro de obra",
+        "UY": "Contratista / Maestro de obra",
+        "CL": "Contratista / Maestro de obra",
+        "CO": "Contratista / Maestro de obra",
+        "EC": "Contratista / Maestro de obra",
+        "MX": "Contratista / Maestro de obra",
+        "CR": "Contratista / Maestro de obra",
+        "PA": "Contratista / Maestro de obra",
+        "BR": "Empreiteiro / Mestre de obras"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_DOCUMENTOS",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A8_T006_REMODELACIONES",
+      "area_id": "A8_CONSTRU_INMO",
+      "labels_by_country": {
+        "AR": "Remodelaciones / Reformas",
+        "UY": "Remodelaciones / Reformas",
+        "CL": "Remodelaciones / Reformas",
+        "CO": "Remodelaciones / Reformas",
+        "EC": "Remodelaciones / Reformas",
+        "MX": "Remodelaciones / Reformas",
+        "CR": "Remodelaciones / Reformas",
+        "PA": "Remodelaciones / Reformas",
+        "BR": "Reformas"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_DOCUMENTOS",
+        "M_FINANZAS",
+        "M_ATENCION",
+        "M_OPERACIONES"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A8_T007_ARQUITECTURA",
+      "area_id": "A8_CONSTRU_INMO",
+      "labels_by_country": {
+        "AR": "Arquitectura / Interiorismo",
+        "UY": "Arquitectura / Interiorismo",
+        "CL": "Arquitectura / Interiorismo",
+        "CO": "Arquitectura / Interiorismo",
+        "EC": "Arquitectura / Interiorismo",
+        "MX": "Arquitectura / Interiorismo",
+        "CR": "Arquitectura / Interiorismo",
+        "PA": "Arquitectura / Interiorismo",
+        "BR": "Arquitetura / Design de interiores"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_ATENCION",
+        "M_DOCUMENTOS",
+        "M_OPERACIONES",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A8_T008_INGENIERIA",
+      "area_id": "A8_CONSTRU_INMO",
+      "labels_by_country": {
+        "AR": "Ingeniería",
+        "UY": "Ingeniería",
+        "CL": "Ingeniería",
+        "CO": "Ingeniería",
+        "EC": "Ingeniería",
+        "MX": "Ingeniería",
+        "CR": "Ingeniería",
+        "PA": "Ingeniería",
+        "BR": "Engenharia"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_DOCUMENTOS",
+        "M_OPERACIONES",
+        "M_FINANZAS",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A8_T009_MANTENIMIENTO_EDILICIO",
+      "area_id": "A8_CONSTRU_INMO",
+      "labels_by_country": {
+        "AR": "Mantenimiento edilicio",
+        "UY": "Mantenimiento edilicio",
+        "CL": "Mantenimiento edilicio",
+        "CO": "Mantenimiento edilicio",
+        "EC": "Mantenimiento edilicio",
+        "MX": "Mantenimiento edilicio",
+        "CR": "Mantenimiento edilicio",
+        "PA": "Mantenimiento edilicio",
+        "BR": "Manutenção predial"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_RESERVAS",
+        "M_LOGISTICA",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T001_COURIER",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Mensajería / Courier",
+        "UY": "Mensajería / Courier",
+        "CL": "Mensajería / Courier",
+        "CO": "Mensajería / Courier",
+        "EC": "Mensajería / Courier",
+        "MX": "Mensajería / Courier",
+        "CR": "Mensajería / Courier",
+        "PA": "Mensajería / Courier",
+        "BR": "Motoboy / Courier"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "mensajeria",
+          "mensajería",
+          "courier"
+        ],
+        "UY": [
+          "mensajeria",
+          "mensajería",
+          "courier"
+        ],
+        "CL": [
+          "mensajeria",
+          "mensajería",
+          "courier"
+        ],
+        "CO": [
+          "mensajeria",
+          "mensajería",
+          "courier"
+        ],
+        "EC": [
+          "mensajeria",
+          "mensajería",
+          "courier"
+        ],
+        "MX": [
+          "mensajeria",
+          "mensajería",
+          "courier"
+        ],
+        "CR": [
+          "mensajeria",
+          "mensajería",
+          "courier"
+        ],
+        "PA": [
+          "mensajeria",
+          "mensajería",
+          "courier"
+        ],
+        "BR": [
+          "motoboy",
+          "courier",
+          "entregas"
+        ]
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T002_ULTIMA_MILLA",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Última milla (last mile)",
+        "UY": "Última milla (last mile)",
+        "CL": "Última milla (last mile)",
+        "CO": "Última milla (last mile)",
+        "EC": "Última milla (last mile)",
+        "MX": "Última milla (last mile)",
+        "CR": "Última milla (last mile)",
+        "PA": "Última milla (last mile)",
+        "BR": "Última milha"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T003_FULFILLMENT",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Fulfillment e-commerce",
+        "UY": "Fulfillment e-commerce",
+        "CL": "Fulfillment e-commerce",
+        "CO": "Fulfillment e-commerce",
+        "EC": "Fulfillment e-commerce",
+        "MX": "Fulfillment e-commerce",
+        "CR": "Fulfillment e-commerce",
+        "PA": "Fulfillment e-commerce",
+        "BR": "Fulfillment e-commerce"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_INVENTARIO",
+        "M_OPERACIONES",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T004_DEPOSITO",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Depósito / Almacén logístico",
+        "UY": "Depósito / Almacén logístico",
+        "CL": "Depósito / Almacén logístico",
+        "CO": "Depósito / Almacén logístico",
+        "EC": "Depósito / Almacén logístico",
+        "MX": "Depósito / Almacén logístico",
+        "CR": "Depósito / Almacén logístico",
+        "PA": "Depósito / Almacén logístico",
+        "BR": "Armazém / Depósito"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_INVENTARIO",
+        "M_OPERACIONES",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T005_TRANSPORTE_CARGA",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Transporte de carga",
+        "UY": "Transporte de carga",
+        "CL": "Transporte de carga",
+        "CO": "Transporte de carga",
+        "EC": "Transporte de carga",
+        "MX": "Transporte de carga",
+        "CR": "Transporte de carga",
+        "PA": "Transporte de carga",
+        "BR": "Transporte de cargas"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_OPERACIONES",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T006_FLETES_URBANOS",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Fletes urbanos",
+        "UY": "Fletes urbanos",
+        "CL": "Fletes urbanos",
+        "CO": "Fletes urbanos",
+        "EC": "Fletes urbanos",
+        "MX": "Fletes urbanos",
+        "CR": "Fletes urbanos",
+        "PA": "Fletes urbanos",
+        "BR": "Fretes urbanos"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_DOCUMENTOS",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T007_MUDANZAS_LOG",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Mudanzas (logística)",
+        "UY": "Mudanzas (logística)",
+        "CL": "Mudanzas (logística)",
+        "CO": "Mudanzas (logística)",
+        "EC": "Mudanzas (logística)",
+        "MX": "Mudanzas (logística)",
+        "CR": "Mudanzas (logística)",
+        "PA": "Mudanzas (logística)",
+        "BR": "Mudanças (logística)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_DOCUMENTOS",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T008_TRANSPORTE_PASAJEROS",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Transporte de pasajeros (combi/bus)",
+        "UY": "Transporte de pasajeros (combi/bus)",
+        "CL": "Transporte de pasajeros (combi/bus)",
+        "CO": "Transporte de pasajeros (combi/bus)",
+        "EC": "Transporte de pasajeros (combi/bus)",
+        "MX": "Transporte de pasajeros (combi/bus)",
+        "CR": "Transporte de pasajeros (combi/bus)",
+        "PA": "Transporte de pasajeros (combi/bus)",
+        "BR": "Transporte de passageiros (van/ônibus)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_RESERVAS",
+        "M_OPERACIONES",
+        "M_ATENCION"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T009_TAXI_REMISES",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Taxi / Remis",
+        "UY": "Taxi",
+        "CL": "Taxi",
+        "CO": "Taxi",
+        "EC": "Taxi",
+        "MX": "Taxi",
+        "CR": "Taxi",
+        "PA": "Taxi",
+        "BR": "Táxi"
+      },
+      "aliases_by_country": {
+        "AR": [
+          "taxi",
+          "radiotaxi",
+          "remis",
+          "remís"
+        ],
+        "UY": [
+          "taxi",
+          "radiotaxi",
+          "remis",
+          "remís"
+        ],
+        "CL": [
+          "taxi",
+          "radiotaxi",
+          "remis",
+          "remís"
+        ],
+        "CO": [
+          "taxi",
+          "radiotaxi",
+          "remis",
+          "remís"
+        ],
+        "EC": [
+          "taxi",
+          "radiotaxi",
+          "remis",
+          "remís"
+        ],
+        "MX": [
+          "taxi",
+          "radiotaxi",
+          "remis",
+          "remís"
+        ],
+        "CR": [
+          "taxi",
+          "radiotaxi",
+          "remis",
+          "remís"
+        ],
+        "PA": [
+          "taxi",
+          "radiotaxi",
+          "remis",
+          "remís"
+        ],
+        "BR": [
+          "táxi"
+        ]
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_ATENCION",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T010_FLOTAS",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Gestión de flotas",
+        "UY": "Gestión de flotas",
+        "CL": "Gestión de flotas",
+        "CO": "Gestión de flotas",
+        "EC": "Gestión de flotas",
+        "MX": "Gestión de flotas",
+        "CR": "Gestión de flotas",
+        "PA": "Gestión de flotas",
+        "BR": "Gestão de frotas"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T011_CADENA_FRIO",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Transporte refrigerado (cadena de frío)",
+        "UY": "Transporte refrigerado (cadena de frío)",
+        "CL": "Transporte refrigerado (cadena de frío)",
+        "CO": "Transporte refrigerado (cadena de frío)",
+        "EC": "Transporte refrigerado (cadena de frío)",
+        "MX": "Transporte refrigerado (cadena de frío)",
+        "CR": "Transporte refrigerado (cadena de frío)",
+        "PA": "Transporte refrigerado (cadena de frío)",
+        "BR": "Transporte refrigerado (cadeia fria)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_FINANZAS",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A9_T012_FORWARDER",
+      "area_id": "A9_LOGISTICA",
+      "labels_by_country": {
+        "AR": "Agente de carga (forwarder)",
+        "UY": "Agente de carga (forwarder)",
+        "CL": "Agente de carga (forwarder)",
+        "CO": "Agente de carga (forwarder)",
+        "EC": "Agente de carga (forwarder)",
+        "MX": "Agente de carga (forwarder)",
+        "CR": "Agente de carga (forwarder)",
+        "PA": "Agente de carga (forwarder)",
+        "BR": "Agente de cargas (freight forwarder)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_DOCUMENTOS",
+        "M_LOGISTICA",
+        "M_ATENCION",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T001_PRODUCTOR_AGRICOLA",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Productor agrícola",
+        "UY": "Productor agrícola",
+        "CL": "Productor agrícola",
+        "CO": "Productor agrícola",
+        "EC": "Productor agrícola",
+        "MX": "Productor agrícola",
+        "CR": "Productor agrícola",
+        "PA": "Productor agrícola",
+        "BR": "Produtor agrícola"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_FINANZAS",
+        "M_LOGISTICA",
+        "M_INVENTARIO"
+      ],
+      "examples": [
+        "granos",
+        "hortalizas",
+        "frutas"
+      ]
+    },
+    {
+      "id": "A10_T002_EMPAQUE_PACKING",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Empaque / Packing",
+        "UY": "Empaque / Packing",
+        "CL": "Empaque / Packing",
+        "CO": "Empaque / Packing",
+        "EC": "Empaque / Packing",
+        "MX": "Empaque / Packing",
+        "CR": "Empaque / Packing",
+        "PA": "Empaque / Packing",
+        "BR": "Packing / Beneficiamento"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_INVENTARIO",
+        "M_ANALITICA",
+        "M_LOGISTICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T003_VIVERO_PLANTINES",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Vivero (plantines)",
+        "UY": "Vivero (plantines)",
+        "CL": "Vivero (plantines)",
+        "CO": "Vivero (plantines)",
+        "EC": "Vivero (plantines)",
+        "MX": "Vivero (plantines)",
+        "CR": "Vivero (plantines)",
+        "PA": "Vivero (plantines)",
+        "BR": "Viveiro (mudas)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_INVENTARIO",
+        "M_OPERACIONES",
+        "M_ANALITICA"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T004_GANADERIA",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Ganadería",
+        "UY": "Ganadería",
+        "CL": "Ganadería",
+        "CO": "Ganadería",
+        "EC": "Ganadería",
+        "MX": "Ganadería",
+        "CR": "Ganadería",
+        "PA": "Ganadería",
+        "BR": "Pecuária"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T005_LECHERIA_TAMBO",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Tambo",
+        "UY": "Tambo",
+        "CL": "Lechería / Tambo",
+        "CO": "Lechería / Tambo",
+        "EC": "Lechería / Tambo",
+        "MX": "Lechería / Tambo",
+        "CR": "Lechería / Tambo",
+        "PA": "Lechería / Tambo",
+        "BR": "Leite / Fazenda leiteira"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_FINANZAS",
+        "M_INVENTARIO"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T006_AVICULTURA",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Avicultura",
+        "UY": "Avicultura",
+        "CL": "Avicultura",
+        "CO": "Avicultura",
+        "EC": "Avicultura",
+        "MX": "Avicultura",
+        "CR": "Avicultura",
+        "PA": "Avicultura",
+        "BR": "Avicultura"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_FINANZAS",
+        "M_INVENTARIO"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T007_PORCICULTURA",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Porcicultura",
+        "UY": "Porcicultura",
+        "CL": "Porcicultura",
+        "CO": "Porcicultura",
+        "EC": "Porcicultura",
+        "MX": "Porcicultura",
+        "CR": "Porcicultura",
+        "PA": "Porcicultura",
+        "BR": "Suinocultura"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_FINANZAS",
+        "M_INVENTARIO"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T008_APICULTURA",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Apicultura",
+        "UY": "Apicultura",
+        "CL": "Apicultura",
+        "CO": "Apicultura",
+        "EC": "Apicultura",
+        "MX": "Apicultura",
+        "CR": "Apicultura",
+        "PA": "Apicultura",
+        "BR": "Apicultura"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_MARKETING"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T009_AGROSERVICIOS",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Agroservicios (siembra/fumigación/maquinaria)",
+        "UY": "Agroservicios (siembra/fumigación/maquinaria)",
+        "CL": "Agroservicios (siembra/fumigación/maquinaria)",
+        "CO": "Agroservicios (siembra/fumigación/maquinaria)",
+        "EC": "Agroservicios (siembra/fumigación/maquinaria)",
+        "MX": "Agroservicios (siembra/fumigación/maquinaria)",
+        "CR": "Agroservicios (siembra/fumigación/maquinaria)",
+        "PA": "Agroservicios (siembra/fumigación/maquinaria)",
+        "BR": "Serviços agrícolas (plantio/pulverização/máquinas)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_LOGISTICA",
+        "M_OPERACIONES",
+        "M_DOCUMENTOS",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T010_ACOPIO_SILOS",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Acopio / Silos",
+        "UY": "Acopio / Silos",
+        "CL": "Acopio / Silos",
+        "CO": "Acopio / Silos",
+        "EC": "Acopio / Silos",
+        "MX": "Acopio / Silos",
+        "CR": "Acopio / Silos",
+        "PA": "Acopio / Silos",
+        "BR": "Armazenagem / Silos"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_INVENTARIO",
+        "M_OPERACIONES",
+        "M_ANALITICA",
+        "M_FINANZAS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T011_AGROINDUSTRIA",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Agroindustria (procesados)",
+        "UY": "Agroindustria (procesados)",
+        "CL": "Agroindustria (procesados)",
+        "CO": "Agroindustria (procesados)",
+        "EC": "Agroindustria (procesados)",
+        "MX": "Agroindustria (procesados)",
+        "CR": "Agroindustria (procesados)",
+        "PA": "Agroindustria (procesados)",
+        "BR": "Agroindústria (processados)"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_OPERACIONES",
+        "M_INVENTARIO",
+        "M_FINANZAS",
+        "M_ANALITICA",
+        "M_DOCUMENTOS"
+      ],
+      "examples": []
+    },
+    {
+      "id": "A10_T012_INSUMOS_AGRO",
+      "area_id": "A10_AGRO",
+      "labels_by_country": {
+        "AR": "Venta de insumos agrícolas",
+        "UY": "Venta de insumos agrícolas",
+        "CL": "Venta de insumos agrícolas",
+        "CO": "Venta de insumos agrícolas",
+        "EC": "Venta de insumos agrícolas",
+        "MX": "Venta de insumos agrícolas",
+        "CR": "Venta de insumos agrícolas",
+        "PA": "Venta de insumos agrícolas",
+        "BR": "Insumos agrícolas"
+      },
+      "aliases_by_country": {
+        "AR": [],
+        "UY": [],
+        "CL": [],
+        "CO": [],
+        "EC": [],
+        "MX": [],
+        "CR": [],
+        "PA": [],
+        "BR": []
+      },
+      "tags": [
+        "M_VENTAS_POS",
+        "M_INVENTARIO",
+        "M_ANALITICA",
+        "M_MARKETING"
+      ],
+      "examples": []
+    }
+  ]
+}
