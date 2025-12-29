@@ -56,8 +56,9 @@ import {
 } from '@/lib/setupBusinessTypes';
 
 // Import Gastro setup
-import { COMPLETE_GASTRO_QUESTIONS, getActiveQuestionsForBusiness } from '@/lib/gastroQuestionsComplete';
+import { COMPLETE_GASTRO_QUESTIONS, getActiveQuestionsForBusiness, type SetupMode as GastroSetupMode } from '@/lib/gastroQuestionsComplete';
 import { GastroSetupInput } from '@/components/app/GastroSetupInputs';
+import { GastroSetupFlow } from '@/components/app/GastroSetupFlow';
 import { type Language } from '@/lib/gastroSetupQuestions';
 
 // Step definitions
@@ -132,6 +133,7 @@ const SetupPage = () => {
   const [setupMode, setSetupMode] = useState<'fast' | 'complete'>('fast');
   const [businessCreated, setBusinessCreated] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showGastroFlow, setShowGastroFlow] = useState(false);
   
   const [setupData, setSetupData] = useState<SetupData>({
     businessName: currentBusiness?.name || '',
@@ -562,6 +564,23 @@ const SetupPage = () => {
         );
 
       case 'mode':
+        // If A1_GASTRO is selected and gastro flow is active, show the gastro questions
+        if (showGastroFlow && setupData.areaId === 'A1_GASTRO') {
+          return (
+            <GastroSetupFlow
+              country={setupData.country}
+              mode={setupMode === 'fast' ? 'quick' : 'full'}
+              gastroData={setupData.gastroData}
+              onUpdate={(newGastroData) => setSetupData(d => ({ ...d, gastroData: newGastroData }))}
+              onComplete={() => {
+                setShowGastroFlow(false);
+                setCurrentStep(prev => prev + 1);
+              }}
+              onBack={() => setShowGastroFlow(false)}
+            />
+          );
+        }
+        
         return (
           <div className="space-y-4">
             {[
@@ -570,7 +589,14 @@ const SetupPage = () => {
             ].map(({ mode, icon: Icon, title, desc }) => (
               <button
                 key={mode}
-                onClick={() => { setSetupMode(mode); setSetupData(d => ({ ...d, mode })); }}
+                onClick={() => { 
+                  setSetupMode(mode); 
+                  setSetupData(d => ({ ...d, mode })); 
+                  // If A1_GASTRO is selected, activate gastro flow after mode selection
+                  if (setupData.areaId === 'A1_GASTRO') {
+                    setShowGastroFlow(true);
+                  }
+                }}
                 className={cn(
                   "w-full p-6 rounded-2xl border-2 text-left transition-all duration-200",
                   "hover:shadow-lg hover:-translate-y-0.5",
