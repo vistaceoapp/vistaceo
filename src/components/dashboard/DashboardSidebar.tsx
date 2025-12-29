@@ -14,7 +14,7 @@ import {
   BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { OwlLogo } from "@/components/ui/OwlLogo";
+import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -58,10 +58,7 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
           collapsed ? "justify-center" : "justify-between"
         )}>
           <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-            <div className="relative group cursor-pointer">
-              <div className="absolute inset-0 blur-xl bg-primary/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              <OwlLogo size={collapsed ? 28 : 36} variant={collapsed ? "round" : "auto"} className="relative z-10 transition-transform group-hover:scale-105" />
-            </div>
+            <VistaceoLogo size={collapsed ? 28 : 32} variant={collapsed ? "icon" : "compact"} className="transition-transform hover:scale-105" />
             {!collapsed && currentBusiness && (
               <div className="overflow-hidden animate-fade-in">
                 <p className="text-sm font-medium text-foreground truncate max-w-[140px]">
@@ -118,15 +115,12 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
                   "group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
                   collapsed ? "justify-center" : "justify-start",
                   isActive 
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                    ? "gradient-primary text-white shadow-md"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/80"
                 )}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className={cn(
-                  "relative flex-shrink-0",
-                  isActive && "animate-pulse"
-                )}>
+                <div className="relative flex-shrink-0">
                   <item.icon className={cn(
                     "h-5 w-5 transition-transform",
                     isActive ? "scale-110" : "group-hover:scale-105"
@@ -144,7 +138,7 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
                       {item.description && (
                         <p className={cn(
                           "text-xs truncate",
-                          isActive ? "text-primary-foreground/70" : "text-muted-foreground"
+                          isActive ? "text-white/70" : "text-muted-foreground"
                         )}>
                           {item.description}
                         </p>
@@ -155,7 +149,7 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
                         variant={isActive ? "secondary" : "outline"} 
                         className={cn(
                           "text-[10px] h-5 px-1.5",
-                          isActive ? "bg-primary-foreground/20 text-primary-foreground border-0" : "border-primary/30 text-primary"
+                          isActive ? "bg-white/20 text-white border-0" : "border-primary/30 text-primary"
                         )}
                       >
                         {item.badge}

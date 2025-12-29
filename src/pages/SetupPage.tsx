@@ -25,7 +25,7 @@ import {
   Globe,
   ChevronRight
 } from 'lucide-react';
-import { OwlLogo } from '@/components/ui/OwlLogo';
+import { VistaceoLogo } from '@/components/ui/VistaceoLogo';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -373,9 +373,9 @@ const SetupPage = () => {
         return (
           <div className="flex flex-col items-center justify-center text-center space-y-8 py-8">
             <div className="relative">
-              <div className="absolute inset-0 blur-3xl bg-primary/30 rounded-full animate-pulse" />
-              <div className="relative w-28 h-28 rounded-3xl gradient-primary flex items-center justify-center shadow-2xl shadow-primary/30">
-                <OwlLogo size={70} />
+              <div className="absolute inset-0 blur-3xl bg-primary/20 rounded-full animate-pulse" />
+              <div className="relative w-28 h-28 rounded-3xl gradient-primary flex items-center justify-center shadow-2xl">
+                <VistaceoLogo size={70} variant="icon" />
               </div>
             </div>
             <div className="space-y-4 max-w-md">
@@ -759,14 +759,7 @@ const SetupPage = () => {
         {/* Logo */}
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 blur-xl bg-primary/30 rounded-full" />
-              <OwlLogo size={48} className="relative z-10" />
-            </div>
-            <div>
-              <p className="font-bold text-foreground">UCEO</p>
-              <p className="text-xs text-muted-foreground">Setup Inteligente</p>
-            </div>
+            <VistaceoLogo size={40} variant="compact" />
           </div>
         </div>
 
@@ -852,7 +845,7 @@ const SetupPage = () => {
           <div className="px-4 py-3">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <OwlLogo size={32} variant="round" />
+                <VistaceoLogo size={28} variant="icon" />
                 <span className="font-semibold text-foreground">Setup</span>
               </div>
               <Badge variant="secondary" className="gap-1">

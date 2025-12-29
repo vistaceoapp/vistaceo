@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { Home, MessageCircle, Target, Radar, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { OwlLogo } from "@/components/ui/OwlLogo";
+import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useBrain } from "@/hooks/use-brain";
 import { PulsingDot } from "@/components/app/PulsingDot";
@@ -37,10 +37,7 @@ const MobileLayout = () => {
       <header className="sticky top-0 z-40 bg-card/80 dark:bg-card/60 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center justify-between max-w-3xl mx-auto">
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 blur-lg bg-primary/20 rounded-full opacity-60" />
-              <OwlLogo size={36} variant="round" className="relative z-10" />
-            </div>
+            <VistaceoLogo size={32} variant="icon" />
             {currentBusiness && (
               <div>
                 <h1 className="text-sm font-semibold text-foreground">
