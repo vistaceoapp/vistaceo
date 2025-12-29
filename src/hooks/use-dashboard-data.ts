@@ -9,6 +9,13 @@ import {
   calculateHealthScore
 } from '@/lib/dashboardCards';
 import { CountryCode } from '@/lib/countryPacks';
+import { 
+  COMPLETE_GASTRO_QUESTIONS,
+  getTotalQuestionsForBusiness,
+  getAnsweredQuestionsCount,
+  calculatePrecisionScore,
+  type SetupMode
+} from '@/lib/gastroQuestionsComplete';
 
 interface DashboardData {
   // Available data keys for card state calculation
@@ -30,6 +37,17 @@ interface DashboardData {
   // Setup completion
   setupCompleted: boolean;
   precisionScore: number;
+  
+  // Real precision based on answered questions
+  realPrecision: {
+    answered: number;
+    total: number;
+    percentage: number;
+    level: 'Básica' | 'Media' | 'Alta';
+  };
+  
+  // Gastro data for precision calculation
+  gastroData: Record<string, any>;
 }
 
 export const useDashboardData = () => {
@@ -41,6 +59,13 @@ export const useDashboardData = () => {
     cardValues: {},
     setupCompleted: false,
     precisionScore: 0,
+    realPrecision: {
+      answered: 0,
+      total: 0,
+      percentage: 0,
+      level: 'Básica',
+    },
+    gastroData: {},
   });
   const [loading, setLoading] = useState(true);
 
@@ -98,8 +123,79 @@ export const useDashboardData = () => {
         
         // From setup
         const setupData = setupRes.data?.setup_data as Record<string, unknown> || {};
+        const gastroData = (setupData.gastroData as Record<string, any>) || {};
         if (setupData.avgPrepTimeMinutes) available.push('prepTime');
         if (setupData.appCommissionPercent) available.push('appFees');
+        
+        // Calculate REAL precision based on answered gastro questions
+        const setupMode: SetupMode = (setupData.mode === 'complete' ? 'full' : 'quick');
+        
+        // Combine all data sources for precision calculation
+        const allAnsweredData: Record<string, any> = {
+          ...gastroData,
+          // Add basic setup fields as answered
+          'business.channels': setupData.channelMix ? ['salon', 'delivery', 'takeaway'] : [],
+          'business.primary_type_id': setupData.businessTypeId || '',
+          'setup.mode': setupMode,
+        };
+        
+        // If there are dayparts, they count as answered
+        if (setupData.activeDayparts && (setupData.activeDayparts as string[]).length > 0) {
+          allAnsweredData['operations.dayparts'] = setupData.activeDayparts;
+        }
+        if (setupData.topSellers && (setupData.topSellers as string[]).length > 0) {
+          allAnsweredData['menu.top_sellers'] = setupData.topSellers;
+        }
+        if (setupData.ticketRange) {
+          allAnsweredData['operations.avg_ticket'] = setupData.ticketRange;
+        }
+        if (setupData.currentFocus) {
+          allAnsweredData['strategy.current_focus'] = setupData.currentFocus;
+        }
+        if (setupData.positioning) {
+          allAnsweredData['identity.positioning'] = setupData.positioning;
+        }
+        if (setupData.serviceModel) {
+          allAnsweredData['operations.service_model'] = setupData.serviceModel;
+        }
+        
+        // Get applicable questions for this business
+        const totalQuestions = getTotalQuestionsForBusiness(allAnsweredData, setupMode);
+        
+        // Count answered questions
+        let answeredCount = 0;
+        
+        // Count from gastroData
+        Object.keys(gastroData).forEach(key => {
+          const val = gastroData[key];
+          if (val !== undefined && val !== null && val !== '' && 
+              !(Array.isArray(val) && val.length === 0)) {
+            answeredCount++;
+          }
+        });
+        
+        // Also count basic setup questions that are answered
+        const basicSetupFields = [
+          'activeDayparts', 'topSellers', 'ticketRange', 
+          'currentFocus', 'positioning', 'serviceModel', 'channelMix'
+        ];
+        basicSetupFields.forEach(field => {
+          const val = setupData[field];
+          if (val !== undefined && val !== null && val !== '' && 
+              !(Array.isArray(val) && val.length === 0) &&
+              !(typeof val === 'object' && Object.keys(val).length === 0)) {
+            answeredCount++;
+          }
+        });
+        
+        // Calculate percentage (minimum of answered/total or based on totalQuestions)
+        const effectiveTotal = Math.max(totalQuestions, 20); // At least 20 questions expected
+        const precisionPercentage = calculatePrecisionScore(answeredCount, effectiveTotal);
+        
+        // Determine precision level
+        let precisionLevel: 'Básica' | 'Media' | 'Alta' = 'Básica';
+        if (precisionPercentage >= 70) precisionLevel = 'Alta';
+        else if (precisionPercentage >= 40) precisionLevel = 'Media';
         
         // Calculate sub-scores based on available data and business metrics
         const subScores: Record<string, number | null> = {};
@@ -187,6 +283,13 @@ export const useDashboardData = () => {
           cardValues,
           setupCompleted: currentBusiness.setup_completed || false,
           precisionScore: currentBusiness.precision_score || 0,
+          realPrecision: {
+            answered: answeredCount,
+            total: effectiveTotal,
+            percentage: precisionPercentage,
+            level: precisionLevel,
+          },
+          gastroData,
         });
 
       } catch (error) {
