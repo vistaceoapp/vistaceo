@@ -879,10 +879,68 @@ export const COMPLETE_GASTRO_QUESTIONS: GastroQuestion[] = [
   },
 ];
 
+// Type for setup mode
+export type SetupMode = 'quick' | 'full';
+
+// Business context for question filtering
+interface BusinessContext {
+  channels: string[];
+  primary_type_id: string;
+  tags: string[];
+  integrations: Record<string, any>;
+}
+
+// Get active questions for a specific business
+export const getActiveQuestionsForBusiness = (
+  mode: SetupMode,
+  context: BusinessContext
+): typeof COMPLETE_GASTRO_QUESTIONS => {
+  return COMPLETE_GASTRO_QUESTIONS.filter(q => {
+    // Check mode
+    if (q.mode !== 'both' && q.mode !== mode) return false;
+    
+    const condition = q.applies_if;
+    if (condition.always) return true;
+    
+    // Check channels
+    if (condition.channels_any) {
+      if (!condition.channels_any.some(ch => context.channels.includes(ch))) return false;
+    }
+    
+    // Check type
+    if (condition.type_any) {
+      if (!condition.type_any.includes(context.primary_type_id)) return false;
+    }
+    
+    // Check tags
+    if (condition.tags_any) {
+      if (!condition.tags_any.some(t => context.tags.includes(t))) return false;
+    }
+    
+    // Check integrations
+    if (condition.integrations_any) {
+      const intConditions = condition.integrations_any;
+      const matches = intConditions.some(ic => {
+        const parts = ic.key.split('.');
+        let val: any = context.integrations;
+        for (const p of parts.slice(1)) {
+          val = val?.[p];
+        }
+        if (ic.equals) return val === ic.equals;
+        if (ic.in) return ic.in.includes(val);
+        return false;
+      });
+      if (!matches) return false;
+    }
+    
+    return true;
+  });
+};
+
 // Get total questions count for precision calculation
 export const getTotalQuestionsForBusiness = (
   data: Record<string, any>,
-  mode: 'quick' | 'full'
+  mode: SetupMode
 ): number => {
   return COMPLETE_GASTRO_QUESTIONS.filter(q => {
     // Check mode
@@ -910,24 +968,11 @@ export const getTotalQuestionsForBusiness = (
 // Get answered questions count
 export const getAnsweredQuestionsCount = (
   data: Record<string, any>,
-  mode: 'quick' | 'full'
+  questions: typeof COMPLETE_GASTRO_QUESTIONS
 ): number => {
   let count = 0;
   
-  COMPLETE_GASTRO_QUESTIONS.forEach(q => {
-    // Check if applies
-    if (q.mode !== 'both' && q.mode !== mode) return;
-    
-    const condition = q.applies_if;
-    let applies = condition.always;
-    
-    if (condition.channels_any) {
-      const channels = data['business.channels'] || [];
-      applies = condition.channels_any.some(ch => channels.includes(ch));
-    }
-    
-    if (!applies) return;
-    
+  questions.forEach(q => {
     // Check if answered
     const value = data[q.store.path];
     if (value !== undefined && value !== null && value !== '' && 
@@ -941,12 +986,9 @@ export const getAnsweredQuestionsCount = (
 
 // Calculate precision score
 export const calculatePrecisionScore = (
-  data: Record<string, any>,
-  mode: 'quick' | 'full'
+  answered: number,
+  total: number
 ): number => {
-  const total = getTotalQuestionsForBusiness(data, mode);
-  const answered = getAnsweredQuestionsCount(data, mode);
-  
   if (total === 0) return 0;
   return Math.round((answered / total) * 100);
 };
