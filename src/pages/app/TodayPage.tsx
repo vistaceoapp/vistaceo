@@ -463,8 +463,11 @@ const TodayPage = () => {
                 previousScore={dashboardData.previousScore}
               />
               <PrecisionRingWidget 
-                healthScore={Math.round((dashboardData.subScores.revenue + dashboardData.subScores.reputation + dashboardData.subScores.operations) / 3)}
-                precisionScore={35}
+                healthScore={Math.round(Object.values(dashboardData.subScores).filter(v => v !== null).reduce((a, b) => (a || 0) + (b || 0), 0) / Math.max(Object.values(dashboardData.subScores).filter(v => v !== null).length, 1))}
+                precisionScore={dashboardData.realPrecision.percentage}
+                precisionLevel={dashboardData.realPrecision.level}
+                answeredQuestions={dashboardData.realPrecision.answered}
+                totalQuestions={dashboardData.realPrecision.total}
                 previousHealthScore={dashboardData.previousScore}
                 isPro={false}
                 onStartDiagnostic={() => navigate('/app/diagnostic')}
@@ -675,8 +678,11 @@ const TodayPage = () => {
       {/* Precision Widget - Mobile */}
       <div className="animate-fade-in" style={{ animationDelay: "28ms" }}>
         <PrecisionRingWidget 
-          healthScore={Math.round((dashboardData.subScores.revenue + dashboardData.subScores.reputation + dashboardData.subScores.operations) / 3)}
-          precisionScore={35}
+          healthScore={Math.round(Object.values(dashboardData.subScores).filter(v => v !== null).reduce((a, b) => (a || 0) + (b || 0), 0) / Math.max(Object.values(dashboardData.subScores).filter(v => v !== null).length, 1))}
+          precisionScore={dashboardData.realPrecision.percentage}
+          precisionLevel={dashboardData.realPrecision.level}
+          answeredQuestions={dashboardData.realPrecision.answered}
+          totalQuestions={dashboardData.realPrecision.total}
           previousHealthScore={dashboardData.previousScore}
           isPro={false}
           onStartDiagnostic={() => navigate('/app/diagnostic')}

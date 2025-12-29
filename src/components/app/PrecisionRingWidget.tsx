@@ -35,13 +35,21 @@ import {
 interface PrecisionRingWidgetProps {
   healthScore: number;
   precisionScore: number; // 0-100 based on questionsAnswered / questionsAvailable
+  precisionLevel?: 'Básica' | 'Media' | 'Alta';
+  answeredQuestions?: number;
+  totalQuestions?: number;
   previousHealthScore?: number | null;
   isEstimated?: boolean;
   isPro?: boolean;
   onStartDiagnostic?: () => void;
 }
 
-const getPrecisionLabel = (score: number): { label: string; color: string } => {
+const getPrecisionLabel = (score: number, level?: 'Básica' | 'Media' | 'Alta'): { label: string; color: string } => {
+  if (level) {
+    if (level === 'Alta') return { label: 'Alta', color: 'text-success' };
+    if (level === 'Media') return { label: 'Media', color: 'text-primary' };
+    return { label: 'Básica', color: 'text-amber-500' };
+  }
   if (score >= 80) return { label: 'Alta', color: 'text-success' };
   if (score >= 50) return { label: 'Media', color: 'text-primary' };
   return { label: 'Básica', color: 'text-amber-500' };
@@ -128,6 +136,9 @@ const ScoreRing = ({
 export const PrecisionRingWidget = ({ 
   healthScore, 
   precisionScore,
+  precisionLevel,
+  answeredQuestions,
+  totalQuestions,
   previousHealthScore,
   isEstimated = false,
   isPro = false,
@@ -137,7 +148,7 @@ export const PrecisionRingWidget = ({
   const [showPaywall, setShowPaywall] = useState(false);
 
   const healthInfo = getScoreLabel(healthScore);
-  const precisionInfo = getPrecisionLabel(precisionScore);
+  const precisionInfo = getPrecisionLabel(precisionScore, precisionLevel);
 
   const getTrend = () => {
     if (!previousHealthScore) return null;
@@ -279,8 +290,11 @@ export const PrecisionRingWidget = ({
           <div className="mt-4 text-center">
             <p className="text-sm text-muted-foreground">
               Precisión: <span className={cn("font-semibold", precisionInfo.color)}>{precisionInfo.label}</span>
+              {answeredQuestions !== undefined && totalQuestions !== undefined && (
+                <span className="text-xs ml-1">({answeredQuestions}/{totalQuestions})</span>
+              )}
             </p>
-            {precisionScore < 80 && (
+            {precisionScore < 70 && (
               <p className="text-xs text-muted-foreground mt-1">
                 Completá más para tener una noción más real de cómo estamos parados.
               </p>
