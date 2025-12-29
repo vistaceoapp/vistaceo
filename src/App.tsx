@@ -10,7 +10,6 @@ import { BusinessProvider, useBusiness } from "@/contexts/BusinessContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
-import Onboarding from "./pages/Onboarding";
 import SetupPage from "./pages/SetupPage";
 
 // App Pages
@@ -56,13 +55,8 @@ const SetupGate = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  // No business yet - redirect to onboarding
-  if (!currentBusiness) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  // Business exists but setup not complete - redirect to setup
-  if (!currentBusiness.setup_completed) {
+  // No business or setup not complete - redirect to setup
+  if (!currentBusiness || !currentBusiness.setup_completed) {
     return <Navigate to="/setup" replace />;
   }
 
@@ -76,19 +70,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
       
-      {/* Onboarding - create business */}
-      <Route
-        path="/onboarding"
-        element={
-          <ProtectedRoute>
-            <BusinessProvider>
-              <Onboarding />
-            </BusinessProvider>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Setup - full screen mandatory wizard */}
+      {/* Setup - full screen mandatory wizard (includes business creation if needed) */}
       <Route
         path="/setup"
         element={
