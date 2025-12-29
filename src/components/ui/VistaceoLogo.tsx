@@ -33,7 +33,7 @@ export const VistaceoLogo = React.forwardRef<HTMLImageElement, VistaceoLogoProps
         if (isMobile) {
           return isDark ? iconDark : iconLight;
         }
-        return isDark ? logoDarkFull : logoLightCompact;
+        return isDark ? logoDarkFull : logoLightFull;
       }
 
       // Full variant - full logo with text
