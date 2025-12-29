@@ -168,18 +168,28 @@ const SetupPage = () => {
     [searchQuery, setupData.country]
   );
 
+  // Calculate activeSteps FIRST before using in effects
+  const activeSteps = useMemo(() => {
+    return SETUP_STEPS.filter(step => {
+      // Don't filter out initial steps until business is created AND we've moved past them
+      if (businessCreated && ['country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
+      return setupMode === 'complete' || step.fastTrack;
+    });
+  }, [businessCreated, setupMode]);
+
+  // Handle navigation when business is created via context (e.g., page reload)
   useEffect(() => {
     if (currentBusiness && !businessCreated) {
       setBusinessCreated(true);
-      const modeIndex = activeSteps.findIndex(s => s.id === 'mode');
-      if (modeIndex > 0) setCurrentStep(modeIndex);
+      // Find the mode step in the NEW filtered list (without initial steps)
+      const stepsAfterCreate = SETUP_STEPS.filter(step => {
+        if (['country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
+        return setupMode === 'complete' || step.fastTrack;
+      });
+      const modeIndex = stepsAfterCreate.findIndex(s => s.id === 'mode');
+      if (modeIndex >= 0) setCurrentStep(modeIndex);
     }
-  }, [currentBusiness, businessCreated]);
-
-  const activeSteps = SETUP_STEPS.filter(step => {
-    if (currentBusiness && ['country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
-    return setupMode === 'complete' || step.fastTrack;
-  });
+  }, [currentBusiness, businessCreated, setupMode]);
   
   const stepConfig = activeSteps[currentStep];
   const totalSteps = activeSteps.length;
@@ -224,8 +234,17 @@ const SetupPage = () => {
         });
       }
       await refreshBusinesses();
+      
+      // Calculate the steps after creating business (without initial steps)
+      const stepsAfterCreate = SETUP_STEPS.filter(step => {
+        if (['country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
+        return setupMode === 'complete' || step.fastTrack;
+      });
+      const modeIndex = stepsAfterCreate.findIndex(s => s.id === 'mode');
+      
       setBusinessCreated(true);
-      setCurrentStep(prev => prev + 1);
+      // Navigate to mode step (index 0 in new filtered list since initial steps are removed)
+      setCurrentStep(modeIndex >= 0 ? modeIndex : 0);
       toast.success('Negocio creado');
     } catch (error) {
       console.error("Error creating business:", error);
