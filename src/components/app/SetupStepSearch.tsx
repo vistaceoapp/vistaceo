@@ -171,18 +171,25 @@ export const SetupStepSearch = ({
 
       const place = result?.place as PlaceDetails;
       
-      if (place) {
-        // Generate new session token for next search
-        sessionTokenRef.current = crypto.randomUUID();
-        
-        if (isGoogle) {
-          setSelectedPlace(place);
-          onUpdate({ 
-            googlePlaceId: place.placeId,
-            googleRating: place.rating,
-            googleReviewCount: place.reviewCount,
-          }, 15);
-        } else if (isCompetitors) {
+        if (place) {
+          // Generate new session token for next search
+          sessionTokenRef.current = crypto.randomUUID();
+
+          if (isGoogle) {
+            setSelectedPlace(place);
+
+            const currentName = (data as any)?.businessName as string | undefined;
+            const shouldAutofillName = !currentName || currentName.trim().length < 2;
+
+            onUpdate({
+              googlePlaceId: place.placeId,
+              googleRating: place.rating,
+              googleReviewCount: place.reviewCount,
+              googleLat: place.lat,
+              googleLng: place.lng,
+              ...(shouldAutofillName ? { businessName: place.name } : {}),
+            } as any, 15);
+          } else if (isCompetitors) {
           const competitor: CompetitorData = {
             id: place.placeId,
             name: place.name,
