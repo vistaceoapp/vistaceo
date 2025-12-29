@@ -10,7 +10,7 @@ import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
 import { useAutoSync } from "@/hooks/use-auto-sync";
 
 const navItems = [
-  { path: "/app", icon: Home, label: "Hoy" },
+  { path: "/app", icon: Home, label: "Inicio" },
   { path: "/app/chat", icon: MessageCircle, label: "Chat", hasNotification: true },
   { path: "/app/missions", icon: Target, label: "Misiones" },
   { path: "/app/radar", icon: Radar, label: "Radar" },

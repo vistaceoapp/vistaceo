@@ -23,7 +23,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const navItems = [
-  { path: "/app", icon: Home, label: "Hoy", description: "Vista general del día", badge: null },
+  { path: "/app", icon: Home, label: "Inicio", description: "Dashboard principal", badge: null },
   { path: "/app/chat", icon: MessageCircle, label: "Chat", description: "Asistente IA", badge: "IA" },
   { path: "/app/missions", icon: Target, label: "Misiones", description: "Proyectos activos", badge: null },
   { path: "/app/radar", icon: Radar, label: "Radar", description: "Oportunidades", badge: "3" },
