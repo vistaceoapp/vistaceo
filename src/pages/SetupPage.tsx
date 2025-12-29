@@ -26,7 +26,8 @@ import {
   ChevronRight,
   Search,
   Building2,
-  Briefcase
+  Briefcase,
+  ChevronLeft
 } from 'lucide-react';
 import { VistaceoLogo } from '@/components/ui/VistaceoLogo';
 import { useBusiness } from '@/contexts/BusinessContext';
@@ -38,9 +39,9 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 // Import step components
 import { SetupStepChips } from '@/components/app/SetupStepChips';
-import { SetupStepSlider } from '@/components/app/SetupStepSlider';
 import { SetupStepMix } from '@/components/app/SetupStepMix';
 import { SetupStepSearch } from '@/components/app/SetupStepSearch';
+import { AreaCard, BusinessTypeCard, CountryCard, SearchResultCard } from '@/components/app/SetupCards';
 import { CompetitorData } from '@/lib/setupSteps';
 
 // Import new business types helper
@@ -50,13 +51,11 @@ import {
   getBusinessTypes,
   searchBusinessTypes,
   getAreaById,
-  getBusinessTypeById,
   type CountryCode,
-  type Area,
   type BusinessType,
 } from '@/lib/setupBusinessTypes';
 
-// Step definitions for new flow
+// Step definitions
 interface SetupStepDef {
   id: string;
   title: string;
@@ -68,24 +67,28 @@ interface SetupStepDef {
 }
 
 const SETUP_STEPS: SetupStepDef[] = [
-  { id: 'welcome', title: 'Bienvenido', subtitle: 'Armemos tu dashboard en minutos', icon: Brain, required: true, fastTrack: true, section: 'intro' },
+  { id: 'welcome', title: 'Bienvenido', subtitle: 'Tu CEO digital te espera', icon: Brain, required: true, fastTrack: true, section: 'intro' },
   { id: 'country', title: 'País', subtitle: 'Dónde operás', icon: Globe, required: true, fastTrack: true, section: 'identity' },
   { id: 'area', title: 'Sector', subtitle: 'Tu industria', icon: Building2, required: true, fastTrack: true, section: 'identity' },
-  { id: 'business_type', title: 'Tipo de negocio', subtitle: 'Qué hacés', icon: Briefcase, required: true, fastTrack: true, section: 'identity' },
-  { id: 'business_name', title: 'Tu negocio', subtitle: 'Nombre y detalles', icon: Store, required: true, fastTrack: true, section: 'identity' },
-  { id: 'mode', title: 'Tu camino', subtitle: '¿Cuánto tiempo tenés?', icon: Zap, required: true, fastTrack: true, section: 'intro' },
-  { id: 'google_business', title: 'Google Business', subtitle: 'Conectar reseñas', icon: MapPin, required: false, fastTrack: true, section: 'identity' },
-  { id: 'positioning', title: 'Propuesta', subtitle: '¿Qué hacés y para quién?', icon: Target, required: true, fastTrack: true, section: 'strategy' },
+  { id: 'business_type', title: 'Tipo', subtitle: 'Qué hacés', icon: Briefcase, required: true, fastTrack: true, section: 'identity' },
+  { id: 'business_name', title: 'Nombre', subtitle: 'Tu negocio', icon: Store, required: true, fastTrack: true, section: 'identity' },
+  { id: 'mode', title: 'Modo', subtitle: 'Tu camino', icon: Zap, required: true, fastTrack: true, section: 'intro' },
+  { id: 'google_business', title: 'Google', subtitle: 'Conectar reseñas', icon: MapPin, required: false, fastTrack: true, section: 'identity' },
+  { id: 'positioning', title: 'Propuesta', subtitle: 'Tu diferencial', icon: Target, required: true, fastTrack: true, section: 'strategy' },
   { id: 'service_model', title: 'Modelo', subtitle: 'Cómo vendés', icon: Users, required: true, fastTrack: true, section: 'operations' },
-  { id: 'dayparts', title: 'Horarios', subtitle: 'Franjas principales', icon: Calendar, required: true, fastTrack: true, section: 'operations' },
+  { id: 'dayparts', title: 'Horarios', subtitle: 'Cuándo operás', icon: Calendar, required: true, fastTrack: true, section: 'operations' },
   { id: 'top_sellers', title: 'Estrellas', subtitle: 'Productos top', icon: Utensils, required: true, fastTrack: true, section: 'operations' },
-  { id: 'ticket', title: 'Ticket', subtitle: 'Promedio por venta', icon: DollarSign, required: true, fastTrack: true, section: 'operations' },
-  { id: 'focus', title: 'Foco', subtitle: 'Prioridad actual', icon: Target, required: true, fastTrack: true, section: 'strategy' },
-  { id: 'constraints', title: 'Contexto', subtitle: 'Restricciones reales', icon: Clock, required: true, fastTrack: true, section: 'strategy' },
-  { id: 'competitors', title: 'Competencia', subtitle: 'Competidores cercanos', icon: Store, required: true, fastTrack: true, section: 'strategy' },
-  { id: 'channel_mix', title: 'Canales', subtitle: 'Mix de ventas', icon: TrendingUp, required: false, fastTrack: false, section: 'operations' },
+  { id: 'ticket', title: 'Ticket', subtitle: 'Promedio', icon: DollarSign, required: true, fastTrack: true, section: 'operations' },
+  { id: 'focus', title: 'Foco', subtitle: 'Prioridad', icon: Target, required: true, fastTrack: true, section: 'strategy' },
+  { id: 'constraints', title: 'Contexto', subtitle: 'Restricciones', icon: Clock, required: true, fastTrack: true, section: 'strategy' },
+  { id: 'competitors', title: 'Competencia', subtitle: 'Tu zona', icon: Store, required: true, fastTrack: true, section: 'strategy' },
+  { id: 'channel_mix', title: 'Canales', subtitle: 'Mix', icon: TrendingUp, required: false, fastTrack: false, section: 'operations' },
   { id: 'complete', title: 'Listo', subtitle: 'Brain activo', icon: Check, required: true, fastTrack: true, section: 'finish' },
 ];
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  AR: '🇦🇷', UY: '🇺🇾', BR: '🇧🇷', CL: '🇨🇱', CO: '🇨🇴', EC: '🇪🇨', MX: '🇲🇽', CR: '🇨🇷', PA: '🇵🇦',
+};
 
 interface SetupData {
   businessName: string;
@@ -100,11 +103,7 @@ interface SetupData {
   topSellers: string[];
   ticketRange: string;
   currentFocus: string;
-  constraints: {
-    weeklyTime: string;
-    teamSize: string;
-    mainLimitation: string;
-  };
+  constraints: { weeklyTime: string; teamSize: string; mainLimitation: string };
   channelMix: { dineIn: number; delivery: number; takeaway: number };
   capacity: number;
   foodCostPercent: number;
@@ -140,11 +139,7 @@ const SetupPage = () => {
     topSellers: [],
     ticketRange: '',
     currentFocus: '',
-    constraints: {
-      weeklyTime: '',
-      teamSize: '',
-      mainLimitation: '',
-    },
+    constraints: { weeklyTime: '', teamSize: '', mainLimitation: '' },
     channelMix: { dineIn: 60, delivery: 30, takeaway: 10 },
     capacity: 50,
     foodCostPercent: 30,
@@ -152,7 +147,6 @@ const SetupPage = () => {
     competitors: [],
   });
 
-  // Get countries, areas, and business types based on selection
   const countries = useMemo(() => getCountries(), []);
   const areas = useMemo(() => getAreas(setupData.country), [setupData.country]);
   const businessTypes = useMemo(() => 
@@ -164,29 +158,22 @@ const SetupPage = () => {
     [searchQuery, setupData.country]
   );
 
-  // Skip business creation steps if business already exists
   useEffect(() => {
     if (currentBusiness && !businessCreated) {
       setBusinessCreated(true);
       const modeIndex = activeSteps.findIndex(s => s.id === 'mode');
-      if (modeIndex > 0) {
-        setCurrentStep(modeIndex);
-      }
+      if (modeIndex > 0) setCurrentStep(modeIndex);
     }
   }, [currentBusiness, businessCreated]);
 
-  // Filter steps based on mode and business existence
   const activeSteps = SETUP_STEPS.filter(step => {
-    if (currentBusiness && ['country', 'area', 'business_type', 'business_name'].includes(step.id)) {
-      return false;
-    }
+    if (currentBusiness && ['country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
     return setupMode === 'complete' || step.fastTrack;
   });
   
   const stepConfig = activeSteps[currentStep];
   const totalSteps = activeSteps.length;
   const progressPercent = ((currentStep + 1) / totalSteps) * 100;
-
   const precisionScore = calculatePrecision(setupData, setupMode);
 
   const handleNext = async () => {
@@ -194,7 +181,6 @@ const SetupPage = () => {
       await createBusiness();
       return;
     }
-    
     if (currentStep < totalSteps - 1) {
       await saveProgress();
       setCurrentStep(prev => prev + 1);
@@ -204,15 +190,12 @@ const SetupPage = () => {
   };
 
   const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    }
+    if (currentStep > 0) setCurrentStep(prev => prev - 1);
   };
 
   const createBusiness = async () => {
     if (!user || !setupData.businessName.trim() || !setupData.businessTypeId) return;
     setLoading(true);
-
     try {
       const { data: businessData, error } = await supabase.from("businesses").insert({
         name: setupData.businessName.trim(),
@@ -221,28 +204,19 @@ const SetupPage = () => {
         owner_id: user.id,
         setup_completed: false,
       }).select().single();
-
       if (error) throw error;
-
       if (businessData) {
         await supabase.from("business_setup_progress").insert({
           business_id: businessData.id,
           current_step: 'mode',
-          setup_data: {
-            ...setupData,
-            area_id: setupData.areaId,
-            business_type_id: setupData.businessTypeId,
-            business_type_label: setupData.businessTypeLabel,
-          } as any,
+          setup_data: { ...setupData } as any,
           precision_score: 20,
         });
       }
-
       await refreshBusinesses();
       setBusinessCreated(true);
       setCurrentStep(prev => prev + 1);
-      
-      toast.success('Negocio creado. Continuemos con el setup.');
+      toast.success('Negocio creado');
     } catch (error) {
       console.error("Error creating business:", error);
       toast.error("Error al crear el negocio");
@@ -253,16 +227,13 @@ const SetupPage = () => {
 
   const saveProgress = async () => {
     if (!currentBusiness) return;
-    
     try {
-      await supabase
-        .from('business_setup_progress')
-        .upsert({
-          business_id: currentBusiness.id,
-          current_step: stepConfig?.id || 'welcome',
-          setup_data: setupData as any,
-          precision_score: precisionScore,
-        }, { onConflict: 'business_id' });
+      await supabase.from('business_setup_progress').upsert({
+        business_id: currentBusiness.id,
+        current_step: stepConfig?.id || 'welcome',
+        setup_data: setupData as any,
+        precision_score: precisionScore,
+      }, { onConflict: 'business_id' });
     } catch (error) {
       console.error('Error saving progress:', error);
     }
@@ -271,70 +242,48 @@ const SetupPage = () => {
   const completeSetup = async () => {
     if (!currentBusiness) return;
     setLoading(true);
-    
     try {
-      await supabase
-        .from('business_setup_progress')
-        .upsert({
-          business_id: currentBusiness.id,
-          current_step: 'complete',
-          setup_data: setupData as any,
-          precision_score: precisionScore,
-          completed_at: new Date().toISOString(),
-        }, { onConflict: 'business_id' });
+      await supabase.from('business_setup_progress').upsert({
+        business_id: currentBusiness.id,
+        current_step: 'complete',
+        setup_data: setupData as any,
+        precision_score: precisionScore,
+        completed_at: new Date().toISOString(),
+      }, { onConflict: 'business_id' });
 
-      await supabase
-        .from('businesses')
-        .update({
-          setup_completed: true,
-          service_model: setupData.serviceModel,
-          active_dayparts: setupData.activeDayparts,
-          channel_mix: setupData.channelMix,
-          precision_score: precisionScore,
-          settings: {
-            area_id: setupData.areaId,
-            business_type_id: setupData.businessTypeId,
-            business_type_label: setupData.businessTypeLabel,
-          }
-        })
-        .eq('id', currentBusiness.id);
+      await supabase.from('businesses').update({
+        setup_completed: true,
+        service_model: setupData.serviceModel,
+        active_dayparts: setupData.activeDayparts,
+        channel_mix: setupData.channelMix,
+        precision_score: precisionScore,
+      }).eq('id', currentBusiness.id);
 
-      await supabase
-        .from('business_brains')
-        .upsert({
-          business_id: currentBusiness.id,
-          primary_business_type: setupData.businessTypeId,
-          current_focus: setupData.currentFocus || 'ventas',
-          factual_memory: {
-            positioning: setupData.positioning,
-            top_sellers: setupData.topSellers,
-            ticket_range: setupData.ticketRange,
-            constraints: setupData.constraints,
-            area_id: setupData.areaId,
-            business_type_label: setupData.businessTypeLabel,
-          },
-          preferences_memory: {
-            autopilot_mode: 'standard',
-            language: setupData.country === 'BR' ? 'pt-BR' : 'es',
-          },
-          mvc_completion_pct: precisionScore,
-        }, { onConflict: 'business_id' });
+      await supabase.from('business_brains').upsert({
+        business_id: currentBusiness.id,
+        primary_business_type: setupData.businessTypeId,
+        current_focus: setupData.currentFocus || 'ventas',
+        factual_memory: {
+          positioning: setupData.positioning,
+          top_sellers: setupData.topSellers,
+          ticket_range: setupData.ticketRange,
+          constraints: setupData.constraints,
+          area_id: setupData.areaId,
+          business_type_label: setupData.businessTypeLabel,
+        },
+        preferences_memory: { autopilot_mode: 'standard', language: setupData.country === 'BR' ? 'pt-BR' : 'es' },
+        mvc_completion_pct: precisionScore,
+      }, { onConflict: 'business_id' });
 
-      await supabase
-        .from('snapshots')
-        .insert({
-          business_id: currentBusiness.id,
-          source: 'setup_baseline',
-          total_score: Math.round(precisionScore * 0.5),
-          dimensions_json: {
-            data_quality: precisionScore,
-            setup_mode: setupMode,
-          },
-        });
+      await supabase.from('snapshots').insert({
+        business_id: currentBusiness.id,
+        source: 'setup_baseline',
+        total_score: Math.round(precisionScore * 0.5),
+        dimensions_json: { data_quality: precisionScore, setup_mode: setupMode },
+      });
 
       await refreshBusinesses();
-      
-      toast.success('¡Tu Brain está activo! Dashboard listo.');
+      toast.success('¡Tu Brain está activo!');
       navigate('/app');
     } catch (error) {
       console.error('Error completing setup:', error);
@@ -372,13 +321,8 @@ const SetupPage = () => {
     setSetupData(d => ({ ...d, ...updates }));
   };
 
-  const selectBusinessType = (bt: BusinessType & { label: string; area?: Area & { label: string } }) => {
-    setSetupData(d => ({
-      ...d,
-      areaId: bt.area_id,
-      businessTypeId: bt.id,
-      businessTypeLabel: bt.label,
-    }));
+  const selectBusinessType = (bt: BusinessType & { label: string }) => {
+    setSetupData(d => ({ ...d, areaId: bt.area_id, businessTypeId: bt.id, businessTypeLabel: bt.label }));
     setSearchQuery('');
   };
 
@@ -389,49 +333,65 @@ const SetupPage = () => {
     switch (stepId) {
       case 'welcome':
         return (
-          <div className="flex flex-col items-center justify-center text-center space-y-8 py-8">
-            <div className="relative">
-              <div className="absolute inset-0 blur-3xl bg-primary/20 rounded-full animate-pulse" />
-              <div className="relative w-28 h-28 rounded-3xl gradient-primary flex items-center justify-center shadow-2xl">
-                <VistaceoLogo size={70} variant="icon" />
+          <div className="flex flex-col items-center justify-center text-center space-y-8 py-4">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="relative"
+            >
+              <div className="absolute inset-0 blur-3xl bg-gradient-to-r from-primary/30 to-accent/30 rounded-full animate-pulse" />
+              <div className="relative w-32 h-32 rounded-3xl gradient-primary flex items-center justify-center shadow-2xl shadow-primary/30">
+                <VistaceoLogo size={80} variant="icon" />
               </div>
-            </div>
-            <div className="space-y-4 max-w-md">
-              <h2 className="text-3xl font-bold text-foreground">
-                Soy tu CEO digital 🧠
+            </motion.div>
+            <motion.div 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="space-y-4 max-w-md"
+            >
+              <h2 className="text-4xl font-bold text-foreground tracking-tight">
+                Tu CEO digital
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                En los próximos minutos armaremos tu <strong className="text-foreground">Brain</strong> personalizado.
+                En minutos armaremos tu <span className="text-primary font-semibold">Brain</span> personalizado.
                 Cada respuesta mejora mis recomendaciones.
               </p>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
+            </motion.div>
+            <motion.div
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+              className="flex items-center gap-3"
+            >
+              <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 text-primary font-medium">
                 <Clock className="w-4 h-4" />
                 <span>5-8 minutos</span>
               </div>
-            </div>
+            </motion.div>
           </div>
         );
 
       case 'country':
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-4">
               {countries.map((country) => (
-                <button
+                <CountryCard
                   key={country.code}
-                  onClick={() => setSetupData(d => ({ ...d, country: country.code as CountryCode, areaId: '', businessTypeId: '', businessTypeLabel: '' }))}
-                  className={cn(
-                    "group p-5 rounded-xl border-2 text-center transition-all hover:scale-105",
-                    setupData.country === country.code
-                      ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-                      : "border-border hover:border-primary/50"
-                  )}
-                >
-                  <span className="text-4xl block mb-2 group-hover:scale-110 transition-transform">
-                    {getCountryFlag(country.code)}
-                  </span>
-                  <p className="font-medium text-foreground text-sm">{country.name}</p>
-                </button>
+                  code={country.code}
+                  name={country.name}
+                  flag={COUNTRY_FLAGS[country.code] || '🌎'}
+                  selected={setupData.country === country.code}
+                  onClick={() => setSetupData(d => ({ 
+                    ...d, 
+                    country: country.code as CountryCode, 
+                    areaId: '', 
+                    businessTypeId: '', 
+                    businessTypeLabel: '' 
+                  }))}
+                />
               ))}
             </div>
           </div>
@@ -440,57 +400,64 @@ const SetupPage = () => {
       case 'area':
         return (
           <div className="space-y-6">
-            {/* Search bar */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscá tu tipo de negocio..."
-                className="pl-12 h-14 text-lg bg-card border-border"
-              />
+            {/* Smart Search */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300" />
+              <div className="relative">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscá tu tipo de negocio..."
+                  className="pl-14 h-16 text-lg bg-card border-2 border-border rounded-2xl focus:border-primary transition-colors"
+                />
+              </div>
             </div>
 
             {/* Search Results */}
             {searchQuery.length >= 2 && searchResults.length > 0 && (
-              <div className="space-y-2 max-h-64 overflow-y-auto border border-border rounded-xl p-2 bg-card">
-                {searchResults.slice(0, 8).map((result) => (
-                  <button
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-1 max-h-72 overflow-y-auto border-2 border-primary/20 rounded-2xl p-3 bg-card shadow-lg"
+              >
+                {searchResults.slice(0, 6).map((result) => (
+                  <SearchResultCard
                     key={result.id}
+                    label={result.label}
+                    areaLabel={result.area.label}
+                    definition={result.definition}
                     onClick={() => {
                       selectBusinessType(result);
-                      setCurrentStep(prev => prev + 2); // Skip to business_name
+                      setCurrentStep(prev => prev + 2);
                     }}
-                    className="w-full p-3 rounded-lg text-left hover:bg-primary/5 transition-colors border border-transparent hover:border-primary/20"
-                  >
-                    <p className="font-medium text-foreground">{result.label}</p>
-                    <p className="text-xs text-muted-foreground">{result.area.label}</p>
-                    {result.definition && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{result.definition}</p>
-                    )}
-                  </button>
+                  />
                 ))}
-              </div>
+              </motion.div>
             )}
 
             {/* Areas Grid */}
             {searchQuery.length < 2 && (
               <>
-                <p className="text-sm text-muted-foreground text-center">O seleccioná tu sector</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-sm text-muted-foreground font-medium">O elegí tu sector</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
                   {areas.map((area) => (
-                    <button
+                    <AreaCard
                       key={area.id}
-                      onClick={() => setSetupData(d => ({ ...d, areaId: area.id, businessTypeId: '', businessTypeLabel: '' }))}
-                      className={cn(
-                        "p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.02]",
-                        setupData.areaId === area.id
-                          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      <p className="font-medium text-foreground text-sm">{area.label}</p>
-                    </button>
+                      id={area.id}
+                      label={area.label}
+                      selected={setupData.areaId === area.id}
+                      onClick={() => setSetupData(d => ({ 
+                        ...d, 
+                        areaId: area.id, 
+                        businessTypeId: '', 
+                        businessTypeLabel: '' 
+                      }))}
+                    />
                   ))}
                 </div>
               </>
@@ -502,18 +469,23 @@ const SetupPage = () => {
         const selectedArea = getAreaById(setupData.areaId, setupData.country);
         return (
           <div className="space-y-6">
+            {/* Breadcrumb */}
             {selectedArea && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant="secondary">{selectedArea.label}</Badge>
+              <div className="flex items-center gap-2">
                 <button 
                   onClick={() => {
                     setSetupData(d => ({ ...d, areaId: '', businessTypeId: '', businessTypeLabel: '' }));
                     setCurrentStep(prev => prev - 1);
                   }}
-                  className="text-primary text-xs hover:underline"
+                  className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Cambiar sector
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Sectores</span>
                 </button>
+                <span className="text-muted-foreground">/</span>
+                <Badge variant="secondary" className="font-medium">
+                  {selectedArea.label}
+                </Badge>
               </div>
             )}
 
@@ -523,69 +495,59 @@ const SetupPage = () => {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscá tu tipo de negocio..."
-                className="pl-12 h-12 bg-card border-border"
+                placeholder="Filtrar tipos de negocio..."
+                className="pl-12 h-12 bg-card border-2 border-border rounded-xl"
               />
             </div>
 
             {/* Business Types Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto">
-              {(searchQuery.length >= 2 ? searchResults.filter(r => r.area_id === setupData.areaId) : businessTypes).map((bt) => (
-                <button
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto pr-2">
+              {(searchQuery.length >= 2 
+                ? searchResults.filter(r => r.area_id === setupData.areaId) 
+                : businessTypes
+              ).map((bt) => (
+                <BusinessTypeCard
                   key={bt.id}
+                  id={bt.id}
+                  label={bt.label}
+                  definition={bt.definition}
+                  selected={setupData.businessTypeId === bt.id}
                   onClick={() => selectBusinessType(bt)}
-                  className={cn(
-                    "p-3 rounded-xl border-2 text-left transition-all hover:scale-[1.02]",
-                    setupData.businessTypeId === bt.id
-                      ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-                      : "border-border hover:border-primary/50"
-                  )}
-                >
-                  <p className="font-medium text-foreground text-sm">{bt.label}</p>
-                  {bt.definition && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{bt.definition}</p>
-                  )}
-                </button>
+                />
               ))}
             </div>
-
-            {/* Show all types option */}
-            {searchQuery.length < 2 && (
-              <button
-                onClick={() => {
-                  setSetupData(d => ({ ...d, areaId: '' }));
-                  setCurrentStep(prev => prev - 1);
-                }}
-                className="w-full text-center text-sm text-primary hover:underline py-2"
-              >
-                Ver otros sectores
-              </button>
-            )}
           </div>
         );
 
       case 'business_name':
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {setupData.businessTypeLabel && (
-              <div className="p-3 bg-primary/5 rounded-xl border border-primary/20">
-                <p className="text-sm text-muted-foreground">Tipo seleccionado</p>
-                <p className="font-medium text-foreground">{setupData.businessTypeLabel}</p>
+              <div className="p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl border border-primary/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Briefcase className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Tipo seleccionado</p>
+                    <p className="font-semibold text-foreground">{setupData.businessTypeLabel}</p>
+                  </div>
+                </div>
               </div>
             )}
-            <div>
-              <label className="text-sm font-medium text-foreground mb-3 block">
+            <div className="space-y-3">
+              <label className="text-base font-semibold text-foreground block">
                 ¿Cómo se llama tu negocio?
               </label>
               <Input
                 value={setupData.businessName}
                 onChange={(e) => setSetupData(d => ({ ...d, businessName: e.target.value }))}
-                placeholder="Ej: Café Central, La Trattoria, Studio Fit..."
-                className="h-14 text-lg bg-card border-border"
+                placeholder="Ej: Café Central, Studio Fit..."
+                className="h-16 text-xl bg-card border-2 border-border rounded-2xl px-6"
                 autoFocus
               />
-              <p className="text-xs text-muted-foreground mt-2">
-                Podés cambiarlo después
+              <p className="text-sm text-muted-foreground">
+                Podés cambiarlo cuando quieras
               </p>
             </div>
           </div>
@@ -594,48 +556,40 @@ const SetupPage = () => {
       case 'mode':
         return (
           <div className="space-y-4">
-            <div 
-              className={cn(
-                "p-6 rounded-2xl border-2 cursor-pointer transition-all hover:shadow-lg",
-                setupMode === 'fast' 
-                  ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
-                  : "border-border hover:border-primary/50"
-              )}
-              onClick={() => { setSetupMode('fast'); setSetupData(d => ({ ...d, mode: 'fast' })); }}
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Zap className="w-7 h-7 text-primary" />
+            {[
+              { mode: 'fast' as const, icon: Zap, title: 'Empezar rápido', desc: '5-8 min • Dashboard útil desde hoy', color: 'primary' },
+              { mode: 'complete' as const, icon: Target, title: 'Setup completo', desc: '10-15 min • Máxima precisión', color: 'accent' },
+            ].map(({ mode, icon: Icon, title, desc }) => (
+              <button
+                key={mode}
+                onClick={() => { setSetupMode(mode); setSetupData(d => ({ ...d, mode })); }}
+                className={cn(
+                  "w-full p-6 rounded-2xl border-2 text-left transition-all duration-200",
+                  "hover:shadow-lg hover:-translate-y-0.5",
+                  setupMode === mode 
+                    ? "border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg shadow-primary/20" 
+                    : "border-border bg-card hover:border-primary/40"
+                )}
+              >
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "w-14 h-14 rounded-xl flex items-center justify-center",
+                    setupMode === mode ? "bg-primary/20" : "bg-secondary"
+                  )}>
+                    <Icon className={cn("w-7 h-7", setupMode === mode ? "text-primary" : "text-muted-foreground")} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-foreground">{title}</h3>
+                    <p className="text-muted-foreground text-sm">{desc}</p>
+                  </div>
+                  {setupMode === mode && (
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                      <Check className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-foreground mb-1">Empezar rápido</h3>
-                  <p className="text-muted-foreground">5-8 min • Dashboard útil desde hoy</p>
-                </div>
-                {setupMode === 'fast' && <Check className="w-6 h-6 text-primary" />}
-              </div>
-            </div>
-
-            <div 
-              className={cn(
-                "p-6 rounded-2xl border-2 cursor-pointer transition-all hover:shadow-lg",
-                setupMode === 'complete' 
-                  ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
-                  : "border-border hover:border-primary/50"
-              )}
-              onClick={() => { setSetupMode('complete'); setSetupData(d => ({ ...d, mode: 'complete' })); }}
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <Target className="w-7 h-7 text-accent" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-foreground mb-1">Setup completo</h3>
-                  <p className="text-muted-foreground">10-15 min • Máxima precisión inicial</p>
-                </div>
-                {setupMode === 'complete' && <Check className="w-6 h-6 text-primary" />}
-              </div>
-            </div>
-
+              </button>
+            ))}
             <p className="text-sm text-center text-muted-foreground pt-2">
               Podés completar más info después
             </p>
@@ -666,30 +620,22 @@ const SetupPage = () => {
         );
 
       case 'positioning':
-        const positioningSuggestions = [
-          'Café de especialidad para oficinistas',
-          'Restaurante familiar con menú del día',
-          'Bar con tapas y tragos de autor',
-          'Comida rápida saludable',
-          'Estudio de yoga para principiantes',
-          'Clínica dental familiar',
-        ];
         return (
           <div className="space-y-6">
             <textarea
               value={setupData.positioning}
               onChange={(e) => setSetupData(d => ({ ...d, positioning: e.target.value }))}
               placeholder="Ej: Café de especialidad para gente que trabaja cerca..."
-              className="w-full h-32 p-4 rounded-xl border border-border bg-card text-foreground resize-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              className="w-full h-36 p-5 rounded-2xl border-2 border-border bg-card text-foreground resize-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-lg"
             />
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">Ideas:</p>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground font-medium">Ideas para inspirarte:</p>
               <div className="flex flex-wrap gap-2">
-                {positioningSuggestions.map((sug, i) => (
+                {['Café de especialidad para oficinistas', 'Estudio de yoga para principiantes', 'Restaurante familiar con menú del día', 'Clínica dental para toda la familia'].map((sug, i) => (
                   <button
                     key={i}
                     onClick={() => setSetupData(d => ({ ...d, positioning: sug }))}
-                    className="px-3 py-1.5 text-xs bg-secondary rounded-full hover:bg-primary/10 transition-colors"
+                    className="px-4 py-2 text-sm bg-secondary rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
                   >
                     {sug}
                   </button>
@@ -700,10 +646,9 @@ const SetupPage = () => {
         );
 
       case 'service_model':
-        const models = ['Presencial', 'Online', 'Híbrido', 'Delivery-first', 'A domicilio'];
         return (
           <SetupStepChips
-            options={models}
+            options={['Presencial', 'Online', 'Híbrido', 'Delivery-first', 'A domicilio']}
             selected={setupData.serviceModel ? [setupData.serviceModel] : []}
             onSelect={(val) => setSetupData(d => ({ ...d, serviceModel: val }))}
             multiple={false}
@@ -729,11 +674,10 @@ const SetupPage = () => {
         );
 
       case 'top_sellers':
-        const sellerSuggestions = ['Servicio principal', 'Producto estrella', 'Oferta especial', 'Combo/Pack', 'Novedad'];
         return (
           <div className="space-y-4">
             <SetupStepChips
-              options={sellerSuggestions}
+              options={['Servicio principal', 'Producto estrella', 'Oferta especial', 'Combo/Pack', 'Novedad']}
               selected={setupData.topSellers}
               onSelect={(val) => setSetupData(d => ({ 
                 ...d, 
@@ -743,17 +687,16 @@ const SetupPage = () => {
               }))}
               multiple={true}
             />
-            <p className="text-xs text-center text-muted-foreground">
-              Seleccioná hasta 3 productos/servicios estrella
+            <p className="text-sm text-center text-muted-foreground">
+              Seleccioná hasta 3 productos/servicios
             </p>
           </div>
         );
 
       case 'ticket':
-        const ticketRanges = getTicketRanges(setupData.country);
         return (
           <SetupStepChips
-            options={ticketRanges}
+            options={getTicketRanges(setupData.country)}
             selected={setupData.ticketRange ? [setupData.ticketRange] : []}
             onSelect={(val) => setSetupData(d => ({ ...d, ticketRange: val }))}
             multiple={false}
@@ -770,64 +713,47 @@ const SetupPage = () => {
           { value: 'marketing', label: 'Marketing', emoji: '📱' },
         ];
         return (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {focuses.map((focus) => (
               <button
                 key={focus.value}
                 onClick={() => setSetupData(d => ({ ...d, currentFocus: focus.value }))}
                 className={cn(
-                  "p-4 rounded-xl border-2 text-center transition-all hover:scale-105",
+                  "p-5 rounded-2xl border-2 text-center transition-all duration-200",
+                  "hover:shadow-lg hover:-translate-y-0.5",
                   setupData.currentFocus === focus.value 
-                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
-                    : "border-border hover:border-primary/50"
+                    ? "border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg shadow-primary/20" 
+                    : "border-border hover:border-primary/40"
                 )}
               >
-                <span className="text-2xl block mb-2">{focus.emoji}</span>
-                <span className="text-sm font-medium text-foreground">{focus.label}</span>
+                <span className="text-3xl block mb-2">{focus.emoji}</span>
+                <span className={cn(
+                  "text-sm font-semibold",
+                  setupData.currentFocus === focus.value ? "text-primary" : "text-foreground"
+                )}>{focus.label}</span>
               </button>
             ))}
           </div>
         );
 
       case 'constraints':
-        const timeOptions = ['<5 hs/semana', '5-10 hs/semana', '10-20 hs/semana', '+20 hs/semana'];
-        const teamOptions = ['Solo yo', '2-5 personas', '6-15 personas', '+15 personas'];
-        const limitations = ['Tiempo', 'Dinero', 'Personal', 'Organización'];
         return (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div>
-              <p className="text-sm font-medium text-foreground mb-3">Tiempo semanal para vistaceo:</p>
+              <p className="text-base font-semibold text-foreground mb-4">Tiempo semanal para vistaceo:</p>
               <SetupStepChips
-                options={timeOptions}
+                options={['<5 hs', '5-10 hs', '10-20 hs', '+20 hs']}
                 selected={setupData.constraints.weeklyTime ? [setupData.constraints.weeklyTime] : []}
-                onSelect={(val) => setSetupData(d => ({ 
-                  ...d, 
-                  constraints: { ...d.constraints, weeklyTime: val }
-                }))}
+                onSelect={(val) => setSetupData(d => ({ ...d, constraints: { ...d.constraints, weeklyTime: val } }))}
                 multiple={false}
               />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground mb-3">Tamaño del equipo:</p>
+              <p className="text-base font-semibold text-foreground mb-4">Tamaño del equipo:</p>
               <SetupStepChips
-                options={teamOptions}
+                options={['Solo yo', '2-5', '6-15', '+15']}
                 selected={setupData.constraints.teamSize ? [setupData.constraints.teamSize] : []}
-                onSelect={(val) => setSetupData(d => ({ 
-                  ...d, 
-                  constraints: { ...d.constraints, teamSize: val }
-                }))}
-                multiple={false}
-              />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-foreground mb-3">Principal limitante:</p>
-              <SetupStepChips
-                options={limitations}
-                selected={setupData.constraints.mainLimitation ? [setupData.constraints.mainLimitation] : []}
-                onSelect={(val) => setSetupData(d => ({ 
-                  ...d, 
-                  constraints: { ...d.constraints, mainLimitation: val }
-                }))}
+                onSelect={(val) => setSetupData(d => ({ ...d, constraints: { ...d.constraints, teamSize: val } }))}
                 multiple={false}
               />
             </div>
@@ -844,26 +770,34 @@ const SetupPage = () => {
 
       case 'complete':
         return (
-          <div className="flex flex-col items-center justify-center text-center space-y-8 py-8">
-            <div className="relative">
+          <div className="flex flex-col items-center justify-center text-center space-y-8 py-4">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, type: "spring" }}
+              className="relative"
+            >
               <div className="absolute inset-0 blur-3xl bg-success/30 rounded-full animate-pulse" />
-              <div className="relative w-24 h-24 rounded-2xl bg-success/20 flex items-center justify-center">
-                <Check className="w-12 h-12 text-success" />
+              <div className="relative w-28 h-28 rounded-3xl bg-success/20 flex items-center justify-center shadow-2xl">
+                <Check className="w-14 h-14 text-success" />
               </div>
-            </div>
-            <div className="space-y-4 max-w-lg">
-              <h2 className="text-3xl font-bold text-foreground">
-                ¡Tu Brain está activo! 🎉
-              </h2>
+            </motion.div>
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="space-y-4 max-w-lg"
+            >
+              <h2 className="text-4xl font-bold text-foreground">¡Tu Brain está activo!</h2>
               <p className="text-lg text-muted-foreground">
-                Dashboard con <strong className="text-primary">{precisionScore}%</strong> de precisión inicial.
+                Dashboard con <span className="text-primary font-bold">{precisionScore}%</span> de precisión inicial
               </p>
-              <div className="p-4 bg-primary/5 rounded-xl border border-primary/20">
-                <p className="text-sm text-muted-foreground">
-                  Mientras más uses vistaceo, más preciso se vuelve.
+              <div className="p-5 bg-primary/5 rounded-2xl border border-primary/20">
+                <p className="text-muted-foreground">
+                  Mientras más uses vistaceo, más preciso se vuelve
                 </p>
               </div>
-            </div>
+            </motion.div>
           </div>
         );
 
@@ -874,21 +808,18 @@ const SetupPage = () => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Sidebar - Step Navigator (Desktop) */}
+      {/* Sidebar (Desktop) */}
       <aside className="hidden lg:flex w-80 bg-card border-r border-border flex-col">
-        {/* Logo */}
         <div className="p-6 border-b border-border">
-          <VistaceoLogo size={40} variant="full" />
+          <VistaceoLogo size={36} variant="full" />
         </div>
 
-        {/* Steps Navigator */}
-        <div className="flex-1 py-6 px-4 overflow-y-auto">
+        <div className="flex-1 py-4 px-3 overflow-y-auto">
           <div className="space-y-1">
             {activeSteps.map((step, idx) => {
               const isActive = idx === currentStep;
               const isCompleted = idx < currentStep;
               const Icon = step.icon;
-
               return (
                 <button
                   key={step.id}
@@ -902,53 +833,33 @@ const SetupPage = () => {
                   )}
                 >
                   <div className={cn(
-                    "w-10 h-10 rounded-lg flex items-center justify-center transition-colors flex-shrink-0",
-                    isActive && "gradient-primary shadow-lg shadow-primary/30",
+                    "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0",
+                    isActive && "gradient-primary text-primary-foreground",
                     isCompleted && "bg-success text-success-foreground",
                     !isActive && !isCompleted && "bg-secondary text-muted-foreground"
                   )}>
-                    {isCompleted ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      <Icon className="w-5 h-5" />
-                    )}
+                    {isCompleted ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={cn(
-                      "text-sm font-medium truncate",
-                      isActive ? "text-foreground" : "text-muted-foreground"
-                    )}>
+                    <p className={cn("text-sm font-medium truncate", isActive ? "text-foreground" : "text-muted-foreground")}>
                       {step.title}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">{step.subtitle}</p>
                   </div>
-                  {isActive && (
-                    <ChevronRight className="w-4 h-4 text-primary flex-shrink-0" />
-                  )}
+                  {isActive && <ChevronRight className="w-4 h-4 text-primary" />}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Precision Score Card */}
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-4">
           <div className="p-4 bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border border-primary/10">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-foreground">Precisión</span>
-              <Badge variant="secondary" className="text-primary">
-                {precisionScore}%
-              </Badge>
+              <Badge variant="secondary" className="text-primary font-bold">{precisionScore}%</Badge>
             </div>
             <Progress value={precisionScore} className="h-2" />
-            <p className="text-xs text-muted-foreground mt-2">
-              Cada respuesta mejora tu dashboard
-            </p>
           </div>
-        </div>
-
-        {/* Theme Toggle */}
-        <div className="p-4 border-t border-border">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Tema</span>
             <ThemeToggle />
@@ -956,30 +867,23 @@ const SetupPage = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Main */}
       <div className="flex-1 flex flex-col">
         {/* Mobile Header */}
-        <header className="lg:hidden sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+        <header className="lg:hidden sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
           <div className="px-4 py-3">
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <VistaceoLogo size={28} variant="icon" />
-                <span className="font-semibold text-foreground">Setup</span>
-              </div>
-              <Badge variant="secondary" className="gap-1">
+              <VistaceoLogo size={28} variant="icon" />
+              <Badge variant="secondary" className="gap-1 font-bold">
                 <Sparkles className="w-3 h-3" />
                 {precisionScore}%
               </Badge>
-            </div>
-            <div className="flex justify-between text-xs text-muted-foreground mb-1">
-              <span>{currentStep + 1} de {totalSteps}</span>
-              <span>{Math.round(progressPercent)}%</span>
             </div>
             <Progress value={progressPercent} className="h-1.5" />
           </div>
         </header>
 
-        {/* Form Content */}
+        {/* Form */}
         <main className="flex-1 flex items-center justify-center p-6 lg:p-12">
           <div className="w-full max-w-xl">
             <AnimatePresence mode="wait">
@@ -991,67 +895,38 @@ const SetupPage = () => {
                 transition={{ duration: 0.3 }}
                 className="space-y-8"
               >
-                {/* Step Header */}
                 {stepConfig?.id !== 'welcome' && stepConfig?.id !== 'complete' && (
-                  <div className="text-center space-y-3">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-2">
-                      {stepConfig && <stepConfig.icon className="w-8 h-8 text-primary" />}
+                  <div className="text-center space-y-2">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10">
+                      {stepConfig && <stepConfig.icon className="w-7 h-7 text-primary" />}
                     </div>
-                    <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-                      {stepConfig?.title}
-                    </h1>
-                    <p className="text-muted-foreground">
-                      {stepConfig?.subtitle}
-                    </p>
+                    <h1 className="text-3xl font-bold text-foreground">{stepConfig?.title}</h1>
+                    <p className="text-muted-foreground text-lg">{stepConfig?.subtitle}</p>
                   </div>
                 )}
-
-                {/* Step Content */}
-                <div className="min-h-[280px]">
-                  {renderStepContent()}
-                </div>
+                <div className="min-h-[300px]">{renderStepContent()}</div>
               </motion.div>
             </AnimatePresence>
           </div>
         </main>
 
-        {/* Footer Actions */}
-        <footer className="sticky bottom-0 bg-background/80 backdrop-blur-sm border-t border-border">
+        {/* Footer */}
+        <footer className="sticky bottom-0 bg-background/95 backdrop-blur-md border-t border-border">
           <div className="max-w-xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between gap-4">
-              <Button
-                variant="ghost"
-                onClick={handleBack}
-                disabled={currentStep === 0}
-                className="gap-2"
-              >
+              <Button variant="ghost" onClick={handleBack} disabled={currentStep === 0} className="gap-2">
                 <ArrowLeft className="w-4 h-4" />
                 <span className="hidden sm:inline">Atrás</span>
               </Button>
-              
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed() || loading}
-                className="gap-2 gradient-primary flex-1 max-w-xs"
-                size="lg"
-              >
+              <Button onClick={handleNext} disabled={!canProceed() || loading} className="gap-2 gradient-primary flex-1 max-w-xs h-12 text-base font-semibold" size="lg">
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : stepConfig?.id === 'complete' ? (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    Ir a Inicio
-                  </>
+                  <><Sparkles className="w-5 h-5" /> Ir a Inicio</>
                 ) : stepConfig?.id === 'business_name' && !currentBusiness ? (
-                  <>
-                    Crear negocio
-                    <ArrowRight className="w-5 h-5" />
-                  </>
+                  <>Crear negocio <ArrowRight className="w-5 h-5" /></>
                 ) : (
-                  <>
-                    Siguiente
-                    <ArrowRight className="w-5 h-5" />
-                  </>
+                  <>Siguiente <ArrowRight className="w-5 h-5" /></>
                 )}
               </Button>
             </div>
@@ -1062,10 +937,8 @@ const SetupPage = () => {
   );
 };
 
-// Helper functions
 function calculatePrecision(data: SetupData, mode: 'fast' | 'complete'): number {
   let score = 10;
-  
   if (data.businessName) score += 5;
   if (data.areaId) score += 5;
   if (data.businessTypeId) score += 10;
@@ -1078,41 +951,18 @@ function calculatePrecision(data: SetupData, mode: 'fast' | 'complete'): number 
   if (data.constraints.weeklyTime) score += 5;
   if (data.constraints.teamSize) score += 5;
   if (data.competitors.length > 0) score += 5;
-  
   if (mode === 'complete') score += 5;
-  
   return Math.min(score, 100);
-}
-
-function getCountryFlag(code: string): string {
-  const flags: Record<string, string> = {
-    AR: '🇦🇷',
-    UY: '🇺🇾',
-    BR: '🇧🇷',
-    CL: '🇨🇱',
-    CO: '🇨🇴',
-    EC: '🇪🇨',
-    MX: '🇲🇽',
-    CR: '🇨🇷',
-    PA: '🇵🇦',
-  };
-  return flags[code] || '🌎';
 }
 
 function getTicketRanges(country: CountryCode): string[] {
   switch (country) {
-    case 'AR':
-      return ['$5.000-10.000', '$10.000-20.000', '$20.000-40.000', '$40.000-80.000', '+$80.000'];
-    case 'MX':
-      return ['$100-300', '$300-600', '$600-1000', '$1000-2000', '+$2000'];
-    case 'BR':
-      return ['R$30-80', 'R$80-150', 'R$150-300', 'R$300-500', '+R$500'];
-    case 'CL':
-      return ['$5.000-15.000', '$15.000-30.000', '$30.000-50.000', '$50.000-100.000', '+$100.000'];
-    case 'CO':
-      return ['$20.000-50.000', '$50.000-100.000', '$100.000-200.000', '$200.000-400.000', '+$400.000'];
-    default:
-      return ['$10-30', '$30-60', '$60-100', '$100-200', '+$200'];
+    case 'AR': return ['$5.000-10.000', '$10.000-20.000', '$20.000-40.000', '$40.000-80.000', '+$80.000'];
+    case 'MX': return ['$100-300', '$300-600', '$600-1000', '$1000-2000', '+$2000'];
+    case 'BR': return ['R$30-80', 'R$80-150', 'R$150-300', 'R$300-500', '+R$500'];
+    case 'CL': return ['$5.000-15.000', '$15.000-30.000', '$30.000-50.000', '$50.000-100.000', '+$100.000'];
+    case 'CO': return ['$20.000-50.000', '$50.000-100.000', '$100.000-200.000', '$200.000-400.000', '+$400.000'];
+    default: return ['$10-30', '$30-60', '$60-100', '$100-200', '+$200'];
   }
 }
 
