@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -134,7 +134,9 @@ const SetupPage = () => {
   const [businessCreated, setBusinessCreated] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showGastroFlow, setShowGastroFlow] = useState(false);
-  
+
+  const ignoreBusinessAutoNavRef = useRef(false);
+
   const [setupData, setSetupData] = useState<SetupData>({
     businessName: currentBusiness?.name || '',
     country: (currentBusiness?.country as CountryCode) || 'AR',
@@ -179,6 +181,7 @@ const SetupPage = () => {
 
   // Handle navigation when business is created via context (e.g., page reload)
   useEffect(() => {
+    if (ignoreBusinessAutoNavRef.current) return;
     if (currentBusiness && !businessCreated) {
       setBusinessCreated(true);
 
@@ -192,6 +195,22 @@ const SetupPage = () => {
       setCurrentStep(modeIndex >= 0 ? modeIndex : 0);
     }
   }, [currentBusiness, businessCreated, setupMode]);
+
+  // Debug logs for the setup wizard (temporary, helps identify "saltos")
+  useEffect(() => {
+    const stepId = activeSteps[currentStep]?.id;
+    console.log('[setup] state', {
+      currentStep,
+      stepId,
+      activeSteps: activeSteps.map(s => s.id),
+      businessCreated,
+      currentBusinessId: currentBusiness?.id ?? null,
+      setupMode,
+      showGastroFlow,
+      areaId: setupData.areaId,
+    });
+  }, [currentStep, activeSteps, businessCreated, currentBusiness?.id, setupMode, showGastroFlow, setupData.areaId]);
+
 
   // Keep currentStep always within the active steps range (avoids "desconfigura" on step list changes)
   useEffect(() => {
@@ -243,6 +262,9 @@ const SetupPage = () => {
       if (error) throw error;
 
       if (businessData) {
+        // Prevent the auto-nav effect from running mid-creation
+        ignoreBusinessAutoNavRef.current = true;
+
         // Set business immediately to avoid null currentBusiness during the rest of the wizard
         setCurrentBusiness(businessData);
 
@@ -256,6 +278,7 @@ const SetupPage = () => {
 
       // Keep list updated for sidebar selector etc.
       await refreshBusinesses();
+
       const stepsAfterCreate = SETUP_STEPS.filter(step => {
         if (['welcome', 'country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
         return setupMode === 'complete' || step.fastTrack;
@@ -269,6 +292,7 @@ const SetupPage = () => {
       console.error("Error creating business:", error);
       toast.error("Error al crear el negocio");
     } finally {
+      ignoreBusinessAutoNavRef.current = false;
       setLoading(false);
     }
   };
