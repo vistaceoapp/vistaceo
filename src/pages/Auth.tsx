@@ -4,9 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { OwlLogo } from "@/components/ui/OwlLogo";
+import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { toast } from "sonner";
-import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, Sparkles, TrendingUp, Target, Chrome } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, Sparkles, TrendingUp, Target } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -114,7 +114,7 @@ const Auth = () => {
           <div className="text-center">
             <Link to="/" className="inline-flex items-center justify-center mb-8 group">
               <div className="transition-transform duration-300 group-hover:scale-105">
-                <OwlLogo size={120} />
+                <VistaceoLogo size={100} variant="full" />
               </div>
             </Link>
             <h1 className="text-3xl font-bold text-foreground">
@@ -266,7 +266,7 @@ const Auth = () => {
           </div>
           
           {/* Grid pattern */}
-          <div className="absolute inset-0 opacity-[0.03]" style={{
+          <div className="absolute inset-0 opacity-[0.02]" style={{
             backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
             backgroundSize: '50px 50px'
           }} />
@@ -275,13 +275,13 @@ const Auth = () => {
             {/* Main content */}
             <div className="text-center mb-12">
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 mb-6">
-                <OwlLogo size={48} />
+                <VistaceoLogo size={48} variant="icon" />
               </div>
               <h2 className="text-3xl font-bold text-foreground mb-4">
                 Tu CEO digital personal
               </h2>
               <p className="text-lg text-muted-foreground">
-                Analizo tu negocio gastronómico y te guío con acciones simples y efectivas cada día.
+                Analizo tu negocio y te guío con acciones simples y efectivas cada día.
               </p>
             </div>
 
@@ -297,7 +297,7 @@ const Auth = () => {
                     <benefit.icon className="w-5 h-5 text-primary" />
                   </div>
                   <p className="text-foreground font-medium">{benefit.text}</p>
-                  <CheckCircle2 className="w-5 h-5 text-green-500 ml-auto flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-success ml-auto flex-shrink-0" />
                 </div>
               ))}
             </div>
@@ -307,7 +307,7 @@ const Auth = () => {
               <p className="text-sm text-muted-foreground mb-3">Usado por +500 negocios en LATAM</p>
               <div className="flex justify-center gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-5 h-5 text-yellow-500 fill-current" viewBox="0 0 20 20">
+                  <svg key={i} className="w-5 h-5 text-warning fill-current" viewBox="0 0 20 20">
                     <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                   </svg>
                 ))}

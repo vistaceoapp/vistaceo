@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Mic, Camera, Sparkles, Plus, MessageSquare, Trash2 } from "lucide-react";
-import { OwlLogo } from "@/components/ui/OwlLogo";
+import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -170,16 +170,15 @@ const ChatPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
         <div className="relative mb-6">
-          <div className="absolute inset-0 blur-2xl bg-primary/30 rounded-full animate-pulse" />
-          <OwlLogo size={80} className="relative z-10" />
+          <VistaceoLogo size={72} variant="icon" />
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-3">
           Tu asistente de IA
         </h2>
         <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
-          Tu copiloto inteligente para gestionar tu negocio gastronómico de manera eficiente.
+          Tu copiloto inteligente para gestionar tu negocio de manera eficiente.
         </p>
-        <Button variant="hero" size="lg" onClick={() => window.location.href = "/onboarding"}>
+        <Button variant="hero" size="lg" onClick={() => window.location.href = "/setup"}>
           <Sparkles className="w-5 h-5 mr-2" />
           Configurar negocio
         </Button>
@@ -214,9 +213,8 @@ const ChatPage = () => {
         <div className="flex-1 overflow-y-auto rounded-xl border border-border bg-card/50 p-6">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center">
-              <div className="relative mb-8">
-                <div className="absolute inset-0 blur-3xl bg-primary/20 rounded-full" />
-                <OwlLogo size={80} className="relative z-10" />
+              <div className="mb-8">
+                <VistaceoLogo size={72} variant="icon" />
               </div>
               
               <h2 className="text-2xl font-bold text-foreground mb-2">
@@ -274,7 +272,7 @@ const ChatPage = () => {
                         {currentBusiness.name.charAt(0).toUpperCase()}
                       </span>
                     ) : (
-                      <OwlLogo size={24} />
+                      <VistaceoLogo size={24} variant="icon" />
                     )}
                   </div>
                   
@@ -306,7 +304,7 @@ const ChatPage = () => {
               {loading && (
                 <div className="flex gap-4 animate-fade-in">
                   <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                    <OwlLogo size={24} />
+                    <VistaceoLogo size={24} variant="icon" />
                   </div>
                   <div className="bg-secondary rounded-2xl px-5 py-4">
                     <TypingIndicator />
@@ -359,11 +357,8 @@ const ChatPage = () => {
       <div className="flex-1 overflow-y-auto space-y-4 pb-4 px-1">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 blur-3xl bg-primary/20 rounded-full animate-glow-pulse" />
-              <div className="relative">
-                <OwlLogo size={72} className="animate-float" />
-              </div>
+            <div className="mb-6">
+              <VistaceoLogo size={64} variant="icon" className="animate-float" />
             </div>
             
             <h2 className="text-2xl font-bold text-foreground mb-2">
@@ -406,9 +401,8 @@ const ChatPage = () => {
                 style={{ animationDelay: `${idx * 30}ms` }}
               >
                 {message.role === "assistant" && (
-                  <div className="relative flex-shrink-0">
-                    <div className="absolute inset-0 blur-lg bg-primary/20 rounded-full" />
-                    <OwlLogo size={36} className="relative z-10" />
+                  <div className="flex-shrink-0">
+                    <VistaceoLogo size={32} variant="icon" />
                   </div>
                 )}
                 <div
@@ -426,9 +420,8 @@ const ChatPage = () => {
             
             {loading && (
               <div className="flex gap-3 justify-start animate-fade-in">
-                <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 blur-lg bg-primary/30 rounded-full animate-pulse" />
-                  <OwlLogo size={36} className="relative z-10" />
+                <div className="flex-shrink-0">
+                  <VistaceoLogo size={32} variant="icon" />
                 </div>
                 <GlassCard className="px-5 py-4">
                   <TypingIndicator />

@@ -1,7 +1,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { OwlLogo } from "@/components/ui/OwlLogo";
+import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { Home, ArrowLeft, Search } from "lucide-react";
 
 const NotFound = () => {
@@ -13,18 +13,11 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      {/* Background effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px] animate-pulse" />
-      </div>
-
       <div className="relative z-10 text-center max-w-lg mx-auto animate-fade-in">
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link to="/" className="inline-flex items-center gap-3 group">
-            <div className="transition-transform duration-300 group-hover:scale-110">
-              <OwlLogo size={56} />
-            </div>
+            <VistaceoLogo size={48} variant="compact" className="transition-transform duration-300 group-hover:scale-105" />
           </Link>
         </div>
 
