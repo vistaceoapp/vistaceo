@@ -1,13 +1,18 @@
+import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 
-export function ThemeToggle({ className }: { className?: string }) {
+export const ThemeToggle = React.forwardRef<
+  HTMLButtonElement,
+  { className?: string }
+>(({ className }, ref) => {
   const { theme, toggleTheme } = useTheme();
 
   return (
     <Button
+      ref={ref}
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
@@ -28,4 +33,6 @@ export function ThemeToggle({ className }: { className?: string }) {
       <span className="sr-only">Toggle theme</span>
     </Button>
   );
-}
+});
+
+ThemeToggle.displayName = "ThemeToggle";
