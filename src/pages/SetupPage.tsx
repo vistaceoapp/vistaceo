@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,10 @@ import {
   Utensils,
   TrendingUp,
   Globe,
-  ChevronRight
+  ChevronRight,
+  Search,
+  Building2,
+  Briefcase
 } from 'lucide-react';
 import { VistaceoLogo } from '@/components/ui/VistaceoLogo';
 import { useBusiness } from '@/contexts/BusinessContext';
@@ -31,7 +34,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { COUNTRY_PACKS, CountryCode } from '@/lib/countryPacks';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 // Import step components
@@ -41,9 +43,18 @@ import { SetupStepMix } from '@/components/app/SetupStepMix';
 import { SetupStepSearch } from '@/components/app/SetupStepSearch';
 import { CompetitorData } from '@/lib/setupSteps';
 
-import type { Database } from "@/integrations/supabase/types";
-
-type BusinessCategory = Database["public"]["Enums"]["business_category"];
+// Import new business types helper
+import {
+  getCountries,
+  getAreas,
+  getBusinessTypes,
+  searchBusinessTypes,
+  getAreaById,
+  getBusinessTypeById,
+  type CountryCode,
+  type Area,
+  type BusinessType,
+} from '@/lib/setupBusinessTypes';
 
 // Step definitions for new flow
 interface SetupStepDef {
@@ -58,8 +69,10 @@ interface SetupStepDef {
 
 const SETUP_STEPS: SetupStepDef[] = [
   { id: 'welcome', title: 'Bienvenido', subtitle: 'Armemos tu dashboard en minutos', icon: Brain, required: true, fastTrack: true, section: 'intro' },
-  { id: 'business_name', title: 'Tu negocio', subtitle: 'Nombre y tipo', icon: Store, required: true, fastTrack: true, section: 'identity' },
-  { id: 'country', title: 'Ubicación', subtitle: 'País de operación', icon: Globe, required: true, fastTrack: true, section: 'identity' },
+  { id: 'country', title: 'País', subtitle: 'Dónde operás', icon: Globe, required: true, fastTrack: true, section: 'identity' },
+  { id: 'area', title: 'Sector', subtitle: 'Tu industria', icon: Building2, required: true, fastTrack: true, section: 'identity' },
+  { id: 'business_type', title: 'Tipo de negocio', subtitle: 'Qué hacés', icon: Briefcase, required: true, fastTrack: true, section: 'identity' },
+  { id: 'business_name', title: 'Tu negocio', subtitle: 'Nombre y detalles', icon: Store, required: true, fastTrack: true, section: 'identity' },
   { id: 'mode', title: 'Tu camino', subtitle: '¿Cuánto tiempo tenés?', icon: Zap, required: true, fastTrack: true, section: 'intro' },
   { id: 'google_business', title: 'Google Business', subtitle: 'Conectar reseñas', icon: MapPin, required: false, fastTrack: true, section: 'identity' },
   { id: 'positioning', title: 'Propuesta', subtitle: '¿Qué hacés y para quién?', icon: Target, required: true, fastTrack: true, section: 'strategy' },
@@ -74,24 +87,13 @@ const SETUP_STEPS: SetupStepDef[] = [
   { id: 'complete', title: 'Listo', subtitle: 'Brain activo', icon: Check, required: true, fastTrack: true, section: 'finish' },
 ];
 
-const COUNTRIES: { value: CountryCode; label: string; flag: string }[] = [
-  { value: "AR", label: "Argentina", flag: "🇦🇷" },
-  { value: "MX", label: "México", flag: "🇲🇽" },
-  { value: "CL", label: "Chile", flag: "🇨🇱" },
-  { value: "CO", label: "Colombia", flag: "🇨🇴" },
-  { value: "BR", label: "Brasil", flag: "🇧🇷" },
-  { value: "UY", label: "Uruguay", flag: "🇺🇾" },
-  { value: "CR", label: "Costa Rica", flag: "🇨🇷" },
-  { value: "PA", label: "Panamá", flag: "🇵🇦" },
-  { value: "US", label: "Estados Unidos", flag: "🇺🇸" },
-];
-
 interface SetupData {
   businessName: string;
-  businessType: string;
   country: CountryCode;
+  areaId: string;
+  businessTypeId: string;
+  businessTypeLabel: string;
   mode: 'fast' | 'complete';
-  primaryType: string;
   positioning: string;
   serviceModel: string;
   activeDayparts: string[];
@@ -123,17 +125,15 @@ const SetupPage = () => {
   const [loading, setLoading] = useState(false);
   const [setupMode, setSetupMode] = useState<'fast' | 'complete'>('fast');
   const [businessCreated, setBusinessCreated] = useState(false);
-  
-  // Use existing business data if available
-  const countryCode = (currentBusiness?.country as CountryCode) || 'AR';
-  const countryPack = COUNTRY_PACKS[countryCode];
+  const [searchQuery, setSearchQuery] = useState('');
   
   const [setupData, setSetupData] = useState<SetupData>({
     businessName: currentBusiness?.name || '',
-    businessType: currentBusiness?.category || '',
     country: (currentBusiness?.country as CountryCode) || 'AR',
+    areaId: '',
+    businessTypeId: '',
+    businessTypeLabel: '',
     mode: 'fast',
-    primaryType: currentBusiness?.category || '',
     positioning: '',
     serviceModel: '',
     activeDayparts: [],
@@ -152,11 +152,22 @@ const SetupPage = () => {
     competitors: [],
   });
 
+  // Get countries, areas, and business types based on selection
+  const countries = useMemo(() => getCountries(), []);
+  const areas = useMemo(() => getAreas(setupData.country), [setupData.country]);
+  const businessTypes = useMemo(() => 
+    setupData.areaId ? getBusinessTypes(setupData.areaId, setupData.country) : [],
+    [setupData.areaId, setupData.country]
+  );
+  const searchResults = useMemo(() => 
+    searchQuery.length >= 2 ? searchBusinessTypes(searchQuery, setupData.country) : [],
+    [searchQuery, setupData.country]
+  );
+
   // Skip business creation steps if business already exists
   useEffect(() => {
     if (currentBusiness && !businessCreated) {
       setBusinessCreated(true);
-      // Find index of 'mode' step (after business creation)
       const modeIndex = activeSteps.findIndex(s => s.id === 'mode');
       if (modeIndex > 0) {
         setCurrentStep(modeIndex);
@@ -166,8 +177,7 @@ const SetupPage = () => {
 
   // Filter steps based on mode and business existence
   const activeSteps = SETUP_STEPS.filter(step => {
-    // Skip business creation steps if business exists
-    if (currentBusiness && (step.id === 'business_name' || step.id === 'country')) {
+    if (currentBusiness && ['country', 'area', 'business_type', 'business_name'].includes(step.id)) {
       return false;
     }
     return setupMode === 'complete' || step.fastTrack;
@@ -177,21 +187,10 @@ const SetupPage = () => {
   const totalSteps = activeSteps.length;
   const progressPercent = ((currentStep + 1) / totalSteps) * 100;
 
-  // Section-based step grouping for sidebar
-  const sectionLabels: Record<string, string> = {
-    intro: 'Inicio',
-    identity: 'Identidad',
-    operations: 'Operación',
-    strategy: 'Estrategia',
-    finish: 'Finalizar',
-  };
-
-  // Precision score calculation
   const precisionScore = calculatePrecision(setupData, setupMode);
 
   const handleNext = async () => {
-    // If we're at business creation step, create the business first
-    if (stepConfig?.id === 'country' && !currentBusiness) {
+    if (stepConfig?.id === 'business_name' && !currentBusiness) {
       await createBusiness();
       return;
     }
@@ -211,14 +210,14 @@ const SetupPage = () => {
   };
 
   const createBusiness = async () => {
-    if (!user || !setupData.businessName.trim() || !setupData.businessType) return;
+    if (!user || !setupData.businessName.trim() || !setupData.businessTypeId) return;
     setLoading(true);
 
     try {
       const { data: businessData, error } = await supabase.from("businesses").insert({
         name: setupData.businessName.trim(),
-        category: setupData.businessType as BusinessCategory,
-        country: setupData.country,
+        category: 'restaurant' as const,
+        country: setupData.country as any,
         owner_id: user.id,
         setup_completed: false,
       }).select().single();
@@ -229,8 +228,13 @@ const SetupPage = () => {
         await supabase.from("business_setup_progress").insert({
           business_id: businessData.id,
           current_step: 'mode',
-          setup_data: setupData as any,
-          precision_score: 15,
+          setup_data: {
+            ...setupData,
+            area_id: setupData.areaId,
+            business_type_id: setupData.businessTypeId,
+            business_type_label: setupData.businessTypeLabel,
+          } as any,
+          precision_score: 20,
         });
       }
 
@@ -269,8 +273,6 @@ const SetupPage = () => {
     setLoading(true);
     
     try {
-      const finalCountryPack = COUNTRY_PACKS[setupData.country] || countryPack;
-      
       await supabase
         .from('business_setup_progress')
         .upsert({
@@ -285,11 +287,15 @@ const SetupPage = () => {
         .from('businesses')
         .update({
           setup_completed: true,
-          category: mapTypeToCategory(setupData.primaryType || setupData.businessType) as any,
           service_model: setupData.serviceModel,
           active_dayparts: setupData.activeDayparts,
           channel_mix: setupData.channelMix,
           precision_score: precisionScore,
+          settings: {
+            area_id: setupData.areaId,
+            business_type_id: setupData.businessTypeId,
+            business_type_label: setupData.businessTypeLabel,
+          }
         })
         .eq('id', currentBusiness.id);
 
@@ -297,18 +303,19 @@ const SetupPage = () => {
         .from('business_brains')
         .upsert({
           business_id: currentBusiness.id,
-          primary_business_type: setupData.primaryType || setupData.businessType,
+          primary_business_type: setupData.businessTypeId,
           current_focus: setupData.currentFocus || 'ventas',
           factual_memory: {
             positioning: setupData.positioning,
             top_sellers: setupData.topSellers,
             ticket_range: setupData.ticketRange,
             constraints: setupData.constraints,
+            area_id: setupData.areaId,
+            business_type_label: setupData.businessTypeLabel,
           },
           preferences_memory: {
             autopilot_mode: 'standard',
-            language: finalCountryPack?.locale || 'es',
-            currency: finalCountryPack?.currency || 'ARS',
+            language: setupData.country === 'BR' ? 'pt-BR' : 'es',
           },
           mvc_completion_pct: precisionScore,
         }, { onConflict: 'business_id' });
@@ -341,8 +348,10 @@ const SetupPage = () => {
     const stepId = stepConfig?.id;
     switch (stepId) {
       case 'welcome': return true;
-      case 'business_name': return setupData.businessName.trim().length >= 2 && !!setupData.businessType;
       case 'country': return !!setupData.country;
+      case 'area': return !!setupData.areaId;
+      case 'business_type': return !!setupData.businessTypeId;
+      case 'business_name': return setupData.businessName.trim().length >= 2;
       case 'mode': return true;
       case 'google_business': return true;
       case 'positioning': return setupData.positioning.length > 5;
@@ -359,14 +368,23 @@ const SetupPage = () => {
     }
   };
 
-  const handleSearchUpdate = (updates: Partial<SetupData>, precisionDelta?: number) => {
+  const handleSearchUpdate = (updates: Partial<SetupData>) => {
     setSetupData(d => ({ ...d, ...updates }));
+  };
+
+  const selectBusinessType = (bt: BusinessType & { label: string; area?: Area & { label: string } }) => {
+    setSetupData(d => ({
+      ...d,
+      areaId: bt.area_id,
+      businessTypeId: bt.id,
+      businessTypeLabel: bt.label,
+    }));
+    setSearchQuery('');
   };
 
   // Render step content
   const renderStepContent = () => {
     const stepId = stepConfig?.id;
-    const effectiveCountryPack = COUNTRY_PACKS[setupData.country] || countryPack;
 
     switch (stepId) {
       case 'welcome':
@@ -394,74 +412,182 @@ const SetupPage = () => {
           </div>
         );
 
-      case 'business_name':
-        const businessTypes = [
-          { value: 'restaurant', label: 'Restaurante', emoji: '🍽️' },
-          { value: 'cafeteria', label: 'Cafetería', emoji: '☕' },
-          { value: 'bar', label: 'Bar', emoji: '🍺' },
-          { value: 'fast_casual', label: 'Fast Casual', emoji: '🍔' },
-          { value: 'heladeria', label: 'Heladería', emoji: '🍦' },
-          { value: 'panaderia', label: 'Panadería', emoji: '🥐' },
-          { value: 'dark_kitchen', label: 'Dark Kitchen', emoji: '👨‍🍳' },
-        ];
+      case 'country':
         return (
-          <div className="space-y-8">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-3 block">
-                Nombre de tu negocio
-              </label>
-              <Input
-                value={setupData.businessName}
-                onChange={(e) => setSetupData(d => ({ ...d, businessName: e.target.value }))}
-                placeholder="Ej: Café Central, La Trattoria..."
-                className="h-14 text-lg bg-card border-border"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground mb-4 block">
-                Tipo de negocio
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {businessTypes.map((type) => (
-                  <button
-                    key={type.value}
-                    onClick={() => setSetupData(d => ({ ...d, businessType: type.value, primaryType: type.value }))}
-                    className={cn(
-                      "p-4 rounded-xl border-2 text-center transition-all hover:scale-105",
-                      setupData.businessType === type.value 
-                        ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <span className="text-3xl block mb-2">{type.emoji}</span>
-                    <span className="text-sm font-medium text-foreground">{type.label}</span>
-                  </button>
-                ))}
-              </div>
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-3">
+              {countries.map((country) => (
+                <button
+                  key={country.code}
+                  onClick={() => setSetupData(d => ({ ...d, country: country.code as CountryCode, areaId: '', businessTypeId: '', businessTypeLabel: '' }))}
+                  className={cn(
+                    "group p-5 rounded-xl border-2 text-center transition-all hover:scale-105",
+                    setupData.country === country.code
+                      ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <span className="text-4xl block mb-2 group-hover:scale-110 transition-transform">
+                    {getCountryFlag(country.code)}
+                  </span>
+                  <p className="font-medium text-foreground text-sm">{country.name}</p>
+                </button>
+              ))}
             </div>
           </div>
         );
 
-      case 'country':
+      case 'area':
         return (
-          <div className="grid grid-cols-3 gap-3">
-            {COUNTRIES.map((country) => (
+          <div className="space-y-6">
+            {/* Search bar */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscá tu tipo de negocio..."
+                className="pl-12 h-14 text-lg bg-card border-border"
+              />
+            </div>
+
+            {/* Search Results */}
+            {searchQuery.length >= 2 && searchResults.length > 0 && (
+              <div className="space-y-2 max-h-64 overflow-y-auto border border-border rounded-xl p-2 bg-card">
+                {searchResults.slice(0, 8).map((result) => (
+                  <button
+                    key={result.id}
+                    onClick={() => {
+                      selectBusinessType(result);
+                      setCurrentStep(prev => prev + 2); // Skip to business_name
+                    }}
+                    className="w-full p-3 rounded-lg text-left hover:bg-primary/5 transition-colors border border-transparent hover:border-primary/20"
+                  >
+                    <p className="font-medium text-foreground">{result.label}</p>
+                    <p className="text-xs text-muted-foreground">{result.area.label}</p>
+                    {result.definition && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{result.definition}</p>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Areas Grid */}
+            {searchQuery.length < 2 && (
+              <>
+                <p className="text-sm text-muted-foreground text-center">O seleccioná tu sector</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto">
+                  {areas.map((area) => (
+                    <button
+                      key={area.id}
+                      onClick={() => setSetupData(d => ({ ...d, areaId: area.id, businessTypeId: '', businessTypeLabel: '' }))}
+                      className={cn(
+                        "p-4 rounded-xl border-2 text-left transition-all hover:scale-[1.02]",
+                        setupData.areaId === area.id
+                          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <p className="font-medium text-foreground text-sm">{area.label}</p>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        );
+
+      case 'business_type':
+        const selectedArea = getAreaById(setupData.areaId, setupData.country);
+        return (
+          <div className="space-y-6">
+            {selectedArea && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Badge variant="secondary">{selectedArea.label}</Badge>
+                <button 
+                  onClick={() => {
+                    setSetupData(d => ({ ...d, areaId: '', businessTypeId: '', businessTypeLabel: '' }));
+                    setCurrentStep(prev => prev - 1);
+                  }}
+                  className="text-primary text-xs hover:underline"
+                >
+                  Cambiar sector
+                </button>
+              </div>
+            )}
+
+            {/* Search within area */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscá tu tipo de negocio..."
+                className="pl-12 h-12 bg-card border-border"
+              />
+            </div>
+
+            {/* Business Types Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-72 overflow-y-auto">
+              {(searchQuery.length >= 2 ? searchResults.filter(r => r.area_id === setupData.areaId) : businessTypes).map((bt) => (
+                <button
+                  key={bt.id}
+                  onClick={() => selectBusinessType(bt)}
+                  className={cn(
+                    "p-3 rounded-xl border-2 text-left transition-all hover:scale-[1.02]",
+                    setupData.businessTypeId === bt.id
+                      ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <p className="font-medium text-foreground text-sm">{bt.label}</p>
+                  {bt.definition && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{bt.definition}</p>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Show all types option */}
+            {searchQuery.length < 2 && (
               <button
-                key={country.value}
-                onClick={() => setSetupData(d => ({ ...d, country: country.value }))}
-                className={cn(
-                  "group p-5 rounded-xl border-2 text-center transition-all hover:scale-105",
-                  setupData.country === country.value
-                    ? "border-primary bg-primary/5 shadow-lg shadow-primary/10"
-                    : "border-border hover:border-primary/50"
-                )}
+                onClick={() => {
+                  setSetupData(d => ({ ...d, areaId: '' }));
+                  setCurrentStep(prev => prev - 1);
+                }}
+                className="w-full text-center text-sm text-primary hover:underline py-2"
               >
-                <span className="text-4xl block mb-2 group-hover:scale-110 transition-transform">
-                  {country.flag}
-                </span>
-                <p className="font-medium text-foreground text-sm">{country.label}</p>
+                Ver otros sectores
               </button>
-            ))}
+            )}
+          </div>
+        );
+
+      case 'business_name':
+        return (
+          <div className="space-y-6">
+            {setupData.businessTypeLabel && (
+              <div className="p-3 bg-primary/5 rounded-xl border border-primary/20">
+                <p className="text-sm text-muted-foreground">Tipo seleccionado</p>
+                <p className="font-medium text-foreground">{setupData.businessTypeLabel}</p>
+              </div>
+            )}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-3 block">
+                ¿Cómo se llama tu negocio?
+              </label>
+              <Input
+                value={setupData.businessName}
+                onChange={(e) => setSetupData(d => ({ ...d, businessName: e.target.value }))}
+                placeholder="Ej: Café Central, La Trattoria, Studio Fit..."
+                className="h-14 text-lg bg-card border-border"
+                autoFocus
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Podés cambiarlo después
+              </p>
+            </div>
           </div>
         );
 
@@ -520,9 +646,9 @@ const SetupPage = () => {
         return (
           <SetupStepSearch
             stepId="google_business"
-            countryCode={setupData.country}
-            data={setupData}
-            onUpdate={handleSearchUpdate}
+            countryCode={setupData.country as any}
+            data={setupData as any}
+            onUpdate={handleSearchUpdate as any}
           />
         );
 
@@ -530,12 +656,12 @@ const SetupPage = () => {
         return (
           <SetupStepSearch
             stepId="competitors"
-            countryCode={setupData.country}
-            data={setupData}
-            onUpdate={handleSearchUpdate}
+            countryCode={setupData.country as any}
+            data={setupData as any}
+            onUpdate={handleSearchUpdate as any}
             businessLat={setupData.googleLat}
             businessLng={setupData.googleLng}
-            businessType={setupData.primaryType || setupData.businessType}
+            businessType={setupData.businessTypeId}
           />
         );
 
@@ -545,13 +671,15 @@ const SetupPage = () => {
           'Restaurante familiar con menú del día',
           'Bar con tapas y tragos de autor',
           'Comida rápida saludable',
+          'Estudio de yoga para principiantes',
+          'Clínica dental familiar',
         ];
         return (
           <div className="space-y-6">
             <textarea
               value={setupData.positioning}
               onChange={(e) => setSetupData(d => ({ ...d, positioning: e.target.value }))}
-              placeholder="Ej: Café de especialidad para gente que trabaja cerca"
+              placeholder="Ej: Café de especialidad para gente que trabaja cerca..."
               className="w-full h-32 p-4 rounded-xl border border-border bg-card text-foreground resize-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
             />
             <div className="space-y-2">
@@ -572,7 +700,7 @@ const SetupPage = () => {
         );
 
       case 'service_model':
-        const models = ['Salón', 'Delivery-first', 'Take away', 'Híbrido'];
+        const models = ['Presencial', 'Online', 'Híbrido', 'Delivery-first', 'A domicilio'];
         return (
           <SetupStepChips
             options={models}
@@ -583,9 +711,12 @@ const SetupPage = () => {
         );
 
       case 'dayparts':
+        const dayparts = setupData.country === 'BR' 
+          ? ['Manhã', 'Almoço', 'Tarde', 'Jantar', 'Noite']
+          : ['Mañana', 'Mediodía', 'Tarde', 'Noche', 'Madrugada'];
         return (
           <SetupStepChips
-            options={effectiveCountryPack?.dayparts || ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'After']}
+            options={dayparts}
             selected={setupData.activeDayparts}
             onSelect={(val) => setSetupData(d => ({ 
               ...d, 
@@ -598,12 +729,7 @@ const SetupPage = () => {
         );
 
       case 'top_sellers':
-        const primaryType = setupData.primaryType || setupData.businessType;
-        const sellerSuggestions = primaryType === 'cafeteria' 
-          ? ['Café latte', 'Medialunas', 'Tostado', 'Brownie', 'Jugo natural']
-          : primaryType === 'bar'
-          ? ['Cerveza tirada', 'Gin tonic', 'Picada', 'Nachos', 'Hamburguesa']
-          : ['Plato del día', 'Milanesa', 'Pizza', 'Ensalada', 'Postre'];
+        const sellerSuggestions = ['Servicio principal', 'Producto estrella', 'Oferta especial', 'Combo/Pack', 'Novedad'];
         return (
           <div className="space-y-4">
             <SetupStepChips
@@ -618,19 +744,13 @@ const SetupPage = () => {
               multiple={true}
             />
             <p className="text-xs text-center text-muted-foreground">
-              Seleccioná hasta 3 productos estrella
+              Seleccioná hasta 3 productos/servicios estrella
             </p>
           </div>
         );
 
       case 'ticket':
-        const ticketRanges = setupData.country === 'AR' 
-          ? ['$5.000-10.000', '$10.000-20.000', '$20.000-35.000', '$35.000-50.000', '+$50.000']
-          : setupData.country === 'MX'
-          ? ['$100-200', '$200-400', '$400-600', '$600-1000', '+$1000']
-          : setupData.country === 'US'
-          ? ['$10-20', '$20-40', '$40-60', '$60-100', '+$100']
-          : ['$10-20', '$20-40', '$40-60', '$60-100', '+$100'];
+        const ticketRanges = getTicketRanges(setupData.country);
         return (
           <SetupStepChips
             options={ticketRanges}
@@ -646,7 +766,7 @@ const SetupPage = () => {
           { value: 'reputacion', label: 'Mejorar reputación', emoji: '⭐' },
           { value: 'eficiencia', label: 'Operar mejor', emoji: '⚙️' },
           { value: 'rentabilidad', label: 'Ser más rentable', emoji: '📈' },
-          { value: 'delivery', label: 'Crecer en delivery', emoji: '🛵' },
+          { value: 'clientes', label: 'Más clientes', emoji: '👥' },
           { value: 'marketing', label: 'Marketing', emoji: '📱' },
         ];
         return (
@@ -676,7 +796,7 @@ const SetupPage = () => {
         return (
           <div className="space-y-6">
             <div>
-              <p className="text-sm font-medium text-foreground mb-3">Tiempo semanal para UCEO:</p>
+              <p className="text-sm font-medium text-foreground mb-3">Tiempo semanal para vistaceo:</p>
               <SetupStepChips
                 options={timeOptions}
                 selected={setupData.constraints.weeklyTime ? [setupData.constraints.weeklyTime] : []}
@@ -740,7 +860,7 @@ const SetupPage = () => {
               </p>
               <div className="p-4 bg-primary/5 rounded-xl border border-primary/20">
                 <p className="text-sm text-muted-foreground">
-                  Mientras más uses UCEO, más preciso se vuelve.
+                  Mientras más uses vistaceo, más preciso se vuelve.
                 </p>
               </div>
             </div>
@@ -758,9 +878,7 @@ const SetupPage = () => {
       <aside className="hidden lg:flex w-80 bg-card border-r border-border flex-col">
         {/* Logo */}
         <div className="p-6 border-b border-border">
-          <div className="flex items-center gap-3">
-            <VistaceoLogo size={40} variant="compact" />
-          </div>
+          <VistaceoLogo size={40} variant="full" />
         </div>
 
         {/* Steps Navigator */}
@@ -924,7 +1042,7 @@ const SetupPage = () => {
                     <Sparkles className="w-5 h-5" />
                     Ir a Inicio
                   </>
-                ) : stepConfig?.id === 'country' && !currentBusiness ? (
+                ) : stepConfig?.id === 'business_name' && !currentBusiness ? (
                   <>
                     Crear negocio
                     <ArrowRight className="w-5 h-5" />
@@ -949,8 +1067,8 @@ function calculatePrecision(data: SetupData, mode: 'fast' | 'complete'): number 
   let score = 10;
   
   if (data.businessName) score += 5;
-  if (data.businessType) score += 5;
-  if (data.primaryType) score += 5;
+  if (data.areaId) score += 5;
+  if (data.businessTypeId) score += 10;
   if (data.positioning) score += 10;
   if (data.serviceModel) score += 10;
   if (data.activeDayparts.length > 0) score += 10;
@@ -961,23 +1079,41 @@ function calculatePrecision(data: SetupData, mode: 'fast' | 'complete'): number 
   if (data.constraints.teamSize) score += 5;
   if (data.competitors.length > 0) score += 5;
   
-  if (mode === 'complete') score += 10;
+  if (mode === 'complete') score += 5;
   
   return Math.min(score, 100);
 }
 
-function mapTypeToCategory(type: string): string {
-  const map: Record<string, string> = {
-    'restaurant': 'restaurant',
-    'cafeteria': 'cafeteria',
-    'bar': 'bar',
-    'fast_casual': 'fast_casual',
-    'heladeria': 'heladeria',
-    'panaderia': 'panaderia',
-    'dark_kitchen': 'dark_kitchen',
-    'food_truck': 'fast_casual',
+function getCountryFlag(code: string): string {
+  const flags: Record<string, string> = {
+    AR: '🇦🇷',
+    UY: '🇺🇾',
+    BR: '🇧🇷',
+    CL: '🇨🇱',
+    CO: '🇨🇴',
+    EC: '🇪🇨',
+    MX: '🇲🇽',
+    CR: '🇨🇷',
+    PA: '🇵🇦',
   };
-  return map[type] || 'restaurant';
+  return flags[code] || '🌎';
+}
+
+function getTicketRanges(country: CountryCode): string[] {
+  switch (country) {
+    case 'AR':
+      return ['$5.000-10.000', '$10.000-20.000', '$20.000-40.000', '$40.000-80.000', '+$80.000'];
+    case 'MX':
+      return ['$100-300', '$300-600', '$600-1000', '$1000-2000', '+$2000'];
+    case 'BR':
+      return ['R$30-80', 'R$80-150', 'R$150-300', 'R$300-500', '+R$500'];
+    case 'CL':
+      return ['$5.000-15.000', '$15.000-30.000', '$30.000-50.000', '$50.000-100.000', '+$100.000'];
+    case 'CO':
+      return ['$20.000-50.000', '$50.000-100.000', '$100.000-200.000', '$200.000-400.000', '+$400.000'];
+    default:
+      return ['$10-30', '$30-60', '$60-100', '$100-200', '+$200'];
+  }
 }
 
 export default SetupPage;
