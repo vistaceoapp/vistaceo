@@ -58,7 +58,7 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
           collapsed ? "justify-center" : "justify-between"
         )}>
           <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-            <VistaceoLogo size={collapsed ? 28 : 32} variant={collapsed ? "icon" : "compact"} className="transition-transform hover:scale-105" />
+            <VistaceoLogo size={collapsed ? 28 : 36} variant={collapsed ? "icon" : "full"} className="transition-transform hover:scale-105" />
             {!collapsed && currentBusiness && (
               <div className="overflow-hidden animate-fade-in">
                 <p className="text-sm font-medium text-foreground truncate max-w-[140px]">
