@@ -1,5 +1,5 @@
 import { Globe } from "lucide-react";
-import { OwlLogo } from "@/components/ui/OwlLogo";
+import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 
 const footerLinks = {
   producto: [
@@ -37,15 +37,14 @@ const countries = [
 
 export const Footer = () => {
   return (
-    <footer className="bg-card/50 border-t border-border">
+    <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 sm:px-6 py-16">
         {/* Main footer */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2">
-            <a href="/" className="flex items-center gap-3 mb-4">
-              <OwlLogo size={36} />
-              <span className="text-xl font-bold text-foreground tracking-tight">UCEO</span>
+            <a href="/" className="flex items-center mb-4">
+              <VistaceoLogo size={32} variant="compact" />
             </a>
             <p className="text-sm text-muted-foreground mb-4 max-w-xs">
               Tu CEO digital con IA. Una acción por día, 
@@ -138,7 +137,7 @@ export const Footer = () => {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} UCEO. Todos los derechos reservados.
+            © {new Date().getFullYear()} vistaceo. Todos los derechos reservados.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">

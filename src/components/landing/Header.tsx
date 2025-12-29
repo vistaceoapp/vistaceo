@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Globe, ArrowRight } from "lucide-react";
-import { OwlLogo } from "@/components/ui/OwlLogo";
+import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -40,20 +40,17 @@ export const Header = () => {
   return (
     <header 
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled 
-          ? "glass border-b border-primary/10 py-2" 
-          : "bg-transparent py-4"
+          ? "glass border-b border-border py-3" 
+          : "bg-transparent py-5"
       )}
     >
       <div className="container mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-12 md:h-14">
+        <div className="flex items-center justify-between h-10 md:h-12">
           {/* Logo */}
           <a href="/" className="flex items-center group">
-            <div className="relative">
-              <OwlLogo size={40} className="transition-transform duration-300 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-primary/30 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </div>
+            <VistaceoLogo size={36} variant="compact" className="transition-transform duration-300 group-hover:scale-105" />
           </a>
 
           {/* Desktop Navigation */}
@@ -62,10 +59,10 @@ export const Header = () => {
               <a
                 key={link.href}
                 href={link.href}
-                className="relative px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 group"
+                className="relative px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200 group font-medium"
               >
                 {link.label}
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-primary rounded-full group-hover:w-1/2 transition-all duration-300" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-primary to-accent rounded-full group-hover:w-1/2 transition-all duration-300" />
               </a>
             ))}
           </nav>
@@ -75,17 +72,17 @@ export const Header = () => {
             {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2 hover:bg-primary/10">
+                <Button variant="ghost" size="sm" className="gap-2">
                   <Globe className="w-4 h-4" />
                   <span className="text-xs uppercase font-medium">{currentLang}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-xl border-border">
+              <DropdownMenuContent align="end" className="bg-card border-border">
                 {languages.map((lang) => (
                   <DropdownMenuItem
                     key={lang.code}
                     onClick={() => setCurrentLang(lang.code)}
-                    className="cursor-pointer hover:bg-primary/10"
+                    className="cursor-pointer"
                   >
                     <span className="mr-2">{lang.flag}</span>
                     {lang.label}
@@ -96,8 +93,7 @@ export const Header = () => {
 
             <Button 
               variant="ghost" 
-              size="sm" 
-              className="hover:bg-primary/10"
+              size="sm"
               onClick={() => navigate("/auth")}
             >
               Iniciar sesión
@@ -115,7 +111,7 @@ export const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-foreground hover:bg-primary/10 rounded-lg transition-colors"
+            className="md:hidden p-2 text-foreground hover:bg-secondary rounded-lg transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -128,18 +124,18 @@ export const Header = () => {
           "md:hidden overflow-hidden transition-all duration-300",
           isMenuOpen ? "max-h-96 opacity-100 py-4" : "max-h-0 opacity-0"
         )}>
-          <nav className="flex flex-col gap-2 border-t border-border/50 pt-4">
+          <nav className="flex flex-col gap-2 border-t border-border pt-4">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-colors py-3 px-4 rounded-lg"
+                className="text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors py-3 px-4 rounded-lg font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
               </a>
             ))}
-            <div className="flex flex-col gap-3 pt-4 mt-2 border-t border-border/50">
+            <div className="flex flex-col gap-3 pt-4 mt-2 border-t border-border">
               <Button 
                 variant="ghost" 
                 className="justify-start"
