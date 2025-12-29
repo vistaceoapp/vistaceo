@@ -127,7 +127,7 @@ interface SetupData {
 const SetupPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { currentBusiness, refreshBusinesses } = useBusiness();
+  const { currentBusiness, refreshBusinesses, setCurrentBusiness } = useBusiness();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [setupMode, setSetupMode] = useState<'fast' | 'complete'>('fast');
@@ -228,15 +228,24 @@ const SetupPage = () => {
     if (!user || !setupData.businessName.trim() || !setupData.businessTypeId) return;
     setLoading(true);
     try {
-      const { data: businessData, error } = await supabase.from("businesses").insert({
-        name: setupData.businessName.trim(),
-        category: 'restaurant' as const,
-        country: setupData.country as any,
-        owner_id: user.id,
-        setup_completed: false,
-      }).select().single();
+      const { data: businessData, error } = await supabase
+        .from("businesses")
+        .insert({
+          name: setupData.businessName.trim(),
+          category: 'restaurant' as const,
+          country: setupData.country as any,
+          owner_id: user.id,
+          setup_completed: false,
+        })
+        .select()
+        .single();
+
       if (error) throw error;
+
       if (businessData) {
+        // Set business immediately to avoid null currentBusiness during the rest of the wizard
+        setCurrentBusiness(businessData);
+
         await supabase.from("business_setup_progress").insert({
           business_id: businessData.id,
           current_step: 'mode',
@@ -244,9 +253,9 @@ const SetupPage = () => {
           precision_score: 20,
         });
       }
+
+      // Keep list updated for sidebar selector etc.
       await refreshBusinesses();
-      
-      // Calculate the steps after creating business (without creation steps)
       const stepsAfterCreate = SETUP_STEPS.filter(step => {
         if (['welcome', 'country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
         return setupMode === 'complete' || step.fastTrack;
