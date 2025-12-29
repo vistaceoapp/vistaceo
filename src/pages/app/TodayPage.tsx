@@ -456,11 +456,20 @@ const TodayPage = () => {
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="col-span-2 space-y-6">
-            {/* HERO: Health Score Widget */}
-            <HealthScoreWidget
-              subScores={dashboardData.subScores}
-              previousScore={dashboardData.previousScore}
-            />
+            {/* HERO: Health Score + Precision Double Ring */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <HealthScoreWidget
+                subScores={dashboardData.subScores}
+                previousScore={dashboardData.previousScore}
+              />
+              <PrecisionRingWidget 
+                healthScore={Math.round((dashboardData.subScores.revenue + dashboardData.subScores.reputation + dashboardData.subScores.operations) / 3)}
+                precisionScore={35}
+                previousHealthScore={dashboardData.previousScore}
+                isPro={false}
+                onStartDiagnostic={() => navigate('/app/diagnostic')}
+              />
+            </div>
 
             {/* Dashboard Cards Grid */}
             <DashboardCardsGrid
@@ -660,6 +669,17 @@ const TodayPage = () => {
         <HealthScoreWidget
           subScores={dashboardData.subScores}
           previousScore={dashboardData.previousScore}
+        />
+      </div>
+
+      {/* Precision Widget - Mobile */}
+      <div className="animate-fade-in" style={{ animationDelay: "28ms" }}>
+        <PrecisionRingWidget 
+          healthScore={Math.round((dashboardData.subScores.revenue + dashboardData.subScores.reputation + dashboardData.subScores.operations) / 3)}
+          precisionScore={35}
+          previousHealthScore={dashboardData.previousScore}
+          isPro={false}
+          onStartDiagnostic={() => navigate('/app/diagnostic')}
         />
       </div>
 
