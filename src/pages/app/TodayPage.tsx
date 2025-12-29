@@ -24,8 +24,10 @@ import { BusinessHealthDashboard } from "@/components/app/BusinessHealthDashboar
 import { SetupWizard } from "@/components/app/SetupWizard";
 import { DashboardCardsGrid } from "@/components/app/DashboardCardsGrid";
 import { HealthScoreWidget } from "@/components/app/HealthScoreWidget";
+import { PrecisionRingWidget } from "@/components/app/PrecisionRingWidget";
 import { CountryCode } from "@/lib/countryPacks";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { calculatePrecisionScore } from "@/lib/gastroQuestionsComplete";
 
 interface DailyAction {
   id: string;
