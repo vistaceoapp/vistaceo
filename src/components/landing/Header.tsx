@@ -50,7 +50,7 @@ export const Header = () => {
         <div className="flex items-center justify-between h-10 md:h-12">
           {/* Logo */}
           <a href="/" className="flex items-center group">
-            <VistaceoLogo size={36} variant="compact" className="transition-transform duration-300 group-hover:scale-105" />
+            <VistaceoLogo size={40} variant="full" className="transition-transform duration-300 group-hover:scale-105" />
           </a>
 
           {/* Desktop Navigation */}
