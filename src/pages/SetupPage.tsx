@@ -55,6 +55,11 @@ import {
   type BusinessType,
 } from '@/lib/setupBusinessTypes';
 
+// Import Gastro setup
+import { COMPLETE_GASTRO_QUESTIONS, getActiveQuestionsForBusiness } from '@/lib/gastroQuestionsComplete';
+import { GastroSetupInput } from '@/components/app/GastroSetupInputs';
+import { type Language } from '@/lib/gastroSetupQuestions';
+
 // Step definitions
 interface SetupStepDef {
   id: string;
@@ -114,6 +119,8 @@ interface SetupData {
   googleLat?: number;
   googleLng?: number;
   competitors: CompetitorData[];
+  // Gastro-specific data (stored by path)
+  gastroData: Record<string, any>;
 }
 
 const SetupPage = () => {
@@ -145,6 +152,7 @@ const SetupPage = () => {
     foodCostPercent: 30,
     fixedCosts: 0,
     competitors: [],
+    gastroData: {},
   });
 
   const countries = useMemo(() => getCountries(), []);

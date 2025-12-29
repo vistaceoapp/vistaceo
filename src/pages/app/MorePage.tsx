@@ -21,7 +21,8 @@ import {
   Calendar,
   BarChart3,
   Zap,
-  Brain
+  Brain,
+  Target
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -157,6 +158,7 @@ const MorePage = () => {
       items: [
         { icon: BarChart3, label: "Analytics", description: "Métricas y tendencias", action: () => navigate("/app/analytics") },
         { icon: Brain, label: "Auditoría Brain", description: "Trazas y feedback", action: () => navigate("/app/audit") },
+        { icon: Target, label: "Diagnóstico y precisión", description: "Completá tu perfil de negocio", action: () => navigate("/app/diagnostic") },
       ],
     },
     {
