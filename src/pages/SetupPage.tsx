@@ -171,8 +171,8 @@ const SetupPage = () => {
   // Calculate activeSteps FIRST before using in effects
   const activeSteps = useMemo(() => {
     return SETUP_STEPS.filter(step => {
-      // Don't filter out initial steps until business is created AND we've moved past them
-      if (businessCreated && ['country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
+      // Once the business exists, we don't want to re-run the intro/identity creation steps
+      if (businessCreated && ['welcome', 'country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
       return setupMode === 'complete' || step.fastTrack;
     });
   }, [businessCreated, setupMode]);
@@ -181,16 +181,27 @@ const SetupPage = () => {
   useEffect(() => {
     if (currentBusiness && !businessCreated) {
       setBusinessCreated(true);
-      // Find the mode step in the NEW filtered list (without initial steps)
+
+      // Find the mode step in the NEW filtered list (without creation steps)
       const stepsAfterCreate = SETUP_STEPS.filter(step => {
-        if (['country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
+        if (['welcome', 'country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
         return setupMode === 'complete' || step.fastTrack;
       });
+
       const modeIndex = stepsAfterCreate.findIndex(s => s.id === 'mode');
-      if (modeIndex >= 0) setCurrentStep(modeIndex);
+      setCurrentStep(modeIndex >= 0 ? modeIndex : 0);
     }
   }, [currentBusiness, businessCreated, setupMode]);
-  
+
+  // Keep currentStep always within the active steps range (avoids "desconfigura" on step list changes)
+  useEffect(() => {
+    if (currentStep < 0) return;
+    if (activeSteps.length === 0) return;
+    if (currentStep > activeSteps.length - 1) {
+      setCurrentStep(activeSteps.length - 1);
+    }
+  }, [activeSteps.length, currentStep]);
+
   const stepConfig = activeSteps[currentStep];
   const totalSteps = activeSteps.length;
   const progressPercent = ((currentStep + 1) / totalSteps) * 100;
@@ -235,15 +246,14 @@ const SetupPage = () => {
       }
       await refreshBusinesses();
       
-      // Calculate the steps after creating business (without initial steps)
+      // Calculate the steps after creating business (without creation steps)
       const stepsAfterCreate = SETUP_STEPS.filter(step => {
-        if (['country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
+        if (['welcome', 'country', 'area', 'business_type', 'business_name'].includes(step.id)) return false;
         return setupMode === 'complete' || step.fastTrack;
       });
       const modeIndex = stepsAfterCreate.findIndex(s => s.id === 'mode');
-      
+
       setBusinessCreated(true);
-      // Navigate to mode step (index 0 in new filtered list since initial steps are removed)
       setCurrentStep(modeIndex >= 0 ? modeIndex : 0);
       toast.success('Negocio creado');
     } catch (error) {
