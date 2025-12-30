@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Sparkles, Zap, TrendingUp, Calendar, ArrowRight, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,7 @@ import { MissionsWidget } from "@/components/app/MissionsWidget";
 import { DashboardEditor } from "@/components/app/DashboardEditor";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { useHealthSync } from "@/hooks/use-health-sync";
 
 interface DailyAction {
   id: string;
@@ -39,6 +40,7 @@ const TodayPage = () => {
   const { currentBusiness } = useBusiness();
   const { brain } = useBrain();
   const { data: dashboardData, loading: dashboardLoading } = useDashboardData();
+  const { syncHealth, isSyncing } = useHealthSync();
   const { 
     widgets, 
     loading: widgetsLoading, 
@@ -57,6 +59,15 @@ const TodayPage = () => {
   const [showActionsPanel, setShowActionsPanel] = useState(false);
 
   const setupCompleted = dashboardData.setupCompleted;
+  
+  // Handle sync and refresh data
+  const handleSync = useCallback(async () => {
+    const result = await syncHealth();
+    if (result.success) {
+      // Trigger a page reload to get fresh data
+      window.location.reload();
+    }
+  }, [syncHealth]);
 
   useEffect(() => {
     if (!dashboardLoading && currentBusiness && !setupCompleted) {
@@ -142,6 +153,8 @@ const TodayPage = () => {
             snapshotScore={dashboardData.snapshotScore}
             previousScore={dashboardData.previousScore}
             precisionPct={dashboardData.certaintyPct}
+            onSync={handleSync}
+            isSyncing={isSyncing}
           />
         );
       case "missions":

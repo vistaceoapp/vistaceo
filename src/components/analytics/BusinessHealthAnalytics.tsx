@@ -250,35 +250,41 @@ export const BusinessHealthAnalytics = () => {
     setGenerating(true);
 
     try {
-      // Fetch setup data and brain for real analysis
-      const [setupRes, brainRes, integrationsRes] = await Promise.all([
+      // Fetch ALL data sources for comprehensive AI analysis
+      const [setupRes, brainRes, integrationsRes, signalsRes] = await Promise.all([
         supabase
           .from("business_setup_progress")
           .select("*")
           .eq("business_id", currentBusiness.id)
-          .single(),
+          .maybeSingle(),
         supabase
           .from("business_brains")
           .select("*")
           .eq("business_id", currentBusiness.id)
-          .single(),
+          .maybeSingle(),
         supabase
           .from("business_integrations")
           .select("*")
+          .eq("business_id", currentBusiness.id),
+        supabase
+          .from("signals")
+          .select("*")
           .eq("business_id", currentBusiness.id)
-          .eq("status", "active"),
+          .order("created_at", { ascending: false })
+          .limit(50),
       ]);
 
       const setupData = (setupRes.data?.setup_data || {}) as Record<string, unknown>;
-      const brain = brainRes.data;
+      const gastroData = (setupData.gastroData as Record<string, unknown>) || {};
       
       // Build comprehensive setup data for analysis
-      const analysisData = {
+      const analysisSetupData = {
         businessName: currentBusiness.name,
         countryCode: currentBusiness.country,
         businessTypeId: currentBusiness.category,
-        setupMode: setupRes.data?.current_step === 'complete' ? 'complete' : 'quick',
-        answers: (setupData.answers as Record<string, unknown>) || {},
+        businessTypeLabel: setupData.businessTypeLabel,
+        setupMode: setupData.mode || 'quick',
+        answers: gastroData,
         googleAddress: currentBusiness.address,
         integrationsProfiled: {
           delivery: currentBusiness.delivery_platforms || [],
@@ -290,15 +296,18 @@ export const BusinessHealthAnalytics = () => {
       const googleData = currentBusiness.google_place_id ? {
         placeId: currentBusiness.google_place_id,
         rating: currentBusiness.avg_rating,
-        reviewCount: (brain?.factual_memory as any)?.google_review_count,
+        reviewCount: (brainRes.data?.factual_memory as any)?.google_review_count,
       } : null;
 
-      // Call the real health score analysis function
+      // Call the enhanced health score analysis with ALL data
       const { data, error } = await supabase.functions.invoke("analyze-health-score", {
         body: { 
           businessId: currentBusiness.id,
-          setupData: analysisData,
+          setupData: analysisSetupData,
           googleData,
+          brainData: brainRes.data || null,
+          integrationsData: integrationsRes.data || [],
+          signalsData: signalsRes.data || [],
         }
       });
 
@@ -306,7 +315,7 @@ export const BusinessHealthAnalytics = () => {
 
       toast({
         title: "Diagnóstico actualizado",
-        description: "Se generó un nuevo análisis basado en los datos reales de tu negocio",
+        description: `Score: ${data.analysis?.totalScore || 0} | Certeza: ${data.analysis?.certaintyPct || 0}%`,
       });
 
       fetchSnapshots();

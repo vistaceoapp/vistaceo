@@ -13,6 +13,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   RefreshCw,
+  PlusCircle,
+  ExternalLink,
 } from 'lucide-react';
 import {
   HEALTH_SUB_SCORES,
@@ -27,6 +29,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+
+// Map dimension IDs to routes/actions for completing data
+const DIMENSION_COMPLETE_ROUTES: Record<string, { route: string; label: string; integration?: string }> = {
+  reputation: { route: '/app/diagnostic', label: 'Conectar Google', integration: 'google' },
+  profitability: { route: '/app/diagnostic', label: 'Completar datos' },
+  finances: { route: '/app/diagnostic', label: 'Completar datos' },
+  efficiency: { route: '/app/diagnostic', label: 'Completar datos' },
+  traffic: { route: '/app/diagnostic', label: 'Completar datos' },
+  team: { route: '/app/diagnostic', label: 'Completar datos' },
+  growth: { route: '/app/diagnostic', label: 'Completar datos' },
+};
 
 interface HealthScoreWidgetProps {
   subScores: Record<string, number | null>;
@@ -292,12 +305,13 @@ export const HealthScoreWidget = ({
           </div>
         </div>
 
-        {/* Expanded sub-scores */}
+        {/* Expanded sub-scores with complete buttons */}
         {expanded && (
           <div className="mt-4 pt-4 border-t border-border/50 space-y-3 animate-fade-in">
             {HEALTH_SUB_SCORES.map((sub) => {
               const value = subScores[sub.id];
               const hasData = value !== null;
+              const completeConfig = DIMENSION_COMPLETE_ROUTES[sub.id];
 
               return (
                 <div key={sub.id} className="space-y-1">
@@ -309,11 +323,29 @@ export const HealthScoreWidget = ({
                         {Math.round(sub.weight * 100)}%
                       </Badge>
                     </div>
-                    <span className={cn('text-sm font-bold', getSubScoreColor(value))}>
-                      {hasData ? value : 'Sin datos'}
-                    </span>
+                    {hasData ? (
+                      <span className={cn('text-sm font-bold', getSubScoreColor(value))}>
+                        {value}
+                      </span>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs gap-1 text-primary hover:text-primary/80 hover:bg-primary/10"
+                        onClick={() => navigate(completeConfig?.route || '/app/diagnostic')}
+                      >
+                        <PlusCircle className="w-3 h-3" />
+                        {completeConfig?.label || 'Completar'}
+                      </Button>
+                    )}
                   </div>
-                  <Progress value={value ?? 0} className="h-2" />
+                  {hasData ? (
+                    <Progress value={value ?? 0} className="h-2" />
+                  ) : (
+                    <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-muted via-primary/20 to-muted animate-pulse" />
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <div className="flex flex-wrap gap-1">
                       {sub.source.map((src, i) => (
@@ -323,9 +355,16 @@ export const HealthScoreWidget = ({
                         </span>
                       ))}
                     </div>
-                    <span className="text-[10px] text-muted-foreground italic">
-                      {sub.description}
-                    </span>
+                    {hasData ? (
+                      <span className="text-[10px] text-muted-foreground italic">
+                        {sub.description}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-amber-500 font-medium flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Sin datos - responder para mejorar certeza
+                      </span>
+                    )}
                   </div>
                 </div>
               );

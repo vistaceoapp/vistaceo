@@ -13,7 +13,7 @@ interface DashboardData {
   // Total score from snapshot (calculated by AI - authoritative)
   snapshotScore: number | null;
 
-  // Certainty percentage from AI analysis
+  // Certainty percentage from AI analysis or calculated from data completeness
   certaintyPct: number;
 
   // Previous health score for trend
@@ -56,6 +56,49 @@ const toNumberOrNull = (v: unknown): number | null => {
   return null;
 };
 
+// Calculate data completeness percentage based on available data sources
+function calculateDataCompleteness(params: {
+  hasGoogle: boolean;
+  hasBrain: boolean;
+  integrationsCount: number;
+  signalsCount: number;
+  answersCount: number;
+  setupCompleted: boolean;
+}): number {
+  let completeness = 0;
+  const weights = {
+    setupBasic: 15,      // Business type, country
+    setupAnswers: 25,    // Questionnaire responses
+    google: 20,          // Google Business connected
+    brain: 15,           // Brain memory populated
+    integrations: 15,    // Active integrations
+    signals: 10,         // Processed signals
+  };
+
+  // Setup basic completed
+  if (params.setupCompleted) completeness += weights.setupBasic;
+
+  // Setup answers
+  const answersScore = Math.min(1, params.answersCount / 15); // Max contribution at 15+ answers
+  completeness += weights.setupAnswers * answersScore;
+
+  // Google connected
+  if (params.hasGoogle) completeness += weights.google;
+
+  // Brain data
+  if (params.hasBrain) completeness += weights.brain;
+
+  // Integrations
+  const integrationsScore = Math.min(1, params.integrationsCount / 3); // Max at 3 integrations
+  completeness += weights.integrations * integrationsScore;
+
+  // Signals
+  const signalsScore = Math.min(1, params.signalsCount / 20); // Max at 20 signals
+  completeness += weights.signals * signalsScore;
+
+  return Math.round(Math.min(100, completeness));
+}
+
 export const useDashboardData = () => {
   const { currentBusiness } = useBusiness();
   const [data, setData] = useState<DashboardData>({
@@ -87,8 +130,8 @@ export const useDashboardData = () => {
       }
 
       try {
-        // Fetch setup progress, brain, and business data in parallel
-        const [setupRes, brainRes, menuRes, competitorsRes, snapshotRes] = await Promise.all([
+        // Fetch setup progress, brain, integrations, signals and snapshots in parallel
+        const [setupRes, brainRes, menuRes, competitorsRes, snapshotRes, integrationsRes, signalsRes] = await Promise.all([
           supabase
             .from('business_setup_progress')
             .select('*')
@@ -113,13 +156,23 @@ export const useDashboardData = () => {
             .eq('business_id', currentBusiness.id)
             .order('created_at', { ascending: false })
             .limit(2),
+          supabase
+            .from('business_integrations')
+            .select('*')
+            .eq('business_id', currentBusiness.id)
+            .eq('status', 'active'),
+          supabase
+            .from('signals')
+            .select('id', { count: 'exact', head: true })
+            .eq('business_id', currentBusiness.id),
         ]);
 
         // Determine available data
         const available: string[] = [];
 
-        // From business (using type assertions for Json fields)
-        if (currentBusiness.avg_rating) available.push('googleListing');
+        // From business
+        const hasGoogle = !!currentBusiness.google_place_id || !!currentBusiness.avg_rating;
+        if (hasGoogle) available.push('googleListing');
         if (currentBusiness.channel_mix) available.push('channelMix');
         if (currentBusiness.monthly_revenue_range) available.push('sales');
         if (currentBusiness.food_cost_range) available.push('costs');
@@ -137,46 +190,8 @@ export const useDashboardData = () => {
         if (setupData.avgPrepTimeMinutes) available.push('prepTime');
         if (setupData.appCommissionPercent) available.push('appFees');
 
-        // Calculate REAL precision based on answered gastro questions
-        const setupMode: SetupMode = setupData.mode === 'complete' ? 'full' : 'quick';
-        const isProSetup = setupMode === 'full';
-
-        // Combine all data sources for precision calculation
-        const allAnsweredData: Record<string, any> = {
-          ...gastroData,
-          // Add basic setup fields as answered
-          'business.channels': setupData.channelMix ? ['salon', 'delivery', 'takeaway'] : [],
-          'business.primary_type_id': setupData.businessTypeId || '',
-          'setup.mode': setupMode,
-        };
-
-        // If there are dayparts, they count as answered
-        if (setupData.activeDayparts && (setupData.activeDayparts as string[]).length > 0) {
-          allAnsweredData['operations.dayparts'] = setupData.activeDayparts;
-        }
-        if (setupData.topSellers && (setupData.topSellers as string[]).length > 0) {
-          allAnsweredData['menu.top_sellers'] = setupData.topSellers;
-        }
-        if (setupData.ticketRange) {
-          allAnsweredData['operations.avg_ticket'] = setupData.ticketRange;
-        }
-        if (setupData.currentFocus) {
-          allAnsweredData['strategy.current_focus'] = setupData.currentFocus;
-        }
-        if (setupData.positioning) {
-          allAnsweredData['identity.positioning'] = setupData.positioning;
-        }
-        if (setupData.serviceModel) {
-          allAnsweredData['operations.service_model'] = setupData.serviceModel;
-        }
-
-        // Get applicable questions for this business
-        const totalQuestions = getTotalQuestionsForBusiness(allAnsweredData, setupMode);
-
-        // Count answered questions
-        let answeredCount = 0;
-
-        // Count from gastroData
+        // Count answered questions from gastroData
+        let answersCount = 0;
         Object.keys(gastroData).forEach((key) => {
           const val = gastroData[key];
           if (
@@ -185,70 +200,53 @@ export const useDashboardData = () => {
             val !== '' &&
             !(Array.isArray(val) && val.length === 0)
           ) {
-            answeredCount++;
+            answersCount++;
           }
         });
 
-        // Also count basic setup questions that are answered
-        const basicSetupFields = [
-          'activeDayparts',
-          'topSellers',
-          'ticketRange',
-          'currentFocus',
-          'positioning',
-          'serviceModel',
-          'channelMix',
-        ];
+        // Also count basic setup questions
+        const basicSetupFields = ['activeDayparts', 'topSellers', 'ticketRange', 'currentFocus', 'positioning', 'serviceModel', 'channelMix'];
         basicSetupFields.forEach((field) => {
           const val = setupData[field];
-          if (
-            val !== undefined &&
-            val !== null &&
-            val !== '' &&
-            !(Array.isArray(val) && val.length === 0) &&
-            !(typeof val === 'object' && Object.keys(val).length === 0)
-          ) {
-            answeredCount++;
+          if (val !== undefined && val !== null && val !== '' && !(Array.isArray(val) && val.length === 0)) {
+            answersCount++;
           }
         });
 
-        // Calculate percentage with ranges that match setup step:
-        // Quick setup: 5-25% range
-        // Complete setup: 25-65% range
-        const effectiveTotal = Math.max(totalQuestions, 20); // At least 20 questions expected
-        let rawPercentage = calculatePrecisionScore(answeredCount, effectiveTotal);
-        
-        // Apply ranges based on setup type (matching SetupStepMode.tsx)
-        let precisionPercentage: number;
-        if (setupRes.data?.completed_at) {
-          // User completed setup
-          if (isProSetup) {
-            // Complete setup: 25-65% range, scales based on answers
-            precisionPercentage = Math.max(25, Math.min(65, 25 + rawPercentage * 0.40));
-          } else {
-            // Quick setup: 5-25% range, scales based on answers
-            precisionPercentage = Math.max(5, Math.min(25, 5 + rawPercentage * 0.20));
-          }
-        } else {
-          // No setup completed yet - very low precision
-          precisionPercentage = Math.max(3, rawPercentage * 0.15);
-        }
-        
-        precisionPercentage = Math.round(precisionPercentage);
+        // Brain and integrations data
+        const hasBrain = !!brainRes.data?.id && (brainRes.data.total_signals || 0) > 0;
+        const integrationsCount = integrationsRes.data?.length || 0;
+        const signalsCount = signalsRes.count || 0;
 
-        // Determine precision level
-        let precisionLevel: 'Básica' | 'Media' | 'Alta' = 'Básica';
-        if (precisionPercentage >= 70) precisionLevel = 'Alta';
-        else if (precisionPercentage >= 40) precisionLevel = 'Media';
+        // Calculate data completeness
+        const dataCompletenessResult = {
+          hasGoogle,
+          hasBrain,
+          integrationsCount,
+          signalsCount,
+          answersCount,
+          percentage: calculateDataCompleteness({
+            hasGoogle,
+            hasBrain,
+            integrationsCount,
+            signalsCount,
+            answersCount,
+            setupCompleted: !!setupRes.data?.completed_at,
+          }),
+        };
 
-        // Prefer REAL sub-scores coming from the latest snapshot (setup baseline / last checkin)
+        // Get sub-scores from latest snapshot
         const snapshots = snapshotRes.data || [];
         const latestDims = (snapshots[0]?.dimensions_json as Record<string, unknown> | null) || null;
 
         const subScores: Record<string, number | null> = {};
+        
         if (latestDims) {
-          // Match new 7-dimension system from HEALTH_SUB_SCORES
-          // Try new canonical dimensions first, then legacy mappings
+          // Extract certainty from snapshot meta if available
+          const meta = latestDims._meta as Record<string, unknown> | undefined;
+          const snapshotCertainty = toNumberOrNull(meta?.certainty_pct);
+          
+          // Map dimension keys
           subScores.reputation = toNumberOrNull(latestDims.reputation ?? latestDims.market_fit);
           subScores.profitability = toNumberOrNull(latestDims.profitability ?? latestDims.pricing_position);
           subScores.finances = toNumberOrNull(latestDims.finances ?? latestDims.unit_economics);
@@ -257,69 +255,32 @@ export const useDashboardData = () => {
           subScores.team = toNumberOrNull(latestDims.team);
           subScores.growth = toNumberOrNull(latestDims.growth);
           
-          // If dimensions are still null, check if this is old-format snapshot with metadata fields
-          // Skip metadata-only fields that were mistakenly used as dimensions
+          // Skip metadata-only snapshots
           const metadataFields = ['data_quality', 'setup_mode', 'google_connected', 'questions_answered', 'integrations_profiled', '_meta'];
           const hasRealDimensions = Object.keys(latestDims).some(
             key => !metadataFields.includes(key) && typeof latestDims[key] === 'number'
           );
           
-          // If no real dimensions exist, this snapshot was created with old format - ignore it
           if (!hasRealDimensions) {
             Object.keys(subScores).forEach(key => {
               subScores[key] = null;
             });
           }
-        }
-
-        // Fallback heuristic if snapshot dims are missing
-        if (Object.keys(subScores).length === 0 || HEALTH_SUB_SCORES.some((s) => subScores[s.id] == null)) {
-          // Reputation: based on rating
-          if (subScores.reputation == null) {
-            subScores.reputation = currentBusiness.avg_rating
-              ? Math.round((currentBusiness.avg_rating / 5) * 100)
-              : null;
-          }
-
-          // Profitability: based on menu and competitors
-          if (subScores.profitability == null) {
-            if (available.includes('menu') && available.includes('competitors')) subScores.profitability = 55;
-            else if (available.includes('menu')) subScores.profitability = 45;
-            else subScores.profitability = null;
-          }
-
-          // Finances: based on sales and costs
-          if (subScores.finances == null) {
-            if (available.includes('sales') && available.includes('costs')) subScores.finances = 55;
-            else if (available.includes('sales')) subScores.finances = 45;
-            else subScores.finances = null;
-          }
-
-          // Efficiency: based on capacity and prep time
-          if (subScores.efficiency == null) {
-            if (available.includes('capacity') && available.includes('prepTime')) subScores.efficiency = 55;
-            else subScores.efficiency = null;
-          }
-
-          // Traffic: based on dayparts and channels
-          if (subScores.traffic == null) {
-            if (available.includes('dayparts') && available.includes('channelMix')) subScores.traffic = 55;
-            else if (available.includes('dayparts')) subScores.traffic = 45;
-            else subScores.traffic = null;
-          }
-
-          // Team: default to 50 if basic setup is done
-          if (subScores.team == null) {
-            subScores.team = setupRes.data?.completed_at ? 50 : null;
-          }
-
-          // Growth: default based on setup completion
-          if (subScores.growth == null) {
-            subScores.growth = currentBusiness.setup_completed ? 50 : null;
+          
+          // Use snapshot certainty if available, otherwise use calculated
+          if (snapshotCertainty !== null) {
+            dataCompletenessResult.percentage = snapshotCertainty;
           }
         }
 
-        // Get snapshot score (authoritative) and previous score for trend
+        // Initialize any missing sub-scores to null (will show "Sin datos")
+        HEALTH_SUB_SCORES.forEach(sub => {
+          if (subScores[sub.id] === undefined) {
+            subScores[sub.id] = null;
+          }
+        });
+
+        // Get snapshot score and previous score for trend
         const snapshotScore = snapshots.length > 0 ? toNumberOrNull(snapshots[0]?.total_score) : null;
         const previousScore = snapshots.length > 1 ? toNumberOrNull(snapshots[1]?.total_score) : null;
 
@@ -358,16 +319,12 @@ export const useDashboardData = () => {
           availableData: available,
           subScores,
           snapshotScore,
+          certaintyPct: dataCompletenessResult.percentage,
           previousScore,
           cardValues,
           setupCompleted: currentBusiness.setup_completed || false,
           precisionScore: currentBusiness.precision_score || 0,
-          realPrecision: {
-            answered: answeredCount,
-            total: effectiveTotal,
-            percentage: precisionPercentage,
-            level: precisionLevel,
-          },
+          dataCompleteness: dataCompletenessResult,
           gastroData,
         });
       } catch (error) {
@@ -382,4 +339,3 @@ export const useDashboardData = () => {
 
   return { data, loading };
 };
-
