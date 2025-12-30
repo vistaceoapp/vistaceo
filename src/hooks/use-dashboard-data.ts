@@ -11,6 +11,9 @@ interface DashboardData {
   // Health sub-scores
   subScores: Record<string, number | null>;
 
+  // Actual total score from snapshot (authoritative)
+  snapshotScore: number | null;
+
   // Previous health score for trend
   previousScore: number | null;
 
@@ -54,6 +57,7 @@ export const useDashboardData = () => {
   const [data, setData] = useState<DashboardData>({
     availableData: [],
     subScores: {},
+    snapshotScore: null,
     previousScore: null,
     cardValues: {},
     setupCompleted: false,
@@ -308,7 +312,8 @@ export const useDashboardData = () => {
           }
         }
 
-        // Get previous score for trend
+        // Get snapshot score (authoritative) and previous score for trend
+        const snapshotScore = snapshots.length > 0 ? toNumberOrNull(snapshots[0]?.total_score) : null;
         const previousScore = snapshots.length > 1 ? toNumberOrNull(snapshots[1]?.total_score) : null;
 
         // Calculate card values based on real data
@@ -345,6 +350,7 @@ export const useDashboardData = () => {
         setData({
           availableData: available,
           subScores,
+          snapshotScore,
           previousScore,
           cardValues,
           setupCompleted: currentBusiness.setup_completed || false,

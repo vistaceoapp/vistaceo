@@ -34,6 +34,8 @@ interface HealthScoreWidgetProps {
   previousScore?: number | null;
   /** % de preguntas respondidas (0-100). Si no se pasa, se calcula de coverage */
   precisionPct?: number;
+  /** Score directo del snapshot (toma prioridad sobre cálculo) */
+  snapshotScore?: number | null;
 }
 
 // Adjusted thresholds to match setup ranges (quick: 5-25%, complete: 25-65%)
@@ -47,11 +49,14 @@ export const HealthScoreWidget = ({
   subScores,
   previousScore,
   precisionPct,
+  snapshotScore,
 }: HealthScoreWidgetProps) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
 
-  const { score, isEstimated, coverage } = calculateHealthScore(subScores);
+  // Use snapshotScore if available, otherwise calculate from subScores
+  const { score: calculatedScore, isEstimated, coverage } = calculateHealthScore(subScores);
+  const score = snapshotScore ?? calculatedScore;
   const { label, color } = getScoreLabel(score);
 
   // Use precision passed in, else fallback to coverage

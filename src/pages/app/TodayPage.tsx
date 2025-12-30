@@ -139,6 +139,7 @@ const TodayPage = () => {
           <HealthScoreWidget
             key="health"
             subScores={dashboardData.subScores}
+            snapshotScore={dashboardData.snapshotScore}
             previousScore={dashboardData.previousScore}
             precisionPct={dashboardData.realPrecision.percentage}
           />
