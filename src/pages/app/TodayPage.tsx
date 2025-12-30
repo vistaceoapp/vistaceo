@@ -141,7 +141,7 @@ const TodayPage = () => {
             subScores={dashboardData.subScores}
             snapshotScore={dashboardData.snapshotScore}
             previousScore={dashboardData.previousScore}
-            precisionPct={dashboardData.realPrecision.percentage}
+            precisionPct={dashboardData.certaintyPct}
           />
         );
       case "missions":

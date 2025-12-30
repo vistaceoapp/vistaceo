@@ -6,17 +6,16 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
-  Info,
   ChevronDown,
   ChevronUp,
   Sparkles,
   ShieldCheck,
   AlertTriangle,
   CheckCircle2,
+  RefreshCw,
 } from 'lucide-react';
 import {
   HEALTH_SUB_SCORES,
-  calculateHealthScore,
   getScoreLabel,
 } from '@/lib/dashboardCards';
 import { GlassCard } from './GlassCard';
@@ -32,40 +31,46 @@ import {
 interface HealthScoreWidgetProps {
   subScores: Record<string, number | null>;
   previousScore?: number | null;
-  /** % de preguntas respondidas (0-100). Si no se pasa, se calcula de coverage */
+  /** % de certeza basado en datos disponibles (0-100) */
   precisionPct?: number;
-  /** Score directo del snapshot (toma prioridad sobre cálculo) */
+  /** Score directo del snapshot (calculado por IA) */
   snapshotScore?: number | null;
+  /** Callback para sincronizar/regenerar diagnóstico */
+  onSync?: () => Promise<void>;
+  /** Si está sincronizando */
+  isSyncing?: boolean;
 }
 
-// Adjusted thresholds to match setup ranges (quick: 5-25%, complete: 25-65%)
+// Thresholds for certainty levels
 const getCertaintyLabel = (pct: number) => {
-  if (pct >= 50) return { label: 'Alta', color: 'text-success', bg: 'bg-success/10', icon: CheckCircle2 };
-  if (pct >= 25) return { label: 'Media', color: 'text-amber-500', bg: 'bg-amber-500/10', icon: AlertTriangle };
+  if (pct >= 70) return { label: 'Alta', color: 'text-success', bg: 'bg-success/10', icon: CheckCircle2 };
+  if (pct >= 40) return { label: 'Media', color: 'text-amber-500', bg: 'bg-amber-500/10', icon: AlertTriangle };
   return { label: 'Baja', color: 'text-destructive', bg: 'bg-destructive/10', icon: AlertTriangle };
 };
 
 export const HealthScoreWidget = ({
   subScores,
   previousScore,
-  precisionPct,
+  precisionPct = 0,
   snapshotScore,
+  onSync,
+  isSyncing = false,
 }: HealthScoreWidgetProps) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
 
-  // Use snapshotScore if available, otherwise calculate from subScores
-  const { score: calculatedScore, isEstimated, coverage } = calculateHealthScore(subScores);
-  const score = snapshotScore ?? calculatedScore;
+  // Always use snapshot score from AI - no local fallback calculation
+  const score = snapshotScore ?? 0;
+  const hasScore = snapshotScore !== null && snapshotScore !== undefined;
   const { label, color } = getScoreLabel(score);
 
-  // Use precision passed in, else fallback to coverage
-  const certaintyPct = precisionPct ?? coverage;
+  // Use certainty from props (calculated from data completeness)
+  const certaintyPct = precisionPct;
   const certainty = getCertaintyLabel(certaintyPct);
   const CertaintyIcon = certainty.icon;
 
   const getTrend = () => {
-    if (previousScore == null) return null;
+    if (previousScore == null || !hasScore) return null;
     const diff = score - previousScore;
     if (diff > 2) return { direction: 'up' as const, value: diff };
     if (diff < -2) return { direction: 'down' as const, value: Math.abs(diff) };
@@ -93,7 +98,9 @@ export const HealthScoreWidget = ({
       <div
         className={cn(
           'h-1.5',
-          score >= 75
+          !hasScore
+            ? 'bg-muted'
+            : score >= 75
             ? 'bg-success'
             : score >= 60
             ? 'bg-primary'
@@ -109,7 +116,7 @@ export const HealthScoreWidget = ({
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-foreground">Salud de Negocio</h3>
 
-            {/* Certainty badge - always visible */}
+            {/* Certainty badge */}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -119,9 +126,9 @@ export const HealthScoreWidget = ({
                       certainty.bg,
                       certainty.color,
                       'border',
-                        certaintyPct >= 50
+                        certaintyPct >= 70
                           ? 'border-success/30'
-                          : certaintyPct >= 25
+                          : certaintyPct >= 40
                           ? 'border-amber-500/30'
                           : 'border-destructive/30'
                     )}
@@ -135,35 +142,64 @@ export const HealthScoreWidget = ({
                     Nivel de certeza: {certainty.label}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
-                    {certaintyPct < 50
-                      ? 'Respondé más preguntas para un análisis más preciso'
+                    {certaintyPct < 40
+                      ? 'Agregá más datos e integraciones para aumentar la certeza'
+                      : certaintyPct < 70
+                      ? 'Conectá integraciones para un análisis más preciso'
                       : 'Tenés datos suficientes para un análisis confiable'}
                   </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
-            {isEstimated && certaintyPct < 25 && (
+            {!hasScore && (
               <Badge
                 variant="outline"
-                className="text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/30"
+                className="text-[10px] bg-muted text-muted-foreground border-muted-foreground/30"
               >
-                ~Estimado
+                Sin diagnóstico
               </Badge>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2"
-            onClick={() => setExpanded(!expanded)}
-          >
-            {expanded ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
+          
+          <div className="flex items-center gap-1">
+            {/* Sync button */}
+            {onSync && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2"
+                      onClick={onSync}
+                      disabled={isSyncing}
+                    >
+                      <RefreshCw className={cn('w-4 h-4', isSyncing && 'animate-spin')} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p className="text-xs">
+                      {isSyncing ? 'Analizando...' : 'Actualizar diagnóstico con IA'}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
-          </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2"
+              onClick={() => setExpanded(!expanded)}
+            >
+              {expanded ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Main score */}
@@ -172,12 +208,15 @@ export const HealthScoreWidget = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  onClick={handleScoreClick}
+                  onClick={hasScore ? handleScoreClick : onSync}
+                  disabled={isSyncing}
                   className={cn(
                     'flex flex-col items-center justify-center p-4 rounded-2xl transition-all cursor-pointer',
                     'hover:scale-105 active:scale-95',
                     'ring-2 ring-offset-2 ring-offset-background',
-                    score >= 75
+                    !hasScore
+                      ? 'bg-muted/50 ring-muted'
+                      : score >= 75
                       ? 'bg-success/10 ring-success/30'
                       : score >= 60
                       ? 'bg-primary/10 ring-primary/30'
@@ -186,29 +225,42 @@ export const HealthScoreWidget = ({
                       : 'bg-destructive/10 ring-destructive/30'
                   )}
                 >
-                  <div className="flex items-baseline gap-1">
-                    <span className={cn('text-4xl font-bold', color)}>{score}</span>
-                    {trend && (
-                      <span className="flex items-center ml-1">
-                        {trend.direction === 'up' && (
-                          <TrendingUp className="w-4 h-4 text-success" />
+                  {hasScore ? (
+                    <>
+                      <div className="flex items-baseline gap-1">
+                        <span className={cn('text-4xl font-bold', color)}>{score}</span>
+                        {trend && (
+                          <span className="flex items-center ml-1">
+                            {trend.direction === 'up' && (
+                              <TrendingUp className="w-4 h-4 text-success" />
+                            )}
+                            {trend.direction === 'down' && (
+                              <TrendingDown className="w-4 h-4 text-destructive" />
+                            )}
+                            {trend.direction === 'stable' && (
+                              <Minus className="w-3 h-3 text-muted-foreground" />
+                            )}
+                          </span>
                         )}
-                        {trend.direction === 'down' && (
-                          <TrendingDown className="w-4 h-4 text-destructive" />
-                        )}
-                        {trend.direction === 'stable' && (
-                          <Minus className="w-3 h-3 text-muted-foreground" />
-                        )}
+                      </div>
+                      <Badge variant="outline" className={cn('mt-1 text-xs', color)}>
+                        {label}
+                      </Badge>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <RefreshCw className={cn('w-8 h-8 text-muted-foreground', isSyncing && 'animate-spin')} />
+                      <span className="text-xs text-muted-foreground">
+                        {isSyncing ? 'Analizando...' : 'Generar diagnóstico'}
                       </span>
-                    )}
-                  </div>
-                  <Badge variant="outline" className={cn('mt-1 text-xs', color)}>
-                    {label}
-                  </Badge>
+                    </div>
+                  )}
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                <p className="text-xs">Tocá para ver análisis completo</p>
+                <p className="text-xs">
+                  {hasScore ? 'Tocá para ver análisis completo' : 'Tocá para generar diagnóstico con IA'}
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -281,7 +333,7 @@ export const HealthScoreWidget = ({
           </div>
         )}
 
-        {/* CTA Pro - Completar datos */}
+        {/* CTA - Completar datos o ver diagnóstico */}
         <div className="mt-4 pt-4 border-t border-border/50">
           <Button
             variant="outline"
@@ -310,10 +362,10 @@ export const HealthScoreWidget = ({
               </div>
               <div className="flex-1 text-left">
                 <div className="font-semibold text-foreground text-sm">
-                  {certaintyPct < 50 ? 'Completar datos...' : 'Ver diagnóstico completo'}
+                  {certaintyPct < 40 ? 'Completar datos...' : 'Ver diagnóstico completo'}
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  {certaintyPct < 50
+                  {certaintyPct < 40
                     ? 'Aumentá la certeza para recomendaciones más precisas'
                     : 'Explorá oportunidades y riesgos de tu negocio'}
                 </div>
@@ -327,48 +379,40 @@ export const HealthScoreWidget = ({
           <div className="flex items-center justify-between text-[10px]">
             <span className="text-muted-foreground flex items-center gap-1">
               <ShieldCheck className="w-3 h-3" />
-              Camino a certeza máxima
+              Nivel de certeza del análisis
             </span>
             <span className={cn('font-medium', certainty.color)}>
-              {certaintyPct}% → 100%
+              {certaintyPct}%
             </span>
           </div>
           <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-            {/* Target zone indicator */}
-            <div 
-              className="absolute inset-y-0 right-0 w-[15%] bg-success/20 rounded-r-full"
-              style={{ left: '85%' }}
-            />
+            {/* Target zones */}
+            <div className="absolute inset-y-0 bg-amber-500/10" style={{ left: '40%', width: '30%' }} />
+            <div className="absolute inset-y-0 right-0 bg-success/10" style={{ left: '70%' }} />
             {/* Current progress */}
             <div
               className={cn(
                 'absolute inset-y-0 left-0 rounded-full transition-all duration-500',
-                certaintyPct >= 50
+                certaintyPct >= 70
                   ? 'bg-success'
-                  : certaintyPct >= 25
+                  : certaintyPct >= 40
                   ? 'bg-amber-500'
                   : 'bg-primary'
               )}
               style={{ width: `${certaintyPct}%` }}
             />
-            {/* Milestone markers */}
-            <div className="absolute inset-0 flex items-center justify-between px-1">
-              <div className="w-0.5 h-1 bg-background/50 rounded-full" style={{ marginLeft: '25%' }} />
-              <div className="w-0.5 h-1 bg-background/50 rounded-full" style={{ marginLeft: '25%' }} />
-              <div className="w-0.5 h-1 bg-background/50 rounded-full" style={{ marginLeft: '25%' }} />
-            </div>
           </div>
           {/* Encouraging message */}
           <p className="text-[10px] text-muted-foreground text-center italic">
-            {certaintyPct < 15
-              ? '¡Buen comienzo! Cada dato que agregues mejora las recomendaciones'
-              : certaintyPct < 25
-              ? '¡Vas muy bien! Seguí completando para análisis más precisos'
+            {certaintyPct < 20
+              ? '¡Buen comienzo! Cada dato mejora el análisis'
               : certaintyPct < 40
-              ? '¡Excelente progreso! Ya podemos darte insights valiosos'
-              : certaintyPct < 55
-              ? '¡Casi llegás! Pocos datos más para máxima precisión'
-              : '¡Nivel experto! Tus recomendaciones son altamente personalizadas'}
+              ? 'Conectá Google o integraciones para más precisión'
+              : certaintyPct < 60
+              ? '¡Buen nivel! Más integraciones = mayor certeza'
+              : certaintyPct < 80
+              ? '¡Excelente! Análisis altamente confiable'
+              : '¡Nivel experto! Recomendaciones ultra personalizadas'}
           </p>
         </div>
         </div>
