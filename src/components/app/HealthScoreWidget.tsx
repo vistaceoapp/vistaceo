@@ -19,6 +19,7 @@ import {
 import {
   HEALTH_SUB_SCORES,
   getScoreLabel,
+  getScoreStyle,
 } from '@/lib/dashboardCards';
 import { GlassCard } from './GlassCard';
 import { cn } from '@/lib/utils';
@@ -97,31 +98,18 @@ export const HealthScoreWidget = ({
     navigate(`/app/chat?prompt=${encodeURIComponent(prompt)}`);
   };
 
+  // Use centralized score styling 
   const getSubScoreColor = (value: number | null) => {
-    if (value === null) return 'text-muted-foreground';
-    if (value >= 75) return 'text-success';
-    if (value >= 60) return 'text-primary';
-    if (value >= 40) return 'text-amber-500';
-    return 'text-destructive';
+    return getScoreStyle(value).textColor;
   };
+  
+  // Get style for main score
+  const scoreStyle = getScoreStyle(score);
 
   return (
     <GlassCard className="p-0 overflow-hidden animate-fade-in">
-      {/* Color stripe based on score */}
-      <div
-        className={cn(
-          'h-1.5',
-          !hasScore
-            ? 'bg-muted'
-            : score >= 75
-            ? 'bg-success'
-            : score >= 60
-            ? 'bg-primary'
-            : score >= 40
-            ? 'bg-amber-500'
-            : 'bg-destructive'
-        )}
-      />
+      {/* Color stripe based on score - using centralized style */}
+      <div className={cn('h-1.5', scoreStyle.bgColor)} />
 
       <div className="p-5">
         {/* Header */}
@@ -227,21 +215,14 @@ export const HealthScoreWidget = ({
                     'flex flex-col items-center justify-center p-4 rounded-2xl transition-all cursor-pointer',
                     'hover:scale-105 active:scale-95',
                     'ring-2 ring-offset-2 ring-offset-background',
-                    !hasScore
-                      ? 'bg-muted/50 ring-muted'
-                      : score >= 75
-                      ? 'bg-success/10 ring-success/30'
-                      : score >= 60
-                      ? 'bg-primary/10 ring-primary/30'
-                      : score >= 40
-                      ? 'bg-amber-500/10 ring-amber-500/30'
-                      : 'bg-destructive/10 ring-destructive/30'
+                    `${scoreStyle.bgColor}/10`,
+                    scoreStyle.ringColor
                   )}
                 >
                   {hasScore ? (
                     <>
                       <div className="flex items-baseline gap-1">
-                        <span className={cn('text-4xl font-bold', color)}>{score}</span>
+                        <span className={cn('text-4xl font-bold', scoreStyle.textColor)}>{score}</span>
                         {trend && (
                           <span className="flex items-center ml-1">
                             {trend.direction === 'up' && (
@@ -256,7 +237,7 @@ export const HealthScoreWidget = ({
                           </span>
                         )}
                       </div>
-                      <Badge variant="outline" className={cn('mt-1 text-xs', color)}>
+                      <Badge variant="outline" className={cn('mt-1 text-xs', scoreStyle.textColor)}>
                         {label}
                       </Badge>
                     </>

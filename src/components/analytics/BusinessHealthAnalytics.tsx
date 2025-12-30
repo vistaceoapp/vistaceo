@@ -36,6 +36,7 @@ import {
   ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getScoreStyle } from '@/lib/dashboardCards';
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
@@ -66,55 +67,87 @@ interface Snapshot {
   source: string;
 }
 
-// Map backend dimension keys to Spanish UI labels
+// Map backend dimension keys to Spanish UI labels with rich detail
 const DIMENSION_CONFIG: Record<string, { 
   label: string; 
   icon: string; 
   description: string;
   tips: string[];
+  detailedDescription?: string;
+  keyMetrics?: string[];
+  dataSource?: string[];
+  impactAreas?: string[];
 }> = {
   // Backend keys from analyze-health-score
   reputation: { 
     label: "Reputación", 
     icon: "⭐",
     description: "Reviews, ratings y percepción de marca online",
-    tips: ["Responder reviews", "Solicitar feedback", "Mejorar presencia online"]
+    detailedDescription: "La reputación online es clave para atraer nuevos clientes. Se basa en las calificaciones, cantidad de reseñas, sentimiento de los comentarios y tu capacidad de respuesta.",
+    keyMetrics: ["Rating promedio", "Cantidad de reseñas", "Tasa de respuesta", "Sentimiento general"],
+    dataSource: ["Google Business", "Tripadvisor", "Yelp", "Redes sociales"],
+    impactAreas: ["Nuevos clientes", "Confianza de marca", "Visibilidad en buscadores"],
+    tips: ["Responder reviews en menos de 24hs", "Solicitar feedback post-servicio", "Agradecer reseñas positivas"]
   },
   profitability: { 
     label: "Rentabilidad", 
     icon: "💰",
     description: "Márgenes, food cost y rentabilidad por producto",
-    tips: ["Revisar food cost", "Optimizar pricing", "Ingeniería de menú"]
+    detailedDescription: "Mide qué tan eficiente sos convirtiendo ventas en ganancia. Incluye food cost, márgenes por plato y la estructura general de costos variables.",
+    keyMetrics: ["Food cost %", "Margen bruto", "Contribution margin por plato", "Mix de productos rentables"],
+    dataSource: ["Menú con costos", "Recetas costeadas", "Ventas por producto"],
+    impactAreas: ["Ganancia neta", "Precio óptimo", "Mix de menú"],
+    tips: ["Revisar food cost mensualmente", "Optimizar recetas top", "Eliminar platos no rentables"]
   },
   finances: { 
     label: "Finanzas", 
     icon: "📊",
     description: "Control de costos, flujo de caja y gestión financiera",
-    tips: ["Control de gastos", "Negociar proveedores", "Proyección de ventas"]
+    detailedDescription: "Evalúa la salud financiera general: control de costos fijos, flujo de caja, y capacidad de inversión. Un buen score indica estabilidad y capacidad de crecimiento.",
+    keyMetrics: ["Ingresos mensuales", "Costos fijos", "Punto de equilibrio", "Capital de trabajo"],
+    dataSource: ["Ventas declaradas", "Integraciones POS", "Costos operativos"],
+    impactAreas: ["Estabilidad", "Capacidad de inversión", "Resistencia a crisis"],
+    tips: ["Mantener reserva de 3 meses", "Revisar costos fijos trimestralmente", "Diversificar fuentes de ingreso"]
   },
   efficiency: { 
     label: "Eficiencia", 
     icon: "⚙️",
     description: "Operación, tiempos de servicio y gestión de recursos",
-    tips: ["Reducir tiempos", "Optimizar procesos", "Control de mermas"]
+    detailedDescription: "Mide qué tan bien usás tus recursos: tiempos de preparación, rotación de mesas, control de mermas y optimización de procesos operativos.",
+    keyMetrics: ["Tiempo promedio de servicio", "Rotación de mesas", "% de merma", "Productividad por hora"],
+    dataSource: ["Check-ins operativos", "Tiempos declarados", "Control de inventario"],
+    impactAreas: ["Costos operativos", "Experiencia del cliente", "Capacidad real"],
+    tips: ["Estandarizar procesos", "Medir tiempos por estación", "Implementar control de mermas"]
   },
   traffic: { 
     label: "Tráfico", 
     icon: "👥",
     description: "Flujo de clientes, canales y horarios pico",
-    tips: ["Diversificar canales", "Promociones en horas valle", "Fidelización"]
+    detailedDescription: "Analiza el volumen y distribución de clientes: qué canales generan más tráfico, cuáles son tus horarios pico, y cómo diversificar para no depender de un solo canal.",
+    keyMetrics: ["Clientes por día", "Mix de canales", "Ocupación por horario", "Ticket por canal"],
+    dataSource: ["POS/Ventas", "Delivery apps", "Reservas", "Check-ins"],
+    impactAreas: ["Ingresos totales", "Dependencia de canales", "Planificación de staff"],
+    tips: ["Promociones en horas valle", "Diversificar canales", "Programa de fidelización"]
   },
   team: { 
     label: "Equipo", 
     icon: "🤝",
     description: "Personal, productividad y gestión del equipo",
-    tips: ["Capacitaciones", "Incentivos", "Mejora clima laboral"]
+    detailedDescription: "Evalúa la capacidad y eficiencia de tu equipo: nivel de personal vs demanda, productividad, capacitación y clima laboral.",
+    keyMetrics: ["Ventas por empleado", "Rotación de personal", "Horas de capacitación", "Satisfacción del equipo"],
+    dataSource: ["Estructura declarada", "Rol del dueño", "Staff por turno"],
+    impactAreas: ["Calidad de servicio", "Costos laborales", "Cultura organizacional"],
+    tips: ["Capacitación mensual", "Incentivos por desempeño", "Reuniones de feedback"]
   },
   growth: { 
     label: "Crecimiento", 
     icon: "📈",
     description: "Oportunidades de expansión y desarrollo",
-    tips: ["Nuevos productos", "Expansión geográfica", "Alianzas"]
+    detailedDescription: "Identifica el potencial de crecimiento: tendencias de mercado, oportunidades no explotadas, capacidad de escalar y posición competitiva.",
+    keyMetrics: ["Tendencia de ventas", "Participación de mercado", "Nuevos canales potenciales", "Capacidad ociosa"],
+    dataSource: ["Radar de mercado", "Análisis competitivo", "Tendencias del sector"],
+    impactAreas: ["Expansión", "Nuevos productos", "Ventaja competitiva"],
+    tips: ["Monitorear competencia", "Evaluar nuevos productos", "Identificar nichos"]
   },
   // Legacy Spanish keys for backwards compatibility
   ventas: { 
@@ -167,36 +200,26 @@ const DIMENSION_CONFIG: Record<string, {
   },
 };
 
-const getScoreInfo = (score: number) => {
-  if (score < 40) return { 
-    label: "Crítico", 
-    color: "text-destructive", 
-    bgColor: "bg-destructive/10",
-    description: "Requiere atención urgente"
+// getScoreStyle is now imported at top of file
+
+const getScoreInfo = (score: number | null) => {
+  const style = getScoreStyle(score);
+  
+  const descriptions: Record<string, string> = {
+    'Sin datos': 'Completa más datos para obtener un análisis',
+    'Crítico': 'Requiere atención urgente',
+    'En riesgo': 'Hay oportunidades de mejora importantes',
+    'Mejorable': 'Buen progreso, sigue mejorando',
+    'Bien': 'Tu negocio está funcionando muy bien',
+    'Excelente': '¡Felicitaciones! Rendimiento excepcional',
   };
-  if (score < 60) return { 
-    label: "En riesgo", 
-    color: "text-amber-500", 
-    bgColor: "bg-amber-500/10",
-    description: "Hay oportunidades de mejora importantes"
-  };
-  if (score < 75) return { 
-    label: "Mejorable", 
-    color: "text-primary", 
-    bgColor: "bg-primary/10",
-    description: "Buen progreso, sigue mejorando"
-  };
-  if (score < 90) return { 
-    label: "Bien", 
-    color: "text-success", 
-    bgColor: "bg-success/10",
-    description: "Tu negocio está funcionando muy bien"
-  };
-  return { 
-    label: "Excelente", 
-    color: "text-success", 
-    bgColor: "bg-success/10",
-    description: "¡Felicitaciones! Rendimiento excepcional"
+
+  return {
+    label: style.label,
+    color: style.textColor,
+    bgColor: style.bgColor,
+    borderColor: style.borderColor,
+    description: descriptions[style.label] || 'Buen progreso',
   };
 };
 
@@ -558,23 +581,86 @@ export const BusinessHealthAnalytics = () => {
                         <Progress value={numericValue} className="h-2" />
                       </div>
 
-                      {/* Explanation */}
+                      {/* Detailed Description */}
+                      {config?.detailedDescription && (
+                        <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                          <p className="text-sm text-foreground leading-relaxed">
+                            {config.detailedDescription}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Key Metrics & Data Sources */}
+                      {(config?.keyMetrics || config?.dataSource) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {config?.keyMetrics && config.keyMetrics.length > 0 && (
+                            <div className="p-3 rounded-xl bg-primary/5 border border-primary/20">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Target className="w-4 h-4 text-primary" />
+                                <span className="text-xs font-medium text-foreground">Métricas clave</span>
+                              </div>
+                              <ul className="space-y-1">
+                                {config.keyMetrics.map((metric, i) => (
+                                  <li key={i} className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                    <span className="w-1 h-1 rounded-full bg-primary/60" />
+                                    {metric}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {config?.dataSource && config.dataSource.length > 0 && (
+                            <div className="p-3 rounded-xl bg-secondary/30 border border-border/50">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Info className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-xs font-medium text-foreground">Fuentes de datos</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {config.dataSource.map((source, i) => (
+                                  <Badge key={i} variant="secondary" className="text-[10px]">
+                                    {source}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Impact Areas */}
+                      {config?.impactAreas && config.impactAreas.length > 0 && (
+                        <div className="p-3 rounded-xl bg-accent/10 border border-accent/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Sparkles className="w-4 h-4 text-accent" />
+                            <span className="text-xs font-medium text-foreground">Impacta en</span>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {config.impactAreas.map((area, i) => (
+                              <span key={i} className="text-xs text-muted-foreground bg-background/50 px-2 py-0.5 rounded-full border border-border/50">
+                                {area}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* AI Explanation from snapshot */}
                       {explanation && typeof explanation === 'object' && 'reason' in explanation && typeof explanation.reason === 'string' && (
-                        <div className="p-4 rounded-xl bg-secondary/30 border border-border">
+                        <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20">
                           <div className="flex items-start gap-3">
                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                               <Lightbulb className="w-4 h-4 text-primary" />
                             </div>
-                            <div>
-                              <p className="text-sm font-medium text-foreground mb-2">¿Por qué está así?</p>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-foreground mb-2">Análisis de IA</p>
                               <p className="text-sm text-muted-foreground">{explanation.reason}</p>
                               {explanation.actions && Array.isArray(explanation.actions) && explanation.actions.length > 0 && (
-                                <div className="mt-3">
-                                  <p className="text-xs font-medium text-foreground mb-2">Acciones sugeridas:</p>
-                                  <ul className="space-y-1">
+                                <div className="mt-3 pt-3 border-t border-border/50">
+                                  <p className="text-xs font-medium text-foreground mb-2">Acciones recomendadas:</p>
+                                  <ul className="space-y-1.5">
                                     {explanation.actions.map((action: string, i: number) => (
-                                      <li key={i} className="text-xs text-muted-foreground flex items-center gap-2">
-                                        <CheckCircle2 className="w-3 h-3 text-success" />
+                                      <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
+                                        <CheckCircle2 className="w-3 h-3 text-success mt-0.5 flex-shrink-0" />
                                         {action}
                                       </li>
                                     ))}
@@ -586,26 +672,29 @@ export const BusinessHealthAnalytics = () => {
                         </div>
                       )}
 
-                      {/* Tips */}
+                      {/* Quick Tips */}
                       {config?.tips && (
-                        <div className="grid grid-cols-3 gap-2">
-                          {config.tips.map((tip, i) => (
-                            <div key={i} className="p-2 rounded-lg bg-muted/50 text-center">
-                              <span className="text-[10px] text-muted-foreground">{tip}</span>
-                            </div>
-                          ))}
+                        <div>
+                          <p className="text-xs font-medium text-foreground mb-2">Tips rápidos</p>
+                          <div className="grid grid-cols-3 gap-2">
+                            {config.tips.map((tip, i) => (
+                              <div key={i} className="p-2.5 rounded-lg bg-muted/50 text-center border border-border/30 hover:border-primary/30 transition-colors">
+                                <span className="text-[11px] text-muted-foreground leading-tight">{tip}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
 
                       {/* Ask AI Button */}
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="w-full text-primary"
+                        className="w-full gap-2 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20 hover:border-primary/40"
                         onClick={() => handleAskAboutDimension(key, numericValue)}
                       >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Preguntarle al asistente sobre esto
+                        <MessageCircle className="w-4 h-4" />
+                        Preguntarle al asistente sobre {config?.label || key}
                         <ChevronRight className="w-4 h-4 ml-auto" />
                       </Button>
                     </div>

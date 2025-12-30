@@ -391,10 +391,56 @@ export const calculateHealthScore = (
   };
 };
 
+// Centralized score styling used across Dashboard and Analytics
+export const getScoreStyle = (score: number | null) => {
+  if (score === null) {
+    return { 
+      label: 'Sin datos', 
+      textColor: 'text-muted-foreground',
+      bgColor: 'bg-muted',
+      borderColor: 'border-muted',
+      ringColor: 'ring-muted'
+    };
+  }
+  if (score >= 90) return { 
+    label: 'Excelente', 
+    textColor: 'text-success',
+    bgColor: 'bg-success',
+    borderColor: 'border-success/30',
+    ringColor: 'ring-success/30'
+  };
+  if (score >= 75) return { 
+    label: 'Bien', 
+    textColor: 'text-success',
+    bgColor: 'bg-success',
+    borderColor: 'border-success/30',
+    ringColor: 'ring-success/30'
+  };
+  if (score >= 60) return { 
+    label: 'Mejorable', 
+    textColor: 'text-amber-500',
+    bgColor: 'bg-amber-500',
+    borderColor: 'border-amber-500/30',
+    ringColor: 'ring-amber-500/30'
+  };
+  if (score >= 40) return { 
+    label: 'En riesgo', 
+    textColor: 'text-amber-500',
+    bgColor: 'bg-amber-500',
+    borderColor: 'border-amber-500/30',
+    ringColor: 'ring-amber-500/30'
+  };
+  return { 
+    label: 'Crítico', 
+    textColor: 'text-destructive',
+    bgColor: 'bg-destructive',
+    borderColor: 'border-destructive/30',
+    ringColor: 'ring-destructive/30'
+  };
+};
+
+// Legacy function for backwards compatibility
 export const getScoreLabel = (score: number): { label: string; color: string } => {
-  if (score >= 90) return { label: 'Excelente', color: 'text-success' };
-  if (score >= 75) return { label: 'Bien', color: 'text-success' };
-  if (score >= 60) return { label: 'Mejorable', color: 'text-warning' };
-  if (score >= 40) return { label: 'En riesgo', color: 'text-warning' };
-  return { label: 'Crítico', color: 'text-destructive' };
+  const style = getScoreStyle(score);
+  return { label: style.label, color: style.textColor };
 };
