@@ -284,6 +284,7 @@ const SetupPage = () => {
         return (
           <SetupStepQuestionnaire
             countryCode={data.countryCode}
+            businessTypeId={data.businessTypeId}
             setupMode={data.setupMode}
             answers={data.answers}
             onUpdate={(answers) => setData(d => ({ ...d, answers }))}
@@ -300,30 +301,86 @@ const SetupPage = () => {
         );
       case 'create':
         return (
-          <div className="text-center space-y-8 max-w-md mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center space-y-8 max-w-md mx-auto"
+          >
             {creatingBusiness ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-6"
-              >
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto shadow-lg">
-                  <Brain className="w-10 h-10 text-primary-foreground animate-pulse" />
+              <div className="space-y-8">
+                {/* Animated Brain Icon */}
+                <div className="relative mx-auto w-24 h-24">
+                  <motion.div
+                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20"
+                    animate={{ 
+                      scale: [1, 1.1, 1],
+                      rotate: [0, 5, -5, 0],
+                    }}
+                    transition={{ 
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+                    <motion.div
+                      animate={{ 
+                        scale: [1, 1.05, 1],
+                      }}
+                      transition={{ 
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      <Brain className="w-12 h-12 text-primary-foreground" />
+                    </motion.div>
+                  </div>
+                  {/* Orbiting dots */}
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-2 h-2 rounded-full bg-primary"
+                      style={{ top: '50%', left: '50%' }}
+                      animate={{
+                        x: [0, 40 * Math.cos((i * 120 * Math.PI) / 180), 0],
+                        y: [0, 40 * Math.sin((i * 120 * Math.PI) / 180), 0],
+                        opacity: [0.3, 1, 0.3],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        delay: i * 0.3,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  ))}
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground mb-2">
+
+                {/* Progress text */}
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold text-foreground">
                     {lang === 'pt' ? 'Criando seu negócio...' : 'Creando tu negocio...'}
                   </h2>
-                  <p className="text-muted-foreground">
+                  <motion.p 
+                    key={createProgress}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-muted-foreground"
+                  >
                     {createProgress < 40 && (lang === 'pt' ? 'Configurando perfil' : 'Configurando perfil')}
-                    {createProgress >= 40 && createProgress < 70 && (lang === 'pt' ? 'Ativando Brain' : 'Activando Brain')}
+                    {createProgress >= 40 && createProgress < 70 && (lang === 'pt' ? 'Ativando inteligência' : 'Activando inteligencia')}
                     {createProgress >= 70 && (lang === 'pt' ? 'Preparando dashboard' : 'Preparando dashboard')}
-                  </p>
+                  </motion.p>
                 </div>
-                <Progress value={createProgress} className="h-2" />
-              </motion.div>
+
+                {/* Progress bar */}
+                <div className="w-full max-w-xs mx-auto">
+                  <Progress value={createProgress} className="h-2" />
+                </div>
+              </div>
             ) : (
-              <>
+              <div className="space-y-6">
                 <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto shadow-lg">
                   <Check className="w-10 h-10 text-primary-foreground" />
                 </div>
@@ -333,22 +390,14 @@ const SetupPage = () => {
                   </h2>
                   <p className="text-muted-foreground">
                     {lang === 'pt' 
-                      ? 'Vamos criar seu negócio e ativar seu Brain com os dados que você nos deu.'
-                      : 'Vamos a crear tu negocio y activar tu Brain con los datos que nos diste.'
+                      ? 'Vamos criar seu negócio e ativar a inteligência com os dados que você nos deu.'
+                      : 'Vamos a crear tu negocio y activar la inteligencia con los datos que nos diste.'
                     }
                   </p>
                 </div>
-                <SetupProgress
-                  precisionScore={precisionScore}
-                  estimatedHealthScore={Math.round(50 + precisionScore * 0.35)}
-                  currentSection="finish"
-                  answeredQuestions={Object.keys(data.answers).length}
-                  totalQuestions={data.setupMode === 'complete' ? 10 : 6}
-                  businessName={data.businessName}
-                />
-              </>
+              </div>
             )}
-          </div>
+          </motion.div>
         );
       default:
         return null;
