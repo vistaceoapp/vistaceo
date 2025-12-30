@@ -236,6 +236,7 @@ export const useDashboardData = () => {
         const subScores: Record<string, number | null> = {};
         if (latestDims) {
           // Match new 7-dimension system from HEALTH_SUB_SCORES
+          // Try new canonical dimensions first, then legacy mappings
           subScores.reputation = toNumberOrNull(latestDims.reputation ?? latestDims.market_fit);
           subScores.profitability = toNumberOrNull(latestDims.profitability ?? latestDims.pricing_position);
           subScores.finances = toNumberOrNull(latestDims.finances ?? latestDims.unit_economics);
@@ -243,6 +244,20 @@ export const useDashboardData = () => {
           subScores.traffic = toNumberOrNull(latestDims.traffic ?? latestDims.demand_rhythm);
           subScores.team = toNumberOrNull(latestDims.team);
           subScores.growth = toNumberOrNull(latestDims.growth);
+          
+          // If dimensions are still null, check if this is old-format snapshot with metadata fields
+          // Skip metadata-only fields that were mistakenly used as dimensions
+          const metadataFields = ['data_quality', 'setup_mode', 'google_connected', 'questions_answered', 'integrations_profiled', '_meta'];
+          const hasRealDimensions = Object.keys(latestDims).some(
+            key => !metadataFields.includes(key) && typeof latestDims[key] === 'number'
+          );
+          
+          // If no real dimensions exist, this snapshot was created with old format - ignore it
+          if (!hasRealDimensions) {
+            Object.keys(subScores).forEach(key => {
+              subScores[key] = null;
+            });
+          }
         }
 
         // Fallback heuristic if snapshot dims are missing
