@@ -215,7 +215,7 @@ export const HealthScoreWidget = ({
                     'flex flex-col items-center justify-center p-4 rounded-2xl transition-all cursor-pointer',
                     'hover:scale-105 active:scale-95',
                     'ring-2 ring-offset-2 ring-offset-background',
-                    `${scoreStyle.bgColor}/10`,
+                    scoreStyle.bgColor,
                     scoreStyle.ringColor
                   )}
                 >
