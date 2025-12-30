@@ -202,6 +202,9 @@ const TodayPage = () => {
               precisionPct={dashboardData.realPrecision.percentage}
             />
 
+            {/* Misiones Activas - Horizontal centrado */}
+            <MissionsWidget />
+
             {/* Cerebro en construcción */}
             <BrainKnowledgeWidget />
 
@@ -259,7 +262,6 @@ const TodayPage = () => {
             <FocusWidget />
             <ReputationWidget isPro={false} />
             <RadarWidget isPro={false} />
-            <MissionsWidget />
           </div>
         </div>
 
@@ -296,6 +298,9 @@ const TodayPage = () => {
 
       <HealthScoreWidget subScores={dashboardData.subScores} previousScore={dashboardData.previousScore} precisionPct={dashboardData.realPrecision.percentage} />
       
+      {/* Misiones horizontal */}
+      <MissionsWidget />
+      
       <FocusWidget />
       
       <ReputationWidget isPro={false} />
@@ -316,8 +321,6 @@ const TodayPage = () => {
       </GlassCard>
 
       <RadarWidget isPro={false} />
-      
-      <MissionsWidget />
 
       <div className="grid grid-cols-2 gap-4">
         <GlassCard className="p-4">

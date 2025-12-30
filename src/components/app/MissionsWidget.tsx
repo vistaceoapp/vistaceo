@@ -120,19 +120,31 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
   }
 
   return (
-    <GlassCard className={cn("p-4", className)}>
+    <GlassCard className={cn("p-5", className)}>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Target className="w-4 h-4 text-primary" />
-          <h4 className="font-semibold text-foreground text-sm">Misiones activas</h4>
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Target className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-foreground">Misiones activas</h4>
+            <p className="text-xs text-muted-foreground">{missions.length} en progreso</p>
+          </div>
         </div>
-        <Badge variant="outline" className="text-[10px]">
-          {missions.length} pendientes
-        </Badge>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-xs"
+          onClick={() => navigate("/app/missions")}
+        >
+          Ver todo
+          <ChevronRight className="w-4 h-4 ml-1" />
+        </Button>
       </div>
 
-      <div className="space-y-3">
-        {missions.slice(0, 3).map((mission) => {
+      {/* Horizontal scrolling missions */}
+      <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+        {missions.slice(0, 4).map((mission) => {
           const progress = getMissionProgress(mission);
           const steps = mission.steps as unknown[] | null;
           const totalSteps = steps?.length || 0;
@@ -141,57 +153,49 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
           return (
             <button
               key={mission.id}
-              className="w-full p-3 rounded-xl bg-secondary/30 border border-border hover:border-primary/30 transition-all text-left group"
+              className="flex-shrink-0 w-64 p-4 rounded-xl bg-secondary/30 border border-border hover:border-primary/30 transition-all text-left group"
               onClick={() => navigate(`/app/missions`)}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <span className="text-lg">{getAreaIcon(mission.area)}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground text-sm mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+                  <p className="font-medium text-foreground text-sm line-clamp-2 group-hover:text-primary transition-colors">
                     {mission.title}
                   </p>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Progress value={progress} className="h-1.5 flex-1" />
-                    <span className="text-[10px] text-muted-foreground font-medium">
-                      {progress}%
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    <span>Paso {currentStep + 1} de {totalSteps}</span>
-                    {mission.impact_score && (
-                      <>
-                        <span>•</span>
-                        <span className="text-success">
-                          Impacto: {mission.impact_score}/10
-                        </span>
-                      </>
-                    )}
-                  </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-3" />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Progress value={progress} className="h-1.5 flex-1" />
+                  <span className="text-xs text-muted-foreground font-medium">
+                    {progress}%
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span>Paso {currentStep + 1} de {totalSteps}</span>
+                  {mission.impact_score && (
+                    <span className="text-success font-medium">
+                      Impacto: {mission.impact_score}/10
+                    </span>
+                  )}
+                </div>
               </div>
             </button>
           );
         })}
+        
+        {/* Add new mission card */}
+        <button
+          className="flex-shrink-0 w-48 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/30 transition-all flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+          onClick={() => navigate("/app/missions")}
+        >
+          <Sparkles className="w-6 h-6" />
+          <span className="text-sm font-medium">Nueva misión</span>
+        </button>
       </div>
-
-      {missions.length > 3 && (
-        <p className="text-[10px] text-muted-foreground text-center mt-2">
-          +{missions.length - 3} más
-        </p>
-      )}
-
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="w-full mt-3 text-xs"
-        onClick={() => navigate("/app/missions")}
-      >
-        Ver todas las misiones
-        <ChevronRight className="w-4 h-4 ml-1" />
-      </Button>
     </GlassCard>
   );
 };
