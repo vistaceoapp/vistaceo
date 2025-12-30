@@ -2,6 +2,7 @@
 // This file consolidates ALL gastro questions with proper impact scoring for health dimensions
 
 import { CountryCode, COUNTRY_PACKS } from './countryPacks';
+import { getTypeSpecificQuestions } from './businessTypeQuestions';
 
 // ============= TYPES =============
 
@@ -1136,23 +1137,26 @@ export function getQuestionsForSetup(
   businessTypeId: string,
   setupMode: 'quick' | 'complete'
 ): GastroQuestion[] {
-  return ALL_GASTRO_QUESTIONS.filter(q => {
-    // Filter by mode
+  // Get base questions
+  const baseQuestions = ALL_GASTRO_QUESTIONS.filter(q => {
     if (q.mode !== 'both' && q.mode !== setupMode) return false;
-    
-    // Filter by country if specified
     if (q.countries && !q.countries.includes(countryCode)) return false;
-    
-    // Filter by business type if specified
     if (q.businessTypes && !q.businessTypes.includes(businessTypeId)) return false;
-    
-    // Filter options by country
     if (q.options) {
-      q.options = q.options.filter(opt => 
-        !opt.countries || opt.countries.includes(countryCode)
-      );
+      q.options = q.options.filter(opt => !opt.countries || opt.countries.includes(countryCode));
     }
-    
+    return true;
+  });
+
+  // Get type-specific questions (5-10% super-focused)
+  const typeSpecific = getTypeSpecificQuestions(businessTypeId, countryCode, setupMode);
+  
+  // Combine: type-specific first, then general
+  const allQuestions = [...typeSpecific, ...baseQuestions];
+  const seen = new Set<string>();
+  return allQuestions.filter(q => {
+    if (seen.has(q.id)) return false;
+    seen.add(q.id);
     return true;
   });
 }
