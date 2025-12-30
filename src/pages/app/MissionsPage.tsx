@@ -17,6 +17,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { InboxCard } from "@/components/app/InboxCard";
 import { DataNeededState } from "@/components/app/DataNeededState";
 import { MissionPlanPreview } from "@/components/app/MissionPlanPreview";
+import { MissionDetailEnhanced } from "@/components/app/MissionDetailEnhanced";
 import {
   Dialog,
   DialogContent,
@@ -931,113 +932,17 @@ const MissionsPage = () => {
           </div>
         </div>
 
-        {/* Mission Detail Dialog */}
+        {/* Mission Detail Dialog - Enhanced */}
         <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
-          <DialogContent className="max-w-xl bg-card border-border">
-            {selectedMission && (
-              <>
-                <DialogHeader>
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    {selectedMission.area && (
-                      <Badge variant="default" className="text-xs">
-                        {AREA_CATEGORIES.find(c => c.value === selectedMission.area)?.icon} {selectedMission.area}
-                      </Badge>
-                    )}
-                    <Badge variant={selectedMission.status === "active" ? "outline" : "secondary"} className="text-xs">
-                      {selectedMission.status === "active" ? "Activa" : "Pausada"}
-                    </Badge>
-                  </div>
-                  <DialogTitle className="text-xl">{selectedMission.title}</DialogTitle>
-                  <DialogDescription>
-                    {selectedMission.description}
-                  </DialogDescription>
-                </DialogHeader>
-
-                {/* Progress in dialog */}
-                <div className="p-4 rounded-xl bg-secondary/30 mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-foreground">Progreso de la misión</span>
-                    <span className="text-sm font-bold text-primary">
-                      {Math.round(((selectedMission.steps as Step[])?.filter(s => s.done).length / ((selectedMission.steps as Step[])?.length || 1)) * 100)}%
-                    </span>
-                  </div>
-                  <Progress 
-                    value={((selectedMission.steps as Step[])?.filter(s => s.done).length / ((selectedMission.steps as Step[])?.length || 1)) * 100} 
-                    className="h-2" 
-                  />
-                  <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                    <span>Impacto: {selectedMission.impact_score}/10</span>
-                    <span>Esfuerzo: {selectedMission.effort_score}/10</span>
-                  </div>
-                </div>
-
-                <ScrollArea className="max-h-[40vh]">
-                  <div className="space-y-3">
-                    <div className="text-sm font-medium text-muted-foreground">Pasos</div>
-                    {((selectedMission.steps || []) as Step[]).map((step, idx) => (
-                      <div 
-                        key={idx}
-                        onClick={() => toggleStep(selectedMission.id, idx)}
-                        className={cn(
-                          "flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all",
-                          step.done 
-                            ? "bg-success/10 border border-success/20" 
-                            : "bg-secondary/50 hover:bg-secondary border border-transparent hover:border-primary/20"
-                        )}
-                      >
-                        <div className={cn(
-                          "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
-                          step.done 
-                            ? "bg-success border-success" 
-                            : "border-muted-foreground/30 hover:border-primary"
-                        )}>
-                          {step.done && <Check className="w-4 h-4 text-white" />}
-                        </div>
-                        <div className="flex-1">
-                          <span className={cn(
-                            "text-sm",
-                            step.done ? "line-through text-muted-foreground" : "text-foreground"
-                          )}>
-                            {step.text}
-                          </span>
-                          {step.timeEstimate && (
-                            <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {step.timeEstimate}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-
-                <div className="flex gap-3 mt-4">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => toggleMissionStatus(selectedMission)}
-                  >
-                    {selectedMission.status === "active" ? (
-                      <>
-                        <Pause className="w-4 h-4 mr-2" />
-                        Pausar
-                      </>
-                    ) : (
-                      <>
-                        <Play className="w-4 h-4 mr-2" />
-                        Reactivar
-                      </>
-                    )}
-                  </Button>
-                  <Button 
-                    className="flex-1 gradient-primary"
-                    onClick={() => setSelectedMission(null)}
-                  >
-                    Cerrar
-                  </Button>
-                </div>
-              </>
+          <DialogContent className="max-w-3xl bg-card border-border p-0 overflow-hidden max-h-[90vh]">
+            {selectedMission && currentBusiness && (
+              <MissionDetailEnhanced
+                mission={selectedMission}
+                businessId={currentBusiness.id}
+                onToggleStep={toggleStep}
+                onToggleStatus={toggleMissionStatus}
+                onClose={() => setSelectedMission(null)}
+              />
             )}
           </DialogContent>
         </Dialog>
@@ -1260,81 +1165,17 @@ const MissionsPage = () => {
         </div>
       </div>
 
-      {/* Mobile Dialog */}
+      {/* Mobile Dialog - Enhanced */}
       <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
-        <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50">
-          {selectedMission && (
-            <>
-              <DialogHeader>
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  {selectedMission.area && (
-                    <Badge variant="default" className="text-xs">
-                      {AREA_CATEGORIES.find(c => c.value === selectedMission.area)?.icon} {selectedMission.area}
-                    </Badge>
-                  )}
-                </div>
-                <DialogTitle className="text-xl">{selectedMission.title}</DialogTitle>
-                <DialogDescription>
-                  {selectedMission.description}
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="p-3 rounded-xl bg-secondary/30 mb-3">
-                <Progress 
-                  value={((selectedMission.steps as Step[])?.filter(s => s.done).length / ((selectedMission.steps as Step[])?.length || 1)) * 100} 
-                  className="h-2" 
-                />
-                <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                  <span>
-                    {((selectedMission.steps as Step[])?.filter(s => s.done).length || 0)}/
-                    {((selectedMission.steps as Step[])?.length || 0)} pasos
-                  </span>
-                  <span>
-                    {Math.round(((selectedMission.steps as Step[])?.filter(s => s.done).length / ((selectedMission.steps as Step[])?.length || 1)) * 100)}%
-                  </span>
-                </div>
-              </div>
-
-              <ScrollArea className="max-h-[40vh]">
-                <div className="space-y-3">
-                  {((selectedMission.steps || []) as Step[]).map((step, idx) => (
-                    <div 
-                      key={idx}
-                      onClick={() => toggleStep(selectedMission.id, idx)}
-                      className={cn(
-                        "flex items-start gap-3 p-4 rounded-xl cursor-pointer transition-all",
-                        step.done 
-                          ? "bg-success/10 border border-success/20" 
-                          : "bg-secondary/50 hover:bg-secondary"
-                      )}
-                    >
-                      <div className={cn(
-                        "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0",
-                        step.done ? "bg-success border-success" : "border-muted-foreground/30"
-                      )}>
-                        {step.done && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <span className={cn(
-                        "text-sm",
-                        step.done ? "line-through text-muted-foreground" : "text-foreground"
-                      )}>
-                        {step.text}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-
-              <div className="flex gap-3 mt-4">
-                <Button variant="outline" className="flex-1" onClick={() => toggleMissionStatus(selectedMission)}>
-                  {selectedMission.status === "active" ? <Pause className="w-4 h-4 mr-2" /> : <Play className="w-4 h-4 mr-2" />}
-                  {selectedMission.status === "active" ? "Pausar" : "Reactivar"}
-                </Button>
-                <Button className="flex-1 gradient-primary" onClick={() => setSelectedMission(null)}>
-                  Cerrar
-                </Button>
-              </div>
-            </>
+        <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50 p-0 overflow-hidden max-h-[90vh]">
+          {selectedMission && currentBusiness && (
+            <MissionDetailEnhanced
+              mission={selectedMission}
+              businessId={currentBusiness.id}
+              onToggleStep={toggleStep}
+              onToggleStatus={toggleMissionStatus}
+              onClose={() => setSelectedMission(null)}
+            />
           )}
         </DialogContent>
       </Dialog>
