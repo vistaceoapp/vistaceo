@@ -21,7 +21,7 @@ import { KnowledgeByAreaCard } from "@/components/app/KnowledgeByAreaCard";
 import { FocusCard } from "@/components/app/FocusCard";
 import { ActionsListPanel } from "@/components/app/ActionsListPanel";
 import { BusinessHealthDashboard } from "@/components/app/BusinessHealthDashboard";
-import { SetupWizard } from "@/components/app/SetupWizard";
+// SetupWizard removed - setup is now handled via /setup route
 import { DashboardCardsGrid } from "@/components/app/DashboardCardsGrid";
 import { HealthScoreWidget } from "@/components/app/HealthScoreWidget";
 import { PrecisionRingWidget } from "@/components/app/PrecisionRingWidget";
@@ -63,17 +63,17 @@ const TodayPage = () => {
   const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
   const [showCheckin, setShowCheckin] = useState(false);
   const [showActionsPanel, setShowActionsPanel] = useState(false);
-  const [showSetupWizard, setShowSetupWizard] = useState(false);
+  // Removed: setup is now handled via /setup route
 
   // Use setup status from dashboard data
   const setupCompleted = dashboardData.setupCompleted;
 
-  // Auto-open setup wizard if not completed
+  // Auto-redirect to setup if not completed
   useEffect(() => {
     if (!dashboardLoading && currentBusiness && !setupCompleted) {
-      setShowSetupWizard(true);
+      navigate('/setup');
     }
-  }, [dashboardLoading, currentBusiness, setupCompleted]);
+  }, [dashboardLoading, currentBusiness, setupCompleted, navigate]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -413,12 +413,12 @@ const TodayPage = () => {
   if (!isMobile) {
     return (
       <div className="space-y-6">
-        {/* Setup Wizard CTA if not completed */}
+        {/* Setup CTA if not completed */}
         {!setupCompleted && (
           <GlassCard 
             interactive 
             className="p-5 cursor-pointer border-primary/30 bg-primary/5" 
-            onClick={() => setShowSetupWizard(true)}
+            onClick={() => navigate('/setup')}
           >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
@@ -614,15 +614,6 @@ const TodayPage = () => {
           onRefresh={fetchData}
         />
 
-        {/* Setup Wizard */}
-        <SetupWizard 
-          open={showSetupWizard}
-          onOpenChange={setShowSetupWizard}
-          onComplete={() => {
-            fetchData();
-            window.location.reload(); // Refresh to get updated data
-          }}
-        />
       </div>
     );
   }
@@ -630,13 +621,13 @@ const TodayPage = () => {
   // Mobile Layout
   return (
     <div className="space-y-6">
-      {/* Setup Wizard CTA if not completed - Mobile */}
+      {/* Setup CTA if not completed - Mobile */}
       {!setupCompleted && (
         <div className="animate-fade-in">
           <GlassCard 
             interactive 
             className="p-5 cursor-pointer border-primary/30 bg-primary/5" 
-            onClick={() => setShowSetupWizard(true)}
+            onClick={() => navigate('/setup')}
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
@@ -867,15 +858,6 @@ const TodayPage = () => {
         onRefresh={fetchData}
       />
       
-      {/* Setup Wizard */}
-      <SetupWizard 
-        open={showSetupWizard}
-        onOpenChange={setShowSetupWizard}
-        onComplete={() => {
-          fetchData();
-          window.location.reload(); // Refresh to get updated data
-        }}
-      />
       
       {/* Alert FAB */}
       <AlertFAB />

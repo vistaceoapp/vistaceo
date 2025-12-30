@@ -26,7 +26,9 @@ export interface BusinessType {
   examples?: string[];
 }
 
-export type CountryCode = 'AR' | 'UY' | 'BR' | 'CL' | 'CO' | 'EC' | 'MX' | 'CR' | 'PA';
+// Re-export CountryCode from countryPacks for consistency
+export type { CountryCode } from './countryPacks';
+import type { CountryCode } from './countryPacks';
 
 // Get all supported countries
 export function getCountries(): Country[] {

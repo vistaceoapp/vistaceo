@@ -35,10 +35,9 @@ import {
   getAnsweredQuestionsCount,
   calculatePrecisionScore,
 } from '@/lib/gastroQuestionsComplete';
-import {
-  GastroSetupInput,
-} from '@/components/app/GastroSetupInputs';
 import { COUNTRY_PROFILES, type Language } from '@/lib/gastroSetupQuestions';
+import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 
 const DiagnosticPage = () => {
   const navigate = useNavigate();
@@ -305,14 +304,13 @@ const DiagnosticPage = () => {
                   </p>
                 </div>
                 
-                {/* Question Input */}
+                {/* Question Input - Simple text input fallback */}
                 <div className="py-4">
-                  <GastroSetupInput
-                    question={currentQuestion}
-                    value={getCurrentValue()}
-                    onChange={handleAnswer}
-                    country={country}
-                    language={language}
+                  <Input
+                    placeholder="Tu respuesta..."
+                    value={getCurrentValue() || ''}
+                    onChange={(e) => handleAnswer(e.target.value)}
+                    className="h-12 text-lg"
                   />
                 </div>
               </motion.div>
