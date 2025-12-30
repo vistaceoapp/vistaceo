@@ -305,15 +305,27 @@ export const BusinessHealthAnalytics = () => {
   }
 
   const scoreInfo = getScoreInfo(latestSnapshot.total_score);
-  const dimensions = latestSnapshot.dimensions_json || {};
+  const rawDimensions = latestSnapshot.dimensions_json || {};
   const previousDimensions = previousSnapshot?.dimensions_json || {};
   const explanations = latestSnapshot.explanation_json || {};
+  
+  // Filter only valid dimensions that are in DIMENSION_CONFIG and have numeric values
+  const validDimensionKeys = Object.keys(DIMENSION_CONFIG);
+  const dimensions = Object.entries(rawDimensions)
+    .filter(([key, value]) => validDimensionKeys.includes(key) && typeof value === 'number')
+    .reduce((acc, [key, value]) => ({ ...acc, [key]: value as number }), {} as Record<string, number>);
+  
   const sortedDimensions = Object.entries(dimensions).sort(([, a], [, b]) => b - a);
 
+  // If no valid dimensions, show default ones with 0 values
+  const displayDimensions = sortedDimensions.length > 0 
+    ? sortedDimensions 
+    : validDimensionKeys.slice(0, 6).map(key => [key, 0] as [string, number]);
+
   // Prepare radar chart data
-  const radarData = sortedDimensions.map(([key, value]) => ({
+  const radarData = displayDimensions.map(([key, value]) => ({
     dimension: DIMENSION_CONFIG[key]?.label || key,
-    value,
+    value: typeof value === 'number' ? value : 0,
     fullMark: 100,
   }));
 
@@ -423,13 +435,16 @@ export const BusinessHealthAnalytics = () => {
 
       {/* Dimension Details with Explanations */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {sortedDimensions.map(([key, value]) => {
+        {displayDimensions.map(([key, value]) => {
           const config = DIMENSION_CONFIG[key];
+          if (!config) return null; // Skip unknown dimensions
+          
+          const numericValue = typeof value === 'number' ? value : 0;
           const prevValue = previousDimensions[key];
           const explanation = explanations[key];
-          const dimScoreInfo = getScoreInfo(value);
-          const trend = prevValue 
-            ? value > prevValue ? "up" : value < prevValue ? "down" : "stable"
+          const dimScoreInfo = getScoreInfo(numericValue);
+          const trend = typeof prevValue === 'number' 
+            ? numericValue > prevValue ? "up" : numericValue < prevValue ? "down" : "stable"
             : null;
 
           return (
@@ -456,7 +471,7 @@ export const BusinessHealthAnalytics = () => {
                       </div>
                       <div className="text-right mr-4">
                         <div className={cn("text-2xl font-bold", dimScoreInfo.color)}>
-                          {value}
+                          {numericValue}
                         </div>
                         <Badge variant="outline" className={cn("text-[10px]", dimScoreInfo.color)}>
                           {dimScoreInfo.label}
@@ -470,9 +485,9 @@ export const BusinessHealthAnalytics = () => {
                       <div className="space-y-2">
                         <div className="flex justify-between text-xs text-muted-foreground">
                           <span>Progreso</span>
-                          <span>{value}/100</span>
+                          <span>{numericValue}/100</span>
                         </div>
-                        <Progress value={value} className="h-2" />
+                        <Progress value={numericValue} className="h-2" />
                       </div>
 
                       {/* Explanation */}
@@ -519,7 +534,7 @@ export const BusinessHealthAnalytics = () => {
                         variant="ghost"
                         size="sm"
                         className="w-full text-primary"
-                        onClick={() => handleAskAboutDimension(key, value)}
+                        onClick={() => handleAskAboutDimension(key, numericValue)}
                       >
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Preguntarle al asistente sobre esto
