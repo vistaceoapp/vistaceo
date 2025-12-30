@@ -476,7 +476,7 @@ export const BusinessHealthAnalytics = () => {
                       </div>
 
                       {/* Explanation */}
-                      {explanation && (
+                      {explanation && typeof explanation === 'object' && 'reason' in explanation && typeof explanation.reason === 'string' && (
                         <div className="p-4 rounded-xl bg-secondary/30 border border-border">
                           <div className="flex items-start gap-3">
                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -485,11 +485,11 @@ export const BusinessHealthAnalytics = () => {
                             <div>
                               <p className="text-sm font-medium text-foreground mb-2">¿Por qué está así?</p>
                               <p className="text-sm text-muted-foreground">{explanation.reason}</p>
-                              {explanation.actions && explanation.actions.length > 0 && (
+                              {explanation.actions && Array.isArray(explanation.actions) && explanation.actions.length > 0 && (
                                 <div className="mt-3">
                                   <p className="text-xs font-medium text-foreground mb-2">Acciones sugeridas:</p>
                                   <ul className="space-y-1">
-                                    {explanation.actions.map((action, i) => (
+                                    {explanation.actions.map((action: string, i: number) => (
                                       <li key={i} className="text-xs text-muted-foreground flex items-center gap-2">
                                         <CheckCircle2 className="w-3 h-3 text-success" />
                                         {action}
