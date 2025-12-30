@@ -392,13 +392,13 @@ export const calculateHealthScore = (
 };
 
 // Centralized score styling used across Dashboard and Analytics
-// bgColor uses /10 opacity for backgrounds, bgColorSolid for stripes/accents
+// bgColor is for light backgrounds, bgColorSolid for stripes/accents
 export const getScoreStyle = (score: number | null) => {
   if (score === null) {
     return { 
       label: 'Sin datos', 
       textColor: 'text-muted-foreground',
-      bgColor: 'bg-muted/10',
+      bgColor: 'bg-muted/20',
       bgColorSolid: 'bg-muted',
       borderColor: 'border-muted',
       ringColor: 'ring-muted'
@@ -406,43 +406,43 @@ export const getScoreStyle = (score: number | null) => {
   }
   if (score >= 90) return { 
     label: 'Excelente', 
-    textColor: 'text-success',
-    bgColor: 'bg-success/10',
-    bgColorSolid: 'bg-success',
-    borderColor: 'border-success/30',
-    ringColor: 'ring-success/30'
+    textColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
+    bgColorSolid: 'bg-emerald-500',
+    borderColor: 'border-emerald-200 dark:border-emerald-800',
+    ringColor: 'ring-emerald-500/30'
   };
   if (score >= 75) return { 
     label: 'Bien', 
-    textColor: 'text-success',
-    bgColor: 'bg-success/10',
-    bgColorSolid: 'bg-success',
-    borderColor: 'border-success/30',
-    ringColor: 'ring-success/30'
+    textColor: 'text-emerald-600 dark:text-emerald-400',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
+    bgColorSolid: 'bg-emerald-500',
+    borderColor: 'border-emerald-200 dark:border-emerald-800',
+    ringColor: 'ring-emerald-500/30'
   };
   if (score >= 60) return { 
     label: 'Mejorable', 
-    textColor: 'text-amber-500',
-    bgColor: 'bg-amber-500/10',
+    textColor: 'text-amber-600 dark:text-amber-400',
+    bgColor: 'bg-amber-50 dark:bg-amber-950/30',
     bgColorSolid: 'bg-amber-500',
-    borderColor: 'border-amber-500/30',
+    borderColor: 'border-amber-200 dark:border-amber-800',
     ringColor: 'ring-amber-500/30'
   };
   if (score >= 40) return { 
     label: 'En riesgo', 
-    textColor: 'text-amber-500',
-    bgColor: 'bg-amber-500/10',
+    textColor: 'text-amber-600 dark:text-amber-400',
+    bgColor: 'bg-amber-50 dark:bg-amber-950/30',
     bgColorSolid: 'bg-amber-500',
-    borderColor: 'border-amber-500/30',
+    borderColor: 'border-amber-200 dark:border-amber-800',
     ringColor: 'ring-amber-500/30'
   };
   return { 
     label: 'Crítico', 
-    textColor: 'text-destructive',
-    bgColor: 'bg-destructive/10',
-    bgColorSolid: 'bg-destructive',
-    borderColor: 'border-destructive/30',
-    ringColor: 'ring-destructive/30'
+    textColor: 'text-red-600 dark:text-red-400',
+    bgColor: 'bg-red-50 dark:bg-red-950/30',
+    bgColorSolid: 'bg-red-500',
+    borderColor: 'border-red-200 dark:border-red-800',
+    ringColor: 'ring-red-500/30'
   };
 };
 
