@@ -12,13 +12,14 @@ interface SetupStepSectorProps {
   onChange: (areaId: string) => void;
 }
 
-// Enhanced sector data with icons, colors, and descriptions
+// Enhanced sector data with icons, colors, and descriptions - using actual area IDs from JSON
 const SECTOR_DATA: Record<string, { 
   icon: string; 
   gradient: string; 
   description: { es: string; 'pt-BR': string };
 }> = {
-  gastronomy: { 
+  // A1_GASTRO - Gastronomía y bebidas
+  A1_GASTRO: { 
     icon: '🍽️', 
     gradient: 'from-orange-500/20 to-red-500/20',
     description: { 
@@ -26,114 +27,91 @@ const SECTOR_DATA: Record<string, {
       'pt-BR': 'Restaurantes, cafés, bares e mais' 
     }
   },
-  retail: { 
+  // A2_TURISMO - Turismo, hotelería, ocio y eventos
+  A2_TURISMO: { 
+    icon: '🏨', 
+    gradient: 'from-sky-500/20 to-blue-500/20',
+    description: { 
+      es: 'Hoteles, viajes, eventos y entretenimiento', 
+      'pt-BR': 'Hotéis, viagens, eventos e entretenimento' 
+    }
+  },
+  // A3_RETAIL - Comercio minorista y e-commerce
+  A3_RETAIL: { 
     icon: '🛍️', 
     gradient: 'from-pink-500/20 to-purple-500/20',
     description: { 
-      es: 'Tiendas, comercios y ventas', 
-      'pt-BR': 'Lojas, comércios e vendas' 
+      es: 'Tiendas físicas y ventas online', 
+      'pt-BR': 'Lojas físicas e vendas online' 
     }
   },
-  services: { 
+  // A4_SALUD - Salud, bienestar y belleza
+  A4_SALUD: { 
+    icon: '💆', 
+    gradient: 'from-rose-500/20 to-pink-500/20',
+    description: { 
+      es: 'Clínicas, spas, peluquerías y más', 
+      'pt-BR': 'Clínicas, spas, salões e mais' 
+    }
+  },
+  // A5_EDUCACION - Educación, formación y academias
+  A5_EDUCACION: { 
+    icon: '🎓', 
+    gradient: 'from-indigo-500/20 to-violet-500/20',
+    description: { 
+      es: 'Colegios, academias y capacitación', 
+      'pt-BR': 'Escolas, academias e capacitação' 
+    }
+  },
+  // A6_B2B - Servicios profesionales y B2B
+  A6_B2B: { 
     icon: '💼', 
     gradient: 'from-blue-500/20 to-cyan-500/20',
     description: { 
-      es: 'Servicios profesionales', 
-      'pt-BR': 'Serviços profissionais' 
+      es: 'Consultorías, agencias y servicios corporativos', 
+      'pt-BR': 'Consultorias, agências e serviços corporativos' 
     }
   },
-  health: { 
-    icon: '🏥', 
-    gradient: 'from-green-500/20 to-emerald-500/20',
-    description: { 
-      es: 'Salud y bienestar', 
-      'pt-BR': 'Saúde e bem-estar' 
-    }
-  },
-  education: { 
-    icon: '📚', 
-    gradient: 'from-indigo-500/20 to-violet-500/20',
-    description: { 
-      es: 'Educación y capacitación', 
-      'pt-BR': 'Educação e capacitação' 
-    }
-  },
-  tech: { 
-    icon: '💻', 
-    gradient: 'from-cyan-500/20 to-blue-500/20',
-    description: { 
-      es: 'Tecnología y software', 
-      'pt-BR': 'Tecnologia e software' 
-    }
-  },
-  manufacturing: { 
-    icon: '🏭', 
-    gradient: 'from-gray-500/20 to-slate-500/20',
-    description: { 
-      es: 'Producción e industria', 
-      'pt-BR': 'Produção e indústria' 
-    }
-  },
-  real_estate: { 
-    icon: '🏢', 
+  // A7_HOGAR_SERV - Hogar, mantenimiento y servicios técnicos
+  A7_HOGAR_SERV: { 
+    icon: '🔧', 
     gradient: 'from-amber-500/20 to-yellow-500/20',
     description: { 
-      es: 'Inmuebles y propiedades', 
-      'pt-BR': 'Imóveis e propriedades' 
+      es: 'Reparaciones, instalaciones y servicios del hogar', 
+      'pt-BR': 'Reparos, instalações e serviços domésticos' 
     }
   },
-  finance: { 
-    icon: '💰', 
+  // A8_CONSTRU_INMO - Construcción, inmobiliario y gestión de propiedades
+  A8_CONSTRU_INMO: { 
+    icon: '🏗️', 
+    gradient: 'from-gray-500/20 to-slate-500/20',
+    description: { 
+      es: 'Construcción, inmuebles y propiedades', 
+      'pt-BR': 'Construção, imóveis e propriedades' 
+    }
+  },
+  // A9_LOGISTICA - Transporte, logística y movilidad
+  A9_LOGISTICA: { 
+    icon: '🚚', 
     gradient: 'from-emerald-500/20 to-green-500/20',
     description: { 
-      es: 'Finanzas e inversiones', 
-      'pt-BR': 'Finanças e investimentos' 
+      es: 'Transporte, envíos y movilidad', 
+      'pt-BR': 'Transporte, entregas e mobilidade' 
     }
   },
-  entertainment: { 
-    icon: '🎭', 
-    gradient: 'from-fuchsia-500/20 to-pink-500/20',
+  // A10_AGRO - Agro, ganadería y agroindustria
+  A10_AGRO: { 
+    icon: '🌾', 
+    gradient: 'from-lime-500/20 to-green-500/20',
     description: { 
-      es: 'Entretenimiento y eventos', 
-      'pt-BR': 'Entretenimento e eventos' 
-    }
-  },
-  beauty: { 
-    icon: '💄', 
-    gradient: 'from-rose-500/20 to-pink-500/20',
-    description: { 
-      es: 'Belleza y estética', 
-      'pt-BR': 'Beleza e estética' 
-    }
-  },
-  fitness: { 
-    icon: '💪', 
-    gradient: 'from-orange-500/20 to-amber-500/20',
-    description: { 
-      es: 'Fitness y deportes', 
-      'pt-BR': 'Fitness e esportes' 
-    }
-  },
-  automotive: { 
-    icon: '🚗', 
-    gradient: 'from-red-500/20 to-orange-500/20',
-    description: { 
-      es: 'Automotriz y transporte', 
-      'pt-BR': 'Automotivo e transporte' 
-    }
-  },
-  travel: { 
-    icon: '✈️', 
-    gradient: 'from-sky-500/20 to-blue-500/20',
-    description: { 
-      es: 'Turismo y viajes', 
-      'pt-BR': 'Turismo e viagens' 
+      es: 'Agricultura, ganadería e industria rural', 
+      'pt-BR': 'Agricultura, pecuária e agroindústria' 
     }
   },
 };
 
 const DEFAULT_SECTOR = { 
-  icon: '🏪', 
+  icon: '🏢', 
   gradient: 'from-primary/20 to-primary/10',
   description: { es: 'Otros negocios', 'pt-BR': 'Outros negócios' }
 };
@@ -161,7 +139,7 @@ export const SetupStepSector = ({ countryCode, value, onChange }: SetupStepSecto
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm mb-4">
           <Sparkles className="w-4 h-4" />
-          <span>{lang === 'pt-BR' ? 'Passo 1 de 4' : 'Paso 1 de 4'}</span>
+          <span>{lang === 'pt-BR' ? 'Setor' : 'Sector'}</span>
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">
           {lang === 'pt-BR' ? 'Em qual setor você opera?' : '¿En qué sector operás?'}

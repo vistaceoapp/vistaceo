@@ -459,14 +459,15 @@ const SetupPage = () => {
         </AnimatePresence>
       </main>
 
-      {/* Footer */}
+      {/* Footer - Navigation */}
       {showNavButtons && (
-        <footer className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border/50 py-4">
+        <footer className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border py-4">
           <div className="container max-w-4xl mx-auto px-4 flex items-center justify-between">
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={handleBack}
               disabled={currentStep === 0}
+              className="min-w-[100px]"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               {lang === 'pt' ? 'Voltar' : 'Atrás'}
@@ -475,7 +476,10 @@ const SetupPage = () => {
             <Button
               onClick={handleNext}
               disabled={!canProceed() || creatingBusiness}
-              className={cn(stepId === 'create' && 'bg-gradient-to-r from-primary to-accent')}
+              className={cn(
+                "min-w-[140px]",
+                stepId === 'create' && 'bg-gradient-to-r from-primary to-accent'
+              )}
             >
               {creatingBusiness ? (
                 <>
