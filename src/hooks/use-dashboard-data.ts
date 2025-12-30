@@ -215,45 +215,60 @@ export const useDashboardData = () => {
 
         const subScores: Record<string, number | null> = {};
         if (latestDims) {
-          // These ids must match HEALTH_SUB_SCORES ids
-          subScores.market_fit = toNumberOrNull(latestDims.market_fit);
-          subScores.pricing_position = toNumberOrNull(latestDims.pricing_position);
-          subScores.unit_economics = toNumberOrNull(latestDims.unit_economics);
-          subScores.operational_flow = toNumberOrNull(latestDims.operational_flow);
-          subScores.demand_rhythm = toNumberOrNull(latestDims.demand_rhythm);
+          // Match new 7-dimension system from HEALTH_SUB_SCORES
+          subScores.reputation = toNumberOrNull(latestDims.reputation ?? latestDims.market_fit);
+          subScores.profitability = toNumberOrNull(latestDims.profitability ?? latestDims.pricing_position);
+          subScores.finances = toNumberOrNull(latestDims.finances ?? latestDims.unit_economics);
+          subScores.efficiency = toNumberOrNull(latestDims.efficiency ?? latestDims.operational_flow);
+          subScores.traffic = toNumberOrNull(latestDims.traffic ?? latestDims.demand_rhythm);
+          subScores.team = toNumberOrNull(latestDims.team);
+          subScores.growth = toNumberOrNull(latestDims.growth);
         }
 
-        // Fallback (legacy heuristic) if snapshot dims are missing
+        // Fallback heuristic if snapshot dims are missing
         if (Object.keys(subScores).length === 0 || HEALTH_SUB_SCORES.some((s) => subScores[s.id] == null)) {
-          // Market Fit: based on rating
-          if (subScores.market_fit == null) {
-            subScores.market_fit = currentBusiness.avg_rating
+          // Reputation: based on rating
+          if (subScores.reputation == null) {
+            subScores.reputation = currentBusiness.avg_rating
               ? Math.round((currentBusiness.avg_rating / 5) * 100)
               : null;
           }
 
-          // Keep previous placeholder logic only as a last resort
-          if (subScores.pricing_position == null) {
-            if (available.includes('menu') && available.includes('competitors')) subScores.pricing_position = 55;
-            else if (available.includes('menu')) subScores.pricing_position = 45;
-            else subScores.pricing_position = null;
+          // Profitability: based on menu and competitors
+          if (subScores.profitability == null) {
+            if (available.includes('menu') && available.includes('competitors')) subScores.profitability = 55;
+            else if (available.includes('menu')) subScores.profitability = 45;
+            else subScores.profitability = null;
           }
 
-          if (subScores.unit_economics == null) {
-            if (available.includes('sales') && available.includes('costs')) subScores.unit_economics = 55;
-            else if (available.includes('sales')) subScores.unit_economics = 45;
-            else subScores.unit_economics = null;
+          // Finances: based on sales and costs
+          if (subScores.finances == null) {
+            if (available.includes('sales') && available.includes('costs')) subScores.finances = 55;
+            else if (available.includes('sales')) subScores.finances = 45;
+            else subScores.finances = null;
           }
 
-          if (subScores.operational_flow == null) {
-            if (available.includes('capacity') && available.includes('prepTime')) subScores.operational_flow = 55;
-            else subScores.operational_flow = null;
+          // Efficiency: based on capacity and prep time
+          if (subScores.efficiency == null) {
+            if (available.includes('capacity') && available.includes('prepTime')) subScores.efficiency = 55;
+            else subScores.efficiency = null;
           }
 
-          if (subScores.demand_rhythm == null) {
-            if (available.includes('dayparts') && available.includes('channelMix')) subScores.demand_rhythm = 55;
-            else if (available.includes('dayparts')) subScores.demand_rhythm = 45;
-            else subScores.demand_rhythm = null;
+          // Traffic: based on dayparts and channels
+          if (subScores.traffic == null) {
+            if (available.includes('dayparts') && available.includes('channelMix')) subScores.traffic = 55;
+            else if (available.includes('dayparts')) subScores.traffic = 45;
+            else subScores.traffic = null;
+          }
+
+          // Team: default to 50 if basic setup is done
+          if (subScores.team == null) {
+            subScores.team = setupRes.data?.completed_at ? 50 : null;
+          }
+
+          // Growth: default based on setup completion
+          if (subScores.growth == null) {
+            subScores.growth = currentBusiness.setup_completed ? 50 : null;
           }
         }
 

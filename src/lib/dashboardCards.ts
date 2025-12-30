@@ -284,10 +284,12 @@ export const getCardState = (
   };
 };
 
-// Business Health Score - Sub-scores
+// Business Health Score - Sub-scores (7 dimensiones)
 export interface HealthSubScore {
   id: string;
   name: string;
+  description: string;
+  icon: string;
   weight: number;
   source: string[];
   blockingFields: string[];
@@ -295,39 +297,67 @@ export interface HealthSubScore {
 
 export const HEALTH_SUB_SCORES: HealthSubScore[] = [
   {
-    id: 'market_fit',
-    name: 'Mercado',
+    id: 'reputation',
+    name: 'Reputación',
+    description: 'Cómo te perciben los clientes',
+    icon: '⭐',
     weight: 0.25,
-    source: ['Google', 'Tripadvisor', 'Yelp'],
-    blockingFields: ['competitors', 'googleListing'],
+    source: ['Google', 'Tripadvisor', 'Yelp', 'Reviews'],
+    blockingFields: ['googleListing'],
   },
   {
-    id: 'pricing_position',
-    name: 'Precios',
+    id: 'profitability',
+    name: 'Rentabilidad',
+    description: 'Márgenes y pricing',
+    icon: '💰',
     weight: 0.20,
-    source: ['Menú', 'Verificación pública'],
-    blockingFields: ['menu'],
+    source: ['Menú', 'Food cost', 'Precios'],
+    blockingFields: ['menu', 'foodCost'],
   },
   {
-    id: 'unit_economics',
-    name: 'Economía',
-    weight: 0.25,
-    source: ['Declarado', 'Integraciones'],
+    id: 'finances',
+    name: 'Finanzas',
+    description: 'Ingresos y costos fijos',
+    icon: '📊',
+    weight: 0.15,
+    source: ['Ventas', 'Declarado', 'Integraciones'],
     blockingFields: ['sales', 'costs'],
   },
   {
-    id: 'operational_flow',
-    name: 'Operación',
+    id: 'efficiency',
+    name: 'Eficiencia',
+    description: 'Operación y tiempos',
+    icon: '⚡',
     weight: 0.15,
-    source: ['Declarado', 'Check-ins'],
-    blockingFields: ['capacity', 'times'],
+    source: ['Inventario', 'Tiempos', 'Check-ins'],
+    blockingFields: ['capacity'],
   },
   {
-    id: 'demand_rhythm',
-    name: 'Demanda',
-    weight: 0.15,
-    source: ['Declarado', 'Señales públicas'],
+    id: 'traffic',
+    name: 'Tráfico',
+    description: 'Flujo de clientes',
+    icon: '👥',
+    weight: 0.10,
+    source: ['Canales', 'Dayparts', 'Delivery'],
     blockingFields: ['dayparts'],
+  },
+  {
+    id: 'team',
+    name: 'Equipo',
+    description: 'Staff y capacidad',
+    icon: '🧑‍🍳',
+    weight: 0.10,
+    source: ['Declarado', 'Staff'],
+    blockingFields: [],
+  },
+  {
+    id: 'growth',
+    name: 'Crecimiento',
+    description: 'Oportunidades y tendencias',
+    icon: '📈',
+    weight: 0.05,
+    source: ['Radar', 'Tendencias', 'Mercado'],
+    blockingFields: [],
   },
 ];
 

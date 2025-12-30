@@ -207,13 +207,14 @@ export const HealthScoreWidget = ({
             </Tooltip>
           </TooltipProvider>
 
-          {/* Mini sub-scores preview */}
+          {/* Mini sub-scores preview - show first 4 */}
           <div className="flex-1 space-y-2">
-            {HEALTH_SUB_SCORES.slice(0, 3).map((sub) => {
+            {HEALTH_SUB_SCORES.slice(0, 4).map((sub) => {
               const value = subScores[sub.id];
               return (
                 <div key={sub.id} className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground w-24 truncate">
+                  <span className="text-sm">{sub.icon}</span>
+                  <span className="text-xs text-muted-foreground w-20 truncate">
                     {sub.name}
                   </span>
                   <div className="flex-1">
@@ -244,6 +245,7 @@ export const HealthScoreWidget = ({
                 <div key={sub.id} className="space-y-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
+                      <span className="text-base">{sub.icon}</span>
                       <span className="text-sm font-medium">{sub.name}</span>
                       <Badge variant="secondary" className="text-[10px]">
                         {Math.round(sub.weight * 100)}%
@@ -254,13 +256,18 @@ export const HealthScoreWidget = ({
                     </span>
                   </div>
                   <Progress value={value ?? 0} className="h-2" />
-                  <div className="flex flex-wrap gap-1">
-                    {sub.source.map((src, i) => (
-                      <span key={i} className="text-[10px] text-muted-foreground">
-                        {src}
-                        {i < sub.source.length - 1 ? ' •' : ''}
-                      </span>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap gap-1">
+                      {sub.source.map((src, i) => (
+                        <span key={i} className="text-[10px] text-muted-foreground">
+                          {src}
+                          {i < sub.source.length - 1 ? ' •' : ''}
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground italic">
+                      {sub.description}
+                    </span>
                   </div>
                 </div>
               );
