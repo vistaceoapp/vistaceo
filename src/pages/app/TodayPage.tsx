@@ -460,6 +460,7 @@ const TodayPage = () => {
             <HealthScoreWidget
               subScores={dashboardData.subScores}
               previousScore={dashboardData.previousScore}
+              precisionPct={dashboardData.realPrecision.percentage}
             />
 
             {/* Dashboard Cards Grid */}
@@ -651,6 +652,7 @@ const TodayPage = () => {
         <HealthScoreWidget
           subScores={dashboardData.subScores}
           previousScore={dashboardData.previousScore}
+          precisionPct={dashboardData.realPrecision.percentage}
         />
       </div>
 
