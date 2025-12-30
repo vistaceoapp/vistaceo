@@ -18,7 +18,8 @@ import { ReputationWidget } from "@/components/app/ReputationWidget";
 import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
 import { RadarWidget } from "@/components/app/RadarWidget";
 import { MissionsWidget } from "@/components/app/MissionsWidget";
-import { CountryCode } from "@/lib/countryPacks";
+import { DashboardEditor } from "@/components/app/DashboardEditor";
+import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 
 interface DailyAction {
@@ -38,6 +39,17 @@ const TodayPage = () => {
   const { currentBusiness } = useBusiness();
   const { brain } = useBrain();
   const { data: dashboardData, loading: dashboardLoading } = useDashboardData();
+  const { 
+    widgets, 
+    loading: widgetsLoading, 
+    isPro,
+    saveConfig, 
+    toggleWidget, 
+    reorderWidgets, 
+    getVisibleWidgets,
+    resetToDefaults 
+  } = useWidgetConfig();
+  
   const [todayAction, setTodayAction] = useState<DailyAction | null>(null);
   const [completedToday, setCompletedToday] = useState(0);
   const [weeklyCompleted, setWeeklyCompleted] = useState(0);
@@ -119,7 +131,89 @@ const TodayPage = () => {
     fetchData();
   }, [currentBusiness]);
 
-  if (loading) {
+  // Widget renderer based on ID
+  const renderWidget = (widgetId: string) => {
+    switch (widgetId) {
+      case "health":
+        return (
+          <HealthScoreWidget
+            key="health"
+            subScores={dashboardData.subScores}
+            previousScore={dashboardData.previousScore}
+            precisionPct={dashboardData.realPrecision.percentage}
+          />
+        );
+      case "missions":
+        return <MissionsWidget key="missions" />;
+      case "brain":
+        return <BrainKnowledgeWidget key="brain" />;
+      case "actions":
+        return (
+          <GlassCard 
+            key="actions"
+            interactive 
+            className="p-6 cursor-pointer" 
+            onClick={() => setShowActionsPanel(true)}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
+                <Zap className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground mb-1">Acciones disponibles</h3>
+                <p className="text-sm text-muted-foreground">{todayAction ? "1 acción pendiente" : "Ver todas las acciones"}</p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-muted-foreground" />
+            </div>
+          </GlassCard>
+        );
+      case "stats":
+        return (
+          <div key="stats" className="grid grid-cols-2 gap-4">
+            <GlassCard className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Check className="w-4 h-4 text-success" />
+                    <span className="text-xs text-muted-foreground font-medium">Hoy</span>
+                  </div>
+                  <div className="text-3xl font-bold text-foreground">{completedToday}</div>
+                  <div className="text-xs text-muted-foreground">completadas</div>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
+                  <Check className="w-6 h-6 text-success" />
+                </div>
+              </div>
+            </GlassCard>
+            <GlassCard className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="w-4 h-4 text-primary" />
+                    <span className="text-xs text-muted-foreground font-medium">Semana</span>
+                  </div>
+                  <div className="text-3xl font-bold text-foreground">{weeklyCompleted}</div>
+                  <div className="text-xs text-muted-foreground">acciones</div>
+                </div>
+                <ProgressRing progress={Math.min((weeklyCompleted / 21) * 100, 100)} size={48} strokeWidth={4} showGlow={false}>
+                  <span className="text-xs font-bold text-primary">{Math.round(Math.min((weeklyCompleted / 21) * 100, 100))}%</span>
+                </ProgressRing>
+              </div>
+            </GlassCard>
+          </div>
+        );
+      case "focus":
+        return <FocusWidget key="focus" />;
+      case "reputation":
+        return <ReputationWidget key="reputation" isPro={isPro} />;
+      case "radar":
+        return <RadarWidget key="radar" isPro={isPro} />;
+      default:
+        return null;
+    }
+  };
+
+  if (loading || widgetsLoading) {
     return (
       <div className={cn("space-y-6", !isMobile && "grid grid-cols-3 gap-6")}>
         {!isMobile ? (
@@ -158,8 +252,8 @@ const TodayPage = () => {
     );
   }
 
-  const weeklyGoal = 21;
-  const weeklyProgress = Math.min((weeklyCompleted / weeklyGoal) * 100, 100);
+  const mainWidgets = getVisibleWidgets("main");
+  const sidebarWidgets = getVisibleWidgets("sidebar");
 
   // Desktop Layout
   if (!isMobile) {
@@ -181,7 +275,7 @@ const TodayPage = () => {
           </GlassCard>
         )}
 
-        {/* Header */}
+        {/* Header with Edit Button */}
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-1">
@@ -190,78 +284,25 @@ const TodayPage = () => {
             </div>
             <p className="text-muted-foreground text-lg">{currentBusiness.name} • {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}</p>
           </div>
+          
+          <DashboardEditor 
+            widgets={widgets}
+            onSave={saveConfig}
+            onToggle={toggleWidget}
+            onReorder={reorderWidgets}
+            onReset={resetToDefaults}
+          />
         </div>
 
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="col-span-2 space-y-6">
-            {/* HERO: Health Score */}
-            <HealthScoreWidget
-              subScores={dashboardData.subScores}
-              previousScore={dashboardData.previousScore}
-              precisionPct={dashboardData.realPrecision.percentage}
-            />
-
-            {/* Misiones Activas - Horizontal centrado */}
-            <MissionsWidget />
-
-            {/* Cerebro en construcción */}
-            <BrainKnowledgeWidget />
-
-            {/* Acciones disponibles CTA */}
-            <GlassCard interactive className="p-6 cursor-pointer" onClick={() => setShowActionsPanel(true)}>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
-                  <Zap className="w-6 h-6 text-primary-foreground" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground mb-1">Acciones disponibles</h3>
-                  <p className="text-sm text-muted-foreground">{todayAction ? "1 acción pendiente" : "Ver todas las acciones"}</p>
-                </div>
-                <ArrowRight className="w-5 h-5 text-muted-foreground" />
-              </div>
-            </GlassCard>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4">
-              <GlassCard className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Check className="w-4 h-4 text-success" />
-                      <span className="text-xs text-muted-foreground font-medium">Hoy</span>
-                    </div>
-                    <div className="text-3xl font-bold text-foreground">{completedToday}</div>
-                    <div className="text-xs text-muted-foreground">completadas</div>
-                  </div>
-                  <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                    <Check className="w-6 h-6 text-success" />
-                  </div>
-                </div>
-              </GlassCard>
-              <GlassCard className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <TrendingUp className="w-4 h-4 text-primary" />
-                      <span className="text-xs text-muted-foreground font-medium">Semana</span>
-                    </div>
-                    <div className="text-3xl font-bold text-foreground">{weeklyCompleted}</div>
-                    <div className="text-xs text-muted-foreground">acciones</div>
-                  </div>
-                  <ProgressRing progress={weeklyProgress} size={48} strokeWidth={4} showGlow={false}>
-                    <span className="text-xs font-bold text-primary">{Math.round(weeklyProgress)}%</span>
-                  </ProgressRing>
-                </div>
-              </GlassCard>
-            </div>
+            {mainWidgets.map(w => renderWidget(w.id))}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <FocusWidget />
-            <ReputationWidget isPro={false} />
-            <RadarWidget isPro={false} />
+            {sidebarWidgets.map(w => renderWidget(w.id))}
           </div>
         </div>
 
@@ -288,72 +329,42 @@ const TodayPage = () => {
         </GlassCard>
       )}
 
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-2xl">{getTimeEmoji()}</span>
-          <h1 className="text-2xl font-bold text-foreground">{getGreeting()}</h1>
+      {/* Header with Edit Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl">{getTimeEmoji()}</span>
+            <h1 className="text-2xl font-bold text-foreground">{getGreeting()}</h1>
+          </div>
+          <p className="text-muted-foreground">{currentBusiness.name}</p>
         </div>
-        <p className="text-muted-foreground">{currentBusiness.name} • {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}</p>
+        
+        <DashboardEditor 
+          widgets={widgets}
+          onSave={saveConfig}
+          onToggle={toggleWidget}
+          onReorder={reorderWidgets}
+          onReset={resetToDefaults}
+        />
       </div>
 
-      <HealthScoreWidget subScores={dashboardData.subScores} previousScore={dashboardData.previousScore} precisionPct={dashboardData.realPrecision.percentage} />
-      
-      {/* Misiones horizontal */}
-      <MissionsWidget />
-      
-      <FocusWidget />
-      
-      <ReputationWidget isPro={false} />
-      
-      <BrainKnowledgeWidget />
-
-      <GlassCard interactive className="p-6 cursor-pointer" onClick={() => setShowActionsPanel(true)}>
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
-            <Zap className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-foreground mb-1">Acciones disponibles</h3>
-            <p className="text-sm text-muted-foreground">{todayAction ? "1 acción pendiente" : "Ver todas las acciones"}</p>
-          </div>
-          <ArrowRight className="w-5 h-5 text-muted-foreground" />
-        </div>
-      </GlassCard>
-
-      <RadarWidget isPro={false} />
-
-      <div className="grid grid-cols-2 gap-4">
-        <GlassCard className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Check className="w-4 h-4 text-success" />
-                <span className="text-xs text-muted-foreground font-medium">Hoy</span>
-              </div>
-              <div className="text-3xl font-bold text-foreground">{completedToday}</div>
-              <div className="text-xs text-muted-foreground">completadas</div>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-              <Check className="w-6 h-6 text-success" />
-            </div>
-          </div>
-        </GlassCard>
-        <GlassCard className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                <span className="text-xs text-muted-foreground font-medium">Semana</span>
-              </div>
-              <div className="text-3xl font-bold text-foreground">{weeklyCompleted}</div>
-              <div className="text-xs text-muted-foreground">acciones</div>
-            </div>
-            <ProgressRing progress={weeklyProgress} size={48} strokeWidth={4} showGlow={false}>
-              <span className="text-xs font-bold text-primary">{Math.round(weeklyProgress)}%</span>
-            </ProgressRing>
-          </div>
-        </GlassCard>
-      </div>
+      {/* Render all visible widgets in order */}
+      {[...mainWidgets, ...sidebarWidgets]
+        .sort((a, b) => {
+          // Custom mobile order: health first, then missions, then rest
+          const mobileOrder: Record<string, number> = {
+            health: 0,
+            missions: 1,
+            focus: 2,
+            reputation: 3,
+            brain: 4,
+            actions: 5,
+            radar: 6,
+            stats: 7,
+          };
+          return (mobileOrder[a.id] ?? 99) - (mobileOrder[b.id] ?? 99);
+        })
+        .map(w => renderWidget(w.id))}
 
       <ActionsListPanel open={showActionsPanel} onOpenChange={setShowActionsPanel} onRefresh={fetchData} />
       <AlertFAB />
