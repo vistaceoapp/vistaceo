@@ -392,12 +392,14 @@ export const calculateHealthScore = (
 };
 
 // Centralized score styling used across Dashboard and Analytics
+// bgColor uses /10 opacity for backgrounds, bgColorSolid for stripes/accents
 export const getScoreStyle = (score: number | null) => {
   if (score === null) {
     return { 
       label: 'Sin datos', 
       textColor: 'text-muted-foreground',
-      bgColor: 'bg-muted',
+      bgColor: 'bg-muted/10',
+      bgColorSolid: 'bg-muted',
       borderColor: 'border-muted',
       ringColor: 'ring-muted'
     };
@@ -405,35 +407,40 @@ export const getScoreStyle = (score: number | null) => {
   if (score >= 90) return { 
     label: 'Excelente', 
     textColor: 'text-success',
-    bgColor: 'bg-success',
+    bgColor: 'bg-success/10',
+    bgColorSolid: 'bg-success',
     borderColor: 'border-success/30',
     ringColor: 'ring-success/30'
   };
   if (score >= 75) return { 
     label: 'Bien', 
     textColor: 'text-success',
-    bgColor: 'bg-success',
+    bgColor: 'bg-success/10',
+    bgColorSolid: 'bg-success',
     borderColor: 'border-success/30',
     ringColor: 'ring-success/30'
   };
   if (score >= 60) return { 
     label: 'Mejorable', 
     textColor: 'text-amber-500',
-    bgColor: 'bg-amber-500',
+    bgColor: 'bg-amber-500/10',
+    bgColorSolid: 'bg-amber-500',
     borderColor: 'border-amber-500/30',
     ringColor: 'ring-amber-500/30'
   };
   if (score >= 40) return { 
     label: 'En riesgo', 
     textColor: 'text-amber-500',
-    bgColor: 'bg-amber-500',
+    bgColor: 'bg-amber-500/10',
+    bgColorSolid: 'bg-amber-500',
     borderColor: 'border-amber-500/30',
     ringColor: 'ring-amber-500/30'
   };
   return { 
     label: 'Crítico', 
     textColor: 'text-destructive',
-    bgColor: 'bg-destructive',
+    bgColor: 'bg-destructive/10',
+    bgColorSolid: 'bg-destructive',
     borderColor: 'border-destructive/30',
     ringColor: 'ring-destructive/30'
   };

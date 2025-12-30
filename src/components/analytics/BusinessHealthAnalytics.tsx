@@ -218,7 +218,9 @@ const getScoreInfo = (score: number | null) => {
     label: style.label,
     color: style.textColor,
     bgColor: style.bgColor,
+    bgColorSolid: style.bgColorSolid,
     borderColor: style.borderColor,
+    ringColor: style.ringColor,
     description: descriptions[style.label] || 'Buen progreso',
   };
 };
@@ -430,7 +432,7 @@ export const BusinessHealthAnalytics = () => {
     <div className="space-y-6">
       {/* Main Score Card */}
       <GlassCard className="p-0 overflow-hidden">
-        <div className={cn("h-2", scoreInfo.bgColor.replace("/10", ""))} />
+        <div className={cn("h-2", scoreInfo.bgColorSolid || scoreInfo.bgColor)} />
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -467,7 +469,7 @@ export const BusinessHealthAnalytics = () => {
                         'hover:scale-105 active:scale-95',
                         'ring-2 ring-offset-2 ring-offset-background',
                         scoreInfo.bgColor,
-                        scoreInfo.borderColor?.replace('border-', 'ring-') || 'ring-primary/30'
+                        scoreInfo.ringColor
                       )}
                     >
                       <div className="flex items-baseline gap-1">
@@ -564,7 +566,7 @@ export const BusinessHealthAnalytics = () => {
 
           return (
             <GlassCard key={key} className="p-0 overflow-hidden">
-              <div className={cn("h-1", dimScoreInfo.bgColor.replace("/10", ""))} />
+              <div className={cn("h-1", dimScoreInfo.bgColorSolid)} />
               <Accordion type="single" collapsible>
                 <AccordionItem value={key} className="border-none">
                   <AccordionTrigger className="px-5 py-4 hover:no-underline">
