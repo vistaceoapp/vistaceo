@@ -214,7 +214,7 @@ export const BusinessHealthDashboard = () => {
   // Handle score click → navigate to chat with pre-filled prompt
   const handleScoreClick = () => {
     if (!latestSnapshot) return;
-    const prompt = `Explicame por qué mi Salud del negocio está en ${latestSnapshot.total_score} hoy`;
+    const prompt = `Explicame por qué mi Salud de Negocio está en ${latestSnapshot.total_score} hoy`;
     navigate(`/app/chat?prompt=${encodeURIComponent(prompt)}`);
   };
 
@@ -235,7 +235,7 @@ export const BusinessHealthDashboard = () => {
             <Target className="w-7 h-7 text-primary" />
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">
-            Así está tu negocio hoy
+            Salud de Negocio
           </h3>
           <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
             Genera tu primer diagnóstico para conocer el estado actual de tu negocio.
@@ -270,7 +270,7 @@ export const BusinessHealthDashboard = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-foreground flex items-center gap-2">
             <Target className="w-4 h-4 text-primary" />
-            Así está tu negocio hoy
+            Salud de Negocio
           </h3>
           <Button 
             variant="ghost" 

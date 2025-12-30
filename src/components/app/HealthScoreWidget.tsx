@@ -50,7 +50,7 @@ export const HealthScoreWidget = ({ subScores, previousScore }: HealthScoreWidge
   const trend = getTrend();
 
   const handleScoreClick = () => {
-    const prompt = `Explicame por qué mi Business Health Score está en ${score} y qué puedo hacer para mejorarlo`;
+    const prompt = `Explicame por qué mi Salud de Negocio está en ${score} y qué puedo hacer para mejorarlo`;
     navigate(`/app/chat?prompt=${encodeURIComponent(prompt)}`);
   };
 
@@ -76,8 +76,8 @@ export const HealthScoreWidget = ({ subScores, previousScore }: HealthScoreWidge
       <div className="p-5">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-foreground">Business Health Score</h3>
+        <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-foreground">Salud de Negocio</h3>
             {isEstimated && (
               <TooltipProvider>
                 <Tooltip>
