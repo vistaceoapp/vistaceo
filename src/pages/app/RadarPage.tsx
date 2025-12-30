@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Radar as RadarIcon, TrendingUp, X, Zap, Eye, Sparkles, Target, 
   BarChart3, Filter, Bookmark, BookmarkCheck, ThumbsDown, CheckCircle2,
-  ArrowUpDown, Info, Lightbulb, Globe, Building2, ExternalLink, MessageCirclePlus
+  ArrowUpDown, Info, Lightbulb, Globe, Building2, ExternalLink, MessageCirclePlus,
+  Shield, Clock
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -33,9 +34,17 @@ import {
 } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { OpportunityDetailCard } from "@/components/app/OpportunityDetailCard";
+import { OpportunityDetailEnhanced } from "@/components/app/OpportunityDetailEnhanced";
 import { LearningDetailCard } from "@/components/app/LearningDetailCard";
 import { AlertFAB } from "@/components/app/AlertFAB";
+import { 
+  runQualityGates, 
+  filterAndRankOpportunities,
+  QualityGateResult,
+  BusinessContext,
+  getTimeEstimate,
+  getImpactedDrivers
+} from "@/lib/radarQualityGates";
 
 // Types
 interface Opportunity {
@@ -48,6 +57,10 @@ interface Opportunity {
   effort_score: number;
   is_converted: boolean;
   created_at: string;
+}
+
+interface OpportunityWithGate extends Opportunity {
+  qualityGate: QualityGateResult;
 }
 
 interface LearningItem {
@@ -63,7 +76,6 @@ interface LearningItem {
 }
 
 // Constants
-// Area categories - aligned with MissionsPage
 const AREA_CATEGORIES = [
   { value: "all", label: "Todas las áreas", icon: "🎯" },
   { value: "Reputación", label: "Reputación", icon: "⭐" },
@@ -79,9 +91,11 @@ const AREA_CATEGORIES = [
 ];
 
 const SORT_OPTIONS = [
+  { value: "priority", label: "Prioridad IA", icon: "🎯" },
   { value: "balance", label: "Mejor balance", icon: "⚖️" },
   { value: "impact", label: "Mayor impacto", icon: "🚀" },
   { value: "effort", label: "Menor esfuerzo", icon: "⚡" },
+  { value: "confidence", label: "Mayor confianza", icon: "🛡️" },
   { value: "recent", label: "Más recientes", icon: "🕐" },
 ];
 
@@ -90,31 +104,18 @@ const ID_NATURES = [
   "Nueva táctica", "Estacionalidad", "Insight de audiencia", "Movimiento de competidores"
 ];
 
-// Quality gate - checks if an opportunity is truly personalized (not generic)
-const passesQualityGate = (opportunity: Opportunity): boolean => {
-  const evidence = opportunity.evidence as Record<string, any> | null;
-  
-  // Must have a trigger or evidence
-  const hasTrigger = Boolean(evidence?.trigger || evidence?.source || opportunity.source);
-  
-  // Must have meaningful scores (not default 5/5)
-  const hasNonDefaultScores = !(opportunity.impact_score === 5 && opportunity.effort_score === 5);
-  
-  // Title should be specific (not generic phrases)
-  const genericPhrases = [
-    "mejorar ventas",
-    "aumentar clientes",
-    "optimizar operaciones",
-    "mejorar servicio",
-    "incrementar ingresos"
-  ];
-  const titleLower = opportunity.title.toLowerCase();
-  const hasGenericTitle = genericPhrases.some(phrase => titleLower === phrase);
-  
-  // Must have a description
-  const hasDescription = Boolean(opportunity.description && opportunity.description.length > 20);
-  
-  return hasTrigger && hasNonDefaultScores && !hasGenericTitle && hasDescription;
+// Helper: get source icon
+const getSourceIcon = (source: string | null): string => {
+  switch (source) {
+    case "reviews": return "⭐";
+    case "sales": return "💰";
+    case "social": return "📱";
+    case "operations": return "⚙️";
+    case "ai": return "🤖";
+    case "checkin": return "📋";
+    case "health": return "❤️";
+    default: return "💡";
+  }
 };
 
 const RadarPage = () => {
