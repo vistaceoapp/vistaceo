@@ -63,6 +63,25 @@ const Auth = () => {
     }
   };
 
+  // Send welcome email helper
+  const sendWelcomeEmail = async (email: string, fullName: string, authMethod: 'email' | 'google') => {
+    try {
+      await supabase.functions.invoke('send-welcome-email', {
+        body: {
+          email,
+          fullName: fullName || email.split('@')[0],
+          authMethod,
+          locale: 'es',
+          continueUrl: `${window.location.origin}/setup`,
+        },
+      });
+      console.log('Welcome email sent successfully');
+    } catch (error) {
+      console.error('Failed to send welcome email:', error);
+      // Don't block the user flow if email fails
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -89,6 +108,8 @@ const Auth = () => {
           }
           return;
         }
+        // Send welcome email for manual signup
+        await sendWelcomeEmail(email, fullName, 'email');
         toast.success("¡Cuenta creada! Bienvenido");
         navigate("/setup", { replace: true });
       }

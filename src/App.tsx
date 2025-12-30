@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import SetupPage from "./pages/SetupPage";
+import SetupCompletePage from "./pages/SetupCompletePage";
 
 // App Pages
 import AppLayout from "./layouts/AppLayout";
@@ -81,6 +82,18 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <BusinessProvider>
               <SetupPage />
+            </BusinessProvider>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Setup complete celebration page */}
+      <Route
+        path="/setup-complete"
+        element={
+          <ProtectedRoute>
+            <BusinessProvider>
+              <SetupCompletePage />
             </BusinessProvider>
           </ProtectedRoute>
         }

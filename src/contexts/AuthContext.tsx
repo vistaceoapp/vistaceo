@@ -20,12 +20,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Track if we've sent welcome email for this session
+    let welcomeEmailSent = false;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Send welcome email for new Google signups
+        if (event === 'SIGNED_IN' && session?.user && !welcomeEmailSent) {
+          const provider = session.user.app_metadata?.provider;
+          const isNewUser = session.user.created_at === session.user.updated_at ||
+            (new Date().getTime() - new Date(session.user.created_at).getTime()) < 60000; // Within 1 minute
+
+          if (provider === 'google' && isNewUser) {
+            welcomeEmailSent = true;
+            // Use setTimeout to avoid auth deadlock
+            setTimeout(async () => {
+              try {
+                await supabase.functions.invoke('send-welcome-email', {
+                  body: {
+                    email: session.user.email,
+                    fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+                    authMethod: 'google',
+                    locale: 'es',
+                    continueUrl: `${window.location.origin}/setup`,
+                  },
+                });
+                console.log('Welcome email sent for Google signup');
+              } catch (error) {
+                console.error('Failed to send welcome email:', error);
+              }
+            }, 0);
+          }
+        }
       }
     );
 
