@@ -525,8 +525,8 @@ serve(async (req) => {
           { role: "user", content: contextPrompt },
         ],
         stream: false,
-        temperature: regenerate ? 0.9 : 0.7,
-        max_tokens: 2048,
+        temperature: regenerate ? 0.8 : 0.6,
+        max_tokens: 4096, // Increased for larger JSON responses
       }),
     });
 
@@ -557,23 +557,57 @@ serve(async (req) => {
       throw new Error("No response from AI");
     }
 
-    // Parse JSON from response
+    // Parse JSON from response - with better error handling
     let planData;
     try {
+      // Try to find complete JSON object
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        planData = JSON.parse(jsonMatch[0]);
+        let jsonStr = jsonMatch[0];
+        
+        // Try to fix truncated JSON by closing open arrays/objects
+        const openBrackets = (jsonStr.match(/\[/g) || []).length;
+        const closeBrackets = (jsonStr.match(/\]/g) || []).length;
+        const openBraces = (jsonStr.match(/\{/g) || []).length;
+        const closeBraces = (jsonStr.match(/\}/g) || []).length;
+        
+        // Add missing closing brackets/braces
+        for (let i = 0; i < openBrackets - closeBrackets; i++) {
+          jsonStr += ']';
+        }
+        for (let i = 0; i < openBraces - closeBraces; i++) {
+          jsonStr += '}';
+        }
+        
+        // Remove trailing commas before closing brackets
+        jsonStr = jsonStr.replace(/,\s*([\]}])/g, '$1');
+        
+        planData = JSON.parse(jsonStr);
       } else {
         throw new Error("No JSON found in response");
       }
     } catch (parseError) {
       console.error("Error parsing AI response:", parseError);
-      // Return a data-needed response instead of fallback
+      console.log("Raw content length:", content?.length);
+      
+      // Return a fallback minimal plan
       return new Response(
         JSON.stringify({ 
-          needsMoreData: true,
-          message: "No pude generar un plan específico. Necesito más información sobre tu negocio.",
-          plan: null
+          plan: {
+            planTitle: missionTitle,
+            planDescription: missionDescription || "Plan de acción personalizado",
+            estimatedDuration: "1-2 semanas",
+            estimatedImpact: "Mejora en el área seleccionada",
+            confidence: "medium",
+            basedOn: ["Información básica del negocio"],
+            steps: [],
+            businessSpecificTips: ["Contacta al chat para más detalles personalizados"],
+            potentialChallenges: [],
+            successMetrics: [],
+            dataGapsIdentified: ["Necesito más información para personalizar mejor"]
+          },
+          qualityGate: { passed: false, mvcCompletion: context?.brain?.mvc_completion_pct || 0 },
+          parseError: true
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

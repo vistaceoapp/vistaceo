@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -934,7 +935,10 @@ const MissionsPage = () => {
 
         {/* Mission Detail Dialog - Enhanced */}
         <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
-          <DialogContent className="max-w-3xl bg-card border-border p-0 overflow-hidden max-h-[90vh]">
+          <DialogContent className="max-w-3xl bg-card border-border p-0 overflow-hidden max-h-[90vh]" aria-describedby={undefined}>
+            <VisuallyHidden>
+              <DialogTitle>{selectedMission?.title || "Detalle de Misión"}</DialogTitle>
+            </VisuallyHidden>
             {selectedMission && currentBusiness && (
               <MissionDetailEnhanced
                 mission={selectedMission}
@@ -1167,7 +1171,10 @@ const MissionsPage = () => {
 
       {/* Mobile Dialog - Enhanced */}
       <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
-        <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50 p-0 overflow-hidden max-h-[90vh]">
+        <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50 p-0 overflow-hidden max-h-[90vh]" aria-describedby={undefined}>
+          <VisuallyHidden>
+            <DialogTitle>{selectedMission?.title || "Detalle de Misión"}</DialogTitle>
+          </VisuallyHidden>
           {selectedMission && currentBusiness && (
             <MissionDetailEnhanced
               mission={selectedMission}
