@@ -24,7 +24,7 @@ import { ActionsListPanel } from "@/components/app/ActionsListPanel";
 // SetupWizard removed - setup is now handled via /setup route
 import { DashboardCardsGrid } from "@/components/app/DashboardCardsGrid";
 import { HealthScoreWidget } from "@/components/app/HealthScoreWidget";
-import { PrecisionRingWidget } from "@/components/app/PrecisionRingWidget";
+// PrecisionRingWidget removed - consolidated in HealthScoreWidget
 import { CountryCode } from "@/lib/countryPacks";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { calculatePrecisionScore } from "@/lib/gastroQuestionsComplete";
@@ -456,23 +456,11 @@ const TodayPage = () => {
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="col-span-2 space-y-6">
-            {/* HERO: Health Score + Precision Double Ring */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <HealthScoreWidget
-                subScores={dashboardData.subScores}
-                previousScore={dashboardData.previousScore}
-              />
-              <PrecisionRingWidget 
-                healthScore={Math.round(Object.values(dashboardData.subScores).filter(v => v !== null).reduce((a, b) => (a || 0) + (b || 0), 0) / Math.max(Object.values(dashboardData.subScores).filter(v => v !== null).length, 1))}
-                precisionScore={dashboardData.realPrecision.percentage}
-                precisionLevel={dashboardData.realPrecision.level}
-                answeredQuestions={dashboardData.realPrecision.answered}
-                totalQuestions={dashboardData.realPrecision.total}
-                previousHealthScore={dashboardData.previousScore}
-                isPro={false}
-                onStartDiagnostic={() => navigate('/app/diagnostic')}
-              />
-            </div>
+            {/* HERO: Health Score Widget */}
+            <HealthScoreWidget
+              subScores={dashboardData.subScores}
+              previousScore={dashboardData.previousScore}
+            />
 
             {/* Dashboard Cards Grid */}
             <DashboardCardsGrid
@@ -666,19 +654,6 @@ const TodayPage = () => {
         />
       </div>
 
-      {/* Precision Widget - Mobile */}
-      <div className="animate-fade-in" style={{ animationDelay: "28ms" }}>
-        <PrecisionRingWidget 
-          healthScore={Math.round(Object.values(dashboardData.subScores).filter(v => v !== null).reduce((a, b) => (a || 0) + (b || 0), 0) / Math.max(Object.values(dashboardData.subScores).filter(v => v !== null).length, 1))}
-          precisionScore={dashboardData.realPrecision.percentage}
-          precisionLevel={dashboardData.realPrecision.level}
-          answeredQuestions={dashboardData.realPrecision.answered}
-          totalQuestions={dashboardData.realPrecision.total}
-          previousHealthScore={dashboardData.previousScore}
-          isPro={false}
-          onStartDiagnostic={() => navigate('/app/diagnostic')}
-        />
-      </div>
 
       {/* Dashboard Cards Grid - Mobile */}
       <div className="animate-fade-in" style={{ animationDelay: "30ms" }}>
