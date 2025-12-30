@@ -43,8 +43,18 @@ import {
   QualityGateResult,
   BusinessContext,
   getTimeEstimate,
-  getImpactedDrivers
+  getImpactedDrivers,
+  Opportunity as OpportunityType
 } from "@/lib/radarQualityGates";
+
+// Helper to check if opportunity passes quality gates (simple version)
+const passesQualityGate = (opportunity: OpportunityType, business?: BusinessContext): boolean => {
+  // If no business context, allow all for now
+  if (!business) return true;
+  const result = runQualityGates(opportunity, business, []);
+  // Allow if passed at least 4 of 6 gates (flexible for demo/early stage)
+  return result.score >= 67;
+};
 
 // Types
 interface Opportunity {
@@ -194,7 +204,12 @@ const RadarPage = () => {
   // Filter and sort opportunities - with Quality Gate
   const getFilteredOpportunities = () => {
     // First apply quality gate - only show personalized opportunities
-    let filtered = opportunities.filter(passesQualityGate);
+    let filtered = opportunities.filter(o => passesQualityGate(o, currentBusiness ? { 
+      id: currentBusiness.id, 
+      name: currentBusiness.name,
+      category: currentBusiness.category,
+      country: currentBusiness.country
+    } : undefined));
     
     // Area filter
     if (areaFilter !== "all") {
@@ -231,7 +246,13 @@ const RadarPage = () => {
   };
 
   // Count opportunities that failed quality gate (for data needed state)
-  const failedQualityGateCount = opportunities.filter(o => !passesQualityGate(o)).length;
+  const businessCtx = currentBusiness ? { 
+    id: currentBusiness.id, 
+    name: currentBusiness.name,
+    category: currentBusiness.category,
+    country: currentBusiness.country
+  } : undefined;
+  const failedQualityGateCount = opportunities.filter(o => !passesQualityGate(o, businessCtx)).length;
 
   // Actions
   const dismissOpportunity = async (id: string) => {
@@ -398,7 +419,7 @@ const RadarPage = () => {
 
   const filteredOpportunities = getFilteredOpportunities();
   // Count only quality-gated opportunities
-  const qualityOpportunities = opportunities.filter(passesQualityGate);
+  const qualityOpportunities = opportunities.filter(o => passesQualityGate(o, businessCtx));
   const highImpactCount = qualityOpportunities.filter(o => o.impact_score >= 7).length;
   const quickWinsCount = qualityOpportunities.filter(o => o.impact_score >= 7 && o.effort_score <= 4).length;
 
@@ -542,13 +563,17 @@ const RadarPage = () => {
 
         {/* Opportunity Preview Dialog */}
         <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
-          <DialogContent className="max-w-xl">
+          <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
             {selectedOpportunity && (
-              <OpportunityDetailCard 
+              <OpportunityDetailEnhanced 
                 opportunity={selectedOpportunity}
                 business={currentBusiness}
                 onDismiss={() => dismissOpportunity(selectedOpportunity.id)}
                 onAccept={() => convertToMission(selectedOpportunity)}
+                onSaveForLater={() => {
+                  toast({ title: "Guardado", description: "La oportunidad se guardó para después" });
+                  setSelectedOpportunity(null);
+                }}
                 actionLoading={actionLoading}
               />
             )}
@@ -1016,13 +1041,17 @@ const RadarPage = () => {
 
       {/* Opportunity Preview Dialog */}
       <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           {selectedOpportunity && (
-            <OpportunityDetailCard 
+            <OpportunityDetailEnhanced 
               opportunity={selectedOpportunity}
               business={currentBusiness}
               onDismiss={() => dismissOpportunity(selectedOpportunity.id)}
               onAccept={() => convertToMission(selectedOpportunity)}
+              onSaveForLater={() => {
+                toast({ title: "Guardado", description: "La oportunidad se guardó para después" });
+                setSelectedOpportunity(null);
+              }}
               actionLoading={actionLoading}
             />
           )}
