@@ -117,12 +117,12 @@ export const SetupStepBusiness = ({
         const place = data.place;
         const placeData: GooglePlaceData = {
           placeId: prediction.place_id,
-          name: place.displayName?.text || prediction.structured_formatting?.main_text || '',
-          address: place.formattedAddress,
+          name: place.displayName?.text || place.name || prediction.structured_formatting?.main_text || '',
+          address: place.formattedAddress || place.address,
           rating: place.rating,
-          reviewCount: place.userRatingCount,
-          lat: place.location?.latitude,
-          lng: place.location?.longitude,
+          reviewCount: place.userRatingCount || place.reviewCount,
+          lat: place.location?.latitude || place.lat,
+          lng: place.location?.longitude || place.lng,
         };
         setSelectedPlace(placeData);
         setSearch(placeData.name);

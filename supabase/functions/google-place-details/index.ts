@@ -55,15 +55,22 @@ serve(async (req) => {
 
     const place = data.result;
 
-    // Map to our structure
+    // Map to our structure (legacy Places API format)
     const details = {
       placeId: place.place_id,
+      displayName: { text: place.name },
       name: place.name,
+      formattedAddress: place.formatted_address,
       address: place.formatted_address,
+      location: {
+        latitude: place.geometry?.location?.lat,
+        longitude: place.geometry?.location?.lng,
+      },
       lat: place.geometry?.location?.lat,
       lng: place.geometry?.location?.lng,
       types: place.types || [],
       rating: place.rating,
+      userRatingCount: place.user_ratings_total,
       reviewCount: place.user_ratings_total,
       priceLevel: place.price_level,
       mapsUrl: place.url,
