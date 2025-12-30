@@ -110,8 +110,8 @@ export const SetupStepMode = ({ value, onChange }: SetupStepModeProps) => {
       <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
         <p className="text-sm text-center text-muted-foreground">
           <span className="font-medium text-foreground">¿Solo 25-65%?</span> No te preocupes. 
-          Una vez dentro del sistema, trabajaremos juntos para llevar la precisión de tu negocio al{' '}
-          <span className="font-bold text-primary">99%</span>.
+          Una vez dentro del sistema, trabajaremos juntos para conocer tu negocio al{' '}
+          <span className="font-bold text-primary">100%</span> y logres crecer con acciones y recomendaciones precisas.
         </p>
       </div>
     </div>
