@@ -5,12 +5,40 @@ import { CountryCode, COUNTRY_PACKS } from './countryPacks';
 
 // ============= TYPES =============
 
+// Dimensiones de salud del negocio - 7 dimensiones claras y accionables
 export type HealthDimension = 
-  | 'market_fit'      // Mercado: Google reviews, competition awareness, positioning
-  | 'pricing_position' // Precios: ticket, adjustments, delivery commissions
-  | 'unit_economics'   // Economía: food cost, labor, margins, fixed costs
-  | 'operational_flow' // Operación: capacity, team, inventory, efficiency
-  | 'demand_rhythm';   // Demanda: dayparts, peaks, reservations, seasonality
+  | 'reputation'       // Reputación: Google reviews, ratings, percepción pública
+  | 'profitability'    // Rentabilidad: pricing, márgenes, food cost
+  | 'finances'         // Finanzas: ingresos, costos fijos, flujo de caja
+  | 'efficiency'       // Eficiencia: operación, inventario, tiempos, desperdicios
+  | 'traffic'          // Tráfico: clientes, canales, dayparts, delivery
+  | 'team'             // Equipo: staff, satisfacción, capacitación
+  | 'growth'           // Crecimiento: tendencias, oportunidades, expansión
+  // Legacy dimensions for backwards compatibility with questions
+  | 'market_fit' | 'pricing_position' | 'unit_economics' | 'operational_flow' | 'demand_rhythm';
+
+// Mapeo de dimensiones legacy a las nuevas
+export const DIMENSION_MAPPING: Record<string, HealthDimension> = {
+  // Legacy -> New
+  market_fit: 'reputation',
+  pricing_position: 'profitability',
+  unit_economics: 'finances',
+  operational_flow: 'efficiency',
+  demand_rhythm: 'traffic',
+  // New (pass-through)
+  reputation: 'reputation',
+  profitability: 'profitability',
+  finances: 'finances',
+  efficiency: 'efficiency',
+  traffic: 'traffic',
+  team: 'team',
+  growth: 'growth',
+};
+
+// Nuevas dimensiones oficiales
+export const CANONICAL_DIMENSIONS: HealthDimension[] = [
+  'reputation', 'profitability', 'finances', 'efficiency', 'traffic', 'team', 'growth'
+];
 
 export interface QuestionOption {
   id: string;
@@ -1141,16 +1169,13 @@ export function getQuestionCountByMode(countryCode: CountryCode, businessTypeId:
 
 // ============= HEALTH SCORE ANALYZER =============
 
+// Canonical dimension type for new 7-dimension system
+export type CanonicalDimension = 'reputation' | 'profitability' | 'finances' | 'efficiency' | 'traffic' | 'team' | 'growth';
+
 export interface HealthAnalysisResult {
   totalScore: number;
-  dimensions: {
-    market_fit: number | null;
-    pricing_position: number | null;
-    unit_economics: number | null;
-    operational_flow: number | null;
-    demand_rhythm: number | null;
-  };
-  dimensionDetails: Record<HealthDimension, {
+  dimensions: Record<CanonicalDimension, number | null>;
+  dimensionDetails: Record<CanonicalDimension, {
     score: number;
     answeredQuestions: number;
     totalQuestions: number;
@@ -1162,6 +1187,11 @@ export interface HealthAnalysisResult {
   dataQuality: number;  // 0-100, how much data we have
 }
 
+// Initialize empty dimension data
+function createEmptyDimensionData() {
+  return { totalWeight: 0, weightedScore: 0, answered: 0, total: 0, sources: [] as string[] };
+}
+
 export function analyzeHealthFromAnswers(
   answers: Record<string, any>,
   countryCode: CountryCode,
@@ -1171,35 +1201,36 @@ export function analyzeHealthFromAnswers(
 ): HealthAnalysisResult {
   const questions = getQuestionsForSetup(countryCode, businessTypeId, setupMode);
   
-  // Initialize dimension scores
-  const dimensionScores: Record<HealthDimension, { 
+  // Initialize dimension scores with NEW 7 dimensions
+  const dimensionScores: Record<CanonicalDimension, { 
     totalWeight: number; 
     weightedScore: number;
     answered: number;
     total: number;
     sources: string[];
   }> = {
-    market_fit: { totalWeight: 0, weightedScore: 0, answered: 0, total: 0, sources: [] },
-    pricing_position: { totalWeight: 0, weightedScore: 0, answered: 0, total: 0, sources: [] },
-    unit_economics: { totalWeight: 0, weightedScore: 0, answered: 0, total: 0, sources: [] },
-    operational_flow: { totalWeight: 0, weightedScore: 0, answered: 0, total: 0, sources: [] },
-    demand_rhythm: { totalWeight: 0, weightedScore: 0, answered: 0, total: 0, sources: [] },
+    reputation: createEmptyDimensionData(),
+    profitability: createEmptyDimensionData(),
+    finances: createEmptyDimensionData(),
+    efficiency: createEmptyDimensionData(),
+    traffic: createEmptyDimensionData(),
+    team: createEmptyDimensionData(),
+    growth: createEmptyDimensionData(),
   };
 
   const strengths: string[] = [];
   const weaknesses: string[] = [];
 
-  // Process Google data first (affects market_fit)
+  // Process Google data first (affects reputation)
   if (googleData?.placeId) {
-    dimensionScores.market_fit.sources.push('Google Business');
-    dimensionScores.market_fit.totalWeight += 10;
-    dimensionScores.market_fit.answered += 1;
-    dimensionScores.market_fit.total += 1;
+    dimensionScores.reputation.sources.push('Google Business');
+    dimensionScores.reputation.totalWeight += 10;
+    dimensionScores.reputation.answered += 1;
+    dimensionScores.reputation.total += 1;
     
     if (googleData.rating) {
-      // Rating 1-5 maps to 0-100 score contribution
       const ratingScore = (googleData.rating / 5) * 100;
-      dimensionScores.market_fit.weightedScore += ratingScore * 10;
+      dimensionScores.reputation.weightedScore += ratingScore * 10;
       
       if (googleData.rating >= 4.3) {
         strengths.push('Excelente reputación en Google');
@@ -1209,27 +1240,34 @@ export function analyzeHealthFromAnswers(
     }
     
     if (googleData.reviewCount && googleData.reviewCount > 100) {
-      dimensionScores.market_fit.weightedScore += 50; // Bonus for visibility
+      dimensionScores.reputation.weightedScore += 50;
       strengths.push('Alta visibilidad en Google');
     }
   }
 
-  // Process each question answer
+  // Process each question answer - map legacy dimensions to new ones
   questions.forEach(q => {
-    const dimension = q.dimension;
+    const legacyDimension = q.dimension;
+    const canonicalDimension = DIMENSION_MAPPING[legacyDimension] as CanonicalDimension;
+    
+    // Skip if dimension doesn't map to a canonical one
+    if (!canonicalDimension || !CANONICAL_DIMENSIONS.includes(canonicalDimension as HealthDimension)) {
+      return;
+    }
+    
     const weight = q.weight;
     const answer = answers[q.id];
     
-    dimensionScores[dimension].total += 1;
-    dimensionScores[dimension].totalWeight += weight;
+    dimensionScores[canonicalDimension].total += 1;
+    dimensionScores[canonicalDimension].totalWeight += weight;
     
     if (answer === undefined || answer === null || answer === '' || 
         (Array.isArray(answer) && answer.length === 0)) {
-      return; // Skip unanswered questions
+      return;
     }
     
-    dimensionScores[dimension].answered += 1;
-    dimensionScores[dimension].sources.push(q.category);
+    dimensionScores[canonicalDimension].answered += 1;
+    dimensionScores[canonicalDimension].sources.push(q.category);
     
     let impactScore = 0;
     
@@ -1237,18 +1275,14 @@ export function analyzeHealthFromAnswers(
       const selectedOption = q.options.find(opt => opt.id === answer);
       impactScore = selectedOption?.impactScore || 0;
     } else if (q.type === 'multi' && q.options && Array.isArray(answer)) {
-      // Sum impact scores for multi-select, capped at reasonable values
       const selectedOptions = q.options.filter(opt => answer.includes(opt.id));
       impactScore = Math.min(20, selectedOptions.reduce((sum, opt) => sum + (opt.impactScore || 0), 0));
     } else if (q.type === 'slider' || q.type === 'number') {
-      // For numeric inputs, calculate relative position
       const min = q.min || 0;
       const max = q.max || 100;
       const value = Number(answer);
       
-      // Special handling for certain questions
       if (q.id === 'Q_FOOD_COST') {
-        // Lower food cost is better (10-70% range)
         impactScore = value <= 30 ? 15 : value <= 35 ? 5 : value <= 40 ? 0 : -10;
         if (value <= 28) strengths.push('Excelente control de food cost');
         if (value > 40) weaknesses.push('Food cost por encima del promedio');
@@ -1257,35 +1291,34 @@ export function analyzeHealthFromAnswers(
       } else if (q.id === 'Q_CAPACITY') {
         impactScore = value > 0 ? 10 : 0;
       } else if (q.id === 'Q_DELIVERY_SHARE') {
-        // High delivery share without own delivery can hurt margins
         impactScore = value > 50 ? -5 : value > 0 ? 5 : 0;
       } else {
-        // Generic: middle values are usually better
         const normalizedValue = (value - min) / (max - min);
         impactScore = Math.round((0.5 - Math.abs(0.5 - normalizedValue)) * 20);
       }
     }
     
-    // Normalize impact score to 0-100 scale and apply weight
     const normalizedScore = Math.max(0, Math.min(100, 50 + impactScore));
-    dimensionScores[dimension].weightedScore += normalizedScore * weight;
+    dimensionScores[canonicalDimension].weightedScore += normalizedScore * weight;
   });
 
   // Calculate final dimension scores
-  const dimensions: HealthAnalysisResult['dimensions'] = {
-    market_fit: null,
-    pricing_position: null,
-    unit_economics: null,
-    operational_flow: null,
-    demand_rhythm: null,
+  const dimensions: Record<CanonicalDimension, number | null> = {
+    reputation: null,
+    profitability: null,
+    finances: null,
+    efficiency: null,
+    traffic: null,
+    team: null,
+    growth: null,
   };
 
-  const dimensionDetails: HealthAnalysisResult['dimensionDetails'] = {} as any;
+  const dimensionDetails = {} as HealthAnalysisResult['dimensionDetails'];
   
   let totalAnswered = 0;
   let totalQuestions = 0;
 
-  (Object.keys(dimensionScores) as HealthDimension[]).forEach(dim => {
+  (Object.keys(dimensionScores) as CanonicalDimension[]).forEach(dim => {
     const data = dimensionScores[dim];
     totalAnswered += data.answered;
     totalQuestions += data.total;
@@ -1298,7 +1331,6 @@ export function analyzeHealthFromAnswers(
       sources: [...new Set(data.sources)],
     };
     
-    // Only set dimension if we have at least some data
     if (data.answered >= 1 && data.totalWeight > 0) {
       dimensions[dim] = dimensionDetails[dim].score;
     }
@@ -1310,12 +1342,10 @@ export function analyzeHealthFromAnswers(
     ? Math.round(validDimensions.reduce((a, b) => a + b, 0) / validDimensions.length)
     : 50;
 
-  // Data quality
   const dataQuality = totalQuestions > 0 
     ? Math.round((totalAnswered / totalQuestions) * 100)
     : 0;
 
-  // Add generic strengths/weaknesses if needed
   if (strengths.length === 0 && totalScore >= 60) {
     strengths.push('Negocio en operación activa');
   }

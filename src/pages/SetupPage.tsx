@@ -537,13 +537,7 @@ function generateInitialWeaknesses(data: SetupData): string[] {
 
 interface HealthAnalysis {
   totalScore: number;
-  dimensions: {
-    market_fit: number | null;
-    pricing_position: number | null;
-    unit_economics: number | null;
-    operational_flow: number | null;
-    demand_rhythm: number | null;
-  };
+  dimensions: Record<string, number | null>;
   strengths: string[];
   weaknesses: string[];
 }
