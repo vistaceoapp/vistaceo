@@ -1,43 +1,33 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusiness } from '@/contexts/BusinessContext';
-import { 
-  DashboardCard, 
-  getCardsForCountry, 
-  getCardState,
-  HEALTH_SUB_SCORES,
-  calculateHealthScore
-} from '@/lib/dashboardCards';
-import { CountryCode } from '@/lib/countryPacks';
-import { 
-  COMPLETE_GASTRO_QUESTIONS,
-  getTotalQuestionsForBusiness,
-  getAnsweredQuestionsCount,
-  calculatePrecisionScore,
-  type SetupMode
-} from '@/lib/gastroQuestionsComplete';
+import { HEALTH_SUB_SCORES } from '@/lib/dashboardCards';
+import { calculatePrecisionScore, getTotalQuestionsForBusiness, type SetupMode } from '@/lib/gastroQuestionsComplete';
 
 interface DashboardData {
   // Available data keys for card state calculation
   availableData: string[];
-  
+
   // Health sub-scores
   subScores: Record<string, number | null>;
-  
+
   // Previous health score for trend
   previousScore: number | null;
-  
+
   // Card values (real data)
-  cardValues: Record<string, {
-    value: string | number;
-    trend?: 'up' | 'down' | 'stable';
-    trendValue?: number;
-  }>;
-  
+  cardValues: Record<
+    string,
+    {
+      value: string | number;
+      trend?: 'up' | 'down' | 'stable';
+      trendValue?: number;
+    }
+  >;
+
   // Setup completion
   setupCompleted: boolean;
   precisionScore: number;
-  
+
   // Real precision based on answered questions
   realPrecision: {
     answered: number;
@@ -45,10 +35,19 @@ interface DashboardData {
     percentage: number;
     level: 'Básica' | 'Media' | 'Alta';
   };
-  
+
   // Gastro data for precision calculation
   gastroData: Record<string, any>;
 }
+
+const toNumberOrNull = (v: unknown): number | null => {
+  if (typeof v === 'number' && Number.isFinite(v)) return Math.round(v);
+  if (typeof v === 'string') {
+    const n = Number(v);
+    if (Number.isFinite(n)) return Math.round(n);
+  }
+  return null;
+};
 
 export const useDashboardData = () => {
   const { currentBusiness } = useBusiness();
@@ -99,7 +98,7 @@ export const useDashboardData = () => {
             .eq('business_id', currentBusiness.id),
           supabase
             .from('snapshots')
-            .select('total_score')
+            .select('total_score, dimensions_json')
             .eq('business_id', currentBusiness.id)
             .order('created_at', { ascending: false })
             .limit(2),
@@ -107,7 +106,7 @@ export const useDashboardData = () => {
 
         // Determine available data
         const available: string[] = [];
-        
+
         // From business (using type assertions for Json fields)
         if (currentBusiness.avg_rating) available.push('googleListing');
         if (currentBusiness.channel_mix) available.push('channelMix');
@@ -116,20 +115,20 @@ export const useDashboardData = () => {
         if (currentBusiness.active_dayparts?.length) available.push('dayparts');
         if (currentBusiness.avg_ticket_range) available.push('avgTicket');
         if (currentBusiness.service_model) available.push('capacity', 'times');
-        
+
         // From related tables
         if ((menuRes.count || 0) >= 8) available.push('menu');
         if ((competitorsRes.count || 0) >= 3) available.push('competitors');
-        
+
         // From setup
-        const setupData = setupRes.data?.setup_data as Record<string, unknown> || {};
+        const setupData = (setupRes.data?.setup_data as Record<string, unknown>) || {};
         const gastroData = (setupData.gastroData as Record<string, any>) || {};
         if (setupData.avgPrepTimeMinutes) available.push('prepTime');
         if (setupData.appCommissionPercent) available.push('appFees');
-        
+
         // Calculate REAL precision based on answered gastro questions
-        const setupMode: SetupMode = (setupData.mode === 'complete' ? 'full' : 'quick');
-        
+        const setupMode: SetupMode = setupData.mode === 'complete' ? 'full' : 'quick';
+
         // Combine all data sources for precision calculation
         const allAnsweredData: Record<string, any> = {
           ...gastroData,
@@ -138,7 +137,7 @@ export const useDashboardData = () => {
           'business.primary_type_id': setupData.businessTypeId || '',
           'setup.mode': setupMode,
         };
-        
+
         // If there are dayparts, they count as answered
         if (setupData.activeDayparts && (setupData.activeDayparts as string[]).length > 0) {
           allAnsweredData['operations.dayparts'] = setupData.activeDayparts;
@@ -158,103 +157,119 @@ export const useDashboardData = () => {
         if (setupData.serviceModel) {
           allAnsweredData['operations.service_model'] = setupData.serviceModel;
         }
-        
+
         // Get applicable questions for this business
         const totalQuestions = getTotalQuestionsForBusiness(allAnsweredData, setupMode);
-        
+
         // Count answered questions
         let answeredCount = 0;
-        
+
         // Count from gastroData
-        Object.keys(gastroData).forEach(key => {
+        Object.keys(gastroData).forEach((key) => {
           const val = gastroData[key];
-          if (val !== undefined && val !== null && val !== '' && 
-              !(Array.isArray(val) && val.length === 0)) {
+          if (
+            val !== undefined &&
+            val !== null &&
+            val !== '' &&
+            !(Array.isArray(val) && val.length === 0)
+          ) {
             answeredCount++;
           }
         });
-        
+
         // Also count basic setup questions that are answered
         const basicSetupFields = [
-          'activeDayparts', 'topSellers', 'ticketRange', 
-          'currentFocus', 'positioning', 'serviceModel', 'channelMix'
+          'activeDayparts',
+          'topSellers',
+          'ticketRange',
+          'currentFocus',
+          'positioning',
+          'serviceModel',
+          'channelMix',
         ];
-        basicSetupFields.forEach(field => {
+        basicSetupFields.forEach((field) => {
           const val = setupData[field];
-          if (val !== undefined && val !== null && val !== '' && 
-              !(Array.isArray(val) && val.length === 0) &&
-              !(typeof val === 'object' && Object.keys(val).length === 0)) {
+          if (
+            val !== undefined &&
+            val !== null &&
+            val !== '' &&
+            !(Array.isArray(val) && val.length === 0) &&
+            !(typeof val === 'object' && Object.keys(val).length === 0)
+          ) {
             answeredCount++;
           }
         });
-        
+
         // Calculate percentage (minimum of answered/total or based on totalQuestions)
         const effectiveTotal = Math.max(totalQuestions, 20); // At least 20 questions expected
         const precisionPercentage = calculatePrecisionScore(answeredCount, effectiveTotal);
-        
+
         // Determine precision level
         let precisionLevel: 'Básica' | 'Media' | 'Alta' = 'Básica';
         if (precisionPercentage >= 70) precisionLevel = 'Alta';
         else if (precisionPercentage >= 40) precisionLevel = 'Media';
-        
-        // Calculate sub-scores based on available data and business metrics
+
+        // Prefer REAL sub-scores coming from the latest snapshot (setup baseline / last checkin)
+        const snapshots = snapshotRes.data || [];
+        const latestDims = (snapshots[0]?.dimensions_json as Record<string, unknown> | null) || null;
+
         const subScores: Record<string, number | null> = {};
-        
-        // Market Fit: based on rating and review count
-        if (currentBusiness.avg_rating) {
-          subScores.market_fit = Math.round((currentBusiness.avg_rating / 5) * 100);
-        } else {
-          subScores.market_fit = null;
-        }
-        
-        // Pricing Position: based on menu and competitors
-        if (available.includes('menu') && available.includes('competitors')) {
-          subScores.pricing_position = 65 + Math.round(Math.random() * 20); // Placeholder
-        } else if (available.includes('menu')) {
-          subScores.pricing_position = 50;
-        } else {
-          subScores.pricing_position = null;
-        }
-        
-        // Unit Economics: based on sales and costs
-        if (available.includes('sales') && available.includes('costs')) {
-          subScores.unit_economics = 60 + Math.round(Math.random() * 25);
-        } else if (available.includes('sales')) {
-          subScores.unit_economics = 45;
-        } else {
-          subScores.unit_economics = null;
-        }
-        
-        // Operational Flow: based on capacity and times
-        if (available.includes('capacity') && available.includes('prepTime')) {
-          subScores.operational_flow = 55 + Math.round(Math.random() * 30);
-        } else {
-          subScores.operational_flow = null;
-        }
-        
-        // Demand Rhythm: based on dayparts and channel mix
-        if (available.includes('dayparts') && available.includes('channelMix')) {
-          subScores.demand_rhythm = 60 + Math.round(Math.random() * 25);
-        } else if (available.includes('dayparts')) {
-          subScores.demand_rhythm = 50;
-        } else {
-          subScores.demand_rhythm = null;
+        if (latestDims) {
+          // These ids must match HEALTH_SUB_SCORES ids
+          subScores.market_fit = toNumberOrNull(latestDims.market_fit);
+          subScores.pricing_position = toNumberOrNull(latestDims.pricing_position);
+          subScores.unit_economics = toNumberOrNull(latestDims.unit_economics);
+          subScores.operational_flow = toNumberOrNull(latestDims.operational_flow);
+          subScores.demand_rhythm = toNumberOrNull(latestDims.demand_rhythm);
         }
 
-        // Get previous score
-        const snapshots = snapshotRes.data || [];
-        const previousScore = snapshots.length > 1 ? snapshots[1].total_score : null;
+        // Fallback (legacy heuristic) if snapshot dims are missing
+        if (Object.keys(subScores).length === 0 || HEALTH_SUB_SCORES.some((s) => subScores[s.id] == null)) {
+          // Market Fit: based on rating
+          if (subScores.market_fit == null) {
+            subScores.market_fit = currentBusiness.avg_rating
+              ? Math.round((currentBusiness.avg_rating / 5) * 100)
+              : null;
+          }
+
+          // Keep previous placeholder logic only as a last resort
+          if (subScores.pricing_position == null) {
+            if (available.includes('menu') && available.includes('competitors')) subScores.pricing_position = 55;
+            else if (available.includes('menu')) subScores.pricing_position = 45;
+            else subScores.pricing_position = null;
+          }
+
+          if (subScores.unit_economics == null) {
+            if (available.includes('sales') && available.includes('costs')) subScores.unit_economics = 55;
+            else if (available.includes('sales')) subScores.unit_economics = 45;
+            else subScores.unit_economics = null;
+          }
+
+          if (subScores.operational_flow == null) {
+            if (available.includes('capacity') && available.includes('prepTime')) subScores.operational_flow = 55;
+            else subScores.operational_flow = null;
+          }
+
+          if (subScores.demand_rhythm == null) {
+            if (available.includes('dayparts') && available.includes('channelMix')) subScores.demand_rhythm = 55;
+            else if (available.includes('dayparts')) subScores.demand_rhythm = 45;
+            else subScores.demand_rhythm = null;
+          }
+        }
+
+        // Get previous score for trend
+        const previousScore = snapshots.length > 1 ? toNumberOrNull(snapshots[1]?.total_score) : null;
 
         // Calculate card values based on real data
         const cardValues: DashboardData['cardValues'] = {};
-        
+
         if (currentBusiness.avg_rating) {
           cardValues.market_position = {
             value: `${currentBusiness.avg_rating}★`,
             trend: currentBusiness.avg_rating >= 4.2 ? 'up' : 'stable',
           };
         }
-        
+
         if (currentBusiness.monthly_revenue_range) {
           const range = currentBusiness.monthly_revenue_range as { min?: number; max?: number } | null;
           if (range && typeof range === 'object' && 'min' in range && 'max' in range) {
@@ -291,7 +306,6 @@ export const useDashboardData = () => {
           },
           gastroData,
         });
-
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -304,3 +318,4 @@ export const useDashboardData = () => {
 
   return { data, loading };
 };
+
