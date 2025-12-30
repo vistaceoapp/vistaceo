@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { CountryCode, COUNTRY_PACKS } from '@/lib/countryPacks';
+import { CountryCode, COUNTRY_PACKS, getRevenueRanges, getCurrencyLabel } from '@/lib/countryPacks';
 import { 
   getQuestionsForSetup, 
   getCategoryLabel,
@@ -21,6 +21,7 @@ interface SetupStepQuestionnaireProps {
   answers: Record<string, any>;
   onUpdate: (answers: Record<string, any>) => void;
   onComplete: () => void;
+  onBack?: () => void;
 }
 
 export const SetupStepQuestionnaire = ({
@@ -30,10 +31,13 @@ export const SetupStepQuestionnaire = ({
   answers,
   onUpdate,
   onComplete,
+  onBack,
 }: SetupStepQuestionnaireProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const lang = COUNTRY_PACKS[countryCode]?.locale?.startsWith('pt') ? 'pt-BR' : 'es';
   const currency = COUNTRY_PACKS[countryCode]?.currencySymbol || '$';
+  const currencyLabel = getCurrencyLabel(countryCode);
+  const revenueRanges = getRevenueRanges(countryCode);
 
   // Get filtered questions based on country, business type, and mode
   const activeQuestions = useMemo(() => {
@@ -77,11 +81,41 @@ export const SetupStepQuestionnaire = ({
   const handleBack = () => {
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
+    } else if (onBack) {
+      // If at first question and onBack is provided, go back to previous setup step
+      onBack();
     }
   };
 
   const renderInput = () => {
     if (!currentQuestion) return null;
+
+    // Special handling for revenue question - use localized ranges
+    if (currentQuestion.id === 'Q_MONTHLY_REVENUE') {
+      return (
+        <div className="grid grid-cols-1 gap-3">
+          {revenueRanges.map((option) => {
+            const isSelected = getCurrentValue() === option.id;
+            return (
+              <button
+                key={option.id}
+                onClick={() => handleAnswer(option.id)}
+                className={cn(
+                  "p-4 rounded-xl border-2 text-left transition-all",
+                  isSelected
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:border-primary/50 bg-card"
+                )}
+              >
+                <span className={cn("font-medium", isSelected && "text-primary")}>
+                  {option.label[lang] || option.label.es}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      );
+    }
 
     switch (currentQuestion.type) {
       case 'single':
@@ -150,9 +184,9 @@ export const SetupStepQuestionnaire = ({
               placeholder={lang === 'pt-BR' ? 'Digite um valor' : 'Ingresá un valor'}
               className="h-14 text-lg text-center"
             />
-            {currentQuestion.id === 'avg_ticket' && (
+            {(currentQuestion.id === 'Q_AVG_TICKET' || currentQuestion.id.includes('PRICE') || currentQuestion.id.includes('TICKET')) && (
               <p className="text-center text-sm text-muted-foreground">
-                {currency} {getCurrentValue() || '---'}
+                {currencyLabel}: {currency} {getCurrentValue() || '---'}
               </p>
             )}
           </div>
@@ -259,10 +293,11 @@ export const SetupStepQuestionnaire = ({
         <Button
           variant="ghost"
           onClick={handleBack}
-          disabled={currentIndex === 0}
+          disabled={currentIndex === 0 && !onBack}
           size="lg"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5 mr-1" />
+          {lang === 'pt-BR' ? 'Voltar' : 'Atrás'}
         </Button>
         <Button
           onClick={handleNext}

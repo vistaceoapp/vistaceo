@@ -1118,6 +1118,498 @@ export const COCINA_SALUDABLE_QUESTIONS: GastroQuestion[] = [
   },
 ];
 
+// ============= RESTAURANT GENERAL QUESTIONS (4 questions - ~5%) =============
+export const RESTAURANT_GENERAL_QUESTIONS: GastroQuestion[] = [
+  {
+    id: 'Q_RG_STYLE',
+    category: 'menu',
+    mode: 'both',
+    dimension: 'reputation',
+    weight: 8,
+    title: { 
+      es: '¿Cómo describirías el estilo de tu restaurante?', 
+      'pt-BR': 'Como você descreveria o estilo do seu restaurante?' 
+    },
+    type: 'single',
+    required: true,
+    businessTypes: ['restaurant_general'],
+    options: [
+      { id: 'casual', label: { es: 'Casual/Informal', 'pt-BR': 'Casual/Informal' }, emoji: '🍽️', impactScore: 8 },
+      { id: 'smart_casual', label: { es: 'Smart casual', 'pt-BR': 'Smart casual' }, emoji: '👔', impactScore: 12 },
+      { id: 'familiar', label: { es: 'Familiar/Tradicional', 'pt-BR': 'Familiar/Tradicional' }, emoji: '👨‍👩‍👧', impactScore: 10 },
+      { id: 'trendy', label: { es: 'Moderno/Trendy', 'pt-BR': 'Moderno/Trendy' }, emoji: '✨', impactScore: 12 },
+    ],
+  },
+  {
+    id: 'Q_RG_CUISINE',
+    category: 'menu',
+    mode: 'both',
+    dimension: 'reputation',
+    weight: 7,
+    title: { 
+      es: '¿Cuál es la base de tu cocina?', 
+      'pt-BR': 'Qual é a base da sua cozinha?' 
+    },
+    type: 'multi',
+    businessTypes: ['restaurant_general'],
+    options: [
+      { id: 'international', label: { es: 'Internacional/Variada', 'pt-BR': 'Internacional/Variada' }, emoji: '🌍', impactScore: 10 },
+      { id: 'local', label: { es: 'Cocina local/Regional', 'pt-BR': 'Cozinha local/Regional' }, emoji: '🏠', impactScore: 12 },
+      { id: 'mediterranean', label: { es: 'Mediterránea', 'pt-BR': 'Mediterrânea' }, emoji: '🫒', impactScore: 10 },
+      { id: 'fusion', label: { es: 'Fusión', 'pt-BR': 'Fusão' }, emoji: '🔥', impactScore: 12 },
+    ],
+  },
+  {
+    id: 'Q_RG_PORTIONS',
+    category: 'menu',
+    mode: 'complete',
+    dimension: 'profitability',
+    weight: 6,
+    title: { 
+      es: '¿Cómo son las porciones?', 
+      'pt-BR': 'Como são as porções?' 
+    },
+    type: 'single',
+    businessTypes: ['restaurant_general'],
+    options: [
+      { id: 'generous', label: { es: 'Generosas/Abundantes', 'pt-BR': 'Generosas/Fartas' }, emoji: '🍛', impactScore: 8 },
+      { id: 'standard', label: { es: 'Estándar', 'pt-BR': 'Padrão' }, emoji: '🍽️', impactScore: 10 },
+      { id: 'gourmet', label: { es: 'Gourmet/Presentación', 'pt-BR': 'Gourmet/Apresentação' }, emoji: '✨', impactScore: 12 },
+      { id: 'shareable', label: { es: 'Para compartir', 'pt-BR': 'Para compartilhar' }, emoji: '🤝', impactScore: 10 },
+    ],
+  },
+  {
+    id: 'Q_RG_CLIENTELE',
+    category: 'marketing',
+    mode: 'complete',
+    dimension: 'traffic',
+    weight: 5,
+    title: { 
+      es: '¿Quién es tu cliente principal?', 
+      'pt-BR': 'Quem é seu cliente principal?' 
+    },
+    type: 'multi',
+    businessTypes: ['restaurant_general'],
+    options: [
+      { id: 'families', label: { es: 'Familias', 'pt-BR': 'Famílias' }, emoji: '👨‍👩‍👧', impactScore: 10 },
+      { id: 'couples', label: { es: 'Parejas', 'pt-BR': 'Casais' }, emoji: '💑', impactScore: 10 },
+      { id: 'business', label: { es: 'Ejecutivos/Negocios', 'pt-BR': 'Executivos/Negócios' }, emoji: '💼', impactScore: 12 },
+      { id: 'friends', label: { es: 'Grupos de amigos', 'pt-BR': 'Grupos de amigos' }, emoji: '👥', impactScore: 8 },
+      { id: 'tourists', label: { es: 'Turistas', 'pt-BR': 'Turistas' }, emoji: '🧳', impactScore: 10 },
+    ],
+  },
+];
+
+// ============= BODEGON/CANTINA QUESTIONS (4 questions - ~5%) =============
+export const BODEGON_QUESTIONS: GastroQuestion[] = [
+  {
+    id: 'Q_BOD_TRADITION',
+    category: 'menu',
+    mode: 'both',
+    dimension: 'reputation',
+    weight: 9,
+    title: { 
+      es: '¿Cuánto tiempo lleva funcionando tu bodegón?', 
+      'pt-BR': 'Há quanto tempo seu boteco está funcionando?' 
+    },
+    type: 'single',
+    required: true,
+    businessTypes: ['bodegon_cantina'],
+    options: [
+      { id: 'new', label: { es: 'Menos de 2 años', 'pt-BR': 'Menos de 2 anos' }, emoji: '🆕', impactScore: 5 },
+      { id: 'established', label: { es: '2-10 años', 'pt-BR': '2-10 anos' }, emoji: '📅', impactScore: 12 },
+      { id: 'traditional', label: { es: '10-30 años', 'pt-BR': '10-30 anos' }, emoji: '🏆', impactScore: 18 },
+      { id: 'historic', label: { es: 'Más de 30 años', 'pt-BR': 'Mais de 30 anos' }, emoji: '🏛️', impactScore: 25 },
+    ],
+  },
+  {
+    id: 'Q_BOD_MENU_TYPE',
+    category: 'menu',
+    mode: 'both',
+    dimension: 'efficiency',
+    weight: 8,
+    title: { 
+      es: '¿Cómo es tu menú?', 
+      'pt-BR': 'Como é seu cardápio?' 
+    },
+    type: 'single',
+    businessTypes: ['bodegon_cantina'],
+    options: [
+      { id: 'fixed', label: { es: 'Fijo/Tradicional', 'pt-BR': 'Fixo/Tradicional' }, emoji: '📋', impactScore: 10 },
+      { id: 'daily', label: { es: 'Menú del día', 'pt-BR': 'Prato do dia' }, emoji: '📅', impactScore: 15 },
+      { id: 'seasonal', label: { es: 'Rotativo por temporada', 'pt-BR': 'Rotativo por temporada' }, emoji: '🍂', impactScore: 12 },
+      { id: 'mixed', label: { es: 'Fijo + especiales', 'pt-BR': 'Fixo + especiais' }, emoji: '✨', impactScore: 18 },
+    ],
+  },
+  {
+    id: 'Q_BOD_WINE',
+    category: 'menu',
+    mode: 'complete',
+    dimension: 'profitability',
+    weight: 6,
+    title: { 
+      es: '¿Cómo manejás el vino?', 
+      'pt-BR': 'Como você trabalha o vinho?' 
+    },
+    type: 'single',
+    businessTypes: ['bodegon_cantina'],
+    options: [
+      { id: 'house', label: { es: 'Vino de la casa en jarra', 'pt-BR': 'Vinho da casa em jarra' }, emoji: '🍷', impactScore: 10 },
+      { id: 'selection', label: { es: 'Carta de vinos selecta', 'pt-BR': 'Carta de vinhos selecionada' }, emoji: '📖', impactScore: 15 },
+      { id: 'both', label: { es: 'Ambos', 'pt-BR': 'Ambos' }, emoji: '🍇', impactScore: 18 },
+      { id: 'minimal', label: { es: 'Mínimo/No es el foco', 'pt-BR': 'Mínimo/Não é o foco' }, emoji: '🍺', impactScore: 5 },
+    ],
+  },
+  {
+    id: 'Q_BOD_REGULARS',
+    category: 'marketing',
+    mode: 'complete',
+    dimension: 'traffic',
+    weight: 7,
+    title: { 
+      es: '¿Qué porcentaje son clientes habituales?', 
+      'pt-BR': 'Qual porcentagem são clientes habituais?' 
+    },
+    type: 'single',
+    businessTypes: ['bodegon_cantina'],
+    options: [
+      { id: 'mostly', label: { es: 'Más del 70%', 'pt-BR': 'Mais de 70%' }, emoji: '🏆', impactScore: 20 },
+      { id: 'half', label: { es: '40-70%', 'pt-BR': '40-70%' }, emoji: '👍', impactScore: 15 },
+      { id: 'some', label: { es: '20-40%', 'pt-BR': '20-40%' }, emoji: '🔄', impactScore: 10 },
+      { id: 'few', label: { es: 'Menos del 20%', 'pt-BR': 'Menos de 20%' }, emoji: '🆕', impactScore: 5 },
+    ],
+  },
+];
+
+// ============= COCINA CRIOLLA/REGIONAL QUESTIONS (4 questions - ~5%) =============
+export const COCINA_CRIOLLA_QUESTIONS: GastroQuestion[] = [
+  {
+    id: 'Q_CR_REGION',
+    category: 'menu',
+    mode: 'both',
+    dimension: 'reputation',
+    weight: 9,
+    title: { 
+      es: '¿De qué región es tu cocina?', 
+      'pt-BR': 'De que região é sua cozinha?' 
+    },
+    type: 'single',
+    required: true,
+    businessTypes: ['cocina_criolla'],
+    options: [
+      { id: 'north', label: { es: 'Norte/Andina', 'pt-BR': 'Norte/Nordeste' }, emoji: '🏔️', impactScore: 12 },
+      { id: 'central', label: { es: 'Centro/Pampeana', 'pt-BR': 'Centro/Sudeste' }, emoji: '🌾', impactScore: 10 },
+      { id: 'coastal', label: { es: 'Costera/Litoral', 'pt-BR': 'Litoral' }, emoji: '🌊', impactScore: 12 },
+      { id: 'south', label: { es: 'Sur/Patagonia', 'pt-BR': 'Sul' }, emoji: '❄️', impactScore: 12 },
+      { id: 'mixed', label: { es: 'Mezcla de regiones', 'pt-BR': 'Mistura de regiões' }, emoji: '🗺️', impactScore: 10 },
+    ],
+  },
+  {
+    id: 'Q_CR_SIGNATURE',
+    category: 'menu',
+    mode: 'both',
+    dimension: 'reputation',
+    weight: 8,
+    title: { 
+      es: '¿Cuál es tu plato insignia?', 
+      'pt-BR': 'Qual é seu prato carro-chefe?' 
+    },
+    type: 'single',
+    businessTypes: ['cocina_criolla'],
+    options: [
+      { id: 'locro', label: { es: 'Locro/Guisos', 'pt-BR': 'Feijoada/Cozidos' }, emoji: '🍲', impactScore: 12 },
+      { id: 'empanadas', label: { es: 'Empanadas', 'pt-BR': 'Empanadas/Pastéis' }, emoji: '🥟', impactScore: 12 },
+      { id: 'asado', label: { es: 'Asado criollo', 'pt-BR': 'Churrasco' }, emoji: '🥩', impactScore: 15 },
+      { id: 'tamales', label: { es: 'Tamales/Humitas', 'pt-BR': 'Pamonha/Canjica' }, emoji: '🌽', impactScore: 10 },
+      { id: 'other', label: { es: 'Otro plato regional', 'pt-BR': 'Outro prato regional' }, emoji: '🍽️', impactScore: 10 },
+    ],
+  },
+  {
+    id: 'Q_CR_INGREDIENTS',
+    category: 'operation',
+    mode: 'complete',
+    dimension: 'profitability',
+    weight: 7,
+    title: { 
+      es: '¿De dónde vienen tus ingredientes regionales?', 
+      'pt-BR': 'De onde vêm seus ingredientes regionais?' 
+    },
+    type: 'single',
+    businessTypes: ['cocina_criolla'],
+    options: [
+      { id: 'local_producers', label: { es: 'Productores locales directos', 'pt-BR': 'Produtores locais diretos' }, emoji: '🌾', impactScore: 20 },
+      { id: 'specialty', label: { es: 'Distribuidores especializados', 'pt-BR': 'Distribuidores especializados' }, emoji: '🚚', impactScore: 12 },
+      { id: 'standard', label: { es: 'Mercado/Proveedores estándar', 'pt-BR': 'Mercado/Fornecedores padrão' }, emoji: '🏪', impactScore: 5 },
+      { id: 'own', label: { es: 'Producción propia/Huerta', 'pt-BR': 'Produção própria/Horta' }, emoji: '🧑‍🌾', impactScore: 22 },
+    ],
+  },
+  {
+    id: 'Q_CR_EVENTS',
+    category: 'marketing',
+    mode: 'complete',
+    dimension: 'traffic',
+    weight: 5,
+    title: { 
+      es: '¿Hacés eventos especiales por fechas patrias?', 
+      'pt-BR': 'Você faz eventos especiais em feriados?' 
+    },
+    type: 'single',
+    businessTypes: ['cocina_criolla'],
+    options: [
+      { id: 'always', label: { es: 'Sí, todas las fechas', 'pt-BR': 'Sim, todas as datas' }, emoji: '🎉', impactScore: 18 },
+      { id: 'main', label: { es: 'Solo las principales', 'pt-BR': 'Só as principais' }, emoji: '📅', impactScore: 12 },
+      { id: 'sometimes', label: { es: 'A veces', 'pt-BR': 'Às vezes' }, emoji: '🤷', impactScore: 5 },
+      { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 0 },
+    ],
+  },
+];
+
+// ============= PESCADOS/MARISCOS/CEVICHE QUESTIONS (4 questions - ~5%) =============
+export const PESCADOS_MARISCOS_QUESTIONS: GastroQuestion[] = [
+  {
+    id: 'Q_SEA_FRESHNESS',
+    category: 'operation',
+    mode: 'both',
+    dimension: 'reputation',
+    weight: 10,
+    title: { 
+      es: '¿Con qué frecuencia recibís pescado fresco?', 
+      'pt-BR': 'Com que frequência você recebe peixe fresco?' 
+    },
+    type: 'single',
+    required: true,
+    businessTypes: ['pescados_mariscos'],
+    options: [
+      { id: 'daily', label: { es: 'Diario', 'pt-BR': 'Diário' }, emoji: '🐟', impactScore: 25 },
+      { id: 'every_other', label: { es: 'Día por medio', 'pt-BR': 'Dia sim, dia não' }, emoji: '📅', impactScore: 18 },
+      { id: 'twice_week', label: { es: '2 veces por semana', 'pt-BR': '2 vezes por semana' }, emoji: '📆', impactScore: 10 },
+      { id: 'frozen', label: { es: 'Trabajo con congelado', 'pt-BR': 'Trabalho com congelado' }, emoji: '❄️', impactScore: 5 },
+    ],
+  },
+  {
+    id: 'Q_SEA_SOURCE',
+    category: 'operation',
+    mode: 'both',
+    dimension: 'profitability',
+    weight: 8,
+    title: { 
+      es: '¿De dónde viene tu pescado?', 
+      'pt-BR': 'De onde vem seu peixe?' 
+    },
+    type: 'multi',
+    businessTypes: ['pescados_mariscos'],
+    options: [
+      { id: 'port_direct', label: { es: 'Puerto/Pescadores directos', 'pt-BR': 'Porto/Pescadores diretos' }, emoji: '🚤', impactScore: 22 },
+      { id: 'market', label: { es: 'Mercado de pescado', 'pt-BR': 'Mercado de peixe' }, emoji: '🏪', impactScore: 15 },
+      { id: 'distributor', label: { es: 'Distribuidor especializado', 'pt-BR': 'Distribuidor especializado' }, emoji: '🚚', impactScore: 12 },
+      { id: 'imported', label: { es: 'Importado', 'pt-BR': 'Importado' }, emoji: '✈️', impactScore: 10 },
+    ],
+  },
+  {
+    id: 'Q_SEA_SPECIALTY',
+    category: 'menu',
+    mode: 'both',
+    dimension: 'reputation',
+    weight: 8,
+    title: { 
+      es: '¿Cuál es tu especialidad?', 
+      'pt-BR': 'Qual é sua especialidade?' 
+    },
+    type: 'multi',
+    businessTypes: ['pescados_mariscos'],
+    options: [
+      { id: 'ceviche', label: { es: 'Ceviche/Tiradito', 'pt-BR': 'Ceviche' }, emoji: '🍋', impactScore: 15 },
+      { id: 'grilled', label: { es: 'Pescados a la parrilla', 'pt-BR': 'Peixes grelhados' }, emoji: '🔥', impactScore: 12 },
+      { id: 'fried', label: { es: 'Frituras/Rabas', 'pt-BR': 'Frituras/Camarão empanado' }, emoji: '🍤', impactScore: 10 },
+      { id: 'shellfish', label: { es: 'Mariscos/Ostras', 'pt-BR': 'Frutos do mar/Ostras' }, emoji: '🦪', impactScore: 15 },
+      { id: 'stews', label: { es: 'Cazuelas/Guisos marinos', 'pt-BR': 'Moquecas/Ensopados' }, emoji: '🍲', impactScore: 12 },
+    ],
+  },
+  {
+    id: 'Q_SEA_SEASON',
+    category: 'operation',
+    mode: 'complete',
+    dimension: 'efficiency',
+    weight: 6,
+    title: { 
+      es: '¿Manejás vedas y estacionalidad?', 
+      'pt-BR': 'Você respeita período de defeso e sazonalidade?' 
+    },
+    type: 'single',
+    businessTypes: ['pescados_mariscos'],
+    options: [
+      { id: 'strict', label: { es: 'Sí, respetamos vedas', 'pt-BR': 'Sim, respeitamos o defeso' }, emoji: '✅', impactScore: 18 },
+      { id: 'adapt', label: { es: 'Adaptamos menú según disponibilidad', 'pt-BR': 'Adaptamos cardápio conforme disponibilidade' }, emoji: '🔄', impactScore: 15 },
+      { id: 'no_issue', label: { es: 'No es un problema en mi zona', 'pt-BR': 'Não é um problema na minha região' }, emoji: '🌊', impactScore: 10 },
+    ],
+  },
+];
+
+// ============= PASTAS/COCINA ITALIANA QUESTIONS (4 questions - ~5%) =============
+export const PASTAS_ITALIANA_QUESTIONS: GastroQuestion[] = [
+  {
+    id: 'Q_PASTA_FRESH',
+    category: 'menu',
+    mode: 'both',
+    dimension: 'reputation',
+    weight: 9,
+    title: { 
+      es: '¿Hacés pasta fresca?', 
+      'pt-BR': 'Você faz massa fresca?' 
+    },
+    type: 'single',
+    required: true,
+    businessTypes: ['pastas_italiana'],
+    options: [
+      { id: 'all_fresh', label: { es: 'Sí, toda fresca diaria', 'pt-BR': 'Sim, toda fresca diária' }, emoji: '👨‍🍳', impactScore: 25 },
+      { id: 'some_fresh', label: { es: 'Algunas frescas, otras secas', 'pt-BR': 'Algumas frescas, outras secas' }, emoji: '🍝', impactScore: 15 },
+      { id: 'dry_quality', label: { es: 'Seca de calidad/importada', 'pt-BR': 'Seca de qualidade/importada' }, emoji: '🇮🇹', impactScore: 12 },
+      { id: 'standard', label: { es: 'Estándar comercial', 'pt-BR': 'Padrão comercial' }, emoji: '📦', impactScore: 5 },
+    ],
+  },
+  {
+    id: 'Q_PASTA_SAUCES',
+    category: 'menu',
+    mode: 'both',
+    dimension: 'efficiency',
+    weight: 7,
+    title: { 
+      es: '¿Cómo preparás las salsas?', 
+      'pt-BR': 'Como você prepara os molhos?' 
+    },
+    type: 'single',
+    businessTypes: ['pastas_italiana'],
+    options: [
+      { id: 'scratch', label: { es: 'Todo desde cero diario', 'pt-BR': 'Tudo do zero diário' }, emoji: '🍅', impactScore: 20 },
+      { id: 'base_prep', label: { es: 'Bases preparadas, terminamos al momento', 'pt-BR': 'Bases preparadas, terminamos na hora' }, emoji: '👍', impactScore: 15 },
+      { id: 'pre_made', label: { es: 'Pre-hechas en cocina', 'pt-BR': 'Pré-prontos na cozinha' }, emoji: '🥫', impactScore: 8 },
+      { id: 'commercial', label: { es: 'Comerciales/Industriales', 'pt-BR': 'Comerciais/Industriais' }, emoji: '📦', impactScore: 0 },
+    ],
+  },
+  {
+    id: 'Q_PASTA_SIGNATURE',
+    category: 'menu',
+    mode: 'complete',
+    dimension: 'reputation',
+    weight: 6,
+    title: { 
+      es: '¿Cuál es tu pasta más pedida?', 
+      'pt-BR': 'Qual é sua massa mais pedida?' 
+    },
+    type: 'single',
+    businessTypes: ['pastas_italiana'],
+    options: [
+      { id: 'ravioli', label: { es: 'Ravioles/Rellenas', 'pt-BR': 'Ravioli/Recheadas' }, emoji: '🥟', impactScore: 15 },
+      { id: 'tagliatelle', label: { es: 'Tallarines/Fettuccine', 'pt-BR': 'Tagliatelle/Fettuccine' }, emoji: '🍝', impactScore: 12 },
+      { id: 'spaghetti', label: { es: 'Spaghetti', 'pt-BR': 'Spaghetti' }, emoji: '🍜', impactScore: 10 },
+      { id: 'lasagna', label: { es: 'Lasagna', 'pt-BR': 'Lasanha' }, emoji: '📏', impactScore: 12 },
+      { id: 'gnocchi', label: { es: 'Ñoquis', 'pt-BR': 'Nhoque' }, emoji: '🥔', impactScore: 10 },
+    ],
+  },
+  {
+    id: 'Q_PASTA_ITALIAN_PRODUCTS',
+    category: 'operation',
+    mode: 'complete',
+    dimension: 'profitability',
+    weight: 5,
+    title: { 
+      es: '¿Usás productos importados italianos?', 
+      'pt-BR': 'Você usa produtos importados italianos?' 
+    },
+    type: 'single',
+    businessTypes: ['pastas_italiana'],
+    options: [
+      { id: 'all', label: { es: 'Sí, la mayoría', 'pt-BR': 'Sim, a maioria' }, emoji: '🇮🇹', impactScore: 18 },
+      { id: 'some', label: { es: 'Algunos clave', 'pt-BR': 'Alguns-chave' }, emoji: '✨', impactScore: 12 },
+      { id: 'local', label: { es: 'Prefiero locales de calidad', 'pt-BR': 'Prefiro locais de qualidade' }, emoji: '🏠', impactScore: 10 },
+      { id: 'no', label: { es: 'No, todo local', 'pt-BR': 'Não, tudo local' }, emoji: '📦', impactScore: 5 },
+    ],
+  },
+];
+
+// ============= COCINA ARABE/ORIENTAL QUESTIONS (4 questions - ~5%) =============
+export const COCINA_ARABE_QUESTIONS: GastroQuestion[] = [
+  {
+    id: 'Q_ARAB_SPECIALTY',
+    category: 'menu',
+    mode: 'both',
+    dimension: 'reputation',
+    weight: 9,
+    title: { 
+      es: '¿Cuál es tu especialidad principal?', 
+      'pt-BR': 'Qual é sua especialidade principal?' 
+    },
+    type: 'multi',
+    required: true,
+    businessTypes: ['cocina_arabe'],
+    options: [
+      { id: 'shawarma', label: { es: 'Shawarma/Döner', 'pt-BR': 'Shawarma/Döner' }, emoji: '🥙', impactScore: 12 },
+      { id: 'falafel', label: { es: 'Falafel', 'pt-BR': 'Falafel' }, emoji: '🧆', impactScore: 10 },
+      { id: 'kebab', label: { es: 'Kebab/Carnes a la brasa', 'pt-BR': 'Kebab/Carnes na brasa' }, emoji: '🍢', impactScore: 12 },
+      { id: 'hummus', label: { es: 'Hummus/Mezze', 'pt-BR': 'Hummus/Mezze' }, emoji: '🥗', impactScore: 10 },
+      { id: 'pastries', label: { es: 'Pastelería árabe/Baklava', 'pt-BR': 'Doces árabes/Baklava' }, emoji: '🍯', impactScore: 12 },
+      { id: 'full_menu', label: { es: 'Menú completo árabe', 'pt-BR': 'Cardápio completo árabe' }, emoji: '📋', impactScore: 15 },
+    ],
+  },
+  {
+    id: 'Q_ARAB_BREAD',
+    category: 'operation',
+    mode: 'both',
+    dimension: 'reputation',
+    weight: 8,
+    title: { 
+      es: '¿Cómo manejás el pan árabe?', 
+      'pt-BR': 'Como você trabalha o pão árabe?' 
+    },
+    type: 'single',
+    businessTypes: ['cocina_arabe'],
+    options: [
+      { id: 'own_oven', label: { es: 'Horno propio, fresco siempre', 'pt-BR': 'Forno próprio, sempre fresco' }, emoji: '🔥', impactScore: 22 },
+      { id: 'daily_supplier', label: { es: 'Proveedor diario', 'pt-BR': 'Fornecedor diário' }, emoji: '🚚', impactScore: 15 },
+      { id: 'own_some', label: { es: 'Algunos propios, algunos comprados', 'pt-BR': 'Alguns próprios, alguns comprados' }, emoji: '🔄', impactScore: 12 },
+      { id: 'commercial', label: { es: 'Comercial', 'pt-BR': 'Comercial' }, emoji: '📦', impactScore: 5 },
+    ],
+  },
+  {
+    id: 'Q_ARAB_SPICES',
+    category: 'operation',
+    mode: 'complete',
+    dimension: 'profitability',
+    weight: 6,
+    title: { 
+      es: '¿De dónde vienen tus especias?', 
+      'pt-BR': 'De onde vêm suas especiarias?' 
+    },
+    type: 'single',
+    businessTypes: ['cocina_arabe'],
+    options: [
+      { id: 'imported', label: { es: 'Importadas del Medio Oriente', 'pt-BR': 'Importadas do Oriente Médio' }, emoji: '✈️', impactScore: 18 },
+      { id: 'specialty', label: { es: 'Tiendas especializadas locales', 'pt-BR': 'Lojas especializadas locais' }, emoji: '🏪', impactScore: 12 },
+      { id: 'own_blend', label: { es: 'Mezclas propias', 'pt-BR': 'Misturas próprias' }, emoji: '✨', impactScore: 15 },
+      { id: 'standard', label: { es: 'Estándar comercial', 'pt-BR': 'Padrão comercial' }, emoji: '📦', impactScore: 5 },
+    ],
+  },
+  {
+    id: 'Q_ARAB_HALAL',
+    category: 'menu',
+    mode: 'complete',
+    dimension: 'reputation',
+    weight: 7,
+    title: { 
+      es: '¿Tu cocina es halal?', 
+      'pt-BR': 'Sua cozinha é halal?' 
+    },
+    type: 'single',
+    businessTypes: ['cocina_arabe'],
+    options: [
+      { id: 'certified', label: { es: 'Sí, certificado halal', 'pt-BR': 'Sim, certificado halal' }, emoji: '✅', impactScore: 20 },
+      { id: 'halal_meat', label: { es: 'Carnes halal, no certificado', 'pt-BR': 'Carnes halal, sem certificado' }, emoji: '🥩', impactScore: 12 },
+      { id: 'no_pork', label: { es: 'Sin cerdo ni alcohol', 'pt-BR': 'Sem porco nem álcool' }, emoji: '🚫', impactScore: 10 },
+      { id: 'no', label: { es: 'No específicamente', 'pt-BR': 'Não especificamente' }, emoji: '🍽️', impactScore: 5 },
+    ],
+  },
+];
+
 // ============= COMBINE ALL TYPE-SPECIFIC QUESTIONS =============
 export const ALL_TYPE_SPECIFIC_QUESTIONS: GastroQuestion[] = [
   ...PIZZERIA_QUESTIONS,
@@ -1132,6 +1624,13 @@ export const ALL_TYPE_SPECIFIC_QUESTIONS: GastroQuestion[] = [
   ...SERVICIO_COMIDA_QUESTIONS,
   ...COCINA_ASIATICA_QUESTIONS,
   ...COCINA_SALUDABLE_QUESTIONS,
+  // NEW: 6 missing business types
+  ...RESTAURANT_GENERAL_QUESTIONS,
+  ...BODEGON_QUESTIONS,
+  ...COCINA_CRIOLLA_QUESTIONS,
+  ...PESCADOS_MARISCOS_QUESTIONS,
+  ...PASTAS_ITALIANA_QUESTIONS,
+  ...COCINA_ARABE_QUESTIONS,
 ];
 
 // Get type-specific questions for a business type (5-10% of total questions)

@@ -310,6 +310,7 @@ const SetupPage = () => {
             answers={data.answers}
             onUpdate={(answers) => setData(d => ({ ...d, answers }))}
             onComplete={handleNext}
+            onBack={handleBack}
           />
         );
       case 'integrations':
