@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { CountryCode, COUNTRY_PACKS } from '@/lib/countryPacks';
+import { analyzeHealthFromAnswers } from '@/lib/gastroQuestionsEngine';
 
 // Setup steps
 import { SetupStepCountry } from '@/components/setup/SetupStepCountry';
@@ -548,9 +549,6 @@ interface HealthAnalysis {
 }
 
 function analyzeBusinessHealth(data: SetupData): HealthAnalysis {
-  // Use the new engine for analysis
-  const { analyzeHealthFromAnswers } = require('@/lib/gastroQuestionsEngine');
-  
   const result = analyzeHealthFromAnswers(
     data.answers,
     data.countryCode,
