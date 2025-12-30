@@ -1,4 +1,4 @@
-// Step: Questionnaire v7 - Intelligent by Country & Business Type
+// Step: Questionnaire v8 - Using new Questions Engine
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useMemo } from 'react';
 import { ChevronRight, ChevronLeft, Check, HelpCircle, Sparkles } from 'lucide-react';
@@ -11,8 +11,8 @@ import { CountryCode, COUNTRY_PACKS } from '@/lib/countryPacks';
 import { 
   getQuestionsForSetup, 
   getCategoryLabel,
-  Question 
-} from '@/lib/gastroQuestionsV7';
+  GastroQuestion as Question 
+} from '@/lib/gastroQuestionsEngine';
 
 interface SetupStepQuestionnaireProps {
   countryCode: CountryCode;
