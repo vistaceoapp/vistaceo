@@ -548,126 +548,26 @@ interface HealthAnalysis {
 }
 
 function analyzeBusinessHealth(data: SetupData): HealthAnalysis {
-  const answers = data.answers;
-  const strengths: string[] = [];
-  const weaknesses: string[] = [];
+  // Use the new engine for analysis
+  const { analyzeHealthFromAnswers } = require('@/lib/gastroQuestionsEngine');
   
-  // Market Fit: Based on Google data, channel presence, competition awareness
-  let marketFit: number | null = null;
-  if (data.googlePlaceId) {
-    marketFit = 50;
-    if (data.googleRating) {
-      marketFit += Math.min(30, data.googleRating * 6);
+  const result = analyzeHealthFromAnswers(
+    data.answers,
+    data.countryCode,
+    data.businessTypeId,
+    data.setupMode,
+    {
+      rating: data.googleRating,
+      reviewCount: data.googleReviewCount,
+      placeId: data.googlePlaceId,
     }
-    if (data.googleReviewCount && data.googleReviewCount > 50) {
-      marketFit += 10;
-      strengths.push('Buena visibilidad en Google');
-    }
-    if (data.googleReviewCount && data.googleReviewCount > 200) {
-      marketFit += 10;
-    }
-  }
-  
-  // Pricing Position: Based on ticket, price adjustments answers
-  let pricingPosition: number | null = null;
-  if (answers.avg_ticket || answers.price_adjustment) {
-    pricingPosition = 60;
-    if (answers.price_adjustment === 'monthly' || answers.price_adjustment === 'quarterly') {
-      pricingPosition += 20;
-      strengths.push('Ajuste de precios frecuente');
-    } else if (answers.price_adjustment === 'never') {
-      pricingPosition -= 20;
-      weaknesses.push('Precios estáticos sin ajuste');
-    }
-    if (answers.competitor_awareness === 'yes') {
-      pricingPosition += 10;
-    }
-  }
-  
-  // Unit Economics: Based on costs, margins, revenue info
-  let unitEconomics: number | null = null;
-  if (answers.revenue_range || answers.food_cost || answers.monthly_expenses) {
-    unitEconomics = 55;
-    if (answers.food_cost) {
-      const foodCost = parseFloat(answers.food_cost);
-      if (foodCost <= 30) {
-        unitEconomics += 20;
-        strengths.push('Buen control de food cost');
-      } else if (foodCost <= 35) {
-        unitEconomics += 10;
-      } else if (foodCost > 40) {
-        weaknesses.push('Food cost por encima del promedio');
-      }
-    }
-    if (answers.knows_margins === 'yes' || answers.knows_costs === 'yes') {
-      unitEconomics += 15;
-    } else {
-      weaknesses.push('Falta claridad en márgenes y costos');
-    }
-  }
-  
-  // Operational Flow: Based on team, capacity, service times
-  let operationalFlow: number | null = null;
-  if (answers.team_size || answers.capacity || answers.service_speed) {
-    operationalFlow = 60;
-    if (answers.service_speed === 'fast' || answers.service_speed === 'optimized') {
-      operationalFlow += 15;
-      strengths.push('Operación ágil');
-    }
-    if (answers.has_inventory_control === 'yes') {
-      operationalFlow += 10;
-    } else if (answers.has_inventory_control === 'no') {
-      weaknesses.push('Sin control de inventario');
-    }
-    if (answers.staff_turnover === 'high') {
-      operationalFlow -= 15;
-      weaknesses.push('Alta rotación de personal');
-    }
-  }
-  
-  // Demand Rhythm: Based on dayparts, peak times, reservations
-  let demandRhythm: number | null = null;
-  if (answers.dayparts || answers.peak_days || answers.reservations) {
-    demandRhythm = 60;
-    if (answers.dayparts && answers.dayparts.length >= 2) {
-      demandRhythm += 15;
-      strengths.push('Múltiples turnos activos');
-    }
-    if (answers.reservations === 'yes' || answers.accepts_reservations === 'yes') {
-      demandRhythm += 10;
-    }
-    if (answers.has_dead_hours === 'yes') {
-      demandRhythm -= 10;
-      weaknesses.push('Horarios con baja demanda');
-    }
-  }
-  
-  // Calculate total score
-  const dimensions = [marketFit, pricingPosition, unitEconomics, operationalFlow, demandRhythm];
-  const validDimensions = dimensions.filter((d): d is number => d !== null);
-  const totalScore = validDimensions.length > 0 
-    ? Math.round(validDimensions.reduce((a, b) => a + b, 0) / validDimensions.length)
-    : 50;
-  
-  // Add generic strengths/weaknesses if empty
-  if (strengths.length === 0) {
-    strengths.push('Negocio en operación');
-  }
-  if (weaknesses.length === 0 && validDimensions.length < 3) {
-    weaknesses.push('Completar más datos para diagnóstico preciso');
-  }
+  );
   
   return {
-    totalScore,
-    dimensions: {
-      market_fit: marketFit,
-      pricing_position: pricingPosition,
-      unit_economics: unitEconomics,
-      operational_flow: operationalFlow,
-      demand_rhythm: demandRhythm,
-    },
-    strengths: strengths.slice(0, 3),
-    weaknesses: weaknesses.slice(0, 3),
+    totalScore: result.totalScore,
+    dimensions: result.dimensions,
+    strengths: result.strengths,
+    weaknesses: result.weaknesses,
   };
 }
 
