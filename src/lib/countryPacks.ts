@@ -324,3 +324,88 @@ export interface MetricStatus {
   missingData?: string[];
   confidenceRange?: [number, number];
 }
+
+// ============= LOCALIZED REVENUE RANGES BY COUNTRY =============
+// Adjusted for each country's currency and typical business sizes
+
+export interface RevenueRange {
+  id: string;
+  label: { es: string; 'pt-BR': string };
+  impactScore: number;
+}
+
+export const REVENUE_RANGES: Record<CountryCode, RevenueRange[]> = {
+  AR: [
+    { id: 'tier1', label: { es: 'Menos de $2M ARS', 'pt-BR': 'Menos de $2M ARS' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$2M - $5M ARS', 'pt-BR': '$2M - $5M ARS' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$5M - $15M ARS', 'pt-BR': '$5M - $15M ARS' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $15M ARS', 'pt-BR': 'Mais de $15M ARS' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+  ],
+  MX: [
+    { id: 'tier1', label: { es: 'Menos de $100k MXN', 'pt-BR': 'Menos de $100k MXN' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$100k - $300k MXN', 'pt-BR': '$100k - $300k MXN' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$300k - $800k MXN', 'pt-BR': '$300k - $800k MXN' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $800k MXN', 'pt-BR': 'Mais de $800k MXN' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+  ],
+  CL: [
+    { id: 'tier1', label: { es: 'Menos de $5M CLP', 'pt-BR': 'Menos de $5M CLP' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$5M - $15M CLP', 'pt-BR': '$5M - $15M CLP' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$15M - $40M CLP', 'pt-BR': '$15M - $40M CLP' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $40M CLP', 'pt-BR': 'Mais de $40M CLP' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+  ],
+  CO: [
+    { id: 'tier1', label: { es: 'Menos de $20M COP', 'pt-BR': 'Menos de $20M COP' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$20M - $60M COP', 'pt-BR': '$20M - $60M COP' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$60M - $150M COP', 'pt-BR': '$60M - $150M COP' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $150M COP', 'pt-BR': 'Mais de $150M COP' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+  ],
+  BR: [
+    { id: 'tier1', label: { es: 'Menos de R$50k', 'pt-BR': 'Menos de R$50k' }, impactScore: -5 },
+    { id: 'tier2', label: { es: 'R$50k - R$150k', 'pt-BR': 'R$50k - R$150k' }, impactScore: 5 },
+    { id: 'tier3', label: { es: 'R$150k - R$500k', 'pt-BR': 'R$150k - R$500k' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Mais de R$500k', 'pt-BR': 'Mais de R$500k' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+  ],
+  UY: [
+    { id: 'tier1', label: { es: 'Menos de $200k UYU', 'pt-BR': 'Menos de $200k UYU' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$200k - $600k UYU', 'pt-BR': '$200k - $600k UYU' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$600k - $1.5M UYU', 'pt-BR': '$600k - $1.5M UYU' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $1.5M UYU', 'pt-BR': 'Mais de $1.5M UYU' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+  ],
+  CR: [
+    { id: 'tier1', label: { es: 'Menos de ₡3M', 'pt-BR': 'Menos de ₡3M' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '₡3M - ₡10M', 'pt-BR': '₡3M - ₡10M' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '₡10M - ₡25M', 'pt-BR': '₡10M - ₡25M' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de ₡25M', 'pt-BR': 'Mais de ₡25M' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+  ],
+  PA: [
+    { id: 'tier1', label: { es: 'Menos de B/.5k', 'pt-BR': 'Menos de B/.5k' }, impactScore: -5 },
+    { id: 'tier2', label: { es: 'B/.5k - B/.15k', 'pt-BR': 'B/.5k - B/.15k' }, impactScore: 5 },
+    { id: 'tier3', label: { es: 'B/.15k - B/.40k', 'pt-BR': 'B/.15k - B/.40k' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de B/.40k', 'pt-BR': 'Mais de B/.40k' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+  ],
+  US: [
+    { id: 'tier1', label: { es: 'Less than $10k USD', 'pt-BR': 'Menos de $10k USD' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$10k - $30k USD', 'pt-BR': '$10k - $30k USD' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$30k - $80k USD', 'pt-BR': '$30k - $80k USD' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'More than $80k USD', 'pt-BR': 'Mais de $80k USD' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefer not to say', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+  ],
+};
+
+export const getRevenueRanges = (countryCode: CountryCode): RevenueRange[] => {
+  return REVENUE_RANGES[countryCode] || REVENUE_RANGES.AR;
+};
+
+// Get currency label with symbol for display
+export const getCurrencyLabel = (countryCode: CountryCode): string => {
+  const pack = COUNTRY_PACKS[countryCode];
+  return `${pack.currencySymbol} (${pack.currency})`;
+};
