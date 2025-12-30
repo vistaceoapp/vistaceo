@@ -198,24 +198,48 @@ export const HealthScoreWidget = ({ subScores, previousScore }: HealthScoreWidge
           </div>
         )}
 
-        {/* CTA if low coverage */}
-        {coverage < 80 && (
-          <div className="mt-4 pt-4 border-t border-border/50">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-              <Info className="w-3 h-3" />
-              <span>Cobertura: {coverage}% • Mejorá con más datos</span>
+        {/* CTA Pro - Completar datos */}
+        <div className="mt-4 pt-4 border-t border-border/50">
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="w-full gap-3 h-auto py-4 px-5 relative overflow-hidden group
+                       bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5
+                       border-primary/20 hover:border-primary/40
+                       hover:from-primary/10 hover:via-accent/10 hover:to-primary/10
+                       transition-all duration-300"
+            onClick={() => navigate('/app/diagnostic')}
+          >
+            {/* Shimmer effect */}
+            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full 
+                            bg-gradient-to-r from-transparent via-white/10 to-transparent 
+                            transition-transform duration-700 ease-out" />
+            
+            <div className="relative flex items-center gap-3 w-full">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent 
+                              flex items-center justify-center shadow-lg shadow-primary/20
+                              group-hover:scale-110 transition-transform duration-300">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div className="flex-1 text-left">
+                <div className="font-semibold text-foreground text-sm">
+                  Completar datos...
+                </div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  Hacete Pro para conocer tu negocio en serio
+                </div>
+              </div>
+              <TrendingUp className="w-4 h-4 text-primary opacity-60 group-hover:opacity-100 transition-opacity" />
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full gap-2"
-              onClick={() => navigate('/app/more')}
-            >
-              <Sparkles className="w-4 h-4" />
-              Completar datos
-            </Button>
-          </div>
-        )}
+          </Button>
+          
+          {coverage < 100 && (
+            <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground mt-2">
+              <Info className="w-3 h-3" />
+              <span>Cobertura actual: {coverage}%</span>
+            </div>
+          )}
+        </div>
       </div>
     </GlassCard>
   );
