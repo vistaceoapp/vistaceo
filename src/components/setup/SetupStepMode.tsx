@@ -16,7 +16,8 @@ const MODES = [
     description: 'Dashboard funcional con datos básicos. Ideal para empezar ya.',
     icon: Zap,
     badge: null,
-    precision: '40-60%',
+    precision: '5-25%',
+    precisionLevel: 'baja',
   },
   {
     id: 'complete' as const,
@@ -25,7 +26,8 @@ const MODES = [
     description: 'Dashboard preciso con análisis completo y recomendaciones personalizadas.',
     icon: Target,
     badge: 'Recomendado',
-    precision: '80-100%',
+    precision: '25-65%',
+    precisionLevel: 'media',
   },
 ];
 
@@ -83,7 +85,8 @@ export const SetupStepMode = ({ value, onChange }: SetupStepModeProps) => {
                   <div className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-warning" />
                     <span className="text-sm font-medium text-foreground">
-                      Precisión esperada: <span className="text-primary">{mode.precision}</span>
+                      Precisión inicial: <span className={mode.precisionLevel === 'baja' ? 'text-warning' : 'text-primary'}>{mode.precision}</span>
+                      <span className="text-muted-foreground ml-1">({mode.precisionLevel})</span>
                     </span>
                   </div>
                 </div>
@@ -101,6 +104,15 @@ export const SetupStepMode = ({ value, onChange }: SetupStepModeProps) => {
             </motion.button>
           );
         })}
+      </div>
+
+      {/* Motivational message */}
+      <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
+        <p className="text-sm text-center text-muted-foreground">
+          <span className="font-medium text-foreground">¿Solo 25-65%?</span> No te preocupes. 
+          Una vez dentro del sistema, trabajaremos juntos para llevar la precisión de tu negocio al{' '}
+          <span className="font-bold text-primary">99%</span>.
+        </p>
       </div>
     </div>
   );
