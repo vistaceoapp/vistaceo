@@ -452,45 +452,69 @@ export const BusinessHealthAnalytics = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Score Display */}
-            <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-br from-card to-secondary/20 border border-border">
-              <div className={cn(
-                "text-7xl font-bold mb-2",
-                scoreInfo.color
-              )}>
-                {latestSnapshot.total_score}
-              </div>
-              <Badge className={cn("text-sm", scoreInfo.bgColor, scoreInfo.color)}>
-                {scoreInfo.label}
-              </Badge>
-              <p className="text-sm text-muted-foreground mt-3 text-center">
+            {/* Score Display - Same style as Dashboard HealthScoreWidget */}
+            <div className="flex flex-col items-center justify-center">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => {
+                        const prompt = `Explicame por qué mi Salud de Negocio está en ${latestSnapshot.total_score} y qué puedo hacer para mejorarlo`;
+                        navigate(`/app/chat?prompt=${encodeURIComponent(prompt)}`);
+                      }}
+                      className={cn(
+                        'flex flex-col items-center justify-center p-6 rounded-2xl transition-all cursor-pointer',
+                        'hover:scale-105 active:scale-95',
+                        'ring-2 ring-offset-2 ring-offset-background',
+                        scoreInfo.bgColor,
+                        scoreInfo.borderColor?.replace('border-', 'ring-') || 'ring-primary/30'
+                      )}
+                    >
+                      <div className="flex items-baseline gap-1">
+                        <span className={cn('text-5xl font-bold', scoreInfo.color)}>
+                          {latestSnapshot.total_score}
+                        </span>
+                        {previousSnapshot && (
+                          <span className="flex items-center ml-1">
+                            {latestSnapshot.total_score > previousSnapshot.total_score ? (
+                              <TrendingUp className="w-5 h-5 text-success" />
+                            ) : latestSnapshot.total_score < previousSnapshot.total_score ? (
+                              <TrendingDown className="w-5 h-5 text-destructive" />
+                            ) : (
+                              <Minus className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </span>
+                        )}
+                      </div>
+                      <Badge variant="outline" className={cn('mt-2 text-sm', scoreInfo.color)}>
+                        {scoreInfo.label}
+                      </Badge>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p className="text-xs">Tocá para ver análisis completo</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <p className="text-sm text-muted-foreground mt-4 text-center max-w-[200px]">
                 {scoreInfo.description}
               </p>
               
-              {/* Trend indicator */}
+              {/* Trend details */}
               {previousSnapshot && (
-                <div className="flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full bg-background/50">
+                <div className="flex items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-secondary/50">
                   {latestSnapshot.total_score > previousSnapshot.total_score ? (
-                    <>
-                      <TrendingUp className="w-4 h-4 text-success" />
-                      <span className="text-sm text-success font-medium">
-                        +{latestSnapshot.total_score - previousSnapshot.total_score} pts
-                      </span>
-                    </>
+                    <span className="text-xs text-success font-medium">
+                      +{latestSnapshot.total_score - previousSnapshot.total_score} pts vs anterior
+                    </span>
                   ) : latestSnapshot.total_score < previousSnapshot.total_score ? (
-                    <>
-                      <TrendingDown className="w-4 h-4 text-destructive" />
-                      <span className="text-sm text-destructive font-medium">
-                        {latestSnapshot.total_score - previousSnapshot.total_score} pts
-                      </span>
-                    </>
+                    <span className="text-xs text-destructive font-medium">
+                      {latestSnapshot.total_score - previousSnapshot.total_score} pts vs anterior
+                    </span>
                   ) : (
-                    <>
-                      <Minus className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Sin cambios</span>
-                    </>
+                    <span className="text-xs text-muted-foreground">Sin cambios vs anterior</span>
                   )}
-                  <span className="text-xs text-muted-foreground">vs anterior</span>
                 </div>
               )}
             </div>
