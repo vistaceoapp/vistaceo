@@ -236,12 +236,12 @@ const SetupPage = () => {
       
       setCreateProgress(100);
 
-      // Set as current business and navigate
+      // Set as current business and navigate to celebration page
       setCurrentBusiness(business);
       await refreshBusinesses();
       
       toast.success(lang === 'pt' ? 'Negócio criado com sucesso!' : '¡Tu negocio está listo!');
-      navigate('/app?open_widget=health');
+      navigate('/setup-complete', { replace: true });
     } catch (error) {
       console.error('Error creating business:', error);
       toast.error(lang === 'pt' ? 'Erro ao criar negócio' : 'Error al crear el negocio');
