@@ -1,9 +1,10 @@
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
-import { BusinessHealthDashboard } from "@/components/app/BusinessHealthDashboard";
+import { BusinessHealthAnalytics } from "@/components/analytics/BusinessHealthAnalytics";
 import { EvolutionPanel } from "@/components/app/EvolutionPanel";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { BarChart3, Stethoscope, TrendingUp } from "lucide-react";
+import { BarChart3, Stethoscope, TrendingUp, Sparkles } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 const AnalyticsPage = () => {
   const isMobile = useIsMobile();
@@ -11,13 +12,21 @@ const AnalyticsPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
-          <BarChart3 className="w-6 h-6 text-primary-foreground" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
-          <p className="text-muted-foreground">Diagnóstico, evolución y métricas</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
+            <BarChart3 className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+              <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground text-[10px] px-2 py-0.5">
+                <Sparkles className="w-3 h-3 mr-1" />
+                Pro
+              </Badge>
+            </div>
+            <p className="text-muted-foreground">Diagnóstico, evolución y métricas</p>
+          </div>
         </div>
       </div>
 
@@ -38,9 +47,9 @@ const AnalyticsPage = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab: Diagnóstico */}
+        {/* Tab: Diagnóstico - Full Business Health Analysis */}
         <TabsContent value="diagnostico" className="space-y-6">
-          <BusinessHealthDashboard />
+          <BusinessHealthAnalytics />
         </TabsContent>
 
         {/* Tab: Evolución */}
