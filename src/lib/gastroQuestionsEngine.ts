@@ -1,8 +1,10 @@
-// Gastronomy Questions Engine v8 - Complete 70+ Questions with Health Impact Scores
-// This file consolidates ALL gastro questions with proper impact scoring for health dimensions
+// Gastronomy Questions Engine v9 - Ultra-Intelligent Question Filtering
+// Complete 70+ Questions with Health Impact Scores
+// Now with smart business type filtering - never ask irrelevant questions
 
 import { CountryCode, COUNTRY_PACKS } from './countryPacks';
 import { getTypeSpecificQuestions } from './businessTypeQuestions';
+import { shouldShowQuestion, filterQuestionOptions } from './businessTypeQuestionRules';
 
 // ============= TYPES =============
 
@@ -1137,15 +1139,37 @@ export function getQuestionsForSetup(
   businessTypeId: string,
   setupMode: 'quick' | 'complete'
 ): GastroQuestion[] {
-  // Get base questions
+  // Get base questions with intelligent filtering
   const baseQuestions = ALL_GASTRO_QUESTIONS.filter(q => {
+    // Filter by mode
     if (q.mode !== 'both' && q.mode !== setupMode) return false;
+    
+    // Filter by country
     if (q.countries && !q.countries.includes(countryCode)) return false;
+    
+    // Filter by business type if specified on question
     if (q.businessTypes && !q.businessTypes.includes(businessTypeId)) return false;
-    if (q.options) {
-      q.options = q.options.filter(opt => !opt.countries || opt.countries.includes(countryCode));
+    
+    // ULTRA-INTELLIGENT FILTERING: Use business type rules
+    // This is where we check if a dark kitchen should see "seating capacity" questions
+    if (!shouldShowQuestion(q, businessTypeId)) {
+      return false;
     }
+    
     return true;
+  }).map(q => {
+    // Filter options by country
+    let filteredQuestion = { ...q };
+    if (q.options) {
+      filteredQuestion.options = q.options.filter(opt => 
+        !opt.countries || opt.countries.includes(countryCode)
+      );
+    }
+    
+    // Apply smart option filtering based on business type
+    filteredQuestion = filterQuestionOptions(filteredQuestion, businessTypeId);
+    
+    return filteredQuestion;
   });
 
   // Get type-specific questions (5-10% super-focused)
