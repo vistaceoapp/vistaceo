@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { HEALTH_SUB_SCORES } from '@/lib/dashboardCards';
-import { calculatePrecisionScore, getTotalQuestionsForBusiness, type SetupMode } from '@/lib/gastroQuestionsComplete';
 
 interface DashboardData {
   // Available data keys for card state calculation
   availableData: string[];
 
-  // Health sub-scores
+  // Health sub-scores (from AI analysis)
   subScores: Record<string, number | null>;
 
-  // Actual total score from snapshot (authoritative)
+  // Total score from snapshot (calculated by AI - authoritative)
   snapshotScore: number | null;
+
+  // Certainty percentage from AI analysis
+  certaintyPct: number;
 
   // Previous health score for trend
   previousScore: number | null;
@@ -31,15 +33,17 @@ interface DashboardData {
   setupCompleted: boolean;
   precisionScore: number;
 
-  // Real precision based on answered questions
-  realPrecision: {
-    answered: number;
-    total: number;
+  // Data completeness for certainty calculation
+  dataCompleteness: {
+    hasGoogle: boolean;
+    hasBrain: boolean;
+    integrationsCount: number;
+    signalsCount: number;
+    answersCount: number;
     percentage: number;
-    level: 'Básica' | 'Media' | 'Alta';
   };
 
-  // Gastro data for precision calculation
+  // Gastro data for reference
   gastroData: Record<string, any>;
 }
 
@@ -58,15 +62,18 @@ export const useDashboardData = () => {
     availableData: [],
     subScores: {},
     snapshotScore: null,
+    certaintyPct: 0,
     previousScore: null,
     cardValues: {},
     setupCompleted: false,
     precisionScore: 0,
-    realPrecision: {
-      answered: 0,
-      total: 0,
+    dataCompleteness: {
+      hasGoogle: false,
+      hasBrain: false,
+      integrationsCount: 0,
+      signalsCount: 0,
+      answersCount: 0,
       percentage: 0,
-      level: 'Básica',
     },
     gastroData: {},
   });
