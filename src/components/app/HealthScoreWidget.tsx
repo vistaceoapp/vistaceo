@@ -108,8 +108,8 @@ export const HealthScoreWidget = ({
 
   return (
     <GlassCard className="p-0 overflow-hidden animate-fade-in">
-      {/* Color stripe based on score - using centralized style */}
-      <div className={cn('h-1.5', scoreStyle.bgColor)} />
+      {/* Color stripe based on score - using solid color */}
+      <div className={cn('h-1.5', scoreStyle.bgColorSolid)} />
 
       <div className="p-5">
         {/* Header */}
