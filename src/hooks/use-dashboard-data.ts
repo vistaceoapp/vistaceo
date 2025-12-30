@@ -201,25 +201,26 @@ export const useDashboardData = () => {
           }
         });
 
-        // Calculate percentage with MINIMUM BASE VALUES based on setup type
-        // Quick setup = minimum 8%, Pro setup = minimum 42%
+        // Calculate percentage with ranges that match setup step:
+        // Quick setup: 5-25% range
+        // Complete setup: 25-65% range
         const effectiveTotal = Math.max(totalQuestions, 20); // At least 20 questions expected
         let rawPercentage = calculatePrecisionScore(answeredCount, effectiveTotal);
         
-        // Apply minimum base values based on setup completion
+        // Apply ranges based on setup type (matching SetupStepMode.tsx)
         let precisionPercentage: number;
         if (setupRes.data?.completed_at) {
           // User completed setup
           if (isProSetup) {
-            // Pro setup: minimum 42%, scales up to 85% based on answers
-            precisionPercentage = Math.max(42, Math.min(85, 42 + rawPercentage * 0.43));
+            // Complete setup: 25-65% range, scales based on answers
+            precisionPercentage = Math.max(25, Math.min(65, 25 + rawPercentage * 0.40));
           } else {
-            // Quick setup: minimum 8%, scales up to 35% based on answers
-            precisionPercentage = Math.max(8, Math.min(35, 8 + rawPercentage * 0.27));
+            // Quick setup: 5-25% range, scales based on answers
+            precisionPercentage = Math.max(5, Math.min(25, 5 + rawPercentage * 0.20));
           }
         } else {
-          // No setup completed yet
-          precisionPercentage = Math.max(3, rawPercentage * 0.3);
+          // No setup completed yet - very low precision
+          precisionPercentage = Math.max(3, rawPercentage * 0.15);
         }
         
         precisionPercentage = Math.round(precisionPercentage);

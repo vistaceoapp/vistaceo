@@ -36,9 +36,10 @@ interface HealthScoreWidgetProps {
   precisionPct?: number;
 }
 
+// Adjusted thresholds to match setup ranges (quick: 5-25%, complete: 25-65%)
 const getCertaintyLabel = (pct: number) => {
-  if (pct >= 80) return { label: 'Alta', color: 'text-success', bg: 'bg-success/10', icon: CheckCircle2 };
-  if (pct >= 50) return { label: 'Media', color: 'text-amber-500', bg: 'bg-amber-500/10', icon: AlertTriangle };
+  if (pct >= 50) return { label: 'Alta', color: 'text-success', bg: 'bg-success/10', icon: CheckCircle2 };
+  if (pct >= 25) return { label: 'Media', color: 'text-amber-500', bg: 'bg-amber-500/10', icon: AlertTriangle };
   return { label: 'Baja', color: 'text-destructive', bg: 'bg-destructive/10', icon: AlertTriangle };
 };
 
@@ -113,11 +114,11 @@ export const HealthScoreWidget = ({
                       certainty.bg,
                       certainty.color,
                       'border',
-                      certaintyPct >= 80
-                        ? 'border-success/30'
-                        : certaintyPct >= 50
-                        ? 'border-amber-500/30'
-                        : 'border-destructive/30'
+                        certaintyPct >= 50
+                          ? 'border-success/30'
+                          : certaintyPct >= 25
+                          ? 'border-amber-500/30'
+                          : 'border-destructive/30'
                     )}
                   >
                     <CertaintyIcon className="w-3 h-3" />
@@ -129,7 +130,7 @@ export const HealthScoreWidget = ({
                     Nivel de certeza: {certainty.label}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
-                    {certaintyPct < 80
+                    {certaintyPct < 50
                       ? 'Respondé más preguntas para un análisis más preciso'
                       : 'Tenés datos suficientes para un análisis confiable'}
                   </p>
@@ -137,7 +138,7 @@ export const HealthScoreWidget = ({
               </Tooltip>
             </TooltipProvider>
 
-            {isEstimated && certaintyPct < 50 && (
+            {isEstimated && certaintyPct < 25 && (
               <Badge
                 variant="outline"
                 className="text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/30"
@@ -304,10 +305,10 @@ export const HealthScoreWidget = ({
               </div>
               <div className="flex-1 text-left">
                 <div className="font-semibold text-foreground text-sm">
-                  {certaintyPct < 80 ? 'Completar datos...' : 'Ver diagnóstico completo'}
+                  {certaintyPct < 50 ? 'Completar datos...' : 'Ver diagnóstico completo'}
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  {certaintyPct < 80
+                  {certaintyPct < 50
                     ? 'Aumentá la certeza para recomendaciones más precisas'
                     : 'Explorá oportunidades y riesgos de tu negocio'}
                 </div>
@@ -324,7 +325,7 @@ export const HealthScoreWidget = ({
               Camino a certeza máxima
             </span>
             <span className={cn('font-medium', certainty.color)}>
-              {certaintyPct}% → 99%
+              {certaintyPct}% → 100%
             </span>
           </div>
           <div className="relative h-2 bg-muted rounded-full overflow-hidden">
@@ -337,9 +338,9 @@ export const HealthScoreWidget = ({
             <div
               className={cn(
                 'absolute inset-y-0 left-0 rounded-full transition-all duration-500',
-                certaintyPct >= 80
+                certaintyPct >= 50
                   ? 'bg-success'
-                  : certaintyPct >= 50
+                  : certaintyPct >= 25
                   ? 'bg-amber-500'
                   : 'bg-primary'
               )}
@@ -354,13 +355,13 @@ export const HealthScoreWidget = ({
           </div>
           {/* Encouraging message */}
           <p className="text-[10px] text-muted-foreground text-center italic">
-            {certaintyPct < 30
+            {certaintyPct < 15
               ? '¡Buen comienzo! Cada dato que agregues mejora las recomendaciones'
-              : certaintyPct < 50
+              : certaintyPct < 25
               ? '¡Vas muy bien! Seguí completando para análisis más precisos'
-              : certaintyPct < 70
+              : certaintyPct < 40
               ? '¡Excelente progreso! Ya podemos darte insights valiosos'
-              : certaintyPct < 85
+              : certaintyPct < 55
               ? '¡Casi llegás! Pocos datos más para máxima precisión'
               : '¡Nivel experto! Tus recomendaciones son altamente personalizadas'}
           </p>
