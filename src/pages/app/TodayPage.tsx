@@ -20,7 +20,7 @@ import { TellMeMoreCard } from "@/components/app/TellMeMoreCard";
 import { KnowledgeByAreaCard } from "@/components/app/KnowledgeByAreaCard";
 import { FocusCard } from "@/components/app/FocusCard";
 import { ActionsListPanel } from "@/components/app/ActionsListPanel";
-import { BusinessHealthDashboard } from "@/components/app/BusinessHealthDashboard";
+// BusinessHealthDashboard removed - using HealthScoreWidget instead
 // SetupWizard removed - setup is now handled via /setup route
 import { DashboardCardsGrid } from "@/components/app/DashboardCardsGrid";
 import { HealthScoreWidget } from "@/components/app/HealthScoreWidget";
