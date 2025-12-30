@@ -201,21 +201,28 @@ const SetupPage = () => {
       // Step 4: Calculate real health score based on questionnaire answers
       const healthAnalysis = analyzeBusinessHealth(data);
       
+      // Store the 7 canonical dimensions directly
       await supabase.from('snapshots').insert({
         business_id: business.id,
         source: 'setup_baseline',
         total_score: healthAnalysis.totalScore,
         dimensions_json: {
-          market_fit: healthAnalysis.dimensions.market_fit,
-          pricing_position: healthAnalysis.dimensions.pricing_position,
-          unit_economics: healthAnalysis.dimensions.unit_economics,
-          operational_flow: healthAnalysis.dimensions.operational_flow,
-          demand_rhythm: healthAnalysis.dimensions.demand_rhythm,
-          data_quality: precisionScore,
-          setup_mode: data.setupMode,
-          google_connected: !!data.googlePlaceId,
-          questions_answered: Object.keys(data.answers).length,
-          integrations_profiled: Object.values(data.integrationsProfiled).flat().length,
+          // 7 canonical dimensions
+          reputation: healthAnalysis.dimensions.reputation,
+          profitability: healthAnalysis.dimensions.profitability,
+          finances: healthAnalysis.dimensions.finances,
+          efficiency: healthAnalysis.dimensions.efficiency,
+          traffic: healthAnalysis.dimensions.traffic,
+          team: healthAnalysis.dimensions.team,
+          growth: healthAnalysis.dimensions.growth,
+          // Metadata (separate from dimension scores)
+          _meta: {
+            data_quality: precisionScore,
+            setup_mode: data.setupMode,
+            google_connected: !!data.googlePlaceId,
+            questions_answered: Object.keys(data.answers).length,
+            integrations_profiled: Object.values(data.integrationsProfiled).flat().length,
+          },
         },
         strengths: healthAnalysis.strengths,
         weaknesses: healthAnalysis.weaknesses,
