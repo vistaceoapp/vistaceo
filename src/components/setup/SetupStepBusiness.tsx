@@ -33,12 +33,10 @@ interface SetupStepBusinessProps {
 }
 
 interface PlacePrediction {
-  place_id: string;
+  placeId: string;
   description: string;
-  structured_formatting?: {
-    main_text: string;
-    secondary_text?: string;
-  };
+  mainText: string;
+  secondaryText?: string;
 }
 
 export const SetupStepBusiness = ({ 
@@ -108,7 +106,7 @@ export const SetupStepBusiness = ({
     try {
       const { data, error } = await supabase.functions.invoke('google-place-details', {
         body: {
-          placeId: prediction.place_id,
+          placeId: prediction.placeId,
           sessionToken: sessionTokenRef.current,
         },
       });
@@ -116,8 +114,8 @@ export const SetupStepBusiness = ({
       if (!error && data?.place) {
         const place = data.place;
         const placeData: GooglePlaceData = {
-          placeId: prediction.place_id,
-          name: place.displayName?.text || place.name || prediction.structured_formatting?.main_text || '',
+          placeId: prediction.placeId,
+          name: place.displayName?.text || place.name || prediction.mainText || '',
           address: place.formattedAddress || place.address,
           rating: place.rating,
           reviewCount: place.userRatingCount || place.reviewCount,
@@ -275,16 +273,16 @@ export const SetupStepBusiness = ({
             >
               {suggestions.map((suggestion) => (
                 <button
-                  key={suggestion.place_id}
+                  key={suggestion.placeId}
                   onClick={() => handleSelectPlace(suggestion)}
                   className="w-full p-4 text-left hover:bg-secondary/50 transition-colors border-b border-border last:border-0"
                 >
                   <p className="font-medium text-foreground">
-                    {suggestion.structured_formatting?.main_text || suggestion.description}
+                    {suggestion.mainText || suggestion.description}
                   </p>
-                  {suggestion.structured_formatting?.secondary_text && (
+                  {suggestion.secondaryText && (
                     <p className="text-sm text-muted-foreground mt-0.5">
-                      {suggestion.structured_formatting.secondary_text}
+                      {suggestion.secondaryText}
                     </p>
                   )}
                 </button>
