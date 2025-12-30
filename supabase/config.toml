@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.google-nearby-competitors]
 verify_jwt = false
+
+[functions.analyze-health-score]
+verify_jwt = false

@@ -183,7 +183,7 @@ const SetupPage = () => {
       };
 
       await supabase.from('business_brains').insert(brainData);
-      setCreateProgress(60);
+      setCreateProgress(50);
 
       // Step 3: Create setup progress record
       await supabase.from('business_setup_progress').insert({
@@ -196,37 +196,44 @@ const SetupPage = () => {
         },
         completed_at: new Date().toISOString(),
       });
-      setCreateProgress(80);
+      setCreateProgress(65);
 
-      // Step 4: Calculate real health score based on questionnaire answers
-      const healthAnalysis = analyzeBusinessHealth(data);
-      
-      // Store the 7 canonical dimensions directly
-      await supabase.from('snapshots').insert({
-        business_id: business.id,
-        source: 'setup_baseline',
-        total_score: healthAnalysis.totalScore,
-        dimensions_json: {
-          // 7 canonical dimensions
-          reputation: healthAnalysis.dimensions.reputation,
-          profitability: healthAnalysis.dimensions.profitability,
-          finances: healthAnalysis.dimensions.finances,
-          efficiency: healthAnalysis.dimensions.efficiency,
-          traffic: healthAnalysis.dimensions.traffic,
-          team: healthAnalysis.dimensions.team,
-          growth: healthAnalysis.dimensions.growth,
-          // Metadata (separate from dimension scores)
-          _meta: {
-            data_quality: precisionScore,
-            setup_mode: data.setupMode,
-            google_connected: !!data.googlePlaceId,
-            questions_answered: Object.keys(data.answers).length,
-            integrations_profiled: Object.values(data.integrationsProfiled).flat().length,
+      // Step 4: Use AI to calculate intelligent health score
+      try {
+        const { data: aiAnalysis, error: aiError } = await supabase.functions.invoke('analyze-health-score', {
+          body: {
+            businessId: business.id,
+            setupData: {
+              businessName: data.businessName,
+              countryCode: data.countryCode,
+              businessTypeId: data.businessTypeId,
+              businessTypeLabel: data.businessTypeLabel,
+              setupMode: data.setupMode,
+              answers: data.answers,
+              integrationsProfiled: data.integrationsProfiled,
+              googleAddress: data.googleAddress,
+            },
+            googleData: {
+              placeId: data.googlePlaceId,
+              rating: data.googleRating,
+              reviewCount: data.googleReviewCount,
+            },
           },
-        },
-        strengths: healthAnalysis.strengths,
-        weaknesses: healthAnalysis.weaknesses,
-      });
+        });
+        
+        if (aiError) {
+          console.warn('AI analysis failed, using fallback:', aiError);
+          // Fallback to local calculation
+          await createFallbackSnapshot(business.id, data, precisionScore);
+        } else {
+          console.log('AI health analysis complete:', aiAnalysis);
+        }
+      } catch (aiErr) {
+        console.warn('AI analysis error, using fallback:', aiErr);
+        // Fallback to local calculation
+        await createFallbackSnapshot(business.id, data, precisionScore);
+      }
+      
       setCreateProgress(100);
 
       // Set as current business and navigate
@@ -568,6 +575,35 @@ function analyzeBusinessHealth(data: SetupData): HealthAnalysis {
     strengths: result.strengths,
     weaknesses: result.weaknesses,
   };
+}
+
+async function createFallbackSnapshot(businessId: string, data: SetupData, precisionScore: number) {
+  const healthAnalysis = analyzeBusinessHealth(data);
+  
+  await supabase.from('snapshots').insert({
+    business_id: businessId,
+    source: 'setup_baseline',
+    total_score: healthAnalysis.totalScore,
+    dimensions_json: {
+      reputation: healthAnalysis.dimensions.reputation,
+      profitability: healthAnalysis.dimensions.profitability,
+      finances: healthAnalysis.dimensions.finances,
+      efficiency: healthAnalysis.dimensions.efficiency,
+      traffic: healthAnalysis.dimensions.traffic,
+      team: healthAnalysis.dimensions.team,
+      growth: healthAnalysis.dimensions.growth,
+      _meta: {
+        data_quality: precisionScore,
+        setup_mode: data.setupMode,
+        google_connected: !!data.googlePlaceId,
+        questions_answered: Object.keys(data.answers).length,
+        integrations_profiled: Object.values(data.integrationsProfiled).flat().length,
+        fallback: true,
+      },
+    },
+    strengths: healthAnalysis.strengths,
+    weaknesses: healthAnalysis.weaknesses,
+  });
 }
 
 export default SetupPage;
