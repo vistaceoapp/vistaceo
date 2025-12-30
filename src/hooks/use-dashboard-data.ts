@@ -128,6 +128,7 @@ export const useDashboardData = () => {
 
         // Calculate REAL precision based on answered gastro questions
         const setupMode: SetupMode = setupData.mode === 'complete' ? 'full' : 'quick';
+        const isProSetup = setupMode === 'full';
 
         // Combine all data sources for precision calculation
         const allAnsweredData: Record<string, any> = {
@@ -200,9 +201,28 @@ export const useDashboardData = () => {
           }
         });
 
-        // Calculate percentage (minimum of answered/total or based on totalQuestions)
+        // Calculate percentage with MINIMUM BASE VALUES based on setup type
+        // Quick setup = minimum 8%, Pro setup = minimum 42%
         const effectiveTotal = Math.max(totalQuestions, 20); // At least 20 questions expected
-        const precisionPercentage = calculatePrecisionScore(answeredCount, effectiveTotal);
+        let rawPercentage = calculatePrecisionScore(answeredCount, effectiveTotal);
+        
+        // Apply minimum base values based on setup completion
+        let precisionPercentage: number;
+        if (setupRes.data?.completed_at) {
+          // User completed setup
+          if (isProSetup) {
+            // Pro setup: minimum 42%, scales up to 85% based on answers
+            precisionPercentage = Math.max(42, Math.min(85, 42 + rawPercentage * 0.43));
+          } else {
+            // Quick setup: minimum 8%, scales up to 35% based on answers
+            precisionPercentage = Math.max(8, Math.min(35, 8 + rawPercentage * 0.27));
+          }
+        } else {
+          // No setup completed yet
+          precisionPercentage = Math.max(3, rawPercentage * 0.3);
+        }
+        
+        precisionPercentage = Math.round(precisionPercentage);
 
         // Determine precision level
         let precisionLevel: 'Básica' | 'Media' | 'Alta' = 'Básica';
