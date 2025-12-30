@@ -316,33 +316,55 @@ export const HealthScoreWidget = ({
             </div>
           </Button>
 
-          {/* Progress bar for certainty */}
-          {certaintyPct < 100 && (
-            <div className="mt-3 space-y-1.5">
-              <div className="flex items-center justify-between text-[10px]">
-                <span className="text-muted-foreground flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" />
-                  Nivel de certeza
-                </span>
-                <span className={cn('font-medium', certainty.color)}>
-                  {certainty.label} ({certaintyPct}%)
-                </span>
-              </div>
-              <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
-                <div
-                  className={cn(
-                    'absolute inset-y-0 left-0 rounded-full transition-all duration-500',
-                    certaintyPct >= 80
-                      ? 'bg-success'
-                      : certaintyPct >= 50
-                      ? 'bg-amber-500'
-                      : 'bg-destructive'
-                  )}
-                  style={{ width: `${certaintyPct}%` }}
-                />
-              </div>
+        {/* Progress bar for certainty with journey message */}
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center justify-between text-[10px]">
+            <span className="text-muted-foreground flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3" />
+              Camino a certeza máxima
+            </span>
+            <span className={cn('font-medium', certainty.color)}>
+              {certaintyPct}% → 99%
+            </span>
+          </div>
+          <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+            {/* Target zone indicator */}
+            <div 
+              className="absolute inset-y-0 right-0 w-[15%] bg-success/20 rounded-r-full"
+              style={{ left: '85%' }}
+            />
+            {/* Current progress */}
+            <div
+              className={cn(
+                'absolute inset-y-0 left-0 rounded-full transition-all duration-500',
+                certaintyPct >= 80
+                  ? 'bg-success'
+                  : certaintyPct >= 50
+                  ? 'bg-amber-500'
+                  : 'bg-primary'
+              )}
+              style={{ width: `${certaintyPct}%` }}
+            />
+            {/* Milestone markers */}
+            <div className="absolute inset-0 flex items-center justify-between px-1">
+              <div className="w-0.5 h-1 bg-background/50 rounded-full" style={{ marginLeft: '25%' }} />
+              <div className="w-0.5 h-1 bg-background/50 rounded-full" style={{ marginLeft: '25%' }} />
+              <div className="w-0.5 h-1 bg-background/50 rounded-full" style={{ marginLeft: '25%' }} />
             </div>
-          )}
+          </div>
+          {/* Encouraging message */}
+          <p className="text-[10px] text-muted-foreground text-center italic">
+            {certaintyPct < 30
+              ? '¡Buen comienzo! Cada dato que agregues mejora las recomendaciones'
+              : certaintyPct < 50
+              ? '¡Vas muy bien! Seguí completando para análisis más precisos'
+              : certaintyPct < 70
+              ? '¡Excelente progreso! Ya podemos darte insights valiosos'
+              : certaintyPct < 85
+              ? '¡Casi llegás! Pocos datos más para máxima precisión'
+              : '¡Nivel experto! Tus recomendaciones son altamente personalizadas'}
+          </p>
+        </div>
         </div>
       </div>
     </GlassCard>
