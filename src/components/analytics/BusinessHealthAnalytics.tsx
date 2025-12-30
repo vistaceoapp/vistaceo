@@ -66,12 +66,57 @@ interface Snapshot {
   source: string;
 }
 
+// Map backend dimension keys to Spanish UI labels
 const DIMENSION_CONFIG: Record<string, { 
   label: string; 
   icon: string; 
   description: string;
   tips: string[];
 }> = {
+  // Backend keys from analyze-health-score
+  reputation: { 
+    label: "Reputación", 
+    icon: "⭐",
+    description: "Reviews, ratings y percepción de marca online",
+    tips: ["Responder reviews", "Solicitar feedback", "Mejorar presencia online"]
+  },
+  profitability: { 
+    label: "Rentabilidad", 
+    icon: "💰",
+    description: "Márgenes, food cost y rentabilidad por producto",
+    tips: ["Revisar food cost", "Optimizar pricing", "Ingeniería de menú"]
+  },
+  finances: { 
+    label: "Finanzas", 
+    icon: "📊",
+    description: "Control de costos, flujo de caja y gestión financiera",
+    tips: ["Control de gastos", "Negociar proveedores", "Proyección de ventas"]
+  },
+  efficiency: { 
+    label: "Eficiencia", 
+    icon: "⚙️",
+    description: "Operación, tiempos de servicio y gestión de recursos",
+    tips: ["Reducir tiempos", "Optimizar procesos", "Control de mermas"]
+  },
+  traffic: { 
+    label: "Tráfico", 
+    icon: "👥",
+    description: "Flujo de clientes, canales y horarios pico",
+    tips: ["Diversificar canales", "Promociones en horas valle", "Fidelización"]
+  },
+  team: { 
+    label: "Equipo", 
+    icon: "🤝",
+    description: "Personal, productividad y gestión del equipo",
+    tips: ["Capacitaciones", "Incentivos", "Mejora clima laboral"]
+  },
+  growth: { 
+    label: "Crecimiento", 
+    icon: "📈",
+    description: "Oportunidades de expansión y desarrollo",
+    tips: ["Nuevos productos", "Expansión geográfica", "Alianzas"]
+  },
+  // Legacy Spanish keys for backwards compatibility
   ventas: { 
     label: "Ventas", 
     icon: "💰",
@@ -96,17 +141,17 @@ const DIMENSION_CONFIG: Record<string, {
     description: "Visibilidad, redes sociales y campañas promocionales",
     tips: ["Publicar contenido regular", "Promociones segmentadas", "Colaboraciones locales"]
   },
-  finanzas: { 
-    label: "Finanzas", 
-    icon: "📊",
-    description: "Márgenes, costos y rentabilidad general",
-    tips: ["Revisar food cost", "Negociar proveedores", "Optimizar pricing"]
-  },
   clientes: { 
     label: "Clientes", 
     icon: "👥",
     description: "Satisfacción, fidelización y segmentación",
     tips: ["Programa de fidelidad", "Personalizar experiencia", "Encuestas de satisfacción"]
+  },
+  finanzas: { 
+    label: "Finanzas", 
+    icon: "📊",
+    description: "Márgenes, costos y rentabilidad general",
+    tips: ["Revisar food cost", "Negociar proveedores", "Optimizar pricing"]
   },
   equipo: { 
     label: "Equipo", 
@@ -205,49 +250,63 @@ export const BusinessHealthAnalytics = () => {
     setGenerating(true);
 
     try {
-      await supabase.functions.invoke("analyze-patterns", {
-        body: { businessId: currentBusiness.id, generateDiagnostic: true }
-      });
+      // Fetch setup data and brain for real analysis
+      const [setupRes, brainRes, integrationsRes] = await Promise.all([
+        supabase
+          .from("business_setup_progress")
+          .select("*")
+          .eq("business_id", currentBusiness.id)
+          .single(),
+        supabase
+          .from("business_brains")
+          .select("*")
+          .eq("business_id", currentBusiness.id)
+          .single(),
+        supabase
+          .from("business_integrations")
+          .select("*")
+          .eq("business_id", currentBusiness.id)
+          .eq("status", "active"),
+      ]);
 
-      const dimensions: Record<string, number> = {
-        ventas: Math.floor(Math.random() * 30) + 50,
-        operaciones: Math.floor(Math.random() * 30) + 45,
-        reputacion: Math.floor(Math.random() * 25) + 55,
-        marketing: Math.floor(Math.random() * 35) + 35,
-        clientes: Math.floor(Math.random() * 30) + 50,
-        finanzas: Math.floor(Math.random() * 30) + 40,
+      const setupData = (setupRes.data?.setup_data || {}) as Record<string, unknown>;
+      const brain = brainRes.data;
+      
+      // Build comprehensive setup data for analysis
+      const analysisData = {
+        businessName: currentBusiness.name,
+        countryCode: currentBusiness.country,
+        businessTypeId: currentBusiness.category,
+        setupMode: setupRes.data?.current_step === 'complete' ? 'complete' : 'quick',
+        answers: (setupData.answers as Record<string, unknown>) || {},
+        googleAddress: currentBusiness.address,
+        integrationsProfiled: {
+          delivery: currentBusiness.delivery_platforms || [],
+          reservations: currentBusiness.reservation_platforms || [],
+        },
       };
 
-      const totalScore = Math.round(
-        Object.values(dimensions).reduce((a, b) => a + b, 0) / Object.keys(dimensions).length
-      );
+      // Get Google data if available
+      const googleData = currentBusiness.google_place_id ? {
+        placeId: currentBusiness.google_place_id,
+        rating: currentBusiness.avg_rating,
+        reviewCount: (brain?.factual_memory as any)?.google_review_count,
+      } : null;
 
-      await supabase.from("snapshots").insert({
-        business_id: currentBusiness.id,
-        source: "checkin",
-        total_score: totalScore,
-        dimensions_json: dimensions,
-        strengths: ["Buen servicio al cliente", "Ubicación estratégica"],
-        weaknesses: ["Marketing digital por mejorar", "Oportunidad en fidelización"],
-        explanation_json: {
-          ventas: { 
-            reason: "Ticket promedio estable pero hay oportunidad de venta cruzada", 
-            actions: ["Implementar combos", "Sugerir adicionales"] 
-          },
-          marketing: { 
-            reason: "Presencia en redes con poca frecuencia de publicación", 
-            actions: ["Calendario de contenido", "Stories diarios"] 
-          },
-        },
-        top_actions: [
-          { text: "Activar presencia en redes sociales", priority: "high" },
-          { text: "Implementar programa de lealtad", priority: "medium" },
-        ],
+      // Call the real health score analysis function
+      const { data, error } = await supabase.functions.invoke("analyze-health-score", {
+        body: { 
+          businessId: currentBusiness.id,
+          setupData: analysisData,
+          googleData,
+        }
       });
+
+      if (error) throw error;
 
       toast({
         title: "Diagnóstico actualizado",
-        description: "Se generó un nuevo análisis de tu negocio",
+        description: "Se generó un nuevo análisis basado en los datos reales de tu negocio",
       });
 
       fetchSnapshots();
@@ -255,7 +314,7 @@ export const BusinessHealthAnalytics = () => {
       console.error("Error generating diagnostic:", error);
       toast({
         title: "Error",
-        description: "No se pudo generar el diagnóstico",
+        description: "No se pudo generar el diagnóstico. Intentá de nuevo.",
         variant: "destructive",
       });
     } finally {

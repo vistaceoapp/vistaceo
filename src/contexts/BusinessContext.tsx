@@ -23,7 +23,10 @@ interface Business {
   food_cost_range?: Json | null;
   active_dayparts?: string[] | null;
   delivery_platforms?: string[] | null;
+  reservation_platforms?: string[] | null;
   competitive_radius_km?: number | null;
+  google_place_id?: string | null;
+  address?: string | null;
 }
 
 export type { Business };
@@ -55,7 +58,7 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from("businesses")
-        .select("id, name, category, country, currency, avg_ticket, avg_rating, created_at, setup_completed, precision_score, service_model, channel_mix, monthly_revenue_range, avg_ticket_range, daily_transactions_range, food_cost_range, active_dayparts, delivery_platforms, competitive_radius_km")
+        .select("id, name, category, country, currency, avg_ticket, avg_rating, created_at, setup_completed, precision_score, service_model, channel_mix, monthly_revenue_range, avg_ticket_range, daily_transactions_range, food_cost_range, active_dayparts, delivery_platforms, reservation_platforms, competitive_radius_km, google_place_id, address")
         .eq("owner_id", user.id);
 
       if (error) throw error;
