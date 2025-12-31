@@ -198,7 +198,25 @@ function checkActionability(
 }
 
 /**
- * Gate 5: No duplicación (evitar repetir lo mismo)
+ * Calculate semantic similarity between two strings
+ */
+function calculateSemanticSimilarity(str1: string, str2: string): number {
+  const s1 = str1.toLowerCase().replace(/[^a-záéíóúñ\s]/g, '');
+  const s2 = str2.toLowerCase().replace(/[^a-záéíóúñ\s]/g, '');
+  
+  const words1 = s1.split(/\s+/).filter(w => w.length > 3);
+  const words2 = s2.split(/\s+/).filter(w => w.length > 3);
+  
+  if (words1.length === 0 || words2.length === 0) return 0;
+  
+  const commonWords = words1.filter(w => words2.includes(w));
+  const similarity = (2 * commonWords.length) / (words1.length + words2.length);
+  
+  return similarity;
+}
+
+/**
+ * Gate 5: No duplicación (semantic similarity check)
  */
 function checkNoDuplication(
   opportunity: Opportunity,
@@ -206,24 +224,27 @@ function checkNoDuplication(
 ): { passed: boolean; reason: string } {
   const titleLower = opportunity.title.toLowerCase();
   const descLower = (opportunity.description || "").toLowerCase();
+  const combined = `${titleLower} ${descLower}`;
   
-  // Check for similar titles
-  const similar = existingOpportunities.find(other => {
-    if (other.id === opportunity.id) return false;
+  // Find similar opportunities using semantic similarity
+  for (const other of existingOpportunities) {
+    if (other.id === opportunity.id) continue;
     
     const otherTitleLower = other.title.toLowerCase();
     const otherDescLower = (other.description || "").toLowerCase();
+    const otherCombined = `${otherTitleLower} ${otherDescLower}`;
     
-    // Check title similarity
-    const titleWords = titleLower.split(" ");
-    const otherTitleWords = otherTitleLower.split(" ");
-    const commonWords = titleWords.filter(w => otherTitleWords.includes(w) && w.length > 3);
+    // Title similarity (strict - 0.4 threshold)
+    const titleSim = calculateSemanticSimilarity(titleLower, otherTitleLower);
+    if (titleSim > 0.4) {
+      return { passed: false, reason: `Similar a: "${other.title.slice(0, 40)}..."` };
+    }
     
-    return commonWords.length >= 3;
-  });
-  
-  if (similar) {
-    return { passed: false, reason: "Similar a otra oportunidad existente" };
+    // Combined text similarity (0.5 threshold)
+    const combinedSim = calculateSemanticSimilarity(combined, otherCombined);
+    if (combinedSim > 0.5) {
+      return { passed: false, reason: `Muy similar a otra oportunidad existente` };
+    }
   }
   
   return { passed: true, reason: "Oportunidad única" };
