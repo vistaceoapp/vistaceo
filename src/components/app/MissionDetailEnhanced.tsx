@@ -177,58 +177,49 @@ export const MissionDetailEnhanced = ({
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[85vh]">
-      {/* Header Section */}
-      <div className="p-6 pb-4 border-b border-border/50 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center text-2xl shadow-lg shadow-primary/20">
+    <div className="flex flex-col h-full max-h-[90vh] md:max-h-[85vh]">
+      {/* Header Section - More compact on mobile */}
+      <div className="p-4 md:p-6 pb-3 md:pb-4 border-b border-border/50 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
+            <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl gradient-primary flex items-center justify-center text-lg md:text-2xl shadow-lg shadow-primary/20 flex-shrink-0">
               {areaIcon}
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-foreground">{mission.title}</h2>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className="text-xs">
+            <div className="min-w-0">
+              <h2 className="text-base md:text-xl font-bold text-foreground line-clamp-2">{mission.title}</h2>
+              <div className="flex items-center gap-1.5 md:gap-2 mt-1 flex-wrap">
+                <Badge variant="outline" className="text-[10px] md:text-xs px-1.5 md:px-2">
                   {mission.area || "General"}
                 </Badge>
                 <Badge 
                   variant={mission.status === "active" ? "default" : "secondary"}
-                  className="text-xs"
+                  className="text-[10px] md:text-xs px-1.5 md:px-2"
                 >
                   {mission.status === "active" ? "Activa" : "Pausada"}
                 </Badge>
                 {enhancedPlan?.confidence && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge 
-                          variant="outline" 
-                          className={cn("text-xs gap-1", confidenceConfig[enhancedPlan.confidence].color)}
-                        >
-                          {(() => {
-                            const IconComp = confidenceConfig[enhancedPlan.confidence].icon;
-                            return <IconComp className="w-3 h-3" />;
-                          })()}
-                          {confidenceConfig[enhancedPlan.confidence].label}
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Nivel de confianza de la IA en esta recomendación</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Badge 
+                    variant="outline" 
+                    className={cn("text-[10px] md:text-xs gap-0.5 px-1.5 md:px-2", confidenceConfig[enhancedPlan.confidence].color)}
+                  >
+                    {(() => {
+                      const IconComp = confidenceConfig[enhancedPlan.confidence].icon;
+                      return <IconComp className="w-2.5 h-2.5 md:w-3 md:h-3" />;
+                    })()}
+                    {confidenceConfig[enhancedPlan.confidence].label}
+                  </Badge>
                 )}
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => fetchEnhancedPlan(true)}
               disabled={regenerating}
-              className="text-muted-foreground"
+              className="text-muted-foreground h-8 w-8 md:h-9 md:w-auto p-0 md:px-3"
             >
               <RefreshCw className={cn("w-4 h-4", regenerating && "animate-spin")} />
             </Button>
@@ -236,64 +227,65 @@ export const MissionDetailEnhanced = ({
               variant={mission.status === "active" ? "outline" : "default"}
               size="sm"
               onClick={() => onToggleStatus(mission)}
+              className="h-8 md:h-9 text-xs md:text-sm px-2 md:px-3"
             >
               {mission.status === "active" ? (
                 <>
-                  <Pause className="w-4 h-4 mr-1" />
-                  Pausar
+                  <Pause className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
+                  <span className="hidden md:inline">Pausar</span>
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 mr-1" />
-                  Reactivar
+                  <Play className="w-3.5 h-3.5 md:w-4 md:h-4 md:mr-1" />
+                  <span className="hidden md:inline">Reactivar</span>
                 </>
               )}
             </Button>
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
+        {/* Progress Bar - Compact */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs md:text-sm">
             <span className="text-muted-foreground">
-              Progreso: {completedSteps}/{steps.length} pasos
+              {completedSteps}/{steps.length} pasos
             </span>
             <span className="font-medium text-primary">{Math.round(progress)}%</span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <Progress value={progress} className="h-1.5 md:h-2" />
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-          <div className="bg-background/50 rounded-xl p-3 text-center">
-            <div className="flex items-center justify-center gap-1 text-primary mb-1">
-              <TrendingUp className="w-4 h-4" />
+        {/* Quick Stats - Grid adapts to screen */}
+        <div className="grid grid-cols-4 gap-2 md:gap-3 mt-3 md:mt-4">
+          <div className="bg-background/50 rounded-lg md:rounded-xl p-2 md:p-3 text-center">
+            <div className="flex items-center justify-center text-primary mb-0.5 md:mb-1">
+              <TrendingUp className="w-3 h-3 md:w-4 md:h-4" />
             </div>
-            <p className="text-lg font-bold text-foreground">{mission.impact_score}/10</p>
-            <p className="text-xs text-muted-foreground">Impacto</p>
+            <p className="text-sm md:text-lg font-bold text-foreground">{mission.impact_score}/10</p>
+            <p className="text-[10px] md:text-xs text-muted-foreground">Impacto</p>
           </div>
-          <div className="bg-background/50 rounded-xl p-3 text-center">
-            <div className="flex items-center justify-center gap-1 text-warning mb-1">
-              <Zap className="w-4 h-4" />
+          <div className="bg-background/50 rounded-lg md:rounded-xl p-2 md:p-3 text-center">
+            <div className="flex items-center justify-center text-warning mb-0.5 md:mb-1">
+              <Zap className="w-3 h-3 md:w-4 md:h-4" />
             </div>
-            <p className="text-lg font-bold text-foreground">{mission.effort_score}/10</p>
-            <p className="text-xs text-muted-foreground">Esfuerzo</p>
+            <p className="text-sm md:text-lg font-bold text-foreground">{mission.effort_score}/10</p>
+            <p className="text-[10px] md:text-xs text-muted-foreground">Esfuerzo</p>
           </div>
-          <div className="bg-background/50 rounded-xl p-3 text-center">
-            <div className="flex items-center justify-center gap-1 text-success mb-1">
-              <Timer className="w-4 h-4" />
+          <div className="bg-background/50 rounded-lg md:rounded-xl p-2 md:p-3 text-center">
+            <div className="flex items-center justify-center text-success mb-0.5 md:mb-1">
+              <Timer className="w-3 h-3 md:w-4 md:h-4" />
             </div>
-            <p className="text-lg font-bold text-foreground">{formatTime(estimatedTimeRemaining)}</p>
-            <p className="text-xs text-muted-foreground">Restante</p>
+            <p className="text-sm md:text-lg font-bold text-foreground">{formatTime(estimatedTimeRemaining)}</p>
+            <p className="text-[10px] md:text-xs text-muted-foreground">Restante</p>
           </div>
-          <div className="bg-background/50 rounded-xl p-3 text-center">
-            <div className="flex items-center justify-center gap-1 text-info mb-1">
-              <Calendar className="w-4 h-4" />
+          <div className="bg-background/50 rounded-lg md:rounded-xl p-2 md:p-3 text-center">
+            <div className="flex items-center justify-center text-info mb-0.5 md:mb-1">
+              <Calendar className="w-3 h-3 md:w-4 md:h-4" />
             </div>
-            <p className="text-lg font-bold text-foreground">
+            <p className="text-sm md:text-lg font-bold text-foreground">
               {enhancedPlan?.estimatedDuration || "~1 sem"}
             </p>
-            <p className="text-xs text-muted-foreground">Duración</p>
+            <p className="text-[10px] md:text-xs text-muted-foreground">Duración</p>
           </div>
         </div>
       </div>
