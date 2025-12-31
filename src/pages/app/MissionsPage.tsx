@@ -934,8 +934,16 @@ const MissionsPage = () => {
         </div>
 
         {/* Mission Detail Dialog - Enhanced */}
-        <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
-          <DialogContent className="max-w-3xl bg-card border-border p-0 overflow-hidden max-h-[90vh]" aria-describedby={undefined}>
+        <Dialog
+          open={!!selectedMission}
+          onOpenChange={(open) => {
+            if (!open) setSelectedMission(null);
+          }}
+        >
+          <DialogContent
+            className="max-w-3xl bg-card border-border p-0 overflow-hidden max-h-[90vh]"
+            aria-describedby={undefined}
+          >
             <VisuallyHidden>
               <DialogTitle>{selectedMission?.title || "Detalle de Misión"}</DialogTitle>
             </VisuallyHidden>
@@ -1170,8 +1178,16 @@ const MissionsPage = () => {
       </div>
 
       {/* Mobile Dialog - Enhanced */}
-      <Dialog open={!!selectedMission} onOpenChange={() => setSelectedMission(null)}>
-        <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50 p-0 overflow-hidden max-h-[90vh]" aria-describedby={undefined}>
+      <Dialog
+        open={!!selectedMission}
+        onOpenChange={(open) => {
+          if (!open) setSelectedMission(null);
+        }}
+      >
+        <DialogContent
+          className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50 p-0 overflow-hidden max-h-[90vh]"
+          aria-describedby={undefined}
+        >
           <VisuallyHidden>
             <DialogTitle>{selectedMission?.title || "Detalle de Misión"}</DialogTitle>
           </VisuallyHidden>
