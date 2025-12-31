@@ -429,6 +429,11 @@ const SetupPage = () => {
   // Don't show nav buttons for questionnaire (it has its own) or during creation
   const showNavButtons = stepId !== 'questionnaire' && !creatingBusiness;
 
+  const handleBackToAuth = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth', { replace: true });
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -436,6 +441,15 @@ const SetupPage = () => {
         <div className="container max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <VistaceoLogo size={32} variant="full" />
           <div className="flex items-center gap-4">
+            {/* Subtle back to auth link - only on first step */}
+            {currentStep === 0 && (
+              <button
+                onClick={handleBackToAuth}
+                className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              >
+                {lang === 'pt' ? 'Outra conta' : 'Otra cuenta'}
+              </button>
+            )}
             <span className="text-sm text-muted-foreground">
               {lang === 'pt' ? 'Passo' : 'Paso'} {currentStep + 1} de {totalSteps}
             </span>
