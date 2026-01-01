@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -21,8 +21,6 @@ import { MissionDetailEnhanced } from "@/components/app/MissionDetailEnhanced";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -45,7 +43,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 
 interface Mission {
@@ -179,7 +176,7 @@ const MissionsPage = () => {
   const { currentBusiness } = useBusiness();
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [activeMissionId, setActiveMissionId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [hasEnoughData, setHasEnoughData] = useState<boolean | null>(null);
   const [starredMissions, setStarredMissions] = useState<Set<string>>(new Set());
@@ -195,6 +192,14 @@ const MissionsPage = () => {
   const [sortBy, setSortBy] = useState("recent");
   const [showNextStepSelector, setShowNextStepSelector] = useState(false);
   const [showStarredOnly, setShowStarredOnly] = useState(false);
+
+  // Derived: get active mission from ID
+  const selectedMission = activeMissionId 
+    ? missions.find(m => m.id === activeMissionId) || null 
+    : null;
+
+  // Modal open state derived from activeMissionId
+  const isModalOpen = !!activeMissionId;
 
   // Check if we have enough data for personalized missions
   useEffect(() => {
@@ -310,7 +315,6 @@ const MissionsPage = () => {
   };
 
   const startMission = async (suggestion: typeof PLACEHOLDER_MISSIONS[0]) => {
-    // Open plan preview instead of directly starting
     generatePlanForSuggestion(suggestion);
   };
 
@@ -342,7 +346,7 @@ const MissionsPage = () => {
           title: "🎉 ¡Misión completada!",
           description: `Has terminado "${mission.title}"`,
         });
-        setSelectedMission(null);
+        setActiveMissionId(null);
       }
 
       fetchMissions();
@@ -387,7 +391,7 @@ const MissionsPage = () => {
   };
 
   // Filter and sort missions
-  const getFilteredMissions = () => {
+  const getFilteredMissions = useCallback(() => {
     let filtered = [...missions];
     
     // Starred filter
@@ -436,7 +440,7 @@ const MissionsPage = () => {
     });
     
     return filtered;
-  };
+  }, [missions, showStarredOnly, starredMissions, areaFilter, statusFilter, sortBy]);
 
   const filteredMissions = getFilteredMissions();
   
@@ -473,6 +477,23 @@ const MissionsPage = () => {
   // Get unique areas from missions
   const uniqueAreas = [...new Set(missions.map(m => m.area).filter(Boolean))];
 
+  // Handle modal close
+  const handleCloseModal = useCallback(() => {
+    setActiveMissionId(null);
+  }, []);
+
+  // Handle modal open state change (for overlay/escape close)
+  const handleModalOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setActiveMissionId(null);
+    }
+  }, []);
+
+  // Navigate between missions in modal
+  const handleNavigateMission = useCallback((mission: Mission) => {
+    setActiveMissionId(mission.id);
+  }, []);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -505,6 +526,66 @@ const MissionsPage = () => {
       </div>
     );
   }
+
+  // Shared Mission Detail Modal
+  const renderMissionDetailModal = () => (
+    <Dialog open={isModalOpen} onOpenChange={handleModalOpenChange}>
+      <DialogContent
+        className={cn(
+          "p-0 overflow-hidden",
+          isMobile 
+            ? "max-w-lg bg-card/95 backdrop-blur-xl border-border/50 max-h-[90vh]" 
+            : "max-w-3xl bg-card border-border max-h-[90vh]"
+        )}
+        aria-describedby={undefined}
+      >
+        <VisuallyHidden>
+          <DialogTitle>{selectedMission?.title || "Detalle de Misión"}</DialogTitle>
+        </VisuallyHidden>
+        {selectedMission && currentBusiness && (
+          <MissionDetailEnhanced
+            mission={selectedMission}
+            businessId={currentBusiness.id}
+            onToggleStep={toggleStep}
+            onToggleStatus={toggleMissionStatus}
+            onClose={handleCloseModal}
+            allMissions={filteredMissions}
+            onNavigate={handleNavigateMission}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Shared Plan Preview Modal
+  const renderPlanPreviewModal = () => (
+    <Dialog open={!!selectedSuggestion} onOpenChange={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}>
+      <DialogContent className={cn(
+        "max-h-[90vh] overflow-y-auto",
+        isMobile 
+          ? "max-w-lg bg-card/95 backdrop-blur-xl border-border/50" 
+          : "max-w-2xl bg-card border-border"
+      )}>
+        {selectedSuggestion && (
+          <MissionPlanPreview
+            plan={generatedPlan || { 
+              planTitle: selectedSuggestion.title,
+              planDescription: selectedSuggestion.description,
+              estimatedDuration: "1-2 semanas",
+              estimatedImpact: "Mejora significativa",
+              steps: [] 
+            }}
+            missionTitle={selectedSuggestion.title}
+            missionArea={selectedSuggestion.area}
+            isLoading={planLoading}
+            onAccept={(steps) => acceptPlan(steps)}
+            onDismiss={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}
+            onRegenerate={() => generatePlanForSuggestion(selectedSuggestion, true)}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 
   // Desktop Layout
   if (!isMobile) {
@@ -751,7 +832,7 @@ const MissionsPage = () => {
                       <div
                         key={mission.id}
                         className="p-4 hover:bg-secondary/30 transition-colors cursor-pointer group"
-                        onClick={() => setSelectedMission(mission)}
+                        onClick={() => setActiveMissionId(mission.id)}
                       >
                         <div className="flex items-center gap-4">
                           <ProgressRing 
@@ -933,54 +1014,8 @@ const MissionsPage = () => {
           </div>
         </div>
 
-        {/* Mission Detail Dialog - Enhanced */}
-        <Dialog
-          open={!!selectedMission}
-          onOpenChange={(open) => {
-            if (!open) setSelectedMission(null);
-          }}
-        >
-          <DialogContent
-            className="max-w-3xl bg-card border-border p-0 overflow-hidden max-h-[90vh]"
-            aria-describedby={undefined}
-          >
-            <VisuallyHidden>
-              <DialogTitle>{selectedMission?.title || "Detalle de Misión"}</DialogTitle>
-            </VisuallyHidden>
-            {selectedMission && currentBusiness && (
-              <MissionDetailEnhanced
-                mission={selectedMission}
-                businessId={currentBusiness.id}
-                onToggleStep={toggleStep}
-                onToggleStatus={toggleMissionStatus}
-                onClose={() => setSelectedMission(null)}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Plan Preview Dialog */}
-        <Dialog open={!!selectedSuggestion} onOpenChange={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}>
-          <DialogContent className="max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto">
-            {selectedSuggestion && (
-              <MissionPlanPreview
-                plan={generatedPlan || { 
-                  planTitle: selectedSuggestion.title,
-                  planDescription: selectedSuggestion.description,
-                  estimatedDuration: "1-2 semanas",
-                  estimatedImpact: "Mejora significativa",
-                  steps: [] 
-                }}
-                missionTitle={selectedSuggestion.title}
-                missionArea={selectedSuggestion.area}
-                isLoading={planLoading}
-                onAccept={(steps) => acceptPlan(steps)}
-                onDismiss={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}
-                onRegenerate={() => generatePlanForSuggestion(selectedSuggestion, true)}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+        {renderMissionDetailModal()}
+        {renderPlanPreviewModal()}
       </div>
     );
   }
@@ -1019,8 +1054,7 @@ const MissionsPage = () => {
           <p className="text-sm text-foreground mb-2">{topNextStep.step.text}</p>
           <p className="text-xs text-muted-foreground mb-3">{topNextStep.mission.title}</p>
           <Button 
-            className="w-full"
-            size="sm"
+            className="w-full h-11"
             onClick={() => {
               toggleStep(topNextStep.mission.id, topNextStep.stepIndex);
               toast({ title: "✅ ¡Paso completado!" });
@@ -1039,7 +1073,7 @@ const MissionsPage = () => {
             key={cat.value}
             onClick={() => setAreaFilter(areaFilter === cat.value ? "all" : cat.value)}
             className={cn(
-              "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all",
+              "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all min-h-[36px]",
               areaFilter === cat.value
                 ? "bg-primary text-primary-foreground"
                 : "bg-secondary text-muted-foreground"
@@ -1065,7 +1099,7 @@ const MissionsPage = () => {
                 interactive
                 className="p-5 animate-fade-in"
                 style={{ animationDelay: `${idx * 50}ms` }}
-                onClick={() => setSelectedMission(mission)}
+                onClick={() => setActiveMissionId(mission.id)}
               >
                 <div className="flex items-start gap-4">
                   <ProgressRing 
@@ -1166,7 +1200,7 @@ const MissionsPage = () => {
                   size="sm"
                   onClick={() => startMission(suggestion)}
                   disabled={actionLoading}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 h-10"
                 >
                   <Zap className="w-4 h-4 mr-1" />
                   Iniciar
@@ -1177,54 +1211,8 @@ const MissionsPage = () => {
         </div>
       </div>
 
-      {/* Mobile Dialog - Enhanced */}
-      <Dialog
-        open={!!selectedMission}
-        onOpenChange={(open) => {
-          if (!open) setSelectedMission(null);
-        }}
-      >
-        <DialogContent
-          className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50 p-0 overflow-hidden max-h-[90vh]"
-          aria-describedby={undefined}
-        >
-          <VisuallyHidden>
-            <DialogTitle>{selectedMission?.title || "Detalle de Misión"}</DialogTitle>
-          </VisuallyHidden>
-          {selectedMission && currentBusiness && (
-            <MissionDetailEnhanced
-              mission={selectedMission}
-              businessId={currentBusiness.id}
-              onToggleStep={toggleStep}
-              onToggleStatus={toggleMissionStatus}
-              onClose={() => setSelectedMission(null)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Mobile Plan Preview Dialog */}
-      <Dialog open={!!selectedSuggestion} onOpenChange={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}>
-        <DialogContent className="max-w-lg bg-card/95 backdrop-blur-xl border-border/50 max-h-[90vh] overflow-y-auto">
-          {selectedSuggestion && (
-            <MissionPlanPreview
-              plan={generatedPlan || { 
-                planTitle: selectedSuggestion.title,
-                planDescription: selectedSuggestion.description,
-                estimatedDuration: "1-2 semanas",
-                estimatedImpact: "Mejora significativa",
-                steps: [] 
-              }}
-              missionTitle={selectedSuggestion.title}
-              missionArea={selectedSuggestion.area}
-              isLoading={planLoading}
-              onAccept={(steps) => acceptPlan(steps)}
-              onDismiss={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}
-              onRegenerate={() => generatePlanForSuggestion(selectedSuggestion, true)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {renderMissionDetailModal()}
+      {renderPlanPreviewModal()}
     </div>
   );
 };
