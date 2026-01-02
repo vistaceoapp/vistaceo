@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, 
   Sparkles, Plus, MoreHorizontal, Info, Filter, LayoutGrid, List,
-  ChevronDown, ArrowUpDown, Layers, BarChart3, Calendar, Star, Eye
+  ChevronDown, ArrowUpDown, Layers, BarChart3, Calendar, Star
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -17,13 +17,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { InboxCard } from "@/components/app/InboxCard";
 import { DataNeededState } from "@/components/app/DataNeededState";
 import { MissionPlanPreview } from "@/components/app/MissionPlanPreview";
-import { MissionDetailEnhanced } from "@/components/app/MissionDetailEnhanced";
+import { MissionLLMMode } from "@/components/app/MissionLLMMode";
 import {
   Dialog,
   DialogContent,
-  DialogTitle,
 } from "@/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -108,7 +106,6 @@ const checkHasEnoughData = async (businessId: string): Promise<{ hasData: boolea
     };
   } catch (error) {
     console.error("Error checking data:", error);
-    // Fallback to old method
     const [integrationsRes, insightsRes] = await Promise.all([
       supabase.from("business_integrations").select("id", { count: "exact", head: true }).eq("business_id", businessId).eq("status", "connected"),
       supabase.from("business_insights").select("id", { count: "exact", head: true }).eq("business_id", businessId),
@@ -176,7 +173,7 @@ const MissionsPage = () => {
   const { currentBusiness } = useBusiness();
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeMissionId, setActiveMissionId] = useState<string | null>(null);
+  const [selectedMissionId, setSelectedMissionId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [hasEnoughData, setHasEnoughData] = useState<boolean | null>(null);
   const [starredMissions, setStarredMissions] = useState<Set<string>>(new Set());
@@ -190,16 +187,16 @@ const MissionsPage = () => {
   const [areaFilter, setAreaFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
-  const [showNextStepSelector, setShowNextStepSelector] = useState(false);
   const [showStarredOnly, setShowStarredOnly] = useState(false);
 
-  // Derived: get active mission from ID
-  const selectedMission = activeMissionId 
-    ? missions.find(m => m.id === activeMissionId) || null 
-    : null;
+  // Scroll position preservation
+  const scrollPositionRef = useRef<number>(0);
+  const listContainerRef = useRef<HTMLDivElement>(null);
 
-  // Modal open state derived from activeMissionId
-  const isModalOpen = !!activeMissionId;
+  // Derived: get selected mission from ID
+  const selectedMission = selectedMissionId 
+    ? missions.find(m => m.id === selectedMissionId) || null 
+    : null;
 
   // Check if we have enough data for personalized missions
   useEffect(() => {
@@ -346,7 +343,7 @@ const MissionsPage = () => {
           title: "🎉 ¡Misión completada!",
           description: `Has terminado "${mission.title}"`,
         });
-        setActiveMissionId(null);
+        setSelectedMissionId(null);
       }
 
       fetchMissions();
@@ -450,49 +447,64 @@ const MissionsPage = () => {
   const allSteps = missions.flatMap(m => (m.steps || []) as Step[]);
   const completedStepsCount = allSteps.filter(s => s.done).length;
   const totalProgress = allSteps.length > 0 ? (completedStepsCount / allSteps.length) * 100 : 0;
-  
-  // Get all next steps from active missions
-  const getNextStepsFromAllMissions = () => {
-    return activeMissions
-      .map(mission => {
-        const steps = (mission.steps || []) as Step[];
-        const nextStepIndex = steps.findIndex(s => !s.done);
-        if (nextStepIndex === -1) return null;
-        
-        return {
-          mission,
-          step: steps[nextStepIndex],
-          stepIndex: nextStepIndex,
-          area: mission.area,
-          impact: mission.impact_score
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => (b?.impact || 0) - (a?.impact || 0));
-  };
-  
-  const allNextSteps = getNextStepsFromAllMissions();
-  const topNextStep = allNextSteps[0];
 
   // Get unique areas from missions
   const uniqueAreas = [...new Set(missions.map(m => m.area).filter(Boolean))];
 
-  // Handle modal close
-  const handleCloseModal = useCallback(() => {
-    setActiveMissionId(null);
-  }, []);
-
-  // Handle modal open state change (for overlay/escape close)
-  const handleModalOpenChange = useCallback((open: boolean) => {
-    if (!open) {
-      setActiveMissionId(null);
+  // Handle entering LLM Mission Mode
+  const handleSelectMission = useCallback((missionId: string) => {
+    // Save scroll position
+    if (listContainerRef.current) {
+      scrollPositionRef.current = listContainerRef.current.scrollTop;
     }
+    setSelectedMissionId(missionId);
   }, []);
 
-  // Navigate between missions in modal
-  const handleNavigateMission = useCallback((mission: Mission) => {
-    setActiveMissionId(mission.id);
+  // Handle going back to list
+  const handleBackToList = useCallback(() => {
+    setSelectedMissionId(null);
+    // Restore scroll position after render
+    requestAnimationFrame(() => {
+      if (listContainerRef.current) {
+        listContainerRef.current.scrollTop = scrollPositionRef.current;
+      }
+    });
   }, []);
+
+  // Handle selecting different mission from within LLM Mode
+  const handleSelectMissionFromLLM = useCallback((mission: Mission) => {
+    setSelectedMissionId(mission.id);
+  }, []);
+
+  // Shared Plan Preview Modal
+  const renderPlanPreviewModal = () => (
+    <Dialog open={!!selectedSuggestion} onOpenChange={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}>
+      <DialogContent className={cn(
+        "max-h-[90vh] overflow-y-auto",
+        isMobile 
+          ? "max-w-lg bg-card/95 backdrop-blur-xl border-border/50" 
+          : "max-w-2xl bg-card border-border"
+      )}>
+        {selectedSuggestion && (
+          <MissionPlanPreview
+            plan={generatedPlan || { 
+              planTitle: selectedSuggestion.title,
+              planDescription: selectedSuggestion.description,
+              estimatedDuration: "1-2 semanas",
+              estimatedImpact: "Mejora significativa",
+              steps: [] 
+            }}
+            missionTitle={selectedSuggestion.title}
+            missionArea={selectedSuggestion.area}
+            isLoading={planLoading}
+            onAccept={(steps) => acceptPlan(steps)}
+            onDismiss={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}
+            onRegenerate={() => generatePlanForSuggestion(selectedSuggestion, true)}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 
   if (loading) {
     return (
@@ -527,70 +539,28 @@ const MissionsPage = () => {
     );
   }
 
-  // Shared Mission Detail Modal
-  const renderMissionDetailModal = () => (
-    <Dialog open={isModalOpen} onOpenChange={handleModalOpenChange}>
-      <DialogContent
-        className={cn(
-          "p-0 overflow-hidden",
-          isMobile 
-            ? "max-w-lg bg-card/95 backdrop-blur-xl border-border/50 max-h-[90vh]" 
-            : "max-w-3xl bg-card border-border max-h-[90vh]"
-        )}
-        aria-describedby={undefined}
-      >
-        <VisuallyHidden>
-          <DialogTitle>{selectedMission?.title || "Detalle de Misión"}</DialogTitle>
-        </VisuallyHidden>
-        {selectedMission && currentBusiness && (
-          <MissionDetailEnhanced
-            mission={selectedMission}
-            businessId={currentBusiness.id}
-            onToggleStep={toggleStep}
-            onToggleStatus={toggleMissionStatus}
-            onClose={handleCloseModal}
-            allMissions={filteredMissions}
-            onNavigate={handleNavigateMission}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
-  );
+  // ========== LLM MISSION MODE (inline, no modal) ==========
+  if (selectedMission) {
+    return (
+      <div className="h-[calc(100vh-4rem)] flex flex-col">
+        <MissionLLMMode
+          mission={selectedMission}
+          businessId={currentBusiness.id}
+          onToggleStep={toggleStep}
+          onToggleStatus={toggleMissionStatus}
+          onBack={handleBackToList}
+          allMissions={filteredMissions}
+          onSelectMission={handleSelectMissionFromLLM}
+        />
+        {renderPlanPreviewModal()}
+      </div>
+    );
+  }
 
-  // Shared Plan Preview Modal
-  const renderPlanPreviewModal = () => (
-    <Dialog open={!!selectedSuggestion} onOpenChange={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}>
-      <DialogContent className={cn(
-        "max-h-[90vh] overflow-y-auto",
-        isMobile 
-          ? "max-w-lg bg-card/95 backdrop-blur-xl border-border/50" 
-          : "max-w-2xl bg-card border-border"
-      )}>
-        {selectedSuggestion && (
-          <MissionPlanPreview
-            plan={generatedPlan || { 
-              planTitle: selectedSuggestion.title,
-              planDescription: selectedSuggestion.description,
-              estimatedDuration: "1-2 semanas",
-              estimatedImpact: "Mejora significativa",
-              steps: [] 
-            }}
-            missionTitle={selectedSuggestion.title}
-            missionArea={selectedSuggestion.area}
-            isLoading={planLoading}
-            onAccept={(steps) => acceptPlan(steps)}
-            onDismiss={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}
-            onRegenerate={() => generatePlanForSuggestion(selectedSuggestion, true)}
-          />
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-
-  // Desktop Layout
+  // ========== DESKTOP LIST VIEW ==========
   if (!isMobile) {
     return (
-      <div className="space-y-6">
+      <div ref={listContainerRef} className="space-y-6 overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -659,92 +629,6 @@ const MissionsPage = () => {
             <div className="text-sm text-muted-foreground">Áreas activas</div>
           </div>
         </div>
-
-        {/* Next Best Step - With options */}
-        {topNextStep && (
-          <div className="dashboard-card p-5 border-primary/30 bg-primary/5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-primary" />
-                <h3 className="font-semibold text-foreground">Tu siguiente mejor paso</h3>
-              </div>
-              {allNextSteps.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowNextStepSelector(!showNextStepSelector)}
-                  className="text-muted-foreground"
-                >
-                  {showNextStepSelector ? "Ocultar opciones" : `Ver ${allNextSteps.length - 1} opciones más`}
-                  <ChevronDown className={cn("w-4 h-4 ml-1 transition-transform", showNextStepSelector && "rotate-180")} />
-                </Button>
-              )}
-            </div>
-
-            {/* Primary Step */}
-            <div className="flex items-center justify-between p-4 rounded-xl bg-background/50 border border-primary/20 mb-3">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
-                  <span className="text-xl">
-                    {AREA_CATEGORIES.find(c => c.value === topNextStep.area)?.icon || "🎯"}
-                  </span>
-                </div>
-                <div>
-                  <Badge variant="outline" className="mb-1 text-[10px]">
-                    {topNextStep.area} • Impacto {topNextStep.impact}/10
-                  </Badge>
-                  <h4 className="font-medium text-foreground">{topNextStep.step.text}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">{topNextStep.mission.title}</p>
-                </div>
-              </div>
-              <Button 
-                onClick={() => {
-                  toggleStep(topNextStep.mission.id, topNextStep.stepIndex);
-                  toast({ title: "✅ ¡Paso completado!" });
-                }}
-              >
-                <Check className="w-4 h-4 mr-2" />
-                Completar
-              </Button>
-            </div>
-
-            {/* Other options */}
-            {showNextStepSelector && allNextSteps.length > 1 && (
-              <div className="space-y-2 animate-fade-in">
-                <p className="text-xs text-muted-foreground mb-2">
-                  También puedes avanzar en estas áreas:
-                </p>
-                {allNextSteps.slice(1).map((item, idx) => item && (
-                  <div 
-                    key={idx}
-                    className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg">
-                        {AREA_CATEGORIES.find(c => c.value === item.area)?.icon || "🎯"}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{item.step.text}</p>
-                        <p className="text-xs text-muted-foreground">{item.area} • {item.mission.title}</p>
-                      </div>
-                    </div>
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        toggleStep(item.mission.id, item.stepIndex);
-                        toast({ title: "✅ ¡Paso completado!" });
-                      }}
-                    >
-                      <Check className="w-3 h-3 mr-1" />
-                      Hecho
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Filters Bar */}
         <div className="dashboard-card p-4">
@@ -832,7 +716,7 @@ const MissionsPage = () => {
                       <div
                         key={mission.id}
                         className="p-4 hover:bg-secondary/30 transition-colors cursor-pointer group"
-                        onClick={() => setActiveMissionId(mission.id)}
+                        onClick={() => handleSelectMission(mission.id)}
                       >
                         <div className="flex items-center gap-4">
                           <ProgressRing 
@@ -1014,15 +898,14 @@ const MissionsPage = () => {
           </div>
         </div>
 
-        {renderMissionDetailModal()}
         {renderPlanPreviewModal()}
       </div>
     );
   }
 
-  // Mobile Layout
+  // ========== MOBILE LIST VIEW ==========
   return (
-    <div className="space-y-6">
+    <div ref={listContainerRef} className="space-y-6">
       <div className="animate-fade-in">
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Target className="w-6 h-6 text-primary" />
@@ -1043,28 +926,6 @@ const MissionsPage = () => {
           <span>{completedStepsCount}/{allSteps.length} pasos</span>
         </div>
       </GlassCard>
-
-      {/* Mobile Next Step */}
-      {topNextStep && (
-        <GlassCard className="p-4 border-primary/30 bg-primary/5">
-          <div className="flex items-center gap-2 mb-3">
-            <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">Tu siguiente paso</span>
-          </div>
-          <p className="text-sm text-foreground mb-2">{topNextStep.step.text}</p>
-          <p className="text-xs text-muted-foreground mb-3">{topNextStep.mission.title}</p>
-          <Button 
-            className="w-full h-11"
-            onClick={() => {
-              toggleStep(topNextStep.mission.id, topNextStep.stepIndex);
-              toast({ title: "✅ ¡Paso completado!" });
-            }}
-          >
-            <Check className="w-4 h-4 mr-2" />
-            Completar
-          </Button>
-        </GlassCard>
-      )}
 
       {/* Mobile Area Filter */}
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
@@ -1099,7 +960,7 @@ const MissionsPage = () => {
                 interactive
                 className="p-5 animate-fade-in"
                 style={{ animationDelay: `${idx * 50}ms` }}
-                onClick={() => setActiveMissionId(mission.id)}
+                onClick={() => handleSelectMission(mission.id)}
               >
                 <div className="flex items-start gap-4">
                   <ProgressRing 
@@ -1211,7 +1072,6 @@ const MissionsPage = () => {
         </div>
       </div>
 
-      {renderMissionDetailModal()}
       {renderPlanPreviewModal()}
     </div>
   );
