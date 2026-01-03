@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -171,6 +172,8 @@ const MissionsPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
+  const { forceCollapse, restorePrevious } = useSidebar();
+  
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMissionId, setSelectedMissionId] = useState<string | null>(null);
@@ -197,6 +200,15 @@ const MissionsPage = () => {
   const selectedMission = selectedMissionId 
     ? missions.find(m => m.id === selectedMissionId) || null 
     : null;
+
+  // Auto-collapse sidebar when entering LLM mode
+  useEffect(() => {
+    if (selectedMissionId && !isMobile) {
+      forceCollapse();
+    } else if (!selectedMissionId && !isMobile) {
+      restorePrevious();
+    }
+  }, [selectedMissionId, isMobile, forceCollapse, restorePrevious]);
 
   // Check if we have enough data for personalized missions
   useEffect(() => {
@@ -506,6 +518,73 @@ const MissionsPage = () => {
     </Dialog>
   );
 
+  // Shared filters component for reuse
+  const renderFilters = (compact = false) => (
+    <div className={cn(
+      "flex flex-wrap items-center gap-3",
+      compact ? "p-3" : "p-4"
+    )}>
+      <div className="flex items-center gap-2">
+        <Filter className="w-4 h-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-foreground">Filtros:</span>
+      </div>
+      
+      <Select value={areaFilter} onValueChange={setAreaFilter}>
+        <SelectTrigger className={cn("h-9", compact ? "w-[150px]" : "w-[180px]")}>
+          <SelectValue placeholder="Área" />
+        </SelectTrigger>
+        <SelectContent>
+          {AREA_CATEGORIES.map((cat) => (
+            <SelectItem key={cat.value} value={cat.value}>
+              <span className="mr-2">{cat.icon}</span>
+              {cat.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className={cn("h-9", compact ? "w-[130px]" : "w-[160px]")}>
+          <SelectValue placeholder="Estado" />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUS_OPTIONS.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Starred filter */}
+      <Button
+        variant={showStarredOnly ? "default" : "outline"}
+        size="sm"
+        className="h-9"
+        onClick={() => setShowStarredOnly(!showStarredOnly)}
+      >
+        <Star className={cn("w-4 h-4", showStarredOnly && "fill-current", !compact && "mr-2")} />
+        {!compact && `Destacadas (${starredMissions.size})`}
+      </Button>
+
+      <div className="flex items-center gap-2 ml-auto">
+        <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className={cn("h-9", compact ? "w-[130px]" : "w-[160px]")}>
+            <SelectValue placeholder="Ordenar" />
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -542,7 +621,7 @@ const MissionsPage = () => {
   // ========== LLM MISSION MODE (inline, no modal) ==========
   if (selectedMission) {
     return (
-      <div className="h-[calc(100vh-4rem)] flex flex-col">
+      <div className="h-[calc(100vh-6rem)] flex flex-col -m-6">
         <MissionLLMMode
           mission={selectedMission}
           businessId={currentBusiness.id}
@@ -551,6 +630,7 @@ const MissionsPage = () => {
           onBack={handleBackToList}
           allMissions={filteredMissions}
           onSelectMission={handleSelectMissionFromLLM}
+          filters={{ areaFilter, statusFilter, sortBy, showStarredOnly }}
         />
         {renderPlanPreviewModal()}
       </div>
@@ -631,67 +711,8 @@ const MissionsPage = () => {
         </div>
 
         {/* Filters Bar */}
-        <div className="dashboard-card p-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">Filtros:</span>
-            </div>
-            
-            <Select value={areaFilter} onValueChange={setAreaFilter}>
-              <SelectTrigger className="w-[180px] h-9">
-                <SelectValue placeholder="Área" />
-              </SelectTrigger>
-              <SelectContent>
-                {AREA_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    <span className="mr-2">{cat.icon}</span>
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px] h-9">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Starred filter */}
-            <Button
-              variant={showStarredOnly ? "default" : "outline"}
-              size="sm"
-              className="h-9"
-              onClick={() => setShowStarredOnly(!showStarredOnly)}
-            >
-              <Star className={cn("w-4 h-4 mr-2", showStarredOnly && "fill-current")} />
-              Destacadas ({starredMissions.size})
-            </Button>
-
-            <div className="flex items-center gap-2 ml-auto">
-              <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[160px] h-9">
-                  <SelectValue placeholder="Ordenar" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SORT_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+        <div className="dashboard-card">
+          {renderFilters()}
         </div>
 
         <div className="grid grid-cols-3 gap-6">
@@ -934,7 +955,7 @@ const MissionsPage = () => {
             key={cat.value}
             onClick={() => setAreaFilter(areaFilter === cat.value ? "all" : cat.value)}
             className={cn(
-              "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all min-h-[36px]",
+              "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all min-h-[44px]",
               areaFilter === cat.value
                 ? "bg-primary text-primary-foreground"
                 : "bg-secondary text-muted-foreground"
@@ -1061,7 +1082,7 @@ const MissionsPage = () => {
                   size="sm"
                   onClick={() => startMission(suggestion)}
                   disabled={actionLoading}
-                  className="flex-shrink-0 h-10"
+                  className="flex-shrink-0 h-11 min-w-[44px]"
                 >
                   <Zap className="w-4 h-4 mr-1" />
                   Iniciar
