@@ -1,12 +1,12 @@
 import { Outlet } from "react-router-dom";
-import { useState } from "react";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { cn } from "@/lib/utils";
 import { useAutoSync } from "@/hooks/use-auto-sync";
+import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 
-export const DashboardLayout = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+const DashboardLayoutContent = () => {
+  const { collapsed, toggleCollapsed } = useSidebar();
   
   // Auto-sync external data in background
   useAutoSync();
@@ -15,18 +15,18 @@ export const DashboardLayout = () => {
     <div className="min-h-screen bg-background">
       {/* Sidebar */}
       <DashboardSidebar 
-        collapsed={sidebarCollapsed} 
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+        collapsed={collapsed} 
+        onToggle={toggleCollapsed} 
       />
 
       {/* Header */}
-      <DashboardHeader sidebarCollapsed={sidebarCollapsed} />
+      <DashboardHeader sidebarCollapsed={collapsed} />
 
       {/* Main Content */}
       <main 
         className={cn(
           "pt-16 min-h-screen transition-all duration-300",
-          sidebarCollapsed ? "pl-[72px]" : "pl-[260px]"
+          collapsed ? "pl-[72px]" : "pl-[260px]"
         )}
       >
         <div className="p-6 max-w-7xl mx-auto">
@@ -34,5 +34,13 @@ export const DashboardLayout = () => {
         </div>
       </main>
     </div>
+  );
+};
+
+export const DashboardLayout = () => {
+  return (
+    <SidebarProvider>
+      <DashboardLayoutContent />
+    </SidebarProvider>
   );
 };
