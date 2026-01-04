@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, 
-  Sparkles, Plus, MoreHorizontal, Info, Filter, LayoutGrid, List,
-  ChevronDown, ArrowUpDown, Layers, BarChart3, Calendar, Star
+  Sparkles, Plus, MoreHorizontal, Info, Filter, 
+  Layers, BarChart3, Star
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -19,6 +19,11 @@ import { InboxCard } from "@/components/app/InboxCard";
 import { DataNeededState } from "@/components/app/DataNeededState";
 import { MissionPlanPreview } from "@/components/app/MissionPlanPreview";
 import { MissionLLMMode } from "@/components/app/MissionLLMMode";
+import { 
+  MissionFilters, 
+  AREA_CATEGORIES, 
+  loadFiltersFromStorage 
+} from "@/components/app/MissionFilters";
 import {
   Dialog,
   DialogContent,
@@ -35,13 +40,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 
 interface Mission {
@@ -66,31 +64,6 @@ interface Step {
   metric?: string;
   confidence?: "high" | "medium" | "low";
 }
-
-// Area categories for filtering
-const AREA_CATEGORIES = [
-  { value: "all", label: "Todas las áreas", icon: "🎯" },
-  { value: "Reputación", label: "Reputación", icon: "⭐" },
-  { value: "Marketing", label: "Marketing", icon: "📱" },
-  { value: "Operaciones", label: "Operaciones", icon: "⚙️" },
-  { value: "Ventas", label: "Ventas", icon: "💰" },
-  { value: "Equipo", label: "Equipo", icon: "👥" },
-  { value: "Producto", label: "Producto", icon: "📦" },
-  { value: "Finanzas", label: "Finanzas", icon: "📊" },
-];
-
-const STATUS_OPTIONS = [
-  { value: "all", label: "Todos los estados" },
-  { value: "active", label: "Activas" },
-  { value: "paused", label: "Pausadas" },
-];
-
-const SORT_OPTIONS = [
-  { value: "recent", label: "Más recientes" },
-  { value: "impact", label: "Mayor impacto" },
-  { value: "progress", label: "Más avanzadas" },
-  { value: "effort", label: "Menor esfuerzo" },
-];
 
 // Check if we have enough data for personalized missions using Brain
 const checkHasEnoughData = async (businessId: string): Promise<{ hasData: boolean; mvcCompletion: number }> => {
@@ -186,11 +159,13 @@ const MissionsPage = () => {
   const [generatedPlan, setGeneratedPlan] = useState<any>(null);
   const [planLoading, setPlanLoading] = useState(false);
   
-  // Filters
-  const [areaFilter, setAreaFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("recent");
-  const [showStarredOnly, setShowStarredOnly] = useState(false);
+  // Filters with auto-reset on 1h inactivity or new session
+  const [filters, setFilters] = useState(() => loadFiltersFromStorage());
+  const { areaFilter, statusFilter, sortBy, showStarredOnly } = filters;
+  const setAreaFilter = (v: string) => setFilters(p => ({ ...p, areaFilter: v }));
+  const setStatusFilter = (v: string) => setFilters(p => ({ ...p, statusFilter: v }));
+  const setSortBy = (v: string) => setFilters(p => ({ ...p, sortBy: v }));
+  const setShowStarredOnly = (v: boolean) => setFilters(p => ({ ...p, showStarredOnly: v }));
 
   // Scroll position preservation
   const scrollPositionRef = useRef<number>(0);
@@ -518,71 +493,19 @@ const MissionsPage = () => {
     </Dialog>
   );
 
-  // Shared filters component for reuse
-  const renderFilters = (compact = false) => (
-    <div className={cn(
-      "flex flex-wrap items-center gap-3",
-      compact ? "p-3" : "p-4"
-    )}>
-      <div className="flex items-center gap-2">
-        <Filter className="w-4 h-4 text-muted-foreground" />
-        <span className="text-sm font-medium text-foreground">Filtros:</span>
-      </div>
-      
-      <Select value={areaFilter} onValueChange={setAreaFilter}>
-        <SelectTrigger className={cn("h-9", compact ? "w-[150px]" : "w-[180px]")}>
-          <SelectValue placeholder="Área" />
-        </SelectTrigger>
-        <SelectContent>
-          {AREA_CATEGORIES.map((cat) => (
-            <SelectItem key={cat.value} value={cat.value}>
-              <span className="mr-2">{cat.icon}</span>
-              {cat.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <Select value={statusFilter} onValueChange={setStatusFilter}>
-        <SelectTrigger className={cn("h-9", compact ? "w-[130px]" : "w-[160px]")}>
-          <SelectValue placeholder="Estado" />
-        </SelectTrigger>
-        <SelectContent>
-          {STATUS_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Starred filter */}
-      <Button
-        variant={showStarredOnly ? "default" : "outline"}
-        size="sm"
-        className="h-9"
-        onClick={() => setShowStarredOnly(!showStarredOnly)}
-      >
-        <Star className={cn("w-4 h-4", showStarredOnly && "fill-current", !compact && "mr-2")} />
-        {!compact && `Destacadas (${starredMissions.size})`}
-      </Button>
-
-      <div className="flex items-center gap-2 ml-auto">
-        <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className={cn("h-9", compact ? "w-[130px]" : "w-[160px]")}>
-            <SelectValue placeholder="Ordenar" />
-          </SelectTrigger>
-          <SelectContent>
-            {SORT_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+  // Shared filters component for reuse (now using MissionFilters component)
+  const renderFiltersBar = () => (
+    <MissionFilters
+      areaFilter={areaFilter}
+      statusFilter={statusFilter}
+      sortBy={sortBy}
+      showStarredOnly={showStarredOnly}
+      starredCount={starredMissions.size}
+      onAreaFilterChange={setAreaFilter}
+      onStatusFilterChange={setStatusFilter}
+      onSortByChange={setSortBy}
+      onShowStarredOnlyChange={setShowStarredOnly}
+    />
   );
 
   if (loading) {
@@ -712,7 +635,7 @@ const MissionsPage = () => {
 
         {/* Filters Bar */}
         <div className="dashboard-card">
-          {renderFilters()}
+          {renderFiltersBar()}
         </div>
 
         <div className="grid grid-cols-3 gap-6">
