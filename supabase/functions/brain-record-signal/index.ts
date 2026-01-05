@@ -8,13 +8,19 @@ const corsHeaders = {
 
 interface SignalInput {
   businessId: string;
-  signalType: 'user_input' | 'integration_data' | 'feedback' | 'action_outcome' | 'checkin' | 'alert' | 'chat' | 'gap_answer';
+  signalType: string; // Now accepts any signal type for flexibility
   source: string;
   content: Record<string, any>;
   rawText?: string;
   confidence?: 'high' | 'medium' | 'low';
   importance?: number;
 }
+
+// Known signal types for reference:
+// - user_input, integration_data, feedback, action_outcome, checkin, alert, chat, gap_answer
+// - mission_step_completed, mission_completed, mission_paused, mission_resumed, mission_steps_regenerated
+// - radar_item_viewed, radar_item_applied, radar_item_dismissed
+// - internal_radar_item_created, internal_signal_ingested, brain_profile_updated
 
 async function recordSignal(supabase: any, input: SignalInput): Promise<string | null> {
   // Get brain for this business
@@ -45,15 +51,30 @@ async function recordSignal(supabase: any, input: SignalInput): Promise<string |
     return null;
   }
 
-  // Update brain signal count
+  // Update brain signal count and last learning timestamp
   if (brain?.id) {
-    await supabase
-      .from('business_brains')
-      .update({
-        total_signals: supabase.rpc('increment_signal_count', { brain_id: brain.id }),
-        last_learning_at: new Date().toISOString()
-      })
-      .eq('id', brain.id);
+    try {
+      await supabase.rpc('increment_signal_count', { brain_row_id: brain.id });
+      await supabase
+        .from('business_brains')
+        .update({ last_learning_at: new Date().toISOString() })
+        .eq('id', brain.id);
+    } catch (e) {
+      // Fallback: simple increment
+      const { data: currentBrain } = await supabase
+        .from('business_brains')
+        .select('total_signals')
+        .eq('id', brain.id)
+        .single();
+      
+      await supabase
+        .from('business_brains')
+        .update({
+          total_signals: (currentBrain?.total_signals || 0) + 1,
+          last_learning_at: new Date().toISOString()
+        })
+        .eq('id', brain.id);
+    }
   }
 
   // If this is a gap answer, update the data gap
@@ -86,6 +107,50 @@ async function recordSignal(supabase: any, input: SignalInput): Promise<string |
         .update({ factual_memory: updatedMemory })
         .eq('id', brain.id);
     }
+  }
+
+  // Update dynamic memory for mission signals
+  if (brain?.id && input.signalType.startsWith('mission_')) {
+    const { data: currentBrain } = await supabase
+      .from('business_brains')
+      .select('dynamic_memory, decisions_memory')
+      .eq('id', brain.id)
+      .single();
+
+    const dynamicMemory = currentBrain?.dynamic_memory || {};
+    const decisionsMemory = currentBrain?.decisions_memory || {};
+    
+    // Track mission activity
+    const missionActivity = dynamicMemory.mission_activity || [];
+    missionActivity.unshift({
+      type: input.signalType,
+      missionId: input.content.missionId,
+      missionTitle: input.content.missionTitle,
+      timestamp: new Date().toISOString(),
+    });
+    
+    // Keep only last 50 entries
+    dynamicMemory.mission_activity = missionActivity.slice(0, 50);
+    
+    // Track decisions for paused/dismissed missions
+    if (input.signalType === 'mission_paused' || input.signalType === 'mission_dismissed') {
+      const rejectedMissions = decisionsMemory.rejected_missions || [];
+      rejectedMissions.push({
+        missionId: input.content.missionId,
+        missionTitle: input.content.missionTitle,
+        reason: input.signalType,
+        timestamp: new Date().toISOString(),
+      });
+      decisionsMemory.rejected_missions = rejectedMissions.slice(-20);
+    }
+    
+    await supabase
+      .from('business_brains')
+      .update({ 
+        dynamic_memory: dynamicMemory,
+        decisions_memory: decisionsMemory,
+      })
+      .eq('id', brain.id);
   }
 
   return signal?.id;
