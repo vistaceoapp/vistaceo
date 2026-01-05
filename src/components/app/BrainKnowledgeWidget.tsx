@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Brain, ChevronRight, Clock, Sparkles, Check, X } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Brain, ChevronRight, Clock, Sparkles, Check, X, RefreshCw, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -11,12 +11,11 @@ import { GlassCard } from "./GlassCard";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
-interface MicroQuestion {
-  id: string;
+interface GeneratedQuestion {
   question: string;
-  field_name: string;
+  options: string[];
   category: string;
-  options?: string[];
+  impact: string;
 }
 
 interface BrainKnowledgeWidgetProps {
@@ -25,120 +24,151 @@ interface BrainKnowledgeWidgetProps {
 
 export const BrainKnowledgeWidget = ({ className }: BrainKnowledgeWidgetProps) => {
   const { currentBusiness } = useBusiness();
-  const { brain, dataGaps } = useBrain();
+  const { brain, recordSignal, refreshBrain } = useBrain();
   const navigate = useNavigate();
-  const [questions, setQuestions] = useState<MicroQuestion[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  
+  const [currentQuestion, setCurrentQuestion] = useState<GeneratedQuestion | null>(null);
   const [answering, setAnswering] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [insightsCount, setInsightsCount] = useState(0);
+  const [customAnswer, setCustomAnswer] = useState("");
 
-  useEffect(() => {
-    fetchMicroQuestions();
-  }, [currentBusiness, dataGaps]);
-
-  const fetchMicroQuestions = async () => {
-    if (!currentBusiness) {
-      setLoading(false);
-      return;
-    }
-
+  // Fetch insights count
+  const fetchInsightsCount = useCallback(async () => {
+    if (!currentBusiness) return;
+    
     try {
-      // Use data gaps as micro-questions
-      if (dataGaps && dataGaps.length > 0) {
-        const microQuestions = dataGaps
-          .filter(gap => gap.status === "pending")
-          .slice(0, 3)
-          .map(gap => {
-            const gapQuestions = gap as { questions?: { text?: string }[] };
-            const questionsArray = gapQuestions.questions;
-            return {
-              id: gap.id,
-              question: questionsArray?.[0]?.text || gap.reason || `¿Cuál es tu ${gap.field_name}?`,
-              field_name: gap.field_name,
-              category: gap.category,
-            };
-          });
-        setQuestions(microQuestions);
-      } else {
-        // Fallback questions
-        setQuestions([
-          {
-            id: "1",
-            question: "¿Cuántos empleados tenés actualmente?",
-            field_name: "employee_count",
-            category: "operations",
-          },
-          {
-            id: "2", 
-            question: "¿Cuál es tu día más fuerte de la semana?",
-            field_name: "strongest_day",
-            category: "sales",
-          },
-          {
-            id: "3",
-            question: "¿Qué porcentaje de ventas viene de delivery?",
-            field_name: "delivery_percentage",
-            category: "channels",
-          },
-        ]);
+      const { count, error } = await supabase
+        .from("business_insights")
+        .select("*", { count: "exact", head: true })
+        .eq("business_id", currentBusiness.id);
+      
+      if (!error && count !== null) {
+        setInsightsCount(count);
       }
     } catch (error) {
-      console.error("Error fetching questions:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching insights count:", error);
     }
-  };
+  }, [currentBusiness]);
+
+  // Generate a new personalized question
+  const generateQuestion = useCallback(async () => {
+    if (!currentBusiness) return;
+    
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-question", {
+        body: { businessId: currentBusiness.id }
+      });
+
+      if (error) throw error;
+      
+      if (data?.question) {
+        setCurrentQuestion(data.question);
+      }
+    } catch (error) {
+      console.error("Error generating question:", error);
+      // Fallback question
+      setCurrentQuestion({
+        question: "¿Cuál es tu mayor desafío esta semana?",
+        options: ["Atraer clientes", "Reducir costos", "Gestionar equipo", "Mejorar servicio"],
+        category: "operaciones",
+        impact: "Priorizar las recomendaciones diarias"
+      });
+    } finally {
+      setGenerating(false);
+    }
+  }, [currentBusiness]);
+
+  // Initial load
+  useEffect(() => {
+    const init = async () => {
+      if (!currentBusiness) {
+        setLoading(false);
+        return;
+      }
+      
+      await fetchInsightsCount();
+      await generateQuestion();
+      setLoading(false);
+    };
+    
+    init();
+  }, [currentBusiness, fetchInsightsCount, generateQuestion]);
 
   const handleAnswer = async (answer: string) => {
-    if (!currentBusiness || !questions[currentQuestionIndex]) return;
+    if (!currentBusiness || !currentQuestion) return;
     setAnswering(true);
 
     try {
-      const question = questions[currentQuestionIndex];
-      
-      // Record the answer as a signal
-      await supabase.from("signals").insert({
+      // 1. Save to business_insights (permanent knowledge)
+      await supabase.from("business_insights").insert({
         business_id: currentBusiness.id,
-        signal_type: "micro_question_answer",
-        source: "brain_knowledge_widget",
-        content: { 
-          question: question.question,
-          answer,
-          field_name: question.field_name,
-          category: question.category
-        },
-        raw_text: `${question.question}: ${answer}`,
-        confidence: "high",
-        importance: 8
+        question: currentQuestion.question,
+        answer: answer,
+        category: currentQuestion.category,
+        metadata: { 
+          options: currentQuestion.options,
+          impact: currentQuestion.impact,
+          source: "brain_knowledge_widget"
+        }
       });
 
-      // Mark data gap as answered if it exists
-      if (dataGaps?.find(g => g.id === question.id)) {
+      // 2. Record signal to brain (for dynamic learning)
+      await recordSignal(
+        "learning_answer",
+        { 
+          question: currentQuestion.question,
+          answer,
+          category: currentQuestion.category,
+          impact: currentQuestion.impact,
+          options: currentQuestion.options
+        },
+        "brain_knowledge_widget"
+      );
+
+      // 3. Update brain factual memory
+      if (brain?.id) {
+        const { data: currentBrainData } = await supabase
+          .from("business_brains")
+          .select("factual_memory")
+          .eq("id", brain.id)
+          .single();
+
+        const factualMemory = (currentBrainData?.factual_memory || {}) as Record<string, unknown>;
+        const categoryKey = `learning_${currentQuestion.category}`;
+        const categoryAnswers = (factualMemory[categoryKey] as { q: string; a: string; t: string }[]) || [];
+        
+        const updatedMemory = {
+          ...factualMemory,
+          [categoryKey]: [
+            ...categoryAnswers,
+            { q: currentQuestion.question, a: answer, t: new Date().toISOString() }
+          ].slice(-10) // Keep last 10 per category
+        };
+
         await supabase
-          .from("data_gaps")
+          .from("business_brains")
           .update({ 
-            status: "answered",
-            answer: { value: answer },
-            answered_at: new Date().toISOString(),
-            answered_via: "micro_question"
+            factual_memory: updatedMemory as unknown as Record<string, never>,
+            last_learning_at: new Date().toISOString()
           })
-          .eq("id", question.id);
+          .eq("id", brain.id);
       }
 
       toast({
-        title: "¡Gracias!",
-        description: "Tu respuesta mejora las recomendaciones",
+        title: "¡Aprendido!",
+        description: "Tu respuesta mejora todas las recomendaciones",
       });
 
-      // Move to next question or close
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(prev => prev + 1);
-      } else {
-        setShowQuestions(false);
-        setCurrentQuestionIndex(0);
-        fetchMicroQuestions();
-      }
+      // Update count and generate next question
+      setInsightsCount(prev => prev + 1);
+      setCustomAnswer("");
+      await generateQuestion();
+      await refreshBrain();
+      
     } catch (error) {
       console.error("Error saving answer:", error);
       toast({
@@ -151,16 +181,43 @@ export const BrainKnowledgeWidget = ({ className }: BrainKnowledgeWidgetProps) =
     }
   };
 
-  const handleSkip = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else {
-      setShowQuestions(false);
-      setCurrentQuestionIndex(0);
+  const handleSkip = async () => {
+    // Record that user skipped this question
+    if (currentBusiness && currentQuestion) {
+      await recordSignal(
+        "learning_skipped",
+        { 
+          question: currentQuestion.question,
+          category: currentQuestion.category
+        },
+        "brain_knowledge_widget"
+      );
     }
+    
+    setCustomAnswer("");
+    await generateQuestion();
   };
 
-  const knowledgeProgress = brain?.mvc_completion_pct || 35;
+  const handleRegenerateQuestion = async () => {
+    setCustomAnswer("");
+    await generateQuestion();
+  };
+
+  // Calculate knowledge progress
+  const knowledgeProgress = Math.min(
+    Math.round((insightsCount / 50) * 100), // Target: 50 insights for 100%
+    100
+  );
+
+  const getKnowledgeLevel = () => {
+    if (insightsCount < 5) return { label: "Iniciando", color: "text-muted-foreground" };
+    if (insightsCount < 15) return { label: "Aprendiendo", color: "text-amber-500" };
+    if (insightsCount < 30) return { label: "Conociendo", color: "text-primary" };
+    if (insightsCount < 50) return { label: "Experto", color: "text-success" };
+    return { label: "Maestro", color: "text-success" };
+  };
+
+  const level = getKnowledgeLevel();
 
   if (loading) {
     return (
@@ -181,7 +238,9 @@ export const BrainKnowledgeWidget = ({ className }: BrainKnowledgeWidgetProps) =
           </div>
           <div>
             <h3 className="font-semibold text-foreground">Conocimiento del negocio</h3>
-            <p className="text-xs text-muted-foreground">Aprendizaje continuo</p>
+            <p className="text-xs text-muted-foreground">
+              {insightsCount} aprendidos • <span className={level.color}>{level.label}</span>
+            </p>
           </div>
         </div>
         <Badge 
@@ -209,12 +268,23 @@ export const BrainKnowledgeWidget = ({ className }: BrainKnowledgeWidgetProps) =
       </div>
 
       {/* Questions section */}
-      {showQuestions && questions.length > 0 ? (
+      {showQuestions && currentQuestion ? (
         <div className="space-y-4 animate-fade-in">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              Pregunta {currentQuestionIndex + 1} de {questions.length}
-            </span>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-[10px] bg-primary/5">
+                {currentQuestion.category}
+              </Badge>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0"
+                onClick={handleRegenerateQuestion}
+                disabled={generating}
+              >
+                <RefreshCw className={cn("w-3 h-3", generating && "animate-spin")} />
+              </Button>
+            </div>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -226,34 +296,68 @@ export const BrainKnowledgeWidget = ({ className }: BrainKnowledgeWidgetProps) =
           </div>
 
           <div className="p-4 rounded-xl bg-secondary/50 border border-border">
-            <p className="text-sm font-medium text-foreground mb-3">
-              {questions[currentQuestionIndex]?.question}
-            </p>
-            
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Tu respuesta..."
-                className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && (e.target as HTMLInputElement).value) {
-                    handleAnswer((e.target as HTMLInputElement).value);
-                  }
-                }}
-                disabled={answering}
-              />
-              <Button 
-                size="sm" 
-                className="gradient-primary"
-                onClick={(e) => {
-                  const input = (e.target as HTMLElement).parentElement?.querySelector('input');
-                  if (input?.value) handleAnswer(input.value);
-                }}
-                disabled={answering}
-              >
-                <Check className="w-4 h-4" />
-              </Button>
-            </div>
+            {generating ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
+                <span className="text-sm text-muted-foreground">Generando pregunta...</span>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-foreground mb-3">
+                  {currentQuestion.question}
+                </p>
+                
+                {/* Options as buttons */}
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {currentQuestion.options.map((option, idx) => (
+                    <Button
+                      key={idx}
+                      variant="outline"
+                      size="sm"
+                      className="h-auto py-2 px-3 text-xs text-left justify-start whitespace-normal"
+                      onClick={() => handleAnswer(option)}
+                      disabled={answering}
+                    >
+                      {option}
+                    </Button>
+                  ))}
+                </div>
+
+                {/* Custom answer */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="O escribí tu respuesta..."
+                    value={customAnswer}
+                    onChange={(e) => setCustomAnswer(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && customAnswer.trim()) {
+                        handleAnswer(customAnswer.trim());
+                      }
+                    }}
+                    disabled={answering}
+                  />
+                  <Button 
+                    size="sm" 
+                    className="gradient-primary"
+                    onClick={() => {
+                      if (customAnswer.trim()) handleAnswer(customAnswer.trim());
+                    }}
+                    disabled={answering || !customAnswer.trim()}
+                  >
+                    {answering ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  </Button>
+                </div>
+
+                {/* Impact hint */}
+                {currentQuestion.impact && (
+                  <p className="text-[10px] text-muted-foreground mt-2 italic">
+                    💡 {currentQuestion.impact}
+                  </p>
+                )}
+              </>
+            )}
           </div>
 
           <div className="flex items-center justify-between">
@@ -262,6 +366,7 @@ export const BrainKnowledgeWidget = ({ className }: BrainKnowledgeWidgetProps) =
               size="sm" 
               className="text-xs text-muted-foreground"
               onClick={handleSkip}
+              disabled={generating || answering}
             >
               <Clock className="w-3 h-3 mr-1" />
               Más tarde
@@ -271,37 +376,35 @@ export const BrainKnowledgeWidget = ({ className }: BrainKnowledgeWidgetProps) =
         </div>
       ) : (
         <>
-          {/* Micro questions CTA */}
-          {questions.length > 0 && (
-            <Button
-              variant="outline"
-              className="w-full justify-between h-auto py-3 px-4 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20 hover:border-primary/40"
-              onClick={() => setShowQuestions(true)}
-            >
-              <div className="flex items-center gap-3">
-                <Sparkles className="w-5 h-5 text-primary" />
-                <div className="text-left">
-                  <p className="font-medium text-foreground text-sm">
-                    {questions.length} preguntas rápidas
-                  </p>
-                  <p className="text-xs text-muted-foreground">~30 seg • Mejora recomendaciones</p>
-                </div>
+          {/* Start learning CTA */}
+          <Button
+            variant="outline"
+            className="w-full justify-between h-auto py-3 px-4 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20 hover:border-primary/40"
+            onClick={() => setShowQuestions(true)}
+          >
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-primary" />
+              <div className="text-left">
+                <p className="font-medium text-foreground text-sm">
+                  Responder pregunta rápida
+                </p>
+                <p className="text-xs text-muted-foreground">~30 seg • Mejora recomendaciones</p>
               </div>
-              <Badge className="bg-primary/10 text-primary border-0">
-                Responder ahora
-              </Badge>
-            </Button>
-          )}
+            </div>
+            <Badge className="bg-primary/10 text-primary border-0">
+              +1
+            </Badge>
+          </Button>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-2 mt-4">
             <div className="text-center p-2 rounded-lg bg-secondary/30">
-              <p className="text-lg font-bold text-foreground">{brain?.total_signals || 0}</p>
-              <p className="text-[10px] text-muted-foreground">Señales</p>
+              <p className="text-lg font-bold text-foreground">{insightsCount}</p>
+              <p className="text-[10px] text-muted-foreground">Aprendidos</p>
             </div>
             <div className="text-center p-2 rounded-lg bg-secondary/30">
-              <p className="text-lg font-bold text-foreground">{dataGaps?.filter(g => g.status === "answered").length || 0}</p>
-              <p className="text-[10px] text-muted-foreground">Respuestas</p>
+              <p className="text-lg font-bold text-foreground">{brain?.total_signals || 0}</p>
+              <p className="text-[10px] text-muted-foreground">Señales</p>
             </div>
             <div className="text-center p-2 rounded-lg bg-secondary/30">
               <p className="text-lg font-bold text-foreground">{brain?.confidence_score ? Math.round(Number(brain.confidence_score) * 100) : 0}%</p>
