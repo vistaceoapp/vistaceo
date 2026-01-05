@@ -307,6 +307,7 @@ const MissionsPage = () => {
     if (!mission) return;
 
     const steps = [...((mission.steps || []) as Step[])];
+    const wasDone = steps[stepIndex].done;
     steps[stepIndex] = { ...steps[stepIndex], done: !steps[stepIndex].done };
     
     let newCurrentStep = steps.findIndex(s => !s.done);
@@ -325,7 +326,43 @@ const MissionsPage = () => {
 
       if (error) throw error;
 
+      // Record brain signal for step completion
+      if (!wasDone && currentBusiness) {
+        supabase.functions.invoke("brain-record-signal", {
+          body: {
+            businessId: currentBusiness.id,
+            signalType: "mission_step_completed",
+            content: {
+              missionId,
+              missionTitle: mission.title,
+              stepIndex,
+              stepText: steps[stepIndex].text?.slice(0, 100),
+              totalSteps: steps.length,
+              completedSteps: steps.filter(s => s.done).length,
+            },
+            source: "ui",
+          }
+        }).catch(console.error);
+      }
+
       if (newCurrentStep >= steps.length) {
+        // Record mission completed signal
+        if (currentBusiness) {
+          supabase.functions.invoke("brain-record-signal", {
+            body: {
+              businessId: currentBusiness.id,
+              signalType: "mission_completed",
+              content: {
+                missionId,
+                missionTitle: mission.title,
+                missionArea: mission.area,
+                totalSteps: steps.length,
+              },
+              source: "ui",
+            }
+          }).catch(console.error);
+        }
+
         toast({
           title: "🎉 ¡Misión completada!",
           description: `Has terminado "${mission.title}"`,
@@ -350,8 +387,27 @@ const MissionsPage = () => {
 
       if (error) throw error;
 
+      // Record brain signal
+      if (currentBusiness) {
+        supabase.functions.invoke("brain-record-signal", {
+          body: {
+            businessId: currentBusiness.id,
+            signalType: newStatus === "paused" ? "mission_paused" : "mission_resumed",
+            content: {
+              missionId: mission.id,
+              missionTitle: mission.title,
+              missionArea: mission.area,
+            },
+            source: "ui",
+          }
+        }).catch(console.error);
+      }
+
       toast({
         title: newStatus === "active" ? "▶️ Misión reactivada" : "⏸️ Misión pausada",
+        description: newStatus === "active" 
+          ? "Tu misión está activa nuevamente"
+          : "La ocultamos temporalmente. Puedes reanudarla cuando quieras.",
       });
 
       fetchMissions();

@@ -178,6 +178,12 @@ export const MissionLLMMode = ({
   // View mode: "summary" or "steps"
   const [viewMode, setViewMode] = useState<"summary" | "steps">("summary");
   
+  // Selected step index for the right sidebar timeline
+  const [selectedStepIdx, setSelectedStepIdx] = useState<number | null>(() => {
+    const firstIncomplete = ((mission.steps || []) as Step[]).findIndex(s => !s.done);
+    return firstIncomplete >= 0 ? firstIncomplete : 0;
+  });
+  
   // Local filters for the missions list in LLM mode
   const [localFilters, setLocalFilters] = useState(() => loadFiltersFromStorage());
   const [starredMissions, setStarredMissions] = useState<Set<string>>(new Set());
@@ -268,6 +274,10 @@ export const MissionLLMMode = ({
     setError(null);
     setMobileTab("guide");
     setViewMode("summary");
+    
+    // Reset selected step to first incomplete
+    const firstIncomplete = steps.findIndex(s => !s.done);
+    setSelectedStepIdx(firstIncomplete >= 0 ? firstIncomplete : 0);
 
     if (containerRef.current) {
       containerRef.current.scrollTop = 0;
@@ -280,7 +290,7 @@ export const MissionLLMMode = ({
         abortControllerRef.current.abort();
       }
     };
-  }, [mission.id, fetchEnhancedPlan]);
+  }, [mission.id, fetchEnhancedPlan, steps]);
 
   // Filter missions for the left sidebar
   const filteredMissions = useMemo(() => {
@@ -585,15 +595,33 @@ export const MissionLLMMode = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => fetchEnhancedPlan(true)}
+                      onClick={() => {
+                        fetchEnhancedPlan(true);
+                        // Record regeneration signal
+                        if (currentBusiness) {
+                          supabase.functions.invoke("brain-record-signal", {
+                            body: {
+                              businessId: currentBusiness.id,
+                              signalType: "mission_steps_regenerated",
+                              content: {
+                                missionId: mission.id,
+                                missionTitle: mission.title,
+                              },
+                              source: "ui",
+                            }
+                          }).catch(console.error);
+                        }
+                      }}
                       disabled={regenerating}
                     >
                       <RefreshCw className={cn("w-4 h-4", regenerating && "animate-spin")} />
-                      <span className="ml-2 hidden lg:inline">Regenerar</span>
+                      <span className="ml-2 hidden lg:inline">Regenerar guía</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-xs">Actualizo con lo último que sé de tu negocio</p>
+                    <p className="text-xs max-w-[200px]">
+                      Generaremos una nueva Guía de Pasos para la misma necesidad, con un enfoque alternativo.
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -620,8 +648,10 @@ export const MissionLLMMode = ({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-xs">
-                      {mission.status === "active" ? "Pausar esta misión temporalmente" : "Reanudar esta misión"}
+                    <p className="text-xs max-w-[200px]">
+                      {mission.status === "active" 
+                        ? "La ocultamos temporalmente. Puedes reanudarla cuando quieras." 
+                        : "Reactivar esta misión para seguir avanzando."}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -681,6 +711,8 @@ export const MissionLLMMode = ({
                 steps={steps}
                 enhancedPlan={enhancedPlan}
                 onToggleStep={onToggleStep}
+                selectedStepIdx={selectedStepIdx}
+                onSelectStep={setSelectedStepIdx}
               />
             )}
           </div>
@@ -695,17 +727,26 @@ export const MissionLLMMode = ({
               <FileText className="w-4 h-4 text-primary" />
               Timeline de pasos
             </h3>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Haz clic en un paso para ver detalles
+            </p>
           </div>
           <div className="p-4 space-y-2">
             {steps.map((step, idx) => {
               const isCurrentStep = steps.findIndex(s => !s.done) === idx;
+              const isSelected = selectedStepIdx === idx;
               
               return (
                 <button
                   key={idx}
-                  onClick={() => onToggleStep(mission.id, idx)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Just select the step - don't toggle done/undone
+                    setSelectedStepIdx(idx);
+                  }}
                   className={cn(
                     "w-full text-left p-3 rounded-lg border transition-all group",
+                    isSelected && "ring-2 ring-primary",
                     step.done
                       ? "bg-success/5 border-success/20"
                       : isCurrentStep
@@ -714,16 +755,23 @@ export const MissionLLMMode = ({
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <div className={cn(
-                      "w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 text-xs font-bold",
-                      step.done
-                        ? "bg-success text-success-foreground"
-                        : isCurrentStep
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-muted-foreground"
-                    )}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // This button toggles step done/undone
+                        onToggleStep(mission.id, idx);
+                      }}
+                      className={cn(
+                        "w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors",
+                        step.done
+                          ? "bg-success text-success-foreground hover:bg-success/80"
+                          : isCurrentStep
+                            ? "bg-primary text-primary-foreground hover:bg-primary/80"
+                            : "bg-secondary text-muted-foreground hover:bg-primary hover:text-primary-foreground"
+                      )}
+                    >
                       {step.done ? <Check className="w-3.5 h-3.5" /> : idx + 1}
-                    </div>
+                    </button>
                     <p className={cn(
                       "text-xs line-clamp-2 flex-1",
                       step.done && "line-through text-muted-foreground"
@@ -731,7 +779,15 @@ export const MissionLLMMode = ({
                       {step.text}
                     </p>
                     {step.done && (
-                      <RotateCcw className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleStep(mission.id, idx);
+                        }}
+                        className="p-1 rounded hover:bg-secondary"
+                      >
+                        <RotateCcw className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                      </button>
                     )}
                   </div>
                 </button>

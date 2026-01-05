@@ -144,31 +144,42 @@ export const MissionFilters = ({
 
   return (
     <div className={cn(
-      "flex flex-wrap items-center gap-3",
-      compact ? "p-3" : "p-4",
+      "flex flex-wrap items-center gap-2 sm:gap-3",
+      compact ? "p-2 sm:p-3" : "p-3 sm:p-4",
       className
     )}>
-      <div className="flex items-center gap-2">
-        <Filter className="w-4 h-4 text-muted-foreground" />
-        {!compact && <span className="text-sm font-medium text-foreground">Filtros:</span>}
-      </div>
+      {/* Filter label - hidden on compact/mobile */}
+      {!compact && (
+        <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+          <Filter className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-medium text-foreground">Filtros:</span>
+        </div>
+      )}
       
+      {/* Area filter */}
       <Select value={areaFilter} onValueChange={onAreaFilterChange}>
-        <SelectTrigger className={cn("h-9", compact ? "w-[140px]" : "w-[180px]")}>
+        <SelectTrigger className={cn(
+          "h-10 sm:h-9 min-w-0",
+          compact ? "flex-1 min-w-[120px] max-w-[180px]" : "flex-[1_1_160px] min-w-[140px] max-w-[220px]"
+        )}>
           <SelectValue placeholder="Área" />
         </SelectTrigger>
         <SelectContent>
           {AREA_CATEGORIES.map((cat) => (
             <SelectItem key={cat.value} value={cat.value}>
               <span className="mr-2">{cat.icon}</span>
-              {cat.label}
+              <span className="truncate">{cat.label}</span>
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
+      {/* Status filter */}
       <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-        <SelectTrigger className={cn("h-9", compact ? "w-[120px]" : "w-[160px]")}>
+        <SelectTrigger className={cn(
+          "h-10 sm:h-9 min-w-0",
+          compact ? "flex-1 min-w-[100px] max-w-[140px]" : "flex-[1_1_140px] min-w-[120px] max-w-[180px]"
+        )}>
           <SelectValue placeholder="Estado" />
         </SelectTrigger>
         <SelectContent>
@@ -180,21 +191,26 @@ export const MissionFilters = ({
         </SelectContent>
       </Select>
 
-      {/* Starred filter */}
+      {/* Starred filter - icon only on mobile for touch target */}
       <Button
         variant={showStarredOnly ? "default" : "outline"}
         size="sm"
-        className="h-9"
+        className="h-10 sm:h-9 min-w-[44px] px-3 flex-shrink-0"
         onClick={() => onShowStarredOnlyChange(!showStarredOnly)}
       >
-        <Star className={cn("w-4 h-4", showStarredOnly && "fill-current", !compact && "mr-2")} />
-        {!compact && `Destacadas (${starredCount})`}
+        <Star className={cn("w-4 h-4 flex-shrink-0", showStarredOnly && "fill-current")} />
+        {!compact && <span className="hidden sm:inline ml-2">Destacadas ({starredCount})</span>}
+        {compact && starredCount > 0 && <span className="ml-1 text-xs">{starredCount}</span>}
       </Button>
 
-      <div className="flex items-center gap-2 ml-auto">
-        <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+      {/* Sort - pushed to the end */}
+      <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+        <ArrowUpDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
         <Select value={sortBy} onValueChange={onSortByChange}>
-          <SelectTrigger className={cn("h-9", compact ? "w-[120px]" : "w-[160px]")}>
+          <SelectTrigger className={cn(
+            "h-10 sm:h-9 min-w-0",
+            compact ? "w-[110px]" : "w-[140px] sm:w-[160px]"
+          )}>
             <SelectValue placeholder="Ordenar" />
           </SelectTrigger>
           <SelectContent>

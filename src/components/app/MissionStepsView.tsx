@@ -44,6 +44,8 @@ interface MissionStepsViewProps {
   steps: Step[];
   enhancedPlan: EnhancedPlan | null;
   onToggleStep: (missionId: string, stepIndex: number) => void;
+  selectedStepIdx?: number | null;
+  onSelectStep?: (idx: number | null) => void;
 }
 
 export const MissionStepsView = ({
@@ -51,12 +53,24 @@ export const MissionStepsView = ({
   steps,
   enhancedPlan,
   onToggleStep,
+  selectedStepIdx,
+  onSelectStep,
 }: MissionStepsViewProps) => {
-  const [expandedStep, setExpandedStep] = useState<number | null>(() => {
-    // Default to first incomplete step
+  // Use controlled step index if provided, otherwise internal state
+  const [internalExpandedStep, setInternalExpandedStep] = useState<number | null>(() => {
     const firstIncomplete = steps.findIndex((s) => !s.done);
     return firstIncomplete >= 0 ? firstIncomplete : null;
   });
+  
+  const expandedStep = selectedStepIdx !== undefined ? selectedStepIdx : internalExpandedStep;
+  const setExpandedStep = (idx: number | null) => {
+    if (onSelectStep && selectedStepIdx !== undefined) {
+      onSelectStep(idx);
+    } else {
+      setInternalExpandedStep(idx);
+    }
+  };
+  
   const [undoStepIndex, setUndoStepIndex] = useState<number | null>(null);
   const undoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
