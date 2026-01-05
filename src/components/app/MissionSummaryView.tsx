@@ -417,12 +417,22 @@ export const MissionSummaryView = ({
               <h3 className="font-semibold text-foreground text-sm">Riesgos y cómo evitarlos</h3>
             </div>
             <ul className="space-y-2">
-              {enhancedPlan.potentialChallenges.slice(0, 4).map((challenge, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm text-foreground">
-                  <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
-                  {challenge}
-                </li>
-              ))}
+              {enhancedPlan.potentialChallenges.slice(0, 4).map((challenge, idx) => {
+                // Handle both string and object formats
+                const challengeText = typeof challenge === 'string' 
+                  ? challenge 
+                  : typeof challenge === 'object' && challenge !== null
+                    ? (challenge as { challenge?: string; solution?: string }).challenge 
+                      ? `${(challenge as { challenge?: string; solution?: string }).challenge}${(challenge as { challenge?: string; solution?: string }).solution ? ` → ${(challenge as { challenge?: string; solution?: string }).solution}` : ''}`
+                      : JSON.stringify(challenge)
+                    : String(challenge);
+                return (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-foreground">
+                    <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 flex-shrink-0" />
+                    {challengeText}
+                  </li>
+                );
+              })}
             </ul>
           </section>
         )}
