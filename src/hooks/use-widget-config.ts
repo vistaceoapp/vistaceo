@@ -15,10 +15,9 @@ export interface WidgetConfig {
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: "health", name: "Salud del negocio", icon: "Heart", visible: true, order: 0, section: "main", locked: true },
-  { id: "missions", name: "Misiones activas", icon: "Target", visible: true, order: 1, section: "main" },
-  { id: "brain", name: "Conocimiento del negocio", icon: "Brain", visible: true, order: 2, section: "main" },
-  { id: "actions", name: "Acciones disponibles", icon: "Zap", visible: true, order: 3, section: "main" },
-  { id: "stats", name: "Estadísticas rápidas", icon: "BarChart", visible: true, order: 4, section: "main" },
+  { id: "brain", name: "Conocimiento del negocio", icon: "Brain", visible: true, order: 1, section: "main", locked: true },
+  { id: "weeklyMetrics", name: "Métricas semanales", icon: "TrendingUp", visible: true, order: 2, section: "main" },
+  { id: "missions", name: "Misiones activas", icon: "Target", visible: true, order: 3, section: "main" },
   { id: "focus", name: "Foco actual", icon: "Crosshair", visible: true, order: 0, section: "sidebar" },
   { id: "reputation", name: "Reputación", icon: "Star", visible: true, order: 1, section: "sidebar" },
   { id: "radar", name: "Radar de mercado", icon: "Radar", visible: true, order: 2, section: "sidebar" },
