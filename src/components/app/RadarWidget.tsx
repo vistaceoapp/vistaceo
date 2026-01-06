@@ -136,7 +136,10 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
         </div>
 
         {currentInsight && (
-          <div className="p-3 rounded-xl bg-accent/5 border border-accent/10 mb-3">
+          <button
+            className="w-full p-3 rounded-xl bg-accent/5 border border-accent/10 mb-3 text-left hover:border-accent/30 transition-colors cursor-pointer"
+            onClick={() => navigate("/app/radar?tab=research")}
+          >
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                 <Lightbulb className="w-4 h-4 text-accent" />
@@ -147,29 +150,35 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
                 <p className="text-[10px] text-muted-foreground mt-2 italic">{currentInsight.date}</p>
               </div>
             </div>
-          </div>
+          </button>
         )}
 
         {/* Pro CTA */}
-        <div className="p-3 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
+        <button
+          className="w-full p-3 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 hover:border-primary/40 transition-colors cursor-pointer"
+          onClick={() => navigate("/app/radar?tab=research")}
+        >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
               <Lock className="w-4 h-4 text-primary" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 text-left">
               <p className="font-medium text-foreground text-sm">Insights diarios</p>
               <p className="text-xs text-muted-foreground">Monitoreo de competencia en tiempo real</p>
             </div>
             <Button 
               size="sm" 
               className="gradient-primary h-8"
-              onClick={() => navigate("/app/more")}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("/app/more");
+              }}
             >
               <Sparkles className="w-3 h-3 mr-1" />
               Pro
             </Button>
           </div>
-        </div>
+        </button>
       </GlassCard>
     );
   }
@@ -192,7 +201,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
           <button
             key={insight.id}
             className="w-full p-3 rounded-xl bg-secondary/30 border border-border hover:border-accent/30 transition-all text-left group"
-            onClick={() => navigate(`/app/radar`)}
+            onClick={() => navigate(`/app/radar?tab=research`)}
           >
             <div className="flex items-start gap-3">
               <div className={cn(

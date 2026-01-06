@@ -20,9 +20,10 @@ interface GeneratedQuestion {
 
 interface BrainKnowledgeWidgetProps {
   className?: string;
+  compact?: boolean;
 }
 
-export const BrainKnowledgeWidget = ({ className }: BrainKnowledgeWidgetProps) => {
+export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowledgeWidgetProps) => {
   const { currentBusiness } = useBusiness();
   const { brain, recordSignal, refreshBrain } = useBrain();
   const navigate = useNavigate();

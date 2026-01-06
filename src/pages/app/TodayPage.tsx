@@ -1,14 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, Sparkles, Zap, TrendingUp, Calendar, ArrowRight, Brain } from "lucide-react";
+import { Sparkles, ArrowRight, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useBrain } from "@/hooks/use-brain";
 import { cn } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
-import { ProgressRing } from "@/components/app/ProgressRing";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { AlertFAB } from "@/components/app/AlertFAB";
 import { ActionsListPanel } from "@/components/app/ActionsListPanel";
@@ -18,27 +16,16 @@ import { ReputationWidget } from "@/components/app/ReputationWidget";
 import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
 import { RadarWidget } from "@/components/app/RadarWidget";
 import { MissionsWidget } from "@/components/app/MissionsWidget";
+import { WeeklyMetricsWidget } from "@/components/app/WeeklyMetricsWidget";
 import { DashboardEditor } from "@/components/app/DashboardEditor";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useHealthSync } from "@/hooks/use-health-sync";
 
-interface DailyAction {
-  id: string;
-  title: string;
-  description: string | null;
-  priority: string;
-  category: string | null;
-  signals: unknown;
-  checklist: unknown;
-  status: string;
-}
-
 const TodayPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
-  const { brain } = useBrain();
   const { data: dashboardData, loading: dashboardLoading } = useDashboardData();
   const { syncHealth, isSyncing } = useHealthSync();
   const { 
@@ -52,9 +39,6 @@ const TodayPage = () => {
     resetToDefaults 
   } = useWidgetConfig();
   
-  const [todayAction, setTodayAction] = useState<DailyAction | null>(null);
-  const [completedToday, setCompletedToday] = useState(0);
-  const [weeklyCompleted, setWeeklyCompleted] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showActionsPanel, setShowActionsPanel] = useState(false);
 
@@ -91,55 +75,12 @@ const TodayPage = () => {
     return "🌙";
   };
 
-  const fetchData = async () => {
-    if (!currentBusiness) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const today = new Date().toISOString().split("T")[0];
-      const weekStart = new Date();
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-      const weekStartStr = weekStart.toISOString().split("T")[0];
-
-      const [actionRes, todayCountRes, weekCountRes] = await Promise.all([
-        supabase
-          .from("daily_actions")
-          .select("*")
-          .eq("business_id", currentBusiness.id)
-          .eq("scheduled_for", today)
-          .eq("status", "pending")
-          .order("priority", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from("daily_actions")
-          .select("*", { count: "exact", head: true })
-          .eq("business_id", currentBusiness.id)
-          .eq("scheduled_for", today)
-          .eq("status", "completed"),
-        supabase
-          .from("daily_actions")
-          .select("*", { count: "exact", head: true })
-          .eq("business_id", currentBusiness.id)
-          .gte("scheduled_for", weekStartStr)
-          .eq("status", "completed"),
-      ]);
-
-      if (actionRes.error) throw actionRes.error;
-      setTodayAction(actionRes.data);
-      setCompletedToday(todayCountRes.count || 0);
-      setWeeklyCompleted(weekCountRes.count || 0);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchData();
+    if (currentBusiness) {
+      setLoading(false);
+    } else {
+      setLoading(false);
+    }
   }, [currentBusiness]);
 
   // Widget renderer based on ID
@@ -161,61 +102,8 @@ const TodayPage = () => {
         return <MissionsWidget key="missions" />;
       case "brain":
         return <BrainKnowledgeWidget key="brain" />;
-      case "actions":
-        return (
-          <GlassCard 
-            key="actions"
-            interactive 
-            className="p-6 cursor-pointer" 
-            onClick={() => setShowActionsPanel(true)}
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
-                <Zap className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground mb-1">Acciones disponibles</h3>
-                <p className="text-sm text-muted-foreground">{todayAction ? "1 acción pendiente" : "Ver todas las acciones"}</p>
-              </div>
-              <ArrowRight className="w-5 h-5 text-muted-foreground" />
-            </div>
-          </GlassCard>
-        );
-      case "stats":
-        return (
-          <div key="stats" className="grid grid-cols-2 gap-4">
-            <GlassCard className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Check className="w-4 h-4 text-success" />
-                    <span className="text-xs text-muted-foreground font-medium">Hoy</span>
-                  </div>
-                  <div className="text-3xl font-bold text-foreground">{completedToday}</div>
-                  <div className="text-xs text-muted-foreground">completadas</div>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                  <Check className="w-6 h-6 text-success" />
-                </div>
-              </div>
-            </GlassCard>
-            <GlassCard className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp className="w-4 h-4 text-primary" />
-                    <span className="text-xs text-muted-foreground font-medium">Semana</span>
-                  </div>
-                  <div className="text-3xl font-bold text-foreground">{weeklyCompleted}</div>
-                  <div className="text-xs text-muted-foreground">acciones</div>
-                </div>
-                <ProgressRing progress={Math.min((weeklyCompleted / 21) * 100, 100)} size={48} strokeWidth={4} showGlow={false}>
-                  <span className="text-xs font-bold text-primary">{Math.round(Math.min((weeklyCompleted / 21) * 100, 100))}%</span>
-                </ProgressRing>
-              </div>
-            </GlassCard>
-          </div>
-        );
+      case "weeklyMetrics":
+        return <WeeklyMetricsWidget key="weeklyMetrics" />;
       case "focus":
         return <FocusWidget key="focus" />;
       case "reputation":
@@ -320,7 +208,7 @@ const TodayPage = () => {
           </div>
         </div>
 
-        <ActionsListPanel open={showActionsPanel} onOpenChange={setShowActionsPanel} onRefresh={fetchData} />
+        <ActionsListPanel open={showActionsPanel} onOpenChange={setShowActionsPanel} />
       </div>
     );
   }
@@ -365,22 +253,21 @@ const TodayPage = () => {
       {/* Render all visible widgets in order */}
       {[...mainWidgets, ...sidebarWidgets]
         .sort((a, b) => {
-          // Custom mobile order: health first, then missions, then rest
+          // Custom mobile order: health first, then brain, then metrics, missions
           const mobileOrder: Record<string, number> = {
             health: 0,
-            missions: 1,
-            focus: 2,
-            reputation: 3,
-            brain: 4,
-            actions: 5,
+            brain: 1,
+            weeklyMetrics: 2,
+            missions: 3,
+            focus: 4,
+            reputation: 5,
             radar: 6,
-            stats: 7,
           };
           return (mobileOrder[a.id] ?? 99) - (mobileOrder[b.id] ?? 99);
         })
         .map(w => renderWidget(w.id))}
 
-      <ActionsListPanel open={showActionsPanel} onOpenChange={setShowActionsPanel} onRefresh={fetchData} />
+      <ActionsListPanel open={showActionsPanel} onOpenChange={setShowActionsPanel} />
       <AlertFAB />
     </div>
   );
