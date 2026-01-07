@@ -10,7 +10,7 @@ import {
   Globe, ExternalLink, TrendingUp, Clock, BarChart3, 
   CheckCircle2, ThumbsDown, Bookmark, BookmarkCheck,
   Sparkles, ChevronRight, Lightbulb, Target, Users,
-  Zap, Building2, FileText, AlertCircle
+  Zap, Building2, FileText, AlertCircle, Rocket
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +41,8 @@ interface LearningDetailCardProps {
   onDismiss: () => void;
   onSave: () => void;
   onClose: () => void;
+  onApply?: () => void;
+  applyLoading?: boolean;
 }
 
 // Get type-specific info
@@ -222,7 +224,9 @@ export const LearningDetailCard = ({
   business,
   onDismiss,
   onSave,
-  onClose
+  onClose,
+  onApply,
+  applyLoading
 }: LearningDetailCardProps) => {
   const typeInfo = getTypeInfo(item.item_type);
   const TypeIcon = typeInfo.icon;
@@ -399,14 +403,17 @@ export const LearningDetailCard = ({
                 </>
               )}
             </Button>
-            <Button 
-              size="sm" 
-              className="flex-1 gradient-accent" 
-              onClick={onClose}
-            >
-              <Sparkles className="w-4 h-4 mr-1" />
-              Probar esta idea
-            </Button>
+            {onApply && (
+              <Button 
+                size="sm" 
+                className="flex-1 gradient-primary" 
+                onClick={onApply}
+                disabled={applyLoading}
+              >
+                <Rocket className={cn("w-4 h-4 mr-1", applyLoading && "animate-spin")} />
+                {applyLoading ? "Creando misión..." : "Aplicar → Misión"}
+              </Button>
+            )}
           </div>
         </div>
       </ScrollArea>
