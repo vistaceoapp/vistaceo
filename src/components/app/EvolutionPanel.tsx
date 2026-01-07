@@ -117,13 +117,20 @@ export const EvolutionPanel = ({ variant = "full" }: EvolutionPanelProps) => {
 
   const overallTrend = getTrend(scoreDiff);
 
-  // Calculate dimension changes
-  const dimensionChanges = Object.keys(latest.dimensions_json || {}).map(key => {
-    const latestVal = latest.dimensions_json?.[key] || 0;
-    const prevVal = previous.dimensions_json?.[key] || 0;
-    const diff = latestVal - prevVal;
-    return { key, label: DIMENSION_LABELS[key] || key, latest: latestVal, previous: prevVal, diff };
-  });
+  // Calculate dimension changes - filter out _meta and non-numeric values
+  const dimensionChanges = Object.keys(latest.dimensions_json || {})
+    .filter(key => {
+      // Skip _meta and any non-numeric dimension values
+      if (key === '_meta') return false;
+      const val = latest.dimensions_json?.[key];
+      return typeof val === 'number';
+    })
+    .map(key => {
+      const latestVal = (latest.dimensions_json?.[key] as number) || 0;
+      const prevVal = (previous.dimensions_json?.[key] as number) || 0;
+      const diff = latestVal - prevVal;
+      return { key, label: DIMENSION_LABELS[key] || key, latest: latestVal, previous: prevVal, diff };
+    });
 
   // Compact variant
   if (variant === "compact") {
