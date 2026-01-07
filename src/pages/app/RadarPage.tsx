@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Radar as RadarIcon, TrendingUp, X, Zap, Eye, Sparkles, Target, 
   BarChart3, Filter, Bookmark, BookmarkCheck, ThumbsDown, CheckCircle2,
   ArrowUpDown, Info, Lightbulb, Globe, Building2, ExternalLink, MessageCirclePlus,
-  Shield, Clock
+  Shield, Clock, AlertCircle, RefreshCw, Rocket
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -46,6 +46,7 @@ import {
   getImpactedDrivers,
   Opportunity as OpportunityType
 } from "@/lib/radarQualityGates";
+import { useBrain } from "@/hooks/use-brain";
 
 // Helper to check if opportunity passes quality gates (simple version)
 const passesQualityGate = (opportunity: OpportunityType, business?: BusinessContext): boolean => {
@@ -132,6 +133,7 @@ const RadarPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
+  const { brain } = useBrain();
   
   // Opportunities (INTERNO)
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -155,6 +157,11 @@ const RadarPage = () => {
   // UI State
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [generatingOpportunities, setGeneratingOpportunities] = useState(false);
+  const [generatingResearch, setGeneratingResearch] = useState(false);
+  
+  // Inactivity tracking
+  const [oldestOpportunityAge, setOldestOpportunityAge] = useState<number>(0);
 
   // Fetch data
   useEffect(() => {
@@ -188,18 +195,92 @@ const RadarPage = () => {
       if (oppsRes.error) throw oppsRes.error;
       if (learningRes.error) throw learningRes.error;
 
-      setOpportunities(oppsRes.data || []);
+      const opps = oppsRes.data || [];
+      setOpportunities(opps);
       setLearningItems(learningRes.data || []);
+      
+      // Calculate oldest opportunity age in days
+      if (opps.length > 0) {
+        const oldest = opps[opps.length - 1];
+        const ageMs = Date.now() - new Date(oldest.created_at).getTime();
+        setOldestOpportunityAge(Math.floor(ageMs / (1000 * 60 * 60 * 24)));
+      }
       
       // Load saved items
       const saved = learningRes.data?.filter(i => i.is_saved).map(i => i.id) || [];
       setSavedItems(prev => ({ ...prev, learning: saved }));
+      
+      // Auto-generate if empty
+      if (opps.length === 0) {
+        generateOpportunities();
+      }
+      if ((learningRes.data || []).length === 0) {
+        generateResearchItems();
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
   };
+  
+  // Generate new opportunities proactively
+  const generateOpportunities = useCallback(async () => {
+    if (!currentBusiness || generatingOpportunities) return;
+    setGeneratingOpportunities(true);
+    
+    try {
+      const { error } = await supabase.functions.invoke("analyze-patterns", {
+        body: { businessId: currentBusiness.id, type: "opportunities" }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Nuevas oportunidades detectadas",
+        description: "El sistema encontró nuevas oportunidades para tu negocio",
+      });
+      
+      fetchData();
+    } catch (error) {
+      console.error("Error generating opportunities:", error);
+    } finally {
+      setGeneratingOpportunities(false);
+    }
+  }, [currentBusiness, generatingOpportunities]);
+  
+  // Generate research items proactively
+  const generateResearchItems = useCallback(async () => {
+    if (!currentBusiness || generatingResearch) return;
+    setGeneratingResearch(true);
+    
+    try {
+      const { error } = await supabase.functions.invoke("analyze-patterns", {
+        body: { 
+          businessId: currentBusiness.id, 
+          type: "research",
+          brainContext: brain ? {
+            primaryType: brain.primary_business_type,
+            focus: brain.current_focus,
+            factualMemory: brain.memory?.factual_memory
+          } : null
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Nuevos insights externos",
+        description: "Encontré tendencias relevantes para tu negocio",
+      });
+      
+      fetchData();
+    } catch (error) {
+      console.error("Error generating research:", error);
+    } finally {
+      setGeneratingResearch(false);
+    }
+  }, [currentBusiness, brain, generatingResearch]);
 
   // Filter and sort opportunities - with Quality Gate
   const getFilteredOpportunities = () => {
@@ -793,32 +874,68 @@ const RadarPage = () => {
                   </p>
                 </>
               ) : (
-                // Truly empty state
+                // Truly empty state - generating
                 <>
-                  <Sparkles className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
+                  <div className="relative mx-auto mb-4 w-16 h-16">
+                    <div className="absolute inset-0 blur-2xl bg-primary/30 rounded-full animate-pulse" />
+                    <div className="relative w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center">
+                      <Sparkles className={cn("w-8 h-8 text-primary-foreground", generatingOpportunities && "animate-spin")} />
+                    </div>
+                  </div>
                   <h2 className="text-xl font-bold text-foreground mb-2">
-                    Buscando oportunidades...
+                    {generatingOpportunities ? "Analizando tu negocio..." : "Buscando oportunidades"}
                   </h2>
-                  <p className="text-muted-foreground mb-4">
-                    Escanea tu negocio para detectar nuevas oportunidades personalizadas
+                  <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                    {generatingOpportunities 
+                      ? "Estoy analizando tus datos para encontrar oportunidades personalizadas"
+                      : "El sistema buscará oportunidades basadas en tu negocio"}
                   </p>
                   <Button 
-                    onClick={generateAnalysis}
-                    disabled={actionLoading}
+                    onClick={generateOpportunities}
+                    disabled={generatingOpportunities}
                     className="gradient-primary"
                   >
-                    <Sparkles className={cn("w-4 h-4 mr-2", actionLoading && "animate-spin")} />
-                    Escanear con IA
+                    <RefreshCw className={cn("w-4 h-4 mr-2", generatingOpportunities && "animate-spin")} />
+                    {generatingOpportunities ? "Analizando..." : "Buscar oportunidades"}
                   </Button>
                 </>
               )}
             </div>
           ) : (
-            <div className="dashboard-card overflow-hidden">
-              <div className="p-4 border-b border-border bg-secondary/30 flex items-center justify-between">
-                <h3 className="font-semibold text-foreground">Oportunidades detectadas</h3>
-                <span className="text-sm text-muted-foreground">{filteredOpportunities.length} resultados</span>
-              </div>
+            <>
+              {/* Inactivity CTA - Show if opportunities are older than 3 days */}
+              {oldestOpportunityAge >= 3 && (
+                <GlassCard className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/30 mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                      <AlertCircle className="w-6 h-6 text-amber-500" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-foreground">
+                        Tenés oportunidades pendientes hace {oldestOpportunityAge} días
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        Revisalas y decidí si las convertís en misiones o las descartás para mejorar futuras sugerencias
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" className="gradient-primary">
+                        <Rocket className="w-4 h-4 mr-1" />
+                        Aplicar
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-muted-foreground">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </GlassCard>
+              )}
+            
+              <div className="dashboard-card overflow-hidden">
+                <div className="p-4 border-b border-border bg-secondary/30 flex items-center justify-between">
+                  <h3 className="font-semibold text-foreground">Oportunidades detectadas</h3>
+                  <span className="text-sm text-muted-foreground">{filteredOpportunities.length} resultados</span>
+                </div>
               
               {/* Table Header */}
               <div className="grid grid-cols-12 gap-4 p-4 border-b border-border bg-secondary/20 text-sm font-medium text-muted-foreground">
@@ -896,7 +1013,8 @@ const RadarPage = () => {
                 ))}
               </div>
             </div>
-          )}
+          </>
+        )}
         </TabsContent>
 
         {/* Tab: I+D (EXTERNO) */}
@@ -949,13 +1067,28 @@ const RadarPage = () => {
           {/* I+D Items Grid */}
           {learningItems.filter(i => !i.is_saved).length === 0 ? (
             <div className="dashboard-card p-12 text-center">
-              <Globe className="w-12 h-12 text-accent mx-auto mb-4" />
+              <div className="relative mx-auto mb-4 w-16 h-16">
+                <div className="absolute inset-0 blur-2xl bg-accent/30 rounded-full animate-pulse" />
+                <div className="relative w-16 h-16 rounded-2xl gradient-accent flex items-center justify-center">
+                  <Globe className={cn("w-8 h-8 text-accent-foreground", generatingResearch && "animate-spin")} />
+                </div>
+              </div>
               <h2 className="text-xl font-bold text-foreground mb-2">
-                Buscando tendencias y oportunidades externas...
+                {generatingResearch ? "Buscando tendencias personalizadas..." : "Investigación + Desarrollo"}
               </h2>
-              <p className="text-muted-foreground">
-                El sistema está analizando el mercado para tu tipo de negocio
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                {generatingResearch 
+                  ? `Analizando tendencias para ${brain?.primary_business_type || 'tu tipo de negocio'}...`
+                  : "Buscamos insights externos personalizados según tu negocio"}
               </p>
+              <Button 
+                onClick={generateResearchItems}
+                disabled={generatingResearch}
+                className="gradient-accent"
+              >
+                <RefreshCw className={cn("w-4 h-4 mr-2", generatingResearch && "animate-spin")} />
+                {generatingResearch ? "Buscando..." : "Buscar tendencias"}
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
