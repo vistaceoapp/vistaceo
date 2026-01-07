@@ -450,6 +450,59 @@ const RadarPage = () => {
     }
   };
 
+  // Convert learning item to mission (I+D external → Mission)
+  const convertLearningToMission = async (learningItem: LearningItem) => {
+    if (!currentBusiness) return;
+    setActionLoading(true);
+
+    try {
+      const { data: missionData, error: missionError } = await supabase
+        .from("missions")
+        .insert({
+          business_id: currentBusiness.id,
+          title: learningItem.title,
+          description: learningItem.content || `Oportunidad externa: ${learningItem.title}`,
+          area: "research",
+          impact_score: 7,
+          effort_score: 5,
+          status: "active",
+          steps: [
+            { text: "Evaluar relevancia para el negocio", done: false },
+            { text: "Adaptar al contexto local", done: false },
+            { text: "Crear plan de prueba piloto", done: false },
+            { text: "Implementar y medir resultados", done: false },
+          ],
+        })
+        .select()
+        .single();
+
+      if (missionError) throw missionError;
+
+      // Delete learning item after conversion
+      await supabase
+        .from("learning_items")
+        .delete()
+        .eq("id", learningItem.id);
+
+      toast({
+        title: "¡Misión creada desde I+D!",
+        description: "La oportunidad externa se convirtió en una misión activa.",
+      });
+
+      setSelectedLearning(null);
+      navigate("/app/missions");
+    } catch (error) {
+      console.error("Error converting learning to mission:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear la misión",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const generateAnalysis = async () => {
     if (!currentBusiness) return;
     setActionLoading(true);
@@ -1130,13 +1183,29 @@ const RadarPage = () => {
                     </p>
                   )}
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
                     <Badge variant="outline" className="text-[10px] capitalize">
                       {ID_NATURES[Math.floor(Math.random() * ID_NATURES.length)]}
                     </Badge>
-                    <Button size="sm" variant="ghost" className="text-xs">
-                      Ver más <Eye className="w-3 h-3 ml-1" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-xs"
+                        onClick={(e) => { e.stopPropagation(); dismissLearning(item.id); }}
+                      >
+                        <X className="w-3 h-3" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="text-xs gradient-primary"
+                        onClick={(e) => { e.stopPropagation(); convertLearningToMission(item); }}
+                        disabled={actionLoading}
+                      >
+                        <Rocket className="w-3 h-3 mr-1" />
+                        Aplicar
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1201,6 +1270,8 @@ const RadarPage = () => {
               onDismiss={() => dismissLearning(selectedLearning.id)}
               onSave={() => toggleSaveLearning(selectedLearning.id)}
               onClose={() => setSelectedLearning(null)}
+              onApply={() => convertLearningToMission(selectedLearning)}
+              applyLoading={actionLoading}
             />
           )}
         </DialogContent>
