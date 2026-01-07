@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Brain, ChevronRight, Clock, Sparkles, Check, X, RefreshCw, Loader2 } from "lucide-react";
+import { Brain, ChevronRight, Clock, Sparkles, Check, X, RefreshCw, Loader2, TrendingUp, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -30,11 +30,12 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
   
   const [currentQuestion, setCurrentQuestion] = useState<GeneratedQuestion | null>(null);
   const [answering, setAnswering] = useState(false);
-  const [showQuestions, setShowQuestions] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [insightsCount, setInsightsCount] = useState(0);
   const [customAnswer, setCustomAnswer] = useState("");
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [lastCertaintyGain, setLastCertaintyGain] = useState<number | null>(null);
 
   // Fetch insights count
   const fetchInsightsCount = useCallback(async () => {
@@ -99,6 +100,14 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
     init();
   }, [currentBusiness, fetchInsightsCount, generateQuestion]);
 
+  // Calculate certainty gain for display
+  const calculateCertaintyGain = () => {
+    // Base gain between 1-3% depending on how many insights we have
+    if (insightsCount < 10) return 2;
+    if (insightsCount < 25) return 1.5;
+    return 1;
+  };
+
   const handleAnswer = async (answer: string) => {
     if (!currentBusiness || !currentQuestion) return;
     setAnswering(true);
@@ -134,7 +143,7 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
       if (brain?.id) {
         const { data: currentBrainData } = await supabase
           .from("business_brains")
-          .select("factual_memory")
+          .select("factual_memory, confidence_score")
           .eq("id", brain.id)
           .single();
 
@@ -150,18 +159,30 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
           ].slice(-10) // Keep last 10 per category
         };
 
+        // Increase confidence score
+        const currentConfidence = Number(currentBrainData?.confidence_score) || 0;
+        const gainPct = calculateCertaintyGain() / 100;
+        const newConfidence = Math.min(1, currentConfidence + gainPct);
+
         await supabase
           .from("business_brains")
           .update({ 
             factual_memory: updatedMemory as unknown as Record<string, never>,
-            last_learning_at: new Date().toISOString()
+            last_learning_at: new Date().toISOString(),
+            confidence_score: newConfidence
           })
           .eq("id", brain.id);
+        
+        setLastCertaintyGain(calculateCertaintyGain());
       }
+
+      // Show success animation
+      setShowSuccessAnimation(true);
+      setTimeout(() => setShowSuccessAnimation(false), 2000);
 
       toast({
         title: "¡Aprendido!",
-        description: "Tu respuesta mejora todas las recomendaciones",
+        description: `+${calculateCertaintyGain()}% de certeza en tu negocio`,
       });
 
       // Update count and generate next question
@@ -230,7 +251,21 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
   }
 
   return (
-    <GlassCard className={cn("p-5 overflow-hidden", className)}>
+    <GlassCard className={cn("p-5 overflow-hidden relative", className)}>
+      {/* Success animation overlay */}
+      {showSuccessAnimation && (
+        <div className="absolute inset-0 bg-success/10 flex items-center justify-center z-10 animate-fade-in">
+          <div className="flex flex-col items-center gap-2 animate-bounce-slow">
+            <div className="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-success" />
+            </div>
+            <span className="text-success font-bold text-lg">
+              +{lastCertaintyGain}% certeza
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -268,35 +303,31 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
         <Progress value={knowledgeProgress} className="h-2" />
       </div>
 
-      {/* Questions section */}
-      {showQuestions && currentQuestion ? (
+      {/* Questions section - ALWAYS SHOWN */}
+      {currentQuestion ? (
         <div className="space-y-4 animate-fade-in">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-[10px] bg-primary/5">
                 {currentQuestion.category}
               </Badge>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-6 w-6 p-0"
-                onClick={handleRegenerateQuestion}
-                disabled={generating}
-              >
-                <RefreshCw className={cn("w-3 h-3", generating && "animate-spin")} />
-              </Button>
+              <Badge variant="secondary" className="text-[10px] gap-1">
+                <TrendingUp className="w-3 h-3" />
+                +{calculateCertaintyGain()}% certeza
+              </Badge>
             </div>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-6 px-2 text-xs"
-              onClick={() => setShowQuestions(false)}
+              className="h-6 w-6 p-0"
+              onClick={handleRegenerateQuestion}
+              disabled={generating}
             >
-              <X className="w-3 h-3" />
+              <RefreshCw className={cn("w-3 h-3", generating && "animate-spin")} />
             </Button>
           </div>
 
-          <div className="p-4 rounded-xl bg-secondary/50 border border-border">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 border border-primary/20">
             {generating ? (
               <div className="flex items-center justify-center py-4">
                 <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
@@ -315,7 +346,7 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
                       key={idx}
                       variant="outline"
                       size="sm"
-                      className="h-auto py-2 px-3 text-xs text-left justify-start whitespace-normal"
+                      className="h-auto py-2 px-3 text-xs text-left justify-start whitespace-normal hover:bg-primary/10 hover:border-primary/40 transition-all"
                       onClick={() => handleAnswer(option)}
                       disabled={answering}
                     >
@@ -353,8 +384,9 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
 
                 {/* Impact hint */}
                 {currentQuestion.impact && (
-                  <p className="text-[10px] text-muted-foreground mt-2 italic">
-                    💡 {currentQuestion.impact}
+                  <p className="text-[10px] text-muted-foreground mt-2 italic flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-primary" />
+                    {currentQuestion.impact}
                   </p>
                 )}
               </>
@@ -370,60 +402,32 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
               disabled={generating || answering}
             >
               <Clock className="w-3 h-3 mr-1" />
-              Más tarde
+              Otra pregunta
             </Button>
-            <span className="text-[10px] text-muted-foreground">~30 segundos</span>
+            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Sparkles className="w-3 h-3" />
+              ~30 segundos
+            </span>
           </div>
         </div>
       ) : (
-        <>
-          {/* Start learning CTA */}
-          <Button
-            variant="outline"
-            className="w-full justify-between h-auto py-3 px-4 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20 hover:border-primary/40"
-            onClick={() => setShowQuestions(true)}
-          >
-            <div className="flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-primary" />
-              <div className="text-left">
-                <p className="font-medium text-foreground text-sm">
-                  Responder pregunta rápida
-                </p>
-                <p className="text-xs text-muted-foreground">~30 seg • Mejora recomendaciones</p>
-              </div>
-            </div>
-            <Badge className="bg-primary/10 text-primary border-0">
-              +1
-            </Badge>
-          </Button>
+        <div className="text-center py-8">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Preparando pregunta personalizada...</p>
+        </div>
+      )}
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-2 mt-4">
-            <div className="text-center p-2 rounded-lg bg-secondary/30">
-              <p className="text-lg font-bold text-foreground">{insightsCount}</p>
-              <p className="text-[10px] text-muted-foreground">Aprendidos</p>
-            </div>
-            <div className="text-center p-2 rounded-lg bg-secondary/30">
-              <p className="text-lg font-bold text-foreground">{brain?.total_signals || 0}</p>
-              <p className="text-[10px] text-muted-foreground">Señales</p>
-            </div>
-            <div className="text-center p-2 rounded-lg bg-secondary/30">
-              <p className="text-lg font-bold text-foreground">{brain?.confidence_score ? Math.round(Number(brain.confidence_score) * 100) : 0}%</p>
-              <p className="text-[10px] text-muted-foreground">Confianza</p>
-            </div>
-          </div>
-
-          {/* View more */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full mt-3 text-xs"
-            onClick={() => navigate("/app/diagnostic")}
-          >
-            Ver qué tanto te conozco
-            <ChevronRight className="w-4 h-4 ml-1" />
-          </Button>
-        </>
+      {/* View more - compact version */}
+      {!compact && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full mt-3 text-xs"
+          onClick={() => navigate("/app/diagnostic")}
+        >
+          Ver qué tanto te conozco
+          <ChevronRight className="w-4 h-4 ml-1" />
+        </Button>
       )}
     </GlassCard>
   );
