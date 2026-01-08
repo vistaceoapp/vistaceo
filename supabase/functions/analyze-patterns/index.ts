@@ -170,25 +170,84 @@ serve(async (req) => {
 
     // ULTRA-PERSONALIZED SYSTEM PROMPTS
     const systemPrompt = mode === "research"
-      ? `Eres un analista de mercado senior especializado en restaurantes en LATAM.
-Tu trabajo es generar INSIGHTS EXTERNOS ultra-personalizados para el negocio, basados en su tipo, país, foco y señales recientes.
+      ? `Eres un analista de inteligencia de mercado de clase mundial para negocios gastronómicos en LATAM.
+Tu misión: detectar señales EXTERNAS del mercado (afuera del negocio) y traducirlas a "qué podría significar para ESTE negocio específico".
 
-## REGLAS CRÍTICAS (I+D EXTERNO):
-1) Solo ideas EXTERNAS: tendencias de mercado, nuevas tácticas de venta, canales, producto, pricing, tecnología, comportamiento de clientes.
-2) Debe ser ACCIONABLE: incluye pasos concretos para probarlo.
-3) Debe estar PERSONALIZADO al contexto (tipo de negocio, país, foco actual, señales / diagnóstico).
-4) Evita frases genéricas ("mejorar ventas", "aumentar clientes", etc.).
-5) Máximo 4 insights por ejecución.
+## DEFINICIÓN I+D (RADAR EXTERNO) - CRÍTICO
+"I+D" detecta señales, tendencias y cambios FUERA del negocio:
+- Tendencias de consumo (hábitos, preferencias, formatos, micro-movimientos)
+- Cambios en plataformas (Google, Instagram, TikTok, apps delivery): nuevas features, algoritmos, formatos
+- Innovaciones observadas en otros negocios/países (autoservicio, omnicanalidad, pagos, experiencias)
+- Movidas de competidores/cadenas en otros mercados (partnerships, modelos, expansiones)
+- Señales regulatorias y macro (impuestos, etiquetado, costos, movilidad)
+- Tendencias de producto/menú globales (ingredientes, wellness, snackification)
+- Noticias relevantes del sector que impactan hábitos o plataformas dominantes
+
+## GUARDRAILS OBLIGATORIOS
+❌ NUNCA sugerir mejoras internas basadas en métricas del negocio
+❌ NUNCA decir "tu ticket está bajo, subilo"
+❌ NUNCA crear tareas internas como "implementar X sistema"
+❌ NUNCA contenido viejo sin vigencia o sin fecha clara
+❌ NUNCA frases genéricas: "mejorar ventas", "aumentar clientes", "optimizar operaciones"
+
+✅ SIEMPRE información externa: qué pasa AFUERA
+✅ SIEMPRE hiper-personalizado: por qué aplica a ESTE tipo de negocio, sector, país, ciudad
+✅ SIEMPRE actual: con referencia a fechas, tendencias 2024-2025
+✅ SIEMPRE transferible: explicar cómo se puede adaptar al contexto local
+✅ SIEMPRE con "qué podría significar para vos" (contexto personal, no prescriptivo)
+
+## CATEGORÍAS VÁLIDAS
+- consumo: cambios en hábitos de clientes
+- plataforma: novedades en Google, Instagram, delivery apps
+- competencia: movidas de otros negocios/cadenas
+- producto: tendencias de menú, ingredientes, formatos
+- macro: regulaciones, costos, economía
+- operacion_externa: innovaciones en otros mercados
+
+## CONTRATO DE DATOS (cada señal DEBE tener):
+{
+  "title": "Título específico y atractivo (max 60 chars)",
+  "content": "Explicación de la señal + por qué aplica a ESTE negocio específico (mínimo 100 chars)",
+  "item_type": "trend" | "benchmark" | "platform" | "competitive" | "product" | "macro",
+  "source": "Tipo de evidencia (industria/estudio/plataforma/observación)",
+  "category": "consumo" | "plataforma" | "competencia" | "producto" | "macro" | "operacion_externa",
+  "freshness": "2024-Q4" | "2025-Q1" | etc,
+  "transferability": "alta" | "media" | "baja",
+  "why_applies": "Explicación personalizada de por qué aplica a este negocio específico",
+  "action_steps": ["Paso 1", "Paso 2", "Paso 3"]
+}
+
+## EJEMPLOS CORRECTOS:
+✅ "Google Maps prioriza negocios con fotos recientes (2024)" → Para tu café: subir 3 fotos semanales del menú
+✅ "TikTok empuja videos cortos de preparación en LATAM" → Tu barra puede mostrar el proceso de coctelería
+✅ "Starbucks en México lanzó pedido anticipado vía app" → Tu cafetería podría explorar WhatsApp ordering
+✅ "Rappi lanzó 'promo turbo' con 30% boost de visibilidad" → Evaluar si aplica a tu zona
+
+## EJEMPLOS INCORRECTOS (BLOQUEADOS):
+❌ "Mejorar tiempos de atención" → Esto es interno, no I+D
+❌ "Responder a reseñas negativas" → Esto es operación interna
+❌ "Subir el ticket promedio" → Esto es métrica interna
+❌ "Optimizar el menú" → Demasiado genérico
+
+## REGLAS DE CALIDAD
+1. Máximo 4 señales por ejecución - CALIDAD sobre cantidad
+2. Si no hay señales relevantes para este negocio específico, devolver array vacío
+3. Cada señal debe poder responder: "¿Por qué esto importa para MI negocio HOY?"
+4. Priorizar señales con alta transferibilidad al país/ciudad del usuario
 
 ## FORMATO DE RESPUESTA (JSON válido):
 {
   "learning_items": [
     {
-      "title": "Título específico",
-      "content": "Qué cambió en el mercado + por qué aplica a ESTE negocio",
-      "item_type": "trend" | "benchmark" | "tactic" | "opportunity" | "insight",
-      "source": "Fuente o tipo de evidencia (p.ej. industria/estudio/plataforma)",
-      "action_steps": ["Paso 1", "Paso 2", "Paso 3"]
+      "title": "...",
+      "content": "...",
+      "item_type": "...",
+      "source": "...",
+      "category": "...",
+      "freshness": "...",
+      "transferability": "...",
+      "why_applies": "...",
+      "action_steps": ["...", "...", "..."]
     }
   ]
 }
@@ -296,50 +355,109 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
     let opportunitiesFiltered = 0;
     let learningInserted = 0;
 
-    // If research mode: insert learning_items (I+D EXTERNO)
+    // If research mode: insert learning_items (I+D EXTERNO) with enhanced validation
     if (mode === "research") {
       const { data: existingLearning } = await supabase
         .from("learning_items")
         .select("id, title, content")
         .eq("business_id", businessId);
 
+      // Fetch dismissed patterns from brain to avoid similar content
+      const dismissedPatterns = brain?.decisions_memory?.dismissed_patterns || [];
+
       const items = Array.isArray(analysis.learning_items) ? analysis.learning_items : [];
+
+      console.log(`Processing ${items.length} research items with enhanced validation`);
 
       for (const it of items) {
         const title = String(it?.title || "").trim();
         const content = String(it?.content || "").trim();
         const itemType = String(it?.item_type || "insight").trim();
         const source = typeof it?.source === "string" ? it.source : "mercado";
+        const category = typeof it?.category === "string" ? it.category : "consumo";
         const actionSteps = Array.isArray(it?.action_steps) ? it.action_steps : [];
+        const freshness = typeof it?.freshness === "string" ? it.freshness : "2025-Q1";
+        const transferability = typeof it?.transferability === "string" ? it.transferability : "media";
+        const whyApplies = typeof it?.why_applies === "string" ? it.why_applies : "";
 
-        if (!title || title.length < 10 || !content || content.length < 30) {
+        // GATE 1: Minimum length validation
+        if (!title || title.length < 15 || !content || content.length < 50) {
+          console.log(`Filtered: insufficient content - "${title}"`);
           opportunitiesFiltered++;
           continue;
         }
 
-        // Deduplicate by similarity
+        // GATE 2: Block internal recommendations (should be external only)
+        const internalPhrases = [
+          "mejorar ventas", "aumentar clientes", "optimizar", "subir el ticket",
+          "responder reseñas", "mejorar tiempos", "capacitar equipo", "reducir costos",
+          "implementar sistema", "mejorar servicio", "aumentar ingresos"
+        ];
+        const combinedLower = `${title} ${content}`.toLowerCase();
+        const hasInternalPhrase = internalPhrases.some(p => combinedLower.includes(p));
+        if (hasInternalPhrase) {
+          console.log(`Filtered: internal phrase detected - "${title}"`);
+          opportunitiesFiltered++;
+          continue;
+        }
+
+        // GATE 3: Deduplicate by semantic similarity
         const isDup = (existingLearning || []).some((ex: any) => {
           const simTitle = calculateSimilarity(title, ex.title || "");
           const simBody = calculateSimilarity(`${title} ${content}`, `${ex.title || ""} ${ex.content || ""}`);
-          return simTitle > 0.6 || simBody > 0.65;
+          return simTitle > 0.5 || simBody > 0.55;
         });
         if (isDup) {
+          console.log(`Filtered: duplicate detected - "${title}"`);
           opportunitiesFiltered++;
           continue;
         }
+
+        // GATE 4: Check against dismissed patterns from brain
+        const matchesDismissed = dismissedPatterns.some((pattern: string) => 
+          calculateSimilarity(title, pattern) > 0.4 ||
+          calculateSimilarity(content, pattern) > 0.4
+        );
+        if (matchesDismissed) {
+          console.log(`Filtered: matches dismissed pattern - "${title}"`);
+          opportunitiesFiltered++;
+          continue;
+        }
+
+        // GATE 5: Require action steps for actionability
+        if (actionSteps.length < 2) {
+          console.log(`Filtered: insufficient action steps - "${title}"`);
+          opportunitiesFiltered++;
+          continue;
+        }
+
+        // Enrich metadata for traceability
+        const metadata = {
+          origin: "radar_externo_id",
+          category,
+          freshness,
+          transferability,
+          why_applies: whyApplies,
+          detected_at: new Date().toISOString(),
+          business_type: brain?.primary_business_type || business.category,
+          business_country: business.country,
+        };
 
         const { error: insertErr } = await supabase.from("learning_items").insert({
           business_id: businessId,
           title,
-          content,
+          content: `${content}\n\n**Por qué aplica a tu negocio:** ${whyApplies || "Relevante para tu sector y mercado."}`,
           item_type: itemType,
-          source,
+          source: `${source} | ${freshness}`,
           action_steps: actionSteps,
           is_read: false,
           is_saved: false,
         });
 
-        if (!insertErr) learningInserted++;
+        if (!insertErr) {
+          learningInserted++;
+          console.log(`Inserted research item: "${title}"`);
+        }
       }
 
       console.log("Research generation complete:", {
