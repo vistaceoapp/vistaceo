@@ -440,7 +440,26 @@ const RadarPage = () => {
   };
 
   const dismissLearning = async (id: string) => {
+    const item = learningItems.find(i => i.id === id);
+    if (!item || !currentBusiness) return;
+    
     try {
+      // Record dismissal in brain for future filtering (LEARNING)
+      await supabase.from("signals").insert({
+        business_id: currentBusiness.id,
+        signal_type: "research_dismissed",
+        source: "radar_externo",
+        content: {
+          learning_item_id: item.id,
+          learning_title: item.title,
+          item_type: item.item_type,
+          reason: "user_not_interested",
+        },
+        raw_text: `Usuario descartó insight I+D: ${item.title}`,
+        importance: 5,
+      });
+
+      // Delete the learning item
       await supabase
         .from("learning_items")
         .delete()
@@ -448,7 +467,7 @@ const RadarPage = () => {
 
       toast({ 
         title: "Entendido", 
-        description: "Voy a ajustar futuras sugerencias." 
+        description: "Voy a ajustar futuras sugerencias de I+D." 
       });
       setSelectedLearning(null);
       fetchData();
@@ -457,33 +476,61 @@ const RadarPage = () => {
     }
   };
 
-  // Convert learning item to mission (I+D external → Mission)
+  // Convert learning item to mission (I+D external → Mission) with TRACEABILITY
   const convertLearningToMission = async (learningItem: LearningItem) => {
     if (!currentBusiness) return;
     setActionLoading(true);
 
     try {
-      const { data: missionData, error: missionError } = await supabase
-        .from("missions")
-        .insert({
-          business_id: currentBusiness.id,
-          title: learningItem.title,
-          description: learningItem.content || `Oportunidad externa: ${learningItem.title}`,
-          area: "research",
-          impact_score: 7,
-          effort_score: 5,
-          status: "active",
-          steps: [
+      // Parse action_steps if available
+      const actionSteps = Array.isArray(learningItem.action_steps) 
+        ? learningItem.action_steps 
+        : [];
+      
+      // Build steps from action_steps or use defaults
+      const missionSteps = actionSteps.length >= 2 
+        ? actionSteps.map((step: string) => ({ text: step, done: false }))
+        : [
             { text: "Evaluar relevancia para el negocio", done: false },
             { text: "Adaptar al contexto local", done: false },
             { text: "Crear plan de prueba piloto", done: false },
             { text: "Implementar y medir resultados", done: false },
-          ],
+          ];
+
+      // TRACEABILITY: Include origin metadata in description
+      const traceableDescription = `**Origen: Radar Externo (I+D)**\n\n${learningItem.content || learningItem.title}\n\n---\n*Fuente: ${learningItem.source || 'Tendencia de mercado'} | Tipo: ${learningItem.item_type || 'insight'}*`;
+
+      const { data: missionData, error: missionError } = await supabase
+        .from("missions")
+        .insert({
+          business_id: currentBusiness.id,
+          title: `[I+D] ${learningItem.title}`,
+          description: traceableDescription,
+          area: "research",
+          impact_score: 7,
+          effort_score: 5,
+          status: "active",
+          steps: missionSteps,
         })
         .select()
         .single();
 
       if (missionError) throw missionError;
+
+      // Record signal in brain for learning
+      await supabase.from("signals").insert({
+        business_id: currentBusiness.id,
+        signal_type: "research_converted",
+        source: "radar_externo",
+        content: {
+          learning_item_id: learningItem.id,
+          learning_title: learningItem.title,
+          mission_id: missionData.id,
+          item_type: learningItem.item_type,
+        },
+        raw_text: `Usuario convirtió insight I+D a misión: ${learningItem.title}`,
+        importance: 8,
+      });
 
       // Delete learning item after conversion
       await supabase
@@ -493,7 +540,7 @@ const RadarPage = () => {
 
       toast({
         title: "¡Misión creada desde I+D!",
-        description: "La oportunidad externa se convirtió en una misión activa.",
+        description: "Origen trazable: Radar Externo (I+D)",
       });
 
       setSelectedLearning(null);
