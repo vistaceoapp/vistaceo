@@ -87,7 +87,7 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId } = await req.json();
+    const { businessId, type } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -166,8 +166,34 @@ serve(async (req) => {
 
     console.log("Analyzing patterns for business:", business.name);
 
-    // ULTRA-PERSONALIZED SYSTEM PROMPT
-    const systemPrompt = `Eres un consultor de negocios gastronómicos con 20 años de experiencia en LATAM. 
+    const mode = typeof type === "string" ? type : "opportunities";
+
+    // ULTRA-PERSONALIZED SYSTEM PROMPTS
+    const systemPrompt = mode === "research"
+      ? `Eres un analista de mercado senior especializado en restaurantes en LATAM.
+Tu trabajo es generar INSIGHTS EXTERNOS ultra-personalizados para el negocio, basados en su tipo, país, foco y señales recientes.
+
+## REGLAS CRÍTICAS (I+D EXTERNO):
+1) Solo ideas EXTERNAS: tendencias de mercado, nuevas tácticas de venta, canales, producto, pricing, tecnología, comportamiento de clientes.
+2) Debe ser ACCIONABLE: incluye pasos concretos para probarlo.
+3) Debe estar PERSONALIZADO al contexto (tipo de negocio, país, foco actual, señales / diagnóstico).
+4) Evita frases genéricas ("mejorar ventas", "aumentar clientes", etc.).
+5) Máximo 4 insights por ejecución.
+
+## FORMATO DE RESPUESTA (JSON válido):
+{
+  "learning_items": [
+    {
+      "title": "Título específico",
+      "content": "Qué cambió en el mercado + por qué aplica a ESTE negocio",
+      "item_type": "trend" | "benchmark" | "tactic" | "opportunity" | "insight",
+      "source": "Fuente o tipo de evidencia (p.ej. industria/estudio/plataforma)",
+      "action_steps": ["Paso 1", "Paso 2", "Paso 3"]
+    }
+  ]
+}
+`
+      : `Eres un consultor de negocios gastronómicos con 20 años de experiencia en LATAM.
 Tu especialidad es detectar oportunidades CONCRETAS y ESPECÍFICAS basadas en datos reales.
 
 ## REGLAS CRÍTICAS:
@@ -212,7 +238,6 @@ Tu especialidad es detectar oportunidades CONCRETAS y ESPECÍFICAS basadas en da
 ❌ "Aumentar presencia en redes" (sin estrategia concreta)
 
 Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcionado.`;
-
     // Call AI to detect patterns and generate insights
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -266,34 +291,89 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
       analysis = { patterns: [], opportunities: [], lessons: [] };
     }
 
-    // QUALITY GATE: Filter and deduplicate opportunities
-    let insertedCount = 0;
-    let filteredCount = 0;
-    
+    // Persist results
+    let opportunitiesInserted = 0;
+    let opportunitiesFiltered = 0;
+    let learningInserted = 0;
+
+    // If research mode: insert learning_items (I+D EXTERNO)
+    if (mode === "research") {
+      const { data: existingLearning } = await supabase
+        .from("learning_items")
+        .select("id, title, content")
+        .eq("business_id", businessId);
+
+      const items = Array.isArray(analysis.learning_items) ? analysis.learning_items : [];
+
+      for (const it of items) {
+        const title = String(it?.title || "").trim();
+        const content = String(it?.content || "").trim();
+        const itemType = String(it?.item_type || "insight").trim();
+        const source = typeof it?.source === "string" ? it.source : "mercado";
+        const actionSteps = Array.isArray(it?.action_steps) ? it.action_steps : [];
+
+        if (!title || title.length < 10 || !content || content.length < 30) {
+          opportunitiesFiltered++;
+          continue;
+        }
+
+        // Deduplicate by similarity
+        const isDup = (existingLearning || []).some((ex: any) => {
+          const simTitle = calculateSimilarity(title, ex.title || "");
+          const simBody = calculateSimilarity(`${title} ${content}`, `${ex.title || ""} ${ex.content || ""}`);
+          return simTitle > 0.6 || simBody > 0.65;
+        });
+        if (isDup) {
+          opportunitiesFiltered++;
+          continue;
+        }
+
+        const { error: insertErr } = await supabase.from("learning_items").insert({
+          business_id: businessId,
+          title,
+          content,
+          item_type: itemType,
+          source,
+          action_steps: actionSteps,
+          is_read: false,
+          is_saved: false,
+        });
+
+        if (!insertErr) learningInserted++;
+      }
+
+      console.log("Research generation complete:", {
+        learningGenerated: items.length,
+        learningInserted,
+        learningFiltered: opportunitiesFiltered,
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          learningCreated: learningInserted,
+          learningFiltered: opportunitiesFiltered,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Default mode: opportunities (INTERNO)
     if (analysis.opportunities && analysis.opportunities.length > 0) {
       for (const opp of analysis.opportunities) {
-        // Check for blocked phrases
         if (containsBlockedPhrase(opp.title, opp.description)) {
-          console.log(`Filtered (blocked phrase): ${opp.title}`);
-          filteredCount++;
+          opportunitiesFiltered++;
           continue;
         }
-        
-        // Check for duplicates
         if (isDuplicate(opp, existingItems)) {
-          console.log(`Filtered (duplicate): ${opp.title}`);
-          filteredCount++;
+          opportunitiesFiltered++;
           continue;
         }
-        
-        // Check minimum quality
         if (!opp.title || opp.title.length < 10 || !opp.description || opp.description.length < 20) {
-          console.log(`Filtered (too short): ${opp.title}`);
-          filteredCount++;
+          opportunitiesFiltered++;
           continue;
         }
-        
-        // Insert the opportunity with evidence
+
         const { error: insertError } = await supabase.from("opportunities").insert({
           business_id: businessId,
           title: opp.title,
@@ -304,12 +384,9 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
           evidence: opp.evidence || {},
         });
 
-        if (insertError) {
-          console.error("Insert error:", insertError);
-        } else {
-          insertedCount++;
-          // Add to existing items for subsequent duplicate checks
-          existingItems.push({ id: '', title: opp.title, description: opp.description, source: 'new' });
+        if (!insertError) {
+          opportunitiesInserted++;
+          existingItems.push({ id: "", title: opp.title, description: opp.description, source: "new" });
         }
       }
     }
@@ -317,11 +394,10 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
     // Save new lessons (with deduplication)
     if (analysis.lessons && analysis.lessons.length > 0) {
       for (const lesson of analysis.lessons) {
-        // Check if similar lesson exists
-        const similarLesson = (lessonsRes.data || []).find(l => 
+        const similarLesson = (lessonsRes.data || []).find((l: any) =>
           calculateSimilarity(l.content, lesson.content) > 0.6
         );
-        
+
         if (!similarLesson) {
           await supabase.from("lessons").insert({
             business_id: businessId,
@@ -337,8 +413,8 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
     console.log("Pattern analysis complete:", {
       patternsFound: analysis.patterns?.length || 0,
       opportunitiesGenerated: analysis.opportunities?.length || 0,
-      opportunitiesInserted: insertedCount,
-      opportunitiesFiltered: filteredCount,
+      opportunitiesInserted,
+      opportunitiesFiltered,
       lessonsLearned: analysis.lessons?.length || 0,
     });
 
@@ -346,8 +422,8 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
       JSON.stringify({
         success: true,
         patterns: analysis.patterns || [],
-        opportunitiesCreated: insertedCount,
-        opportunitiesFiltered: filteredCount,
+        opportunitiesCreated: opportunitiesInserted,
+        opportunitiesFiltered,
         lessonsLearned: analysis.lessons?.length || 0,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

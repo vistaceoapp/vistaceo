@@ -253,27 +253,34 @@ const RadarPage = () => {
   const generateResearchItems = useCallback(async () => {
     if (!currentBusiness || generatingResearch) return;
     setGeneratingResearch(true);
-    
+
     try {
-      const { error } = await supabase.functions.invoke("analyze-patterns", {
-        body: { 
-          businessId: currentBusiness.id, 
+      const { data, error } = await supabase.functions.invoke("analyze-patterns", {
+        body: {
+          businessId: currentBusiness.id,
           type: "research",
-          brainContext: brain ? {
-            primaryType: brain.primary_business_type,
-            focus: brain.current_focus,
-            factualMemory: brain.memory?.factual_memory
-          } : null
-        }
+          brainContext: brain
+            ? {
+                primaryType: brain.primary_business_type,
+                focus: brain.current_focus,
+                factualMemory: brain.memory?.factual_memory,
+              }
+            : null,
+        },
       });
-      
+
       if (error) throw error;
-      
+
+      const created = typeof data?.learningCreated === "number" ? data.learningCreated : 0;
+
       toast({
-        title: "Nuevos insights externos",
-        description: "Encontré tendencias relevantes para tu negocio",
+        title: created > 0 ? "Nuevos insights externos" : "Sin novedades externas por ahora",
+        description:
+          created > 0
+            ? `Encontré ${created} oportunidades externas para tu negocio.`
+            : "Vuelvo a escanear más tarde con más señal/contexto.",
       });
-      
+
       fetchData();
     } catch (error) {
       console.error("Error generating research:", error);
