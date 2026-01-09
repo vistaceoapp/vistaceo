@@ -81,6 +81,72 @@ function containsBlockedPhrase(title: string, description: string): boolean {
   return false;
 }
 
+type RssItem = { title: string; link: string; publishedAt?: string; source?: string };
+
+function countryToGoogleNewsLocale(country: string | null | undefined): { hl: string; gl: string } {
+  // Default to Spanish LATAM.
+  const c = (country || "AR").toUpperCase();
+  switch (c) {
+    case "MX":
+      return { hl: "es-419", gl: "MX" };
+    case "CL":
+      return { hl: "es-419", gl: "CL" };
+    case "CO":
+      return { hl: "es-419", gl: "CO" };
+    case "CR":
+      return { hl: "es-419", gl: "CR" };
+    case "PA":
+      return { hl: "es-419", gl: "PA" };
+    case "US":
+      return { hl: "es-419", gl: "US" };
+    case "BR":
+      return { hl: "pt-BR", gl: "BR" };
+    case "UY":
+      return { hl: "es-419", gl: "UY" };
+    case "AR":
+    default:
+      return { hl: "es-419", gl: "AR" };
+  }
+}
+
+function extractCityHint(address: string | null | undefined): string {
+  if (!address) return "";
+  // Keep it simple: first chunk before comma is usually a city/zone.
+  return address.split(",")[0]?.trim() || "";
+}
+
+async function fetchGoogleNewsRss(query: string, locale: { hl: string; gl: string }): Promise<RssItem[]> {
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=${locale.hl}&gl=${locale.gl}&ceid=${locale.gl}:${locale.hl}`;
+  const res = await fetch(url, { headers: { "User-Agent": "lovable-cloud" } });
+  if (!res.ok) return [];
+
+  const xml = await res.text();
+  const items: RssItem[] = [];
+
+  // Very small XML parse (enough for RSS): item blocks + title/link/pubDate/source.
+  const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
+  for (const raw of itemMatches.slice(0, 12)) {
+    const title = (raw.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1] || raw.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "").trim();
+    const link = (raw.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "").trim();
+    const pubDate = (raw.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || "").trim();
+    const source = (raw.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] || "").trim();
+
+    if (title && link) items.push({ title, link, publishedAt: pubDate || undefined, source: source || undefined });
+  }
+
+  return items;
+}
+
+function formatRssForContext(items: RssItem[]): string {
+  if (!items.length) return "(sin titulares externos confiables disponibles)";
+  return items
+    .map((it, idx) => {
+      const meta = [it.source, it.publishedAt].filter(Boolean).join(" — ");
+      return `${idx + 1}. ${it.title}\n   url: ${it.link}${meta ? `\n   publicado: ${meta}` : ""}`;
+    })
+    .join("\n\n");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -168,135 +234,88 @@ serve(async (req) => {
 
     const mode = typeof type === "string" ? type : "opportunities";
 
+    // --- External sources (REAL) for I+D ---
+    let externalRssItems: RssItem[] = [];
+    if (mode === "research") {
+      const locale = countryToGoogleNewsLocale(business.country);
+      const cityHint = extractCityHint(business.address);
+      const sectorHint = brain?.primary_business_type || business.category || "gastronomía";
+
+      // Multiple targeted queries; we keep only a handful of the freshest headlines.
+      const queries = [
+        `${sectorHint} tendencias 2025 ${business.country || ""}`.trim(),
+        `${sectorHint} "${cityHint}" tendencias consumo`.trim(),
+        `${sectorHint} delivery apps cambios algoritmo 2025`.trim(),
+        `${sectorHint} Google Maps novedades 2025`.trim(),
+        `${sectorHint} Instagram TikTok formatos 2025`.trim(),
+      ].filter(Boolean);
+
+      const rssResults = await Promise.all(
+        queries.map((q) => fetchGoogleNewsRss(q, locale))
+      );
+
+      externalRssItems = rssResults.flat().slice(0, 12);
+    }
+
+    // Append external RSS context ONLY for I+D.
+    const analysisContextFinal =
+      mode === "research"
+        ? `${analysisContext}\n\n## RADAR EXTERNO (I+D) — TITULARES/TENDENCIAS REALES (RSS)\nIMPORTANTE: Usar ÚNICAMENTE estos titulares como fuentes.\n\n${formatRssForContext(externalRssItems)}`
+        : analysisContext;
+
     // ULTRA-PERSONALIZED SYSTEM PROMPTS
     const systemPrompt = mode === "research"
-      ? `Eres un analista de inteligencia de mercado de clase mundial para negocios gastronómicos en LATAM.
-Tu misión: detectar señales EXTERNAS del mercado (afuera del negocio) y traducirlas a "qué podría significar para ESTE negocio específico".
+      ? `Eres el motor de Radar Externo (Investigación + Desarrollo / I+D) de Vistaceo.
 
-## DEFINICIÓN I+D (RADAR EXTERNO) - CRÍTICO
-"I+D" detecta señales, tendencias y cambios FUERA del negocio:
-- Tendencias de consumo (hábitos, preferencias, formatos, micro-movimientos)
-- Cambios en plataformas (Google, Instagram, TikTok, apps delivery): nuevas features, algoritmos, formatos
-- Innovaciones observadas en otros negocios/países (autoservicio, omnicanalidad, pagos, experiencias)
-- Movidas de competidores/cadenas en otros mercados (partnerships, modelos, expansiones)
-- Señales regulatorias y macro (impuestos, etiquetado, costos, movilidad)
-- Tendencias de producto/menú globales (ingredientes, wellness, snackification)
-- Noticias relevantes del sector que impactan hábitos o plataformas dominantes
+REGLA ABSOLUTA: I+D es EXTERNO. Detecta señales fuera del negocio (mercado/plataformas/competencia/regulación/macros/tendencias globales) y las traduce a “qué podría significar para vos”.
 
-## GUARDRAILS OBLIGATORIOS
-❌ NUNCA sugerir mejoras internas basadas en métricas del negocio
-❌ NUNCA decir "tu ticket está bajo, subilo"
-❌ NUNCA crear tareas internas como "implementar X sistema"
-❌ NUNCA contenido viejo sin vigencia o sin fecha clara
-❌ NUNCA frases genéricas: "mejorar ventas", "aumentar clientes", "optimizar operaciones"
+## GUARDRAILS (NO NEGOCIABLE)
+- Prohibido diagnosticar operación interna o métricas del negocio.
+- Prohibido dar “plan interno paso a paso” como obligación.
+- Prohibido contenido genérico o sin fuente real.
+- Prohibido inventar fuentes/URLs.
 
-✅ SIEMPRE información externa: qué pasa AFUERA
-✅ SIEMPRE hiper-personalizado: por qué aplica a ESTE tipo de negocio, sector, país, ciudad
-✅ SIEMPRE actual: con referencia a fechas, tendencias 2024-2025
-✅ SIEMPRE transferible: explicar cómo se puede adaptar al contexto local
-✅ SIEMPRE con "qué podría significar para vos" (contexto personal, no prescriptivo)
+## FUENTES (CRÍTICO)
+- Vas a recibir una lista de titulares RSS con URL.
+- SOLO podés usar esas URLs como fuentes.
+- Si la lista está vacía o no hay nada relevante para ESTE negocio, devolvé learning_items: [].
 
-## CATEGORÍAS VÁLIDAS
-- consumo: cambios en hábitos de clientes
-- plataforma: novedades en Google, Instagram, delivery apps
-- competencia: movidas de otros negocios/cadenas
-- producto: tendencias de menú, ingredientes, formatos
-- macro: regulaciones, costos, economía
-- operacion_externa: innovaciones en otros mercados
+## PERSONALIZACIÓN SUPREMA
+Cada ítem debe explicar por qué aplica a ESTE negocio usando: tipo/sector, país/ciudad, canales (delivery/salón), foco actual, y decisiones previas (si están en el contexto).
 
-## CONTRATO DE DATOS (cada señal DEBE tener):
-{
-  "title": "Título específico y atractivo (max 60 chars)",
-  "content": "Explicación de la señal + por qué aplica a ESTE negocio específico (mínimo 100 chars)",
-  "item_type": "trend" | "benchmark" | "platform" | "competitive" | "product" | "macro",
-  "source": "Tipo de evidencia (industria/estudio/plataforma/observación)",
-  "category": "consumo" | "plataforma" | "competencia" | "producto" | "macro" | "operacion_externa",
-  "freshness": "2024-Q4" | "2025-Q1" | etc,
-  "transferability": "alta" | "media" | "baja",
-  "why_applies": "Explicación personalizada de por qué aplica a este negocio específico",
-  "action_steps": ["Paso 1", "Paso 2", "Paso 3"]
-}
+## QUÉ SÍ ENTRA EN I+D
+- Tendencias de consumo
+- Cambios de plataformas (Google/Maps, IG/TikTok, delivery)
+- Movidas competitivas externas (cadenas/referentes en otros mercados)
+- Tendencias de producto/menú globales
+- Macro/regulatorio (alerta, no implementación)
 
-## EJEMPLOS CORRECTOS:
-✅ "Google Maps prioriza negocios con fotos recientes (2024)" → Para tu café: subir 3 fotos semanales del menú
-✅ "TikTok empuja videos cortos de preparación en LATAM" → Tu barra puede mostrar el proceso de coctelería
-✅ "Starbucks en México lanzó pedido anticipado vía app" → Tu cafetería podría explorar WhatsApp ordering
-✅ "Rappi lanzó 'promo turbo' con 30% boost de visibilidad" → Evaluar si aplica a tu zona
-
-## EJEMPLOS INCORRECTOS (BLOQUEADOS):
-❌ "Mejorar tiempos de atención" → Esto es interno, no I+D
-❌ "Responder a reseñas negativas" → Esto es operación interna
-❌ "Subir el ticket promedio" → Esto es métrica interna
-❌ "Optimizar el menú" → Demasiado genérico
-
-## REGLAS DE CALIDAD
-1. Máximo 4 señales por ejecución - CALIDAD sobre cantidad
-2. Si no hay señales relevantes para este negocio específico, devolver array vacío
-3. Cada señal debe poder responder: "¿Por qué esto importa para MI negocio HOY?"
-4. Priorizar señales con alta transferibilidad al país/ciudad del usuario
-
-## FORMATO DE RESPUESTA (JSON válido):
+## CONTRATO DE SALIDA (JSON estricto)
+Devuelve EXACTAMENTE:
 {
   "learning_items": [
     {
-      "title": "...",
-      "content": "...",
-      "item_type": "...",
-      "source": "...",
-      "category": "...",
-      "freshness": "...",
-      "transferability": "...",
-      "why_applies": "...",
-      "action_steps": ["...", "...", "..."]
+      "title": "(max 60 chars)",
+      "content": "Señal externa + qué significa para vos (no prescriptivo)",
+      "item_type": "trend" | "benchmark" | "platform" | "competitive" | "product" | "macro",
+      "category": "consumo" | "plataforma" | "competencia" | "producto" | "macro" | "operacion_externa",
+      "why_applies": "1-2 frases hiper personalizadas",
+      "freshness": "YYYY-MM" ,
+      "transferability": "alta" | "media" | "baja",
+      "sources": [
+        { "title": "...", "url": "https://...", "publisher": "...", "published_at": "RFC2822 or YYYY-MM-DD" }
+      ],
+      "action_steps": ["2-4 pasos opcionales, tipo 'ideas de exploración' (no obligación)"]
     }
   ]
 }
+
+## REGLAS DE CALIDAD
+- Máximo 4 ítems.
+- Cada ítem DEBE incluir al menos 1 source con URL real tomada del RSS.
+- Si un ítem no puede citar una fuente, NO lo devuelvas.
 `
-      : `Eres un consultor de negocios gastronómicos con 20 años de experiencia en LATAM.
-Tu especialidad es detectar oportunidades CONCRETAS y ESPECÍFICAS basadas en datos reales.
-
-## REGLAS CRÍTICAS:
-1. NUNCA generes oportunidades genéricas como "mejorar ventas" o "aumentar clientes"
-2. Cada oportunidad DEBE mencionar datos específicos del negocio (números, nombres, fechas)
-3. NUNCA sugieras algo que ya existe en la lista de "Oportunidades/Misiones Existentes"
-4. Si no hay datos suficientes para una oportunidad concreta, NO la generes
-5. Máximo 3 oportunidades por análisis - prefiere calidad sobre cantidad
-6. Los títulos deben ser ÚNICOS y diferenciarse claramente entre sí
-
-## FORMATO DE RESPUESTA (JSON válido):
-{
-  "opportunities": [
-    {
-      "title": "Título específico (mencionar dato concreto)",
-      "description": "Descripción con evidencia del negocio (mencionar dato, fecha, o patrón detectado)",
-      "impact_score": 1-10,
-      "effort_score": 1-10,
-      "source": "categoría",
-      "evidence": {
-        "trigger": "¿Qué dato disparó esta oportunidad?",
-        "signals": ["señal 1", "señal 2"],
-        "dataPoints": número_de_datos_usados,
-        "basedOn": ["fuente 1", "fuente 2"]
-      }
-    }
-  ],
-  "patterns": [],
-  "lessons": []
-}
-
-## EJEMPLOS DE OPORTUNIDADES CORRECTAS:
-✅ "Potenciar el almuerzo: 73% del tráfico vs 27% cena" (menciona datos específicos)
-✅ "Responder a las 4 reseñas negativas sobre tiempos de espera" (número concreto)
-✅ "Promoción para miércoles: día más bajo con solo 2.1/5 de tráfico" (día + métrica)
-✅ "Destacar la Milanesa Napolitana ($8500) - mencionada en 3 reseñas positivas" (producto + precio + dato)
-
-## EJEMPLOS DE OPORTUNIDADES INCORRECTAS (BLOQUEADAS):
-❌ "Implementar sistema de check-ins" (demasiado genérico)
-❌ "Mejorar la comunicación con el equipo" (sin datos específicos)
-❌ "Optimizar operaciones" (vacío de contenido)
-❌ "Aumentar presencia en redes" (sin estrategia concreta)
-
-Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcionado.`;
+      : systemPromptForOpportunities();
     // Call AI to detect patterns and generate insights
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -308,10 +327,10 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: analysisContext }
+          { role: "user", content: analysisContextFinal },
         ],
         temperature: 0.3,
-        max_tokens: 2000,
+        max_tokens: 2200,
       }),
     });
 

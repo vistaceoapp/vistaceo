@@ -145,6 +145,14 @@ export const MissionSummaryView = ({
   const riskLevel = enhancedPlan?.riskLevel || "medium";
   const expectedBenefit = enhancedPlan?.expectedBenefit;
 
+  // Traceability: if a mission was created from Radar Externo (I+D), reflect it here.
+  // We don't change UI/UX structure; only the label logic.
+  const isExternalOrigin =
+    mission.title?.trim().startsWith("[I+D]") ||
+    (mission.description || "").includes("Radar Externo") ||
+    (mission.description || "").includes("I+D");
+  const originLabel = isExternalOrigin ? "Origen: Radar Externo (I+D)" : "Origen: Radar Interno";
+
   return (
     <div className="space-y-6">
       {/* A) Header resumen (card grande) */}
@@ -192,7 +200,7 @@ export const MissionSummaryView = ({
           </Badge>
           <Badge variant="outline" className="text-xs">
             <Sparkles className="w-3 h-3 mr-1" />
-            Origen: Radar Interno
+            {originLabel}
           </Badge>
           <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-xs">
             {mission.status === "active" ? "Activa" : "Pausada"}
