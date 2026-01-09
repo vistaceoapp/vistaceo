@@ -159,6 +159,7 @@ const RadarPage = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [generatingOpportunities, setGeneratingOpportunities] = useState(false);
   const [generatingResearch, setGeneratingResearch] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("oportunidades");
   
   // Inactivity tracking
   const [oldestOpportunityAge, setOldestOpportunityAge] = useState<number>(0);
@@ -557,20 +558,29 @@ const RadarPage = () => {
     }
   };
 
+  // Smart analysis: calls the right function based on active tab
   const generateAnalysis = async () => {
     if (!currentBusiness) return;
+    
+    // If on I+D tab, call research function
+    if (activeTab === "id") {
+      generateResearchItems();
+      return;
+    }
+    
+    // Otherwise, generate internal opportunities
     setActionLoading(true);
 
     try {
       const { error } = await supabase.functions.invoke("analyze-patterns", {
-        body: { businessId: currentBusiness.id }
+        body: { businessId: currentBusiness.id, type: "opportunities" }
       });
 
       if (error) throw error;
 
       toast({
         title: "Análisis completado",
-        description: "Se detectaron nuevas oportunidades e insights",
+        description: "Se detectaron nuevas oportunidades internas",
       });
 
       fetchData();
@@ -665,14 +675,14 @@ const RadarPage = () => {
             variant="outline" 
             size="sm"
             onClick={generateAnalysis}
-            disabled={actionLoading}
+            disabled={actionLoading || generatingResearch}
           >
-            <Sparkles className={cn("w-4 h-4 mr-2", actionLoading && "animate-spin")} />
-            Escanear
+            <Sparkles className={cn("w-4 h-4 mr-2", (actionLoading || generatingResearch) && "animate-spin")} />
+            {activeTab === "id" ? "Escanear I+D" : "Escanear"}
           </Button>
         </div>
 
-        <Tabs defaultValue="oportunidades" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="oportunidades" className="text-xs">
               Oportunidades de mejora
@@ -819,16 +829,23 @@ const RadarPage = () => {
         </div>
         <Button 
           onClick={generateAnalysis}
-          disabled={actionLoading}
-          className="gradient-primary shadow-lg shadow-primary/20"
+          disabled={actionLoading || generatingResearch}
+          className={cn(
+            "shadow-lg",
+            activeTab === "id" ? "gradient-accent shadow-accent/20" : "gradient-primary shadow-primary/20"
+          )}
         >
-          <Sparkles className={cn("w-4 h-4 mr-2", actionLoading && "animate-spin")} />
-          {actionLoading ? "Analizando..." : "Escanear con IA"}
+          <Sparkles className={cn("w-4 h-4 mr-2", (actionLoading || generatingResearch) && "animate-spin")} />
+          {actionLoading || generatingResearch 
+            ? "Analizando..." 
+            : activeTab === "id" 
+              ? "Escanear tendencias externas" 
+              : "Escanear oportunidades"}
         </Button>
       </div>
 
       {/* Tabs - Only 2 tabs: Oportunidades and I+D */}
-      <Tabs defaultValue="oportunidades" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="oportunidades">Oportunidades de mejora</TabsTrigger>
           <TabsTrigger value="id">Investigación + Desarrollo (I+D)</TabsTrigger>
