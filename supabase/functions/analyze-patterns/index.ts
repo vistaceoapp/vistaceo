@@ -315,7 +315,51 @@ Devuelve EXACTAMENTE:
 - Cada ítem DEBE incluir al menos 1 source con URL real tomada del RSS.
 - Si un ítem no puede citar una fuente, NO lo devuelvas.
 `
-      : systemPromptForOpportunities();
+      : `Eres un consultor de negocios gastronómicos con 20 años de experiencia en LATAM.
+Tu especialidad es detectar oportunidades CONCRETAS y ESPECÍFICAS basadas en datos reales.
+
+## REGLAS CRÍTICAS:
+1. NUNCA generes oportunidades genéricas como "mejorar ventas" o "aumentar clientes"
+2. Cada oportunidad DEBE mencionar datos específicos del negocio (números, nombres, fechas)
+3. NUNCA sugieras algo que ya existe en la lista de "Oportunidades/Misiones Existentes"
+4. Si no hay datos suficientes para una oportunidad concreta, NO la generes
+5. Máximo 3 oportunidades por análisis - prefiere calidad sobre cantidad
+6. Los títulos deben ser ÚNICOS y diferenciarse claramente entre sí
+
+## FORMATO DE RESPUESTA (JSON válido):
+{
+  "opportunities": [
+    {
+      "title": "Título específico (mencionar dato concreto)",
+      "description": "Descripción con evidencia del negocio (mencionar dato, fecha, o patrón detectado)",
+      "impact_score": 1-10,
+      "effort_score": 1-10,
+      "source": "categoría",
+      "evidence": {
+        "trigger": "¿Qué dato disparó esta oportunidad?",
+        "signals": ["señal 1", "señal 2"],
+        "dataPoints": número_de_datos_usados,
+        "basedOn": ["fuente 1", "fuente 2"]
+      }
+    }
+  ],
+  "patterns": [],
+  "lessons": []
+}
+
+## EJEMPLOS DE OPORTUNIDADES CORRECTAS:
+✅ "Potenciar el almuerzo: 73% del tráfico vs 27% cena" (menciona datos específicos)
+✅ "Responder a las 4 reseñas negativas sobre tiempos de espera" (número concreto)
+✅ "Promoción para miércoles: día más bajo con solo 2.1/5 de tráfico" (día + métrica)
+✅ "Destacar la Milanesa Napolitana ($8500) - mencionada en 3 reseñas positivas" (producto + precio + dato)
+
+## EJEMPLOS DE OPORTUNIDADES INCORRECTAS (BLOQUEADAS):
+❌ "Implementar sistema de check-ins" (demasiado genérico)
+❌ "Mejorar la comunicación con el equipo" (sin datos específicos)
+❌ "Optimizar operaciones" (vacío de contenido)
+❌ "Aumentar presencia en redes" (sin estrategia concreta)
+
+Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcionado.`;
     // Call AI to detect patterns and generate insights
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -392,12 +436,23 @@ Devuelve EXACTAMENTE:
         const title = String(it?.title || "").trim();
         const content = String(it?.content || "").trim();
         const itemType = String(it?.item_type || "insight").trim();
-        const source = typeof it?.source === "string" ? it.source : "mercado";
         const category = typeof it?.category === "string" ? it.category : "consumo";
         const actionSteps = Array.isArray(it?.action_steps) ? it.action_steps : [];
-        const freshness = typeof it?.freshness === "string" ? it.freshness : "2025-Q1";
+        const freshness = typeof it?.freshness === "string" ? it.freshness : "2025-01";
         const transferability = typeof it?.transferability === "string" ? it.transferability : "media";
         const whyApplies = typeof it?.why_applies === "string" ? it.why_applies : "";
+
+        // NEW: Parse sources array (URLs/publishers from the RSS we passed in)
+        const sourcesArr: { title?: string; url?: string; publisher?: string; published_at?: string }[] =
+          Array.isArray(it?.sources) ? it.sources : [];
+
+        // GATE 0: Must have at least 1 real source with URL
+        const hasRealSource = sourcesArr.some((s) => typeof s?.url === "string" && s.url.startsWith("http"));
+        if (!hasRealSource) {
+          console.log(`Filtered: no real source URL - "${title}"`);
+          opportunitiesFiltered++;
+          continue;
+        }
 
         // GATE 1: Minimum length validation
         if (!title || title.length < 15 || !content || content.length < 50) {
@@ -443,31 +498,21 @@ Devuelve EXACTAMENTE:
           continue;
         }
 
-        // GATE 5: Require action steps for actionability
-        if (actionSteps.length < 2) {
-          console.log(`Filtered: insufficient action steps - "${title}"`);
-          opportunitiesFiltered++;
-          continue;
-        }
+        // Build source string from first real source
+        const firstSource = sourcesArr.find((s) => s?.url?.startsWith("http"));
+        const sourceStr = firstSource
+          ? `${firstSource.publisher || "Fuente"} (${freshness}) | ${firstSource.url}`
+          : `mercado | ${freshness}`;
 
-        // Enrich metadata for traceability
-        const metadata = {
-          origin: "radar_externo_id",
-          category,
-          freshness,
-          transferability,
-          why_applies: whyApplies,
-          detected_at: new Date().toISOString(),
-          business_type: brain?.primary_business_type || business.category,
-          business_country: business.country,
-        };
+        // Build content with why_applies + source citation
+        const enrichedContent = `${content}\n\n**Por qué aplica a tu negocio:** ${whyApplies || "Relevante para tu sector y mercado."}\n\n**Fuente:** [${firstSource?.title || "Ver artículo"}](${firstSource?.url || "#"})`;
 
         const { error: insertErr } = await supabase.from("learning_items").insert({
           business_id: businessId,
           title,
-          content: `${content}\n\n**Por qué aplica a tu negocio:** ${whyApplies || "Relevante para tu sector y mercado."}`,
+          content: enrichedContent,
           item_type: itemType,
-          source: `${source} | ${freshness}`,
+          source: sourceStr,
           action_steps: actionSteps,
           is_read: false,
           is_saved: false,
