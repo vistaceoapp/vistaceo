@@ -159,10 +159,12 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
           ].slice(-10) // Keep last 10 per category
         };
 
-        // Increase confidence score
+        // Increase confidence score 
+        // Normalize: if current > 1, it's 0-100 scale, otherwise 0-1
         const currentConfidence = Number(currentBrainData?.confidence_score) || 0;
+        const normalizedCurrent = currentConfidence > 1 ? currentConfidence / 100 : currentConfidence;
         const gainPct = calculateCertaintyGain() / 100;
-        const newConfidence = Math.min(1, currentConfidence + gainPct);
+        const newConfidence = Math.min(100, (normalizedCurrent + gainPct) * 100); // Store as 0-100
 
         await supabase
           .from("business_brains")

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -131,6 +131,7 @@ const getSourceIcon = (source: string | null): string => {
 
 const RadarPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
   const { brain } = useBrain();
@@ -159,7 +160,10 @@ const RadarPage = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [generatingOpportunities, setGeneratingOpportunities] = useState(false);
   const [generatingResearch, setGeneratingResearch] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("oportunidades");
+  
+  // Initialize tab from URL or default to oportunidades
+  const initialTab = searchParams.get("tab") === "id" ? "id" : "oportunidades";
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   
   // Inactivity tracking
   const [oldestOpportunityAge, setOldestOpportunityAge] = useState<number>(0);
@@ -211,15 +215,15 @@ const RadarPage = () => {
       const saved = learningRes.data?.filter(i => i.is_saved).map(i => i.id) || [];
       setSavedItems(prev => ({ ...prev, learning: saved }));
       
-      // Auto-generate if empty
-      if (opps.length === 0) {
-        generateOpportunities();
-      }
-      if ((learningRes.data || []).length === 0) {
-        generateResearchItems();
-      }
+      // Note: Auto-generation removed to prevent race conditions
+      // User must explicitly click scan buttons
     } catch (error) {
       console.error("Error fetching data:", error);
+      toast({
+        title: "Error al cargar datos",
+        description: "No se pudieron cargar las oportunidades",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -245,10 +249,15 @@ const RadarPage = () => {
       fetchData();
     } catch (error) {
       console.error("Error generating opportunities:", error);
+      toast({
+        title: "Error al escanear",
+        description: "No se pudieron generar oportunidades. Intenta de nuevo.",
+        variant: "destructive",
+      });
     } finally {
       setGeneratingOpportunities(false);
     }
-  }, [currentBusiness, generatingOpportunities]);
+  }, [currentBusiness, generatingOpportunities, fetchData]);
   
   // Generate research items proactively
   const generateResearchItems = useCallback(async () => {
@@ -285,10 +294,15 @@ const RadarPage = () => {
       fetchData();
     } catch (error) {
       console.error("Error generating research:", error);
+      toast({
+        title: "Error al escanear I+D",
+        description: "No se pudieron generar insights externos. Intenta de nuevo.",
+        variant: "destructive",
+      });
     } finally {
       setGeneratingResearch(false);
     }
-  }, [currentBusiness, brain, generatingResearch]);
+  }, [currentBusiness, brain, generatingResearch, fetchData]);
 
   // Filter and sort opportunities - with Quality Gate
   const getFilteredOpportunities = () => {
@@ -559,42 +573,21 @@ const RadarPage = () => {
   };
 
   // Smart analysis: calls the right function based on active tab
-  const generateAnalysis = async () => {
+  const generateAnalysis = useCallback(async () => {
     if (!currentBusiness) return;
+    
+    // Prevent double-clicks
+    if (actionLoading || generatingResearch || generatingOpportunities) return;
     
     // If on I+D tab, call research function
     if (activeTab === "id") {
-      generateResearchItems();
+      await generateResearchItems();
       return;
     }
     
     // Otherwise, generate internal opportunities
-    setActionLoading(true);
-
-    try {
-      const { error } = await supabase.functions.invoke("analyze-patterns", {
-        body: { businessId: currentBusiness.id, type: "opportunities" }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Análisis completado",
-        description: "Se detectaron nuevas oportunidades internas",
-      });
-
-      fetchData();
-    } catch (error) {
-      console.error("Error analyzing:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo analizar el negocio",
-        variant: "destructive",
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
+    await generateOpportunities();
+  }, [currentBusiness, activeTab, actionLoading, generatingResearch, generatingOpportunities, generateResearchItems, generateOpportunities]);
 
   // Helper functions
   const getSourceIcon = (source: string | null) => {

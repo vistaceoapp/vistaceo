@@ -59,9 +59,10 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
   };
 
   const getMissionProgress = (mission: Mission) => {
-    const steps = mission.steps as { completed?: boolean }[] | null;
+    const steps = mission.steps as { done?: boolean; completed?: boolean }[] | null;
     if (!steps || steps.length === 0) return 0;
-    const completed = steps.filter(s => s.completed).length;
+    // Support both 'done' (new schema) and 'completed' (legacy) field names
+    const completed = steps.filter(s => s.done || s.completed).length;
     return Math.round((completed / steps.length) * 100);
   };
 

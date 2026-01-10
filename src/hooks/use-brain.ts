@@ -264,9 +264,16 @@ export const useBrain = (): UseBrainResult => {
   // Computed values
   const canGenerateSpecific = brain ? brain.mvc_completion_pct >= 30 : false;
   
+  // confidence_score can be 0-1 OR 0-100 depending on source, normalize it
+  const normalizedConfidence = (() => {
+    const score = brain?.confidence_score ?? 0;
+    // If score > 1, assume it's 0-100 scale, convert to 0-1
+    return score > 1 ? score / 100 : score;
+  })();
+  
   const confidenceLevel: "low" | "medium" | "high" = 
-    (brain?.confidence_score ?? 0) >= 0.7 ? "high" :
-    (brain?.confidence_score ?? 0) >= 0.4 ? "medium" : "low";
+    normalizedConfidence >= 0.7 ? "high" :
+    normalizedConfidence >= 0.4 ? "medium" : "low";
 
   const focusLabel = brain?.current_focus 
     ? FOCUS_LABELS[brain.current_focus] || brain.current_focus 
