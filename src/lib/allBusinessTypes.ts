@@ -701,7 +701,7 @@ const B2B_TYPES: BusinessTypeData[] = [
   },
   {
     id: 'servicios_it',
-    emoji: '🖧',
+    emoji: '🖥️',
     labels: { es: 'Servicios IT / Soporte', 'pt-BR': 'Serviços de TI / Suporte' },
     description: { es: 'Infraestructura, redes y mantenimiento', 'pt-BR': 'Infraestrutura, redes e manutenção' },
     gradient: 'from-slate-500/20 to-gray-500/20',
