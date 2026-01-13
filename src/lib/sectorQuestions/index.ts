@@ -2,15 +2,17 @@
 // Each sector has ultra-specific questionnaires by business type
 // 180 total questionnaires: 10 sectors × 18 business types each
 
-// Turismo, hotelería, ocio y eventos (18 tipos)
+// Turismo, hotelería, ocio y eventos (18 tipos) ✅
 export * from './turismQuestions';
 export * from './turismQuestionsComplete';
 
-// Retail y E-commerce (18 tipos)
+// Retail y E-commerce (18 tipos) ✅
 export * from './retailQuestions';
 
-// TODO: Remaining 6 sectors (108 questionnaires):
-// export * from './saludQuestions';      // Salud, bienestar y belleza
+// Salud, bienestar y belleza (18 tipos) ✅
+export * from './saludQuestions';
+
+// TODO: Remaining 7 sectors (126 questionnaires):
 // export * from './educacionQuestions';  // Educación y academias
 // export * from './b2bQuestions';        // Servicios profesionales B2B
 // export * from './hogarQuestions';      // Hogar y mantenimiento

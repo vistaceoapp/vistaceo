@@ -305,6 +305,7 @@ const SetupPage = () => {
         return (
           <SetupStepQuestionnaire
             countryCode={data.countryCode}
+            areaId={data.areaId}
             businessTypeId={data.businessTypeId}
             setupMode={data.setupMode}
             answers={data.answers}
