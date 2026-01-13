@@ -1,4 +1,5 @@
-// Step: Questionnaire v8 - Using new Questions Engine
+// Step: Questionnaire v9 - Universal Questions Engine
+// Routes to sector-specific questionnaires based on areaId + businessTypeId
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useMemo } from 'react';
 import { ChevronRight, ChevronLeft, Check, HelpCircle, Sparkles } from 'lucide-react';
@@ -8,14 +9,15 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { CountryCode, COUNTRY_PACKS, getRevenueRanges, getCurrencyLabel } from '@/lib/countryPacks';
+import { GastroQuestion as Question } from '@/lib/gastroQuestionsEngine';
 import { 
-  getQuestionsForSetup, 
-  getCategoryLabel,
-  GastroQuestion as Question 
-} from '@/lib/gastroQuestionsEngine';
+  getUniversalQuestionsForSetup, 
+  getUniversalCategoryLabel 
+} from '@/lib/universalQuestionsEngine';
 
 interface SetupStepQuestionnaireProps {
   countryCode: CountryCode;
+  areaId: string;
   businessTypeId: string;
   setupMode: 'quick' | 'complete';
   answers: Record<string, any>;
@@ -26,6 +28,7 @@ interface SetupStepQuestionnaireProps {
 
 export const SetupStepQuestionnaire = ({
   countryCode,
+  areaId,
   businessTypeId,
   setupMode,
   answers,
@@ -39,10 +42,10 @@ export const SetupStepQuestionnaire = ({
   const currencyLabel = getCurrencyLabel(countryCode);
   const revenueRanges = getRevenueRanges(countryCode);
 
-  // Get filtered questions based on country, business type, and mode
+  // Get filtered questions based on sector, country, business type, and mode
   const activeQuestions = useMemo(() => {
-    return getQuestionsForSetup(countryCode, businessTypeId, setupMode);
-  }, [countryCode, businessTypeId, setupMode]);
+    return getUniversalQuestionsForSetup(countryCode, areaId, businessTypeId, setupMode);
+  }, [countryCode, areaId, businessTypeId, setupMode]);
 
   const currentQuestion = activeQuestions[currentIndex];
   const totalQuestions = activeQuestions.length;
@@ -246,7 +249,7 @@ export const SetupStepQuestionnaire = ({
         <div className="flex items-center justify-between text-sm">
           <Badge variant="secondary" className="gap-1">
             <Sparkles className="w-3 h-3" />
-            {getCategoryLabel(currentQuestion.category, lang)}
+            {getUniversalCategoryLabel(currentQuestion.category, lang)}
           </Badge>
           <span className="text-muted-foreground">
             {currentIndex + 1} / {totalQuestions}
