@@ -1,5 +1,6 @@
-// Step: Questionnaire v9 - Universal Questions Engine
+// Step: Questionnaire v10 - Universal Questions Engine v3
 // Routes to sector-specific questionnaires based on areaId + businessTypeId
+// Supports 180 unique questionnaires (10 sectors × 18 types)
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useMemo } from 'react';
 import { ChevronRight, ChevronLeft, Check, HelpCircle, Sparkles } from 'lucide-react';
@@ -9,10 +10,10 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { CountryCode, COUNTRY_PACKS, getRevenueRanges, getCurrencyLabel } from '@/lib/countryPacks';
-import { GastroQuestion as Question } from '@/lib/gastroQuestionsEngine';
 import { 
   getUniversalQuestionsForSetup, 
-  getUniversalCategoryLabel 
+  getUniversalCategoryLabel,
+  UniversalQuestion
 } from '@/lib/universalQuestionsEngine';
 
 interface SetupStepQuestionnaireProps {
@@ -178,18 +179,29 @@ export const SetupStepQuestionnaire = ({
         );
 
       case 'number':
+      case 'money':
         return (
           <div className="space-y-4">
-            <Input
-              type="number"
-              value={getCurrentValue() || ''}
-              onChange={(e) => handleAnswer(e.target.value ? Number(e.target.value) : undefined)}
-              placeholder={lang === 'pt-BR' ? 'Digite um valor' : 'Ingresá un valor'}
-              className="h-14 text-lg text-center"
-            />
-            {(currentQuestion.id === 'Q_AVG_TICKET' || currentQuestion.id.includes('PRICE') || currentQuestion.id.includes('TICKET')) && (
+            <div className="relative">
+              {currentQuestion.type === 'money' && (
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">
+                  {currency}
+                </span>
+              )}
+              <Input
+                type="number"
+                value={getCurrentValue() || ''}
+                onChange={(e) => handleAnswer(e.target.value ? Number(e.target.value) : undefined)}
+                placeholder={lang === 'pt-BR' ? 'Digite um valor' : 'Ingresá un valor'}
+                className={cn(
+                  "h-14 text-lg text-center",
+                  currentQuestion.type === 'money' && "pl-10"
+                )}
+              />
+            </div>
+            {(currentQuestion.type === 'money' || currentQuestion.id.includes('PRICE') || currentQuestion.id.includes('TICKET')) && (
               <p className="text-center text-sm text-muted-foreground">
-                {currencyLabel}: {currency} {getCurrentValue() || '---'}
+                {currencyLabel}: {currency} {getCurrentValue()?.toLocaleString() || '---'}
               </p>
             )}
           </div>
