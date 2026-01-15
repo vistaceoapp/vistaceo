@@ -1,25 +1,36 @@
-// Universal Questions Engine v2 - Fully Integrated with Complete Questionnaires
-// Routes questions based on sector + business type
-// Supports 10 sectors × 18 business types = 180 unique questionnaires
+// ============================================
+// Universal Questions Engine v3
+// Master router for all 180 questionnaires
+// Structure: SECTOR_TIPO_NEGOCIO
+// 10 sectors × 18 business types = 180 unique questionnaires
 // Each with Quick (10-15) + Complete (68-75) versions
+// ============================================
 
 import { CountryCode, COUNTRY_PACKS } from './countryPacks';
-import { GastroQuestion } from './gastroQuestionsEngine';
 
-// Import NEW sector-specific complete questionnaires
-import { 
-  GASTRO_COMPLETE_QUESTIONS, 
-  GastroCompleteQuestion,
-  GASTRO_BUSINESS_TYPES
-} from './sectorQuestions/gastroQuestionsComplete';
-
-import { 
-  TURISM_COMPLETE_QUESTIONS, 
-  TurismQuestion,
-  TURISM_BUSINESS_TYPES
-} from './sectorQuestions/turismQuestionsV2';
-
-import { ALL_SALUD_QUESTIONS } from './sectorQuestions/saludQuestions';
+// ============= UNIFIED QUESTION TYPE =============
+export interface UniversalQuestion {
+  id: string;
+  category: string;
+  mode: 'quick' | 'complete' | 'both';
+  dimension: 'reputation' | 'profitability' | 'finances' | 'efficiency' | 'traffic' | 'team' | 'growth';
+  weight: number;
+  title: { es: string; 'pt-BR': string };
+  help?: { es: string; 'pt-BR': string };
+  type: 'single' | 'multi' | 'number' | 'slider' | 'text' | 'money';
+  options?: Array<{ 
+    id: string; 
+    label: { es: string; 'pt-BR': string }; 
+    emoji?: string;
+    impactScore?: number;
+  }>;
+  min?: number;
+  max?: number;
+  unit?: string;
+  required?: boolean;
+  businessTypes?: string[];
+  countries?: CountryCode[];
+}
 
 // ============= SECTOR IDS =============
 export const SECTOR_IDS = {
@@ -35,80 +46,32 @@ export const SECTOR_IDS = {
   AGRO: 'A10_AGRO',
 } as const;
 
-// ============= TYPE ADAPTERS =============
-// Adapter to convert GastroCompleteQuestion to GastroQuestion format
-function adaptGastroComplete(questions: GastroCompleteQuestion[]): GastroQuestion[] {
-  return questions.map(q => ({
-    id: q.id,
-    category: mapCategory(q.category) as any,
-    mode: q.mode,
-    dimension: mapScoreAreaToDimension(q.score_area),
-    weight: 8,
-    title: q.title,
-    help: q.help,
-    type: q.type === 'money' ? 'number' : q.type,
-    options: q.options?.map(opt => ({
-      id: opt.id,
-      label: opt.label,
-      emoji: opt.emoji,
-    })),
-    min: q.min,
-    max: q.max,
-    unit: q.unit,
-    required: q.required,
-    businessTypes: q.businessTypes,
-  }));
-}
+// ============= IMPORTS - Sector Questionnaires =============
+import { 
+  GASTRO_COMPLETE_QUESTIONS, 
+  GastroCompleteQuestion,
+  GASTRO_BUSINESS_TYPES
+} from './sectorQuestions/gastroQuestionsComplete';
 
-// Adapter to convert TurismQuestion to GastroQuestion format
-function adaptTurism(questions: TurismQuestion[]): GastroQuestion[] {
-  return questions.map(q => ({
-    id: q.id,
-    category: mapCategory(q.category) as any,
-    mode: q.mode,
-    dimension: mapScoreAreaToDimension(q.score_area),
-    weight: 8,
-    title: q.title,
-    help: q.help,
-    type: q.type === 'money' ? 'number' : q.type,
-    options: q.options?.map(opt => ({
-      id: opt.id,
-      label: opt.label,
-      emoji: opt.emoji,
-    })),
-    min: q.min,
-    max: q.max,
-    unit: q.unit,
-    required: q.required,
-    businessTypes: q.businessTypes,
-  }));
-}
+import { 
+  TURISM_COMPLETE_QUESTIONS, 
+  TurismQuestion,
+  TURISM_BUSINESS_TYPES
+} from './sectorQuestions/turismQuestionsV2';
 
-// Adapter for Salud questions (already in GastroQuestion format mostly)
-function adaptSalud(questions: any[]): GastroQuestion[] {
-  return questions.map(q => ({
-    id: q.id,
-    category: mapCategory(q.category || 'operation') as any,
-    mode: q.mode || 'both',
-    dimension: mapScoreAreaToDimension(q.score_area || 'Eficiencia'),
-    weight: 8,
-    title: q.title,
-    help: q.help,
-    type: q.type === 'money' ? 'number' : q.type,
-    options: q.options?.map((opt: any) => ({
-      id: opt.id,
-      label: opt.label,
-      emoji: opt.emoji,
-    })),
-    min: q.min,
-    max: q.max,
-    unit: q.unit,
-    required: q.required,
-    businessTypes: q.businessTypes,
-  }));
-}
+import { ALL_SALUD_QUESTIONS } from './sectorQuestions/saludQuestions';
 
-// Map category names
+import {
+  ALMACEN_QUESTIONS,
+  SUPERMERCADO_QUESTIONS,
+  MODA_QUESTIONS,
+  CALZADO_QUESTIONS,
+  HOGAR_DECO_QUESTIONS,
+} from './sectorQuestions/retailQuestions';
+
+// ============= ADAPTERS =============
+// Convert sector-specific question formats to UniversalQuestion
+
 function mapCategory(cat: string): string {
   const mapping: Record<string, string> = {
     'identidad': 'identity',
@@ -132,9 +95,8 @@ function mapCategory(cat: string): string {
   return mapping[cat?.toLowerCase()] || 'operation';
 }
 
-// Map score_area to dimension
-function mapScoreAreaToDimension(area: string): any {
-  const mapping: Record<string, string> = {
+function mapScoreAreaToDimension(area: string): UniversalQuestion['dimension'] {
+  const mapping: Record<string, UniversalQuestion['dimension']> = {
     'Reputación': 'reputation',
     'Rentabilidad': 'profitability',
     'Finanzas': 'finances',
@@ -146,8 +108,102 @@ function mapScoreAreaToDimension(area: string): any {
   return mapping[area] || 'efficiency';
 }
 
+function adaptGastroQuestions(questions: GastroCompleteQuestion[]): UniversalQuestion[] {
+  return questions.map(q => ({
+    id: q.id,
+    category: mapCategory(q.category),
+    mode: q.mode,
+    dimension: mapScoreAreaToDimension(q.score_area),
+    weight: 8,
+    title: q.title,
+    help: q.help,
+    type: q.type === 'money' ? 'number' : q.type as UniversalQuestion['type'],
+    options: q.options?.map(opt => ({
+      id: opt.id,
+      label: opt.label,
+      emoji: opt.emoji,
+    })),
+    min: q.min,
+    max: q.max,
+    unit: q.unit,
+    required: q.required,
+    businessTypes: q.businessTypes,
+  }));
+}
+
+function adaptTurismQuestions(questions: TurismQuestion[]): UniversalQuestion[] {
+  return questions.map(q => ({
+    id: q.id,
+    category: mapCategory(q.category),
+    mode: q.mode,
+    dimension: mapScoreAreaToDimension(q.score_area),
+    weight: 8,
+    title: q.title,
+    help: q.help,
+    type: q.type === 'money' ? 'number' : q.type as UniversalQuestion['type'],
+    options: q.options?.map(opt => ({
+      id: opt.id,
+      label: opt.label,
+      emoji: opt.emoji,
+    })),
+    min: q.min,
+    max: q.max,
+    unit: q.unit,
+    required: q.required,
+    businessTypes: q.businessTypes,
+  }));
+}
+
+function adaptSaludQuestions(questions: any[]): UniversalQuestion[] {
+  return questions.map(q => ({
+    id: q.id,
+    category: mapCategory(q.category || 'operation'),
+    mode: q.mode || 'both',
+    dimension: q.dimension || 'efficiency',
+    weight: q.weight || 8,
+    title: q.title,
+    help: q.help,
+    type: q.type as UniversalQuestion['type'],
+    options: q.options?.map((opt: any) => ({
+      id: opt.id,
+      label: opt.label,
+      emoji: opt.emoji,
+      impactScore: opt.impactScore,
+    })),
+    min: q.min,
+    max: q.max,
+    unit: q.unit,
+    required: q.required,
+    businessTypes: q.businessTypes,
+  }));
+}
+
+function adaptRetailQuestions(questions: any[]): UniversalQuestion[] {
+  return questions.map(q => ({
+    id: q.id,
+    category: mapCategory(q.category || 'operation'),
+    mode: q.mode || 'both',
+    dimension: q.dimension || 'efficiency',
+    weight: q.weight || 8,
+    title: q.title,
+    help: q.help,
+    type: q.type as UniversalQuestion['type'],
+    options: q.options?.map((opt: any) => ({
+      id: opt.id,
+      label: opt.label,
+      emoji: opt.emoji,
+      impactScore: opt.impactScore,
+    })),
+    min: q.min,
+    max: q.max,
+    unit: q.unit,
+    required: q.required,
+    businessTypes: q.businessTypes,
+  }));
+}
+
 // ============= BUSINESS TYPE ID MAPPING =============
-// Map from allBusinessTypes.ts IDs to the IDs used in questionnaire files
+// Maps from allBusinessTypes.ts IDs to questionnaire file IDs
 
 const GASTRO_ID_MAP: Record<string, string> = {
   'restaurant_general': GASTRO_BUSINESS_TYPES.RESTAURANT_GENERAL,
@@ -173,10 +229,10 @@ const GASTRO_ID_MAP: Record<string, string> = {
 const TURISMO_ID_MAP: Record<string, string> = {
   'hotel_urbano': TURISM_BUSINESS_TYPES.HOTEL_URBANO,
   'hotel_boutique': TURISM_BUSINESS_TYPES.HOTEL_BOUTIQUE,
-  'resort_todo_incluido': TURISM_BUSINESS_TYPES.RESORT,
-  'hostel_albergue': TURISM_BUSINESS_TYPES.HOSTEL,
+  'resort_all_inclusive': TURISM_BUSINESS_TYPES.RESORT,
+  'hostel': TURISM_BUSINESS_TYPES.HOSTEL,
+  'posada_lodge': TURISM_BUSINESS_TYPES.POSADA,
   'apart_hotel': TURISM_BUSINESS_TYPES.APART_HOTEL,
-  'posada_bb': TURISM_BUSINESS_TYPES.POSADA,
   'alquiler_temporario': TURISM_BUSINESS_TYPES.ALQUILER_TEMP,
   'agencia_viajes': TURISM_BUSINESS_TYPES.AGENCIA_VIAJES,
   'tours_guiados': TURISM_BUSINESS_TYPES.TOURS,
@@ -184,11 +240,11 @@ const TURISMO_ID_MAP: Record<string, string> = {
   'operador_turistico': TURISM_BUSINESS_TYPES.OPERADOR_TURISTICO,
   'parque_tematico': TURISM_BUSINESS_TYPES.PARQUE_TEMATICO,
   'atracciones_tickets': TURISM_BUSINESS_TYPES.ATRACCIONES,
-  'entretenimiento_ocio': TURISM_BUSINESS_TYPES.ENTRETENIMIENTO,
   'teatro_espectaculos': TURISM_BUSINESS_TYPES.TEATRO,
-  'salon_eventos': TURISM_BUSINESS_TYPES.SALON_EVENTOS,
+  'salon_eventos_sociales': TURISM_BUSINESS_TYPES.SALON_EVENTOS,
   'eventos_corporativos': TURISM_BUSINESS_TYPES.EVENTOS_CORP,
   'productora_eventos': TURISM_BUSINESS_TYPES.PRODUCTORA,
+  'ocio_nocturno': TURISM_BUSINESS_TYPES.ENTRETENIMIENTO,
 };
 
 const SALUD_ID_MAP: Record<string, string> = {
@@ -212,131 +268,76 @@ const SALUD_ID_MAP: Record<string, string> = {
   'optica_contactologia': 'optica_contactologia',
 };
 
-// ============= MAIN FUNCTION: Get questions for setup =============
+const RETAIL_ID_MAP: Record<string, string> = {
+  'almacen_tienda_barrio': 'almacen_tienda',
+  'supermercado': 'supermercado',
+  'moda_accesorios': 'moda_accesorios',
+  'calzado_marroquineria': 'calzado_marroquineria',
+  'hogar_decoracion': 'hogar_decoracion',
+  'electronica_tecnologia': 'electronica_tecnologia',
+  'ferreteria': 'ferreteria',
+  'libreria_papeleria': 'libreria_papeleria',
+  'jugueteria': 'jugueteria',
+  'deportes_outdoor': 'deportes_outdoor',
+  'belleza_perfumeria': 'belleza_perfumeria',
+  'pet_shop': 'pet_shop',
+  'gourmet_delicatessen': 'gourmet_delicatessen',
+  'segunda_mano': 'segunda_mano',
+  'ecommerce_d2c': 'ecommerce_d2c',
+  'seller_marketplace': 'seller_marketplace',
+  'suscripcion_cajas': 'suscripcion_cajas',
+  'mayorista_distribuidor': 'mayorista_distribuidor',
+};
 
-export function getUniversalQuestionsForSetup(
-  countryCode: CountryCode,
-  areaId: string,
-  businessTypeId: string,
-  setupMode: 'quick' | 'complete'
-): GastroQuestion[] {
-  console.log('[UniversalQuestionsEngine v2] Getting questions for:', { areaId, businessTypeId, setupMode });
-  
-  let questions: GastroQuestion[] = [];
-  
-  // Route to the correct sector with the complete questionnaires
-  switch (areaId) {
-    case SECTOR_IDS.GASTRO:
-      questions = getGastroQuestionsV2(businessTypeId, setupMode);
-      break;
-      
-    case SECTOR_IDS.TURISMO:
-      questions = getTurismQuestionsV2(businessTypeId, setupMode);
-      break;
-      
-    case SECTOR_IDS.SALUD:
-      questions = getSaludQuestions(businessTypeId, setupMode);
-      break;
-      
-    case SECTOR_IDS.RETAIL:
-      // TODO: Add complete retail questionnaire
-      questions = getPlaceholderQuestions(areaId, businessTypeId, setupMode);
-      break;
-      
-    case SECTOR_IDS.EDUCACION:
-    case SECTOR_IDS.B2B:
-    case SECTOR_IDS.HOGAR:
-    case SECTOR_IDS.CONSTRUCCION:
-    case SECTOR_IDS.TRANSPORTE:
-    case SECTOR_IDS.AGRO:
-      // TODO: Add sector-specific questionnaires
-      questions = getPlaceholderQuestions(areaId, businessTypeId, setupMode);
-      break;
-      
-    default:
-      console.warn(`[UniversalQuestionsEngine] Unknown sector: ${areaId}`);
-      questions = getPlaceholderQuestions(areaId, businessTypeId, setupMode);
+// ============= QUESTION BANKS BY SECTOR =============
+
+// Cached question banks (lazy loaded)
+let gastroQuestionsCache: UniversalQuestion[] | null = null;
+let turismQuestionsCache: UniversalQuestion[] | null = null;
+let saludQuestionsCache: UniversalQuestion[] | null = null;
+let retailQuestionsCache: UniversalQuestion[] | null = null;
+
+function getGastroQuestions(): UniversalQuestion[] {
+  if (!gastroQuestionsCache) {
+    gastroQuestionsCache = adaptGastroQuestions(GASTRO_COMPLETE_QUESTIONS);
   }
-  
-  // Filter by country if applicable
-  const countryFiltered = questions.filter(q => 
-    !q.countries || q.countries.includes(countryCode)
-  );
-  
-  console.log(`[UniversalQuestionsEngine v2] Returning ${countryFiltered.length} questions for ${areaId}/${businessTypeId}/${setupMode}`);
-  
-  return countryFiltered;
+  return gastroQuestionsCache;
 }
 
-// ============= GASTRONOMY V2 =============
-function getGastroQuestionsV2(businessTypeId: string, mode: 'quick' | 'complete'): GastroQuestion[] {
-  // Map the UI ID to the questionnaire ID
-  const mappedId = GASTRO_ID_MAP[businessTypeId] || businessTypeId;
-  
-  // Get all questions and adapt them
-  const allQuestions = adaptGastroComplete(GASTRO_COMPLETE_QUESTIONS);
-  
-  // Filter by mode and business type
-  const filtered = allQuestions.filter(q => {
-    // Mode filter
-    if (q.mode !== 'both' && q.mode !== mode) return false;
-    
-    // Business type filter - if no businessTypes specified, applies to all
-    if (!q.businessTypes || q.businessTypes.length === 0) return true;
-    
-    // Check if this question applies to this business type
-    return q.businessTypes.includes(mappedId);
-  });
-  
-  console.log(`[Gastro V2] ${filtered.length} questions for ${businessTypeId} (mapped: ${mappedId}) in ${mode} mode`);
-  return filtered;
+function getTurismQuestions(): UniversalQuestion[] {
+  if (!turismQuestionsCache) {
+    turismQuestionsCache = adaptTurismQuestions(TURISM_COMPLETE_QUESTIONS);
+  }
+  return turismQuestionsCache;
 }
 
-// ============= TURISMO V2 =============
-function getTurismQuestionsV2(businessTypeId: string, mode: 'quick' | 'complete'): GastroQuestion[] {
-  // Map the UI ID to the questionnaire ID
-  const mappedId = TURISMO_ID_MAP[businessTypeId] || businessTypeId;
-  
-  // Get all questions and adapt them
-  const allQuestions = adaptTurism(TURISM_COMPLETE_QUESTIONS);
-  
-  // Filter by mode and business type
-  const filtered = allQuestions.filter(q => {
-    // Mode filter
-    if (q.mode !== 'both' && q.mode !== mode) return false;
-    
-    // Business type filter
-    if (!q.businessTypes || q.businessTypes.length === 0) return true;
-    
-    return q.businessTypes.includes(mappedId);
-  });
-  
-  console.log(`[Turismo V2] ${filtered.length} questions for ${businessTypeId} (mapped: ${mappedId}) in ${mode} mode`);
-  return filtered;
+function getSaludQuestions(): UniversalQuestion[] {
+  if (!saludQuestionsCache) {
+    saludQuestionsCache = adaptSaludQuestions(ALL_SALUD_QUESTIONS);
+  }
+  return saludQuestionsCache;
 }
 
-// ============= SALUD =============
-function getSaludQuestions(businessTypeId: string, mode: 'quick' | 'complete'): GastroQuestion[] {
-  const mappedId = SALUD_ID_MAP[businessTypeId] || businessTypeId;
-  
-  const allQuestions = adaptSalud(ALL_SALUD_QUESTIONS);
-  
-  const filtered = allQuestions.filter(q => {
-    if (q.mode !== 'both' && q.mode !== mode) return false;
-    if (!q.businessTypes || q.businessTypes.length === 0) return true;
-    return q.businessTypes.includes(mappedId);
-  });
-  
-  console.log(`[Salud] ${filtered.length} questions for ${businessTypeId} in ${mode} mode`);
-  return filtered;
+function getRetailQuestions(): UniversalQuestion[] {
+  if (!retailQuestionsCache) {
+    // Combine all retail sub-questionnaires
+    const allRetail = [
+      ...ALMACEN_QUESTIONS,
+      ...SUPERMERCADO_QUESTIONS,
+      ...MODA_QUESTIONS,
+      ...CALZADO_QUESTIONS,
+      ...HOGAR_DECO_QUESTIONS,
+    ];
+    retailQuestionsCache = adaptRetailQuestions(allRetail);
+  }
+  return retailQuestionsCache;
 }
 
-// ============= PLACEHOLDER for sectors not yet fully implemented =============
-function getPlaceholderQuestions(areaId: string, businessTypeId: string, mode: 'quick' | 'complete'): GastroQuestion[] {
-  // Return a basic set of universal questions for sectors not yet fully implemented
-  const quickCount = mode === 'quick' ? 12 : 70;
-  
-  const universalQuestions: GastroQuestion[] = [
+// ============= UNIVERSAL BASE QUESTIONS =============
+// For sectors not yet fully implemented
+
+function getUniversalBaseQuestions(mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const base: UniversalQuestion[] = [
     {
       id: 'U01_YEARS',
       category: 'identity',
@@ -376,10 +377,10 @@ function getPlaceholderQuestions(areaId: string, businessTypeId: string, mode: '
       title: { es: '¿Cuál es tu facturación mensual promedio?', 'pt-BR': 'Qual é seu faturamento mensal médio?' },
       type: 'single',
       options: [
-        { id: 'low', label: { es: 'Menos de $1.000.000', 'pt-BR': 'Menos de R$10.000' }, emoji: '💵' },
-        { id: 'medium', label: { es: '$1-5 millones', 'pt-BR': 'R$10-50.000' }, emoji: '💰' },
-        { id: 'high', label: { es: '$5-20 millones', 'pt-BR': 'R$50-200.000' }, emoji: '💎' },
-        { id: 'vhigh', label: { es: 'Más de $20 millones', 'pt-BR': 'Mais de R$200.000' }, emoji: '🏆' },
+        { id: 'low', label: { es: 'Baja', 'pt-BR': 'Baixa' }, emoji: '💵' },
+        { id: 'medium', label: { es: 'Media', 'pt-BR': 'Média' }, emoji: '💰' },
+        { id: 'high', label: { es: 'Alta', 'pt-BR': 'Alta' }, emoji: '💎' },
+        { id: 'vhigh', label: { es: 'Muy alta', 'pt-BR': 'Muito alta' }, emoji: '🏆' },
       ],
     },
     {
@@ -415,7 +416,7 @@ function getPlaceholderQuestions(areaId: string, businessTypeId: string, mode: '
     {
       id: 'U06_POSITIONING',
       category: 'identity',
-      mode: mode === 'complete' ? 'complete' : 'both',
+      mode: 'both',
       dimension: 'profitability',
       weight: 7,
       title: { es: '¿Cómo definirías tu posicionamiento?', 'pt-BR': 'Como você definiria seu posicionamento?' },
@@ -430,7 +431,7 @@ function getPlaceholderQuestions(areaId: string, businessTypeId: string, mode: '
     {
       id: 'U07_MARKETING',
       category: 'marketing',
-      mode: mode === 'complete' ? 'complete' : 'both',
+      mode: 'both',
       dimension: 'traffic',
       weight: 7,
       title: { es: '¿Cómo atraés nuevos clientes?', 'pt-BR': 'Como você atrai novos clientes?' },
@@ -466,89 +467,233 @@ function getPlaceholderQuestions(areaId: string, businessTypeId: string, mode: '
       title: { es: '¿Tenés perfil en Google Maps/Business?', 'pt-BR': 'Você tem perfil no Google Maps/Business?' },
       type: 'single',
       options: [
-        { id: 'yes_active', label: { es: 'Sí, lo gestiono activamente', 'pt-BR': 'Sim, gerencio ativamente' }, emoji: '✅' },
-        { id: 'yes_passive', label: { es: 'Sí, pero no lo actualizo', 'pt-BR': 'Sim, mas não atualizo' }, emoji: '⚠️' },
+        { id: 'yes_optimized', label: { es: 'Sí, optimizado', 'pt-BR': 'Sim, otimizado' }, emoji: '✅' },
+        { id: 'yes_basic', label: { es: 'Sí, básico', 'pt-BR': 'Sim, básico' }, emoji: '📍' },
         { id: 'no', label: { es: 'No tengo', 'pt-BR': 'Não tenho' }, emoji: '❌' },
       ],
     },
     {
-      id: 'U10_SATISFACTION',
-      category: 'team',
-      mode: 'complete',
-      dimension: 'team',
-      weight: 7,
-      title: { es: '¿Cómo calificarías la satisfacción de tu equipo?', 'pt-BR': 'Como você classificaria a satisfação da sua equipe?' },
+      id: 'U10_RATING',
+      category: 'reputation',
+      mode: 'both',
+      dimension: 'reputation',
+      weight: 8,
+      title: { es: 'Tu calificación promedio online', 'pt-BR': 'Sua nota média online' },
       type: 'slider',
       min: 1,
-      max: 10,
-      unit: '/10',
+      max: 5,
+      unit: '⭐',
     },
     {
-      id: 'U11_SEASONALITY',
-      category: 'operation',
-      mode: 'complete',
+      id: 'U11_SOCIAL',
+      category: 'marketing',
+      mode: 'both',
       dimension: 'traffic',
       weight: 7,
-      title: { es: '¿Tu negocio es estacional?', 'pt-BR': 'Seu negócio é sazonal?' },
-      type: 'single',
+      title: { es: '¿En qué redes sociales estás activo?', 'pt-BR': 'Em quais redes sociais você está ativo?' },
+      type: 'multi',
       options: [
-        { id: 'no', label: { es: 'No, es estable todo el año', 'pt-BR': 'Não, é estável o ano todo' }, emoji: '📊' },
-        { id: 'slight', label: { es: 'Variaciones leves', 'pt-BR': 'Variações leves' }, emoji: '📈' },
-        { id: 'high', label: { es: 'Sí, muy estacional', 'pt-BR': 'Sim, muito sazonal' }, emoji: '🌊' },
+        { id: 'instagram', label: { es: 'Instagram', 'pt-BR': 'Instagram' }, emoji: '📸' },
+        { id: 'facebook', label: { es: 'Facebook', 'pt-BR': 'Facebook' }, emoji: '📘' },
+        { id: 'tiktok', label: { es: 'TikTok', 'pt-BR': 'TikTok' }, emoji: '🎵' },
+        { id: 'whatsapp', label: { es: 'WhatsApp Business', 'pt-BR': 'WhatsApp Business' }, emoji: '💬' },
+        { id: 'none', label: { es: 'Ninguna', 'pt-BR': 'Nenhuma' }, emoji: '❌' },
       ],
     },
     {
-      id: 'U12_COMPETITION',
-      category: 'identity',
-      mode: 'complete',
-      dimension: 'growth',
-      weight: 6,
-      title: { es: '¿Cómo ves la competencia en tu zona?', 'pt-BR': 'Como você vê a concorrência na sua região?' },
+      id: 'U12_SEASONALITY',
+      category: 'operation',
+      mode: 'both',
+      dimension: 'traffic',
+      weight: 7,
+      title: { es: '¿Tu negocio tiene estacionalidad?', 'pt-BR': 'Seu negócio tem sazonalidade?' },
       type: 'single',
       options: [
-        { id: 'low', label: { es: 'Poca competencia', 'pt-BR': 'Pouca concorrência' }, emoji: '😊' },
-        { id: 'moderate', label: { es: 'Competencia moderada', 'pt-BR': 'Concorrência moderada' }, emoji: '⚖️' },
-        { id: 'high', label: { es: 'Alta competencia', 'pt-BR': 'Alta concorrência' }, emoji: '🔥' },
+        { id: 'very', label: { es: 'Muy estacional', 'pt-BR': 'Muito sazonal' }, emoji: '📊' },
+        { id: 'some', label: { es: 'Algo estacional', 'pt-BR': 'Algo sazonal' }, emoji: '📈' },
+        { id: 'stable', label: { es: 'Estable todo el año', 'pt-BR': 'Estável o ano todo' }, emoji: '➖' },
       ],
     },
   ];
-  
-  // For quick mode, return first 12 questions
-  // For complete mode, return all 12 (base) + we'll add more sector-specific later
-  const result = mode === 'quick' 
-    ? universalQuestions.slice(0, 12) 
-    : universalQuestions;
+
+  // For complete mode, add more detailed questions
+  if (mode === 'complete') {
+    const completeExtras: UniversalQuestion[] = [
+      {
+        id: 'U13_COMPETITION',
+        category: 'identity',
+        mode: 'complete',
+        dimension: 'growth',
+        weight: 6,
+        title: { es: '¿Cuántos competidores directos tenés cerca?', 'pt-BR': 'Quantos concorrentes diretos você tem perto?' },
+        type: 'single',
+        options: [
+          { id: 'none', label: { es: 'Casi ninguno', 'pt-BR': 'Quase nenhum' }, emoji: '🏆' },
+          { id: 'few', label: { es: 'Pocos (1-3)', 'pt-BR': 'Poucos (1-3)' }, emoji: '👀' },
+          { id: 'several', label: { es: 'Varios (4-10)', 'pt-BR': 'Vários (4-10)' }, emoji: '🏪' },
+          { id: 'many', label: { es: 'Muchos (+10)', 'pt-BR': 'Muitos (+10)' }, emoji: '🔥' },
+        ],
+      },
+      {
+        id: 'U14_DIFFERENTIATOR',
+        category: 'identity',
+        mode: 'complete',
+        dimension: 'reputation',
+        weight: 8,
+        title: { es: '¿Qué te diferencia de la competencia?', 'pt-BR': 'O que te diferencia da concorrência?' },
+        type: 'multi',
+        options: [
+          { id: 'price', label: { es: 'Precio', 'pt-BR': 'Preço' }, emoji: '💰' },
+          { id: 'quality', label: { es: 'Calidad', 'pt-BR': 'Qualidade' }, emoji: '⭐' },
+          { id: 'service', label: { es: 'Atención al cliente', 'pt-BR': 'Atendimento' }, emoji: '🤝' },
+          { id: 'location', label: { es: 'Ubicación', 'pt-BR': 'Localização' }, emoji: '📍' },
+          { id: 'innovation', label: { es: 'Innovación', 'pt-BR': 'Inovação' }, emoji: '💡' },
+        ],
+      },
+      {
+        id: 'U15_OWNER_ROLE',
+        category: 'team',
+        mode: 'complete',
+        dimension: 'efficiency',
+        weight: 7,
+        title: { es: '¿Cuál es tu rol principal?', 'pt-BR': 'Qual é seu papel principal?' },
+        type: 'single',
+        options: [
+          { id: 'all', label: { es: 'Hago de todo', 'pt-BR': 'Faço de tudo' }, emoji: '🦸' },
+          { id: 'operations', label: { es: 'Operaciones', 'pt-BR': 'Operações' }, emoji: '⚙️' },
+          { id: 'sales', label: { es: 'Ventas/Comercial', 'pt-BR': 'Vendas/Comercial' }, emoji: '📈' },
+          { id: 'admin', label: { es: 'Administración', 'pt-BR': 'Administração' }, emoji: '📊' },
+          { id: 'strategic', label: { es: 'Estrategia (no operativo)', 'pt-BR': 'Estratégia (não operacional)' }, emoji: '🎯' },
+        ],
+      },
+      // Add more complete-mode questions to reach 68-75 total
+    ];
     
-  console.log(`[Placeholder] ${result.length} questions for ${areaId}/${businessTypeId} in ${mode} mode`);
-  return result;
+    return [...base, ...completeExtras];
+  }
+
+  return base;
 }
 
-// ============= CATEGORY LABELS (Universal) =============
-export const UNIVERSAL_CATEGORY_LABELS: Record<string, { es: string; 'pt-BR': string; icon: string }> = {
-  identity: { es: 'Identidad', 'pt-BR': 'Identidade', icon: '🏪' },
-  operation: { es: 'Operación', 'pt-BR': 'Operação', icon: '⚙️' },
-  sales: { es: 'Ventas', 'pt-BR': 'Vendas', icon: '💰' },
-  menu: { es: 'Servicios', 'pt-BR': 'Serviços', icon: '📋' },
-  finance: { es: 'Finanzas', 'pt-BR': 'Finanças', icon: '📊' },
-  team: { es: 'Equipo', 'pt-BR': 'Equipe', icon: '👥' },
-  marketing: { es: 'Marketing', 'pt-BR': 'Marketing', icon: '📣' },
-  reputation: { es: 'Reputación', 'pt-BR': 'Reputação', icon: '⭐' },
-  goals: { es: 'Objetivos', 'pt-BR': 'Objetivos', icon: '🎯' },
-};
-
-export function getUniversalCategoryLabel(category: string, lang: string): string {
-  const labels = UNIVERSAL_CATEGORY_LABELS[category];
-  if (!labels) return category;
-  return lang === 'pt-BR' ? labels['pt-BR'] : labels.es;
-}
-
-// ============= QUESTION COUNTS =============
-export function getQuestionCounts(areaId: string, businessTypeId: string): { quick: number; complete: number } {
-  const quickQuestions = getUniversalQuestionsForSetup('AR', areaId, businessTypeId, 'quick');
-  const completeQuestions = getUniversalQuestionsForSetup('AR', areaId, businessTypeId, 'complete');
+// ============= MAIN ROUTER FUNCTION =============
+export function getUniversalQuestionsForSetup(
+  countryCode: CountryCode,
+  areaId: string,
+  businessTypeId: string,
+  setupMode: 'quick' | 'complete'
+): UniversalQuestion[] {
+  console.log('[UniversalEngine v3] Routing:', { areaId, businessTypeId, setupMode });
   
-  return {
-    quick: quickQuestions.length,
-    complete: completeQuestions.length,
-  };
+  let questions: UniversalQuestion[] = [];
+  
+  switch (areaId) {
+    case SECTOR_IDS.GASTRO:
+      questions = getQuestionsForGastro(businessTypeId, setupMode);
+      break;
+      
+    case SECTOR_IDS.TURISMO:
+      questions = getQuestionsForTurismo(businessTypeId, setupMode);
+      break;
+      
+    case SECTOR_IDS.SALUD:
+      questions = getQuestionsForSalud(businessTypeId, setupMode);
+      break;
+      
+    case SECTOR_IDS.RETAIL:
+      questions = getQuestionsForRetail(businessTypeId, setupMode);
+      break;
+      
+    // TODO: Implement remaining sectors
+    case SECTOR_IDS.EDUCACION:
+    case SECTOR_IDS.B2B:
+    case SECTOR_IDS.HOGAR:
+    case SECTOR_IDS.CONSTRUCCION:
+    case SECTOR_IDS.TRANSPORTE:
+    case SECTOR_IDS.AGRO:
+      questions = getUniversalBaseQuestions(setupMode);
+      break;
+      
+    default:
+      console.warn(`[UniversalEngine] Unknown sector: ${areaId}`);
+      questions = getUniversalBaseQuestions(setupMode);
+  }
+  
+  // Filter by country if applicable
+  const filtered = questions.filter(q => 
+    !q.countries || q.countries.includes(countryCode)
+  );
+  
+  console.log(`[UniversalEngine v3] Returning ${filtered.length} questions for ${areaId}/${businessTypeId} (${setupMode})`);
+  
+  return filtered;
 }
+
+// ============= SECTOR-SPECIFIC ROUTERS =============
+
+function getQuestionsForGastro(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const mappedId = GASTRO_ID_MAP[businessTypeId] || businessTypeId;
+  const allQuestions = getGastroQuestions();
+  
+  return allQuestions.filter(q => {
+    // Mode filter
+    if (q.mode !== 'both' && q.mode !== mode) return false;
+    
+    // Business type filter
+    if (!q.businessTypes || q.businessTypes.length === 0) return true;
+    return q.businessTypes.includes(mappedId);
+  });
+}
+
+function getQuestionsForTurismo(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const mappedId = TURISMO_ID_MAP[businessTypeId] || businessTypeId;
+  const allQuestions = getTurismQuestions();
+  
+  return allQuestions.filter(q => {
+    if (q.mode !== 'both' && q.mode !== mode) return false;
+    if (!q.businessTypes || q.businessTypes.length === 0) return true;
+    return q.businessTypes.includes(mappedId);
+  });
+}
+
+function getQuestionsForSalud(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const mappedId = SALUD_ID_MAP[businessTypeId] || businessTypeId;
+  const allQuestions = getSaludQuestions();
+  
+  return allQuestions.filter(q => {
+    if (q.mode !== 'both' && q.mode !== mode) return false;
+    if (!q.businessTypes || q.businessTypes.length === 0) return true;
+    return q.businessTypes.includes(mappedId);
+  });
+}
+
+function getQuestionsForRetail(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const mappedId = RETAIL_ID_MAP[businessTypeId] || businessTypeId;
+  const allQuestions = getRetailQuestions();
+  
+  return allQuestions.filter(q => {
+    if (q.mode !== 'both' && q.mode !== mode) return false;
+    if (!q.businessTypes || q.businessTypes.length === 0) return true;
+    return q.businessTypes.includes(mappedId);
+  });
+}
+
+// ============= CATEGORY LABELS =============
+export function getUniversalCategoryLabel(category: string, lang: 'es' | 'pt-BR'): string {
+  const labels: Record<string, { es: string; 'pt-BR': string }> = {
+    identity: { es: 'Identidad', 'pt-BR': 'Identidade' },
+    operation: { es: 'Operación', 'pt-BR': 'Operação' },
+    sales: { es: 'Ventas', 'pt-BR': 'Vendas' },
+    menu: { es: 'Menú/Carta', 'pt-BR': 'Menu/Cardápio' },
+    finance: { es: 'Finanzas', 'pt-BR': 'Finanças' },
+    team: { es: 'Equipo', 'pt-BR': 'Equipe' },
+    marketing: { es: 'Marketing', 'pt-BR': 'Marketing' },
+    reputation: { es: 'Reputación', 'pt-BR': 'Reputação' },
+    goals: { es: 'Objetivos', 'pt-BR': 'Objetivos' },
+  };
+  
+  return labels[category]?.[lang] || category;
+}
+
+// ============= EXPORTS =============
+export type { GastroCompleteQuestion } from './sectorQuestions/gastroQuestionsComplete';
+export type { TurismQuestion } from './sectorQuestions/turismQuestionsV2';
