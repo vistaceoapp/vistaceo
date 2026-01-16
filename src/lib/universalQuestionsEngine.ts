@@ -583,26 +583,29 @@ export function getUniversalQuestionsForSetup(
   setupMode: 'quick' | 'complete'
 ): UniversalQuestion[] {
   console.log('[UniversalEngine v3] Routing:', { areaId, businessTypeId, setupMode });
-  
+
+  const expectedMin = setupMode === 'quick' ? 10 : 68;
+  const expectedMax = setupMode === 'quick' ? 15 : 75;
+
   let questions: UniversalQuestion[] = [];
-  
+
   switch (areaId) {
     case SECTOR_IDS.GASTRO:
       questions = getQuestionsForGastro(businessTypeId, setupMode);
       break;
-      
+
     case SECTOR_IDS.TURISMO:
       questions = getQuestionsForTurismo(businessTypeId, setupMode);
       break;
-      
+
     case SECTOR_IDS.SALUD:
       questions = getQuestionsForSalud(businessTypeId, setupMode);
       break;
-      
+
     case SECTOR_IDS.RETAIL:
       questions = getQuestionsForRetail(businessTypeId, setupMode);
       break;
-      
+
     // TODO: Implement remaining sectors
     case SECTOR_IDS.EDUCACION:
     case SECTOR_IDS.B2B:
@@ -612,19 +615,45 @@ export function getUniversalQuestionsForSetup(
     case SECTOR_IDS.AGRO:
       questions = getUniversalBaseQuestions(setupMode);
       break;
-      
+
     default:
       console.warn(`[UniversalEngine] Unknown sector: ${areaId}`);
       questions = getUniversalBaseQuestions(setupMode);
   }
-  
+
   // Filter by country if applicable
-  const filtered = questions.filter(q => 
-    !q.countries || q.countries.includes(countryCode)
+  let filtered = questions.filter((q) => !q.countries || q.countries.includes(countryCode));
+
+  // Safety net: if a questionnaire is still incomplete for a given business type,
+  // fill with universal base questions so /setup never shows 4-5 questions.
+  if (filtered.length < expectedMin) {
+    console.warn(
+      `[UniversalEngine v3] Incomplete questionnaire for ${areaId}/${businessTypeId} (${setupMode}). ` +
+        `Got ${filtered.length}, expected at least ${expectedMin}. Padding with universal base questions.`
+    );
+
+    const basePool = getUniversalBaseQuestions(setupMode)
+      .filter((q) => !q.countries || q.countries.includes(countryCode));
+
+    const existingIds = new Set(filtered.map((q) => q.id));
+    for (const q of basePool) {
+      if (!existingIds.has(q.id)) {
+        filtered.push(q);
+        existingIds.add(q.id);
+      }
+      if (filtered.length >= expectedMin) break;
+    }
+  }
+
+  // Enforce upper bounds to keep experiences consistent
+  if (filtered.length > expectedMax) {
+    filtered = filtered.slice(0, expectedMax);
+  }
+
+  console.log(
+    `[UniversalEngine v3] Returning ${filtered.length} questions for ${areaId}/${businessTypeId} (${setupMode})`
   );
-  
-  console.log(`[UniversalEngine v3] Returning ${filtered.length} questions for ${areaId}/${businessTypeId} (${setupMode})`);
-  
+
   return filtered;
 }
 
