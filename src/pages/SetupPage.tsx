@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowRight, ArrowLeft, Loader2, Brain, Sparkles, Check } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Loader2, Brain, Sparkles, Check, Bug } from 'lucide-react';
 import { VistaceoLogo } from '@/components/ui/VistaceoLogo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useBusiness } from '@/contexts/BusinessContext';
@@ -24,6 +24,10 @@ import { SetupStepBusiness } from '@/components/setup/SetupStepBusiness';
 import { SetupStepQuestionnaire } from '@/components/setup/SetupStepQuestionnaire';
 import { SetupStepIntegrations } from '@/components/setup/SetupStepIntegrations';
 import { SetupProgress } from '@/components/setup/SetupProgress';
+import { QuestionnaireAuditPanel } from '@/components/setup/QuestionnaireAuditPanel';
+
+// Run audit on page load in development
+import { printAuditReportToConsole } from '@/lib/questionnaireAudit';
 
 // Steps: country -> sector -> type -> business (name+google) -> mode -> questionnaire -> integrations -> create
 const STEPS = ['country', 'sector', 'type', 'business', 'mode', 'questionnaire', 'integrations', 'create'] as const;
@@ -58,6 +62,7 @@ const SetupPage = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [creatingBusiness, setCreatingBusiness] = useState(false);
   const [createProgress, setCreateProgress] = useState(0);
+  const [showAudit, setShowAudit] = useState(false);
 
   const [data, setData] = useState<SetupData>({
     countryCode: 'AR',
@@ -74,6 +79,14 @@ const SetupPage = () => {
       other: [],
     },
   });
+
+  // Run audit on mount (dev only)
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('🔍 Running Questionnaire Coverage Audit...');
+      printAuditReportToConsole();
+    }
+  }, []);
 
   // Redirect if user already has a completed business
   useEffect(() => {
@@ -442,6 +455,18 @@ const SetupPage = () => {
         <div className="container max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <VistaceoLogo size={32} variant="full" />
           <div className="flex items-center gap-4">
+            {/* Dev audit button */}
+            {import.meta.env.DEV && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAudit(!showAudit)}
+                className="text-muted-foreground"
+              >
+                <Bug className="w-4 h-4 mr-1" />
+                Audit
+              </Button>
+            )}
             {/* Subtle back to auth link - only on first step */}
             {currentStep === 0 && (
               <button
@@ -470,7 +495,11 @@ const SetupPage = () => {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
           >
-            {renderStep()}
+            {showAudit ? (
+              <QuestionnaireAuditPanel onClose={() => setShowAudit(false)} />
+            ) : (
+              renderStep()
+            )}
           </motion.div>
         </AnimatePresence>
       </main>
