@@ -18,9 +18,13 @@ export * from './retailQuestions';
 // Salud, bienestar y belleza (18 tipos) ✅
 export * from './saludQuestions';
 
-// TODO: Remaining 6 sectors (108 questionnaires):
-// export * from './educacionQuestions';  // Educación y academias
-// export * from './b2bQuestions';        // Servicios profesionales B2B
+// Educación y academias (18 tipos) ✅
+export * from './educacionQuestions';
+
+// Servicios profesionales B2B (18 tipos) ✅
+export * from './b2bQuestions';
+
+// TODO: Remaining 4 sectors (72 questionnaires):
 // export * from './hogarQuestions';      // Hogar y mantenimiento
 // export * from './construccionQuestions'; // Construcción e inmobiliario
 // export * from './transporteQuestions'; // Transporte y logística
