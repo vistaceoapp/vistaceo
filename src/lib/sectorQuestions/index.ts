@@ -24,8 +24,16 @@ export * from './educacionQuestions';
 // Servicios profesionales B2B (18 tipos) ✅
 export * from './b2bQuestions';
 
-// TODO: Remaining 4 sectors (72 questionnaires):
-// export * from './hogarQuestions';      // Hogar y mantenimiento
-// export * from './construccionQuestions'; // Construcción e inmobiliario
-// export * from './transporteQuestions'; // Transporte y logística
-// export * from './agroQuestions';       // Agro y agroindustria
+// Hogar y mantenimiento (18 tipos) ✅
+export * from './hogarQuestions';
+
+// Construcción e inmobiliario (18 tipos) ✅
+export * from './construccionQuestions';
+
+// Transporte y logística (18 tipos) ✅
+export * from './transporteQuestions';
+
+// Agro y agroindustria (18 tipos) ✅
+export * from './agroQuestions';
+
+// ✅ COMPLETE: 10 sectors × 18 types = 180 questionnaires × 2 modes = 360 total
