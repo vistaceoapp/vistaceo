@@ -2,7 +2,7 @@
 // Routes to sector-specific questionnaires based on areaId + businessTypeId
 // Supports 180 unique questionnaires (10 sectors × 18 types)
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ChevronLeft, Check, HelpCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,14 +43,21 @@ export const SetupStepQuestionnaire = ({
   const currencyLabel = getCurrencyLabel(countryCode);
   const revenueRanges = getRevenueRanges(countryCode);
 
-  // Get filtered questions based on sector, country, business type, and mode
+  // Get filtered questions based on sector, country, business type, mode, and answers (branching)
   const activeQuestions = useMemo(() => {
-    return getUniversalQuestionsForSetup(countryCode, areaId, businessTypeId, setupMode);
-  }, [countryCode, areaId, businessTypeId, setupMode]);
+    return getUniversalQuestionsForSetup(countryCode, areaId, businessTypeId, setupMode, answers);
+  }, [countryCode, areaId, businessTypeId, setupMode, answers]);
 
   const currentQuestion = activeQuestions[currentIndex];
   const totalQuestions = activeQuestions.length;
-  const progress = ((currentIndex + 1) / totalQuestions) * 100;
+  const progress = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
+
+  useEffect(() => {
+    // If branching changes the list and we go out of bounds, clamp the index.
+    if (currentIndex >= totalQuestions && totalQuestions > 0) {
+      setCurrentIndex(totalQuestions - 1);
+    }
+  }, [currentIndex, totalQuestions]);
 
   const getCurrentValue = () => answers[currentQuestion?.id];
 

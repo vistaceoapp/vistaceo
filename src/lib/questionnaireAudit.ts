@@ -94,7 +94,8 @@ function auditSingleQuestionnaire(
     countryCode,
     sectorId,
     businessType.id,
-    'quick'
+    'quick',
+    {}
   );
 
   // Get questions for complete mode
@@ -102,7 +103,8 @@ function auditSingleQuestionnaire(
     countryCode,
     sectorId,
     businessType.id,
-    'complete'
+    'complete',
+    {}
   );
 
   const quickCount = quickQuestions.length;
