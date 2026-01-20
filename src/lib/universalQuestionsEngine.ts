@@ -18,9 +18,9 @@ export interface UniversalQuestion {
   title: { es: string; 'pt-BR': string };
   help?: { es: string; 'pt-BR': string };
   type: 'single' | 'multi' | 'number' | 'slider' | 'text' | 'money';
-  options?: Array<{ 
-    id: string; 
-    label: { es: string; 'pt-BR': string }; 
+  options?: Array<{
+    id: string;
+    label: { es: string; 'pt-BR': string };
     emoji?: string;
     impactScore?: number;
   }>;
@@ -30,9 +30,20 @@ export interface UniversalQuestion {
   required?: boolean;
   businessTypes?: string[];
   countries?: CountryCode[];
+  /**
+   * Optional branching rules.
+   * If a question id appears in any then_ask/else_ask, it will be hidden by default
+   * and only shown when its rule is satisfied.
+   */
+  branching?: Array<{
+    if: { question_id: string; operator: 'equals' | 'includes' | 'gt' | 'lt' | 'between'; value: any };
+    then_ask: string[];
+    else_ask: string[];
+  }>;
 }
 
 // ============= SECTOR IDS =============
+// IMPORTANT: These must match src/lib/allBusinessTypes.ts keys.
 export const SECTOR_IDS = {
   GASTRO: 'A1_GASTRO',
   TURISMO: 'A2_TURISMO',
@@ -40,23 +51,23 @@ export const SECTOR_IDS = {
   SALUD: 'A4_SALUD',
   EDUCACION: 'A5_EDUCACION',
   B2B: 'A6_B2B',
-  HOGAR: 'A7_HOGAR',
-  CONSTRUCCION: 'A8_CONSTRUCCION',
-  TRANSPORTE: 'A9_TRANSPORTE',
+  HOGAR: 'A7_HOGAR_SERV',
+  CONSTRUCCION: 'A8_CONSTRU_INMO',
+  TRANSPORTE: 'A9_LOGISTICA',
   AGRO: 'A10_AGRO',
 } as const;
 
 // ============= IMPORTS - Sector Questionnaires =============
-import { 
-  GASTRO_COMPLETE_QUESTIONS, 
+import {
+  GASTRO_COMPLETE_QUESTIONS,
   GastroCompleteQuestion,
-  GASTRO_BUSINESS_TYPES
+  GASTRO_BUSINESS_TYPES,
 } from './sectorQuestions/gastroQuestionsComplete';
 
-import { 
-  TURISM_COMPLETE_QUESTIONS, 
+import {
+  TURISM_COMPLETE_QUESTIONS,
   TurismQuestion,
-  TURISM_BUSINESS_TYPES
+  TURISM_BUSINESS_TYPES,
 } from './sectorQuestions/turismQuestionsV2';
 
 import { ALL_SALUD_QUESTIONS } from './sectorQuestions/saludQuestions';
@@ -69,43 +80,88 @@ import {
   HOGAR_DECO_QUESTIONS,
 } from './sectorQuestions/retailQuestions';
 
+import { EDUCACION_COMPLETE_QUESTIONS } from './sectorQuestions/educacionQuestions';
+import { B2B_COMPLETE_QUESTIONS } from './sectorQuestions/b2bQuestions';
+
+import {
+  TRANSPORTE_COMPLETE_QUESTIONS,
+  TRANSPORTE_BUSINESS_TYPES,
+} from './sectorQuestions/transporteQuestions';
+
+import { AGRO_COMPLETE_QUESTIONS, AGRO_BUSINESS_TYPES } from './sectorQuestions/agroQuestions';
+
+import {
+  getHogarQuestions,
+  HOGAR_BUSINESS_TYPES,
+  type HogarBusinessType,
+} from './sectorQuestions/hogarQuestions';
+
+import {
+  getConstruccionQuestions,
+  CONSTRUCCION_BUSINESS_TYPES,
+  type ConstruccionBusinessType,
+} from './sectorQuestions/construccionQuestions';
+
 // ============= ADAPTERS =============
 // Convert sector-specific question formats to UniversalQuestion
 
 function mapCategory(cat: string): string {
-  const mapping: Record<string, string> = {
-    'identidad': 'identity',
-    'operacion': 'operation',
-    'ventas': 'sales',
-    'menu': 'menu',
-    'finanzas': 'finance',
-    'equipo': 'team',
-    'marketing': 'marketing',
-    'reputacion': 'reputation',
-    'objetivos': 'goals',
-    'trafico': 'operation',
-    'identity': 'identity',
-    'operation': 'operation',
-    'sales': 'sales',
-    'finance': 'finance',
-    'team': 'team',
-    'reputation': 'reputation',
-    'goals': 'goals',
+  const normalized = (cat || '').toLowerCase().trim();
+
+  // New 12-category schema (ES)
+  const v12: Record<string, string> = {
+    'identidad & posicionamiento': 'identity',
+    'oferta & precios': 'finance',
+    'cliente ideal & demanda': 'sales',
+    'ventas & conversión': 'sales',
+    'finanzas & márgenes': 'finance',
+    'operaciones & capacidad': 'operation',
+    'marketing & adquisición': 'marketing',
+    'retención & experiencia (cx)': 'reputation',
+    'equipo & roles': 'team',
+    'tecnología & integraciones': 'operation',
+    'objetivos del dueño': 'goals',
+    'riesgos, estacionalidad y restricciones': 'operation',
   };
-  return mapping[cat?.toLowerCase()] || 'operation';
+  if (v12[normalized]) return v12[normalized];
+
+  // Legacy/simple schema
+  const mapping: Record<string, string> = {
+    identidad: 'identity',
+    operacion: 'operation',
+    ventas: 'sales',
+    menu: 'menu',
+    finanzas: 'finance',
+    equipo: 'team',
+    marketing: 'marketing',
+    reputacion: 'reputation',
+    objetivos: 'goals',
+    trafico: 'operation',
+    identity: 'identity',
+    operation: 'operation',
+    sales: 'sales',
+    finance: 'finance',
+    team: 'team',
+    reputation: 'reputation',
+    goals: 'goals',
+  };
+  return mapping[normalized] || 'operation';
 }
 
 function mapScoreAreaToDimension(area: string): UniversalQuestion['dimension'] {
+  const normalized = (area || '').toLowerCase().trim();
   const mapping: Record<string, UniversalQuestion['dimension']> = {
-    'Reputación': 'reputation',
-    'Rentabilidad': 'profitability',
-    'Finanzas': 'finances',
-    'Eficiencia': 'efficiency',
-    'Tráfico': 'traffic',
-    'Equipo': 'team',
-    'Crecimiento': 'growth',
+    reputación: 'reputation',
+    reputacion: 'reputation',
+    rentabilidad: 'profitability',
+    finanzas: 'finances',
+    eficiencia: 'efficiency',
+    tráfico: 'traffic',
+    trafico: 'traffic',
+    equipo: 'team',
+    crecimiento: 'growth',
   };
-  return mapping[area] || 'efficiency';
+  return mapping[normalized] || 'efficiency';
 }
 
 function adaptGastroQuestions(questions: GastroCompleteQuestion[]): UniversalQuestion[] {
@@ -296,6 +352,10 @@ let gastroQuestionsCache: UniversalQuestion[] | null = null;
 let turismQuestionsCache: UniversalQuestion[] | null = null;
 let saludQuestionsCache: UniversalQuestion[] | null = null;
 let retailQuestionsCache: UniversalQuestion[] | null = null;
+let educacionQuestionsCache: UniversalQuestion[] | null = null;
+let b2bQuestionsCache: UniversalQuestion[] | null = null;
+let transporteQuestionsCache: UniversalQuestion[] | null = null;
+let agroQuestionsCache: UniversalQuestion[] | null = null;
 
 function getGastroQuestions(): UniversalQuestion[] {
   if (!gastroQuestionsCache) {
@@ -331,6 +391,158 @@ function getRetailQuestions(): UniversalQuestion[] {
     retailQuestionsCache = adaptRetailQuestions(allRetail);
   }
   return retailQuestionsCache;
+}
+
+function getEducacionQuestions(): UniversalQuestion[] {
+  if (!educacionQuestionsCache) {
+    // Already in UniversalQuestion-compatible shape
+    educacionQuestionsCache = EDUCACION_COMPLETE_QUESTIONS as unknown as UniversalQuestion[];
+  }
+  return educacionQuestionsCache;
+}
+
+function getB2BQuestions(): UniversalQuestion[] {
+  if (!b2bQuestionsCache) {
+    b2bQuestionsCache = B2B_COMPLETE_QUESTIONS as unknown as UniversalQuestion[];
+  }
+  return b2bQuestionsCache;
+}
+
+function adaptOptionsSimple(
+  options?: Array<{ value: string; label: string; label_pt?: string }>
+): UniversalQuestion['options'] {
+  return options?.map((o) => ({
+    id: o.value,
+    label: { es: o.label, 'pt-BR': o.label_pt || o.label },
+  }));
+}
+
+function adaptTransporteAgroQuestions(
+  questions: Array<{
+    id: string;
+    category: string;
+    mode: 'quick' | 'complete' | 'both';
+    dimension: string;
+    weight: number;
+    title: string;
+    title_pt?: string;
+    type: 'single' | 'multi' | 'number' | 'slider' | 'text' | 'money';
+    options?: Array<{ value: string; label: string; label_pt?: string }>;
+    min?: number;
+    max?: number;
+    unit?: string;
+    appliesTo?: string[];
+  }>
+): UniversalQuestion[] {
+  return questions.map((q) => ({
+    id: q.id,
+    category: mapCategory(q.category),
+    mode: q.mode,
+    dimension: mapScoreAreaToDimension(q.dimension),
+    weight: q.weight ?? 8,
+    title: { es: q.title, 'pt-BR': q.title_pt || q.title },
+    type: q.type,
+    options: adaptOptionsSimple(q.options),
+    min: q.min,
+    max: q.max,
+    unit: q.unit,
+    businessTypes: q.appliesTo,
+  }));
+}
+
+function getTransporteQuestions(): UniversalQuestion[] {
+  if (!transporteQuestionsCache) {
+    transporteQuestionsCache = adaptTransporteAgroQuestions(
+      TRANSPORTE_COMPLETE_QUESTIONS as any
+    );
+  }
+  return transporteQuestionsCache;
+}
+
+function getAgroQuestions(): UniversalQuestion[] {
+  if (!agroQuestionsCache) {
+    agroQuestionsCache = adaptTransporteAgroQuestions(AGRO_COMPLETE_QUESTIONS as any);
+  }
+  return agroQuestionsCache;
+}
+
+function adaptLegacyPromptQuestions(
+  questions: Array<{
+    id: string;
+    category: string;
+    question: string;
+    type:
+      | 'single_choice'
+      | 'multi_choice'
+      | 'scale_1_10'
+      | 'number'
+      | 'currency'
+      | 'text_short'
+      | 'text_long'
+      | 'date'
+      | 'percentage';
+    options?: string[];
+    required: boolean;
+    validation: { min?: number; max?: number; rule: string };
+    maps_to_brain: string;
+    why_it_matters: string;
+    mission_triggers: string[];
+    branching?: Array<{
+      if: { question_id: string; operator: string; value: any };
+      then_ask: string[];
+      else_ask: string[];
+    }>;
+  }>
+): UniversalQuestion[] {
+  return questions.map((q) => {
+    const typeMap: Record<string, UniversalQuestion['type']> = {
+      single_choice: 'single',
+      multi_choice: 'multi',
+      number: 'number',
+      currency: 'money',
+      text_short: 'text',
+      text_long: 'text',
+      date: 'text',
+      percentage: 'slider',
+      scale_1_10: 'slider',
+    };
+
+    const min =
+      q.type === 'percentage'
+        ? 0
+        : q.type === 'scale_1_10'
+          ? 1
+          : q.validation?.min;
+
+    const max =
+      q.type === 'percentage'
+        ? 100
+        : q.type === 'scale_1_10'
+          ? 10
+          : q.validation?.max;
+
+    const unit = q.type === 'percentage' ? '%' : undefined;
+
+    return {
+      id: q.id,
+      category: mapCategory(q.category),
+      mode: q.id.includes('_Q') ? 'quick' : 'complete',
+      dimension: 'efficiency',
+      weight: 8,
+      title: { es: q.question, 'pt-BR': q.question },
+      help: { es: q.why_it_matters, 'pt-BR': q.why_it_matters },
+      type: typeMap[q.type] || 'text',
+      options: q.options?.map((opt) => ({
+        id: opt,
+        label: { es: opt, 'pt-BR': opt },
+      })),
+      required: q.required,
+      min,
+      max,
+      unit,
+      branching: q.branching as any,
+    } satisfies UniversalQuestion;
+  });
 }
 
 // ============= UNIVERSAL BASE QUESTIONS =============
@@ -580,7 +792,8 @@ export function getUniversalQuestionsForSetup(
   countryCode: CountryCode,
   areaId: string,
   businessTypeId: string,
-  setupMode: 'quick' | 'complete'
+  setupMode: 'quick' | 'complete',
+  answers: Record<string, any> = {}
 ): UniversalQuestion[] {
   console.log('[UniversalEngine v3] Routing:', { areaId, businessTypeId, setupMode });
 
@@ -606,14 +819,28 @@ export function getUniversalQuestionsForSetup(
       questions = getQuestionsForRetail(businessTypeId, setupMode);
       break;
 
-    // TODO: Implement remaining sectors
     case SECTOR_IDS.EDUCACION:
+      questions = getQuestionsForEducacion(businessTypeId, setupMode);
+      break;
+
     case SECTOR_IDS.B2B:
+      questions = getQuestionsForB2B(businessTypeId, setupMode);
+      break;
+
     case SECTOR_IDS.HOGAR:
+      questions = getQuestionsForHogar(businessTypeId, setupMode);
+      break;
+
     case SECTOR_IDS.CONSTRUCCION:
+      questions = getQuestionsForConstruccion(businessTypeId, setupMode);
+      break;
+
     case SECTOR_IDS.TRANSPORTE:
+      questions = getQuestionsForTransporte(businessTypeId, setupMode);
+      break;
+
     case SECTOR_IDS.AGRO:
-      questions = getUniversalBaseQuestions(setupMode);
+      questions = getQuestionsForAgro(businessTypeId, setupMode);
       break;
 
     default:
@@ -632,8 +859,9 @@ export function getUniversalQuestionsForSetup(
         `Got ${filtered.length}, expected at least ${expectedMin}. Padding with universal base questions.`
     );
 
-    const basePool = getUniversalBaseQuestions(setupMode)
-      .filter((q) => !q.countries || q.countries.includes(countryCode));
+    const basePool = getUniversalBaseQuestions(setupMode).filter(
+      (q) => !q.countries || q.countries.includes(countryCode)
+    );
 
     const existingIds = new Set(filtered.map((q) => q.id));
     for (const q of basePool) {
@@ -644,6 +872,9 @@ export function getUniversalQuestionsForSetup(
       if (filtered.length >= expectedMin) break;
     }
   }
+
+  // Apply answer-driven branching (hide follow-ups unless triggered)
+  filtered = applyBranchingVisibility(filtered, answers);
 
   // Enforce upper bounds to keep experiences consistent
   if (filtered.length > expectedMax) {
@@ -662,11 +893,11 @@ export function getUniversalQuestionsForSetup(
 function getQuestionsForGastro(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
   const mappedId = GASTRO_ID_MAP[businessTypeId] || businessTypeId;
   const allQuestions = getGastroQuestions();
-  
-  return allQuestions.filter(q => {
+
+  return allQuestions.filter((q) => {
     // Mode filter
     if (q.mode !== 'both' && q.mode !== mode) return false;
-    
+
     // Business type filter
     if (!q.businessTypes || q.businessTypes.length === 0) return true;
     return q.businessTypes.includes(mappedId);
@@ -676,8 +907,8 @@ function getQuestionsForGastro(businessTypeId: string, mode: 'quick' | 'complete
 function getQuestionsForTurismo(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
   const mappedId = TURISMO_ID_MAP[businessTypeId] || businessTypeId;
   const allQuestions = getTurismQuestions();
-  
-  return allQuestions.filter(q => {
+
+  return allQuestions.filter((q) => {
     if (q.mode !== 'both' && q.mode !== mode) return false;
     if (!q.businessTypes || q.businessTypes.length === 0) return true;
     return q.businessTypes.includes(mappedId);
@@ -687,8 +918,8 @@ function getQuestionsForTurismo(businessTypeId: string, mode: 'quick' | 'complet
 function getQuestionsForSalud(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
   const mappedId = SALUD_ID_MAP[businessTypeId] || businessTypeId;
   const allQuestions = getSaludQuestions();
-  
-  return allQuestions.filter(q => {
+
+  return allQuestions.filter((q) => {
     if (q.mode !== 'both' && q.mode !== mode) return false;
     if (!q.businessTypes || q.businessTypes.length === 0) return true;
     return q.businessTypes.includes(mappedId);
@@ -698,12 +929,73 @@ function getQuestionsForSalud(businessTypeId: string, mode: 'quick' | 'complete'
 function getQuestionsForRetail(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
   const mappedId = RETAIL_ID_MAP[businessTypeId] || businessTypeId;
   const allQuestions = getRetailQuestions();
-  
-  return allQuestions.filter(q => {
+
+  return allQuestions.filter((q) => {
     if (q.mode !== 'both' && q.mode !== mode) return false;
     if (!q.businessTypes || q.businessTypes.length === 0) return true;
     return q.businessTypes.includes(mappedId);
   });
+}
+
+function getQuestionsForEducacion(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const allQuestions = getEducacionQuestions();
+  return allQuestions.filter((q) => {
+    if (q.mode !== 'both' && q.mode !== mode) return false;
+    if (!q.businessTypes || q.businessTypes.length === 0) return true;
+    return q.businessTypes.includes(businessTypeId);
+  });
+}
+
+function getQuestionsForB2B(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const allQuestions = getB2BQuestions();
+  return allQuestions.filter((q) => {
+    if (q.mode !== 'both' && q.mode !== mode) return false;
+    if (!q.businessTypes || q.businessTypes.length === 0) return true;
+    return q.businessTypes.includes(businessTypeId);
+  });
+}
+
+function getQuestionsForTransporte(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const allQuestions = getTransporteQuestions();
+  return allQuestions.filter((q) => {
+    if (q.mode !== 'both' && q.mode !== mode) return false;
+    // Transporte uses appliesTo; if absent it's universal.
+    if (!q.businessTypes || q.businessTypes.length === 0) return true;
+    return q.businessTypes.includes(businessTypeId);
+  });
+}
+
+function getQuestionsForAgro(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const allQuestions = getAgroQuestions();
+  return allQuestions.filter((q) => {
+    if (q.mode !== 'both' && q.mode !== mode) return false;
+    if (!q.businessTypes || q.businessTypes.length === 0) return true;
+    return q.businessTypes.includes(businessTypeId);
+  });
+}
+
+function getQuestionsForHogar(businessTypeId: string, mode: 'quick' | 'complete'): UniversalQuestion[] {
+  if (!HOGAR_BUSINESS_TYPES.includes(businessTypeId as HogarBusinessType)) {
+    return getUniversalBaseQuestions(mode);
+  }
+  const hogarMode = mode === 'quick' ? 'quick' : 'full';
+  const raw = getHogarQuestions(businessTypeId as HogarBusinessType, hogarMode);
+  const adapted = adaptLegacyPromptQuestions(raw as any);
+  // Fix mode based on requested mode (avoid heuristic from id)
+  return adapted.map((q) => ({ ...q, mode }));
+}
+
+function getQuestionsForConstruccion(
+  businessTypeId: string,
+  mode: 'quick' | 'complete'
+): UniversalQuestion[] {
+  if (!CONSTRUCCION_BUSINESS_TYPES.includes(businessTypeId as ConstruccionBusinessType)) {
+    return getUniversalBaseQuestions(mode);
+  }
+  const consMode = mode === 'quick' ? 'quick' : 'full';
+  const raw = getConstruccionQuestions(businessTypeId as ConstruccionBusinessType, consMode);
+  const adapted = adaptLegacyPromptQuestions(raw as any);
+  return adapted.map((q) => ({ ...q, mode }));
 }
 
 // ============= CATEGORY LABELS =============
@@ -721,6 +1013,84 @@ export function getUniversalCategoryLabel(category: string, lang: 'es' | 'pt-BR'
   };
   
   return labels[category]?.[lang] || category;
+}
+
+// ============= BRANCHING =============
+function evalCondition(
+  answer: any,
+  operator: 'equals' | 'includes' | 'gt' | 'lt' | 'between',
+  value: any
+): boolean {
+  if (operator === 'equals') return answer === value;
+
+  if (operator === 'includes') {
+    if (Array.isArray(answer)) return answer.includes(value);
+    if (typeof answer === 'string') return answer.includes(String(value));
+    return false;
+  }
+
+  const num = typeof answer === 'number' ? answer : Number(answer);
+  const valNum = typeof value === 'number' ? value : Number(value);
+
+  if (operator === 'gt') return Number.isFinite(num) && Number.isFinite(valNum) && num > valNum;
+  if (operator === 'lt') return Number.isFinite(num) && Number.isFinite(valNum) && num < valNum;
+
+  if (operator === 'between') {
+    const [min, max] = Array.isArray(value) ? value : [value?.min, value?.max];
+    const minN = Number(min);
+    const maxN = Number(max);
+    if (!Number.isFinite(num) || !Number.isFinite(minN) || !Number.isFinite(maxN)) return false;
+    return num >= minN && num <= maxN;
+  }
+
+  return false;
+}
+
+function applyBranchingVisibility(
+  questions: UniversalQuestion[],
+  answers: Record<string, any>
+): UniversalQuestion[] {
+  const byId = new Map(questions.map((q) => [q.id, q] as const));
+
+  // Anything referenced as a follow-up is hidden by default.
+  const followUpIds = new Set<string>();
+  for (const q of questions) {
+    for (const rule of q.branching || []) {
+      rule.then_ask?.forEach((id) => followUpIds.add(id));
+      rule.else_ask?.forEach((id) => followUpIds.add(id));
+    }
+  }
+
+  const visible = new Set<string>();
+  // start with non-follow-ups
+  for (const q of questions) {
+    if (!followUpIds.has(q.id)) visible.add(q.id);
+  }
+
+  // Expand visibility until stable (supports nested follow-ups)
+  let changed = true;
+  while (changed) {
+    changed = false;
+
+    for (const q of questions) {
+      if (!visible.has(q.id)) continue;
+
+      for (const rule of q.branching || []) {
+        const answer = answers[rule.if.question_id];
+        const ok = evalCondition(answer, rule.if.operator, rule.if.value);
+        const toAdd = ok ? rule.then_ask : rule.else_ask;
+
+        for (const id of toAdd || []) {
+          if (byId.has(id) && !visible.has(id)) {
+            visible.add(id);
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  return questions.filter((q) => visible.has(q.id));
 }
 
 // ============= EXPORTS =============
