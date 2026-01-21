@@ -52,7 +52,7 @@ export interface FullAuditReport {
 
 const QUICK_MIN = 10;
 const QUICK_MAX = 15;
-const COMPLETE_MIN = 68;
+const COMPLETE_MIN = 65;
 const COMPLETE_MAX = 75;
 
 const SECTOR_NAMES: Record<string, string> = {
