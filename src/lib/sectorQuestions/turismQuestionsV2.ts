@@ -1159,12 +1159,16 @@ const ATRACCIONES_QUESTIONS: TurismQuestion[] = [
 // COMBINAR TODAS LAS PREGUNTAS TURISMO
 // ============================================
 
+// Import extended questions for complete coverage
+import { TURISMO_EXTENDED_QUESTIONS } from './turismQuestionsExtended';
+
 export const TURISM_COMPLETE_QUESTIONS: TurismQuestion[] = [
   ...TURISM_UNIVERSAL_QUESTIONS,
   ...ALOJAMIENTO_QUESTIONS,
   ...AGENCIAS_TOURS_QUESTIONS,
   ...EVENTOS_QUESTIONS,
   ...ATRACCIONES_QUESTIONS,
+  ...TURISMO_EXTENDED_QUESTIONS,
 ];
 
 // Helper para obtener preguntas por tipo de negocio y modo
