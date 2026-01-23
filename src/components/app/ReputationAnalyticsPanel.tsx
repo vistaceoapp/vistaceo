@@ -30,7 +30,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { PlatformReputationCard } from "./PlatformReputationCard";
+import { PlatformReputationCard, PlatformType } from "./PlatformReputationCard";
+import { PlatformConnectModal } from "./PlatformConnectModal";
 
 interface ReputationAnalysis {
   overall_score: number;
@@ -75,6 +76,18 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
   const [platforms, setPlatforms] = useState<PlatformIntegration[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<PlatformType | null>(null);
+
+  const handleConnectPlatform = (platform: PlatformType) => {
+    setSelectedPlatform(platform);
+    setConnectModalOpen(true);
+  };
+
+  const handleConnectionSuccess = () => {
+    fetchPlatforms();
+    setConnectModalOpen(false);
+  };
 
   const fetchPlatforms = useCallback(async () => {
     if (!currentBusiness) return;
@@ -348,9 +361,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                 <PlatformReputationCard
                   key={platform.platform}
                   data={getPlatformData(platform)}
-                  onConnect={() => {
-                    toast({ title: "Conectar plataforma", description: "Ve a Más > Integraciones para conectar esta plataforma" });
-                  }}
+                  onConnect={() => handleConnectPlatform(platform.platform)}
                 />
               ))}
             </div>
@@ -364,13 +375,19 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                     key={platform.platform}
                     data={getPlatformData(platform)}
                     variant="compact"
-                    onConnect={() => {
-                      toast({ title: "Conectar plataforma", description: "Ve a Más > Integraciones para conectar esta plataforma" });
-                    }}
+                    onConnect={() => handleConnectPlatform(platform.platform)}
                   />
                 ))}
               </div>
             </div>
+
+            {/* Connect Modal */}
+            <PlatformConnectModal
+              open={connectModalOpen}
+              onOpenChange={setConnectModalOpen}
+              platform={selectedPlatform}
+              onSuccess={handleConnectionSuccess}
+            />
           </CardContent>
         </Card>
 
@@ -780,9 +797,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                 <PlatformReputationCard
                   key={platform.platform}
                   data={getPlatformData(platform)}
-                  onConnect={() => {
-                    toast({ title: "Conectar plataforma", description: "Ve a Más > Integraciones para conectar esta plataforma" });
-                  }}
+                  onConnect={() => handleConnectPlatform(platform.platform)}
                 />
               ))}
             </div>
@@ -804,9 +819,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                   key={platform.platform}
                   data={getPlatformData(platform)}
                   variant="compact"
-                  onConnect={() => {
-                    toast({ title: "Conectar plataforma", description: "Ve a Más > Integraciones para conectar esta plataforma" });
-                  }}
+                  onConnect={() => handleConnectPlatform(platform.platform)}
                 />
               ))}
             </div>
@@ -825,6 +838,14 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
             </CardContent>
           </Card>
         )}
+
+        {/* Connect Modal */}
+        <PlatformConnectModal
+          open={connectModalOpen}
+          onOpenChange={setConnectModalOpen}
+          platform={selectedPlatform}
+          onSuccess={handleConnectionSuccess}
+        />
       </TabsContent>
     </Tabs>
   );
