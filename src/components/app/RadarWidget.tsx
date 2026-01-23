@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Radar, TrendingUp, ChevronRight, Lock, Sparkles, Lightbulb, ExternalLink, Globe, Building2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Radar, TrendingUp, ChevronRight, Lock, Sparkles, Lightbulb, ExternalLink, Globe, Building2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GlassCard } from "./GlassCard";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 interface MarketInsight {
   id: string;
@@ -17,6 +18,7 @@ interface MarketInsight {
   source?: string;
   date: string;
   isExternal?: boolean;
+  item_type?: string;
 }
 
 interface RadarWidgetProps {
@@ -24,75 +26,43 @@ interface RadarWidgetProps {
   className?: string;
 }
 
-// Generate sector-specific demo insights based on business type
-const getSectorInsights = (businessType: string | undefined, sector: string | undefined): MarketInsight[] => {
-  const sectorMap: Record<string, MarketInsight[]> = {
-    // GASTRONOMÍA
-    restaurante: [
-      { id: "r1", title: "Tendencia: Menús degustación en alza", description: "Los restaurantes que implementaron menús degustación vieron un 28% más de ticket promedio.", category: "tendencias", source: "Mercado local", date: "Esta semana" },
-    ],
-    cafeteria: [
-      { id: "c1", title: "Tendencia: Specialty coffee crece 35%", description: "El café de especialidad está creciendo entre millennials y Gen Z en tu zona.", category: "tendencias", source: "Mercado local", date: "Esta semana" },
-    ],
-    bar: [
-      { id: "b1", title: "Tendencia: Cócteles sin alcohol +40%", description: "La demanda de mocktails premium está en auge, especialmente en afterwork.", category: "tendencias", source: "Mercado local", date: "Esta semana" },
-    ],
-    heladeria: [
-      { id: "h1", title: "Tendencia: Helados artesanales veganos", description: "Los helados plant-based están creciendo 45% vs año anterior.", category: "tendencias", source: "Mercado local", date: "Esta semana" },
-    ],
-    panaderia: [
-      { id: "p1", title: "Tendencia: Masa madre y fermentados", description: "El pan de masa madre tiene 50% más demanda que el pan tradicional.", category: "tendencias", source: "Mercado local", date: "Esta semana" },
-    ],
-    // RETAIL
-    moda: [
-      { id: "rm1", title: "Tendencia: Moda circular en crecimiento", description: "Las tiendas con opciones de second-hand ven 25% más tráfico.", category: "tendencias", source: "Análisis retail", date: "Esta semana" },
-    ],
-    electronica: [
-      { id: "re1", title: "Tendencia: Reparación antes que reemplazo", description: "El servicio técnico agrega 30% a la facturación promedio.", category: "tendencias", source: "Análisis retail", date: "Esta semana" },
-    ],
-    // SALUD
-    spa: [
-      { id: "s1", title: "Tendencia: Wellness integral 360°", description: "Los spas con programas integrales tienen 40% más retención.", category: "tendencias", source: "Mercado wellness", date: "Esta semana" },
-    ],
-    consultorio: [
-      { id: "co1", title: "Tendencia: Telemedicina complementaria", description: "Los consultorios con seguimiento virtual retienen 35% más pacientes.", category: "tendencias", source: "Mercado salud", date: "Esta semana" },
-    ],
-    // TURISMO
-    hotel: [
-      { id: "ho1", title: "Tendencia: Experiencias locales únicas", description: "Los hoteles con tours locales exclusivos tienen 45% más bookings.", category: "tendencias", source: "Mercado turismo", date: "Esta semana" },
-    ],
-    // B2B
-    consultoria: [
-      { id: "co1", title: "Tendencia: Servicios por suscripción", description: "Las consultoras con modelo retainer crecen 60% más rápido.", category: "tendencias", source: "Mercado B2B", date: "Esta semana" },
-    ],
+// Map item_type to category for display
+const mapItemTypeToCategory = (itemType: string): string => {
+  const mapping: Record<string, string> = {
+    trend: "tendencia",
+    benchmark: "mercado",
+    platform: "plataforma",
+    competitive: "competencia",
+    product: "producto",
+    macro: "mercado",
+    insight: "tendencia",
   };
-
-  // Get specific sector insights or fallback to generic
-  const typeKey = businessType?.toLowerCase() || "";
-  const sectorKey = sector?.toLowerCase() || "";
-  
-  return sectorMap[typeKey] || sectorMap[sectorKey] || [
-    { id: "g1", title: "Tendencia: Digitalización acelerada", description: "Los negocios con presencia digital activa crecen 40% más rápido.", category: "tendencias", source: "Análisis del mercado", date: "Esta semana" },
-  ];
+  return mapping[itemType] || "tendencia";
 };
 
-// Pro insights adapted by sector
-const getProInsights = (businessType: string | undefined): MarketInsight[] => {
-  const isGastro = ["restaurante", "cafeteria", "bar", "heladeria", "panaderia", "dark_kitchen", "fast_casual"].includes(businessType?.toLowerCase() || "");
+// Generate fallback insight based on sector
+const getFallbackInsight = (businessType: string | undefined, category: string | null): MarketInsight => {
+  const type = businessType?.toLowerCase() || category?.toLowerCase() || "negocio";
   
-  if (isGastro) {
-    return [
-      { id: "pro-1", title: "Tu competencia bajó precios en delivery", description: "2 competidores directos redujeron sus precios 15% esta semana.", category: "competencia", source: "Monitoreo automático", date: "Hoy", isExternal: true },
-      { id: "pro-2", title: "Nuevo local abrió a 500m", description: "Se detectó apertura de un local similar en tu zona de influencia.", category: "mercado", source: "Google Maps", date: "Ayer", isExternal: true },
-      { id: "pro-3", title: "Demanda alta para brunch este finde", description: "Las búsquedas de 'brunch' en tu zona subieron 40%.", category: "oportunidad", source: "Tendencias locales", date: "Hoy" },
-    ];
-  }
-  
-  return [
-    { id: "pro-1", title: "Nuevo competidor en tu zona", description: "Se detectó apertura de un negocio similar a 800m.", category: "competencia", source: "Monitoreo automático", date: "Hoy", isExternal: true },
-    { id: "pro-2", title: "Tu sector crece 15% este trimestre", description: "Las búsquedas relacionadas a tu rubro aumentaron en tu ciudad.", category: "mercado", source: "Tendencias", date: "Ayer", isExternal: true },
-    { id: "pro-3", title: "Oportunidad: evento local próximo", description: "Hay un evento masivo cerca que podría traer tráfico adicional.", category: "oportunidad", source: "Calendario local", date: "Hoy" },
-  ];
+  const fallbacks: Record<string, MarketInsight> = {
+    restaurante: { id: "f1", title: "Tendencia: Experiencias gastronómicas inmersivas", description: "Los restaurantes que ofrecen experiencias más allá de la comida están viendo 30% más engagement.", category: "tendencia", source: "Análisis de mercado", date: "Esta semana", isExternal: true },
+    cafeteria: { id: "f2", title: "Specialty coffee sigue en alza", description: "El café de especialidad crece 35% anual en LATAM.", category: "tendencia", source: "Análisis de mercado", date: "Esta semana", isExternal: true },
+    bar: { id: "f3", title: "Mocktails premium en crecimiento", description: "Los cócteles sin alcohol crecen 40% vs año anterior.", category: "tendencia", source: "Análisis de mercado", date: "Esta semana", isExternal: true },
+    heladeria: { id: "f4", title: "Helados plant-based en auge", description: "La demanda de helados veganos crece 45% anual.", category: "tendencia", source: "Análisis de mercado", date: "Esta semana", isExternal: true },
+    moda: { id: "f5", title: "Moda circular toma fuerza", description: "Las tiendas con second-hand ven 25% más tráfico.", category: "tendencia", source: "Análisis retail", date: "Esta semana", isExternal: true },
+    spa: { id: "f6", title: "Wellness integral 360°", description: "Los spas con programas integrales retienen 40% más.", category: "tendencia", source: "Mercado wellness", date: "Esta semana", isExternal: true },
+    hotel: { id: "f7", title: "Turismo experiencial local", description: "Los hoteles con tours exclusivos tienen 45% más bookings.", category: "tendencia", source: "Mercado turismo", date: "Esta semana", isExternal: true },
+  };
+
+  return fallbacks[type] || {
+    id: "default",
+    title: "Digitalización acelera el crecimiento",
+    description: "Los negocios con presencia digital activa crecen 40% más rápido.",
+    category: "tendencia",
+    source: "Análisis de mercado",
+    date: "Esta semana",
+    isExternal: true,
+  };
 };
 
 export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
@@ -101,26 +71,23 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
   const navigate = useNavigate();
   const [insights, setInsights] = useState<MarketInsight[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
-  useEffect(() => {
-    fetchInsights();
-  }, [currentBusiness, isPro, brain?.primary_business_type]);
-
-  const fetchInsights = async () => {
+  const fetchInsights = useCallback(async () => {
     if (!currentBusiness) {
       setLoading(false);
       return;
     }
 
     try {
-      // Fetch real learning items from database
+      // Fetch real learning items from database - include more item types
       const { data, error } = await supabase
         .from("learning_items")
         .select("*")
         .eq("business_id", currentBusiness.id)
-        .in("item_type", ["trend", "benchmark", "platform", "competitive"])
+        .in("item_type", ["trend", "benchmark", "platform", "competitive", "product", "macro", "insight"])
         .order("created_at", { ascending: false })
-        .limit(isPro ? 3 : 1);
+        .limit(isPro ? 5 : 3);
 
       if (error) throw error;
 
@@ -129,33 +96,85 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
           id: item.id,
           title: item.title,
           description: item.content || "",
-          category: item.item_type === "competitive" ? "competencia" : "tendencia",
+          category: mapItemTypeToCategory(item.item_type || "insight"),
           source: item.source || "Radar I+D",
-          date: new Date(item.created_at).toLocaleDateString("es", { weekday: "long" }),
+          date: formatRelativeDate(item.created_at),
           isExternal: true,
+          item_type: item.item_type,
         })));
       } else {
-        // Use sector-personalized demo insights based on brain type
-        const sectorInsights = getSectorInsights(
-          brain?.primary_business_type, 
-          currentBusiness.category
-        );
-        setInsights(isPro ? getProInsights(brain?.primary_business_type) : sectorInsights);
+        // Use fallback insight
+        const fallback = getFallbackInsight(brain?.primary_business_type, currentBusiness.category);
+        setInsights([fallback]);
       }
     } catch (error) {
       console.error("Error fetching insights:", error);
-      // Fallback to personalized demo data
-      const sectorInsights = getSectorInsights(
-        brain?.primary_business_type, 
-        currentBusiness?.category
-      );
-      setInsights(isPro ? getProInsights(brain?.primary_business_type) : sectorInsights);
+      const fallback = getFallbackInsight(brain?.primary_business_type, currentBusiness?.category);
+      setInsights([fallback]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentBusiness, isPro, brain?.primary_business_type]);
+
+  useEffect(() => {
+    fetchInsights();
+  }, [fetchInsights]);
+
+  // Generate new I+D insights
+  const generateNewInsights = useCallback(async () => {
+    if (!currentBusiness || generating) return;
+    setGenerating(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("analyze-patterns", {
+        body: {
+          businessId: currentBusiness.id,
+          type: "research",
+          brainContext: brain ? {
+            primaryType: brain.primary_business_type,
+            focus: brain.current_focus,
+          } : null,
+        },
+      });
+
+      if (error) throw error;
+
+      const created = data?.learningCreated || 0;
+      toast({
+        title: created > 0 ? "¡Nuevos insights encontrados!" : "Sin novedades por ahora",
+        description: created > 0 
+          ? `Encontré ${created} insights externos para tu ${brain?.primary_business_type || "negocio"}.`
+          : "Vuelvo a buscar más tarde.",
+      });
+
+      if (created > 0) {
+        fetchInsights();
+      }
+    } catch (error) {
+      console.error("Error generating insights:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron generar insights. Intenta de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setGenerating(false);
+    }
+  }, [currentBusiness, brain, generating, fetchInsights]);
 
   const currentInsight = insights[0];
+
+  // Format relative date helper
+  const formatRelativeDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Hoy";
+    if (diffDays === 1) return "Ayer";
+    if (diffDays < 7) return `Hace ${diffDays} días`;
+    return date.toLocaleDateString("es", { day: "numeric", month: "short" });
+  };
 
   if (loading) {
     return (
@@ -228,7 +247,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
     );
   }
 
-  // Pro version
+  // Pro version - enhanced with more categories and refresh
   return (
     <GlassCard className={cn("p-4", className)}>
       <div className="flex items-center justify-between mb-3">
@@ -236,13 +255,24 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
           <Radar className="w-4 h-4 text-accent" />
           <h4 className="font-semibold text-foreground text-sm">Hoy en tu mercado</h4>
         </div>
-        <Badge variant="outline" className="text-[10px] bg-success/10 text-success border-success/30">
-          En vivo
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={generateNewInsights}
+            disabled={generating}
+          >
+            <RefreshCw className={cn("w-3 h-3", generating && "animate-spin")} />
+          </Button>
+          <Badge variant="outline" className="text-[10px] bg-success/10 text-success border-success/30">
+            En vivo
+          </Badge>
+        </div>
       </div>
 
       <div className="space-y-2">
-        {insights.slice(0, 3).map((insight, idx) => (
+        {insights.slice(0, 3).map((insight) => (
           <button
             key={insight.id}
             className="w-full p-3 rounded-xl bg-secondary/30 border border-border hover:border-accent/30 transition-all text-left group"
@@ -255,17 +285,21 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
                 insight.category === "mercado" && "bg-warning/10",
                 insight.category === "oportunidad" && "bg-success/10",
                 insight.category === "tendencia" && "bg-accent/10",
+                insight.category === "plataforma" && "bg-primary/10",
+                insight.category === "producto" && "bg-accent/10",
               )}>
                 {insight.category === "competencia" && <TrendingUp className="w-4 h-4 text-destructive" />}
                 {insight.category === "mercado" && <Radar className="w-4 h-4 text-warning" />}
                 {insight.category === "oportunidad" && <Lightbulb className="w-4 h-4 text-success" />}
                 {insight.category === "tendencia" && <TrendingUp className="w-4 h-4 text-accent" />}
+                {insight.category === "plataforma" && <Globe className="w-4 h-4 text-primary" />}
+                {insight.category === "producto" && <Building2 className="w-4 h-4 text-accent" />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-foreground text-sm mb-0.5 line-clamp-1 group-hover:text-accent transition-colors">
                   {insight.title}
                 </p>
-                <p className="text-[10px] text-muted-foreground">{insight.date} • {insight.source}</p>
+                <p className="text-[10px] text-muted-foreground">{insight.date} • {insight.source?.split(" | ")[0] || "Radar I+D"}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors" />
             </div>
@@ -273,11 +307,26 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
         ))}
       </div>
 
+      {insights.length === 0 && (
+        <div className="text-center py-4">
+          <p className="text-sm text-muted-foreground mb-2">Sin insights todavía</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={generateNewInsights}
+            disabled={generating}
+          >
+            <RefreshCw className={cn("w-3 h-3 mr-2", generating && "animate-spin")} />
+            Buscar tendencias
+          </Button>
+        </div>
+      )}
+
       <Button 
         variant="ghost" 
         size="sm" 
         className="w-full mt-3 text-xs"
-        onClick={() => navigate("/app/radar")}
+        onClick={() => navigate("/app/radar?tab=id")}
       >
         Ver más en I+D
         <ExternalLink className="w-3 h-3 ml-1" />

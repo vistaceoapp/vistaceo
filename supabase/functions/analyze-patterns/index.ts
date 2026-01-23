@@ -240,49 +240,178 @@ serve(async (req) => {
       const locale = countryToGoogleNewsLocale(business.country);
       const cityHint = extractCityHint(business.address);
       const sectorHint = brain?.primary_business_type || business.category || "gastronomía";
+      const focusHint = brain?.current_focus || "ventas";
 
-      // Sector-specific query mapping for ultra-personalized results
+      // Ultra-detailed sector-specific query mapping for hyper-personalized results
       const sectorQueries: Record<string, string[]> = {
-        // GASTRONOMÍA
-        restaurante: ["restaurantes tendencias 2025", "menú innovador restaurante", "delivery restaurantes optimizar"],
-        cafeteria: ["cafeterías specialty coffee 2025", "café de especialidad tendencias", "coffee shop marketing"],
-        bar: ["bar cocktails tendencias 2025", "mixología innovación", "bares after work estrategia"],
-        heladeria: ["heladerías artesanales 2025", "helados veganos plant-based", "heladerías innovación"],
-        panaderia: ["panaderías artesanales tendencias", "masa madre fermentados", "panadería marketing local"],
-        dark_kitchen: ["dark kitchen tendencias 2025", "cocinas fantasma optimización", "delivery apps algoritmo"],
-        fast_casual: ["fast casual restaurant trends", "quick service restaurant innovation", "comida rápida saludable"],
-        // RETAIL
-        moda: ["retail moda tendencias 2025", "tiendas ropa marketing digital", "moda sostenible circular"],
-        electronica: ["retail electrónica tendencias", "tiendas tecnología servicios", "electrónica reparación tendencias"],
-        calzado: ["calzado retail tendencias 2025", "zapaterías omnicanal", "calzado sostenible"],
+        // GASTRONOMÍA - Detailed
+        restaurante: [
+          "restaurantes tendencias 2025 innovación", 
+          "menú innovador restaurante fine dining",
+          "delivery restaurantes optimizar algoritmo",
+          "restaurantes sostenibilidad packaging",
+          "restaurant marketing digital 2025",
+          "gastronomía experiencias inmersivas",
+        ],
+        cafeteria: [
+          "cafeterías specialty coffee 2025", 
+          "café de especialidad tendencias latte art",
+          "coffee shop marketing redes sociales",
+          "cafeterías coworking espacio híbrido",
+          "cold brew nuevas tendencias café",
+        ],
+        bar: [
+          "bar cocktails tendencias 2025", 
+          "mixología innovación molecular",
+          "bares experiencias after work premium",
+          "bar sin alcohol mocktails premium",
+          "bares speakeasy concepto secreto",
+        ],
+        heladeria: [
+          "heladerías artesanales 2025", 
+          "helados veganos plant-based tendencias",
+          "heladerías sabores exóticos innovación",
+          "helados funcionales proteína",
+          "gelato italiano técnicas",
+        ],
+        panaderia: [
+          "panaderías artesanales tendencias 2025", 
+          "masa madre fermentados sourdough",
+          "panadería marketing local comunidad",
+          "pan saludable gluten free",
+          "croissants tendencias croissantería",
+        ],
+        dark_kitchen: [
+          "dark kitchen tendencias 2025", 
+          "cocinas fantasma optimización delivery",
+          "ghost kitchen algoritmo apps",
+          "virtual brands marcas virtuales",
+          "cloud kitchen eficiencia operativa",
+        ],
+        fast_casual: [
+          "fast casual tendencias 2025", 
+          "quick service restaurant innovación",
+          "comida rápida saludable premium",
+          "fast food sostenibilidad packaging",
+          "QSR digitalización pedidos",
+        ],
+        // RETAIL - Detailed
+        moda: [
+          "retail moda tendencias 2025", 
+          "tiendas ropa marketing digital influencers",
+          "moda sostenible circular segunda mano",
+          "fashion retail omnicanal experiencia",
+          "tiendas ropa personalización cliente",
+        ],
+        electronica: [
+          "retail electrónica tendencias 2025", 
+          "tiendas tecnología servicios reparación",
+          "electrónica ecommerce showrooming",
+          "tech retail experiencias demos",
+        ],
+        calzado: [
+          "calzado retail tendencias 2025", 
+          "zapaterías omnicanal fitting virtual",
+          "calzado sostenible reciclado",
+          "sneakers resale reventa tendencias",
+        ],
         // SALUD
-        spa: ["spa wellness tendencias 2025", "centros bienestar innovación", "wellness integral experiencias"],
-        consultorio: ["consultorios médicos telemedicina", "clínicas privadas marketing", "salud digital pacientes"],
-        odontologia: ["clínicas dentales marketing 2025", "odontología digital tendencias", "consultorios dentales"],
+        spa: [
+          "spa wellness tendencias 2025", 
+          "centros bienestar innovación experiencias",
+          "wellness integral mindfulness retiros",
+          "spa tratamientos high-tech",
+        ],
+        consultorio: [
+          "consultorios médicos telemedicina 2025", 
+          "clínicas privadas marketing digital pacientes",
+          "salud digital wearables integración",
+          "consultorios experiencia paciente",
+        ],
+        odontologia: [
+          "clínicas dentales marketing 2025", 
+          "odontología digital CAD CAM",
+          "ortodoncia invisible tendencias",
+          "turismo dental mercados",
+        ],
         // TURISMO
-        hotel: ["hoteles boutique tendencias 2025", "turismo experiencial local", "hotelería sostenible"],
-        agencia_viajes: ["agencias viajes digitalización", "turismo personalizado 2025", "viajes experiencias únicas"],
+        hotel: [
+          "hoteles boutique tendencias 2025", 
+          "turismo experiencial local auténtico",
+          "hotelería sostenible certificaciones",
+          "hoteles tecnología check-in sin contacto",
+        ],
+        agencia_viajes: [
+          "agencias viajes digitalización 2025", 
+          "turismo personalizado AI recomendaciones",
+          "viajes experiencias únicas aventura",
+          "travel tech innovación",
+        ],
         // B2B
-        consultoria: ["consultoría empresas tendencias", "servicios B2B suscripción", "consulting digital 2025"],
+        consultoria: [
+          "consultoría empresas tendencias 2025", 
+          "servicios B2B suscripción recurrente",
+          "consulting digital transformación",
+          "advisory AI automatización",
+        ],
+        // EDUCACIÓN
+        educacion: [
+          "educación tendencias 2025",
+          "e-learning innovación plataformas",
+          "cursos online certificaciones",
+          "edtech gamificación",
+        ],
         // DEFAULT
-        default: ["pequeños negocios tendencias 2025", "pymes digitalización", "marketing local negocios"],
+        default: [
+          "pequeños negocios tendencias 2025", 
+          "pymes digitalización marketing",
+          "emprendedores innovación local",
+          "negocios locales redes sociales",
+          "marketing local comunidad",
+        ],
       };
 
+      // Get sector-specific queries
       const baseQueries = sectorQueries[sectorHint.toLowerCase()] || sectorQueries.default;
       
-      // Multiple targeted queries; we keep only a handful of the freshest headlines.
-      const queries = [
-        ...baseQueries.map(q => `${q} ${business.country || "LATAM"}`),
-        `${sectorHint} "${cityHint}" tendencias consumo`.trim(),
-        `${sectorHint} Google Maps reseñas 2025`.trim(),
-        `${sectorHint} Instagram TikTok formatos 2025`.trim(),
-      ].filter(Boolean);
+      // Focus-based additional queries
+      const focusQueries: Record<string, string[]> = {
+        ventas: [`${sectorHint} aumentar ventas estrategias 2025`, `${sectorHint} conversión clientes`],
+        reputacion: [`${sectorHint} reseñas Google reputación online`, `${sectorHint} experiencia cliente NPS`],
+        operaciones: [`${sectorHint} eficiencia operativa automatización`, `${sectorHint} optimizar costos`],
+        marketing: [`${sectorHint} marketing digital 2025`, `${sectorHint} redes sociales contenido viral`],
+        equipo: [`${sectorHint} recursos humanos retención talento`, `${sectorHint} capacitación empleados`],
+      };
 
+      const additionalFocusQueries = focusQueries[focusHint.toLowerCase()] || [];
+      
+      // Build comprehensive query list for maximum insights
+      const queries = [
+        // Base sector queries
+        ...baseQueries.map(q => `${q} ${business.country || "LATAM"}`),
+        // Focus-specific queries
+        ...additionalFocusQueries.map(q => `${q} ${business.country || ""}`),
+        // Local/city specific
+        cityHint ? `${sectorHint} ${cityHint} tendencias` : null,
+        // Platform specific
+        `${sectorHint} Google Maps reseñas optimizar 2025`,
+        `${sectorHint} Instagram Reels TikTok contenido 2025`,
+        // Innovation
+        `${sectorHint} innovación tecnología 2025`,
+        // Competition
+        `${sectorHint} competencia estrategias ganadoras`,
+      ].filter(Boolean) as string[];
+
+      console.log(`Fetching RSS for ${queries.length} queries (sector: ${sectorHint}, focus: ${focusHint})`);
+
+      // Fetch more headlines for better variety
       const rssResults = await Promise.all(
-        queries.map((q) => fetchGoogleNewsRss(q, locale))
+        queries.slice(0, 12).map((q) => fetchGoogleNewsRss(q, locale))
       );
 
-      externalRssItems = rssResults.flat().slice(0, 15);
+      // Keep more items for AI to choose the best ones
+      externalRssItems = rssResults.flat().slice(0, 25);
+      console.log(`Found ${externalRssItems.length} RSS headlines for I+D analysis`);
     }
 
     // Append external RSS context ONLY for I+D.
@@ -291,15 +420,22 @@ serve(async (req) => {
         ? `${analysisContext}\n\n## RADAR EXTERNO (I+D) — TITULARES/TENDENCIAS REALES (RSS)\nIMPORTANTE: Usar ÚNICAMENTE estos titulares como fuentes.\n\n${formatRssForContext(externalRssItems)}`
         : analysisContext;
 
-    // ULTRA-PERSONALIZED SYSTEM PROMPTS
+    // ULTRA-PERSONALIZED SYSTEM PROMPTS - Enhanced for 7-10 insights/month
     const systemPrompt = mode === "research"
       ? `Eres el motor de Radar Externo (Investigación + Desarrollo / I+D) de Vistaceo.
 
-REGLA ABSOLUTA: I+D es EXTERNO. Detecta señales fuera del negocio (mercado/plataformas/competencia/regulación/macros/tendencias globales) y las traduce a “qué podría significar para vos”.
+REGLA ABSOLUTA: I+D es EXTERNO. Detecta señales fuera del negocio (mercado/plataformas/competencia/regulación/macros/tendencias globales) y las traduce a "qué podría significar para vos".
+
+## CONTEXTO DEL NEGOCIO (CRÍTICO PARA PERSONALIZACIÓN)
+- **Sector**: ${brain?.primary_business_type || business.category || "negocio local"}
+- **País/Ciudad**: ${business.country || "LATAM"} - ${extractCityHint(business.address) || "zona local"}
+- **Foco actual del dueño**: ${brain?.current_focus || "crecimiento"}
+- **Modelo de servicio**: ${business.service_model || "mixto"}
+- **Canales activos**: ${business.delivery_platforms?.join(", ") || "presencial"}
 
 ## GUARDRAILS (NO NEGOCIABLE)
 - Prohibido diagnosticar operación interna o métricas del negocio.
-- Prohibido dar “plan interno paso a paso” como obligación.
+- Prohibido dar "plan interno paso a paso" como obligación.
 - Prohibido contenido genérico o sin fuente real.
 - Prohibido inventar fuentes/URLs.
 
@@ -309,27 +445,36 @@ REGLA ABSOLUTA: I+D es EXTERNO. Detecta señales fuera del negocio (mercado/plat
 - Si la lista está vacía o no hay nada relevante para ESTE negocio, devolvé learning_items: [].
 
 ## PERSONALIZACIÓN SUPREMA
-Cada ítem debe explicar por qué aplica a ESTE negocio usando: tipo/sector, país/ciudad, canales (delivery/salón), foco actual, y decisiones previas (si están en el contexto).
+Cada ítem debe explicar por qué aplica a ESTE negocio usando: tipo/sector, país/ciudad, canales (delivery/salón), foco actual.
+Menciona explícitamente "${brain?.primary_business_type || business.category}" y "${business.country || "LATAM"}" en el why_applies.
 
 ## QUÉ SÍ ENTRA EN I+D
-- Tendencias de consumo
-- Cambios de plataformas (Google/Maps, IG/TikTok, delivery)
-- Movidas competitivas externas (cadenas/referentes en otros mercados)
-- Tendencias de producto/menú globales
+- Tendencias de consumo específicas del sector
+- Cambios de plataformas (Google/Maps, IG/TikTok, delivery apps)
+- Movidas competitivas externas (cadenas/referentes)
+- Tendencias de producto/menú/servicio globales aplicables
 - Macro/regulatorio (alerta, no implementación)
+- Innovaciones tecnológicas del sector
+- Cambios en comportamiento del consumidor
+
+## PRIORIDAD DE INSIGHTS
+1. Alta prioridad: Tendencias que afectan DIRECTAMENTE a ${brain?.primary_business_type || "este tipo de negocio"}
+2. Media prioridad: Tendencias del sector más amplio aplicables
+3. Baja prioridad: Tendencias generales de negocios locales
 
 ## CONTRATO DE SALIDA (JSON estricto)
 Devuelve EXACTAMENTE:
 {
   "learning_items": [
     {
-      "title": "(max 60 chars)",
-      "content": "Señal externa + qué significa para vos (no prescriptivo)",
+      "title": "(max 60 chars, específico al sector)",
+      "content": "Señal externa + qué significa para ${brain?.primary_business_type || "tu negocio"} (no prescriptivo)",
       "item_type": "trend" | "benchmark" | "platform" | "competitive" | "product" | "macro",
       "category": "consumo" | "plataforma" | "competencia" | "producto" | "macro" | "operacion_externa",
-      "why_applies": "1-2 frases hiper personalizadas",
-      "freshness": "YYYY-MM" ,
+      "why_applies": "Por qué esto aplica específicamente a un ${brain?.primary_business_type || "negocio"} en ${business.country || "LATAM"}",
+      "freshness": "YYYY-MM",
       "transferability": "alta" | "media" | "baja",
+      "priority": "alta" | "media" | "baja",
       "sources": [
         { "title": "...", "url": "https://...", "publisher": "...", "published_at": "RFC2822 or YYYY-MM-DD" }
       ],
@@ -339,9 +484,11 @@ Devuelve EXACTAMENTE:
 }
 
 ## REGLAS DE CALIDAD
-- Máximo 4 ítems.
+- GENERAR ENTRE 5-8 ÍTEMS de alta calidad (para alcanzar 7-10 insights/mes con escaneos semanales)
 - Cada ítem DEBE incluir al menos 1 source con URL real tomada del RSS.
 - Si un ítem no puede citar una fuente, NO lo devuelvas.
+- Priorizar variedad: diferentes categorías (consumo, plataforma, competencia, producto).
+- Ordenar por relevancia para ${brain?.primary_business_type || "este negocio"}.
 `
       : `Eres un consultor de negocios gastronómicos con 20 años de experiencia en LATAM.
 Tu especialidad es detectar oportunidades CONCRETAS y ESPECÍFICAS basadas en datos reales.
