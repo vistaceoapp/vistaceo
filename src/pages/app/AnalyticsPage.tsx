@@ -19,7 +19,7 @@ const AnalyticsPage = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+              <h1 className="text-2xl font-bold text-foreground">Analíticas</h1>
               <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground text-[10px] px-2 py-0.5">
                 <Sparkles className="w-3 h-3 mr-1" />
                 Pro
