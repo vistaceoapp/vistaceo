@@ -54,11 +54,16 @@ interface ReputationAnalysis {
 }
 
 interface PlatformIntegration {
-  platform: "google" | "youtube" | "instagram" | "facebook" | "tiktok";
+  platform: "google" | "youtube" | "instagram" | "facebook" | "tiktok" | "web";
   connected: boolean;
   metadata?: Record<string, any>;
   lastSync?: string;
 }
+
+// Plataformas principales (mostradas prominentemente)
+const MAIN_PLATFORMS: Array<PlatformIntegration["platform"]> = ["google", "instagram", "facebook", "web"];
+// Plataformas adicionales (mostradas más pequeñas)
+const ADDITIONAL_PLATFORMS: Array<PlatformIntegration["platform"]> = ["youtube", "tiktok"];
 
 interface ReputationAnalyticsPanelProps {
   className?: string;
@@ -82,9 +87,10 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
       
       const platformMap: Record<string, PlatformIntegration> = {
         google: { platform: "google", connected: false },
-        youtube: { platform: "youtube", connected: false },
         instagram: { platform: "instagram", connected: false },
         facebook: { platform: "facebook", connected: false },
+        web: { platform: "web", connected: false },
+        youtube: { platform: "youtube", connected: false },
         tiktok: { platform: "tiktok", connected: false },
       };
 
@@ -104,8 +110,35 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
               metadata: integration.metadata as Record<string, any>,
               lastSync: integration.last_sync_at,
             };
+          } else if (integration.integration_type === "instagram") {
+            platformMap.instagram = {
+              platform: "instagram",
+              connected: integration.status === "active",
+              metadata: integration.metadata as Record<string, any>,
+              lastSync: integration.last_sync_at,
+            };
+          } else if (integration.integration_type === "facebook") {
+            platformMap.facebook = {
+              platform: "facebook",
+              connected: integration.status === "active",
+              metadata: integration.metadata as Record<string, any>,
+              lastSync: integration.last_sync_at,
+            };
+          } else if (integration.integration_type === "web_analytics") {
+            platformMap.web = {
+              platform: "web",
+              connected: integration.status === "active",
+              metadata: integration.metadata as Record<string, any>,
+              lastSync: integration.last_sync_at,
+            };
+          } else if (integration.integration_type === "tiktok") {
+            platformMap.tiktok = {
+              platform: "tiktok",
+              connected: integration.status === "active",
+              metadata: integration.metadata as Record<string, any>,
+              lastSync: integration.last_sync_at,
+            };
           }
-          // Add other platforms as they get implemented
         }
       }
       
@@ -250,12 +283,37 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
         { label: "Reseñas", value: platform.metadata.review_count || 0, icon: <MessageSquare className="w-3 h-3" /> },
         { label: "Respondidas", value: `${analysis?.response_rate || 0}%`, icon: <ThumbsUp className="w-3 h-3" /> },
       ];
+    } else if (platform.platform === "instagram" && platform.metadata) {
+      data.metrics.mainScore = platform.metadata.followers_count || 0;
+      data.metrics.secondary = [
+        { label: "Posts", value: platform.metadata.media_count || 0, icon: <BarChart3 className="w-3 h-3" /> },
+        { label: "Engagement", value: `${platform.metadata.engagement_rate || 0}%`, icon: <TrendingUp className="w-3 h-3" /> },
+      ];
+    } else if (platform.platform === "facebook" && platform.metadata) {
+      data.metrics.mainScore = platform.metadata.rating || 0;
+      data.metrics.secondary = [
+        { label: "Seguidores", value: formatNumber(platform.metadata.followers_count || 0), icon: <Users className="w-3 h-3" /> },
+        { label: "Reseñas", value: platform.metadata.review_count || 0, icon: <MessageSquare className="w-3 h-3" /> },
+      ];
+    } else if (platform.platform === "web" && platform.metadata) {
+      data.metrics.mainScore = platform.metadata.conversion_rate || 0;
+      data.metrics.secondary = [
+        { label: "Visitas", value: formatNumber(platform.metadata.visitors || 0), icon: <Eye className="w-3 h-3" /> },
+        { label: "Carrito→Compra", value: `${platform.metadata.cart_to_purchase || 0}%`, icon: <BarChart3 className="w-3 h-3" /> },
+        { label: "Comentarios", value: platform.metadata.comments_count || 0, icon: <MessageSquare className="w-3 h-3" /> },
+      ];
     } else if (platform.platform === "youtube" && platform.metadata) {
       data.metrics.mainScore = platform.metadata.subscriber_count || 0;
       data.metrics.secondary = [
         { label: "Views", value: formatNumber(platform.metadata.view_count || 0), icon: <Eye className="w-3 h-3" /> },
         { label: "Videos", value: platform.metadata.video_count || 0, icon: <Play className="w-3 h-3" /> },
         { label: "Engagement", value: `${platform.metadata.engagement_rate || 0}%`, icon: <TrendingUp className="w-3 h-3" /> },
+      ];
+    } else if (platform.platform === "tiktok" && platform.metadata) {
+      data.metrics.mainScore = platform.metadata.followers_count || 0;
+      data.metrics.secondary = [
+        { label: "Likes", value: formatNumber(platform.metadata.likes_count || 0), icon: <ThumbsUp className="w-3 h-3" /> },
+        { label: "Videos", value: platform.metadata.video_count || 0, icon: <Play className="w-3 h-3" /> },
       ];
     }
     
@@ -268,21 +326,25 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
     return num.toString();
   };
 
+  // Filter platforms by category
+  const mainPlatforms = platforms.filter(p => MAIN_PLATFORMS.includes(p.platform));
+  const additionalPlatforms = platforms.filter(p => ADDITIONAL_PLATFORMS.includes(p.platform));
+
   // No analysis yet - show platforms + CTA
   if (!analysis) {
     return (
       <div className={cn("space-y-6", className)}>
-        {/* Platforms Overview */}
+        {/* Main Platforms */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Globe className="w-4 h-4 text-primary" />
-              Plataformas conectadas
+              <Star className="w-4 h-4 text-primary" />
+              Plataformas principales
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {platforms.map((platform) => (
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {mainPlatforms.map((platform) => (
                 <PlatformReputationCard
                   key={platform.platform}
                   data={getPlatformData(platform)}
@@ -291,6 +353,23 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                   }}
                 />
               ))}
+            </div>
+
+            {/* Additional Platforms - Compact */}
+            <div className="pt-3 border-t border-border/50">
+              <p className="text-xs text-muted-foreground mb-2">Otras plataformas</p>
+              <div className="flex flex-wrap gap-2">
+                {additionalPlatforms.map((platform) => (
+                  <PlatformReputationCard
+                    key={platform.platform}
+                    data={getPlatformData(platform)}
+                    variant="compact"
+                    onConnect={() => {
+                      toast({ title: "Conectar plataforma", description: "Ve a Más > Integraciones para conectar esta plataforma" });
+                    }}
+                  />
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -687,19 +766,54 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
 
       {/* Tab: Por Plataforma */}
       <TabsContent value="plataformas" className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {platforms.map((platform) => (
-            <PlatformReputationCard
-              key={platform.platform}
-              data={getPlatformData(platform)}
-              onConnect={() => {
-                toast({ title: "Conectar plataforma", description: "Ve a Más > Integraciones para conectar esta plataforma" });
-              }}
-            />
-          ))}
-        </div>
+        {/* Main Platforms */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Star className="w-4 h-4 text-primary" />
+              Plataformas principales
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {mainPlatforms.map((platform) => (
+                <PlatformReputationCard
+                  key={platform.platform}
+                  data={getPlatformData(platform)}
+                  onConnect={() => {
+                    toast({ title: "Conectar plataforma", description: "Ve a Más > Integraciones para conectar esta plataforma" });
+                  }}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Platform-specific analysis cards */}
+        {/* Additional Platforms */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2 text-muted-foreground">
+              <Globe className="w-4 h-4" />
+              Otras plataformas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {additionalPlatforms.map((platform) => (
+                <PlatformReputationCard
+                  key={platform.platform}
+                  data={getPlatformData(platform)}
+                  variant="compact"
+                  onConnect={() => {
+                    toast({ title: "Conectar plataforma", description: "Ve a Más > Integraciones para conectar esta plataforma" });
+                  }}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Empty state */}
         {platforms.filter(p => p.connected).length === 0 && (
           <Card className="border-dashed">
             <CardContent className="p-6 text-center">
