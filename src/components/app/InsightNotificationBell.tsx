@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Sparkles, ExternalLink, Check } from "lucide-react";
+import { Bell, Sparkles, ExternalLink, Check, Lightbulb, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,6 +13,33 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+
+// Helper to get icon and color based on notification type
+const getNotificationStyle = (type: string, isRead: boolean) => {
+  const baseClass = isRead ? "bg-muted text-muted-foreground" : "";
+  
+  switch (type) {
+    case "new_opportunities":
+      return {
+        icon: Lightbulb,
+        colorClass: isRead ? baseClass : "bg-amber-500/20 text-amber-500",
+        label: "Oportunidad",
+      };
+    case "new_research":
+    case "new_insights":
+      return {
+        icon: TrendingUp,
+        colorClass: isRead ? baseClass : "bg-accent/20 text-accent",
+        label: "I+D",
+      };
+    default:
+      return {
+        icon: Sparkles,
+        colorClass: isRead ? baseClass : "bg-primary/20 text-primary",
+        label: "Notificación",
+      };
+  }
+};
 
 interface InsightNotification {
   id: string;
@@ -93,7 +120,12 @@ export const InsightNotificationBell = () => {
   const handleNotificationClick = (notification: InsightNotification) => {
     markAsRead(notification.id);
     setOpen(false);
-    navigate("/app/radar?tab=id");
+    // Navigate to appropriate tab based on notification type
+    if (notification.notification_type === "new_opportunities") {
+      navigate("/app/radar?tab=oportunidades");
+    } else {
+      navigate("/app/radar?tab=id");
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
@@ -120,7 +152,7 @@ export const InsightNotificationBell = () => {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <h4 className="font-semibold text-foreground">Notificaciones I+D</h4>
+          <h4 className="font-semibold text-foreground">Notificaciones</h4>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -147,58 +179,61 @@ export const InsightNotificationBell = () => {
               </p>
             </div>
           ) : (
-            notifications.map((notification) => (
-              <div
-                key={notification.id}
-                onClick={() => handleNotificationClick(notification)}
-                className={cn(
-                  "px-4 py-3 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors",
-                  !notification.is_read && "bg-primary/5"
-                )}
-              >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
-                      !notification.is_read
-                        ? "bg-accent/20 text-accent"
-                        : "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p
-                        className={cn(
-                          "text-sm font-medium truncate",
-                          !notification.is_read
-                            ? "text-foreground"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {notification.title}
-                      </p>
-                      {!notification.is_read && (
-                        <div className="w-2 h-2 rounded-full bg-accent shrink-0" />
+            notifications.map((notification) => {
+              const style = getNotificationStyle(notification.notification_type, notification.is_read);
+              const IconComponent = style.icon;
+              
+              return (
+                <div
+                  key={notification.id}
+                  onClick={() => handleNotificationClick(notification)}
+                  className={cn(
+                    "px-4 py-3 border-b border-border cursor-pointer hover:bg-muted/50 transition-colors",
+                    !notification.is_read && "bg-primary/5"
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                        style.colorClass
                       )}
+                    >
+                      <IconComponent className="w-4 h-4" />
                     </div>
-                    {notification.message && (
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                        {notification.message}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p
+                          className={cn(
+                            "text-sm font-medium truncate",
+                            !notification.is_read
+                              ? "text-foreground"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {notification.title}
+                        </p>
+                        {!notification.is_read && (
+                          <div className="w-2 h-2 rounded-full bg-accent shrink-0" />
+                        )}
+                      </div>
+                      {notification.message && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                          {notification.message}
+                        </p>
+                      )}
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(notification.created_at), {
+                          addSuffix: true,
+                          locale: es,
+                        })}
                       </p>
-                    )}
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {formatDistanceToNow(new Date(notification.created_at), {
-                        addSuffix: true,
-                        locale: es,
-                      })}
-                    </p>
+                    </div>
+                    <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
                   </div>
-                  <ExternalLink className="w-4 h-4 text-muted-foreground shrink-0" />
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -210,10 +245,10 @@ export const InsightNotificationBell = () => {
               className="w-full text-xs"
               onClick={() => {
                 setOpen(false);
-                navigate("/app/radar?tab=id");
+                navigate("/app/radar");
               }}
             >
-              Ver todas en Radar I+D
+              Ver todas las notificaciones
             </Button>
           </div>
         )}

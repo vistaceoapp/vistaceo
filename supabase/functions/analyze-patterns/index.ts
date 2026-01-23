@@ -1061,6 +1061,27 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
         }
       }
 
+      // =====================================================================
+      // 🔔 CREATE NOTIFICATION FOR NEW EXTERNAL RESEARCH INSIGHTS
+      // =====================================================================
+      if (learningInserted > 0) {
+        await supabase.from("insight_notifications").insert({
+          business_id: businessId,
+          notification_type: "new_research",
+          title: `${learningInserted} nuevo${learningInserted > 1 ? 's' : ''} insight${learningInserted > 1 ? 's' : ''} de I+D`,
+          message: `Se detectaron ${learningInserted} tendencia${learningInserted > 1 ? 's' : ''} externa${learningInserted > 1 ? 's' : ''} relevante${learningInserted > 1 ? 's' : ''} para tu sector.`,
+          insights_count: learningInserted,
+          metadata: {
+            notification_source: "external_research",
+            analysis_type: "research",
+            business_type: brain?.primary_business_type || "general",
+            country: business?.country || "AR",
+            created_at: new Date().toISOString(),
+          },
+        });
+        console.log(`Created notification for ${learningInserted} new research insights`);
+      }
+
       console.log("Research generation complete:", {
         learningGenerated: items.length,
         learningInserted,
@@ -1107,6 +1128,27 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
           opportunitiesInserted++;
           existingItems.push({ id: "", title: opp.title, description: opp.description, source: "new" });
         }
+      }
+
+      // =====================================================================
+      // 🔔 CREATE NOTIFICATION FOR NEW INTERNAL OPPORTUNITIES
+      // =====================================================================
+      if (opportunitiesInserted > 0) {
+        await supabase.from("insight_notifications").insert({
+          business_id: businessId,
+          notification_type: "new_opportunities",
+          title: `${opportunitiesInserted} nueva${opportunitiesInserted > 1 ? 's' : ''} oportunidad${opportunitiesInserted > 1 ? 'es' : ''} detectada${opportunitiesInserted > 1 ? 's' : ''}`,
+          message: `El análisis inteligente encontró ${opportunitiesInserted} oportunidad${opportunitiesInserted > 1 ? 'es' : ''} basada${opportunitiesInserted > 1 ? 's' : ''} en los datos de tu negocio.`,
+          insights_count: opportunitiesInserted,
+          metadata: {
+            notification_source: "internal_analysis",
+            analysis_type: "opportunities",
+            business_focus: brain?.current_focus || "ventas",
+            brain_confidence: brain?.confidence_score || 0,
+            created_at: new Date().toISOString(),
+          },
+        });
+        console.log(`Created notification for ${opportunitiesInserted} new opportunities`);
       }
     }
 
