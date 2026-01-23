@@ -201,15 +201,15 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
 
         {currentInsight && (
           <button
-            className="w-full p-3 rounded-xl bg-accent/5 border border-accent/10 mb-3 text-left hover:border-accent/30 transition-colors cursor-pointer"
+            className="w-full p-3 rounded-xl bg-accent/5 border border-accent/10 mb-3 text-left hover:border-accent/30 transition-colors cursor-pointer overflow-hidden"
             onClick={() => navigate("/app/radar?tab=id")}
           >
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                 <Lightbulb className="w-4 h-4 text-accent" />
               </div>
-              <div>
-                <p className="font-medium text-foreground text-sm mb-1">{currentInsight.title}</p>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-foreground text-sm mb-1 line-clamp-2">{currentInsight.title}</p>
                 <p className="text-xs text-muted-foreground line-clamp-2">{currentInsight.description}</p>
                 <p className="text-[10px] text-muted-foreground mt-2 italic">{currentInsight.date}</p>
               </div>
@@ -218,31 +218,25 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
         )}
 
         {/* Pro CTA */}
-        <button
-          className="w-full p-3 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 hover:border-primary/40 transition-colors cursor-pointer"
-          onClick={() => navigate("/app/radar?tab=id")}
-        >
+        <div className="w-full p-3 rounded-xl bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Lock className="w-4 h-4 text-primary" />
             </div>
-            <div className="flex-1 text-left">
+            <div className="flex-1 min-w-0">
               <p className="font-medium text-foreground text-sm">Insights diarios</p>
-              <p className="text-xs text-muted-foreground">Monitoreo de competencia en tiempo real</p>
+              <p className="text-xs text-muted-foreground line-clamp-1">Monitoreo de competencia en tiempo real</p>
             </div>
-            <Button 
-              size="sm" 
-              className="gradient-primary h-8"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate("/app/more");
-              }}
-            >
-              <Sparkles className="w-3 h-3 mr-1" />
-              Pro
-            </Button>
           </div>
-        </button>
+          <Button 
+            size="sm" 
+            className="gradient-primary w-full mt-3 h-8"
+            onClick={() => navigate("/app/more")}
+          >
+            <Sparkles className="w-3 h-3 mr-1" />
+            Desbloquear Pro
+          </Button>
+        </div>
       </GlassCard>
     );
   }
