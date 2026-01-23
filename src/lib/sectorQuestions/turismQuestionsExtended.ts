@@ -4,7 +4,7 @@
 // to reach 65-75 total questions per type
 // ============================================
 
-import { TurismQuestion, TURISM_BUSINESS_TYPES } from './turismQuestionsV2';
+import { TurismQuestion, TURISM_BUSINESS_TYPES } from './turismConstants';
 
 const { 
   HOTEL_URBANO, HOTEL_BOUTIQUE, RESORT, HOSTEL, APART_HOTEL, POSADA, ALQUILER_TEMP,
