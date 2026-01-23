@@ -123,7 +123,15 @@ export const PlatformConnectModal = ({
       }
 
       if (data?.url) {
-        window.location.href = data.url;
+        // Facebook/Instagram bloquean ser cargados dentro de iframes (X-Frame-Options),
+        // así que abrimos el OAuth en una pestaña nueva.
+        const opened = window.open(data.url, "_blank", "noopener,noreferrer");
+        if (!opened) {
+          // Fallback si el navegador bloquea popups
+          window.location.assign(data.url);
+        } else {
+          onOpenChange(false);
+        }
       }
     } catch (error) {
       console.error("Error starting OAuth:", error);
