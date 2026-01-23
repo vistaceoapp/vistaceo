@@ -44,15 +44,15 @@ serve(async (req) => {
     // Create state with business and user info
     const state = btoa(JSON.stringify({ businessId, userId, platform: platform || "instagram" }));
 
-    // Meta Business API scopes for Instagram and Facebook
+    // Meta Business API scopes - using permissions available in the Meta app
     const scopes = [
       "email",
       "public_profile",
       "pages_show_list",
       "pages_read_engagement",
-      "pages_read_user_content",
       "instagram_basic",
-      "instagram_manage_insights",
+      "instagram_business_basic",
+      "instagram_business_manage_insights",
       "business_management"
     ];
 
