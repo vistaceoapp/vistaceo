@@ -312,6 +312,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
       // Use real data from external_data reviews
       data.metrics.mainScore = platform.avgRating || currentBusiness?.avg_rating || 0;
       data.metrics.secondary = [
+        { label: "Cuenta", value: platform.metadata?.account_email || "-", icon: <Users className="w-3 h-3" /> },
         { label: "Reseñas", value: platform.reviewCount || 0, icon: <MessageSquare className="w-3 h-3" /> },
         { label: "Respondidas", value: `${analysis?.response_rate || 0}%`, icon: <ThumbsUp className="w-3 h-3" /> },
       ];
