@@ -549,7 +549,7 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
           { role: "user", content: analysisContextFinal },
         ],
         temperature: 0.3,
-        max_tokens: 2200,
+        max_tokens: 4500, // Increased to allow for 5-8 complete learning items
       }),
     });
 
@@ -574,18 +574,82 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
       throw new Error("No response from AI");
     }
 
-    // Parse AI response
+    // Parse AI response with robust handling for incomplete JSON
     let analysis;
     try {
-      const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+      // First try to extract complete JSON
+      let jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysis = JSON.parse(jsonMatch[0]);
       } else {
         throw new Error("No JSON found in response");
       }
-    } catch (e) {
-      console.error("Failed to parse AI response:", aiMessage);
-      analysis = { patterns: [], opportunities: [], lessons: [] };
+    } catch (parseError) {
+      console.error("Failed to parse AI response:", aiMessage.substring(0, 500));
+      
+      // Try to recover partial learning_items array
+      try {
+        const partialMatch = aiMessage.match(/"learning_items"\s*:\s*\[([\s\S]*)/);
+        if (partialMatch) {
+          // Try to extract as many complete items as possible
+          const itemsStr = partialMatch[1];
+          const items: any[] = [];
+          let depth = 1;
+          let currentItem = '';
+          let inString = false;
+          let escapeNext = false;
+          
+          for (const char of itemsStr) {
+            if (escapeNext) {
+              currentItem += char;
+              escapeNext = false;
+              continue;
+            }
+            
+            if (char === '\\') {
+              currentItem += char;
+              escapeNext = true;
+              continue;
+            }
+            
+            if (char === '"' && !escapeNext) {
+              inString = !inString;
+            }
+            
+            if (!inString) {
+              if (char === '{') depth++;
+              if (char === '}') depth--;
+            }
+            
+            currentItem += char;
+            
+            // Complete item found when depth returns to 1
+            if (depth === 1 && char === '}') {
+              try {
+                const parsed = JSON.parse(currentItem.trim().replace(/^,\s*/, ''));
+                if (parsed.title && parsed.content) {
+                  items.push(parsed);
+                }
+              } catch {
+                // Skip malformed items
+              }
+              currentItem = '';
+            }
+          }
+          
+          if (items.length > 0) {
+            console.log(`Recovered ${items.length} items from partial response`);
+            analysis = { learning_items: items, opportunities: [], patterns: [], lessons: [] };
+          } else {
+            throw new Error("Could not recover any items");
+          }
+        } else {
+          throw new Error("No learning_items found");
+        }
+      } catch (recoveryError) {
+        console.error("Recovery failed:", recoveryError);
+        analysis = { patterns: [], opportunities: [], lessons: [], learning_items: [] };
+      }
     }
 
     // Persist results
