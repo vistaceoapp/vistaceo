@@ -140,24 +140,24 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
         </div>
 
         {/* CTA overlay */}
-        <div className="relative z-20 mt-4 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+        <div className="relative z-20 mt-4 p-4 rounded-xl bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Lock className="w-5 h-5 text-primary" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p className="font-medium text-foreground text-sm">Conectá tu negocio</p>
-              <p className="text-xs text-muted-foreground">Datos reales de tus redes</p>
+              <p className="text-xs text-muted-foreground line-clamp-1">Datos reales de tus redes</p>
             </div>
-            <Button 
-              size="sm" 
-              className="gradient-primary"
-              onClick={() => navigate("/app/more")}
-            >
-              <Sparkles className="w-4 h-4 mr-1" />
-              Pro
-            </Button>
           </div>
+          <Button 
+            size="sm" 
+            className="gradient-primary w-full"
+            onClick={() => navigate("/app/more")}
+          >
+            <Sparkles className="w-4 h-4 mr-1" />
+            Desbloquear Pro
+          </Button>
         </div>
       </GlassCard>
     );
