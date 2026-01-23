@@ -241,12 +241,40 @@ serve(async (req) => {
       const cityHint = extractCityHint(business.address);
       const sectorHint = brain?.primary_business_type || business.category || "gastronomía";
 
+      // Sector-specific query mapping for ultra-personalized results
+      const sectorQueries: Record<string, string[]> = {
+        // GASTRONOMÍA
+        restaurante: ["restaurantes tendencias 2025", "menú innovador restaurante", "delivery restaurantes optimizar"],
+        cafeteria: ["cafeterías specialty coffee 2025", "café de especialidad tendencias", "coffee shop marketing"],
+        bar: ["bar cocktails tendencias 2025", "mixología innovación", "bares after work estrategia"],
+        heladeria: ["heladerías artesanales 2025", "helados veganos plant-based", "heladerías innovación"],
+        panaderia: ["panaderías artesanales tendencias", "masa madre fermentados", "panadería marketing local"],
+        dark_kitchen: ["dark kitchen tendencias 2025", "cocinas fantasma optimización", "delivery apps algoritmo"],
+        fast_casual: ["fast casual restaurant trends", "quick service restaurant innovation", "comida rápida saludable"],
+        // RETAIL
+        moda: ["retail moda tendencias 2025", "tiendas ropa marketing digital", "moda sostenible circular"],
+        electronica: ["retail electrónica tendencias", "tiendas tecnología servicios", "electrónica reparación tendencias"],
+        calzado: ["calzado retail tendencias 2025", "zapaterías omnicanal", "calzado sostenible"],
+        // SALUD
+        spa: ["spa wellness tendencias 2025", "centros bienestar innovación", "wellness integral experiencias"],
+        consultorio: ["consultorios médicos telemedicina", "clínicas privadas marketing", "salud digital pacientes"],
+        odontologia: ["clínicas dentales marketing 2025", "odontología digital tendencias", "consultorios dentales"],
+        // TURISMO
+        hotel: ["hoteles boutique tendencias 2025", "turismo experiencial local", "hotelería sostenible"],
+        agencia_viajes: ["agencias viajes digitalización", "turismo personalizado 2025", "viajes experiencias únicas"],
+        // B2B
+        consultoria: ["consultoría empresas tendencias", "servicios B2B suscripción", "consulting digital 2025"],
+        // DEFAULT
+        default: ["pequeños negocios tendencias 2025", "pymes digitalización", "marketing local negocios"],
+      };
+
+      const baseQueries = sectorQueries[sectorHint.toLowerCase()] || sectorQueries.default;
+      
       // Multiple targeted queries; we keep only a handful of the freshest headlines.
       const queries = [
-        `${sectorHint} tendencias 2025 ${business.country || ""}`.trim(),
+        ...baseQueries.map(q => `${q} ${business.country || "LATAM"}`),
         `${sectorHint} "${cityHint}" tendencias consumo`.trim(),
-        `${sectorHint} delivery apps cambios algoritmo 2025`.trim(),
-        `${sectorHint} Google Maps novedades 2025`.trim(),
+        `${sectorHint} Google Maps reseñas 2025`.trim(),
         `${sectorHint} Instagram TikTok formatos 2025`.trim(),
       ].filter(Boolean);
 
@@ -254,7 +282,7 @@ serve(async (req) => {
         queries.map((q) => fetchGoogleNewsRss(q, locale))
       );
 
-      externalRssItems = rssResults.flat().slice(0, 12);
+      externalRssItems = rssResults.flat().slice(0, 15);
     }
 
     // Append external RSS context ONLY for I+D.
@@ -646,21 +674,51 @@ function buildDeepAnalysisContext(
 - **Días/Horarios fuertes**: ${business.active_dayparts?.join(", ") || "No especificado"}
 `;
 
-  // Brain context (what we already know)
+  // Brain context (what we already know) - ULTRA PERSONALIZED
   if (brain) {
     context += `
 ## MEMORIA DEL NEGOCIO (Lo que ya sabemos)
 - **Foco actual**: ${brain.current_focus || "ventas"}
 - **Tipo principal**: ${brain.primary_business_type || "restaurant"}
+- **Tipo secundario**: ${brain.secondary_business_type || "N/A"}
 - **Confianza del sistema**: ${brain.confidence_score || 0}%
 - **Señales procesadas**: ${brain.total_signals || 0}
+- **Última actualización**: ${brain.last_learning_at || "Nunca"}
 
 ### Datos factuales conocidos:
 ${JSON.stringify(brain.factual_memory || {}, null, 2)}
 
 ### Preferencias del dueño:
 ${JSON.stringify(brain.preferences_memory || {}, null, 2)}
+
+### Decisiones previas (misiones pausadas/rechazadas):
+${JSON.stringify(brain.decisions_memory || {}, null, 2)}
 `;
+
+    // Include dynamic memory (pulse history, events)
+    const dynamicMem = brain.dynamic_memory || {};
+    if (dynamicMem.pulse_history && dynamicMem.pulse_history.length > 0) {
+      const recentPulses = dynamicMem.pulse_history.slice(0, 7);
+      context += `
+### Pulso reciente del negocio (últimos 7 días):
+${recentPulses.map((p: any) => `- ${p.date} (${p.shift || 'día'}): ${p.score}/5 - ${p.label || ''} ${p.revenue ? `| $${p.revenue}` : ''}`).join('\n')}
+- **Promedio 7 días**: ${dynamicMem.avg_pulse_7d?.toFixed(1) || 'N/A'}/5
+`;
+    }
+
+    if (dynamicMem.good_events && dynamicMem.good_events.length > 0) {
+      context += `
+### Eventos positivos recientes:
+${dynamicMem.good_events.slice(0, 5).map((e: any) => `- ${e.date}: ${e.note}`).join('\n')}
+`;
+    }
+
+    if (dynamicMem.bad_events && dynamicMem.bad_events.length > 0) {
+      context += `
+### Eventos negativos recientes (áreas de mejora):
+${dynamicMem.bad_events.slice(0, 5).map((e: any) => `- ${e.date}: ${e.note}`).join('\n')}
+`;
+    }
   }
 
   // Focus config
