@@ -74,3 +74,24 @@ verify_jwt = false
 
 [functions.weekly-insight-scan]
 verify_jwt = false
+
+[functions.analyze-reputation]
+verify_jwt = false
+
+[functions.google-sync-youtube]
+verify_jwt = false
+
+[functions.meta-oauth-start]
+verify_jwt = false
+
+[functions.meta-oauth-callback]
+verify_jwt = false
+
+[functions.setup-web-analytics]
+verify_jwt = false
+
+[functions.web-analytics-tracker]
+verify_jwt = false
+
+[functions.tiktok-oauth-start]
+verify_jwt = false
