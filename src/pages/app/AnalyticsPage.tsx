@@ -1,8 +1,9 @@
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 import { BusinessHealthAnalytics } from "@/components/analytics/BusinessHealthAnalytics";
 import { EvolutionPanel } from "@/components/app/EvolutionPanel";
+import { ReputationAnalyticsPanel } from "@/components/app/ReputationAnalyticsPanel";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { BarChart3, Stethoscope, TrendingUp, Sparkles } from "lucide-react";
+import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,25 +26,29 @@ const AnalyticsPage = () => {
                 Pro
               </Badge>
             </div>
-            <p className="text-muted-foreground">Diagnóstico, evolución y métricas</p>
+            <p className="text-muted-foreground">Diagnóstico, evolución, métricas y reputación</p>
           </div>
         </div>
       </div>
 
-      {/* Tabs for Diagnóstico, Evolución, Métricas */}
+      {/* Tabs for Diagnóstico, Evolución, Métricas, Reputación */}
       <Tabs defaultValue="diagnostico" className="w-full">
-        <TabsList className={`grid w-full ${isMobile ? 'grid-cols-3' : 'grid-cols-3'} mb-6`}>
-          <TabsTrigger value="diagnostico" className={isMobile ? "text-xs" : ""}>
-            <Stethoscope className="w-4 h-4 mr-1.5" />
-            Diagnóstico
+        <TabsList className={`grid w-full ${isMobile ? 'grid-cols-4' : 'grid-cols-4'} mb-6`}>
+          <TabsTrigger value="diagnostico" className={isMobile ? "text-xs px-1" : ""}>
+            <Stethoscope className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
+            {isMobile ? "Diagnóstico" : "Diagnóstico"}
           </TabsTrigger>
-          <TabsTrigger value="evolucion" className={isMobile ? "text-xs" : ""}>
-            <TrendingUp className="w-4 h-4 mr-1.5" />
-            Evolución
+          <TabsTrigger value="evolucion" className={isMobile ? "text-xs px-1" : ""}>
+            <TrendingUp className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
+            {isMobile ? "Evolución" : "Evolución"}
           </TabsTrigger>
-          <TabsTrigger value="metricas" className={isMobile ? "text-xs" : ""}>
-            <BarChart3 className="w-4 h-4 mr-1.5" />
-            Métricas
+          <TabsTrigger value="metricas" className={isMobile ? "text-xs px-1" : ""}>
+            <BarChart3 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
+            {isMobile ? "Métricas" : "Métricas"}
+          </TabsTrigger>
+          <TabsTrigger value="reputacion" className={isMobile ? "text-xs px-1" : ""}>
+            <Star className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
+            {isMobile ? "Reputación" : "Reputación"}
           </TabsTrigger>
         </TabsList>
 
@@ -60,6 +65,11 @@ const AnalyticsPage = () => {
         {/* Tab: Métricas */}
         <TabsContent value="metricas" className="space-y-6">
           <AnalyticsDashboard variant={isMobile ? "compact" : "full"} />
+        </TabsContent>
+
+        {/* Tab: Reputación - AI Analysis */}
+        <TabsContent value="reputacion" className="space-y-6">
+          <ReputationAnalyticsPanel />
         </TabsContent>
       </Tabs>
     </div>
