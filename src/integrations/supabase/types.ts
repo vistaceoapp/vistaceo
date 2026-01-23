@@ -1440,6 +1440,146 @@ export type Database = {
         }
         Relationships: []
       }
+      pulse_blueprints: {
+        Row: {
+          adaptacion_por_brain: string | null
+          business_type: string
+          created_at: string
+          eventos_bad_base: string[] | null
+          eventos_good_base: string[] | null
+          id: string
+          is_active: boolean | null
+          labels_1_5: Json
+          numeric_prompt_base: string | null
+          pregunta_principal_base: string
+          proxy_base: string | null
+          recommended_frequency: string | null
+          sector: string
+          selling_model_base: string
+          shift_mode_base: string | null
+          updated_at: string
+        }
+        Insert: {
+          adaptacion_por_brain?: string | null
+          business_type: string
+          created_at?: string
+          eventos_bad_base?: string[] | null
+          eventos_good_base?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          labels_1_5?: Json
+          numeric_prompt_base?: string | null
+          pregunta_principal_base: string
+          proxy_base?: string | null
+          recommended_frequency?: string | null
+          sector: string
+          selling_model_base: string
+          shift_mode_base?: string | null
+          updated_at?: string
+        }
+        Update: {
+          adaptacion_por_brain?: string | null
+          business_type?: string
+          created_at?: string
+          eventos_bad_base?: string[] | null
+          eventos_good_base?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          labels_1_5?: Json
+          numeric_prompt_base?: string | null
+          pregunta_principal_base?: string
+          proxy_base?: string | null
+          recommended_frequency?: string | null
+          sector?: string
+          selling_model_base?: string
+          shift_mode_base?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pulse_checkins: {
+        Row: {
+          applies_to_date: string
+          brain_updated: boolean | null
+          business_id: string
+          confidence_score: number | null
+          created_at: string
+          currency_local: string | null
+          granularity: string
+          id: string
+          metadata: Json | null
+          notes_bad: string | null
+          notes_good: string | null
+          processed_at: string | null
+          pulse_label: string | null
+          pulse_score_1_5: number | null
+          revenue_local: number | null
+          revenue_usd: number | null
+          shift_tag: string | null
+          source: string
+          tags: Json | null
+          updated_at: string
+          volume_proxy_type: string | null
+          volume_proxy_value: number | null
+        }
+        Insert: {
+          applies_to_date?: string
+          brain_updated?: boolean | null
+          business_id: string
+          confidence_score?: number | null
+          created_at?: string
+          currency_local?: string | null
+          granularity?: string
+          id?: string
+          metadata?: Json | null
+          notes_bad?: string | null
+          notes_good?: string | null
+          processed_at?: string | null
+          pulse_label?: string | null
+          pulse_score_1_5?: number | null
+          revenue_local?: number | null
+          revenue_usd?: number | null
+          shift_tag?: string | null
+          source?: string
+          tags?: Json | null
+          updated_at?: string
+          volume_proxy_type?: string | null
+          volume_proxy_value?: number | null
+        }
+        Update: {
+          applies_to_date?: string
+          brain_updated?: boolean | null
+          business_id?: string
+          confidence_score?: number | null
+          created_at?: string
+          currency_local?: string | null
+          granularity?: string
+          id?: string
+          metadata?: Json | null
+          notes_bad?: string | null
+          notes_good?: string | null
+          processed_at?: string | null
+          pulse_label?: string | null
+          pulse_score_1_5?: number | null
+          revenue_local?: number | null
+          revenue_usd?: number | null
+          shift_tag?: string | null
+          source?: string
+          tags?: Json | null
+          updated_at?: string
+          volume_proxy_type?: string | null
+          volume_proxy_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pulse_checkins_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recommendation_traces: {
         Row: {
           based_on: Json
