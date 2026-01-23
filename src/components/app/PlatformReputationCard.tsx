@@ -27,6 +27,8 @@ export type PlatformType = "google" | "instagram" | "facebook" | "web";
 interface PlatformData {
   platform: PlatformType;
   connected: boolean;
+  status?: string;
+  errorMessage?: string;
   metrics: {
     mainScore?: number;
     mainLabel?: string;
@@ -179,6 +181,34 @@ export const PlatformReputationCard = ({
           <Check className="w-3 h-3 text-success" />
         </div>
       </div>
+    );
+  }
+
+  // Error state (e.g., no_pages for Meta)
+  if (data.status === "error") {
+    return (
+      <Card className={cn(
+        "relative overflow-hidden border-destructive/30 bg-destructive/5 cursor-pointer group",
+        className
+      )} onClick={onConnect}>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+              {config.icon}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-foreground">{config.name}</p>
+              <p className="text-xs text-destructive flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {data.errorMessage || "Acción requerida"}
+              </p>
+            </div>
+            <Button variant="destructive" size="sm" className="text-xs">
+              Solucionar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 

@@ -328,7 +328,14 @@ export const PlatformConnectModal = ({
                       id="website"
                       placeholder="https://tusitio.com"
                       value={websiteUrl}
-                      onChange={(e) => setWebsiteUrl(e.target.value)}
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        // Auto-add https:// if missing
+                        if (value && !value.startsWith("http://") && !value.startsWith("https://")) {
+                          value = "https://" + value;
+                        }
+                        setWebsiteUrl(value);
+                      }}
                     />
                   </div>
                   

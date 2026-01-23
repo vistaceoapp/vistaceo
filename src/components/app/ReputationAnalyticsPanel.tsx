@@ -57,8 +57,11 @@ interface ReputationAnalysis {
 interface PlatformIntegration {
   platform: "google" | "instagram" | "facebook" | "web";
   connected: boolean;
+  status?: string; // "connected", "error", "pending"
   metadata?: Record<string, any>;
   lastSync?: string;
+  reviewCount?: number;
+  avgRating?: number;
 }
 
 // Plataformas principales (mostradas prominentemente)
@@ -94,10 +97,30 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
     if (!currentBusiness) return;
     
     try {
+      // Fetch integrations
       const { data: integrations } = await supabase
         .from("business_integrations")
         .select("integration_type, status, metadata, last_sync_at")
         .eq("business_id", currentBusiness.id);
+      
+      // Fetch reviews for Google
+      const { data: reviews } = await supabase
+        .from("external_data")
+        .select("content")
+        .eq("business_id", currentBusiness.id)
+        .eq("data_type", "review");
+      
+      // Calculate review stats from external_data
+      let reviewCount = 0;
+      let avgRating = 0;
+      if (reviews && reviews.length > 0) {
+        reviewCount = reviews.length;
+        const totalRating = reviews.reduce((sum, r) => {
+          const content = r.content as Record<string, any>;
+          return sum + (Number(content?.rating) || 0);
+        }, 0);
+        avgRating = Math.round((totalRating / reviewCount) * 10) / 10;
+      }
       
       const platformMap: Record<string, PlatformIntegration> = {
         google: { platform: "google", connected: false },
@@ -108,32 +131,40 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
 
       if (integrations) {
         for (const integration of integrations) {
+          const meta = integration.metadata as Record<string, any>;
+          
           if (integration.integration_type === "google_business" || integration.integration_type === "google_reviews") {
             platformMap.google = {
               platform: "google",
               connected: isConnectedStatus(integration.status),
-              metadata: integration.metadata as Record<string, any>,
+              status: integration.status,
+              metadata: meta,
               lastSync: integration.last_sync_at,
+              reviewCount,
+              avgRating: avgRating || meta?.rating || currentBusiness?.avg_rating || 0,
             };
           } else if (integration.integration_type === "instagram") {
             platformMap.instagram = {
               platform: "instagram",
               connected: isConnectedStatus(integration.status),
-              metadata: integration.metadata as Record<string, any>,
+              status: integration.status,
+              metadata: meta,
               lastSync: integration.last_sync_at,
             };
           } else if (integration.integration_type === "facebook") {
             platformMap.facebook = {
               platform: "facebook",
               connected: isConnectedStatus(integration.status),
-              metadata: integration.metadata as Record<string, any>,
+              status: integration.status,
+              metadata: meta,
               lastSync: integration.last_sync_at,
             };
           } else if (integration.integration_type === "web_analytics") {
             platformMap.web = {
               platform: "web",
               connected: isConnectedStatus(integration.status),
-              metadata: integration.metadata as Record<string, any>,
+              status: integration.status,
+              metadata: meta,
               lastSync: integration.last_sync_at,
             };
           }
@@ -266,6 +297,8 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
     const data: any = {
       platform: platform.platform,
       connected: platform.connected,
+      status: platform.status,
+      errorMessage: platform.status === "error" ? getErrorMessage(platform) : undefined,
       metrics: {
         mainScore: 0,
         mainLabel: "",
@@ -275,10 +308,11 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
       }
     };
 
-    if (platform.platform === "google" && platform.metadata) {
-      data.metrics.mainScore = currentBusiness?.avg_rating || platform.metadata.rating || 0;
+    if (platform.platform === "google") {
+      // Use real data from external_data reviews
+      data.metrics.mainScore = platform.avgRating || currentBusiness?.avg_rating || 0;
       data.metrics.secondary = [
-        { label: "Reseñas", value: platform.metadata.review_count || 0, icon: <MessageSquare className="w-3 h-3" /> },
+        { label: "Reseñas", value: platform.reviewCount || 0, icon: <MessageSquare className="w-3 h-3" /> },
         { label: "Respondidas", value: `${analysis?.response_rate || 0}%`, icon: <ThumbsUp className="w-3 h-3" /> },
       ];
     } else if (platform.platform === "instagram" && platform.metadata) {
@@ -302,6 +336,14 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
       ];
     }
     return data;
+  };
+
+  const getErrorMessage = (platform: PlatformIntegration): string => {
+    const meta = platform.metadata;
+    if (meta?.error === "no_pages_found") {
+      return "No se encontraron Páginas de Facebook vinculadas";
+    }
+    return "Error de conexión";
   };
 
   const formatNumber = (num: number): string => {
