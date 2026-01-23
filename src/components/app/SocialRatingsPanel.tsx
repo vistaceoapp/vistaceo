@@ -68,6 +68,14 @@ const SOCIAL_PLATFORMS: SocialRating[] = [
   },
 ];
 
+// Helper to format large numbers
+const formatNumber = (num: number | undefined | null): string => {
+  if (num === undefined || num === null) return "0";
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
+  if (num >= 1000) return (num / 1000).toFixed(1) + "K";
+  return num.toString();
+};
+
 interface SocialRatingsPanelProps {
   variant?: "compact" | "full";
 }
@@ -103,28 +111,55 @@ export const SocialRatingsPanel = ({ variant = "full" }: SocialRatingsPanelProps
         const metadata = integration?.metadata as Record<string, any> | null;
         
         if (integration?.status === "connected") {
+          // Google Reviews
+          if (platform.type === "google_reviews") {
+            return {
+              ...platform,
+              connected: true,
+              rating: currentBusiness.avg_rating || metadata?.average_rating || 4.2,
+              maxRating: 5,
+              change: 0.1,
+              changeLabel: "vs mes anterior",
+              metrics: [
+                { label: "Reseñas", value: metadata?.review_count?.toString() || "0" },
+                { label: "Respondidas", value: metadata?.response_rate || "0%" },
+              ],
+              lastUpdated: integration.last_sync_at || "Pendiente",
+            };
+          }
+          
+          // Instagram
+          if (platform.type === "instagram") {
+            return {
+              ...platform,
+              connected: true,
+              metrics: [
+                { label: "Seguidores", value: formatNumber(metadata?.followers_count) || "0" },
+                { label: "Engagement", value: metadata?.engagement_rate || "0%" },
+              ],
+              lastUpdated: integration.last_sync_at || "Pendiente",
+            };
+          }
+          
+          // Facebook
+          if (platform.type === "facebook") {
+            return {
+              ...platform,
+              connected: true,
+              rating: metadata?.overall_star_rating || undefined,
+              maxRating: metadata?.overall_star_rating ? 5 : undefined,
+              metrics: [
+                { label: "Seguidores", value: formatNumber(metadata?.followers_count || metadata?.fan_count) || "0" },
+                { label: "Rating", value: metadata?.overall_star_rating ? `${metadata.overall_star_rating}/5` : "N/A" },
+              ],
+              lastUpdated: integration.last_sync_at || "Pendiente",
+            };
+          }
+          
           return {
             ...platform,
             connected: true,
-            rating: platform.type === "google_reviews" ? (currentBusiness.avg_rating || 4.2) : undefined,
-            maxRating: platform.type === "google_reviews" ? 5 : undefined,
-            change: 0.1,
-            changeLabel: "vs mes anterior",
-            metrics: platform.type === "google_reviews" 
-              ? [
-                  { label: "Reseñas", value: metadata?.review_count?.toString() || "48" },
-                  { label: "Respondidas", value: "92%" },
-                ]
-              : platform.type === "instagram"
-              ? [
-                  { label: "Seguidores", value: metadata?.followers || "2.4K" },
-                  { label: "Engagement", value: metadata?.engagement || "4.2%" },
-                ]
-              : [
-                  { label: "Likes", value: metadata?.likes || "1.2K" },
-                  { label: "Alcance", value: metadata?.reach || "5.8K" },
-                ],
-            lastUpdated: integration.last_sync_at || "Hace 2 horas",
+            lastUpdated: integration.last_sync_at || "Pendiente",
           };
         }
         return platform;
