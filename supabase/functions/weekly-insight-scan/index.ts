@@ -33,14 +33,19 @@ Deno.serve(async (req) => {
       try {
         console.log(`[weekly-insight-scan] Scanning for business: ${business.name}`);
 
-        // Get brain context for personalization
+        // Get brain context for personalization (with all available fields)
         const { data: brain } = await supabase
           .from("business_brains")
-          .select("primary_business_type, current_focus, factual_memory, dynamic_memory")
+          .select("primary_business_type, secondary_business_type, current_focus, focus_priority, factual_memory, dynamic_memory")
           .eq("business_id", business.id)
           .single();
 
-        // Call analyze-patterns with research mode
+        // =====================================================================
+        // 🧠 ULTRA-INTELLIGENT WEEKLY SCAN - PREMIUM AI PROCESSING
+        // =====================================================================
+        console.log(`[weekly-insight-scan] Invoking PREMIUM AI analysis for: ${business.name}`);
+        
+        // Call analyze-patterns with research mode and full brain context
         const analyzeUrl = `${supabaseUrl}/functions/v1/analyze-patterns`;
         const response = await fetch(analyzeUrl, {
           method: "POST",
@@ -51,14 +56,19 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             businessId: business.id,
             type: "research",
+            // Full brain context for ultra-personalization
             brainContext: brain
               ? {
                   primaryType: brain.primary_business_type,
+                  secondaryType: brain.secondary_business_type,
                   focus: brain.current_focus,
                   factualMemory: brain.factual_memory,
+                  dynamicMemory: brain.dynamic_memory,
+                  focusPriority: brain.focus_priority,
                 }
               : null,
             automated: true,
+            premiumMode: true, // Flag for premium AI processing
           }),
         });
 

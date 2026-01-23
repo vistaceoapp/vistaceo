@@ -535,7 +535,17 @@ Tu especialidad es detectar oportunidades CONCRETAS y ESPECÍFICAS basadas en da
 ❌ "Aumentar presencia en redes" (sin estrategia concreta)
 
 Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcionado.`;
-    // Call AI to detect patterns and generate insights
+    // =====================================================================
+    // 🧠 ULTRA-INTELLIGENT AI ENGINE - PREMIUM CONFIGURATION
+    // =====================================================================
+    // Using google/gemini-2.5-pro for maximum intelligence and personalization
+    // This is the top-tier model for complex reasoning, context understanding,
+    // and generating ultra-personalized business insights
+    // =====================================================================
+    
+    console.log("[analyze-patterns] Using PREMIUM AI model: google/gemini-2.5-pro");
+    console.log(`[analyze-patterns] Context size: ${analysisContextFinal.length} chars`);
+    
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -543,13 +553,17 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        // 🔥 PREMIUM MODEL: google/gemini-2.5-pro
+        // Top-tier for: complex reasoning, multimodal, big context, ultra-personalization
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: analysisContextFinal },
         ],
-        temperature: 0.3,
-        max_tokens: 4500, // Increased to allow for 5-8 complete learning items
+        // Lower temperature for more focused, precise outputs
+        temperature: 0.25,
+        // 8000 tokens allows for 8-10 complete, detailed learning items with rich content
+        max_tokens: 8000,
       }),
     });
 
@@ -574,13 +588,22 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
       throw new Error("No response from AI");
     }
 
-    // Parse AI response with robust handling for incomplete JSON
+    // =====================================================================
+    // 🧠 ULTRA-ROBUST JSON PARSING WITH MULTIPLE FALLBACKS
+    // =====================================================================
     let analysis;
     try {
-      // First try to extract complete JSON
-      let jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+      // Clean the response - remove markdown code blocks if present
+      let cleanedMessage = aiMessage
+        .replace(/```json\s*/gi, '')
+        .replace(/```\s*/gi, '')
+        .trim();
+      
+      // First try to extract complete JSON object
+      let jsonMatch = cleanedMessage.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysis = JSON.parse(jsonMatch[0]);
+        console.log("[analyze-patterns] Successfully parsed complete JSON response");
       } else {
         throw new Error("No JSON found in response");
       }
