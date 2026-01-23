@@ -16,7 +16,7 @@ const AnalyticsPage = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
-            <BarChart3 className="w-6 h-6 text-primary-foreground" />
+            <Star className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -26,14 +26,18 @@ const AnalyticsPage = () => {
                 Pro
               </Badge>
             </div>
-            <p className="text-muted-foreground">Diagnóstico, evolución, métricas y reputación</p>
+            <p className="text-muted-foreground">Reputación, diagnóstico, evolución y métricas</p>
           </div>
         </div>
       </div>
 
-      {/* Tabs for Diagnóstico, Evolución, Métricas, Reputación */}
-      <Tabs defaultValue="diagnostico" className="w-full">
+      {/* Tabs - Reputación first */}
+      <Tabs defaultValue="reputacion" className="w-full">
         <TabsList className={`grid w-full ${isMobile ? 'grid-cols-4' : 'grid-cols-4'} mb-6`}>
+          <TabsTrigger value="reputacion" className={isMobile ? "text-xs px-1" : ""}>
+            <Star className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
+            {isMobile ? "Reputación" : "Reputación"}
+          </TabsTrigger>
           <TabsTrigger value="diagnostico" className={isMobile ? "text-xs px-1" : ""}>
             <Stethoscope className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
             {isMobile ? "Diagnóstico" : "Diagnóstico"}
@@ -46,11 +50,12 @@ const AnalyticsPage = () => {
             <BarChart3 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
             {isMobile ? "Métricas" : "Métricas"}
           </TabsTrigger>
-          <TabsTrigger value="reputacion" className={isMobile ? "text-xs px-1" : ""}>
-            <Star className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
-            {isMobile ? "Reputación" : "Reputación"}
-          </TabsTrigger>
         </TabsList>
+
+        {/* Tab: Reputación - AI Analysis (NOW FIRST) */}
+        <TabsContent value="reputacion" className="space-y-6">
+          <ReputationAnalyticsPanel />
+        </TabsContent>
 
         {/* Tab: Diagnóstico - Full Business Health Analysis */}
         <TabsContent value="diagnostico" className="space-y-6">
@@ -65,11 +70,6 @@ const AnalyticsPage = () => {
         {/* Tab: Métricas */}
         <TabsContent value="metricas" className="space-y-6">
           <AnalyticsDashboard variant={isMobile ? "compact" : "full"} />
-        </TabsContent>
-
-        {/* Tab: Reputación - AI Analysis */}
-        <TabsContent value="reputacion" className="space-y-6">
-          <ReputationAnalyticsPanel />
         </TabsContent>
       </Tabs>
     </div>

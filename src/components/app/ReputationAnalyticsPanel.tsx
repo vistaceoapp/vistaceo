@@ -15,7 +15,11 @@ import {
   Target,
   BarChart3,
   PieChart,
-  Brain
+  Brain,
+  Globe,
+  Eye,
+  Users,
+  Play
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +28,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
+import { PlatformReputationCard } from "./PlatformReputationCard";
 
 interface ReputationAnalysis {
   overall_score: number;
@@ -47,6 +53,13 @@ interface ReputationAnalysis {
   last_analysis: string;
 }
 
+interface PlatformIntegration {
+  platform: "google" | "youtube" | "instagram" | "facebook" | "tiktok";
+  connected: boolean;
+  metadata?: Record<string, any>;
+  lastSync?: string;
+}
+
 interface ReputationAnalyticsPanelProps {
   className?: string;
 }
@@ -54,8 +67,53 @@ interface ReputationAnalyticsPanelProps {
 export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanelProps) => {
   const { currentBusiness } = useBusiness();
   const [analysis, setAnalysis] = useState<ReputationAnalysis | null>(null);
+  const [platforms, setPlatforms] = useState<PlatformIntegration[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
+
+  const fetchPlatforms = useCallback(async () => {
+    if (!currentBusiness) return;
+    
+    try {
+      const { data: integrations } = await supabase
+        .from("business_integrations")
+        .select("integration_type, status, metadata, last_sync_at")
+        .eq("business_id", currentBusiness.id);
+      
+      const platformMap: Record<string, PlatformIntegration> = {
+        google: { platform: "google", connected: false },
+        youtube: { platform: "youtube", connected: false },
+        instagram: { platform: "instagram", connected: false },
+        facebook: { platform: "facebook", connected: false },
+        tiktok: { platform: "tiktok", connected: false },
+      };
+
+      if (integrations) {
+        for (const integration of integrations) {
+          if (integration.integration_type === "google_business") {
+            platformMap.google = {
+              platform: "google",
+              connected: integration.status === "active",
+              metadata: integration.metadata as Record<string, any>,
+              lastSync: integration.last_sync_at,
+            };
+          } else if (integration.integration_type === "youtube") {
+            platformMap.youtube = {
+              platform: "youtube",
+              connected: integration.status === "active",
+              metadata: integration.metadata as Record<string, any>,
+              lastSync: integration.last_sync_at,
+            };
+          }
+          // Add other platforms as they get implemented
+        }
+      }
+      
+      setPlatforms(Object.values(platformMap));
+    } catch (error) {
+      console.error("Error fetching platforms:", error);
+    }
+  }, [currentBusiness]);
 
   const fetchAnalysis = useCallback(async () => {
     if (!currentBusiness) {
@@ -86,7 +144,8 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
 
   useEffect(() => {
     fetchAnalysis();
-  }, [fetchAnalysis]);
+    fetchPlatforms();
+  }, [fetchAnalysis, fetchPlatforms]);
 
   const runAnalysis = async () => {
     if (!currentBusiness || analyzing) return;
@@ -171,38 +230,102 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
     );
   }
 
-  // No analysis yet - CTA to run first analysis
+  // Build platform data for cards
+  const getPlatformData = (platform: PlatformIntegration) => {
+    const data: any = {
+      platform: platform.platform,
+      connected: platform.connected,
+      metrics: {
+        mainScore: 0,
+        mainLabel: "",
+        secondary: [],
+        trend: "stable" as const,
+        lastSync: platform.lastSync ? formatTimeAgo(platform.lastSync) : undefined,
+      }
+    };
+
+    if (platform.platform === "google" && platform.metadata) {
+      data.metrics.mainScore = currentBusiness?.avg_rating || platform.metadata.rating || 0;
+      data.metrics.secondary = [
+        { label: "Reseñas", value: platform.metadata.review_count || 0, icon: <MessageSquare className="w-3 h-3" /> },
+        { label: "Respondidas", value: `${analysis?.response_rate || 0}%`, icon: <ThumbsUp className="w-3 h-3" /> },
+      ];
+    } else if (platform.platform === "youtube" && platform.metadata) {
+      data.metrics.mainScore = platform.metadata.subscriber_count || 0;
+      data.metrics.secondary = [
+        { label: "Views", value: formatNumber(platform.metadata.view_count || 0), icon: <Eye className="w-3 h-3" /> },
+        { label: "Videos", value: platform.metadata.video_count || 0, icon: <Play className="w-3 h-3" /> },
+        { label: "Engagement", value: `${platform.metadata.engagement_rate || 0}%`, icon: <TrendingUp className="w-3 h-3" /> },
+      ];
+    }
+    
+    return data;
+  };
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
+
+  // No analysis yet - show platforms + CTA
   if (!analysis) {
     return (
-      <Card className={cn("border-dashed border-2", className)}>
-        <CardContent className="p-8 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-4">
-            <Brain className="w-8 h-8 text-primary" />
-          </div>
-          <h3 className="text-lg font-bold text-foreground mb-2">Análisis de Reputación IA</h3>
-          <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-            Analiza todas tus reseñas con inteligencia artificial para descubrir patrones, 
-            palabras clave y oportunidades de mejora.
-          </p>
-          <Button 
-            onClick={runAnalysis} 
-            disabled={analyzing}
-            className="gradient-primary"
-          >
-            {analyzing ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Analizando...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 mr-2" />
-                Ejecutar primer análisis
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+      <div className={cn("space-y-6", className)}>
+        {/* Platforms Overview */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Globe className="w-4 h-4 text-primary" />
+              Plataformas conectadas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {platforms.map((platform) => (
+                <PlatformReputationCard
+                  key={platform.platform}
+                  data={getPlatformData(platform)}
+                  onConnect={() => {
+                    toast({ title: "Conectar plataforma", description: "Ve a Más > Integraciones para conectar esta plataforma" });
+                  }}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* CTA to run analysis */}
+        <Card className="border-dashed border-2">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-4">
+              <Brain className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-bold text-foreground mb-2">Análisis de Reputación IA</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+              Analiza todas tus reseñas con inteligencia artificial para descubrir patrones, 
+              palabras clave y oportunidades de mejora.
+            </p>
+            <Button 
+              onClick={runAnalysis} 
+              disabled={analyzing}
+              className="gradient-primary"
+            >
+              {analyzing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Analizando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Ejecutar primer análisis
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -217,8 +340,20 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
   const totalStars = Object.values(analysis.star_distribution).reduce((a, b) => a + b, 0) || 1;
 
   return (
-    <div className={cn("space-y-6", className)}>
-      {/* Header with Score */}
+    <Tabs defaultValue="general" className={cn("space-y-6", className)}>
+      <TabsList className="grid w-full grid-cols-2 md:w-auto md:inline-flex">
+        <TabsTrigger value="general" className="gap-2">
+          <Globe className="w-4 h-4" />
+          Vista General
+        </TabsTrigger>
+        <TabsTrigger value="plataformas" className="gap-2">
+          <BarChart3 className="w-4 h-4" />
+          Por Plataforma
+        </TabsTrigger>
+      </TabsList>
+
+      {/* Tab: Vista General */}
+      <TabsContent value="general" className="space-y-6">
       <Card className="overflow-hidden">
         <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 p-6">
           <div className="flex items-start justify-between">
@@ -367,7 +502,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                         star === "FIVE" && "bg-success",
                         star === "FOUR" && "bg-success/70",
                         star === "THREE" && "bg-warning",
-                        star === "TWO" && "bg-orange-500",
+                        star === "TWO" && "bg-warning/70",
                         star === "ONE" && "bg-destructive",
                       )}
                       style={{ width: `${percentage}%` }}
@@ -548,7 +683,36 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
           </CardContent>
         </Card>
       )}
-    </div>
+      </TabsContent>
+
+      {/* Tab: Por Plataforma */}
+      <TabsContent value="plataformas" className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {platforms.map((platform) => (
+            <PlatformReputationCard
+              key={platform.platform}
+              data={getPlatformData(platform)}
+              onConnect={() => {
+                toast({ title: "Conectar plataforma", description: "Ve a Más > Integraciones para conectar esta plataforma" });
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Platform-specific analysis cards */}
+        {platforms.filter(p => p.connected).length === 0 && (
+          <Card className="border-dashed">
+            <CardContent className="p-6 text-center">
+              <Globe className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <h3 className="font-semibold text-foreground mb-1">Sin plataformas conectadas</h3>
+              <p className="text-sm text-muted-foreground">
+                Conecta tus plataformas para ver análisis detallado por cada una
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </TabsContent>
+    </Tabs>
   );
 };
 
