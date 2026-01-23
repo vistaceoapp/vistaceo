@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { 
   Dialog, 
   DialogContent, 
@@ -17,13 +18,16 @@ import {
   Copy, 
   Check,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  AlertTriangle,
+  ArrowLeft
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { MetaRequirementsGuide } from "./MetaRequirementsGuide";
 import type { PlatformType } from "./PlatformReputationCard";
 
 interface PlatformConnectModalProps {
@@ -38,6 +42,7 @@ const platformInfo: Record<PlatformType, {
   description: string;
   oauthSupported: boolean;
   comingSoon?: boolean;
+  requiresMetaGuide?: boolean;
 }> = {
   google: {
     name: "Google Reviews",
@@ -48,11 +53,13 @@ const platformInfo: Record<PlatformType, {
     name: "Instagram Business",
     description: "Conecta tu cuenta de Instagram Business para analizar engagement y menciones.",
     oauthSupported: true,
+    requiresMetaGuide: true,
   },
   facebook: {
     name: "Facebook Page",
     description: "Conecta tu página de Facebook para monitorear reseñas y mensajes.",
     oauthSupported: true,
+    requiresMetaGuide: true,
   },
   web: {
     name: "Tu Web / Ecommerce",
@@ -80,11 +87,36 @@ export const PlatformConnectModal = ({
 }: PlatformConnectModalProps) => {
   const { currentBusiness } = useBusiness();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [trackingScript, setTrackingScript] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [setupError, setSetupError] = useState<string | null>(null);
+  const [showMetaGuide, setShowMetaGuide] = useState(true);
+  const [noPagesError, setNoPagesError] = useState(false);
+
+  // Check for OAuth error in URL params
+  useEffect(() => {
+    const oauthStatus = searchParams.get("oauth");
+    const reason = searchParams.get("reason");
+    const provider = searchParams.get("provider");
+
+    if (oauthStatus === "error" && provider === "meta" && reason === "no_pages") {
+      setNoPagesError(true);
+      setShowMetaGuide(true);
+    }
+  }, [searchParams]);
+
+  // Reset state when modal opens/closes or platform changes
+  useEffect(() => {
+    if (open && platform) {
+      const info = platformInfo[platform];
+      setShowMetaGuide(info?.requiresMetaGuide ?? false);
+      setSetupError(null);
+      setNoPagesError(false);
+    }
+  }, [open, platform]);
 
   if (!platform) return null;
 
@@ -123,11 +155,11 @@ export const PlatformConnectModal = ({
       }
 
       if (data?.url) {
-        // Facebook/Instagram bloquean ser cargados dentro de iframes (X-Frame-Options),
-        // así que abrimos el OAuth en una pestaña nueva.
+        // Facebook/Instagram block being loaded inside iframes (X-Frame-Options),
+        // so we open OAuth in a new tab.
         const opened = window.open(data.url, "_blank", "noopener,noreferrer");
         if (!opened) {
-          // Fallback si el navegador bloquea popups
+          // Fallback if browser blocks popups
           window.location.assign(data.url);
         } else {
           onOpenChange(false);
@@ -193,9 +225,96 @@ export const PlatformConnectModal = ({
     }
   };
 
+  const renderMetaContent = () => {
+    // Show error state if no pages were found
+    if (noPagesError) {
+      return (
+        <div className="space-y-4">
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4">
+            <div className="flex gap-3 items-start">
+              <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-destructive text-sm">No encontramos Páginas de Facebook</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tu cuenta de Facebook no tiene ninguna Página vinculada. Necesitás una Página de Facebook 
+                  para conectar {platform === "instagram" ? "Instagram" : "Facebook"}.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <MetaRequirementsGuide 
+            variant={platform === "facebook" ? "facebook" : platform === "instagram" ? "instagram" : "both"}
+            onReady={() => {
+              setNoPagesError(false);
+              handleOAuthConnect();
+            }}
+          />
+        </div>
+      );
+    }
+
+    // Show requirements guide before OAuth
+    if (showMetaGuide) {
+      return (
+        <MetaRequirementsGuide 
+          variant={platform === "facebook" ? "facebook" : platform === "instagram" ? "instagram" : "both"}
+          onReady={() => {
+            setShowMetaGuide(false);
+          }}
+        />
+      );
+    }
+
+    // Show OAuth connect button
+    return (
+      <div className="space-y-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs text-muted-foreground"
+          onClick={() => setShowMetaGuide(true)}
+        >
+          <ArrowLeft className="w-3 h-3 mr-1" />
+          Ver requisitos
+        </Button>
+
+        <div className="bg-success/10 border border-success/30 rounded-lg p-4 text-center">
+          <Check className="w-6 h-6 text-success mx-auto mb-2" />
+          <p className="font-medium text-success text-sm">¡Requisitos verificados!</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Ahora conectá tu cuenta de {info.name}
+          </p>
+        </div>
+
+        <Button 
+          className="w-full" 
+          onClick={handleOAuthConnect}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Conectando...
+            </>
+          ) : (
+            <>
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Conectar con {info.name}
+            </>
+          )}
+        </Button>
+
+        <p className="text-[10px] text-center text-muted-foreground">
+          Solo accedemos a métricas públicas. Nunca publicamos en tu nombre.
+        </p>
+      </div>
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
@@ -301,6 +420,8 @@ export const PlatformConnectModal = ({
                 </div>
               )}
             </>
+          ) : info.requiresMetaGuide ? (
+            renderMetaContent()
           ) : (
             <>
               {setupError ? (
