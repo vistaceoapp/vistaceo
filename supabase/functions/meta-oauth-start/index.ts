@@ -44,16 +44,12 @@ serve(async (req) => {
     // Create state with business and user info
     const state = btoa(JSON.stringify({ businessId, userId, platform: platform || "instagram" }));
 
-    // Meta Business API scopes - using permissions available in the Meta app
+    // Solo scopes básicos que no requieren aprobación de Meta
     const scopes = [
-      "email",
       "public_profile",
       "pages_show_list",
       "pages_read_engagement",
-      "instagram_basic",
-      "instagram_business_basic",
-      "instagram_business_manage_insights",
-      "business_management"
+      "instagram_basic"
     ];
 
     const authUrl = new URL("https://www.facebook.com/v18.0/dialog/oauth");
