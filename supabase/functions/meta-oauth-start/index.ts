@@ -44,25 +44,14 @@ serve(async (req) => {
     // Create state with business and user info
     const state = btoa(JSON.stringify({ businessId, userId, platform: platform || "instagram" }));
 
-    // Scopes para máxima extracción de datos de Instagram y Facebook
-    // Ordenados por prioridad - los más básicos primero
+    // Solo scopes básicos que están habilitados en la app de Meta
+    // Los avanzados (instagram_business_*, pages_read_user_content) requieren
+    // configuración adicional en Meta Developer Console
     const scopes = [
-      // Básicos (siempre disponibles)
       "public_profile",
-      "pages_show_list",
+      "pages_show_list", 
       "pages_read_engagement",
-      
-      // Instagram básico
       "instagram_basic",
-      
-      // Instagram Business (para insights y métricas)
-      "instagram_business_basic",
-      "instagram_business_manage_insights",
-      "instagram_business_manage_comments",
-      
-      // Facebook Pages avanzado
-      "pages_read_user_content",
-      "business_management",
     ];
 
     const authUrl = new URL("https://www.facebook.com/v18.0/dialog/oauth");
