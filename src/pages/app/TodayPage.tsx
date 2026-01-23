@@ -15,6 +15,7 @@ import { FocusWidget } from "@/components/app/FocusWidget";
 import { ReputationWidget } from "@/components/app/ReputationWidget";
 import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
 import { RadarWidget } from "@/components/app/RadarWidget";
+import { PulseCheckinCard } from "@/components/app/PulseCheckinCard";
 import { MissionsWidget } from "@/components/app/MissionsWidget";
 import { WeeklyMetricsWidget } from "@/components/app/WeeklyMetricsWidget";
 import { DashboardEditor } from "@/components/app/DashboardEditor";
@@ -98,6 +99,8 @@ const TodayPage = () => {
             isSyncing={isSyncing}
           />
         );
+      case "pulse":
+        return <PulseCheckinCard key="pulse" variant={isMobile ? "compact" : "full"} />;
       case "missions":
         return <MissionsWidget key="missions" />;
       case "brain":
@@ -253,15 +256,16 @@ const TodayPage = () => {
       {/* Render all visible widgets in order */}
       {[...mainWidgets, ...sidebarWidgets]
         .sort((a, b) => {
-          // Custom mobile order: health first, then brain, then metrics, missions
+          // Custom mobile order: health first, then pulse, then brain, then metrics, missions
           const mobileOrder: Record<string, number> = {
             health: 0,
-            brain: 1,
-            weeklyMetrics: 2,
-            missions: 3,
-            focus: 4,
-            reputation: 5,
-            radar: 6,
+            pulse: 1,
+            brain: 2,
+            weeklyMetrics: 3,
+            missions: 4,
+            focus: 5,
+            reputation: 6,
+            radar: 7,
           };
           return (mobileOrder[a.id] ?? 99) - (mobileOrder[b.id] ?? 99);
         })
