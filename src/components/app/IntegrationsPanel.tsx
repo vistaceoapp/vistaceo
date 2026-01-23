@@ -15,7 +15,8 @@ import {
   Zap,
   ExternalLink,
   RefreshCw,
-  Store
+  Store,
+  Youtube
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +53,17 @@ const AVAILABLE_INTEGRATIONS: Integration[] = [
     status: "pending",
     color: "text-warning",
     oauthEnabled: true,
+  },
+  {
+    id: "youtube",
+    type: "youtube",
+    name: "YouTube",
+    description: "Suscriptores, vistas y engagement de tu canal",
+    icon: Youtube,
+    category: "social",
+    status: "pending",
+    color: "text-destructive",
+    oauthEnabled: true, // Uses same Google OAuth
   },
   {
     id: "instagram",
@@ -116,7 +128,7 @@ const AVAILABLE_INTEGRATIONS: Integration[] = [
     icon: Truck,
     category: "delivery",
     status: "pending",
-    color: "text-red-500",
+    color: "text-destructive",
     comingSoon: true,
   },
   {
@@ -239,8 +251,31 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
     setConnecting(integration.type);
 
     try {
-      // For Google Reviews, use real OAuth
-      if (integration.type === "google_reviews" && integration.oauthEnabled) {
+      // For Google Reviews or YouTube, use Google OAuth
+      if ((integration.type === "google_reviews" || integration.type === "youtube") && integration.oauthEnabled) {
+        // YouTube uses the same Google OAuth - check if Google is already connected
+        if (integration.type === "youtube") {
+          const googleIntegration = integrations.find(i => i.type === "google_reviews" && i.status === "connected");
+          if (googleIntegration) {
+            // Google already connected, just sync YouTube data
+            const { data, error } = await supabase.functions.invoke("google-sync-youtube", {
+              body: { businessId: currentBusiness.id }
+            });
+            
+            if (error) throw error;
+            
+            toast({
+              title: "✅ YouTube conectado",
+              description: data?.channel ? `Canal "${data.channel}" sincronizado.` : "Datos de YouTube sincronizados.",
+            });
+            
+            fetchIntegrations();
+            setConnecting(null);
+            return;
+          }
+        }
+        
+        // Start Google OAuth flow
         const { data, error } = await supabase.functions.invoke("google-oauth-start", {
           body: { 
             businessId: currentBusiness.id,

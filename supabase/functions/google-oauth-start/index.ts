@@ -34,11 +34,12 @@ serve(async (req) => {
     // Create state with business and user info
     const state = btoa(JSON.stringify({ businessId, userId }));
 
-    // Google Business Profile API scopes
+    // Google Business Profile + YouTube API scopes
     const scopes = [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/business.manage", // For Google Business Profile
+      "https://www.googleapis.com/auth/youtube.readonly", // For YouTube Analytics
     ];
 
     const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");

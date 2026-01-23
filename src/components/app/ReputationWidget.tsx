@@ -8,7 +8,10 @@ import {
   ChevronRight,
   Lock,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  Youtube,
+  Users,
+  Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +32,7 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
   const navigate = useNavigate();
   const [googleConnected, setGoogleConnected] = useState(false);
   const [instagramConnected, setInstagramConnected] = useState(false);
+  const [youtubeConnected, setYoutubeConnected] = useState(false);
   const [googleData, setGoogleData] = useState<{
     rating: number;
     reviewCount: number;
@@ -37,6 +41,12 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
   const [instagramData, setInstagramData] = useState<{
     followers: string;
     engagement: string;
+  } | null>(null);
+  const [youtubeData, setYoutubeData] = useState<{
+    subscribers: string;
+    views: string;
+    engagement: string;
+    channelTitle: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -60,6 +70,7 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
 
       const googleIntegration = data?.find(d => d.integration_type === "google_reviews");
       const instagramIntegration = data?.find(d => d.integration_type === "instagram");
+      const youtubeIntegration = data?.find(d => d.integration_type === "youtube");
 
       if (googleIntegration?.status === "connected") {
         setGoogleConnected(true);
@@ -79,6 +90,17 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
           engagement: metadata?.engagement || "4.2%",
         });
       }
+
+      if (youtubeIntegration?.status === "connected") {
+        setYoutubeConnected(true);
+        const metadata = youtubeIntegration.metadata as Record<string, any> | null;
+        setYoutubeData({
+          subscribers: formatNumber(metadata?.subscriber_count || 0),
+          views: formatNumber(metadata?.view_count || 0),
+          engagement: metadata?.engagement_rate || "0.00",
+          channelTitle: metadata?.channel_title || "Tu canal",
+        });
+      }
     } catch (error) {
       console.error("Error fetching integrations:", error);
     } finally {
@@ -86,11 +108,19 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
     }
   };
 
-  const isConnected = googleConnected || instagramConnected;
+  const isConnected = googleConnected || instagramConnected || youtubeConnected;
 
   // Demo data for free users
   const demoGoogleData = { rating: 4.3, reviewCount: 127, change: 0.2 };
   const demoInstagramData = { followers: "3.2K", engagement: "5.1%" };
+  const demoYoutubeData = { subscribers: "1.2K", views: "45K", engagement: "4.8%" };
+
+  // Helper to format numbers
+  function formatNumber(num: number): string {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  }
 
   if (loading) {
     return (
@@ -205,6 +235,38 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
               <p className="text-[10px] text-muted-foreground mt-1">
                 {googleData?.reviewCount || demoGoogleData.reviewCount} reseñas
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* YouTube */}
+        {(youtubeConnected || isPro) && (
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-destructive/5 border border-destructive/10">
+            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+              <Youtube className="w-5 h-5 text-destructive" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-muted-foreground mb-1">YouTube</p>
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-1">
+                  <Users className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-sm font-bold text-foreground">
+                    {youtubeData?.subscribers || demoYoutubeData.subscribers}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Eye className="w-3 h-3 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">
+                    {youtubeData?.views || demoYoutubeData.views}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-medium text-foreground">
+                    {youtubeData?.engagement || demoYoutubeData.engagement}%
+                  </span>
+                  <span className="text-[10px] text-muted-foreground ml-1">eng</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
