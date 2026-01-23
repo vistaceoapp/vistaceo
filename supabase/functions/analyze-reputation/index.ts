@@ -268,16 +268,13 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
       }
     }
 
-    // Fallback insights if AI analysis failed or returned empty arrays
-    const fallback = buildFallbackInsights(reviewTexts);
-
-    // Calculate overall score (0-100)
+    // Calculate overall score (0-100) - NO FALLBACK, only real AI data
     const baseScore = ((avgSentiment + 1) / 2) * 100; // Normalize from -1,1 to 0-100
     const responseBonus = responseRate > 80 ? 5 : responseRate > 50 ? 2 : 0;
     const volumeBonus = reviewTexts.length > 50 ? 5 : reviewTexts.length > 20 ? 2 : 0;
     const overallScore = reviewTexts.length === 0 ? 50 : Math.min(100, Math.round(baseScore + responseBonus + volumeBonus));
 
-    // Build final analysis
+    // Build final analysis - ONLY real data, no invented fallbacks
     const analysis: ReputationAnalysis = {
       overall_score: overallScore,
       sentiment_breakdown: {
@@ -286,28 +283,16 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
         negative: Math.round((negativeCount / totalReviews) * 100),
       },
       star_distribution: starDistribution,
-      top_positive_words: (aiAnalysis.top_positive_words && aiAnalysis.top_positive_words.length > 0)
-        ? aiAnalysis.top_positive_words
-        : fallback.top_positive_words,
-      top_negative_words: (aiAnalysis.top_negative_words && aiAnalysis.top_negative_words.length > 0)
-        ? aiAnalysis.top_negative_words
-        : fallback.top_negative_words,
-      key_themes: (aiAnalysis.key_themes && aiAnalysis.key_themes.length > 0)
-        ? aiAnalysis.key_themes
-        : fallback.key_themes,
-      urgent_issues: (aiAnalysis.urgent_issues && aiAnalysis.urgent_issues.length > 0)
-        ? aiAnalysis.urgent_issues
-        : fallback.urgent_issues,
-      highlights: (aiAnalysis.highlights && aiAnalysis.highlights.length > 0)
-        ? aiAnalysis.highlights
-        : fallback.highlights,
+      top_positive_words: aiAnalysis.top_positive_words || [],
+      top_negative_words: aiAnalysis.top_negative_words || [],
+      key_themes: aiAnalysis.key_themes || [],
+      urgent_issues: aiAnalysis.urgent_issues || [],
+      highlights: aiAnalysis.highlights || [],
       response_rate: Math.round(responseRate),
       avg_response_time_hours: null,
       trend: aiAnalysis.trend || "stable",
-      ai_summary: aiAnalysis.ai_summary || `Tu negocio tiene un score de reputación de ${overallScore}/100 basado en ${reviewTexts.length} reseñas analizadas.`,
-      recommendations: (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0)
-        ? aiAnalysis.recommendations
-        : fallback.recommendations,
+      ai_summary: aiAnalysis.ai_summary || `Análisis basado en ${reviewTexts.length} reseñas reales. Ejecuta el análisis con IA para obtener insights detallados.`,
+      recommendations: aiAnalysis.recommendations || [],
       analyzed_reviews_count: reviewTexts.length,
       last_analysis: new Date().toISOString(),
     };
@@ -366,93 +351,3 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
     );
   }
 });
-
-function buildFallbackInsights(reviewTexts: Array<{ rating: string; comment: string }>): Pick<ReputationAnalysis,
-  | "top_positive_words"
-  | "top_negative_words"
-  | "key_themes"
-  | "urgent_issues"
-  | "highlights"
-  | "recommendations"
-> {
-  const stop = new Set([
-    "para","pero","porque","como","cuando","donde","esto","esta","este","estos","estas",
-    "muy","mas","menos","todo","toda","todos","todas","bien","mal","hola","gracias",
-    "con","sin","por","del","las","los","una","uno","unos","unas","que","de","la","el","y","o","en","a","al","se","su","sus","mi","mis","tu","tus","me","te","ya","si","no","es","son","fue","ser","hay","nos","les","lo"
-  ]);
-
-  const normalize = (s: string) => s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  const tokenize = (text: string) => normalize(text)
-    .split(" ")
-    .filter(w => w.length >= 4 && !stop.has(w));
-
-  const posCounts = new Map<string, number>();
-  const negCounts = new Map<string, number>();
-  const allCounts = new Map<string, { total: number; pos: number; neg: number }>();
-
-  for (const r of reviewTexts) {
-    const words = tokenize(r.comment || "");
-    if (words.length === 0) continue;
-
-    const isPos = r.rating === "FIVE" || r.rating === "FOUR";
-    const isNeg = r.rating === "ONE" || r.rating === "TWO";
-
-    for (const w of words) {
-      if (isPos) posCounts.set(w, (posCounts.get(w) || 0) + 1);
-      if (isNeg) negCounts.set(w, (negCounts.get(w) || 0) + 1);
-
-      const prev = allCounts.get(w) || { total: 0, pos: 0, neg: 0 };
-      allCounts.set(w, {
-        total: prev.total + 1,
-        pos: prev.pos + (isPos ? 1 : 0),
-        neg: prev.neg + (isNeg ? 1 : 0),
-      });
-    }
-  }
-
-  const topFrom = (m: Map<string, number>, sentiment: number) =>
-    [...m.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([word, count]) => ({ word, count, sentiment }));
-
-  const top_positive_words = topFrom(posCounts, 0.7);
-  const top_negative_words = topFrom(negCounts, -0.7);
-
-  const key_themes = [...allCounts.entries()]
-    .sort((a, b) => b[1].total - a[1].total)
-    .slice(0, 8)
-    .map(([theme, stats]) => {
-      const sentiment: "positive" | "negative" | "neutral" =
-        stats.pos > stats.neg ? "positive" : stats.neg > stats.pos ? "negative" : "neutral";
-      return { theme, sentiment, frequency: stats.total };
-    });
-
-  const urgent_issues = top_negative_words.slice(0, 3).map(w => `Revisar: "${w.word}" aparece en reseñas negativas`);
-  const highlights = top_positive_words.slice(0, 3).map(w => `Fortaleza: "${w.word}" se repite en reseñas positivas`);
-
-  const recommendations: string[] = [];
-  if (top_negative_words.length > 0) {
-    recommendations.push(`Responder y resolver menciones sobre: ${top_negative_words.slice(0, 3).map(w => w.word).join(", ")}.`);
-  }
-  if (top_positive_words.length > 0) {
-    recommendations.push(`Potenciar en marketing los puntos más mencionados: ${top_positive_words.slice(0, 3).map(w => w.word).join(", ")}.`);
-  }
-  recommendations.push("Pedir a clientes satisfechos que dejen reseña (objetivo: +10 reseñas/mes)." );
-
-  return {
-    top_positive_words,
-    top_negative_words,
-    key_themes,
-    urgent_issues,
-    highlights,
-    recommendations,
-  };
-}
