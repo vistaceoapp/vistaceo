@@ -8,6 +8,7 @@ const corsHeaders = {
 
 // Blocked generic phrases that should never appear in opportunities
 const BLOCKED_PHRASES = [
+  // Generic business advice
   "mejorar ventas",
   "aumentar clientes", 
   "optimizar operaciones",
@@ -24,8 +25,36 @@ const BLOCKED_PHRASES = [
   "potenciar resultados",
   "aumentar ganancias",
   "mejorar eficiencia",
-  "sistema de check-in", // Too generic
-  "implementar check-ins", // Too generic
+  "optimizar marketing",
+  "mejorar marketing",
+  "aumentar marketing",
+  "estrategia de marketing",
+  "aumentar ejecución",
+  "optimizar proceso de",
+  "estrategia de retención",
+  "sistema de check-in",
+  "implementar check-ins",
+  // Ultra-generic titles that add no value
+  "ofertas para",
+  "promociones para",
+  "optimizar la",
+  "mejorar la",
+  "aumentar la",
+  "optimizar el",
+  "mejorar el",
+  "aumentar el",
+  // Vague operational terms
+  "capacitación del personal",
+  "retención de personal",
+  "comunicación del equipo",
+  "presencia en redes",
+  "visibilidad online",
+  "experiencia del cliente",
+  // Generic process terms without specifics
+  "proceso de marketing",
+  "proceso de capacitación",
+  "proceso de ventas",
+  "proceso de servicio",
 ];
 
 // Function to calculate semantic similarity between two strings
@@ -78,6 +107,42 @@ function containsBlockedPhrase(title: string, description: string): boolean {
       return true;
     }
   }
+  return false;
+}
+
+// Ultra-strict quality check for titles - must contain specific data
+function isTitleTooGeneric(title: string): boolean {
+  const titleLower = title.toLowerCase();
+  
+  // Must contain at least one of these specificity markers
+  const specificityMarkers = [
+    /\d+%/, // Percentage
+    /\d+\/\d+/, // Ratio like 3/5, 4/10
+    /\$[\d,.]+/, // Money amount
+    /\d+\s*(días?|semanas?|meses?|horas?)/, // Time duration
+    /\d+\s*(reseñas?|clientes?|pedidos?|ventas?|registros?)/, // Count of items
+    /(lunes|martes|miércoles|jueves|viernes|sábado|domingo)/, // Day of week
+    /(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)/, // Month
+    /(mediodía|almuerzo|cena|desayuno|noche)/, // Time of day/meal
+    /["']([^"']+)["']/, // Quoted specific item name
+  ];
+  
+  const hasSpecificData = specificityMarkers.some(marker => marker.test(titleLower));
+  
+  // Also check if title is suspiciously short or starts with generic verbs
+  const startsGeneric = /^(mejorar|optimizar|aumentar|implementar|crear|desarrollar|establecer|definir)\s/i.test(title);
+  const isTooShort = title.length < 25;
+  
+  if (startsGeneric && !hasSpecificData) {
+    console.log(`Title too generic (starts with generic verb, no data): "${title}"`);
+    return true;
+  }
+  
+  if (isTooShort && !hasSpecificData) {
+    console.log(`Title too generic (too short, no data): "${title}"`);
+    return true;
+  }
+  
   return false;
 }
 
@@ -765,31 +830,57 @@ Devuelve EXACTAMENTE:
 - Priorizar variedad: diferentes categorías (consumo, plataforma, competencia, producto).
 - Ordenar por relevancia para ${brain?.primary_business_type || "este negocio"}.
 `
-      : `Eres un consultor de negocios gastronómicos con 20 años de experiencia en LATAM.
-Tu especialidad es detectar oportunidades CONCRETAS y ESPECÍFICAS basadas en datos reales.
+      : `Eres el consultor de negocios más preciso del mundo. Trabajas SOLO con datos concretos.
+Tu cliente es: ${business.name}
 
-## REGLAS CRÍTICAS:
-1. NUNCA generes oportunidades genéricas como "mejorar ventas" o "aumentar clientes"
-2. Cada oportunidad DEBE mencionar datos específicos del negocio (números, nombres, fechas)
-3. NUNCA sugieras algo que ya existe en la lista de "Oportunidades/Misiones Existentes"
-4. Si no hay datos suficientes para una oportunidad concreta, NO la generes
-5. Máximo 3 oportunidades por análisis - prefiere calidad sobre cantidad
-6. Los títulos deben ser ÚNICOS y diferenciarse claramente entre sí
+## TU MISIÓN:
+Generar oportunidades ULTRA-ESPECÍFICAS que hablen DIRECTAMENTE a este negocio.
+Cada título debe parecer que fue escrito POR EL DUEÑO, no por una IA.
+
+## REGLAS DE ORO (OBLIGATORIAS):
+1. ❌ PROHIBIDO títulos genéricos tipo "Mejorar X" o "Optimizar Y" o "Estrategia de Z"
+2. ✅ OBLIGATORIO incluir DATOS CONCRETOS en CADA título (%, números, días, productos, nombres)
+3. ❌ PROHIBIDO sugerir lo que ya existe en "Oportunidades/Misiones Existentes"
+4. ✅ Los títulos deben ser ACCIONABLES y ÚNICOS
+5. 📊 Máximo 3 oportunidades de ALTA CALIDAD (calidad > cantidad)
+6. 🎯 Cada oportunidad debe resolver UN problema específico detectado en los datos
+
+## FORMATO DE TÍTULO OBLIGATORIO:
+El título DEBE seguir esta estructura: "[Acción específica]: [Dato concreto del negocio]"
+
+Ejemplos de títulos CORRECTOS (usar como modelo):
+✅ "Lanzar combo de mediodía: 85% de clientes viene entre 12-14hs"
+✅ "Responder las 4 reseñas negativas de esta semana"
+✅ "Promoción para miércoles: peor día con solo 2.1/5 de tráfico"
+✅ "Alianza con universidad cercana: 100% de clientes son estudiantes"
+✅ "Instagram Reels de preparación: producto estrella mencionado 8 veces"
+✅ "Mesas para grupos de 4+: 60% de las reservas son grupales"
+
+Ejemplos de títulos INCORRECTOS (NUNCA generar):
+❌ "Mejorar la experiencia del cliente" (genérico, sin datos)
+❌ "Optimizar operaciones" (vacío, sin contexto)
+❌ "Estrategia de marketing digital" (vago, tipo IA)
+❌ "Aumentar presencia en redes" (sin acción concreta)
+❌ "Programa de fidelización" (sin personalización)
+
+## DESCRIPCIÓN:
+Debe explicar el PORQUÉ usando datos del negocio. Estructura:
+"[Dato encontrado]. [Por qué es una oportunidad]. [Qué se logra]."
 
 ## FORMATO DE RESPUESTA (JSON válido):
 {
   "opportunities": [
     {
-      "title": "Título específico (mencionar dato concreto)",
-      "description": "Descripción con evidencia del negocio (mencionar dato, fecha, o patrón detectado)",
+      "title": "Título ultra-específico con dato concreto",
+      "description": "Explicación basada en evidencia real del negocio",
       "impact_score": 1-10,
       "effort_score": 1-10,
       "source": "categoría",
       "evidence": {
-        "trigger": "¿Qué dato disparó esta oportunidad?",
+        "trigger": "¿Qué dato específico disparó esto?",
         "signals": ["señal 1", "señal 2"],
         "dataPoints": número_de_datos_usados,
-        "basedOn": ["fuente 1", "fuente 2"]
+        "basedOn": ["fuente específica"]
       }
     }
   ],
@@ -797,19 +888,12 @@ Tu especialidad es detectar oportunidades CONCRETAS y ESPECÍFICAS basadas en da
   "lessons": []
 }
 
-## EJEMPLOS DE OPORTUNIDADES CORRECTAS:
-✅ "Potenciar el almuerzo: 73% del tráfico vs 27% cena" (menciona datos específicos)
-✅ "Responder a las 4 reseñas negativas sobre tiempos de espera" (número concreto)
-✅ "Promoción para miércoles: día más bajo con solo 2.1/5 de tráfico" (día + métrica)
-✅ "Destacar la Milanesa Napolitana ($8500) - mencionada en 3 reseñas positivas" (producto + precio + dato)
-
-## EJEMPLOS DE OPORTUNIDADES INCORRECTAS (BLOQUEADAS):
-❌ "Implementar sistema de check-ins" (demasiado genérico)
-❌ "Mejorar la comunicación con el equipo" (sin datos específicos)
-❌ "Optimizar operaciones" (vacío de contenido)
-❌ "Aumentar presencia en redes" (sin estrategia concreta)
-
-Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcionado.`;
+## VALIDACIÓN FINAL:
+Antes de devolver, pregúntate para cada oportunidad:
+- ¿El título incluye un número, %, día, producto o nombre específico? Si no → REESCRIBIR
+- ¿El dueño de ${business.name} entendería esto en 3 segundos? Si no → SIMPLIFICAR
+- ¿Se diferencia claramente de las otras oportunidades? Si no → ELIMINAR
+- ¿Está basada en datos reales del contexto? Si no → ELIMINAR`;
     // =====================================================================
     // 🧠 ULTRA-INTELLIGENT AI ENGINE - PREMIUM CONFIGURATION
     // =====================================================================
@@ -1110,6 +1194,12 @@ Solo genera oportunidades que PUEDAS respaldar con datos del contexto proporcion
           continue;
         }
         if (!opp.title || opp.title.length < 10 || !opp.description || opp.description.length < 20) {
+          opportunitiesFiltered++;
+          continue;
+        }
+        // Gate 4: Ultra-strict title specificity check
+        if (isTitleTooGeneric(opp.title)) {
+          console.log(`Filtered by title specificity: "${opp.title}"`);
           opportunitiesFiltered++;
           continue;
         }
