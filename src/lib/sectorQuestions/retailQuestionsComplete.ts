@@ -104,7 +104,7 @@ export const ALMACEN_COMPLETE: GastroQuestion[] = [
     { id: '81-150', label: { es: '81-150 clientes', 'pt-BR': '81-150 clientes' }, emoji: '🏢', impactScore: 18 },
     { id: '150+', label: { es: 'Más de 150', 'pt-BR': 'Mais de 150' }, emoji: '🔥', impactScore: 22 },
   ]},
-  { id: 'RT_ALM_016', category: 'finance', mode: 'both', dimension: 'profitability', weight: 9, title: { es: '¿Cuál es tu ticket promedio?', 'pt-BR': 'Qual é seu ticket médio?' }, type: 'money', businessTypes: ['almacen_tienda'] },
+  { id: 'RT_ALM_016', category: 'finance', mode: 'both', dimension: 'profitability', weight: 9, title: { es: '¿Cuál es tu ticket promedio?', 'pt-BR': 'Qual é seu ticket médio?' }, type: 'number', businessTypes: ['almacen_tienda'] },
   { id: 'RT_ALM_017', category: 'finance', mode: 'both', dimension: 'profitability', weight: 8, title: { es: '¿Vendés fiado/a cuenta?', 'pt-BR': 'Você vende fiado?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'never', label: { es: 'Nunca', 'pt-BR': 'Nunca' }, emoji: '❌', impactScore: 15 },
     { id: 'rarely', label: { es: 'Rara vez', 'pt-BR': 'Raramente' }, emoji: '🤏', impactScore: 12 },
@@ -224,72 +224,72 @@ export const ALMACEN_COMPLETE: GastroQuestion[] = [
     { id: '25+', label: { es: 'Más del 25%', 'pt-BR': 'Mais de 25%' }, emoji: '🚀', impactScore: 18 },
   ]},
   
-  // CLIENTES (6)
-  { id: 'RT_ALM_037', category: 'clients', mode: 'complete', dimension: 'reputation', weight: 8, title: { es: '¿Quiénes son tus clientes principales?', 'pt-BR': 'Quem são seus principais clientes?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  // CLIENTES (6) -> mapped to 'sales' category
+  { id: 'RT_ALM_037', category: 'sales', mode: 'complete', dimension: 'reputation', weight: 8, title: { es: '¿Quiénes son tus clientes principales?', 'pt-BR': 'Quem são seus principais clientes?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'neighbors', label: { es: 'Vecinos del barrio', 'pt-BR': 'Vizinhos do bairro' }, emoji: '🏘️', impactScore: 15 },
     { id: 'workers', label: { es: 'Trabajadores de paso', 'pt-BR': 'Trabalhadores de passagem' }, emoji: '👷', impactScore: 12 },
     { id: 'mixed', label: { es: 'Mixto', 'pt-BR': 'Misto' }, emoji: '🔄', impactScore: 12 },
     { id: 'businesses', label: { es: 'Otros comercios', 'pt-BR': 'Outros comércios' }, emoji: '🏢', impactScore: 15 },
   ]},
-  { id: 'RT_ALM_038', category: 'clients', mode: 'complete', dimension: 'reputation', weight: 7, title: { es: '¿Qué porcentaje son clientes frecuentes?', 'pt-BR': 'Que porcentagem são clientes frequentes?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_038', category: 'sales', mode: 'complete', dimension: 'reputation', weight: 7, title: { es: '¿Qué porcentaje son clientes frecuentes?', 'pt-BR': 'Que porcentagem são clientes frequentes?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: '80+', label: { es: 'Más del 80%', 'pt-BR': 'Mais de 80%' }, emoji: '🌟', impactScore: 20 },
     { id: '50-80', label: { es: '50-80%', 'pt-BR': '50-80%' }, emoji: '💚', impactScore: 15 },
     { id: '25-50', label: { es: '25-50%', 'pt-BR': '25-50%' }, emoji: '💛', impactScore: 10 },
     { id: '-25', label: { es: 'Menos del 25%', 'pt-BR': 'Menos de 25%' }, emoji: '🔴', impactScore: 5 },
   ]},
-  { id: 'RT_ALM_039', category: 'clients', mode: 'complete', dimension: 'reputation', weight: 7, title: { es: '¿Recibís quejas frecuentes?', 'pt-BR': 'Você recebe reclamações frequentes?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_039', category: 'sales', mode: 'complete', dimension: 'reputation', weight: 7, title: { es: '¿Recibís quejas frecuentes?', 'pt-BR': 'Você recebe reclamações frequentes?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'never', label: { es: 'Nunca/Casi nunca', 'pt-BR': 'Nunca/Quase nunca' }, emoji: '✅', impactScore: 18 },
     { id: 'sometimes', label: { es: 'A veces', 'pt-BR': 'Às vezes' }, emoji: '🔄', impactScore: 12 },
     { id: 'often', label: { es: 'Frecuentemente', 'pt-BR': 'Frequentemente' }, emoji: '😓', impactScore: 5 },
   ]},
-  { id: 'RT_ALM_040', category: 'clients', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Conocés a tus clientes por nombre?', 'pt-BR': 'Você conhece seus clientes pelo nome?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_040', category: 'sales', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Conocés a tus clientes por nombre?', 'pt-BR': 'Você conhece seus clientes pelo nome?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'most', label: { es: 'A la mayoría', 'pt-BR': 'A maioria' }, emoji: '🤝', impactScore: 18 },
     { id: 'some', label: { es: 'A algunos', 'pt-BR': 'Alguns' }, emoji: '👋', impactScore: 12 },
     { id: 'few', label: { es: 'A pocos', 'pt-BR': 'Poucos' }, emoji: '🤏', impactScore: 8 },
   ]},
-  { id: 'RT_ALM_041', category: 'clients', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Cuál es tu horario pico?', 'pt-BR': 'Qual é seu horário de pico?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_041', category: 'sales', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Cuál es tu horario pico?', 'pt-BR': 'Qual é seu horário de pico?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'morning', label: { es: 'Mañana', 'pt-BR': 'Manhã' }, emoji: '🌅', impactScore: 12 },
     { id: 'noon', label: { es: 'Mediodía', 'pt-BR': 'Meio-dia' }, emoji: '☀️', impactScore: 12 },
     { id: 'afternoon', label: { es: 'Tarde', 'pt-BR': 'Tarde' }, emoji: '🌆', impactScore: 12 },
     { id: 'evening', label: { es: 'Noche', 'pt-BR': 'Noite' }, emoji: '🌙', impactScore: 12 },
     { id: 'spread', label: { es: 'Parejo', 'pt-BR': 'Distribuído' }, emoji: '⏰', impactScore: 15 },
   ]},
-  { id: 'RT_ALM_042', category: 'clients', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Qué día vende más?', 'pt-BR': 'Que dia vende mais?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_042', category: 'sales', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Qué día vende más?', 'pt-BR': 'Que dia vende mais?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'weekend', label: { es: 'Fin de semana', 'pt-BR': 'Fim de semana' }, emoji: '📅', impactScore: 12 },
     { id: 'weekday', label: { es: 'Días de semana', 'pt-BR': 'Dias de semana' }, emoji: '💼', impactScore: 12 },
     { id: 'payday', label: { es: 'Días de cobro', 'pt-BR': 'Dias de pagamento' }, emoji: '💰', impactScore: 15 },
     { id: 'even', label: { es: 'Parejo', 'pt-BR': 'Distribuído' }, emoji: '⏰', impactScore: 15 },
   ]},
   
-  // TECNOLOGÍA (6)
-  { id: 'RT_ALM_043', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 8, title: { es: '¿Qué sistema de cobro usás?', 'pt-BR': 'Que sistema de cobrança você usa?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  // TECNOLOGÍA (6) -> mapped to 'operation' category
+  { id: 'RT_ALM_043', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 8, title: { es: '¿Qué sistema de cobro usás?', 'pt-BR': 'Que sistema de cobrança você usa?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'pos_full', label: { es: 'POS completo', 'pt-BR': 'POS completo' }, emoji: '💻', impactScore: 20 },
     { id: 'pos_simple', label: { es: 'POS simple/Posnet', 'pt-BR': 'POS simples' }, emoji: '💳', impactScore: 15 },
     { id: 'manual', label: { es: 'Calculadora/Manual', 'pt-BR': 'Calculadora/Manual' }, emoji: '🔢', impactScore: 8 },
   ]},
-  { id: 'RT_ALM_044', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 7, title: { es: '¿Usás algún software de gestión?', 'pt-BR': 'Você usa algum software de gestão?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_044', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 7, title: { es: '¿Usás algún software de gestión?', 'pt-BR': 'Você usa algum software de gestão?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'yes_paid', label: { es: 'Sí, pago', 'pt-BR': 'Sim, pago' }, emoji: '💎', impactScore: 20 },
     { id: 'yes_free', label: { es: 'Sí, gratuito', 'pt-BR': 'Sim, gratuito' }, emoji: '💚', impactScore: 15 },
     { id: 'excel', label: { es: 'Excel/Planillas', 'pt-BR': 'Excel/Planilhas' }, emoji: '📊', impactScore: 10 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'RT_ALM_045', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés internet/WiFi en el local?', 'pt-BR': 'Você tem internet/WiFi no local?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_045', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés internet/WiFi en el local?', 'pt-BR': 'Você tem internet/WiFi no local?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'fiber', label: { es: 'Sí, fibra óptica', 'pt-BR': 'Sim, fibra óptica' }, emoji: '⚡', impactScore: 18 },
     { id: 'standard', label: { es: 'Sí, estándar', 'pt-BR': 'Sim, padrão' }, emoji: '📶', impactScore: 15 },
     { id: 'mobile', label: { es: 'Solo datos móviles', 'pt-BR': 'Só dados móveis' }, emoji: '📱', impactScore: 10 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'RT_ALM_046', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés cámaras de seguridad?', 'pt-BR': 'Você tem câmeras de segurança?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_046', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés cámaras de seguridad?', 'pt-BR': 'Você tem câmeras de segurança?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'yes_monitored', label: { es: 'Sí, monitoreadas', 'pt-BR': 'Sim, monitoradas' }, emoji: '📹', impactScore: 20 },
     { id: 'yes_local', label: { es: 'Sí, grabación local', 'pt-BR': 'Sim, gravação local' }, emoji: '📷', impactScore: 15 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'RT_ALM_047', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Usás código de barras/scanner?', 'pt-BR': 'Você usa código de barras/scanner?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_047', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Usás código de barras/scanner?', 'pt-BR': 'Você usa código de barras/scanner?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'yes', label: { es: 'Sí', 'pt-BR': 'Sim' }, emoji: '📊', impactScore: 18 },
     { id: 'partial', label: { es: 'Algunos productos', 'pt-BR': 'Alguns produtos' }, emoji: '🔄', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'RT_ALM_048', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés balanza electrónica?', 'pt-BR': 'Você tem balança eletrônica?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_048', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés balanza electrónica?', 'pt-BR': 'Você tem balança eletrônica?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'yes_connected', label: { es: 'Sí, conectada al sistema', 'pt-BR': 'Sim, conectada ao sistema' }, emoji: '⚖️', impactScore: 18 },
     { id: 'yes_standalone', label: { es: 'Sí, independiente', 'pt-BR': 'Sim, independente' }, emoji: '⚖️', impactScore: 12 },
     { id: 'no', label: { es: 'No vendo a granel', 'pt-BR': 'Não vendo a granel' }, emoji: '📦', impactScore: 10 },
@@ -374,60 +374,60 @@ export const ALMACEN_COMPLETE: GastroQuestion[] = [
     { id: 'suppliers', label: { es: 'Proveedores', 'pt-BR': 'Fornecedores' }, emoji: '🚛', impactScore: 10 },
   ]},
   
-  // RIESGOS (6)
-  { id: 'RT_ALM_061', category: 'risks', mode: 'complete', dimension: 'finances', weight: 7, title: { es: '¿Cuál es tu mayor riesgo operativo?', 'pt-BR': 'Qual é seu maior risco operativo?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  // RIESGOS (6) -> mapped to 'finance' category
+  { id: 'RT_ALM_061', category: 'finance', mode: 'complete', dimension: 'finances', weight: 7, title: { es: '¿Cuál es tu mayor riesgo operativo?', 'pt-BR': 'Qual é seu maior risco operativo?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'theft', label: { es: 'Robos/Hurtos', 'pt-BR': 'Roubos/Furtos' }, emoji: '🔒', impactScore: 15 },
     { id: 'suppliers', label: { es: 'Falta de stock', 'pt-BR': 'Falta de estoque' }, emoji: '📦', impactScore: 12 },
     { id: 'spoilage', label: { es: 'Vencimiento/Mermas', 'pt-BR': 'Vencimento/Perdas' }, emoji: '⏰', impactScore: 12 },
     { id: 'competition', label: { es: 'Nueva competencia', 'pt-BR': 'Nova concorrência' }, emoji: '🏢', impactScore: 10 },
     { id: 'rent', label: { es: 'Aumento de alquiler', 'pt-BR': 'Aumento de aluguel' }, emoji: '💰', impactScore: 12 },
   ]},
-  { id: 'RT_ALM_062', category: 'risks', mode: 'complete', dimension: 'finances', weight: 7, title: { es: '¿Tenés seguro comercial?', 'pt-BR': 'Você tem seguro comercial?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_062', category: 'finance', mode: 'complete', dimension: 'finances', weight: 7, title: { es: '¿Tenés seguro comercial?', 'pt-BR': 'Você tem seguro comercial?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'complete', label: { es: 'Sí, completo', 'pt-BR': 'Sim, completo' }, emoji: '🛡️', impactScore: 20 },
     { id: 'basic', label: { es: 'Sí, básico', 'pt-BR': 'Sim, básico' }, emoji: '✅', impactScore: 15 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'RT_ALM_063', category: 'risks', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Sufriste robos en el último año?', 'pt-BR': 'Você sofreu roubos no último ano?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_063', category: 'finance', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Sufriste robos en el último año?', 'pt-BR': 'Você sofreu roubos no último ano?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '✅', impactScore: 18 },
     { id: 'minor', label: { es: 'Sí, menores', 'pt-BR': 'Sim, menores' }, emoji: '😓', impactScore: 10 },
     { id: 'major', label: { es: 'Sí, significativos', 'pt-BR': 'Sim, significativos' }, emoji: '🚨', impactScore: 5 },
   ]},
-  { id: 'RT_ALM_064', category: 'risks', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Qué porcentaje de mermas tenés?', 'pt-BR': 'Que porcentagem de perdas você tem?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_064', category: 'finance', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Qué porcentaje de mermas tenés?', 'pt-BR': 'Que porcentagem de perdas você tem?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'low', label: { es: 'Menos del 2%', 'pt-BR': 'Menos de 2%' }, emoji: '💚', impactScore: 18 },
     { id: 'medium', label: { es: '2-5%', 'pt-BR': '2-5%' }, emoji: '💛', impactScore: 12 },
     { id: 'high', label: { es: 'Más del 5%', 'pt-BR': 'Mais de 5%' }, emoji: '🔴', impactScore: 5 },
     { id: 'unknown', label: { es: 'No sé', 'pt-BR': 'Não sei' }, emoji: '❓', impactScore: 8 },
   ]},
-  { id: 'RT_ALM_065', category: 'risks', mode: 'complete', dimension: 'finances', weight: 6, title: { es: '¿Tenés fondo de emergencia?', 'pt-BR': 'Você tem fundo de emergência?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_065', category: 'finance', mode: 'complete', dimension: 'finances', weight: 6, title: { es: '¿Tenés fondo de emergencia?', 'pt-BR': 'Você tem fundo de emergência?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'yes_3m', label: { es: 'Sí, +3 meses', 'pt-BR': 'Sim, +3 meses' }, emoji: '💰', impactScore: 20 },
     { id: 'yes_1m', label: { es: 'Sí, 1-3 meses', 'pt-BR': 'Sim, 1-3 meses' }, emoji: '💵', impactScore: 15 },
     { id: 'low', label: { es: 'Poco/Mínimo', 'pt-BR': 'Pouco/Mínimo' }, emoji: '😓', impactScore: 8 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '🔴', impactScore: 5 },
   ]},
-  { id: 'RT_ALM_066', category: 'risks', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Hay estacionalidad en tu zona?', 'pt-BR': 'Há sazonalidade na sua zona?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_066', category: 'finance', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Hay estacionalidad en tu zona?', 'pt-BR': 'Há sazonalidade na sua zona?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'high', label: { es: 'Sí, mucha', 'pt-BR': 'Sim, muita' }, emoji: '📊', impactScore: 10 },
     { id: 'some', label: { es: 'Algo', 'pt-BR': 'Alguma' }, emoji: '📈', impactScore: 12 },
     { id: 'stable', label: { es: 'No, estable', 'pt-BR': 'Não, estável' }, emoji: '✅', impactScore: 18 },
   ]},
   
-  // ESPECÍFICAS ALMACÉN (4 adicionales para llegar a 70)
-  { id: 'RT_ALM_067', category: 'specific', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Manejás fechas de vencimiento activamente?', 'pt-BR': 'Você gerencia datas de validade ativamente?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  // ESPECÍFICAS ALMACÉN (4) -> mapped to 'operation' category
+  { id: 'RT_ALM_067', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Manejás fechas de vencimiento activamente?', 'pt-BR': 'Você gerencia datas de validade ativamente?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'system', label: { es: 'Sí, con sistema', 'pt-BR': 'Sim, com sistema' }, emoji: '💻', impactScore: 20 },
     { id: 'manual', label: { es: 'Sí, manualmente', 'pt-BR': 'Sim, manualmente' }, emoji: '📝', impactScore: 15 },
     { id: 'fifo', label: { es: 'Solo FIFO', 'pt-BR': 'Só FIFO' }, emoji: '🔄', impactScore: 10 },
     { id: 'no', label: { es: 'No activamente', 'pt-BR': 'Não ativamente' }, emoji: '😓', impactScore: 5 },
   ]},
-  { id: 'RT_ALM_068', category: 'specific', mode: 'complete', dimension: 'profitability', weight: 6, title: { es: '¿Vendés productos de marca propia/blanca?', 'pt-BR': 'Você vende produtos de marca própria/branca?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_068', category: 'operation', mode: 'complete', dimension: 'profitability', weight: 6, title: { es: '¿Vendés productos de marca propia/blanca?', 'pt-BR': 'Você vende produtos de marca própria/branca?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'yes', label: { es: 'Sí', 'pt-BR': 'Sim' }, emoji: '🏷️', impactScore: 18 },
     { id: 'considering', label: { es: 'Lo estoy considerando', 'pt-BR': 'Estou considerando' }, emoji: '🤔', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 8 },
   ]},
-  { id: 'RT_ALM_069', category: 'specific', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Tenés servicio de encargues/pedidos especiales?', 'pt-BR': 'Você tem serviço de encomendas/pedidos especiais?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_069', category: 'operation', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Tenés servicio de encargues/pedidos especiales?', 'pt-BR': 'Você tem serviço de encomendas/pedidos especiais?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'yes_active', label: { es: 'Sí, activamente', 'pt-BR': 'Sim, ativamente' }, emoji: '📦', impactScore: 18 },
     { id: 'yes_passive', label: { es: 'Sí, si piden', 'pt-BR': 'Sim, se pedem' }, emoji: '🔄', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 8 },
   ]},
-  { id: 'RT_ALM_070', category: 'specific', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Participás en la comunidad del barrio?', 'pt-BR': 'Você participa da comunidade do bairro?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
+  { id: 'RT_ALM_070', category: 'reputation', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Participás en la comunidad del barrio?', 'pt-BR': 'Você participa da comunidade do bairro?' }, type: 'single', businessTypes: ['almacen_tienda'], options: [
     { id: 'active', label: { es: 'Sí, activamente', 'pt-BR': 'Sim, ativamente' }, emoji: '🤝', impactScore: 18 },
     { id: 'sometimes', label: { es: 'A veces', 'pt-BR': 'Às vezes' }, emoji: '🔄', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 8 },

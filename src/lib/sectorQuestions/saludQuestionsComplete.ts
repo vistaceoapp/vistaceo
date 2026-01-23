@@ -139,7 +139,7 @@ export const CLINICA_COMPLETE: GastroQuestion[] = [
     { id: 'private', label: { es: 'Solo particular', 'pt-BR': 'Só particular' }, emoji: '💰', impactScore: 20 },
     { id: 'mixed', label: { es: 'Mixto 50/50', 'pt-BR': 'Misto 50/50' }, emoji: '⚖️', impactScore: 15 },
   ]},
-  { id: 'SA_CLI_022', category: 'finance', mode: 'both', dimension: 'profitability', weight: 8, title: { es: '¿Cuál es el valor promedio de consulta particular?', 'pt-BR': 'Qual é o valor médio da consulta particular?' }, type: 'money', businessTypes: ['clinica_policonsultorio'] },
+  { id: 'SA_CLI_022', category: 'finance', mode: 'both', dimension: 'profitability', weight: 8, title: { es: '¿Cuál es el valor promedio de consulta particular?', 'pt-BR': 'Qual é o valor médio da consulta particular?' }, type: 'number', businessTypes: ['clinica_policonsultorio'] },
   { id: 'SA_CLI_023', category: 'finance', mode: 'complete', dimension: 'finances', weight: 7, title: { es: '¿Qué porcentaje de tus ingresos son particulares?', 'pt-BR': 'Que porcentagem da sua receita é particular?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: '0-25', label: { es: '0-25%', 'pt-BR': '0-25%' }, emoji: '📊', impactScore: 10 },
     { id: '25-50', label: { es: '25-50%', 'pt-BR': '25-50%' }, emoji: '📈', impactScore: 15 },
@@ -164,7 +164,7 @@ export const CLINICA_COMPLETE: GastroQuestion[] = [
     { id: 'yes_basic', label: { es: 'Sí, básico', 'pt-BR': 'Sim, básico' }, emoji: '📋', impactScore: 15 },
     { id: 'manual', label: { es: 'Manual', 'pt-BR': 'Manual' }, emoji: '📝', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_027', category: 'finance', mode: 'complete', dimension: 'finances', weight: 6, title: { es: '¿Cuál es tu costo fijo mensual aproximado?', 'pt-BR': 'Qual é seu custo fixo mensal aproximado?' }, type: 'money', businessTypes: ['clinica_policonsultorio'] },
+  { id: 'SA_CLI_027', category: 'finance', mode: 'complete', dimension: 'finances', weight: 6, title: { es: '¿Cuál es tu costo fijo mensual aproximado?', 'pt-BR': 'Qual é seu custo fixo mensal aproximado?' }, type: 'number', businessTypes: ['clinica_policonsultorio'] },
   { id: 'SA_CLI_028', category: 'finance', mode: 'complete', dimension: 'finances', weight: 6, title: { es: '¿Tenés contador especializado en salud?', 'pt-BR': 'Você tem contador especializado em saúde?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_specialist', label: { es: 'Sí, especialista', 'pt-BR': 'Sim, especialista' }, emoji: '🎓', impactScore: 18 },
     { id: 'yes_general', label: { es: 'Sí, general', 'pt-BR': 'Sim, geral' }, emoji: '📊', impactScore: 12 },
@@ -207,71 +207,71 @@ export const CLINICA_COMPLETE: GastroQuestion[] = [
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 8 },
   ]},
 
-  // CLIENTES (6)
-  { id: 'SA_CLI_035', category: 'clients', mode: 'complete', dimension: 'reputation', weight: 8, title: { es: '¿Qué porcentaje de pacientes vuelven?', 'pt-BR': 'Que porcentagem de pacientes voltam?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  // CLIENTES (6) -> mapped to 'sales' category
+  { id: 'SA_CLI_035', category: 'sales', mode: 'complete', dimension: 'reputation', weight: 8, title: { es: '¿Qué porcentaje de pacientes vuelven?', 'pt-BR': 'Que porcentagem de pacientes voltam?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: '80+', label: { es: 'Más del 80%', 'pt-BR': 'Mais de 80%' }, emoji: '🌟', impactScore: 20 },
     { id: '60-80', label: { es: '60-80%', 'pt-BR': '60-80%' }, emoji: '💚', impactScore: 15 },
     { id: '40-60', label: { es: '40-60%', 'pt-BR': '40-60%' }, emoji: '💛', impactScore: 10 },
     { id: '-40', label: { es: 'Menos del 40%', 'pt-BR': 'Menos de 40%' }, emoji: '🔴', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_036', category: 'clients', mode: 'complete', dimension: 'reputation', weight: 7, title: { es: '¿Cuál es el rango de edad predominante?', 'pt-BR': 'Qual é a faixa etária predominante?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_036', category: 'sales', mode: 'complete', dimension: 'reputation', weight: 7, title: { es: '¿Cuál es el rango de edad predominante?', 'pt-BR': 'Qual é a faixa etária predominante?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'pediatric', label: { es: 'Pediátrica (0-18)', 'pt-BR': 'Pediátrica (0-18)' }, emoji: '👶', impactScore: 15 },
     { id: 'young', label: { es: 'Jóvenes (18-35)', 'pt-BR': 'Jovens (18-35)' }, emoji: '🧑', impactScore: 15 },
     { id: 'adult', label: { es: 'Adultos (35-60)', 'pt-BR': 'Adultos (35-60)' }, emoji: '👨', impactScore: 15 },
     { id: 'senior', label: { es: 'Mayores (60+)', 'pt-BR': 'Idosos (60+)' }, emoji: '👴', impactScore: 15 },
     { id: 'mixed', label: { es: 'Mixto', 'pt-BR': 'Misto' }, emoji: '🔄', impactScore: 12 },
   ]},
-  { id: 'SA_CLI_037', category: 'clients', mode: 'complete', dimension: 'reputation', weight: 7, title: { es: '¿Tenés quejas o reclamos frecuentes?', 'pt-BR': 'Você tem reclamações frequentes?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_037', category: 'sales', mode: 'complete', dimension: 'reputation', weight: 7, title: { es: '¿Tenés quejas o reclamos frecuentes?', 'pt-BR': 'Você tem reclamações frequentes?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'never', label: { es: 'Nunca/Casi nunca', 'pt-BR': 'Nunca/Quase nunca' }, emoji: '✅', impactScore: 18 },
     { id: 'sometimes', label: { es: 'A veces', 'pt-BR': 'Às vezes' }, emoji: '🔄', impactScore: 10 },
     { id: 'often', label: { es: 'Frecuentemente', 'pt-BR': 'Frequentemente' }, emoji: '😓', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_038', category: 'clients', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Hacés seguimiento post-consulta?', 'pt-BR': 'Você faz acompanhamento pós-consulta?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_038', category: 'sales', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Hacés seguimiento post-consulta?', 'pt-BR': 'Você faz acompanhamento pós-consulta?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_systematic', label: { es: 'Sí, sistemático', 'pt-BR': 'Sim, sistemático' }, emoji: '📋', impactScore: 18 },
     { id: 'yes_cases', label: { es: 'Sí, casos especiales', 'pt-BR': 'Sim, casos especiais' }, emoji: '📝', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_039', category: 'clients', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Medís la satisfacción de pacientes?', 'pt-BR': 'Você mede a satisfação dos pacientes?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_039', category: 'sales', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Medís la satisfacción de pacientes?', 'pt-BR': 'Você mede a satisfação dos pacientes?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_formal', label: { es: 'Sí, encuestas formales', 'pt-BR': 'Sim, pesquisas formais' }, emoji: '📊', impactScore: 18 },
     { id: 'yes_informal', label: { es: 'Sí, informal', 'pt-BR': 'Sim, informal' }, emoji: '💬', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_040', category: 'clients', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Cuánto es el ausentismo a turnos?', 'pt-BR': 'Quanto é o absenteísmo nas consultas?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_040', category: 'sales', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Cuánto es el ausentismo a turnos?', 'pt-BR': 'Quanto é o absenteísmo nas consultas?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'low', label: { es: 'Menos del 10%', 'pt-BR': 'Menos de 10%' }, emoji: '💚', impactScore: 18 },
     { id: 'medium', label: { es: '10-20%', 'pt-BR': '10-20%' }, emoji: '💛', impactScore: 12 },
     { id: 'high', label: { es: 'Más del 20%', 'pt-BR': 'Mais de 20%' }, emoji: '🔴', impactScore: 5 },
   ]},
 
-  // TECNOLOGÍA (6)
-  { id: 'SA_CLI_041', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 8, title: { es: '¿Qué software de gestión usás?', 'pt-BR': 'Que software de gestão você usa?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  // TECNOLOGÍA (6) -> mapped to 'operation' category
+  { id: 'SA_CLI_041', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 8, title: { es: '¿Qué software de gestión usás?', 'pt-BR': 'Que software de gestão você usa?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'specialized', label: { es: 'Especializado en salud', 'pt-BR': 'Especializado em saúde' }, emoji: '💉', impactScore: 20 },
     { id: 'general', label: { es: 'General/ERP', 'pt-BR': 'Geral/ERP' }, emoji: '💻', impactScore: 15 },
     { id: 'basic', label: { es: 'Básico/Planillas', 'pt-BR': 'Básico/Planilhas' }, emoji: '📊', impactScore: 8 },
     { id: 'none', label: { es: 'Ninguno', 'pt-BR': 'Nenhum' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_042', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 7, title: { es: '¿Tenés equipamiento médico moderno?', 'pt-BR': 'Você tem equipamento médico moderno?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_042', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 7, title: { es: '¿Tenés equipamiento médico moderno?', 'pt-BR': 'Você tem equipamento médico moderno?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'cutting_edge', label: { es: 'De última generación', 'pt-BR': 'De última geração' }, emoji: '🔬', impactScore: 20 },
     { id: 'modern', label: { es: 'Moderno', 'pt-BR': 'Moderno' }, emoji: '✨', impactScore: 15 },
     { id: 'adequate', label: { es: 'Adecuado', 'pt-BR': 'Adequado' }, emoji: '✅', impactScore: 12 },
     { id: 'outdated', label: { es: 'Desactualizado', 'pt-BR': 'Desatualizado' }, emoji: '😓', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_043', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 7, title: { es: '¿Tenés sistema de recordatorios automáticos?', 'pt-BR': 'Você tem sistema de lembretes automáticos?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_043', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 7, title: { es: '¿Tenés sistema de recordatorios automáticos?', 'pt-BR': 'Você tem sistema de lembretes automáticos?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_multi', label: { es: 'Sí, múltiples canales', 'pt-BR': 'Sim, múltiplos canais' }, emoji: '📲', impactScore: 20 },
     { id: 'yes_basic', label: { es: 'Sí, WhatsApp/SMS', 'pt-BR': 'Sim, WhatsApp/SMS' }, emoji: '📱', impactScore: 15 },
     { id: 'manual', label: { es: 'Manual', 'pt-BR': 'Manual' }, emoji: '📞', impactScore: 8 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_044', category: 'technology', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Entregás resultados digitalmente?', 'pt-BR': 'Você entrega resultados digitalmente?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_044', category: 'operation', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Entregás resultados digitalmente?', 'pt-BR': 'Você entrega resultados digitalmente?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_portal', label: { es: 'Sí, portal del paciente', 'pt-BR': 'Sim, portal do paciente' }, emoji: '🌐', impactScore: 20 },
     { id: 'yes_email', label: { es: 'Sí, email/WhatsApp', 'pt-BR': 'Sim, email/WhatsApp' }, emoji: '📧', impactScore: 15 },
     { id: 'paper', label: { es: 'Solo papel', 'pt-BR': 'Só papel' }, emoji: '📄', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_045', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés sistema de prescripción electrónica?', 'pt-BR': 'Você tem sistema de prescrição eletrônica?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_045', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés sistema de prescripción electrónica?', 'pt-BR': 'Você tem sistema de prescrição eletrônica?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes', label: { es: 'Sí', 'pt-BR': 'Sim' }, emoji: '💊', impactScore: 18 },
     { id: 'partial', label: { es: 'Parcialmente', 'pt-BR': 'Parcialmente' }, emoji: '🔄', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_046', category: 'technology', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés backup de datos seguro?', 'pt-BR': 'Você tem backup de dados seguro?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_046', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés backup de datos seguro?', 'pt-BR': 'Você tem backup de dados seguro?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_cloud', label: { es: 'Sí, en la nube', 'pt-BR': 'Sim, na nuvem' }, emoji: '☁️', impactScore: 20 },
     { id: 'yes_local', label: { es: 'Sí, local', 'pt-BR': 'Sim, local' }, emoji: '💾', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
@@ -351,69 +351,69 @@ export const CLINICA_COMPLETE: GastroQuestion[] = [
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
 
-  // RIESGOS (6)
-  { id: 'SA_CLI_059', category: 'risks', mode: 'complete', dimension: 'finances', weight: 7, title: { es: '¿Cuál es tu mayor riesgo operativo?', 'pt-BR': 'Qual é seu maior risco operativo?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  // RIESGOS (6) -> mapped to 'finance' category
+  { id: 'SA_CLI_059', category: 'finance', mode: 'complete', dimension: 'finances', weight: 7, title: { es: '¿Cuál es tu mayor riesgo operativo?', 'pt-BR': 'Qual é seu maior risco operativo?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'malpractice', label: { es: 'Mala praxis', 'pt-BR': 'Erro médico' }, emoji: '⚠️', impactScore: 15 },
     { id: 'payment', label: { es: 'Demora en cobros', 'pt-BR': 'Demora nos recebimentos' }, emoji: '💸', impactScore: 15 },
     { id: 'staff', label: { es: 'Pérdida de médicos', 'pt-BR': 'Perda de médicos' }, emoji: '👨‍⚕️', impactScore: 12 },
     { id: 'competition', label: { es: 'Competencia', 'pt-BR': 'Concorrência' }, emoji: '🏥', impactScore: 10 },
     { id: 'regulation', label: { es: 'Cambios regulatorios', 'pt-BR': 'Mudanças regulatórias' }, emoji: '📜', impactScore: 10 },
   ]},
-  { id: 'SA_CLI_060', category: 'risks', mode: 'complete', dimension: 'finances', weight: 7, title: { es: '¿Tenés seguro de mala praxis?', 'pt-BR': 'Você tem seguro de erro médico?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_060', category: 'finance', mode: 'complete', dimension: 'finances', weight: 7, title: { es: '¿Tenés seguro de mala praxis?', 'pt-BR': 'Você tem seguro de erro médico?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_complete', label: { es: 'Sí, completo', 'pt-BR': 'Sim, completo' }, emoji: '🛡️', impactScore: 20 },
     { id: 'yes_basic', label: { es: 'Sí, básico', 'pt-BR': 'Sim, básico' }, emoji: '✅', impactScore: 15 },
     { id: 'individual', label: { es: 'Solo los médicos', 'pt-BR': 'Só os médicos' }, emoji: '👨‍⚕️', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_061', category: 'risks', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Cumplís con protocolos de bioseguridad?', 'pt-BR': 'Você cumpre protocolos de biossegurança?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_061', category: 'finance', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Cumplís con protocolos de bioseguridad?', 'pt-BR': 'Você cumpre protocolos de biossegurança?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_certified', label: { es: 'Sí, certificados', 'pt-BR': 'Sim, certificados' }, emoji: '🏆', impactScore: 20 },
     { id: 'yes_standard', label: { es: 'Sí, estándar', 'pt-BR': 'Sim, padrão' }, emoji: '✅', impactScore: 15 },
     { id: 'partial', label: { es: 'Parcialmente', 'pt-BR': 'Parcialmente' }, emoji: '🔄', impactScore: 8 },
   ]},
-  { id: 'SA_CLI_062', category: 'risks', mode: 'complete', dimension: 'finances', weight: 6, title: { es: '¿Tenés plan de contingencia?', 'pt-BR': 'Você tem plano de contingência?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_062', category: 'finance', mode: 'complete', dimension: 'finances', weight: 6, title: { es: '¿Tenés plan de contingencia?', 'pt-BR': 'Você tem plano de contingência?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_documented', label: { es: 'Sí, documentado', 'pt-BR': 'Sim, documentado' }, emoji: '📋', impactScore: 18 },
     { id: 'yes_informal', label: { es: 'Sí, informal', 'pt-BR': 'Sim, informal' }, emoji: '💭', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_063', category: 'risks', mode: 'complete', dimension: 'finances', weight: 6, title: { es: '¿Tenés fondo de reserva?', 'pt-BR': 'Você tem fundo de reserva?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_063', category: 'finance', mode: 'complete', dimension: 'finances', weight: 6, title: { es: '¿Tenés fondo de reserva?', 'pt-BR': 'Você tem fundo de reserva?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_3m', label: { es: 'Sí, +3 meses', 'pt-BR': 'Sim, +3 meses' }, emoji: '💰', impactScore: 20 },
     { id: 'yes_1m', label: { es: 'Sí, 1-3 meses', 'pt-BR': 'Sim, 1-3 meses' }, emoji: '💵', impactScore: 15 },
     { id: 'low', label: { es: 'Poco/Mínimo', 'pt-BR': 'Pouco/Mínimo' }, emoji: '😓', impactScore: 8 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '🔴', impactScore: 5 },
   ]},
-  { id: 'SA_CLI_064', category: 'risks', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Hay estacionalidad en tu demanda?', 'pt-BR': 'Há sazonalidade na sua demanda?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_064', category: 'finance', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Hay estacionalidad en tu demanda?', 'pt-BR': 'Há sazonalidade na sua demanda?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'high', label: { es: 'Sí, mucha', 'pt-BR': 'Sim, muita' }, emoji: '📊', impactScore: 10 },
     { id: 'some', label: { es: 'Algo', 'pt-BR': 'Alguma' }, emoji: '📈', impactScore: 12 },
     { id: 'stable', label: { es: 'No, estable', 'pt-BR': 'Não, estável' }, emoji: '✅', impactScore: 18 },
   ]},
 
-  // ESPECÍFICAS CLÍNICA (6 adicionales)
-  { id: 'SA_CLI_065', category: 'specific', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Tenés quirófano/sala de procedimientos?', 'pt-BR': 'Você tem centro cirúrgico/sala de procedimentos?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  // ESPECÍFICAS CLÍNICA (6) -> mapped to 'operation' category
+  { id: 'SA_CLI_065', category: 'operation', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Tenés quirófano/sala de procedimientos?', 'pt-BR': 'Você tem centro cirúrgico/sala de procedimentos?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_full', label: { es: 'Sí, completo', 'pt-BR': 'Sim, completo' }, emoji: '🏥', impactScore: 20 },
     { id: 'yes_basic', label: { es: 'Sí, básico', 'pt-BR': 'Sim, básico' }, emoji: '🩺', impactScore: 15 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 8 },
   ]},
-  { id: 'SA_CLI_066', category: 'specific', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés farmacia interna?', 'pt-BR': 'Você tem farmácia interna?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_066', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés farmacia interna?', 'pt-BR': 'Você tem farmácia interna?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes', label: { es: 'Sí', 'pt-BR': 'Sim' }, emoji: '💊', impactScore: 18 },
     { id: 'agreement', label: { es: 'No, pero tengo convenio', 'pt-BR': 'Não, mas tenho convênio' }, emoji: '🤝', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 8 },
   ]},
-  { id: 'SA_CLI_067', category: 'specific', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Atendés emergencias/guardias?', 'pt-BR': 'Você atende emergências/plantões?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_067', category: 'operation', mode: 'complete', dimension: 'traffic', weight: 6, title: { es: '¿Atendés emergencias/guardias?', 'pt-BR': 'Você atende emergências/plantões?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_24h', label: { es: 'Sí, 24 horas', 'pt-BR': 'Sim, 24 horas' }, emoji: '🚑', impactScore: 20 },
     { id: 'yes_limited', label: { es: 'Sí, horario limitado', 'pt-BR': 'Sim, horário limitado' }, emoji: '⏰', impactScore: 15 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 8 },
   ]},
-  { id: 'SA_CLI_068', category: 'specific', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Hacés cirugías ambulatorias?', 'pt-BR': 'Você faz cirurgias ambulatoriais?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_068', category: 'operation', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Hacés cirugías ambulatorias?', 'pt-BR': 'Você faz cirurgias ambulatoriais?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_regular', label: { es: 'Sí, regularmente', 'pt-BR': 'Sim, regularmente' }, emoji: '🩺', impactScore: 18 },
     { id: 'yes_occasional', label: { es: 'Sí, ocasionalmente', 'pt-BR': 'Sim, ocasionalmente' }, emoji: '🔄', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 8 },
   ]},
-  { id: 'SA_CLI_069', category: 'specific', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés sistema de interconsultas interna?', 'pt-BR': 'Você tem sistema de interconsultas interno?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_069', category: 'operation', mode: 'complete', dimension: 'efficiency', weight: 6, title: { es: '¿Tenés sistema de interconsultas interna?', 'pt-BR': 'Você tem sistema de interconsultas interno?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_digital', label: { es: 'Sí, digital', 'pt-BR': 'Sim, digital' }, emoji: '💻', impactScore: 18 },
     { id: 'yes_manual', label: { es: 'Sí, manual', 'pt-BR': 'Sim, manual' }, emoji: '📝', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 8 },
   ]},
-  { id: 'SA_CLI_070', category: 'specific', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Tenés programa de medicina preventiva?', 'pt-BR': 'Você tem programa de medicina preventiva?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
+  { id: 'SA_CLI_070', category: 'reputation', mode: 'complete', dimension: 'reputation', weight: 6, title: { es: '¿Tenés programa de medicina preventiva?', 'pt-BR': 'Você tem programa de medicina preventiva?' }, type: 'single', businessTypes: ['clinica_policonsultorio'], options: [
     { id: 'yes_structured', label: { es: 'Sí, estructurado', 'pt-BR': 'Sim, estruturado' }, emoji: '📋', impactScore: 18 },
     { id: 'yes_informal', label: { es: 'Sí, informal', 'pt-BR': 'Sim, informal' }, emoji: '💭', impactScore: 12 },
     { id: 'no', label: { es: 'No', 'pt-BR': 'Não' }, emoji: '❌', impactScore: 8 },
