@@ -66,17 +66,6 @@ const platformInfo: Record<PlatformType, {
     description: "Agrega un script de tracking a tu sitio web para monitorear visitas, conversiones y comportamiento.",
     oauthSupported: false,
   },
-  youtube: {
-    name: "YouTube",
-    description: "Conecta tu canal de YouTube para analizar suscriptores, vistas y engagement.",
-    oauthSupported: true,
-  },
-  tiktok: {
-    name: "TikTok",
-    description: "Conecta tu cuenta de TikTok para analizar seguidores y engagement de videos.",
-    oauthSupported: true,
-    comingSoon: true,
-  },
 };
 
 export const PlatformConnectModal = ({
@@ -131,12 +120,10 @@ export const PlatformConnectModal = ({
     try {
       let functionName = "";
       
-      if (platform === "google" || platform === "youtube") {
+      if (platform === "google") {
         functionName = "google-oauth-start";
       } else if (platform === "instagram" || platform === "facebook") {
         functionName = "meta-oauth-start";
-      } else if (platform === "tiktok") {
-        functionName = "tiktok-oauth-start";
       }
 
       const { data, error } = await supabase.functions.invoke(functionName, {
