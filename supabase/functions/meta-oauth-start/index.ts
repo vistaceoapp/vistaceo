@@ -44,12 +44,25 @@ serve(async (req) => {
     // Create state with business and user info
     const state = btoa(JSON.stringify({ businessId, userId, platform: platform || "instagram" }));
 
-    // Solo scopes básicos que no requieren aprobación de Meta
+    // Scopes para máxima extracción de datos de Instagram y Facebook
+    // Ordenados por prioridad - los más básicos primero
     const scopes = [
+      // Básicos (siempre disponibles)
       "public_profile",
       "pages_show_list",
       "pages_read_engagement",
-      "instagram_basic"
+      
+      // Instagram básico
+      "instagram_basic",
+      
+      // Instagram Business (para insights y métricas)
+      "instagram_business_basic",
+      "instagram_business_manage_insights",
+      "instagram_business_manage_comments",
+      
+      // Facebook Pages avanzado
+      "pages_read_user_content",
+      "business_management",
     ];
 
     const authUrl = new URL("https://www.facebook.com/v18.0/dialog/oauth");
@@ -59,7 +72,7 @@ serve(async (req) => {
     authUrl.searchParams.set("state", state);
     authUrl.searchParams.set("response_type", "code");
 
-    console.log("Generated Meta OAuth URL for business:", businessId, "platform:", platform);
+    console.log("Generated Meta OAuth URL for business:", businessId, "platform:", platform, "scopes:", scopes.length);
 
     return new Response(
       JSON.stringify({ url: authUrl.toString() }),

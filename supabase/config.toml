@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.tiktok-oauth-start]
 verify_jwt = false
+
+[functions.meta-sync-data]
+verify_jwt = false
