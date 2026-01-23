@@ -1080,13 +1080,15 @@ const RadarPage = () => {
                     
                     <div className="col-span-5">
                       <div className="flex items-start gap-3">
-                        <span className="text-xl">{getSourceIcon(opportunity.source)}</span>
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <Lightbulb className="w-4 h-4 text-primary" />
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-foreground truncate">
+                          <h4 className="font-semibold text-foreground leading-tight line-clamp-2">
                             {opportunity.title}
                           </h4>
                           {opportunity.description && (
-                            <p className="text-sm text-muted-foreground truncate mt-0.5">
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
                               {opportunity.description}
                             </p>
                           )}
