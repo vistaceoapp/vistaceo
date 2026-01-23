@@ -1099,6 +1099,97 @@ export type Database = {
           },
         ]
       }
+      insight_metrics: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          insights_applied: number | null
+          insights_by_type: Json | null
+          insights_dismissed: number | null
+          period_end: string
+          period_start: string
+          top_categories: Json | null
+          total_insights: number | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          insights_applied?: number | null
+          insights_by_type?: Json | null
+          insights_dismissed?: number | null
+          period_end: string
+          period_start: string
+          top_categories?: Json | null
+          total_insights?: number | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          insights_applied?: number | null
+          insights_by_type?: Json | null
+          insights_dismissed?: number | null
+          period_end?: string
+          period_start?: string
+          top_categories?: Json | null
+          total_insights?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insight_metrics_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insight_notifications: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          insights_count: number | null
+          is_read: boolean | null
+          message: string | null
+          metadata: Json | null
+          notification_type: string
+          title: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          insights_count?: number | null
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          notification_type?: string
+          title: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          insights_count?: number | null
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          notification_type?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insight_notifications_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learning_items: {
         Row: {
           action_steps: Json | null

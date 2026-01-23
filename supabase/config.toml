@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.generate-opportunity-plan]
 verify_jwt = false
+
+[functions.weekly-insight-scan]
+verify_jwt = false
