@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Brain, ChevronRight, Clock, Sparkles, Check, X, RefreshCw, Loader2, TrendingUp, Zap } from "lucide-react";
+import { Brain, ChevronRight, Clock, Sparkles, Check, RefreshCw, Loader2, TrendingUp, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -22,6 +22,27 @@ interface BrainKnowledgeWidgetProps {
   className?: string;
   compact?: boolean;
 }
+
+// Translate category keys to Spanish labels
+const translateCategory = (category: string): string => {
+  const translations: Record<string, string> = {
+    operaciones: "Operaciones",
+    equipo: "Equipo",
+    clientes: "Clientes", 
+    marketing: "Marketing",
+    finanzas: "Finanzas",
+    producto: "Producto",
+    tecnologia: "Tecnología",
+    competencia: "Competencia",
+    proveedores: "Proveedores",
+    ubicacion: "Ubicación",
+    ventas: "Ventas",
+    servicio: "Servicio",
+    estrategia: "Estrategia",
+    crecimiento: "Crecimiento",
+  };
+  return translations[category?.toLowerCase()] || category;
+};
 
 export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowledgeWidgetProps) => {
   const { currentBusiness } = useBusiness();
@@ -310,8 +331,8 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
         <div className="space-y-4 animate-fade-in">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-[10px] bg-primary/5">
-                {currentQuestion.category}
+              <Badge variant="outline" className="text-[10px] bg-primary/5 capitalize">
+                {translateCategory(currentQuestion.category)}
               </Badge>
               <Badge variant="secondary" className="text-[10px] gap-1">
                 <TrendingUp className="w-3 h-3" />
