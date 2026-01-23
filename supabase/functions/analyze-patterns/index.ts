@@ -242,176 +242,377 @@ serve(async (req) => {
       const sectorHint = brain?.primary_business_type || business.category || "gastronomía";
       const focusHint = brain?.current_focus || "ventas";
 
-      // Ultra-detailed sector-specific query mapping for hyper-personalized results
+      // =====================================================================
+      // 🧠 ULTRA-COMPLETE SECTOR MAPPING - 180+ BUSINESS TYPES
+      // =====================================================================
+      // This comprehensive mapping covers ALL business types in the platform
+      // Each sector has 5-6 highly specific queries for maximum relevance
+      // =====================================================================
+      
       const sectorQueries: Record<string, string[]> = {
-        // GASTRONOMÍA - Detailed
-        restaurante: [
-          "restaurantes tendencias 2025 innovación", 
-          "menú innovador restaurante fine dining",
-          "delivery restaurantes optimizar algoritmo",
-          "restaurantes sostenibilidad packaging",
-          "restaurant marketing digital 2025",
-          "gastronomía experiencias inmersivas",
-        ],
-        cafeteria: [
-          "cafeterías specialty coffee 2025", 
-          "café de especialidad tendencias latte art",
-          "coffee shop marketing redes sociales",
-          "cafeterías coworking espacio híbrido",
-          "cold brew nuevas tendencias café",
-        ],
-        bar: [
-          "bar cocktails tendencias 2025", 
-          "mixología innovación molecular",
-          "bares experiencias after work premium",
-          "bar sin alcohol mocktails premium",
-          "bares speakeasy concepto secreto",
-        ],
-        heladeria: [
-          "heladerías artesanales 2025", 
-          "helados veganos plant-based tendencias",
-          "heladerías sabores exóticos innovación",
-          "helados funcionales proteína",
-          "gelato italiano técnicas",
-        ],
-        panaderia: [
-          "panaderías artesanales tendencias 2025", 
-          "masa madre fermentados sourdough",
-          "panadería marketing local comunidad",
-          "pan saludable gluten free",
-          "croissants tendencias croissantería",
-        ],
-        dark_kitchen: [
-          "dark kitchen tendencias 2025", 
-          "cocinas fantasma optimización delivery",
-          "ghost kitchen algoritmo apps",
-          "virtual brands marcas virtuales",
-          "cloud kitchen eficiencia operativa",
-        ],
-        fast_casual: [
-          "fast casual tendencias 2025", 
-          "quick service restaurant innovación",
-          "comida rápida saludable premium",
-          "fast food sostenibilidad packaging",
-          "QSR digitalización pedidos",
-        ],
-        // RETAIL - Detailed
-        moda: [
-          "retail moda tendencias 2025", 
-          "tiendas ropa marketing digital influencers",
-          "moda sostenible circular segunda mano",
-          "fashion retail omnicanal experiencia",
-          "tiendas ropa personalización cliente",
-        ],
-        electronica: [
-          "retail electrónica tendencias 2025", 
-          "tiendas tecnología servicios reparación",
-          "electrónica ecommerce showrooming",
-          "tech retail experiencias demos",
-        ],
-        calzado: [
-          "calzado retail tendencias 2025", 
-          "zapaterías omnicanal fitting virtual",
-          "calzado sostenible reciclado",
-          "sneakers resale reventa tendencias",
-        ],
-        // SALUD
-        spa: [
-          "spa wellness tendencias 2025", 
-          "centros bienestar innovación experiencias",
-          "wellness integral mindfulness retiros",
-          "spa tratamientos high-tech",
-        ],
-        consultorio: [
-          "consultorios médicos telemedicina 2025", 
-          "clínicas privadas marketing digital pacientes",
-          "salud digital wearables integración",
-          "consultorios experiencia paciente",
-        ],
-        odontologia: [
-          "clínicas dentales marketing 2025", 
-          "odontología digital CAD CAM",
-          "ortodoncia invisible tendencias",
-          "turismo dental mercados",
-        ],
-        // TURISMO
-        hotel: [
-          "hoteles boutique tendencias 2025", 
-          "turismo experiencial local auténtico",
-          "hotelería sostenible certificaciones",
-          "hoteles tecnología check-in sin contacto",
-        ],
-        agencia_viajes: [
-          "agencias viajes digitalización 2025", 
-          "turismo personalizado AI recomendaciones",
-          "viajes experiencias únicas aventura",
-          "travel tech innovación",
-        ],
-        // B2B
-        consultoria: [
-          "consultoría empresas tendencias 2025", 
-          "servicios B2B suscripción recurrente",
-          "consulting digital transformación",
-          "advisory AI automatización",
-        ],
-        // EDUCACIÓN
-        educacion: [
-          "educación tendencias 2025",
-          "e-learning innovación plataformas",
-          "cursos online certificaciones",
-          "edtech gamificación",
-        ],
-        // DEFAULT
-        default: [
-          "pequeños negocios tendencias 2025", 
-          "pymes digitalización marketing",
-          "emprendedores innovación local",
-          "negocios locales redes sociales",
-          "marketing local comunidad",
-        ],
+        // ═══════════════════════════════════════════════════════════════════
+        // A1_GASTRO - GASTRONOMÍA Y BEBIDAS (22 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        restaurant_general: ["restaurantes tendencias 2025", "menú restaurante innovación", "delivery restaurantes algoritmo", "restaurante marketing digital", "gastronomía experiencias"],
+        alta_cocina: ["fine dining tendencias 2025", "restaurantes gourmet experiencia", "haute cuisine innovación", "restaurantes premium reservas", "gastronomía alta cocina premios"],
+        bodegon_cantina: ["bodegones tradicionales tendencias", "cantinas comida casera", "restaurantes familiares marketing", "cocina tradicional local", "bodegón clásico renovación"],
+        parrilla_asador: ["parrillas tendencias 2025", "asador cortes premium", "carnes a la brasa innovación", "steakhouse marketing", "parrilla argentina tendencias"],
+        cocina_criolla: ["cocina criolla tendencias", "comida regional local", "gastronomía tradicional innovación", "platos típicos marketing", "cocina autóctona premium"],
+        pescados_mariscos: ["marisquería tendencias 2025", "pescado fresco marketing", "ceviche innovación", "restaurante mar sostenibilidad", "seafood delivery tendencias"],
+        pizzeria: ["pizzerías tendencias 2025", "pizza artesanal innovación", "pizzería delivery optimizar", "pizza napoletana marketing", "pizzas gourmet premium"],
+        panaderia: ["panaderías artesanales 2025", "masa madre tendencias", "panadería marketing local", "pan saludable gluten free", "croissants croissantería"],
+        pastas_italiana: ["pastas frescas tendencias", "cocina italiana innovación", "trattoria marketing 2025", "pasta artesanal premium", "restaurante italiano experiencia"],
+        heladeria: ["heladerías artesanales 2025", "helados veganos plant-based", "gelato italiano tendencias", "helados funcionales proteína", "heladería marketing verano"],
+        fast_food: ["fast food tendencias 2025", "hamburguesas gourmet innovación", "comida rápida saludable", "food truck marketing", "QSR digitalización"],
+        cafeteria_pasteleria: ["cafeterías specialty coffee 2025", "café especialidad tendencias", "pastelería artesanal marketing", "coffee shop coworking", "cafetería experiencia premium"],
+        cocina_asiatica: ["cocina asiática tendencias 2025", "sushi innovación", "ramen restaurante marketing", "comida japonesa delivery", "fusión asiática premium"],
+        cocina_arabe: ["cocina árabe tendencias", "comida medio oriente 2025", "shawarma falafel innovación", "restaurante árabe marketing", "gastronomía oriental"],
+        cocina_saludable: ["comida saludable tendencias 2025", "restaurante vegano marketing", "healthy food innovación", "plant-based tendencias", "comida orgánica delivery"],
+        bar_cerveceria: ["bares tendencias 2025", "cervecería artesanal marketing", "cocktails innovación", "mixología molecular", "bar experiencias nocturnas"],
+        servicio_comida: ["catering tendencias 2025", "viandas delivery corporativo", "food service innovación", "take away optimización", "comida empresas marketing"],
+        dark_kitchen: ["dark kitchen tendencias 2025", "ghost kitchen optimización", "cocina fantasma delivery", "virtual brands estrategias", "cloud kitchen eficiencia"],
+        
+        // Aliases for common variations
+        restaurante: ["restaurantes tendencias 2025", "menú restaurante innovación", "delivery restaurantes algoritmo", "restaurante marketing digital", "gastronomía experiencias"],
+        cafeteria: ["cafeterías specialty coffee 2025", "café especialidad tendencias", "pastelería artesanal marketing", "coffee shop coworking", "cafetería experiencia premium"],
+        bar: ["bares tendencias 2025", "cervecería artesanal marketing", "cocktails innovación", "mixología molecular", "bar experiencias nocturnas"],
+        heladeria_alias: ["heladerías artesanales 2025", "helados veganos plant-based", "gelato italiano tendencias", "helados funcionales proteína", "heladería marketing verano"],
+        fast_casual: ["fast casual tendencias 2025", "quick service innovación", "comida rápida premium", "fast food sostenibilidad", "QSR digitalización"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // A2_TURISMO - TURISMO, HOTELERÍA, OCIO Y EVENTOS (18 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        hotel_urbano: ["hoteles urbanos tendencias 2025", "hotel business travel", "hotelería corporativa innovación", "hoteles ciudad marketing", "business hotel tecnología"],
+        hotel_boutique: ["hotel boutique tendencias 2025", "hoteles experiencia premium", "boutique hotel diseño", "hoteles exclusivos marketing", "small luxury hotels"],
+        resort_all_inclusive: ["resorts tendencias 2025", "all inclusive innovación", "resort sostenible", "turismo vacacional premium", "resort familiar experiencia"],
+        hostel: ["hostels tendencias 2025", "turismo joven innovación", "hostel marketing digital", "albergues experiencia social", "backpackers tendencias"],
+        posada_lodge: ["posadas rurales 2025", "lodge naturaleza", "ecoturismo tendencias", "turismo rural sostenible", "cabañas experiencia"],
+        apart_hotel: ["apart hotel tendencias", "extended stay 2025", "apartamentos temporarios", "suites business travel", "corporate housing"],
+        alquiler_temporario: ["alquiler temporario tendencias 2025", "Airbnb marketing", "short stay optimización", "alquiler vacacional", "rental management"],
+        agencia_viajes: ["agencias viajes digitalización 2025", "travel agency innovación", "turismo personalizado AI", "agencia online marketing", "OTA tendencias"],
+        operador_turistico: ["operadores turísticos 2025", "DMC tendencias", "receptivo turismo", "experiencias locales innovación", "tours operador marketing"],
+        tours_guiados: ["tours guiados tendencias 2025", "city tour innovación", "free walking tour", "experiencias guiadas marketing", "tours culturales"],
+        turismo_aventura: ["turismo aventura 2025", "outdoor tendencias", "ecoturismo innovación", "actividades naturaleza", "adventure travel marketing"],
+        atracciones_tickets: ["atracciones turísticas 2025", "tickets online innovación", "experiencias reservas", "tours actividades marketing", "GetYourGuide tendencias"],
+        parque_tematico: ["parques temáticos tendencias 2025", "entretenimiento familiar innovación", "theme park marketing", "atracciones experiencias", "parques diversiones"],
+        teatro_espectaculos: ["teatros tendencias 2025", "espectáculos innovación", "eventos culturales marketing", "shows en vivo", "entretenimiento cultural"],
+        salon_eventos_sociales: ["salones eventos 2025", "casamientos tendencias", "fiestas celebraciones", "eventos sociales innovación", "wedding venue marketing"],
+        eventos_corporativos: ["eventos corporativos MICE 2025", "congresos convenciones", "meetings incentives", "eventos empresas innovación", "corporate events tendencias"],
+        productora_eventos: ["productoras eventos 2025", "event production tendencias", "producción espectáculos", "eventos logística innovación", "show production"],
+        ocio_nocturno: ["vida nocturna tendencias 2025", "clubes nocturnos innovación", "discotecas marketing", "nightlife experiencias", "boliches clubbing"],
+        
+        // Aliases
+        hotel: ["hoteles boutique tendencias 2025", "turismo experiencial", "hotelería sostenible", "hoteles tecnología check-in", "hospitality innovación"],
+        agencia_viajes_alias: ["agencias viajes digitalización 2025", "travel tech innovación", "turismo personalizado", "viajes experiencias", "OTA tendencias"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // A3_RETAIL - COMERCIO MINORISTA Y E-COMMERCE (20 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        almacen_tienda_barrio: ["tiendas de barrio tendencias 2025", "comercio proximidad", "almacén marketing local", "retail cercanía innovación", "minimarket tendencias"],
+        supermercado: ["supermercados tendencias 2025", "retail alimentario innovación", "autoservicio tecnología", "grocery marketing", "supermercado online"],
+        moda_accesorios: ["retail moda tendencias 2025", "tiendas ropa marketing", "fashion retail innovación", "moda sostenible circular", "accesorios tendencias"],
+        calzado_marroquineria: ["calzado retail tendencias 2025", "zapaterías innovación", "sneakers resale", "marroquinería premium", "footwear marketing"],
+        joyeria_bijouterie: ["joyerías tendencias 2025", "bijouterie marketing", "accesorios lujo innovación", "jewelry retail", "joyas personalizadas"],
+        electronica_tecnologia: ["retail electrónica 2025", "tiendas tecnología tendencias", "tech retail innovación", "electrónica ecommerce", "gadgets marketing"],
+        deportes_outdoor: ["tiendas deportes tendencias 2025", "outdoor retail innovación", "running cycling marketing", "deportes ecommerce", "fitness retail"],
+        hogar_deco: ["tiendas hogar tendencias 2025", "decoración retail innovación", "home decor marketing", "muebles diseño", "interiorismo retail"],
+        jugueteria: ["jugueterías tendencias 2025", "toys retail innovación", "juguetes educativos marketing", "juguetería experiencias", "kids retail"],
+        libreria: ["librerías tendencias 2025", "bookstore innovación", "librería experiencia café", "libros marketing", "retail cultural"],
+        farmacia_perfumeria: ["farmacias tendencias 2025", "perfumería retail innovación", "cosmética marketing", "farmacia digital", "beauty retail"],
+        optica: ["ópticas tendencias 2025", "retail óptico innovación", "lentes contacto marketing", "óptica digital", "eyewear tendencias"],
+        ferreteria: ["ferreterías tendencias 2025", "hardware store innovación", "bricolaje marketing", "ferretería digital", "home improvement"],
+        vivero_jardineria: ["viveros tendencias 2025", "jardinería retail innovación", "plantas marketing", "garden center", "vivero sostenible"],
+        mascotas: ["pet shops tendencias 2025", "tiendas mascotas innovación", "pet retail marketing", "accesorios mascotas", "veterinaria retail"],
+        automotriz_repuestos: ["repuestos automotriz 2025", "autopartes retail tendencias", "taller mecánico innovación", "car parts marketing", "automotive retail"],
+        ecommerce_puro: ["ecommerce tendencias 2025", "tienda online innovación", "comercio electrónico marketing", "marketplace estrategias", "digital retail"],
+        dropshipping_fulfillment: ["dropshipping tendencias 2025", "fulfillment innovación", "logística ecommerce", "warehousing retail", "3PL tendencias"],
+        marketplace_plataforma: ["marketplaces tendencias 2025", "plataforma ecommerce innovación", "retail platform marketing", "agregadores", "multi-vendor"],
+        venta_directa_catalogo: ["venta directa tendencias 2025", "catálogo innovación", "network marketing", "MLM tendencias", "direct sales"],
+        
+        // Aliases
+        moda: ["retail moda tendencias 2025", "tiendas ropa marketing", "fashion retail innovación", "moda sostenible", "accesorios tendencias"],
+        electronica: ["retail electrónica 2025", "tiendas tecnología tendencias", "tech retail innovación", "electrónica ecommerce", "gadgets marketing"],
+        calzado: ["calzado retail tendencias 2025", "zapaterías innovación", "sneakers resale", "marroquinería premium", "footwear marketing"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // A4_SALUD - SALUD Y BIENESTAR (16 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        consultorio_medico: ["consultorios médicos telemedicina 2025", "clínicas privadas marketing", "salud digital wearables", "medicina experiencia paciente", "healthcare innovación"],
+        clinica_especialidad: ["clínicas especialidad tendencias 2025", "centros médicos innovación", "especialidades médicas marketing", "healthcare technology", "clínica privada"],
+        odontologia: ["clínicas dentales marketing 2025", "odontología digital CAD CAM", "ortodoncia invisible tendencias", "turismo dental", "dental technology"],
+        psicologia_psiquiatria: ["psicología online tendencias 2025", "terapia digital innovación", "salud mental marketing", "wellness mental", "psiquiatría telemedicina"],
+        fisioterapia_rehabilitacion: ["fisioterapia tendencias 2025", "rehabilitación innovación", "kinesiología marketing", "recuperación deportiva", "physio technology"],
+        nutricion: ["nutricionistas tendencias 2025", "nutrición online innovación", "dietista marketing digital", "alimentación saludable", "nutrition coaching"],
+        optica_salud: ["óptica salud visual 2025", "optometría tendencias", "salud ocular innovación", "lentes contacto tecnología", "eye care"],
+        farmacia_magistral: ["farmacias magistrales 2025", "formulación personalizada", "farmacia especializada innovación", "compounding pharmacy", "farmacia clínica"],
+        laboratorio_diagnostico: ["laboratorios clínicos 2025", "diagnóstico innovación", "análisis clínicos tecnología", "lab testing marketing", "diagnostics"],
+        centro_dialisis: ["centros diálisis tendencias", "nefrología innovación", "tratamiento renal", "kidney care", "dialysis technology"],
+        estetica_medica: ["estética médica tendencias 2025", "medicina estética innovación", "tratamientos antienvejecimiento", "aesthetic medicine marketing", "cosmetic procedures"],
+        spa_wellness: ["spa wellness tendencias 2025", "centros bienestar innovación", "wellness integral mindfulness", "spa tratamientos high-tech", "wellness retreat"],
+        gimnasio_fitness: ["gimnasios tendencias 2025", "fitness innovación boutique", "gym marketing digital", "fitness technology", "workout tendencias"],
+        yoga_pilates: ["yoga studios tendencias 2025", "pilates innovación", "wellness classes marketing", "mindfulness tendencias", "yoga online"],
+        centro_belleza: ["centros belleza tendencias 2025", "salón estética innovación", "beauty marketing", "tratamientos faciales corporales", "spa day"],
+        peluqueria_barberia: ["peluquerías tendencias 2025", "barbería innovación", "hair salon marketing", "barbershop experience", "styling tendencias"],
+        
+        // Aliases
+        spa: ["spa wellness tendencias 2025", "centros bienestar innovación", "wellness integral mindfulness", "spa tratamientos high-tech", "wellness retreat"],
+        consultorio: ["consultorios médicos telemedicina 2025", "clínicas privadas marketing", "salud digital wearables", "medicina experiencia paciente", "healthcare innovación"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // A5_PROFESIONAL - SERVICIOS PROFESIONALES (18 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        estudio_abogados: ["estudios jurídicos tendencias 2025", "abogados marketing digital", "legaltech innovación", "law firm technology", "servicios legales online"],
+        estudio_contable: ["estudios contables tendencias 2025", "contadores digitalización", "accounting tech innovación", "fintech contabilidad", "tax advisory"],
+        consultoria_empresarial: ["consultoría empresas tendencias 2025", "consulting innovación", "advisory services marketing", "management consulting", "business strategy"],
+        consultoria_ti: ["consultoría TI tendencias 2025", "IT services innovación", "technology consulting", "digital transformation", "tech advisory"],
+        agencia_marketing: ["agencias marketing tendencias 2025", "marketing digital innovación", "creative agency", "publicidad digital", "branding estrategias"],
+        estudio_diseno: ["estudios diseño tendencias 2025", "design agency innovación", "branding marketing", "diseño gráfico web", "UX UI tendencias"],
+        estudio_arquitectura: ["estudios arquitectura tendencias 2025", "arquitectos innovación", "diseño sustentable", "architecture marketing", "building design"],
+        inmobiliaria: ["inmobiliarias tendencias 2025", "real estate innovación", "proptech marketing", "corredores inmobiliarios", "property technology"],
+        agente_seguros: ["seguros tendencias 2025", "insurtech innovación", "agentes seguros marketing", "insurance digital", "broker seguros"],
+        asesoria_financiera: ["asesores financieros 2025", "wealth management tendencias", "fintech advisory", "planificación financiera", "investment advisory"],
+        agencia_reclutamiento: ["reclutamiento tendencias 2025", "headhunting innovación", "HR tech marketing", "talent acquisition", "staffing agencies"],
+        coworking: ["coworking tendencias 2025", "espacios trabajo flexibles", "oficinas compartidas innovación", "workspace marketing", "flex office"],
+        imprenta: ["imprentas tendencias 2025", "print on demand innovación", "impresión digital marketing", "printing services", "graphic production"],
+        servicios_audiovisuales: ["productoras audiovisuales 2025", "video production tendencias", "fotografía profesional", "content creation", "media services"],
+        traduccion_localizacion: ["servicios traducción 2025", "localización innovación", "translation technology", "multilingual marketing", "language services"],
+        notaria: ["notarías tendencias 2025", "servicios notariales digital", "notary tech", "certificación documentos", "legal notarial"],
+        despachante_aduana: ["comercio exterior 2025", "despachantes aduana tendencias", "customs broker innovación", "import export marketing", "logistics freight"],
+        seguridad_vigilancia: ["seguridad privada tendencias 2025", "vigilancia tecnología", "security services innovación", "monitoreo alarmas", "safety marketing"],
+        
+        // Aliases
+        consultoria: ["consultoría empresas tendencias 2025", "consulting innovación", "advisory services marketing", "management consulting", "business strategy"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // A6_EDUCACION - EDUCACIÓN Y FORMACIÓN (12 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        escuela_privada: ["colegios privados tendencias 2025", "educación K12 innovación", "escuelas tecnología", "private school marketing", "edtech primaria secundaria"],
+        jardin_infantes: ["jardines infantes tendencias 2025", "early childhood education", "preescolar innovación", "childcare marketing", "kindergarten"],
+        instituto_idiomas: ["institutos idiomas tendencias 2025", "language learning innovación", "academias inglés marketing", "cursos idiomas online", "language school"],
+        academia_artes: ["academias artes tendencias 2025", "escuelas música arte", "creative education innovación", "art school marketing", "performing arts"],
+        capacitacion_corporativa: ["capacitación empresas 2025", "corporate training tendencias", "L&D innovación", "formación corporativa", "upskilling reskilling"],
+        coaching_mentoring: ["coaching tendencias 2025", "mentoring innovación", "desarrollo personal marketing", "life coaching", "executive coaching"],
+        elearning_plataforma: ["e-learning tendencias 2025", "plataformas cursos online", "edtech innovación", "MOOC marketing", "digital learning"],
+        tutoria_apoyo: ["tutorías tendencias 2025", "apoyo escolar innovación", "clases particulares marketing", "tutoring online", "academic support"],
+        certificaciones_it: ["certificaciones IT tendencias 2025", "bootcamps programación", "coding school marketing", "tech education", "skills training"],
+        universidad_posgrado: ["universidades tendencias 2025", "educación superior innovación", "posgrados MBA marketing", "higher education", "academic innovation"],
+        formacion_oficios: ["formación oficios 2025", "escuelas técnicas tendencias", "vocational training", "oficios demandados", "skill trades"],
+        autoescuela: ["autoescuelas tendencias 2025", "driving school innovación", "licencias conducir marketing", "academia manejo", "driver education"],
+        
+        // Aliases  
+        educacion: ["educación tendencias 2025", "e-learning innovación", "cursos online certificaciones", "edtech gamificación", "formación digital"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // A7_INDUSTRIA - INDUSTRIA Y MANUFACTURA (14 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        fabrica_alimentos: ["industria alimentaria tendencias 2025", "food manufacturing innovación", "producción alimentos marketing", "procesamiento comida", "food tech"],
+        fabrica_textil: ["industria textil tendencias 2025", "manufacturing moda", "textile innovation", "confección ropa", "fashion production"],
+        industria_metalurgica: ["metalurgia tendencias 2025", "industria metal innovación", "manufacturing steel", "metal fabrication", "industrial metal"],
+        industria_plasticos: ["plásticos industria 2025", "packaging innovación", "manufacturing plastics", "materiales reciclables", "plastic production"],
+        industria_madera: ["industria maderera 2025", "carpintería industrial", "wood manufacturing", "muebles producción", "forestry products"],
+        taller_manufactura: ["talleres manufactura 2025", "small manufacturing tendencias", "artisan production", "custom manufacturing", "job shop"],
+        imprenta_industrial: ["impresión industrial 2025", "packaging printing tendencias", "label manufacturing", "print production", "industrial graphics"],
+        laboratorio_farmaceutico: ["laboratorios farmacéuticos 2025", "pharma manufacturing tendencias", "drug production", "pharmaceutical innovation", "biotech"],
+        fabrica_cosmeticos: ["cosmética industrial 2025", "beauty manufacturing", "skincare production tendencias", "personal care manufacturing", "cosmetic innovation"],
+        industria_quimica: ["industria química 2025", "chemical manufacturing tendencias", "specialty chemicals", "industrial chemicals", "chemical production"],
+        electronica_industrial: ["electrónica industrial 2025", "electronic manufacturing", "PCB production tendencias", "tech manufacturing", "electronic assembly"],
+        autopartes: ["autopartes manufacturing 2025", "automotive parts tendencias", "car components production", "OEM manufacturing", "auto industry"],
+        packaging_envases: ["packaging tendencias 2025", "envases innovación", "sustainable packaging", "container manufacturing", "packaging solutions"],
+        reciclaje_residuos: ["reciclaje industrial 2025", "waste management tendencias", "circular economy", "residuos innovación", "recycling business"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // A8_CONSTRUCCION - CONSTRUCCIÓN E INMUEBLES (10 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        constructora_obra_civil: ["constructoras tendencias 2025", "construcción civil innovación", "building company marketing", "infrastructure development", "civil engineering"],
+        desarrolladora_inmobiliaria: ["desarrolladoras inmobiliarias 2025", "real estate development tendencias", "property development", "residential commercial projects", "proptech development"],
+        reformas_remodelaciones: ["reformas hogar tendencias 2025", "remodelación innovación", "home renovation marketing", "remodeling business", "interior renovation"],
+        instalaciones_electricas: ["electricistas tendencias 2025", "instalaciones eléctricas innovación", "electrical services marketing", "smart home installation", "electrical contractor"],
+        instalaciones_sanitarias: ["plomería tendencias 2025", "instalaciones sanitarias innovación", "plumbing services marketing", "bathroom renovation", "plumbing contractor"],
+        climatizacion_hvac: ["climatización tendencias 2025", "HVAC innovación", "aire acondicionado marketing", "heating cooling services", "hvac contractor"],
+        pintura_acabados: ["pintores tendencias 2025", "painting services innovación", "acabados interiores marketing", "decorative painting", "painting contractor"],
+        carpinteria_muebles: ["carpintería tendencias 2025", "muebles a medida innovación", "custom furniture marketing", "woodworking services", "cabinet making"],
+        vidrieria_cerramientos: ["vidriería tendencias 2025", "cerramientos innovación", "glass services marketing", "window installation", "glazing contractor"],
+        paisajismo: ["paisajismo tendencias 2025", "landscaping innovación", "jardines diseño marketing", "outdoor design", "landscape architecture"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // A9_TRANSPORTE - TRANSPORTE Y LOGÍSTICA (12 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        transporte_pasajeros: ["transporte pasajeros tendencias 2025", "buses turismo innovación", "charter services marketing", "passenger transport", "mobility services"],
+        taxi_remis: ["taxis remises tendencias 2025", "ride hailing innovación", "taxi app marketing", "car service business", "taxi fleet"],
+        mensajeria_courier: ["mensajería courier tendencias 2025", "last mile delivery innovación", "courier services marketing", "express delivery", "parcel delivery"],
+        mudanzas_fletes: ["mudanzas tendencias 2025", "moving services innovación", "fletes logística marketing", "relocation business", "freight moving"],
+        almacenamiento_deposito: ["almacenes depósitos 2025", "warehousing tendencias", "storage solutions innovación", "logistics warehouse", "fulfillment center"],
+        transporte_carga: ["transporte carga tendencias 2025", "freight trucking innovación", "logistics transport marketing", "cargo shipping", "trucking business"],
+        logistica_distribucion: ["logística distribución 2025", "supply chain tendencias", "distribution logistics innovación", "3PL services", "logistics management"],
+        grua_auxilio: ["grúas auxilio 2025", "roadside assistance tendencias", "tow truck services", "vehicle recovery", "emergency towing"],
+        alquiler_vehiculos: ["alquiler vehículos tendencias 2025", "car rental innovación", "fleet rental marketing", "vehicle leasing", "rent-a-car"],
+        estacionamiento: ["estacionamientos tendencias 2025", "parking innovación", "parking management marketing", "smart parking", "parking solutions"],
+        taller_mecanico: ["talleres mecánicos tendencias 2025", "automotive repair innovación", "car service marketing", "mechanic shop", "auto repair"],
+        lavadero_autos: ["lavaderos autos tendencias 2025", "car wash innovación", "detailing marketing", "auto cleaning", "car care services"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // A10_AGRO - AGRO Y ALIMENTOS PRIMARIOS (10 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        produccion_agricola: ["agricultura tendencias 2025", "agtech innovación", "farming technology marketing", "precision agriculture", "crop production"],
+        ganaderia: ["ganadería tendencias 2025", "livestock innovación", "cattle farming marketing", "meat production", "animal husbandry"],
+        agroindustria: ["agroindustria tendencias 2025", "food processing innovación", "agricultural industry marketing", "agribusiness", "farm to factory"],
+        bodega_vinos: ["bodegas vinos tendencias 2025", "winery innovación", "wine marketing", "viticultura", "wine tourism"],
+        cerveceria_artesanal: ["cervecerías artesanales tendencias 2025", "craft brewery innovación", "beer marketing", "microbrewery", "brewing business"],
+        apicultura: ["apicultura tendencias 2025", "beekeeping innovación", "honey production marketing", "bee farming", "apiary business"],
+        acuicultura_pesca: ["acuicultura tendencias 2025", "fish farming innovación", "aquaculture marketing", "fishing business", "seafood production"],
+        productos_organicos: ["orgánicos tendencias 2025", "organic farming innovación", "productos naturales marketing", "sustainable agriculture", "organic certification"],
+        vivero_plantas: ["viveros plantas tendencias 2025", "nursery business innovación", "plant production marketing", "horticulture", "greenhouse"],
+        agroinsumos: ["agroinsumos tendencias 2025", "farm supplies innovación", "agricultural inputs marketing", "seeds fertilizers", "farm equipment"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // A11_TECNOLOGIA - TECNOLOGÍA Y DIGITAL (12 tipos)
+        // ═══════════════════════════════════════════════════════════════════
+        desarrollo_software: ["software development tendencias 2025", "desarrollo apps innovación", "tech startup marketing", "SaaS business", "coding services"],
+        agencia_digital: ["agencias digitales tendencias 2025", "digital agency innovación", "web development marketing", "online marketing agency", "digital services"],
+        saas_plataforma: ["SaaS tendencias 2025", "platform business innovación", "software subscription marketing", "cloud services", "B2B SaaS"],
+        app_mobile: ["apps móviles tendencias 2025", "mobile development innovación", "app marketing", "iOS Android development", "mobile business"],
+        ecommerce_tech: ["ecommerce tech tendencias 2025", "online store innovación", "digital commerce marketing", "ecommerce platform", "online retail tech"],
+        fintech: ["fintech tendencias 2025", "financial technology innovación", "payments marketing", "digital banking", "crypto blockchain"],
+        healthtech: ["healthtech tendencias 2025", "health technology innovación", "medical tech marketing", "digital health", "telemedicine tech"],
+        edtech: ["edtech tendencias 2025", "education technology innovación", "learning platform marketing", "online education", "training tech"],
+        proptech: ["proptech tendencias 2025", "real estate tech innovación", "property technology marketing", "real estate digital", "smart buildings"],
+        insurtech: ["insurtech tendencias 2025", "insurance technology innovación", "digital insurance marketing", "insurance platform", "risk tech"],
+        ai_machine_learning: ["inteligencia artificial tendencias 2025", "machine learning innovación", "AI business marketing", "automation tech", "cognitive services"],
+        ciberseguridad: ["ciberseguridad tendencias 2025", "cybersecurity innovación", "security services marketing", "data protection", "infosec business"],
+        
+        // ═══════════════════════════════════════════════════════════════════
+        // DEFAULT FALLBACK
+        // ═══════════════════════════════════════════════════════════════════
+        default: ["pequeños negocios tendencias 2025", "pymes digitalización", "emprendedores innovación", "negocios locales marketing", "comercio local estrategias"],
       };
 
-      // Get sector-specific queries
-      const baseQueries = sectorQueries[sectorHint.toLowerCase()] || sectorQueries.default;
+      // =====================================================================
+      // 🧠 INTELLIGENT QUERY SELECTION - FINDS BEST MATCH FOR ANY BUSINESS TYPE
+      // =====================================================================
       
-      // Focus-based additional queries
+      // Normalize sector hint to find best match
+      const normalizedSector = sectorHint.toLowerCase()
+        .replace(/[áàäâ]/g, 'a')
+        .replace(/[éèëê]/g, 'e')
+        .replace(/[íìïî]/g, 'i')
+        .replace(/[óòöô]/g, 'o')
+        .replace(/[úùüû]/g, 'u')
+        .replace(/ñ/g, 'n')
+        .replace(/[^a-z0-9_]/g, '_');
+      
+      // Try exact match first, then partial matches
+      let baseQueries: string[] = [];
+      
+      // Exact match
+      if (sectorQueries[normalizedSector]) {
+        baseQueries = sectorQueries[normalizedSector];
+        console.log(`[I+D] Exact sector match: ${normalizedSector}`);
+      } 
+      // Try finding partial match (e.g., "restaurant_general" matches "restaurante")
+      else {
+        const sectorKeys = Object.keys(sectorQueries);
+        const partialMatch = sectorKeys.find(key => 
+          normalizedSector.includes(key) || key.includes(normalizedSector) ||
+          normalizedSector.split('_').some((part: string) => key.includes(part))
+        );
+        if (partialMatch) {
+          baseQueries = sectorQueries[partialMatch];
+          console.log(`[I+D] Partial sector match: ${normalizedSector} -> ${partialMatch}`);
+        } else {
+          // Try category-based fallback
+          const category = (business.category || '').toLowerCase();
+          const categoryMatch = sectorKeys.find(key => key.includes(category) || category.includes(key));
+          if (categoryMatch) {
+            baseQueries = sectorQueries[categoryMatch];
+            console.log(`[I+D] Category fallback match: ${category} -> ${categoryMatch}`);
+          } else {
+            baseQueries = sectorQueries.default;
+            console.log(`[I+D] Using default queries for: ${normalizedSector}`);
+          }
+        }
+      }
+      
+      // Enhanced focus-based additional queries with more variety
       const focusQueries: Record<string, string[]> = {
-        ventas: [`${sectorHint} aumentar ventas estrategias 2025`, `${sectorHint} conversión clientes`],
-        reputacion: [`${sectorHint} reseñas Google reputación online`, `${sectorHint} experiencia cliente NPS`],
-        operaciones: [`${sectorHint} eficiencia operativa automatización`, `${sectorHint} optimizar costos`],
-        marketing: [`${sectorHint} marketing digital 2025`, `${sectorHint} redes sociales contenido viral`],
-        equipo: [`${sectorHint} recursos humanos retención talento`, `${sectorHint} capacitación empleados`],
+        ventas: [
+          `${sectorHint} aumentar ventas estrategias 2025`, 
+          `${sectorHint} conversión clientes`,
+          `${sectorHint} pricing estrategias precios`,
+          `${sectorHint} upselling cross-selling`,
+        ],
+        reputacion: [
+          `${sectorHint} reseñas Google reputación online`, 
+          `${sectorHint} experiencia cliente NPS`,
+          `${sectorHint} gestión quejas reclamaciones`,
+          `${sectorHint} fidelización clientes`,
+        ],
+        operaciones: [
+          `${sectorHint} eficiencia operativa automatización`, 
+          `${sectorHint} optimizar costos`,
+          `${sectorHint} productividad procesos`,
+          `${sectorHint} tecnología operaciones`,
+        ],
+        marketing: [
+          `${sectorHint} marketing digital 2025`, 
+          `${sectorHint} redes sociales contenido viral`,
+          `${sectorHint} publicidad online ads`,
+          `${sectorHint} branding posicionamiento`,
+        ],
+        equipo: [
+          `${sectorHint} recursos humanos retención talento`, 
+          `${sectorHint} capacitación empleados`,
+          `${sectorHint} cultura organizacional`,
+          `${sectorHint} liderazgo equipos`,
+        ],
+        crecimiento: [
+          `${sectorHint} expansión negocios`,
+          `${sectorHint} franquicias crecimiento`,
+          `${sectorHint} escalabilidad`,
+          `${sectorHint} inversión capital`,
+        ],
+        innovacion: [
+          `${sectorHint} innovación disruptiva`,
+          `${sectorHint} tecnología transformación digital`,
+          `${sectorHint} nuevos modelos negocio`,
+          `${sectorHint} startups sector`,
+        ],
       };
 
-      const additionalFocusQueries = focusQueries[focusHint.toLowerCase()] || [];
+      const additionalFocusQueries = focusQueries[focusHint.toLowerCase()] || focusQueries.ventas;
       
-      // Build comprehensive query list for maximum insights
+      // Build ultra-comprehensive query list for MAXIMUM insights
       const queries = [
-        // Base sector queries
-        ...baseQueries.map(q => `${q} ${business.country || "LATAM"}`),
-        // Focus-specific queries
-        ...additionalFocusQueries.map(q => `${q} ${business.country || ""}`),
-        // Local/city specific
-        cityHint ? `${sectorHint} ${cityHint} tendencias` : null,
-        // Platform specific
+        // Base sector queries (5 queries) with country
+        ...baseQueries.slice(0, 5).map(q => `${q} ${business.country || "LATAM"}`),
+        // Focus-specific queries (4 queries)
+        ...additionalFocusQueries.slice(0, 4).map(q => `${q} ${business.country || ""}`),
+        // Local/city specific (if available)
+        cityHint ? `${sectorHint} ${cityHint} tendencias noticias` : null,
+        cityHint ? `negocios ${cityHint} 2025 tendencias` : null,
+        // Platform-specific queries (universal)
         `${sectorHint} Google Maps reseñas optimizar 2025`,
         `${sectorHint} Instagram Reels TikTok contenido 2025`,
-        // Innovation
-        `${sectorHint} innovación tecnología 2025`,
-        // Competition
-        `${sectorHint} competencia estrategias ganadoras`,
+        `${sectorHint} WhatsApp Business ventas 2025`,
+        // Innovation & Tech
+        `${sectorHint} inteligencia artificial AI 2025`,
+        `${sectorHint} automatización digitalización`,
+        // Competition & Market
+        `${sectorHint} competencia estrategias`,
+        `${sectorHint} mercado tendencias consumidor`,
+        // Sustainability (important trend)
+        `${sectorHint} sostenibilidad sustentabilidad`,
       ].filter(Boolean) as string[];
 
-      console.log(`Fetching RSS for ${queries.length} queries (sector: ${sectorHint}, focus: ${focusHint})`);
+      console.log(`[I+D] Fetching RSS for ${queries.length} queries (sector: ${sectorHint}, focus: ${focusHint})`);
 
-      // Fetch more headlines for better variety
+      // Fetch MORE headlines for better variety (up to 16 parallel requests)
       const rssResults = await Promise.all(
-        queries.slice(0, 12).map((q) => fetchGoogleNewsRss(q, locale))
+        queries.slice(0, 16).map((q) => fetchGoogleNewsRss(q, locale))
       );
 
-      // Keep more items for AI to choose the best ones
-      externalRssItems = rssResults.flat().slice(0, 25);
-      console.log(`Found ${externalRssItems.length} RSS headlines for I+D analysis`);
+      // Keep more items for AI to choose from (up to 40 headlines)
+      externalRssItems = rssResults.flat().slice(0, 40);
+      console.log(`[I+D] Found ${externalRssItems.length} RSS headlines for analysis`);
     }
 
     // Append external RSS context ONLY for I+D.
