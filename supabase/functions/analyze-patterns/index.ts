@@ -420,18 +420,92 @@ serve(async (req) => {
         ? `${analysisContext}\n\n## RADAR EXTERNO (I+D) — TITULARES/TENDENCIAS REALES (RSS)\nIMPORTANTE: Usar ÚNICAMENTE estos titulares como fuentes.\n\n${formatRssForContext(externalRssItems)}`
         : analysisContext;
 
-    // ULTRA-PERSONALIZED SYSTEM PROMPTS - Enhanced for 7-10 insights/month
+    // =====================================================================
+    // 🧠 ULTRA-PERSONALIZED SYSTEM PROMPTS - MAXIMUM BRAIN CONTEXT
+    // =====================================================================
+    // Extract all brain context for hyper-personalization
+    const brainFactualMemory = brain?.factual_memory || {};
+    const brainDynamicMemory = brain?.dynamic_memory || {};
+    const brainDecisionsMemory = brain?.decisions_memory || {};
+    
+    // Extract specific knowledge from factual memory
+    const knownProducts = (brainFactualMemory as any).productos || (brainFactualMemory as any).menu_items || [];
+    const knownPrices = (brainFactualMemory as any).precios || (brainFactualMemory as any).ticket_promedio || null;
+    const knownStrengths = (brainFactualMemory as any).fortalezas || [];
+    const knownWeaknesses = (brainFactualMemory as any).debilidades || [];
+    const knownDifferentiators = (brainFactualMemory as any).diferenciadores || [];
+    const knownTargetAudience = (brainFactualMemory as any).cliente_objetivo || (brainFactualMemory as any).publico_objetivo || null;
+    const knownCompetitors = (brainFactualMemory as any).competidores || [];
+    const knownSeasonality = (brainFactualMemory as any).temporadas || (brainFactualMemory as any).estacionalidad || null;
+    
+    // Extract patterns from dynamic memory
+    const pulseHistory = (brainDynamicMemory as any).pulse_history || [];
+    const recentGoodEvents = (brainDynamicMemory as any).last_good_events || [];
+    const recentBadEvents = (brainDynamicMemory as any).last_bad_events || [];
+    const avgPulse7d = (brainDynamicMemory as any).avg_pulse_7d || null;
+    
+    // Extract preferences from decisions memory
+    const rejectedMissionTypes = (brainDecisionsMemory as any).rejected_types || [];
+    const preferredMissionTypes = (brainDecisionsMemory as any).preferred_types || [];
+    const pausedMissions = (brainDecisionsMemory as any).paused_missions || [];
+    const completedMissionsCount = (brainDecisionsMemory as any).completed_count || 0;
+    
+    // Build ultra-detailed brain context string
+    const brainContextStr = `
+## 🧠 CEREBRO DEL NEGOCIO (MEMORIA PROFUNDA - USAR PARA ULTRA-PERSONALIZACIÓN)
+
+### PERFIL ESTRATÉGICO DEL NEGOCIO
+- **Tipo primario de negocio**: ${brain?.primary_business_type || business.category || "negocio local"}
+- **Tipo secundario**: ${brain?.secondary_business_type || "N/A"}
+- **Score de confianza del Brain**: ${brain?.confidence_score || 0}% (mientras más alto, más datos tenemos)
+- **Foco actual del dueño**: ${brain?.current_focus || "crecimiento"} (prioridad: ${brain?.focus_priority || 5}/10)
+
+### MEMORIA FACTUAL (Conocimiento verificado del negocio)
+- **Productos/Menú destacados**: ${Array.isArray(knownProducts) && knownProducts.length > 0 ? knownProducts.slice(0, 5).join(", ") : "Por descubrir"}
+- **Ticket promedio**: ${knownPrices || "Por determinar"}
+- **Fortalezas identificadas**: ${Array.isArray(knownStrengths) && knownStrengths.length > 0 ? knownStrengths.join(", ") : "Por identificar"}
+- **Debilidades conocidas**: ${Array.isArray(knownWeaknesses) && knownWeaknesses.length > 0 ? knownWeaknesses.join(", ") : "Por identificar"}
+- **Diferenciadores clave**: ${Array.isArray(knownDifferentiators) && knownDifferentiators.length > 0 ? knownDifferentiators.join(", ") : "Por definir"}
+- **Cliente objetivo**: ${knownTargetAudience || "Por perfilar"}
+- **Competidores conocidos**: ${Array.isArray(knownCompetitors) && knownCompetitors.length > 0 ? knownCompetitors.slice(0, 3).join(", ") : "Por mapear"}
+- **Estacionalidad**: ${knownSeasonality || "Por analizar"}
+
+### MEMORIA DINÁMICA (Patrones recientes de rendimiento)
+- **Pulso promedio últimos 7 días**: ${avgPulse7d ? `${avgPulse7d.toFixed(1)}/5` : "Sin datos suficientes"}
+- **Total check-ins en historial**: ${pulseHistory.length} registros
+- **Eventos POSITIVOS recientes del dueño**: ${Array.isArray(recentGoodEvents) && recentGoodEvents.length > 0 ? recentGoodEvents.slice(0, 3).join("; ") : "Sin registrar aún"}
+- **Eventos NEGATIVOS recientes del dueño**: ${Array.isArray(recentBadEvents) && recentBadEvents.length > 0 ? recentBadEvents.slice(0, 3).join("; ") : "Sin registrar aún"}
+- **Misiones completadas**: ${completedMissionsCount} en total
+
+### PREFERENCIAS DEL DUEÑO (Aprendidas de sus decisiones)
+- **Tipos de insight/misión que RECHAZÓ** (EVITAR estos temas): ${Array.isArray(rejectedMissionTypes) && rejectedMissionTypes.length > 0 ? rejectedMissionTypes.join(", ") : "Ninguno registrado aún"}
+- **Tipos de insight/misión preferidos**: ${Array.isArray(preferredMissionTypes) && preferredMissionTypes.length > 0 ? preferredMissionTypes.join(", ") : "Por descubrir"}
+- **Misiones pausadas** (indica posible fricción con el tema): ${Array.isArray(pausedMissions) && pausedMissions.length > 0 ? pausedMissions.slice(0, 3).map((m: any) => typeof m === 'string' ? m : m.title || 'Sin título').join(", ") : "Ninguna"}
+
+### INSTRUCCIÓN CLAVE DE PERSONALIZACIÓN
+Usá TODA esta información del Brain para:
+1. Priorizar insights que ALINEEN con el foco actual (${brain?.current_focus || "crecimiento"})
+2. EVITAR temas similares a los rechazados: ${Array.isArray(rejectedMissionTypes) && rejectedMissionTypes.length > 0 ? rejectedMissionTypes.join(", ") : "ninguno"}
+3. Considerar las fortalezas y debilidades conocidas al explicar "por qué aplica"
+4. Relacionar tendencias externas con los productos/servicios específicos cuando sea posible
+5. Si el pulso reciente es bajo (${avgPulse7d ? avgPulse7d.toFixed(1) : "N/A"}/5), priorizar insights de alto impacto inmediato
+`;
+    
     const systemPrompt = mode === "research"
       ? `Eres el motor de Radar Externo (Investigación + Desarrollo / I+D) de Vistaceo.
+Sos una IA de ÉLITE con acceso TOTAL al Cerebro del Negocio. Tu misión es generar insights ULTRA-PERSONALIZADOS que sean PERFECTOS para este negocio específico.
 
 REGLA ABSOLUTA: I+D es EXTERNO. Detecta señales fuera del negocio (mercado/plataformas/competencia/regulación/macros/tendencias globales) y las traduce a "qué podría significar para vos".
 
-## CONTEXTO DEL NEGOCIO (CRÍTICO PARA PERSONALIZACIÓN)
-- **Sector**: ${brain?.primary_business_type || business.category || "negocio local"}
+${brainContextStr}
+
+## CONTEXTO OPERATIVO DEL NEGOCIO
+- **Nombre**: ${business.name}
 - **País/Ciudad**: ${business.country || "LATAM"} - ${extractCityHint(business.address) || "zona local"}
-- **Foco actual del dueño**: ${brain?.current_focus || "crecimiento"}
 - **Modelo de servicio**: ${business.service_model || "mixto"}
 - **Canales activos**: ${business.delivery_platforms?.join(", ") || "presencial"}
+- **Rating promedio en plataformas**: ${business.avg_rating ? `${business.avg_rating}/5` : "Sin datos"}
+
 
 ## GUARDRAILS (NO NEGOCIABLE)
 - Prohibido diagnosticar operación interna o métricas del negocio.
