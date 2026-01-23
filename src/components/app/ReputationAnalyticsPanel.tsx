@@ -32,6 +32,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { PlatformReputationCard, PlatformType } from "./PlatformReputationCard";
 import { PlatformConnectModal } from "./PlatformConnectModal";
+import { GoogleReviewsCard } from "./GoogleReviewsCard";
+import { GoogleLocationSelector } from "./GoogleLocationSelector";
 
 interface ReputationAnalysis {
   overall_score: number;
@@ -82,6 +84,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
   const [analyzing, setAnalyzing] = useState(false);
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformType | null>(null);
+  const [locationSelectorOpen, setLocationSelectorOpen] = useState(false);
 
   const handleConnectPlatform = (platform: PlatformType) => {
     setSelectedPlatform(platform);
@@ -370,13 +373,33 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mainPlatforms.map((platform) => (
-                <PlatformReputationCard
-                  key={platform.platform}
-                  data={getPlatformData(platform)}
-                  onConnect={() => handleConnectPlatform(platform.platform)}
-                />
-              ))}
+              {mainPlatforms.map((platform) => {
+                // Use specialized card for Google
+                if (platform.platform === "google") {
+                  return (
+                    <GoogleReviewsCard
+                      key="google"
+                      connected={platform.connected}
+                      metadata={platform.metadata}
+                      reviewCount={platform.reviewCount || 0}
+                      avgRating={platform.avgRating || 0}
+                      responseRate={analysis?.response_rate || 0}
+                      lastSync={platform.lastSync}
+                      onConnect={() => handleConnectPlatform("google")}
+                      onChangeLocation={() => setLocationSelectorOpen(true)}
+                      onSyncComplete={fetchPlatforms}
+                      businessId={currentBusiness?.id || ""}
+                    />
+                  );
+                }
+                return (
+                  <PlatformReputationCard
+                    key={platform.platform}
+                    data={getPlatformData(platform)}
+                    onConnect={() => handleConnectPlatform(platform.platform)}
+                  />
+                );
+              })}
             </div>
 
             {/* Connect Modal */}
@@ -385,6 +408,17 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
               onOpenChange={setConnectModalOpen}
               platform={selectedPlatform}
               onSuccess={handleConnectionSuccess}
+            />
+            
+            {/* Google Location Selector */}
+            <GoogleLocationSelector
+              businessId={currentBusiness?.id || ""}
+              open={locationSelectorOpen}
+              onOpenChange={setLocationSelectorOpen}
+              onLocationSelected={() => {
+                setLocationSelectorOpen(false);
+                fetchPlatforms();
+              }}
             />
           </CardContent>
         </Card>
@@ -791,13 +825,33 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mainPlatforms.map((platform) => (
-                <PlatformReputationCard
-                  key={platform.platform}
-                  data={getPlatformData(platform)}
-                  onConnect={() => handleConnectPlatform(platform.platform)}
-                />
-              ))}
+              {mainPlatforms.map((platform) => {
+                // Use specialized card for Google in plataformas tab too
+                if (platform.platform === "google") {
+                  return (
+                    <GoogleReviewsCard
+                      key="google"
+                      connected={platform.connected}
+                      metadata={platform.metadata}
+                      reviewCount={platform.reviewCount || 0}
+                      avgRating={platform.avgRating || 0}
+                      responseRate={analysis?.response_rate || 0}
+                      lastSync={platform.lastSync}
+                      onConnect={() => handleConnectPlatform("google")}
+                      onChangeLocation={() => setLocationSelectorOpen(true)}
+                      onSyncComplete={fetchPlatforms}
+                      businessId={currentBusiness?.id || ""}
+                    />
+                  );
+                }
+                return (
+                  <PlatformReputationCard
+                    key={platform.platform}
+                    data={getPlatformData(platform)}
+                    onConnect={() => handleConnectPlatform(platform.platform)}
+                  />
+                );
+              })}
             </div>
           </CardContent>
         </Card>
