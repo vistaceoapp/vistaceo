@@ -116,6 +116,23 @@ const ID_NATURES = [
   "Nueva táctica", "Estacionalidad", "Insight de audiencia", "Movimiento de competidores"
 ];
 
+// Helper: translate item_type to Spanish
+const translateItemType = (itemType: string | null): string => {
+  const translations: Record<string, string> = {
+    trend: "Tendencia",
+    benchmark: "Referencia",
+    platform: "Plataforma",
+    competitive: "Competencia",
+    product: "Producto",
+    macro: "Macro",
+    opportunity: "Oportunidad",
+    general: "General",
+    consumo: "Consumo",
+    operacion_externa: "Operación externa",
+  };
+  return translations[itemType || "general"] || itemType || "General";
+};
+
 // Helper: get source icon
 const getSourceIcon = (source: string | null): string => {
   switch (source) {
@@ -743,7 +760,7 @@ const RadarPage = () => {
                         EXTERNO
                       </Badge>
                       <h3 className="font-semibold text-foreground text-sm">{item.title}</h3>
-                      <p className="text-xs text-muted-foreground capitalize mt-1">{item.item_type}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{translateItemType(item.item_type)}</p>
                     </div>
                     <Eye className="w-4 h-4 text-muted-foreground" />
                   </div>
@@ -1236,8 +1253,8 @@ const RadarPage = () => {
                         <ExternalLink className="w-3 h-3 mr-1" />
                         EXTERNO
                       </Badge>
-                      <Badge variant="secondary" className="text-[10px] capitalize">
-                        I+D | {item.item_type === "trend" ? "Investigación" : "Desarrollo"}
+                      <Badge variant="secondary" className="text-[10px]">
+                        I+D | {translateItemType(item.item_type)}
                       </Badge>
                     </div>
                     <Button
@@ -1309,7 +1326,7 @@ const RadarPage = () => {
                       <BookmarkCheck className="w-4 h-4 text-primary mt-1" />
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-foreground text-sm truncate">{item.title}</h4>
-                        <p className="text-xs text-muted-foreground capitalize mt-1">{item.item_type}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{translateItemType(item.item_type)}</p>
                       </div>
                     </div>
                   </div>

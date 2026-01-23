@@ -98,9 +98,24 @@ export const InsightMetricsWidget = ({ className }: InsightMetricsWidgetProps) =
       const items = thisWeekItems.data || [];
       const insightsByType: Record<string, number> = {};
       
+      // Translations for item types
+      const typeTranslations: Record<string, string> = {
+        trend: "Tendencia",
+        benchmark: "Referencia",
+        platform: "Plataforma",
+        competitive: "Competencia",
+        product: "Producto",
+        macro: "Macro",
+        opportunity: "Oportunidad",
+        general: "General",
+        consumo: "Consumo",
+        operacion_externa: "Operación",
+      };
+      
       items.forEach((item) => {
-        const type = item.item_type || "general";
-        insightsByType[type] = (insightsByType[type] || 0) + 1;
+        const rawType = item.item_type || "general";
+        const translatedType = typeTranslations[rawType] || rawType;
+        insightsByType[translatedType] = (insightsByType[translatedType] || 0) + 1;
       });
 
       const topCategories = Object.entries(insightsByType)
