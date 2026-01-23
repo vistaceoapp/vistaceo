@@ -20,6 +20,7 @@ interface SignalInput {
 // - user_input, integration_data, feedback, action_outcome, checkin, alert, chat, gap_answer
 // - mission_step_completed, mission_completed, mission_paused, mission_resumed, mission_steps_regenerated
 // - radar_item_viewed, radar_item_applied, radar_item_dismissed
+// - pulse_checkin (daily business health check-in)
 // - internal_radar_item_created, internal_signal_ingested, brain_profile_updated
 
 async function recordSignal(supabase: any, input: SignalInput): Promise<string | null> {
@@ -150,6 +151,66 @@ async function recordSignal(supabase: any, input: SignalInput): Promise<string |
         dynamic_memory: dynamicMemory,
         decisions_memory: decisionsMemory,
       })
+      .eq('id', brain.id);
+  }
+
+  // Update dynamic memory for pulse check-ins (daily business health signals)
+  if (brain?.id && input.signalType === 'pulse_checkin') {
+    const { data: currentBrain } = await supabase
+      .from('business_brains')
+      .select('dynamic_memory')
+      .eq('id', brain.id)
+      .single();
+
+    const dynamicMemory = currentBrain?.dynamic_memory || {};
+    
+    // Track pulse history (last 30 entries)
+    const pulseHistory = dynamicMemory.pulse_history || [];
+    pulseHistory.unshift({
+      date: input.content.applies_to_date,
+      shift: input.content.shift_tag,
+      score: input.content.pulse_score,
+      label: input.content.pulse_label,
+      revenue: input.content.revenue_local,
+      proxyType: input.content.proxy_type,
+      proxyValue: input.content.proxy_value,
+      hasGoodNote: !!input.content.notes_good,
+      hasBadNote: !!input.content.notes_bad,
+      timestamp: new Date().toISOString(),
+    });
+    dynamicMemory.pulse_history = pulseHistory.slice(0, 30);
+    
+    // Calculate running averages
+    const recentPulses = pulseHistory.slice(0, 7);
+    const avgPulse = recentPulses.length > 0
+      ? recentPulses.reduce((acc: number, p: any) => acc + (p.score || 0), 0) / recentPulses.length
+      : null;
+    dynamicMemory.avg_pulse_7d = avgPulse ? parseFloat(avgPulse.toFixed(2)) : null;
+    
+    // Track notable events
+    if (input.content.notes_good) {
+      const goodEvents = dynamicMemory.good_events || [];
+      goodEvents.unshift({
+        date: input.content.applies_to_date,
+        note: input.content.notes_good,
+        timestamp: new Date().toISOString(),
+      });
+      dynamicMemory.good_events = goodEvents.slice(0, 10);
+    }
+    
+    if (input.content.notes_bad) {
+      const badEvents = dynamicMemory.bad_events || [];
+      badEvents.unshift({
+        date: input.content.applies_to_date,
+        note: input.content.notes_bad,
+        timestamp: new Date().toISOString(),
+      });
+      dynamicMemory.bad_events = badEvents.slice(0, 10);
+    }
+    
+    await supabase
+      .from('business_brains')
+      .update({ dynamic_memory: dynamicMemory })
       .eq('id', brain.id);
   }
 

@@ -96,9 +96,37 @@ export const PulseCheckinCard = ({
 
       if (error) throw error;
 
+      // Record signal to Brain for learning
+      try {
+        await supabase.functions.invoke("brain-record-signal", {
+          body: {
+            businessId: currentBusiness.id,
+            signalType: "pulse_checkin",
+            source: "pulse_widget",
+            content: {
+              applies_to_date: format(appliesTo, "yyyy-MM-dd"),
+              shift_tag: selectedShift,
+              pulse_score: pulseScore,
+              pulse_label: labels[String(pulseScore)] || "",
+              revenue_local: revenueInput ? parseFloat(revenueInput) : null,
+              proxy_type: blueprint?.proxy_base || null,
+              proxy_value: proxyValue ? parseFloat(proxyValue) : null,
+              notes_good: noteGood.trim() || null,
+              notes_bad: noteBad.trim() || null,
+              business_type: blueprint?.business_type,
+            },
+            importance: pulseScore <= 2 || pulseScore >= 4 ? 8 : 5, // Higher importance for extreme scores
+            confidence: revenueInput ? "high" : "medium",
+          },
+        });
+      } catch (signalError) {
+        console.error("Error recording pulse signal:", signalError);
+        // Don't fail the whole operation if signal recording fails
+      }
+
       toast({
         title: "✅ Pulso registrado",
-        description: `${getPulseScoreEmoji(pulseScore)} ${labels[String(pulseScore)]}. ¡Gracias por la info!`,
+        description: `${getPulseScoreEmoji(pulseScore)} ${labels[String(pulseScore)]}. ¡El cerebro está aprendiendo!`,
       });
 
       // Reset form
