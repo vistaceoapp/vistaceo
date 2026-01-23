@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { SECTOR_CONTEXTS, getSectorContext, getFollowUpTrigger } from "./sectorContexts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,54 +22,6 @@ const QUESTION_CATEGORIES = [
   "ventas",
   "servicio",
 ];
-
-// Sector-specific question contexts for ultra-personalization
-const SECTOR_CONTEXTS: Record<string, { focus: string; keyMetrics: string[]; uniqueChallenges: string[] }> = {
-  // GASTRONOMÍA
-  restaurant_general: { focus: "experiencia gastronómica", keyMetrics: ["ticket promedio", "rotación de mesas", "costo de alimentos"], uniqueChallenges: ["consistencia en la cocina", "manejo de reservas", "control de desperdicio"] },
-  alta_cocina: { focus: "experiencia premium", keyMetrics: ["precio promedio por cubierto", "tasa de reservas", "reseñas gourmet"], uniqueChallenges: ["sourcing de ingredientes premium", "retención de chefs", "expectativas altas"] },
-  cafeteria_pasteleria: { focus: "café y dulces", keyMetrics: ["ventas por hora", "costo de insumos", "fidelización"], uniqueChallenges: ["hora pico matutina", "frescura de productos", "competencia de cadenas"] },
-  bar_cerveceria: { focus: "bebidas y ambiente", keyMetrics: ["consumo por persona", "horario pico", "mix de tragos"], uniqueChallenges: ["control de inventario de bebidas", "ambiente nocturno", "rotación de personal"] },
-  fast_food: { focus: "rapidez y volumen", keyMetrics: ["tiempo de servicio", "ventas por hora", "costo operativo"], uniqueChallenges: ["velocidad de entrega", "consistencia", "delivery"] },
-  panaderia: { focus: "productos horneados", keyMetrics: ["producción diaria", "desperdicio", "margen por producto"], uniqueChallenges: ["horarios de producción", "frescura", "variedad"] },
-  heladeria: { focus: "helados artesanales", keyMetrics: ["sabores más vendidos", "estacionalidad", "costo de insumos"], uniqueChallenges: ["temporada baja", "cadena de frío", "innovación de sabores"] },
-  dark_kitchen: { focus: "delivery puro", keyMetrics: ["tiempo de preparación", "rating en apps", "costo de empaque"], uniqueChallenges: ["posicionamiento en apps", "cocina sin interacción", "múltiples marcas"] },
-  pizzeria: { focus: "pizzas y delivery", keyMetrics: ["tiempo de entrega", "margen por pizza", "pedidos por hora"], uniqueChallenges: ["consistencia del producto", "delivery propio vs apps", "horario nocturno"] },
-  
-  // TURISMO
-  hotel_urbano: { focus: "alojamiento de negocios", keyMetrics: ["ocupación", "tarifa promedio", "RevPAR"], uniqueChallenges: ["competencia con OTAs", "fidelización corporativa", "servicios business"] },
-  hotel_boutique: { focus: "experiencia única", keyMetrics: ["tarifa premium", "reseñas", "repeat guests"], uniqueChallenges: ["diferenciación", "servicio personalizado", "marketing de nicho"] },
-  hostel: { focus: "turismo joven", keyMetrics: ["camas vendidas", "actividades", "reseñas sociales"], uniqueChallenges: ["ambiente comunitario", "bajo costo operativo", "temporadas"] },
-  agencia_viajes: { focus: "paquetes y destinos", keyMetrics: ["ventas por agente", "comisiones", "cancelaciones"], uniqueChallenges: ["competencia online", "márgenes bajos", "atención 24/7"] },
-  tours_guiados: { focus: "experiencias locales", keyMetrics: ["tours vendidos", "rating de guías", "reservas anticipadas"], uniqueChallenges: ["clima", "dependencia estacional", "certificaciones"] },
-  
-  // RETAIL
-  moda_accesorios: { focus: "tendencias y temporada", keyMetrics: ["rotación de inventario", "ticket promedio", "devoluciones"], uniqueChallenges: ["temporadas", "tallas y colores", "competencia online"] },
-  electronica_tecnologia: { focus: "gadgets y tech", keyMetrics: ["margen por producto", "garantías", "rotación"], uniqueChallenges: ["obsolescencia", "servicio técnico", "competencia de precios"] },
-  belleza_perfumeria: { focus: "cosmética y skincare", keyMetrics: ["ticket promedio", "fidelización", "nuevos lanzamientos"], uniqueChallenges: ["asesoramiento", "tendencias", "vencimientos"] },
-  pet_shop: { focus: "mascotas", keyMetrics: ["clientes recurrentes", "ticket promedio", "servicios"], uniqueChallenges: ["fidelización", "servicios adicionales", "competencia online"] },
-  supermercado: { focus: "consumo masivo", keyMetrics: ["ventas por m²", "rotación", "merma"], uniqueChallenges: ["márgenes ajustados", "logística", "competencia de cadenas"] },
-  
-  // SALUD Y BIENESTAR
-  clinica_policonsultorio: { focus: "atención médica", keyMetrics: ["pacientes por día", "ocupación de box", "satisfacción"], uniqueChallenges: ["turnos", "obras sociales", "retención de profesionales"] },
-  centro_odontologico: { focus: "salud dental", keyMetrics: ["tratamientos por mes", "ticket promedio", "seguimiento"], uniqueChallenges: ["equipamiento", "materiales", "planes de tratamiento"] },
-  spa_wellness: { focus: "bienestar integral", keyMetrics: ["servicios por día", "ticket promedio", "membresías"], uniqueChallenges: ["capacitación", "productos", "fidelización"] },
-  salon_belleza: { focus: "estética personal", keyMetrics: ["clientes por día", "servicios populares", "productos vendidos"], uniqueChallenges: ["agenda", "tendencias", "retención de estilistas"] },
-  gimnasio_fitness: { focus: "entrenamiento", keyMetrics: ["membresías activas", "retención", "clases llenas"], uniqueChallenges: ["equipamiento", "instructores", "horarios pico"] },
-  
-  // SERVICIOS B2B
-  consultora: { focus: "asesoría profesional", keyMetrics: ["horas facturables", "retención de clientes", "ticket promedio"], uniqueChallenges: ["propuestas", "alcance de proyectos", "cobro"] },
-  agencia_marketing: { focus: "campañas y resultados", keyMetrics: ["clientes activos", "retención", "ROI de campañas"], uniqueChallenges: ["resultados medibles", "creatividad", "herramientas"] },
-  desarrollo_software: { focus: "proyectos tech", keyMetrics: ["proyectos activos", "horas por proyecto", "satisfacción"], uniqueChallenges: ["estimaciones", "cambios de alcance", "talento tech"] },
-  
-  // EDUCACIÓN
-  academia_idiomas: { focus: "enseñanza de idiomas", keyMetrics: ["alumnos activos", "retención", "niveles completados"], uniqueChallenges: ["profesores", "material", "certificaciones"] },
-  escuela_danza: { focus: "artes escénicas", keyMetrics: ["alumnos por clase", "retención", "eventos"], uniqueChallenges: ["horarios", "espacio", "presentaciones"] },
-  centro_capacitacion: { focus: "formación profesional", keyMetrics: ["cursos vendidos", "completación", "satisfacción"], uniqueChallenges: ["contenido actualizado", "instructores", "certificaciones"] },
-  
-  // DEFAULT
-  default: { focus: "crecimiento del negocio", keyMetrics: ["ventas", "clientes", "margen"], uniqueChallenges: ["competencia", "costos", "personal"] },
-};
 
 const buildSystemPrompt = (businessType: string, country: string): string => {
   const sectorContext = SECTOR_CONTEXTS[businessType] || SECTOR_CONTEXTS.default;
