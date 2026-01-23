@@ -36,12 +36,26 @@ interface EvolutionPanelProps {
 }
 
 const DIMENSION_LABELS: Record<string, string> = {
+  // English keys from database
+  team: "Equipo",
+  growth: "Crecimiento",
+  traffic: "Tráfico",
+  finances: "Finanzas",
+  efficiency: "Eficiencia",
+  reputation: "Reputación",
+  profitability: "Rentabilidad",
+  // Spanish keys (legacy)
   operaciones: "Operaciones",
   marketing: "Marketing",
   finanzas: "Finanzas",
   servicio: "Servicio",
   equipo: "Equipo",
   innovacion: "Innovación",
+  crecimiento: "Crecimiento",
+  trafico: "Tráfico",
+  eficiencia: "Eficiencia",
+  reputacion: "Reputación",
+  rentabilidad: "Rentabilidad",
 };
 
 export const EvolutionPanel = ({ variant = "full" }: EvolutionPanelProps) => {
