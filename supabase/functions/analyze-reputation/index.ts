@@ -64,13 +64,26 @@ serve(async (req) => {
       );
     }
 
-    // Get all external reviews data
-    const { data: reviewsData } = await supabase
+    // Get all external reviews data - check multiple data_type values
+    const { data: reviewsData, error: reviewsError } = await supabase
       .from("external_data")
       .select("*")
       .eq("business_id", businessId)
-      .eq("data_type", "google_review")
-      .order("synced_at", { ascending: false });
+      .in("data_type", ["review", "google_review"])
+      .order("synced_at", { ascending: false })
+      .limit(500);
+
+    if (reviewsError) {
+      console.error("Error fetching reviews:", reviewsError);
+    }
+
+    // Also get Google Business integration metadata with actual reviews
+    const { data: googleIntegration } = await supabase
+      .from("business_integrations")
+      .select("metadata, last_sync_at")
+      .eq("business_id", businessId)
+      .eq("integration_type", "google_business")
+      .single();
 
     // Get YouTube comments if available
     const { data: youtubeData } = await supabase
@@ -80,21 +93,48 @@ serve(async (req) => {
       .eq("integration_type", "youtube")
       .single();
 
-    const reviews = reviewsData || [];
+    // Combine reviews from external_data
+    let reviews = reviewsData || [];
     const youtubeMetadata = youtubeData?.metadata as Record<string, any> | null;
+    const googleMetadata = googleIntegration?.metadata as Record<string, any> | null;
 
-    console.log(`Found ${reviews.length} reviews to analyze`);
+    // If we have reviews from Google integration metadata, add them too
+    if (googleMetadata?.reviews && Array.isArray(googleMetadata.reviews)) {
+      console.log(`Found ${googleMetadata.reviews.length} reviews in Google integration metadata`);
+      // These are already in the correct format
+    }
 
-    // Build context for AI analysis
+    console.log(`Found ${reviews.length} reviews in external_data to analyze`);
+
+    // Build context for AI analysis - normalize different formats
     const reviewTexts = reviews.map(r => {
       const content = r.content as Record<string, any>;
+      // Handle different content formats
+      const rating = content.rating || content.starRating || "THREE";
+      const comment = content.text || content.comment || "";
       return {
-        rating: content.rating,
-        comment: content.comment || "",
-        date: content.create_time,
-        hasReply: !!content.reply,
+        rating: typeof rating === "number" ? ["ONE", "TWO", "THREE", "FOUR", "FIVE"][rating - 1] || "THREE" : rating,
+        comment: comment,
+        date: content.date || content.create_time || content.createTime,
+        hasReply: !!content.reply || !!content.reviewReply,
+        author: content.author || content.reviewer?.displayName || "Anónimo",
       };
     });
+    
+    // Add reviews from Google metadata if available
+    if (googleMetadata?.reviews && Array.isArray(googleMetadata.reviews)) {
+      for (const gReview of googleMetadata.reviews) {
+        reviewTexts.push({
+          rating: gReview.rating || gReview.starRating || "THREE",
+          comment: gReview.comment || gReview.text || "",
+          date: gReview.createTime || gReview.date,
+          hasReply: !!gReview.reviewReply,
+          author: gReview.reviewer?.displayName || "Cliente Google",
+        });
+      }
+    }
+
+    console.log(`Total reviews to analyze: ${reviewTexts.length}`);
 
     // Calculate basic metrics
     const starDistribution: Record<string, number> = {
@@ -124,7 +164,7 @@ serve(async (req) => {
       if (review.hasReply) repliedCount++;
     }
 
-    const totalReviews = reviews.length || 1;
+    const totalReviews = reviewTexts.length || 1;
     const avgSentiment = totalSentiment / totalReviews;
     const responseRate = (repliedCount / totalReviews) * 100;
 
@@ -134,7 +174,7 @@ NEGOCIO: ${business.name}
 TIPO: ${business.category || "General"}
 RATING ACTUAL: ${business.avg_rating || "N/A"}/5
 
-RESUMEN DE RESEÑAS (${reviews.length} total):
+RESUMEN DE RESEÑAS (${reviewTexts.length} total):
 - 5 estrellas: ${starDistribution["FIVE"]}
 - 4 estrellas: ${starDistribution["FOUR"]}
 - 3 estrellas: ${starDistribution["THREE"]}
@@ -160,7 +200,7 @@ YOUTUBE:
     let aiAnalysis: Partial<ReputationAnalysis> = {};
 
     // Call AI for deep analysis
-    if (lovableApiKey && reviews.length > 0) {
+    if (lovableApiKey && reviewTexts.length > 0) {
       try {
         const aiResponse = await fetch("https://ai-gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -231,8 +271,8 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
     // Calculate overall score (0-100)
     const baseScore = ((avgSentiment + 1) / 2) * 100; // Normalize from -1,1 to 0-100
     const responseBonus = responseRate > 80 ? 5 : responseRate > 50 ? 2 : 0;
-    const volumeBonus = reviews.length > 50 ? 5 : reviews.length > 20 ? 2 : 0;
-    const overallScore = Math.min(100, Math.round(baseScore + responseBonus + volumeBonus));
+    const volumeBonus = reviewTexts.length > 50 ? 5 : reviewTexts.length > 20 ? 2 : 0;
+    const overallScore = reviewTexts.length === 0 ? 50 : Math.min(100, Math.round(baseScore + responseBonus + volumeBonus));
 
     // Build final analysis
     const analysis: ReputationAnalysis = {
@@ -251,9 +291,9 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
       response_rate: Math.round(responseRate),
       avg_response_time_hours: null,
       trend: aiAnalysis.trend || "stable",
-      ai_summary: aiAnalysis.ai_summary || `Tu negocio tiene un score de reputación de ${overallScore}/100 basado en ${reviews.length} reseñas analizadas.`,
+      ai_summary: aiAnalysis.ai_summary || `Tu negocio tiene un score de reputación de ${overallScore}/100 basado en ${reviewTexts.length} reseñas analizadas.`,
       recommendations: aiAnalysis.recommendations || [],
-      analyzed_reviews_count: reviews.length,
+      analyzed_reviews_count: reviewTexts.length,
       last_analysis: new Date().toISOString(),
     };
 
@@ -283,10 +323,11 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
     await supabase.from("signals").insert({
       business_id: businessId,
       signal_type: "reputation_analysis",
-      payload: {
+      source: "ai_analysis",
+      content: {
         score: overallScore,
         trend: analysis.trend,
-        reviews_analyzed: reviews.length,
+        reviews_analyzed: reviewTexts.length,
         positive_pct: analysis.sentiment_breakdown.positive,
         negative_pct: analysis.sentiment_breakdown.negative,
       },
