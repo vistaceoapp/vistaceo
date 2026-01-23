@@ -55,7 +55,7 @@ interface ReputationAnalysis {
 }
 
 interface PlatformIntegration {
-  platform: "google" | "youtube" | "instagram" | "facebook" | "tiktok" | "web";
+  platform: "google" | "instagram" | "facebook" | "web";
   connected: boolean;
   metadata?: Record<string, any>;
   lastSync?: string;
@@ -63,8 +63,9 @@ interface PlatformIntegration {
 
 // Plataformas principales (mostradas prominentemente)
 const MAIN_PLATFORMS: Array<PlatformIntegration["platform"]> = ["google", "instagram", "facebook", "web"];
-// Plataformas adicionales (mostradas más pequeñas)
-const ADDITIONAL_PLATFORMS: Array<PlatformIntegration["platform"]> = ["youtube", "tiktok"];
+
+// Helper para verificar si está conectado (puede ser "connected" o "active")
+const isConnectedStatus = (status: string) => status === "connected" || status === "active";
 
 interface ReputationAnalyticsPanelProps {
   className?: string;
@@ -103,51 +104,35 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
         instagram: { platform: "instagram", connected: false },
         facebook: { platform: "facebook", connected: false },
         web: { platform: "web", connected: false },
-        youtube: { platform: "youtube", connected: false },
-        tiktok: { platform: "tiktok", connected: false },
       };
 
       if (integrations) {
         for (const integration of integrations) {
-          if (integration.integration_type === "google_business") {
+          if (integration.integration_type === "google_business" || integration.integration_type === "google_reviews") {
             platformMap.google = {
               platform: "google",
-              connected: integration.status === "active",
-              metadata: integration.metadata as Record<string, any>,
-              lastSync: integration.last_sync_at,
-            };
-          } else if (integration.integration_type === "youtube") {
-            platformMap.youtube = {
-              platform: "youtube",
-              connected: integration.status === "active",
+              connected: isConnectedStatus(integration.status),
               metadata: integration.metadata as Record<string, any>,
               lastSync: integration.last_sync_at,
             };
           } else if (integration.integration_type === "instagram") {
             platformMap.instagram = {
               platform: "instagram",
-              connected: integration.status === "active",
+              connected: isConnectedStatus(integration.status),
               metadata: integration.metadata as Record<string, any>,
               lastSync: integration.last_sync_at,
             };
           } else if (integration.integration_type === "facebook") {
             platformMap.facebook = {
               platform: "facebook",
-              connected: integration.status === "active",
+              connected: isConnectedStatus(integration.status),
               metadata: integration.metadata as Record<string, any>,
               lastSync: integration.last_sync_at,
             };
           } else if (integration.integration_type === "web_analytics") {
             platformMap.web = {
               platform: "web",
-              connected: integration.status === "active",
-              metadata: integration.metadata as Record<string, any>,
-              lastSync: integration.last_sync_at,
-            };
-          } else if (integration.integration_type === "tiktok") {
-            platformMap.tiktok = {
-              platform: "tiktok",
-              connected: integration.status === "active",
+              connected: isConnectedStatus(integration.status),
               metadata: integration.metadata as Record<string, any>,
               lastSync: integration.last_sync_at,
             };
@@ -315,21 +300,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
         { label: "Carrito→Compra", value: `${platform.metadata.cart_to_purchase || 0}%`, icon: <BarChart3 className="w-3 h-3" /> },
         { label: "Comentarios", value: platform.metadata.comments_count || 0, icon: <MessageSquare className="w-3 h-3" /> },
       ];
-    } else if (platform.platform === "youtube" && platform.metadata) {
-      data.metrics.mainScore = platform.metadata.subscriber_count || 0;
-      data.metrics.secondary = [
-        { label: "Views", value: formatNumber(platform.metadata.view_count || 0), icon: <Eye className="w-3 h-3" /> },
-        { label: "Videos", value: platform.metadata.video_count || 0, icon: <Play className="w-3 h-3" /> },
-        { label: "Engagement", value: `${platform.metadata.engagement_rate || 0}%`, icon: <TrendingUp className="w-3 h-3" /> },
-      ];
-    } else if (platform.platform === "tiktok" && platform.metadata) {
-      data.metrics.mainScore = platform.metadata.followers_count || 0;
-      data.metrics.secondary = [
-        { label: "Likes", value: formatNumber(platform.metadata.likes_count || 0), icon: <ThumbsUp className="w-3 h-3" /> },
-        { label: "Videos", value: platform.metadata.video_count || 0, icon: <Play className="w-3 h-3" /> },
-      ];
     }
-    
     return data;
   };
 
@@ -339,9 +310,8 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
     return num.toString();
   };
 
-  // Filter platforms by category
+  // Filter platforms by category (solo plataformas principales)
   const mainPlatforms = platforms.filter(p => MAIN_PLATFORMS.includes(p.platform));
-  const additionalPlatforms = platforms.filter(p => ADDITIONAL_PLATFORMS.includes(p.platform));
 
   // No analysis yet - show platforms + CTA
   if (!analysis) {
@@ -352,7 +322,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Star className="w-4 h-4 text-primary" />
-              Plataformas principales
+              Plataformas
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -364,21 +334,6 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                   onConnect={() => handleConnectPlatform(platform.platform)}
                 />
               ))}
-            </div>
-
-            {/* Additional Platforms - Compact */}
-            <div className="pt-3 border-t border-border/50">
-              <p className="text-xs text-muted-foreground mb-2">Otras plataformas</p>
-              <div className="flex flex-wrap gap-2">
-                {additionalPlatforms.map((platform) => (
-                  <PlatformReputationCard
-                    key={platform.platform}
-                    data={getPlatformData(platform)}
-                    variant="compact"
-                    onConnect={() => handleConnectPlatform(platform.platform)}
-                  />
-                ))}
-              </div>
             </div>
 
             {/* Connect Modal */}
@@ -797,28 +752,6 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                 <PlatformReputationCard
                   key={platform.platform}
                   data={getPlatformData(platform)}
-                  onConnect={() => handleConnectPlatform(platform.platform)}
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Additional Platforms */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2 text-muted-foreground">
-              <Globe className="w-4 h-4" />
-              Otras plataformas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {additionalPlatforms.map((platform) => (
-                <PlatformReputationCard
-                  key={platform.platform}
-                  data={getPlatformData(platform)}
-                  variant="compact"
                   onConnect={() => handleConnectPlatform(platform.platform)}
                 />
               ))}
