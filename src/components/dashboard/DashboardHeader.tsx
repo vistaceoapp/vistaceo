@@ -1,4 +1,4 @@
-import { Bell, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
+import { InsightNotificationBell } from "@/components/app/InsightNotificationBell";
 
 interface DashboardHeaderProps {
   sidebarCollapsed: boolean;
@@ -84,39 +85,8 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
         {/* Right side - Actions */}
         <div className="flex items-center gap-2">
 
-          {/* Notifications */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative hover:bg-secondary">
-                <Bell className="h-5 w-5 text-muted-foreground" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full animate-pulse" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 bg-card border-border">
-              <DropdownMenuLabel className="flex items-center justify-between">
-                Notificaciones
-                <Badge variant="secondary" className="text-xs">3 nuevas</Badge>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="max-h-[300px] overflow-y-auto">
-                {[
-                  { title: "Nueva oportunidad detectada", desc: "El radar encontró una tendencia en tu sector", time: "Hace 5 min" },
-                  { title: "Misión completada", desc: "Felicidades por completar 'Mejorar reseñas'", time: "Hace 1 hora" },
-                  { title: "Recordatorio", desc: "Tienes 2 acciones pendientes para hoy", time: "Hace 3 horas" },
-                ].map((notif, i) => (
-                  <DropdownMenuItem key={i} className="flex flex-col items-start gap-1 cursor-pointer p-3">
-                    <p className="text-sm font-medium text-foreground">{notif.title}</p>
-                    <p className="text-xs text-muted-foreground">{notif.desc}</p>
-                    <p className="text-xs text-primary mt-1">{notif.time}</p>
-                  </DropdownMenuItem>
-                ))}
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="justify-center text-primary cursor-pointer">
-                Ver todas
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Insight Notifications */}
+          <InsightNotificationBell />
 
           {/* User Menu */}
           <DropdownMenu>

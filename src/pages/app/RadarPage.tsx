@@ -37,6 +37,7 @@ import { Label } from "@/components/ui/label";
 import { OpportunityDetailEnhanced } from "@/components/app/OpportunityDetailEnhanced";
 import { LearningDetailCard } from "@/components/app/LearningDetailCard";
 import { AlertFAB } from "@/components/app/AlertFAB";
+import { InsightMetricsWidget } from "@/components/app/InsightMetricsWidget";
 import { 
   runQualityGates, 
   filterAndRankOpportunities,
@@ -1136,8 +1137,8 @@ const RadarPage = () => {
 
         {/* Tab: I+D (EXTERNO) */}
         <TabsContent value="id" className="space-y-6">
-          {/* Stats */}
-          <div className="grid grid-cols-4 gap-4">
+          {/* Stats + Metrics Widget */}
+          <div className="grid grid-cols-5 gap-4">
             <div className="dashboard-stat">
               <div className="flex items-center justify-between mb-2">
                 <Globe className="w-5 h-5 text-accent" />
@@ -1179,7 +1180,19 @@ const RadarPage = () => {
               </div>
               <div className="text-sm text-muted-foreground">oportunidades</div>
             </div>
+
+            <div className="dashboard-stat">
+              <div className="flex items-center justify-between mb-2">
+                <BarChart3 className="w-5 h-5 text-accent" />
+                <Badge variant="outline" className="text-[10px]">AUTO</Badge>
+              </div>
+              <div className="text-3xl font-bold text-foreground">7d</div>
+              <div className="text-sm text-muted-foreground">escaneo automático</div>
+            </div>
           </div>
+
+          {/* Insight Metrics Widget */}
+          <InsightMetricsWidget />
 
           {/* I+D Items Grid */}
           {learningItems.filter(i => !i.is_saved).length === 0 ? (
