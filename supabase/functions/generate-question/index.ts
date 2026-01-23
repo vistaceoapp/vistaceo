@@ -18,41 +18,100 @@ const QUESTION_CATEGORIES = [
   "competencia",
   "proveedores",
   "ubicacion",
+  "ventas",
+  "servicio",
 ];
 
-const SYSTEM_PROMPT = `Eres el CEO virtual más inteligente del mundo para negocios gastronómicos. Tu misión es CONOCER PROFUNDAMENTE el negocio para dar recomendaciones ULTRA PERSONALIZADAS.
+// Sector-specific question contexts for ultra-personalization
+const SECTOR_CONTEXTS: Record<string, { focus: string; keyMetrics: string[]; uniqueChallenges: string[] }> = {
+  // GASTRONOMÍA
+  restaurant_general: { focus: "experiencia gastronómica", keyMetrics: ["ticket promedio", "rotación de mesas", "costo de alimentos"], uniqueChallenges: ["consistencia en la cocina", "manejo de reservas", "control de desperdicio"] },
+  alta_cocina: { focus: "experiencia premium", keyMetrics: ["precio promedio por cubierto", "tasa de reservas", "reseñas gourmet"], uniqueChallenges: ["sourcing de ingredientes premium", "retención de chefs", "expectativas altas"] },
+  cafeteria_pasteleria: { focus: "café y dulces", keyMetrics: ["ventas por hora", "costo de insumos", "fidelización"], uniqueChallenges: ["hora pico matutina", "frescura de productos", "competencia de cadenas"] },
+  bar_cerveceria: { focus: "bebidas y ambiente", keyMetrics: ["consumo por persona", "horario pico", "mix de tragos"], uniqueChallenges: ["control de inventario de bebidas", "ambiente nocturno", "rotación de personal"] },
+  fast_food: { focus: "rapidez y volumen", keyMetrics: ["tiempo de servicio", "ventas por hora", "costo operativo"], uniqueChallenges: ["velocidad de entrega", "consistencia", "delivery"] },
+  panaderia: { focus: "productos horneados", keyMetrics: ["producción diaria", "desperdicio", "margen por producto"], uniqueChallenges: ["horarios de producción", "frescura", "variedad"] },
+  heladeria: { focus: "helados artesanales", keyMetrics: ["sabores más vendidos", "estacionalidad", "costo de insumos"], uniqueChallenges: ["temporada baja", "cadena de frío", "innovación de sabores"] },
+  dark_kitchen: { focus: "delivery puro", keyMetrics: ["tiempo de preparación", "rating en apps", "costo de empaque"], uniqueChallenges: ["posicionamiento en apps", "cocina sin interacción", "múltiples marcas"] },
+  pizzeria: { focus: "pizzas y delivery", keyMetrics: ["tiempo de entrega", "margen por pizza", "pedidos por hora"], uniqueChallenges: ["consistencia del producto", "delivery propio vs apps", "horario nocturno"] },
+  
+  // TURISMO
+  hotel_urbano: { focus: "alojamiento de negocios", keyMetrics: ["ocupación", "tarifa promedio", "RevPAR"], uniqueChallenges: ["competencia con OTAs", "fidelización corporativa", "servicios business"] },
+  hotel_boutique: { focus: "experiencia única", keyMetrics: ["tarifa premium", "reseñas", "repeat guests"], uniqueChallenges: ["diferenciación", "servicio personalizado", "marketing de nicho"] },
+  hostel: { focus: "turismo joven", keyMetrics: ["camas vendidas", "actividades", "reseñas sociales"], uniqueChallenges: ["ambiente comunitario", "bajo costo operativo", "temporadas"] },
+  agencia_viajes: { focus: "paquetes y destinos", keyMetrics: ["ventas por agente", "comisiones", "cancelaciones"], uniqueChallenges: ["competencia online", "márgenes bajos", "atención 24/7"] },
+  tours_guiados: { focus: "experiencias locales", keyMetrics: ["tours vendidos", "rating de guías", "reservas anticipadas"], uniqueChallenges: ["clima", "dependencia estacional", "certificaciones"] },
+  
+  // RETAIL
+  moda_accesorios: { focus: "tendencias y temporada", keyMetrics: ["rotación de inventario", "ticket promedio", "devoluciones"], uniqueChallenges: ["temporadas", "tallas y colores", "competencia online"] },
+  electronica_tecnologia: { focus: "gadgets y tech", keyMetrics: ["margen por producto", "garantías", "rotación"], uniqueChallenges: ["obsolescencia", "servicio técnico", "competencia de precios"] },
+  belleza_perfumeria: { focus: "cosmética y skincare", keyMetrics: ["ticket promedio", "fidelización", "nuevos lanzamientos"], uniqueChallenges: ["asesoramiento", "tendencias", "vencimientos"] },
+  pet_shop: { focus: "mascotas", keyMetrics: ["clientes recurrentes", "ticket promedio", "servicios"], uniqueChallenges: ["fidelización", "servicios adicionales", "competencia online"] },
+  supermercado: { focus: "consumo masivo", keyMetrics: ["ventas por m²", "rotación", "merma"], uniqueChallenges: ["márgenes ajustados", "logística", "competencia de cadenas"] },
+  
+  // SALUD Y BIENESTAR
+  clinica_policonsultorio: { focus: "atención médica", keyMetrics: ["pacientes por día", "ocupación de box", "satisfacción"], uniqueChallenges: ["turnos", "obras sociales", "retención de profesionales"] },
+  centro_odontologico: { focus: "salud dental", keyMetrics: ["tratamientos por mes", "ticket promedio", "seguimiento"], uniqueChallenges: ["equipamiento", "materiales", "planes de tratamiento"] },
+  spa_wellness: { focus: "bienestar integral", keyMetrics: ["servicios por día", "ticket promedio", "membresías"], uniqueChallenges: ["capacitación", "productos", "fidelización"] },
+  salon_belleza: { focus: "estética personal", keyMetrics: ["clientes por día", "servicios populares", "productos vendidos"], uniqueChallenges: ["agenda", "tendencias", "retención de estilistas"] },
+  gimnasio_fitness: { focus: "entrenamiento", keyMetrics: ["membresías activas", "retención", "clases llenas"], uniqueChallenges: ["equipamiento", "instructores", "horarios pico"] },
+  
+  // SERVICIOS B2B
+  consultora: { focus: "asesoría profesional", keyMetrics: ["horas facturables", "retención de clientes", "ticket promedio"], uniqueChallenges: ["propuestas", "alcance de proyectos", "cobro"] },
+  agencia_marketing: { focus: "campañas y resultados", keyMetrics: ["clientes activos", "retención", "ROI de campañas"], uniqueChallenges: ["resultados medibles", "creatividad", "herramientas"] },
+  desarrollo_software: { focus: "proyectos tech", keyMetrics: ["proyectos activos", "horas por proyecto", "satisfacción"], uniqueChallenges: ["estimaciones", "cambios de alcance", "talento tech"] },
+  
+  // EDUCACIÓN
+  academia_idiomas: { focus: "enseñanza de idiomas", keyMetrics: ["alumnos activos", "retención", "niveles completados"], uniqueChallenges: ["profesores", "material", "certificaciones"] },
+  escuela_danza: { focus: "artes escénicas", keyMetrics: ["alumnos por clase", "retención", "eventos"], uniqueChallenges: ["horarios", "espacio", "presentaciones"] },
+  centro_capacitacion: { focus: "formación profesional", keyMetrics: ["cursos vendidos", "completación", "satisfacción"], uniqueChallenges: ["contenido actualizado", "instructores", "certificaciones"] },
+  
+  // DEFAULT
+  default: { focus: "crecimiento del negocio", keyMetrics: ["ventas", "clientes", "margen"], uniqueChallenges: ["competencia", "costos", "personal"] },
+};
 
-🎯 TU OBJETIVO: Hacer preguntas ESTRATÉGICAS que revelen información ACCIONABLE.
+const buildSystemPrompt = (businessType: string, country: string): string => {
+  const sectorContext = SECTOR_CONTEXTS[businessType] || SECTOR_CONTEXTS.default;
+  const pronoun = country === "MX" ? "tú" : "vos";
+  const verb = country === "MX" ? "tienes" : "tenés";
+  
+  return `Sos el consultor de negocios más inteligente del mundo, especializado en ${sectorContext.focus}.
+
+🎯 TU MISIÓN: Hacer UNA pregunta estratégica para conocer mejor ESTE negocio específico.
+
+📊 CONTEXTO DEL SECTOR:
+- Tipo de negocio: ${businessType.replace(/_/g, ' ')}
+- Métricas clave del sector: ${sectorContext.keyMetrics.join(', ')}
+- Desafíos típicos: ${sectorContext.uniqueChallenges.join(', ')}
 
 📋 REGLAS ESTRICTAS:
-1. Pregunta UNA cosa específica que ayude a entender el negocio profundamente
-2. Las opciones deben ser 4, muy concretas y mutuamente excluyentes
-3. NUNCA repitas preguntas ya hechas (se te dan las anteriores)
-4. Cada pregunta debe tener un PROPÓSITO CLARO para mejorar las recomendaciones
-5. Adapta el lenguaje al país (Argentina=vos, México=tú)
-6. Si hay pocos datos, pregunta cosas básicas primero
-7. Si hay muchos datos, pregunta cosas más específicas y estratégicas
+1. Hablá DIRECTAMENTE al dueño usando "${pronoun}" - ejemplo: "¿Cuántos X ${verb} actualmente?"
+2. La pregunta debe ser ESPECÍFICA para ${sectorContext.focus}
+3. Las 4 opciones deben ser MUTUAMENTE EXCLUYENTES y concretas
+4. NUNCA repitas preguntas ya hechas (se te dan las anteriores)
+5. El impacto debe explicar CÓMO usarás la info para ayudar
+6. Pregunta sobre UNA métrica o desafío específico del sector
 
-🧠 TIPOS DE PREGUNTAS INTELIGENTES:
-- DIAGNÓSTICO: "¿Cuál es tu mayor dolor operativo ahora mismo?"
-- BENCHMARK: "¿Cómo te comparás con tu competencia directa en X?"
-- OPORTUNIDAD: "¿Qué servicio te piden clientes que hoy no ofrecés?"
-- FINANCIERO: "¿Cuál es tu margen aproximado por plato?"
-- EQUIPO: "¿Tu equipo puede tomar decisiones sin consultarte?"
-- TECNOLOGÍA: "¿Qué proceso te gustaría automatizar primero?"
+🧠 TIPOS DE PREGUNTAS POR NIVEL:
+BÁSICO (< 5 insights): Estructura del negocio, equipo, clientes principales
+MEDIO (5-15 insights): Operaciones diarias, desafíos actuales, competencia
+AVANZADO (15-30 insights): Estrategia, optimización, crecimiento
+EXPERTO (30+ insights): Mejora continua, benchmarks, innovación
 
-⚠️ NUNCA hagas preguntas:
-- Vagas o filosóficas
-- Que ya fueron respondidas
-- Sin impacto claro en las recomendaciones
+⚠️ EVITAR:
+- Preguntas genéricas que apliquen a cualquier negocio
+- Opciones vagas como "Otro" o "No sé"
+- Preguntas ya respondidas
+- Frases en tercera persona ("El dueño debería...")
 
-📤 FORMATO JSON OBLIGATORIO:
+📤 FORMATO JSON ESTRICTO:
 {
-  "question": "Pregunta directa y específica (máx 80 chars)",
-  "options": ["Opción clara 1", "Opción clara 2", "Opción clara 3", "Opción clara 4"],
-  "category": "operaciones|equipo|clientes|marketing|finanzas|producto|tecnologia|competencia|proveedores|ubicacion",
-  "impact": "Cómo usaré esta info para ayudarte (máx 50 chars)"
+  "question": "Pregunta directa usando ${pronoun} (máx 80 chars)",
+  "options": ["Opción específica 1", "Opción específica 2", "Opción específica 3", "Opción específica 4"],
+  "category": "operaciones|equipo|clientes|marketing|finanzas|producto|tecnologia|competencia|proveedores|ventas|servicio",
+  "impact": "Cómo usaré esto para personalizar tu asesoría (máx 60 chars)"
 }`;
+};
 
 // Fetch existing insights to avoid repeating questions
 async function fetchExistingInsights(supabase: any, businessId: string) {
@@ -77,19 +136,20 @@ async function fetchBusinessContext(supabase: any, businessId: string) {
   try {
     const [
       businessRes, 
+      brainRes,
       checkinsRes, 
       actionsRes, 
       missionsRes,
-      externalDataRes,
-      lessonsRes
+      pulseRes,
     ] = await Promise.all([
       supabase.from("businesses").select("*").eq("id", businessId).single(),
+      supabase.from("business_brains").select("*").eq("business_id", businessId).single(),
       supabase
-        .from("checkins")
-        .select("traffic_level, slot, notes, created_at")
+        .from("pulse_checkins")
+        .select("pulse_score_1_5, pulse_label, shift_tag, notes_good, notes_bad, applies_to_date")
         .eq("business_id", businessId)
-        .order("created_at", { ascending: false })
-        .limit(20),
+        .order("applies_to_date", { ascending: false })
+        .limit(14),
       supabase
         .from("daily_actions")
         .select("category, status, title, outcome_rating")
@@ -102,26 +162,20 @@ async function fetchBusinessContext(supabase: any, businessId: string) {
         .eq("business_id", businessId)
         .limit(10),
       supabase
-        .from("external_data")
-        .select("data_type, content, sentiment_score")
+        .from("pulse_checkins")
+        .select("pulse_score_1_5, shift_tag")
         .eq("business_id", businessId)
-        .order("created_at", { ascending: false })
+        .order("applies_to_date", { ascending: false })
         .limit(30),
-      supabase
-        .from("lessons")
-        .select("content, category, importance")
-        .eq("business_id", businessId)
-        .order("importance", { ascending: false })
-        .limit(10),
     ]);
 
     return {
       business: businessRes.data,
+      brain: brainRes.data,
       checkins: checkinsRes.data || [],
       actions: actionsRes.data || [],
       missions: missionsRes.data || [],
-      externalData: externalDataRes.data || [],
-      lessons: lessonsRes.data || [],
+      pulseHistory: pulseRes.data || [],
     };
   } catch (error) {
     console.error("Error fetching context:", error);
@@ -132,132 +186,93 @@ async function fetchBusinessContext(supabase: any, businessId: string) {
 function buildPrompt(context: any, existingInsights: any[]): string {
   let prompt = "";
   
+  const businessType = context?.brain?.primary_business_type || context?.business?.category || "negocio_general";
+  const country = context?.business?.country || "AR";
+  
   // Business basics
-  if (context?.business) {
-    prompt += `📊 NEGOCIO:
-- Nombre: ${context.business.name || "Sin nombre"}
-- Tipo: ${formatCategory(context.business.category)}
-- País: ${formatCountry(context.business.country)}
-- Rating promedio: ${context.business.avg_rating || "No disponible"}
-- Ticket promedio: ${context.business.avg_ticket ? `$${context.business.avg_ticket}` : "No disponible"}
+  prompt += `📊 PERFIL DEL NEGOCIO:
+- Nombre: ${context?.business?.name || "Sin nombre"}
+- Tipo específico: ${businessType.replace(/_/g, ' ')}
+- País: ${formatCountry(country)}
+- Rating: ${context?.business?.avg_rating || "Sin datos"}
+`;
+
+  // Brain context - ultra important for personalization
+  if (context?.brain) {
+    const factualMemory = context.brain.factual_memory || {};
+    const factualKeys = Object.keys(factualMemory).filter(k => k.startsWith('learning_'));
+    
+    prompt += `\n🧠 CEREBRO DEL NEGOCIO:
+- Foco actual: ${context.brain.current_focus || "general"}
+- Confianza: ${Math.round((context.brain.confidence_score || 0) * (context.brain.confidence_score > 1 ? 1 : 100))}%
+- Áreas con conocimiento: ${factualKeys.map(k => k.replace('learning_', '')).join(', ') || "ninguna todavía"}
+`;
+  }
+
+  // Pulse patterns - operational reality
+  if (context?.pulseHistory?.length > 0) {
+    const avgPulse = context.pulseHistory.reduce((sum: number, p: any) => sum + (p.pulse_score_1_5 || 0), 0) / context.pulseHistory.length;
+    const shiftPatterns = context.pulseHistory.map((p: any) => p.shift_tag).filter(Boolean);
+    const uniqueShifts = [...new Set(shiftPatterns)];
+    
+    prompt += `\n📈 PULSO OPERATIVO (últimos ${context.pulseHistory.length} registros):
+- Promedio: ${avgPulse.toFixed(1)}/5
+- Turnos activos: ${uniqueShifts.join(', ') || "sin especificar"}
 `;
   }
 
   // Insights already collected - CRITICAL to not repeat
   if (existingInsights.length > 0) {
-    prompt += `\n🚫 PREGUNTAS YA RESPONDIDAS (NO repetir ninguna):\n`;
-    existingInsights.forEach((insight: any) => {
-      prompt += `• [${insight.category}] "${insight.question}" → "${insight.answer}"\n`;
+    prompt += `\n🚫 CONOCIMIENTO YA RECOPILADO (NO repetir):\n`;
+    
+    // Group by category
+    const byCategory = existingInsights.reduce((acc: any, insight: any) => {
+      if (!acc[insight.category]) acc[insight.category] = [];
+      acc[insight.category].push(insight);
+      return acc;
+    }, {});
+    
+    Object.entries(byCategory).forEach(([cat, insights]: [string, any]) => {
+      prompt += `\n[${cat.toUpperCase()}]:\n`;
+      insights.slice(0, 5).forEach((i: any) => {
+        prompt += `• "${i.question}" → "${i.answer}"\n`;
+      });
     });
 
-    // Analyze patterns in answers
-    const categoryCount = new Map<string, number>();
-    existingInsights.forEach((i: any) => {
-      categoryCount.set(i.category, (categoryCount.get(i.category) || 0) + 1);
-    });
-    
-    prompt += `\n📈 DISTRIBUCIÓN DE CONOCIMIENTO:\n`;
+    // Show distribution
+    prompt += `\n📊 DISTRIBUCIÓN:\n`;
     QUESTION_CATEGORIES.forEach(cat => {
-      const count = categoryCount.get(cat) || 0;
+      const count = byCategory[cat]?.length || 0;
       const bar = "█".repeat(Math.min(count, 10)) + "░".repeat(Math.max(0, 10 - count));
       prompt += `${cat}: ${bar} (${count})\n`;
-    });
-  }
-
-  // Recent activity signals
-  if (context?.checkins?.length > 0) {
-    const avgTraffic = context.checkins.reduce((sum: number, c: any) => sum + (c.traffic_level || 0), 0) / context.checkins.length;
-    prompt += `\n🚦 TRÁFICO RECIENTE: Promedio ${avgTraffic.toFixed(1)}/5\n`;
-    
-    // Find patterns in notes
-    const notes = context.checkins.filter((c: any) => c.notes).map((c: any) => c.notes).slice(0, 5);
-    if (notes.length > 0) {
-      prompt += `Notas recientes: ${notes.join(" | ")}\n`;
-    }
-  }
-
-  // External data signals (reviews, social, etc)
-  if (context?.externalData?.length > 0) {
-    const reviews = context.externalData.filter((d: any) => d.data_type === "review");
-    if (reviews.length > 0) {
-      const avgSentiment = reviews.reduce((sum: number, r: any) => sum + (r.sentiment_score || 0), 0) / reviews.length;
-      prompt += `\n⭐ RESEÑAS: ${reviews.length} reseñas, sentimiento promedio: ${avgSentiment.toFixed(1)}/10\n`;
-      
-      // Sample some review content
-      const recentReviews = reviews.slice(0, 3).map((r: any) => {
-        const content = r.content as Record<string, any>;
-        return content?.text || content?.comment || "";
-      }).filter(Boolean);
-      if (recentReviews.length > 0) {
-        prompt += `Comentarios recientes: "${recentReviews.join('" | "')}"\n`;
-      }
-    }
-  }
-
-  // Lessons learned
-  if (context?.lessons?.length > 0) {
-    prompt += `\n💡 LECCIONES APRENDIDAS:\n`;
-    context.lessons.slice(0, 5).forEach((l: any) => {
-      prompt += `• ${l.content}\n`;
     });
   }
 
   // Actions performance
   if (context?.actions?.length > 0) {
     const completed = context.actions.filter((a: any) => a.status === "completed").length;
-    const total = context.actions.length;
-    prompt += `\n✅ ACCIONES: ${completed}/${total} completadas\n`;
-    
-    // Categories where they're active
-    const actionCategories = [...new Set(context.actions.map((a: any) => a.category).filter(Boolean))];
-    if (actionCategories.length > 0) {
-      prompt += `Áreas de enfoque: ${actionCategories.join(", ")}\n`;
-    }
+    const categories = [...new Set(context.actions.map((a: any) => a.category).filter(Boolean))];
+    prompt += `\n✅ ACTIVIDAD: ${completed}/${context.actions.length} acciones completadas en: ${categories.join(", ")}\n`;
   }
 
-  // Time context
-  const now = new Date();
-  const hour = now.getHours();
-  const dayOfWeek = now.toLocaleDateString("es", { weekday: "long" });
-  const isWeekend = now.getDay() === 0 || now.getDay() === 6;
-  
-  prompt += `\n⏰ CONTEXTO TEMPORAL:
-- Día: ${dayOfWeek}
-- Hora: ${hour}:00
-- Es fin de semana: ${isWeekend ? "Sí" : "No"}
-`;
-
-  // Intelligence level
+  // Intelligence level instruction
   const insightCount = existingInsights.length;
-  let intelligenceNote = "";
+  let levelNote = "";
   if (insightCount < 5) {
-    intelligenceNote = "🔴 NIVEL BAJO - Haz preguntas BÁSICAS primero (tipo de negocio, equipo, clientes principales)";
+    levelNote = "🔴 NIVEL INICIAL - Preguntá sobre estructura básica, equipo, tipo de clientes";
   } else if (insightCount < 15) {
-    intelligenceNote = "🟡 NIVEL MEDIO - Ya conocemos lo básico, pregunta sobre OPERACIONES y DESAFÍOS";
+    levelNote = "🟡 NIVEL MEDIO - Ya sabemos lo básico, preguntá sobre operaciones diarias y desafíos";
   } else if (insightCount < 30) {
-    intelligenceNote = "🟢 NIVEL BUENO - Profundiza en ESTRATEGIA, COMPETENCIA y CRECIMIENTO";
+    levelNote = "🟢 NIVEL BUENO - Profundizá en estrategia, competencia y oportunidades de crecimiento";
   } else {
-    intelligenceNote = "🔵 NIVEL EXPERTO - Haz preguntas MUY ESPECÍFICAS y estratégicas sobre optimización";
+    levelNote = "🔵 NIVEL EXPERTO - Hacé preguntas muy específicas sobre optimización y benchmarks";
   }
   
-  prompt += `\n🧠 INTELIGENCIA: ${intelligenceNote}\n`;
+  prompt += `\n🎯 INSTRUCCIÓN: ${levelNote}
 
-  prompt += `\n🎯 GENERA UNA PREGUNTA ESTRATÉGICA QUE AÚN NO SE HAYA HECHO Y QUE AYUDE A PERSONALIZAR LAS RECOMENDACIONES.`;
+Generá UNA pregunta estratégica específica para este ${businessType.replace(/_/g, ' ')} que aún no hayamos cubierto.`;
 
   return prompt;
-}
-
-function formatCategory(category: string | null): string {
-  const categories: Record<string, string> = {
-    cafeteria: "Cafetería",
-    bar: "Bar",
-    restaurant: "Restaurante",
-    fast_casual: "Fast Casual",
-    heladeria: "Heladería",
-    panaderia: "Panadería",
-    dark_kitchen: "Dark Kitchen",
-  };
-  return categories[category || ""] || "Restaurante";
 }
 
 function formatCountry(country: string | null): string {
@@ -275,8 +290,26 @@ function formatCountry(country: string | null): string {
   return countries[country || ""] || "Argentina";
 }
 
-// Smart fallback questions based on insight count
-function getFallbackQuestion(insightCount: number, existingCategories: Set<string>) {
+// Sector-specific fallback questions for 180 business types
+function getFallbackQuestion(businessType: string, insightCount: number, existingCategories: Set<string>) {
+  const sectorContext = SECTOR_CONTEXTS[businessType] || SECTOR_CONTEXTS.default;
+  
+  // Generate questions based on sector challenges
+  const sectorQuestions = sectorContext.uniqueChallenges.map((challenge, idx) => ({
+    question: `¿Cómo manejás actualmente ${challenge.toLowerCase()}?`,
+    options: ["No tengo proceso", "Lo hago manualmente", "Tengo un sistema básico", "Proceso optimizado"],
+    category: ["operaciones", "equipo", "servicio"][idx % 3] || "operaciones",
+    impact: `Identificar oportunidades en ${sectorContext.focus}`,
+  }));
+
+  // Metric-based questions
+  const metricQuestions = sectorContext.keyMetrics.map((metric, idx) => ({
+    question: `¿Cómo está tu ${metric.toLowerCase()} actualmente?`,
+    options: ["Bajo lo esperado", "Estable", "Creciendo", "Muy bueno"],
+    category: ["finanzas", "ventas", "clientes"][idx % 3] || "finanzas",
+    impact: `Optimizar ${metric} para tu negocio`,
+  }));
+
   const basicQuestions = [
     {
       question: "¿Cuántas personas trabajan en tu negocio?",
@@ -292,71 +325,29 @@ function getFallbackQuestion(insightCount: number, existingCategories: Set<strin
     },
     {
       question: "¿De dónde vienen la mayoría de tus clientes?",
-      options: ["Pasan caminando", "Redes sociales", "Recomendaciones", "Apps de delivery"],
+      options: ["Pasan caminando", "Redes sociales", "Recomendaciones", "Apps/Plataformas"],
       category: "marketing",
       impact: "Optimizar canales de adquisición",
     },
   ];
 
-  const intermediateQuestions = [
-    {
-      question: "¿Con qué frecuencia actualizás tu menú?",
-      options: ["Nunca", "Una vez al año", "Cada temporada", "Mensualmente"],
-      category: "producto",
-      impact: "Sugerir estrategias de innovación",
-    },
-    {
-      question: "¿Cómo manejás las quejas de clientes?",
-      options: ["No tengo protocolo", "Respondo cuando puedo", "Tengo un proceso", "Equipo dedicado"],
-      category: "clientes",
-      impact: "Mejorar tu reputación y retención",
-    },
-    {
-      question: "¿Cuánto tiempo tardás en servir un pedido?",
-      options: ["Menos de 10 min", "10-20 minutos", "20-30 minutos", "Más de 30 min"],
-      category: "operaciones",
-      impact: "Optimizar tiempos de servicio",
-    },
-  ];
-
-  const advancedQuestions = [
-    {
-      question: "¿Qué porcentaje de tus ventas es por delivery?",
-      options: ["Menos del 10%", "10-30%", "30-50%", "Más del 50%"],
-      category: "marketing",
-      impact: "Optimizar canales de venta",
-    },
-    {
-      question: "¿Conocés tu costo por plato en detalle?",
-      options: ["No lo calculo", "Aproximado", "Lo calculo bien", "Sistema automatizado"],
-      category: "finanzas",
-      impact: "Mejorar márgenes de ganancia",
-    },
-    {
-      question: "¿Qué hace tu competencia que vos no?",
-      options: ["Mejor marketing", "Más variedad", "Mejores precios", "Mejor servicio"],
-      category: "competencia",
-      impact: "Identificar oportunidades de mejora",
-    },
-  ];
-
-  // Select based on knowledge level
-  let questions;
+  // Combine all questions based on level
+  let allQuestions;
   if (insightCount < 5) {
-    questions = basicQuestions;
+    allQuestions = basicQuestions;
   } else if (insightCount < 15) {
-    questions = [...basicQuestions, ...intermediateQuestions];
+    allQuestions = [...basicQuestions, ...sectorQuestions];
   } else {
-    questions = [...intermediateQuestions, ...advancedQuestions];
+    allQuestions = [...sectorQuestions, ...metricQuestions];
   }
 
   // Filter out already asked categories if possible
-  const available = questions.filter(q => !existingCategories.has(q.category));
+  const available = allQuestions.filter(q => !existingCategories.has(q.category));
   if (available.length > 0) {
     return available[Math.floor(Math.random() * available.length)];
   }
 
-  return questions[Math.floor(Math.random() * questions.length)];
+  return allQuestions[Math.floor(Math.random() * allQuestions.length)];
 }
 
 serve(async (req) => {
@@ -365,7 +356,7 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, category } = await req.json();
+    const { businessId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -382,9 +373,13 @@ serve(async (req) => {
       fetchBusinessContext(supabase, businessId),
     ]);
 
-    console.log(`[generate-question] Business: ${businessId}, Insights: ${existingInsights.length}`);
+    const businessType = context?.brain?.primary_business_type || context?.business?.category || "default";
+    const country = context?.business?.country || "AR";
 
-    // Build rich prompt
+    console.log(`[generate-question] Business: ${businessId}, Type: ${businessType}, Insights: ${existingInsights.length}`);
+
+    // Build rich prompts
+    const systemPrompt = buildSystemPrompt(businessType, country);
     const contextPrompt = buildPrompt(context, existingInsights);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -396,11 +391,11 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           { role: "user", content: contextPrompt },
         ],
-        temperature: 0.8,
-        max_tokens: 300,
+        temperature: 0.7,
+        max_tokens: 400,
       }),
     });
 
@@ -410,7 +405,7 @@ serve(async (req) => {
 
       if (response.status === 429 || response.status === 402) {
         const existingCategories = new Set<string>(existingInsights.map((i: any) => i.category as string));
-        const fallback = getFallbackQuestion(existingInsights.length, existingCategories);
+        const fallback = getFallbackQuestion(businessType, existingInsights.length, existingCategories);
         return new Response(
           JSON.stringify({ question: fallback }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -451,10 +446,10 @@ serve(async (req) => {
     } catch (parseError) {
       console.error("Error parsing AI response:", parseError, content);
       const existingCategories = new Set<string>(existingInsights.map((i: any) => i.category as string));
-      questionData = getFallbackQuestion(existingInsights.length, existingCategories);
+      questionData = getFallbackQuestion(businessType, existingInsights.length, existingCategories);
     }
 
-    console.log(`[generate-question] Generated: "${questionData.question}" [${questionData.category}]`);
+    console.log(`[generate-question] Generated: "${questionData.question}" [${questionData.category}] for ${businessType}`);
 
     return new Response(
       JSON.stringify({ question: questionData }),
@@ -462,7 +457,7 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("generate-question error:", error);
-    const fallback = getFallbackQuestion(0, new Set());
+    const fallback = getFallbackQuestion("default", 0, new Set());
     return new Response(
       JSON.stringify({ question: fallback }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
