@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Trash2, Settings2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -11,7 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { LessonsPanel } from "@/components/app/LessonsPanel";
 
-// New premium chat components
+// Chat components
 import { ChatWelcome } from "@/components/chat/ChatWelcome";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { ChatInput } from "@/components/chat/ChatInput";
@@ -379,6 +377,7 @@ const ChatPage = () => {
   }
 
   // Desktop Layout
+  // Desktop Layout
   if (!isMobile) {
     return (
       <>
@@ -388,25 +387,20 @@ const ChatPage = () => {
           {/* Main Chat Area */}
           <div className="flex-1 flex flex-col min-w-0">
             {/* Header */}
-            <motion.div
-              className="flex items-center justify-between mb-6"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
+            <div className="flex items-center justify-between mb-6 animate-fade-in">
               <div className="flex items-center gap-4">
                 <div className="hidden sm:block">
                   <CEOAvatar size="md" isSpeaking={isPlayingAudio} />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                  <h1 className="text-2xl font-bold text-foreground">
                     CEO Chat
-                    <span className="text-sm font-normal text-muted-foreground hidden sm:inline">
+                    <span className="text-sm font-normal text-muted-foreground ml-2 hidden sm:inline">
                       para {currentBusiness.name}
                     </span>
                   </h1>
                   <p className="text-sm text-muted-foreground">
-                    Tu mentor ejecutivo con IA • Aprende de cada conversación
+                    Tu mentor ejecutivo con IA
                   </p>
                 </div>
               </div>
@@ -417,55 +411,42 @@ const ChatPage = () => {
                   <span className="hidden sm:inline">Nueva conversación</span>
                 </Button>
               )}
-            </motion.div>
+            </div>
 
             {/* Messages Area */}
             <div
               ref={messagesContainerRef}
-              className={cn(
-                "flex-1 overflow-y-auto rounded-2xl",
-                "border border-border/60 bg-gradient-to-b from-card/80 to-card/40",
-                "backdrop-blur-sm relative"
-              )}
+              className="flex-1 overflow-y-auto rounded-xl border border-border bg-card/50"
             >
-              <AnimatePresence mode="wait">
-                {messages.length === 0 ? (
-                  <ChatWelcome
-                    businessName={currentBusiness.name}
-                    onSelectSuggestion={sendMessage}
-                    disabled={loading}
-                  />
-                ) : (
-                  <motion.div
-                    className="p-6 space-y-6"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {messages.map((message, idx) => (
-                      <ChatMessage
-                        key={message.id}
-                        role={message.role}
-                        content={message.content}
-                        timestamp={message.created_at}
-                        hasLearning={message.hasLearning}
-                        audioScript={message.audioScript}
-                        isPlaying={playingMessageId === message.id}
-                        onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
-                        businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
-                        index={idx}
-                        isSpeaking={playingMessageId === message.id}
-                      />
-                    ))}
+              {messages.length === 0 ? (
+                <ChatWelcome
+                  businessName={currentBusiness.name}
+                  onSelectSuggestion={sendMessage}
+                  disabled={loading}
+                />
+              ) : (
+                <div className="p-6 space-y-5">
+                  {messages.map((message, idx) => (
+                    <ChatMessage
+                      key={message.id}
+                      role={message.role}
+                      content={message.content}
+                      timestamp={message.created_at}
+                      hasLearning={message.hasLearning}
+                      audioScript={message.audioScript}
+                      isPlaying={playingMessageId === message.id}
+                      onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
+                      businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
+                      index={idx}
+                      isSpeaking={playingMessageId === message.id}
+                    />
+                  ))}
 
-                    <AnimatePresence>
-                      {loading && <ChatThinkingState />}
-                    </AnimatePresence>
+                  {loading && <ChatThinkingState />}
 
-                    <div ref={messagesEndRef} className="h-4" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  <div ref={messagesEndRef} className="h-4" />
+                </div>
+              )}
             </div>
 
             {/* Input Area */}
@@ -493,14 +474,9 @@ const ChatPage = () => {
 
           {/* Lessons Sidebar */}
           <div className="w-80 flex-shrink-0 hidden xl:block">
-            <motion.div
-              className="h-full overflow-y-auto rounded-2xl border border-border/60 bg-card/50 backdrop-blur-sm p-4"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
+            <div className="h-full overflow-y-auto rounded-xl border border-border bg-card/50 p-4 animate-fade-in">
               <LessonsPanel />
-            </motion.div>
+            </div>
           </div>
         </div>
       </>
@@ -518,43 +494,35 @@ const ChatPage = () => {
           ref={messagesContainerRef}
           className="flex-1 overflow-y-auto px-2 pb-4"
         >
-          <AnimatePresence mode="wait">
-            {messages.length === 0 ? (
-              <ChatWelcome
-                businessName={currentBusiness.name}
-                onSelectSuggestion={sendMessage}
-                disabled={loading}
-              />
-            ) : (
-              <motion.div
-                className="space-y-4 pt-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {messages.map((message, idx) => (
-                  <ChatMessage
-                    key={message.id}
-                    role={message.role}
-                    content={message.content}
-                    timestamp={message.created_at}
-                    hasLearning={message.hasLearning}
-                    audioScript={message.audioScript}
-                    isPlaying={playingMessageId === message.id}
-                    onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
-                    businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
-                    index={idx}
-                    isSpeaking={playingMessageId === message.id}
-                  />
-                ))}
+          {messages.length === 0 ? (
+            <ChatWelcome
+              businessName={currentBusiness.name}
+              onSelectSuggestion={sendMessage}
+              disabled={loading}
+            />
+          ) : (
+            <div className="space-y-4 pt-4">
+              {messages.map((message, idx) => (
+                <ChatMessage
+                  key={message.id}
+                  role={message.role}
+                  content={message.content}
+                  timestamp={message.created_at}
+                  hasLearning={message.hasLearning}
+                  audioScript={message.audioScript}
+                  isPlaying={playingMessageId === message.id}
+                  onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
+                  businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
+                  index={idx}
+                  isSpeaking={playingMessageId === message.id}
+                />
+              ))}
 
-                <AnimatePresence>
-                  {loading && <ChatThinkingState />}
-                </AnimatePresence>
+              {loading && <ChatThinkingState />}
 
-                <div ref={messagesEndRef} className="h-4" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+              <div ref={messagesEndRef} className="h-4" />
+            </div>
+          )}
         </div>
 
         {/* Input Area */}
