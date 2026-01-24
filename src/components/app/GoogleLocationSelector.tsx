@@ -47,7 +47,19 @@ export const GoogleLocationSelector = ({
         body: { businessId }
       });
 
-      if (error) throw error;
+      if (error) {
+        // supabase-js throws for non-2xx; we want friendlier UX for quota errors.
+        const anyErr = error as any;
+        const status = anyErr?.context?.status ?? anyErr?.status;
+        if (status === 429) {
+          setError(
+            "Google está aplicando/limitando la cuota de la API (429). Esperá 5–10 minutos y reintentá."
+          );
+          return;
+        }
+
+        throw error;
+      }
 
       if (data?.error) {
         setError(data.error);
@@ -67,7 +79,15 @@ export const GoogleLocationSelector = ({
       }
     } catch (error) {
       console.error("Error fetching locations:", error);
-      setError("Error al obtener los negocios. Intenta reconectar tu cuenta de Google.");
+      const anyErr = error as any;
+      const status = anyErr?.context?.status ?? anyErr?.status;
+      if (status === 429) {
+        setError(
+          "Google está aplicando/limitando la cuota de la API (429). Esperá 5–10 minutos y reintentá."
+        );
+      } else {
+        setError("Error al obtener los negocios. Intenta reconectar tu cuenta de Google.");
+      }
     } finally {
       setLoading(false);
     }
