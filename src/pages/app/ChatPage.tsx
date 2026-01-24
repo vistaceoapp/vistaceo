@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Trash2 } from "lucide-react";
+import { Trash2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,7 @@ import { LessonsPanel } from "@/components/app/LessonsPanel";
 // Chat components
 import { ChatWelcome } from "@/components/chat/ChatWelcome";
 import { ChatMessage } from "@/components/chat/ChatMessage";
-import { ChatInput } from "@/components/chat/ChatInput";
+import { ChatInput, AttachedFile } from "@/components/chat/ChatInput";
 import { ChatThinkingState } from "@/components/chat/ChatThinkingState";
 import { LearningNotification } from "@/components/chat/LearningNotification";
 import { CEOAvatar } from "@/components/chat/CEOAvatar";
@@ -24,6 +24,7 @@ interface Message {
   created_at: string;
   hasLearning?: boolean;
   audioScript?: string;
+  attachments?: AttachedFile[];
 }
 
 const ChatPage = () => {
@@ -44,6 +45,9 @@ const ChatPage = () => {
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [learningIndicator, setLearningIndicator] = useState(false);
+
+  // File attachments
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -259,17 +263,33 @@ const ChatPage = () => {
 
   const sendMessage = async (messageText?: string, inputType: string = "text") => {
     const textToSend = messageText || input.trim();
-    if (!textToSend || !currentBusiness || loading) return;
+    const hasAttachments = attachedFiles.length > 0;
+    
+    if ((!textToSend && !hasAttachments) || !currentBusiness || loading) return;
 
+    // Store attachments before clearing
+    const messageAttachments = [...attachedFiles];
+    
     setInput("");
+    setAttachedFiles([]);
     setLoading(true);
     setLearningIndicator(false);
+
+    // Build message content with attachment info
+    let fullContent = textToSend;
+    if (hasAttachments) {
+      const attachmentDescriptions = messageAttachments.map(f => 
+        f.type === "image" ? `[📷 Imagen: ${f.file.name}]` : `[📄 Documento: ${f.file.name}]`
+      ).join(" ");
+      fullContent = fullContent ? `${fullContent}\n\n${attachmentDescriptions}` : attachmentDescriptions;
+    }
 
     const tempUserMsg: Message = {
       id: `temp-${Date.now()}`,
       role: "user",
-      content: textToSend,
+      content: fullContent,
       created_at: new Date().toISOString(),
+      attachments: messageAttachments,
     };
     setMessages((prev) => [...prev, tempUserMsg]);
 
@@ -277,7 +297,7 @@ const ChatPage = () => {
       await supabase.from("chat_messages").insert({
         business_id: currentBusiness.id,
         role: "user",
-        content: textToSend,
+        content: fullContent,
       });
 
       const messagesForAI = [...messages, tempUserMsg].map((m) => ({
@@ -296,8 +316,13 @@ const ChatPage = () => {
             avg_ticket: currentBusiness.avg_ticket,
             avg_rating: currentBusiness.avg_rating,
           },
-          inputType,
+          inputType: hasAttachments ? "multimodal" : inputType,
           messageId: `msg-${Date.now()}`,
+          attachments: messageAttachments.map(f => ({
+            name: f.file.name,
+            type: f.type,
+            size: f.file.size,
+          })),
         },
       });
 
@@ -386,7 +411,6 @@ const ChatPage = () => {
   }
 
   // Desktop Layout
-  // Desktop Layout
   if (!isMobile) {
     return (
       <>
@@ -399,23 +423,26 @@ const ChatPage = () => {
             <div className="flex items-center justify-between mb-6 animate-fade-in">
               <div className="flex items-center gap-4">
                 <div className="hidden sm:block">
-                  <CEOAvatar size="md" isSpeaking={isPlayingAudio} />
+                  <CEOAvatar size="lg" isSpeaking={isPlayingAudio} isThinking={loading} />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">
-                    CEO Chat
-                    <span className="text-sm font-normal text-muted-foreground ml-2 hidden sm:inline">
-                      para {currentBusiness.name}
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-2xl font-bold text-foreground">
+                      CEO Chat
+                    </h1>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                      <Sparkles className="w-3 h-3" />
+                      Ultra IA
                     </span>
-                  </h1>
+                  </div>
                   <p className="text-sm text-muted-foreground">
-                    Tu mentor ejecutivo con IA
+                    Tu mentor ejecutivo • {currentBusiness.name}
                   </p>
                 </div>
               </div>
 
               {messages.length > 0 && (
-                <Button variant="outline" size="sm" onClick={clearChat} className="gap-2">
+                <Button variant="outline" size="sm" onClick={clearChat} className="gap-2 rounded-xl">
                   <Trash2 className="w-4 h-4" />
                   <span className="hidden sm:inline">Nueva conversación</span>
                 </Button>
@@ -425,7 +452,7 @@ const ChatPage = () => {
             {/* Messages Area */}
             <div
               ref={messagesContainerRef}
-              className="flex-1 overflow-y-auto rounded-xl border border-border bg-card/50"
+              className="flex-1 overflow-y-auto rounded-2xl border border-border/60 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur-sm"
             >
               {messages.length === 0 ? (
                 <ChatWelcome
@@ -434,7 +461,7 @@ const ChatPage = () => {
                   disabled={loading}
                 />
               ) : (
-                <div className="p-6 space-y-5">
+                <div className="p-6 space-y-6">
                   {messages.map((message, idx) => (
                     <ChatMessage
                       key={message.id}
@@ -448,6 +475,7 @@ const ChatPage = () => {
                       businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
                       index={idx}
                       isSpeaking={playingMessageId === message.id}
+                      attachments={message.attachments}
                     />
                   ))}
 
@@ -477,13 +505,16 @@ const ChatPage = () => {
                     setAudioEnabled(!audioEnabled);
                   }
                 }}
+                attachedFiles={attachedFiles}
+                onAttachFiles={setAttachedFiles}
+                onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}
               />
             </div>
           </div>
 
           {/* Lessons Sidebar */}
           <div className="w-80 flex-shrink-0 hidden xl:block">
-            <div className="h-full overflow-y-auto rounded-xl border border-border bg-card/50 p-4 animate-fade-in">
+            <div className="h-full overflow-y-auto rounded-2xl border border-border/60 bg-card/50 backdrop-blur-sm p-4 animate-fade-in">
               <LessonsPanel />
             </div>
           </div>
@@ -524,6 +555,7 @@ const ChatPage = () => {
                   businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
                   index={idx}
                   isSpeaking={playingMessageId === message.id}
+                  attachments={message.attachments}
                 />
               ))}
 
@@ -535,7 +567,7 @@ const ChatPage = () => {
         </div>
 
         {/* Input Area */}
-        <div className="sticky bottom-0 pt-2 pb-2 px-1">
+        <div className="sticky bottom-0 pt-2 pb-2 px-1 bg-background/80 backdrop-blur-sm">
           <ChatInput
             value={input}
             onChange={setInput}
@@ -553,6 +585,9 @@ const ChatPage = () => {
                 setAudioEnabled(!audioEnabled);
               }
             }}
+            attachedFiles={attachedFiles}
+            onAttachFiles={setAttachedFiles}
+            onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}
             isMobile
           />
         </div>
