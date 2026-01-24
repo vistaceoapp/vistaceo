@@ -6,6 +6,12 @@ verify_jwt = false
 [functions.vistaceo-chat]
 verify_jwt = false
 
+[functions.elevenlabs-tts]
+verify_jwt = false
+
+[functions.elevenlabs-stt]
+verify_jwt = false
+
 [functions.generate-action]
 verify_jwt = false
 
