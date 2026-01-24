@@ -1,253 +1,31 @@
-import Lottie from "lottie-react";
 import { cn } from "@/lib/utils";
 import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
-import { useState, useEffect } from "react";
 
 interface CEOAvatarProps {
   size?: "sm" | "md" | "lg" | "xl" | "hero";
   isThinking?: boolean;
   isSpeaking?: boolean;
-  mood?: "calm" | "serious" | "energetic" | "empathetic" | "focused";
   className?: string;
   showStatus?: boolean;
 }
 
 const sizeMap = {
-  sm: { container: 44, logoSize: 22, ringWidth: 2 },
-  md: { container: 64, logoSize: 32, ringWidth: 3 },
-  lg: { container: 88, logoSize: 44, ringWidth: 3 },
-  xl: { container: 120, logoSize: 60, ringWidth: 4 },
-  hero: { container: 160, logoSize: 80, ringWidth: 5 },
-};
-
-const moodColors = {
-  calm: { primary: [0.149, 0.573, 0.863], secondary: [0.455, 0.424, 0.902] },
-  serious: { primary: [0.8, 0.4, 0.2], secondary: [0.6, 0.3, 0.4] },
-  energetic: { primary: [0.2, 0.8, 0.4], secondary: [0.4, 0.9, 0.6] },
-  empathetic: { primary: [0.6, 0.3, 0.7], secondary: [0.8, 0.4, 0.9] },
-  focused: { primary: [0.2, 0.5, 0.9], secondary: [0.3, 0.6, 0.95] },
-};
-
-// Create animation data based on mood
-const createAnimation = (mood: string, isSpeaking: boolean) => {
-  const colors = moodColors[mood as keyof typeof moodColors] || moodColors.calm;
-  const speed = isSpeaking ? 60 : 30;
-  const duration = isSpeaking ? 60 : 90;
-
-  return {
-    v: "5.7.4",
-    fr: speed,
-    ip: 0,
-    op: duration,
-    w: 200,
-    h: 200,
-    nm: "AI Orb",
-    ddd: 0,
-    assets: [],
-    layers: [
-      // Outer rotating ring
-      {
-        ddd: 0,
-        ind: 1,
-        ty: 4,
-        nm: "Outer Ring",
-        sr: 1,
-        ks: {
-          o: { a: 0, k: isSpeaking ? 70 : 40 },
-          r: {
-            a: 1,
-            k: [
-              { t: 0, s: [0], e: [360] },
-              { t: duration, s: [360] }
-            ]
-          },
-          p: { a: 0, k: [100, 100, 0] },
-          a: { a: 0, k: [0, 0, 0] },
-          s: {
-            a: 1,
-            k: [
-              { t: 0, s: [100, 100, 100], e: [isSpeaking ? 108 : 105, isSpeaking ? 108 : 105, 100] },
-              { t: duration / 2, s: [isSpeaking ? 108 : 105, isSpeaking ? 108 : 105, 100], e: [100, 100, 100] },
-              { t: duration, s: [100, 100, 100] }
-            ]
-          }
-        },
-        ao: 0,
-        shapes: [
-          {
-            ty: "el",
-            s: { a: 0, k: [170, 170] },
-            p: { a: 0, k: [0, 0] },
-            nm: "Ellipse"
-          },
-          {
-            ty: "st",
-            c: { a: 0, k: [...colors.primary, 1] },
-            o: { a: 0, k: 100 },
-            w: { a: 0, k: 2.5 },
-            lc: 2,
-            lj: 1,
-            ml: 4,
-            d: [
-              { n: "d", nm: "dash", v: { a: 0, k: 15 } },
-              { n: "g", nm: "gap", v: { a: 0, k: 25 } },
-              { n: "o", nm: "offset", v: { a: 1, k: [{ t: 0, s: [0], e: [150] }, { t: duration, s: [150] }] } }
-            ]
-          }
-        ],
-        ip: 0,
-        op: duration,
-        st: 0
-      },
-      // Inner glow ring
-      {
-        ddd: 0,
-        ind: 2,
-        ty: 4,
-        nm: "Inner Glow",
-        sr: 1,
-        ks: {
-          o: {
-            a: 1,
-            k: [
-              { t: 0, s: [50], e: [80] },
-              { t: duration / 2, s: [80], e: [50] },
-              { t: duration, s: [50] }
-            ]
-          },
-          r: {
-            a: 1,
-            k: [
-              { t: 0, s: [0], e: [-180] },
-              { t: duration, s: [-180] }
-            ]
-          },
-          p: { a: 0, k: [100, 100, 0] },
-          a: { a: 0, k: [0, 0, 0] },
-          s: {
-            a: 1,
-            k: [
-              { t: 0, s: [100, 100, 100], e: [isSpeaking ? 115 : 108, isSpeaking ? 115 : 108, 100] },
-              { t: duration / 2, s: [isSpeaking ? 115 : 108, isSpeaking ? 115 : 108, 100], e: [100, 100, 100] },
-              { t: duration, s: [100, 100, 100] }
-            ]
-          }
-        },
-        ao: 0,
-        shapes: [
-          {
-            ty: "el",
-            s: { a: 0, k: [130, 130] },
-            p: { a: 0, k: [0, 0] },
-            nm: "Ellipse"
-          },
-          {
-            ty: "gf",
-            o: { a: 0, k: 100 },
-            r: 1,
-            g: {
-              p: 3,
-              k: {
-                a: 0,
-                k: [0, ...colors.primary, 0.5, ...colors.secondary, 1, ...colors.primary]
-              }
-            },
-            s: { a: 0, k: [0, 0] },
-            e: { a: 0, k: [65, 65] },
-            t: 2
-          }
-        ],
-        ip: 0,
-        op: duration,
-        st: 0
-      },
-      // Core pulsing orb
-      {
-        ddd: 0,
-        ind: 3,
-        ty: 4,
-        nm: "Core",
-        sr: 1,
-        ks: {
-          o: { a: 0, k: 100 },
-          r: { a: 0, k: 0 },
-          p: { a: 0, k: [100, 100, 0] },
-          a: { a: 0, k: [0, 0, 0] },
-          s: {
-            a: 1,
-            k: isSpeaking
-              ? [
-                  { t: 0, s: [100, 100, 100], e: [110, 110, 100] },
-                  { t: 10, s: [110, 110, 100], e: [94, 94, 100] },
-                  { t: 20, s: [94, 94, 100], e: [106, 106, 100] },
-                  { t: 30, s: [106, 106, 100], e: [98, 98, 100] },
-                  { t: 40, s: [98, 98, 100], e: [104, 104, 100] },
-                  { t: 50, s: [104, 104, 100], e: [100, 100, 100] },
-                  { t: 60, s: [100, 100, 100] }
-                ]
-              : [
-                  { t: 0, s: [100, 100, 100], e: [96, 96, 100] },
-                  { t: 30, s: [96, 96, 100], e: [100, 100, 100] },
-                  { t: 60, s: [100, 100, 100], e: [96, 96, 100] },
-                  { t: 90, s: [96, 96, 100] }
-                ]
-          }
-        },
-        ao: 0,
-        shapes: [
-          {
-            ty: "el",
-            s: { a: 0, k: [90, 90] },
-            p: { a: 0, k: [0, 0] },
-            nm: "Ellipse"
-          },
-          {
-            ty: "gf",
-            o: { a: 0, k: 100 },
-            r: 1,
-            g: {
-              p: 2,
-              k: {
-                a: 0,
-                k: [0, ...colors.primary, 1, ...colors.secondary]
-              }
-            },
-            s: { a: 0, k: [-45, -45] },
-            e: { a: 0, k: [45, 45] },
-            t: 1
-          }
-        ],
-        ip: 0,
-        op: duration,
-        st: 0
-      }
-    ]
-  };
+  sm: { container: 44, logoSize: 18, ringWidth: 2 },
+  md: { container: 64, logoSize: 26, ringWidth: 2.5 },
+  lg: { container: 88, logoSize: 36, ringWidth: 3 },
+  xl: { container: 120, logoSize: 48, ringWidth: 4 },
+  hero: { container: 160, logoSize: 64, ringWidth: 5 },
 };
 
 export const CEOAvatar = ({
   size = "md",
   isThinking = false,
   isSpeaking = false,
-  mood = "calm",
   className,
   showStatus = true,
 }: CEOAvatarProps) => {
   const dimensions = sizeMap[size];
-  const [showLottie, setShowLottie] = useState(false);
-  const [animationData, setAnimationData] = useState(() => createAnimation(mood, isSpeaking));
-
-  // Show Lottie after mount for better performance
-  useEffect(() => {
-    const timer = setTimeout(() => setShowLottie(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Update animation when speaking state or mood changes
-  useEffect(() => {
-    setAnimationData(createAnimation(mood, isSpeaking));
-  }, [isSpeaking, mood]);
-
+  const isActive = isThinking || isSpeaking;
   const statusText = isSpeaking ? "Hablando..." : isThinking ? "Pensando..." : "";
 
   return (
@@ -260,74 +38,119 @@ export const CEOAvatar = ({
           height: dimensions.container,
         }}
       >
-        {/* Ambient glow effect */}
+        {/* Ambient glow - always visible, stronger when active */}
         <div
           className={cn(
-            "absolute inset-0 rounded-full blur-xl transition-opacity duration-500",
-            isSpeaking ? "opacity-60" : isThinking ? "opacity-40" : "opacity-20"
+            "absolute inset-[-20%] rounded-full blur-2xl transition-all duration-700",
+            isActive ? "opacity-60" : "opacity-25"
           )}
           style={{
-            background: `radial-gradient(circle, hsl(var(--primary) / 0.4), transparent 70%)`,
+            background: `radial-gradient(circle, hsl(var(--primary) / 0.6), hsl(var(--primary) / 0.2) 50%, transparent 70%)`,
           }}
         />
 
-        {/* Lottie background animation */}
-        {showLottie && (
-          <div className="absolute inset-0">
-            <Lottie
-              animationData={animationData}
-              loop
-              autoplay
-              style={{
-                width: "100%",
-                height: "100%",
-              }}
-            />
-          </div>
-        )}
-
-        {/* Fallback gradient while loading */}
-        {!showLottie && (
-          <div
-            className="absolute rounded-full gradient-primary opacity-60 animate-pulse"
-            style={{
-              width: dimensions.container * 0.65,
-              height: dimensions.container * 0.65,
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-            }}
-          />
-        )}
-
-        {/* Center logo container */}
+        {/* Outer rotating ring 1 */}
         <div
           className={cn(
-            "relative z-10 rounded-full bg-background/95 backdrop-blur-md flex items-center justify-center",
-            "shadow-xl border-2 border-primary/20",
+            "absolute inset-0 rounded-full",
+            isSpeaking ? "ceo-ring-speaking" : isThinking ? "ceo-ring-thinking" : "ceo-ring-idle"
+          )}
+          style={{
+            background: `conic-gradient(from 0deg, transparent, hsl(var(--primary) / 0.8), transparent, hsl(var(--primary) / 0.4), transparent)`,
+            padding: dimensions.ringWidth,
+            mask: `radial-gradient(farthest-side, transparent calc(100% - ${dimensions.ringWidth}px), #fff calc(100% - ${dimensions.ringWidth}px))`,
+            WebkitMask: `radial-gradient(farthest-side, transparent calc(100% - ${dimensions.ringWidth}px), #fff calc(100% - ${dimensions.ringWidth}px))`,
+          }}
+        />
+
+        {/* Outer rotating ring 2 (counter-rotation) */}
+        <div
+          className={cn(
+            "absolute inset-[8%] rounded-full",
+            isSpeaking ? "ceo-ring-speaking-reverse" : isThinking ? "ceo-ring-thinking-reverse" : "ceo-ring-idle-reverse"
+          )}
+          style={{
+            background: `conic-gradient(from 180deg, transparent, hsl(var(--primary) / 0.5), transparent, hsl(var(--primary) / 0.3), transparent)`,
+            padding: dimensions.ringWidth * 0.7,
+            mask: `radial-gradient(farthest-side, transparent calc(100% - ${dimensions.ringWidth * 0.7}px), #fff calc(100% - ${dimensions.ringWidth * 0.7}px))`,
+            WebkitMask: `radial-gradient(farthest-side, transparent calc(100% - ${dimensions.ringWidth * 0.7}px), #fff calc(100% - ${dimensions.ringWidth * 0.7}px))`,
+          }}
+        />
+
+        {/* Pulsing orb background */}
+        <div
+          className={cn(
+            "absolute rounded-full transition-all duration-300",
+            isSpeaking ? "ceo-orb-speaking" : isThinking ? "ceo-orb-thinking" : "ceo-orb-idle"
+          )}
+          style={{
+            width: dimensions.container * 0.65,
+            height: dimensions.container * 0.65,
+            background: `radial-gradient(circle at 30% 30%, 
+              hsl(var(--primary) / 0.3), 
+              hsl(var(--primary) / 0.15) 50%, 
+              hsl(var(--primary) / 0.05) 100%)`,
+          }}
+        />
+
+        {/* Inner gradient orb */}
+        <div
+          className={cn(
+            "absolute rounded-full",
+            isSpeaking && "ceo-inner-speaking"
+          )}
+          style={{
+            width: dimensions.container * 0.55,
+            height: dimensions.container * 0.55,
+            background: `
+              radial-gradient(circle at 35% 35%, 
+                hsl(var(--primary) / 0.2), 
+                transparent 60%),
+              radial-gradient(circle at 65% 65%, 
+                hsl(220 70% 50% / 0.15), 
+                transparent 50%)
+            `,
+          }}
+        />
+
+        {/* Core logo container */}
+        <div
+          className={cn(
+            "relative z-10 rounded-full flex items-center justify-center",
+            "bg-background/95 backdrop-blur-md",
+            "shadow-2xl shadow-primary/20",
+            "border-2 border-primary/30",
             "transition-all duration-300",
-            isThinking && "animate-pulse",
-            isSpeaking && "scale-[1.02]"
+            isSpeaking && "ceo-core-speaking",
+            isThinking && "ceo-core-thinking"
           )}
           style={{
             width: dimensions.container * 0.48,
             height: dimensions.container * 0.48,
           }}
         >
-          <VistaceoLogo size={dimensions.logoSize * 0.75} variant="icon" />
+          <VistaceoLogo size={dimensions.logoSize} variant="icon" />
         </div>
 
-        {/* Speaking wave indicator */}
+        {/* Speaking audio waves */}
+        {isSpeaking && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="ceo-audio-wave ceo-audio-wave-1" style={{ width: dimensions.container * 0.7, height: dimensions.container * 0.7 }} />
+            <div className="ceo-audio-wave ceo-audio-wave-2" style={{ width: dimensions.container * 0.85, height: dimensions.container * 0.85 }} />
+            <div className="ceo-audio-wave ceo-audio-wave-3" style={{ width: dimensions.container, height: dimensions.container }} />
+          </div>
+        )}
+
+        {/* Speaking indicator dots */}
         {isSpeaking && (
           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-end gap-[3px]">
             {[0, 1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="w-[3px] rounded-full bg-primary"
+                className="rounded-full bg-primary ceo-sound-bar"
                 style={{
-                  height: `${8 + Math.sin(i * 0.8) * 4}px`,
-                  animation: `soundwave 0.6s ease-in-out infinite`,
-                  animationDelay: `${i * 0.08}s`,
+                  width: 3,
+                  animationDelay: `${i * 0.1}s`,
                 }}
               />
             ))}
@@ -340,8 +163,8 @@ export const CEOAvatar = ({
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="w-1.5 h-1.5 rounded-full bg-primary/70 animate-bounce"
-                style={{ animationDelay: `${i * 150}ms` }}
+                className="w-1.5 h-1.5 rounded-full bg-primary ceo-thinking-dot"
+                style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
           </div>
@@ -356,9 +179,116 @@ export const CEOAvatar = ({
       )}
 
       <style>{`
-        @keyframes soundwave {
-          0%, 100% { transform: scaleY(0.6); }
-          50% { transform: scaleY(1.3); }
+        /* Ring animations */
+        .ceo-ring-idle {
+          animation: ceo-rotate 12s linear infinite;
+        }
+        .ceo-ring-idle-reverse {
+          animation: ceo-rotate-reverse 15s linear infinite;
+        }
+        .ceo-ring-thinking {
+          animation: ceo-rotate 4s linear infinite;
+        }
+        .ceo-ring-thinking-reverse {
+          animation: ceo-rotate-reverse 5s linear infinite;
+        }
+        .ceo-ring-speaking {
+          animation: ceo-rotate 1.5s linear infinite;
+        }
+        .ceo-ring-speaking-reverse {
+          animation: ceo-rotate-reverse 2s linear infinite;
+        }
+
+        @keyframes ceo-rotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes ceo-rotate-reverse {
+          from { transform: rotate(360deg); }
+          to { transform: rotate(0deg); }
+        }
+
+        /* Orb animations */
+        .ceo-orb-idle {
+          animation: ceo-pulse-slow 4s ease-in-out infinite;
+        }
+        .ceo-orb-thinking {
+          animation: ceo-pulse-medium 2s ease-in-out infinite;
+        }
+        .ceo-orb-speaking {
+          animation: ceo-pulse-fast 0.8s ease-in-out infinite;
+        }
+
+        @keyframes ceo-pulse-slow {
+          0%, 100% { transform: scale(1); opacity: 0.8; }
+          50% { transform: scale(1.05); opacity: 1; }
+        }
+        @keyframes ceo-pulse-medium {
+          0%, 100% { transform: scale(1); opacity: 0.9; }
+          50% { transform: scale(1.08); opacity: 1; }
+        }
+        @keyframes ceo-pulse-fast {
+          0%, 100% { transform: scale(1); opacity: 0.95; }
+          50% { transform: scale(1.12); opacity: 1; }
+        }
+
+        /* Inner orb speaking */
+        .ceo-inner-speaking {
+          animation: ceo-inner-pulse 0.6s ease-in-out infinite;
+        }
+        @keyframes ceo-inner-pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+        }
+
+        /* Core animations */
+        .ceo-core-speaking {
+          animation: ceo-core-beat 0.5s ease-in-out infinite;
+        }
+        .ceo-core-thinking {
+          animation: ceo-core-think 1.5s ease-in-out infinite;
+        }
+        @keyframes ceo-core-beat {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
+          50% { transform: scale(1.03); box-shadow: 0 0 30px hsl(var(--primary) / 0.5); }
+        }
+        @keyframes ceo-core-think {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(0.97); }
+        }
+
+        /* Audio wave rings */
+        .ceo-audio-wave {
+          position: absolute;
+          border-radius: 50%;
+          border: 1.5px solid hsl(var(--primary) / 0.4);
+          animation: ceo-wave-expand 1.5s ease-out infinite;
+        }
+        .ceo-audio-wave-1 { animation-delay: 0s; }
+        .ceo-audio-wave-2 { animation-delay: 0.3s; }
+        .ceo-audio-wave-3 { animation-delay: 0.6s; }
+
+        @keyframes ceo-wave-expand {
+          0% { transform: scale(0.8); opacity: 0.8; }
+          100% { transform: scale(1.3); opacity: 0; }
+        }
+
+        /* Sound bars */
+        .ceo-sound-bar {
+          animation: ceo-sound 0.4s ease-in-out infinite alternate;
+        }
+        @keyframes ceo-sound {
+          from { height: 4px; }
+          to { height: 12px; }
+        }
+
+        /* Thinking dots */
+        .ceo-thinking-dot {
+          animation: ceo-dot-bounce 0.6s ease-in-out infinite;
+        }
+        @keyframes ceo-dot-bounce {
+          0%, 100% { transform: translateY(0); opacity: 0.5; }
+          50% { transform: translateY(-4px); opacity: 1; }
         }
       `}</style>
     </div>
