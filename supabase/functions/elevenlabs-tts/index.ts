@@ -57,11 +57,27 @@ serve(async (req) => {
       const errorText = await response.text();
       console.error("ElevenLabs TTS error:", response.status, errorText);
       
-      if (response.status === 401) {
-        throw new Error("Invalid ElevenLabs API key");
+      // Return graceful fallback instead of throwing
+      if (response.status === 401 || response.status === 403) {
+        console.log("ElevenLabs API key issue - returning silent fallback");
+        return new Response(
+          JSON.stringify({ 
+            audioContent: null,
+            error: "voice_unavailable",
+            message: "Voice synthesis temporarily unavailable"
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
       if (response.status === 429) {
-        throw new Error("ElevenLabs rate limit exceeded");
+        return new Response(
+          JSON.stringify({ 
+            audioContent: null,
+            error: "rate_limited",
+            message: "Voice synthesis rate limited"
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
       
       throw new Error(`ElevenLabs API error: ${response.status}`);

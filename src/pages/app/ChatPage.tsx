@@ -115,32 +115,41 @@ const ChatPage = () => {
         );
 
         if (!response.ok) {
-          throw new Error(`TTS request failed: ${response.status}`);
+          console.log("TTS request failed, continuing without audio");
+          setIsPlayingAudio(false);
+          setPlayingMessageId(null);
+          return;
         }
 
         const data = await response.json();
 
-        if (data.audioContent) {
-          const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
-          const audio = new Audio(audioUrl);
-          currentAudioRef.current = audio;
-
-          audio.onended = () => {
-            setIsPlayingAudio(false);
-            setPlayingMessageId(null);
-            currentAudioRef.current = null;
-          };
-
-          audio.onerror = () => {
-            setIsPlayingAudio(false);
-            setPlayingMessageId(null);
-            currentAudioRef.current = null;
-          };
-
-          await audio.play();
+        // Handle graceful fallback when voice is unavailable
+        if (!data.audioContent) {
+          console.log("TTS unavailable:", data.message || "No audio returned");
+          setIsPlayingAudio(false);
+          setPlayingMessageId(null);
+          return;
         }
+
+        const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+        const audio = new Audio(audioUrl);
+        currentAudioRef.current = audio;
+
+        audio.onended = () => {
+          setIsPlayingAudio(false);
+          setPlayingMessageId(null);
+          currentAudioRef.current = null;
+        };
+
+        audio.onerror = () => {
+          setIsPlayingAudio(false);
+          setPlayingMessageId(null);
+          currentAudioRef.current = null;
+        };
+
+        await audio.play();
       } catch (error) {
-        console.error("TTS error:", error);
+        console.log("TTS error (silent fallback):", error);
         setIsPlayingAudio(false);
         setPlayingMessageId(null);
       }
