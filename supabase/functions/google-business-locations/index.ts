@@ -66,13 +66,22 @@ serve(async (req) => {
     if (!accountsResponse.ok) {
       const errorText = await accountsResponse.text();
       console.error("Failed to fetch accounts:", accountsResponse.status, errorText);
+
+      // Preserve upstream status codes (e.g. 429 quota exceeded) so the client can react properly.
+      const retryAfter = accountsResponse.headers.get("retry-after") || undefined;
+      const baseHeaders: Record<string, string> = {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      };
+      if (retryAfter) baseHeaders["Retry-After"] = retryAfter;
+
       return new Response(
         JSON.stringify({ 
           error: "Failed to fetch Google Business accounts",
           details: errorText,
           status: accountsResponse.status
         }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: accountsResponse.status, headers: baseHeaders }
       );
     }
 
