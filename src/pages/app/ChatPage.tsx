@@ -106,14 +106,19 @@ const ChatPage = () => {
         content: m.content
       }));
 
-      const { data: aiData, error: aiError } = await supabase.functions.invoke("uceo-chat", {
+      const { data: aiData, error: aiError } = await supabase.functions.invoke("vistaceo-chat", {
         body: {
           messages: messagesForAI,
           businessContext: {
+            id: currentBusiness.id,
             name: currentBusiness.name,
             category: currentBusiness.category,
             country: currentBusiness.country,
-          }
+            avg_ticket: currentBusiness.avg_ticket,
+            avg_rating: currentBusiness.avg_rating,
+          },
+          inputType: "text",
+          messageId: `msg-${Date.now()}`,
         }
       });
 

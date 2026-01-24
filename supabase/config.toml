@@ -3,6 +3,9 @@ project_id = "nlewrgmcawzcdazhfiyy"
 [functions.uceo-chat]
 verify_jwt = false
 
+[functions.vistaceo-chat]
+verify_jwt = false
+
 [functions.generate-action]
 verify_jwt = false
 
