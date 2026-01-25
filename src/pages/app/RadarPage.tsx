@@ -865,41 +865,41 @@ const RadarPage = () => {
         {/* Tab: Oportunidades de mejora (INTERNO) */}
         <TabsContent value="oportunidades" className="space-y-6">
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <div className="dashboard-stat">
               <div className="flex items-center justify-between mb-2">
                 <BarChart3 className="w-5 h-5 text-primary" />
-                <Badge variant="outline" className="text-[10px] bg-primary/5">
+                <Badge variant="outline" className="text-[10px] bg-primary/5 hidden sm:flex">
                   <Building2 className="w-3 h-3 mr-1" />
                   INTERNO
                 </Badge>
               </div>
-              <div className="text-3xl font-bold text-foreground">{opportunities.length}</div>
-              <div className="text-sm text-muted-foreground">detectadas</div>
+              <div className="text-2xl md:text-3xl font-bold text-foreground">{opportunities.length}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">detectadas</div>
             </div>
             
             <div className="dashboard-stat">
               <div className="flex items-center justify-between mb-2">
                 <TrendingUp className="w-5 h-5 text-success" />
               </div>
-              <div className="text-3xl font-bold text-foreground">{highImpactCount}</div>
-              <div className="text-sm text-muted-foreground">alto impacto</div>
+              <div className="text-2xl md:text-3xl font-bold text-foreground">{highImpactCount}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">alto impacto</div>
             </div>
             
             <div className="dashboard-stat">
               <div className="flex items-center justify-between mb-2">
                 <Zap className="w-5 h-5 text-warning" />
               </div>
-              <div className="text-3xl font-bold text-foreground">{quickWinsCount}</div>
-              <div className="text-sm text-muted-foreground">quick wins</div>
+              <div className="text-2xl md:text-3xl font-bold text-foreground">{quickWinsCount}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">quick wins</div>
             </div>
             
             <div className="dashboard-stat">
               <div className="flex items-center justify-between mb-2">
                 <Target className="w-5 h-5 text-accent" />
               </div>
-              <div className="text-3xl font-bold text-foreground">-</div>
-              <div className="text-sm text-muted-foreground">convertidas</div>
+              <div className="text-2xl md:text-3xl font-bold text-foreground">-</div>
+              <div className="text-xs md:text-sm text-muted-foreground">convertidas</div>
             </div>
           </div>
 
@@ -1072,8 +1072,8 @@ const RadarPage = () => {
                   <span className="text-sm text-muted-foreground">{filteredOpportunities.length} resultados</span>
                 </div>
               
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 p-4 border-b border-border bg-secondary/20 text-sm font-medium text-muted-foreground">
+              {/* Table Header - Hidden on smaller screens */}
+              <div className="hidden lg:grid grid-cols-12 gap-4 p-4 border-b border-border bg-secondary/20 text-sm font-medium text-muted-foreground">
                 <div className="col-span-1">Tipo</div>
                 <div className="col-span-5">Oportunidad</div>
                 <div className="col-span-2 text-center">Impacto</div>
