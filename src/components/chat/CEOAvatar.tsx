@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 
 interface CEOAvatarProps {
   size?: "sm" | "md" | "lg" | "xl" | "hero";
@@ -10,11 +9,11 @@ interface CEOAvatarProps {
 }
 
 const sizeMap = {
-  sm: { container: 48, face: 32, eyeSize: 2.5 },
-  md: { container: 80, face: 54, eyeSize: 3.5 },
-  lg: { container: 120, face: 80, eyeSize: 5 },
-  xl: { container: 160, face: 110, eyeSize: 6.5 },
-  hero: { container: 200, face: 140, eyeSize: 8 },
+  sm: { container: 48, fontSize: 8 },
+  md: { container: 80, fontSize: 12 },
+  lg: { container: 120, fontSize: 16 },
+  xl: { container: 160, fontSize: 20 },
+  hero: { container: 200, fontSize: 24 },
 };
 
 export const CEOAvatar = ({
@@ -34,277 +33,255 @@ export const CEOAvatar = ({
         className="relative flex-shrink-0"
         style={{ width: dims.container, height: dims.container }}
       >
-        {/* Ambient Glow Background */}
+        {/* Ambient Glow */}
         <div
           className={cn(
-            "absolute inset-[-25%] rounded-full blur-2xl transition-all duration-700",
-            isSpeaking ? "ceo-glow-active" : isThinking ? "ceo-glow-think" : "ceo-glow-idle"
+            "absolute rounded-full blur-2xl transition-all duration-500",
+            isSpeaking ? "ceo-glow-speaking" : isThinking ? "ceo-glow-thinking" : "ceo-glow-idle"
           )}
-        />
-
-        {/* Outer Rotating Ring 1 */}
-        <svg
-          className={cn(
-            "absolute inset-0 w-full h-full",
-            isSpeaking ? "ceo-ring-fast" : isThinking ? "ceo-ring-med" : "ceo-ring-slow"
-          )}
-          viewBox="0 0 100 100"
-        >
-          <defs>
-            <linearGradient id="ceoRingGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#2692DC" stopOpacity="0.8" />
-              <stop offset="50%" stopColor="#746CE6" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#2692DC" stopOpacity="0.2" />
-            </linearGradient>
-          </defs>
-          <circle
-            cx="50" cy="50" r="48"
-            fill="none"
-            stroke="url(#ceoRingGrad1)"
-            strokeWidth="1"
-            strokeDasharray="20 10 5 10"
-            strokeLinecap="round"
-          />
-        </svg>
-
-        {/* Outer Rotating Ring 2 (counter) */}
-        <svg
-          className="absolute inset-0 w-full h-full ceo-ring-counter"
-          viewBox="0 0 100 100"
-        >
-          <defs>
-            <linearGradient id="ceoRingGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#746CE6" stopOpacity="0.7" />
-              <stop offset="100%" stopColor="#2692DC" stopOpacity="0.3" />
-            </linearGradient>
-          </defs>
-          <circle
-            cx="50" cy="50" r="44"
-            fill="none"
-            stroke="url(#ceoRingGrad2)"
-            strokeWidth="0.75"
-            strokeDasharray="15 8 3 8"
-            strokeLinecap="round"
-          />
-        </svg>
-
-        {/* Inner Pulsing Ring */}
-        <div
-          className={cn(
-            "absolute rounded-full border transition-all",
-            isSpeaking 
-              ? "border-primary/60 ceo-pulse-fast" 
-              : isThinking 
-              ? "border-accent/50 ceo-pulse-med" 
-              : "border-primary/20 ceo-pulse-slow"
-          )}
-          style={{ inset: "10%" }}
-        />
-
-        {/* Face Container - The CEO Character */}
-        <div
-          className="absolute rounded-full overflow-hidden flex items-center justify-center transition-all duration-300"
           style={{
-            inset: "14%",
-            background: "linear-gradient(145deg, hsl(var(--card)), hsl(var(--background)))",
-            boxShadow: isSpeaking
-              ? "0 0 40px hsl(var(--primary) / 0.5), inset 0 -8px 20px hsl(var(--primary) / 0.15)"
-              : isThinking
-              ? "0 0 25px hsl(var(--accent) / 0.4), inset 0 -6px 15px hsl(var(--accent) / 0.1)"
-              : "0 0 15px hsl(var(--primary) / 0.2), inset 0 -4px 10px hsl(var(--primary) / 0.05)",
+            inset: "-30%",
+            background: "radial-gradient(circle, hsl(var(--primary) / 0.4), hsl(var(--accent) / 0.2) 60%, transparent 80%)",
           }}
+        />
+
+        {/* Main Character Body */}
+        <svg
+          viewBox="0 0 200 200"
+          className={cn(
+            "w-full h-full relative z-10 transition-transform duration-300",
+            isSpeaking && "ceo-bounce",
+            isThinking && "ceo-float"
+          )}
         >
-          {/* CEO Face SVG */}
-          <svg
-            viewBox="0 0 100 100"
-            className="w-full h-full"
-            style={{ padding: "15%" }}
-          >
-            <defs>
-              {/* Eye Gradient */}
-              <linearGradient id="ceoEyeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#2692DC" />
-                <stop offset="100%" stopColor="#746CE6" />
-              </linearGradient>
-              {/* Glow Filter */}
-              <filter id="ceoGlow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                <feMerge>
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-              {/* Radial Glow for Face */}
-              <radialGradient id="ceoFaceGlow" cx="50%" cy="35%" r="60%">
-                <stop offset="0%" stopColor="#2692DC" stopOpacity="0.12" />
-                <stop offset="100%" stopColor="transparent" />
-              </radialGradient>
-            </defs>
+          <defs>
+            {/* Main Gradient - VistaCEO Colors */}
+            <linearGradient id="ceoBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#3BB8C3" />
+              <stop offset="50%" stopColor="#2692DC" />
+              <stop offset="100%" stopColor="#746CE6" />
+            </linearGradient>
 
-            {/* Face Background Glow */}
-            <circle cx="50" cy="50" r="45" fill="url(#ceoFaceGlow)" />
+            {/* Highlight Gradient */}
+            <radialGradient id="ceoHighlight" cx="30%" cy="20%" r="50%">
+              <stop offset="0%" stopColor="white" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="white" stopOpacity="0" />
+            </radialGradient>
 
-            {/* Forehead Symbol - VistaCEO Mark */}
-            <g className="ceo-forehead" opacity="0.7">
-              <circle cx="50" cy="22" r="8" fill="none" stroke="url(#ceoEyeGrad)" strokeWidth="1.5" />
-              <circle cx="50" cy="22" r="4" fill="url(#ceoEyeGrad)" />
-              {/* Inner detail */}
-              <circle cx="50" cy="22" r="2" fill="hsl(var(--background))" opacity="0.5" />
-            </g>
+            {/* Shadow */}
+            <filter id="ceoShadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="8" stdDeviation="12" floodColor="#746CE6" floodOpacity="0.3" />
+            </filter>
+
+            {/* Glow Filter */}
+            <filter id="ceoGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            {/* Glass Gradient */}
+            <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="white" />
+              <stop offset="100%" stopColor="#f0f0f0" />
+            </linearGradient>
+          </defs>
+
+          {/* Main Body - Blob Shape */}
+          <g filter="url(#ceoShadow)">
+            <ellipse
+              cx="100"
+              cy="105"
+              rx="75"
+              ry="70"
+              fill="url(#ceoBodyGrad)"
+              className="ceo-body"
+            />
+            {/* Highlight overlay */}
+            <ellipse
+              cx="100"
+              cy="105"
+              rx="75"
+              ry="70"
+              fill="url(#ceoHighlight)"
+            />
+          </g>
+
+          {/* Top Blob Accent */}
+          <ellipse
+            cx="70"
+            cy="50"
+            rx="25"
+            ry="20"
+            fill="url(#ceoBodyGrad)"
+            opacity="0.9"
+          />
+          <ellipse
+            cx="70"
+            cy="50"
+            rx="25"
+            ry="20"
+            fill="url(#ceoHighlight)"
+          />
+
+          {/* Glasses Frame */}
+          <g className={cn(
+            "ceo-glasses",
+            isThinking && "ceo-glasses-thinking",
+            isSpeaking && "ceo-glasses-speaking"
+          )}>
+            {/* Glasses Bridge */}
+            <line
+              x1="90"
+              y1="95"
+              x2="110"
+              y2="95"
+              stroke="white"
+              strokeWidth="4"
+              strokeLinecap="round"
+              opacity="0.9"
+            />
+
+            {/* Left Glass */}
+            <rect
+              x="50"
+              y="80"
+              width="38"
+              height="32"
+              rx="6"
+              fill="url(#glassGrad)"
+              stroke="white"
+              strokeWidth="2"
+              className="ceo-glass-left"
+            />
+
+            {/* Right Glass */}
+            <rect
+              x="112"
+              y="80"
+              width="38"
+              height="32"
+              rx="6"
+              fill="url(#glassGrad)"
+              stroke="white"
+              strokeWidth="2"
+              className="ceo-glass-right"
+            />
 
             {/* Left Eye */}
-            <g className={cn(
-              "ceo-eye",
-              isSpeaking ? "ceo-eye-speaking" : isThinking ? "ceo-eye-thinking" : "ceo-eye-idle"
-            )}>
-              {/* Eye Outer */}
-              <ellipse
-                cx="35"
-                cy="45"
-                rx="10"
-                ry={isSpeaking ? "8" : isThinking ? "5" : "7"}
-                fill="url(#ceoEyeGrad)"
-                filter="url(#ceoGlow)"
-                className="transition-all duration-300"
+            <g className="ceo-eye-left">
+              <rect
+                x="60"
+                y="88"
+                width="18"
+                height="18"
+                rx="3"
+                fill="#1a1a2e"
+                className={cn(
+                  "transition-all duration-200",
+                  isThinking && "ceo-eye-squint"
+                )}
               />
-              {/* Eye Inner (Iris) */}
-              <ellipse
-                cx="35"
-                cy="45"
-                rx="5"
-                ry={isSpeaking ? "4" : isThinking ? "2.5" : "3.5"}
-                fill="hsl(var(--background))"
-                className="transition-all duration-300"
-              />
-              {/* Pupil */}
-              <ellipse
-                cx="35"
-                cy="45"
-                rx="2.5"
-                ry={isSpeaking ? "2" : isThinking ? "1.25" : "1.75"}
-                fill="url(#ceoEyeGrad)"
-                className="transition-all duration-300"
-              />
-              {/* Sparkle */}
-              <circle cx="37" cy="43" r="1.5" fill="hsl(var(--background))" opacity="0.9" />
+              {/* Eye Sparkle */}
+              <circle cx="65" cy="92" r="3" fill="white" opacity="0.8" />
             </g>
 
             {/* Right Eye */}
-            <g className={cn(
-              "ceo-eye",
-              isSpeaking ? "ceo-eye-speaking" : isThinking ? "ceo-eye-thinking" : "ceo-eye-idle"
-            )}>
-              {/* Eye Outer */}
-              <ellipse
-                cx="65"
-                cy="45"
-                rx="10"
-                ry={isSpeaking ? "8" : isThinking ? "5" : "7"}
-                fill="url(#ceoEyeGrad)"
-                filter="url(#ceoGlow)"
-                className="transition-all duration-300"
+            <g className="ceo-eye-right">
+              <rect
+                x="122"
+                y="88"
+                width="18"
+                height="18"
+                rx="3"
+                fill="#1a1a2e"
+                className={cn(
+                  "transition-all duration-200",
+                  isThinking && "ceo-eye-squint"
+                )}
               />
-              {/* Eye Inner (Iris) */}
-              <ellipse
-                cx="65"
-                cy="45"
-                rx="5"
-                ry={isSpeaking ? "4" : isThinking ? "2.5" : "3.5"}
-                fill="hsl(var(--background))"
-                className="transition-all duration-300"
-              />
-              {/* Pupil */}
-              <ellipse
-                cx="65"
-                cy="45"
-                rx="2.5"
-                ry={isSpeaking ? "2" : isThinking ? "1.25" : "1.75"}
-                fill="url(#ceoEyeGrad)"
-                className="transition-all duration-300"
-              />
-              {/* Sparkle */}
-              <circle cx="67" cy="43" r="1.5" fill="hsl(var(--background))" opacity="0.9" />
+              {/* Eye Sparkle */}
+              <circle cx="127" cy="92" r="3" fill="white" opacity="0.8" />
             </g>
+          </g>
 
-            {/* Eyebrows - Express emotion */}
-            <g className="ceo-brows" stroke="url(#ceoEyeGrad)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6">
-              <path 
-                d={isThinking ? "M 25 35 Q 35 32 45 35" : isSpeaking ? "M 25 33 Q 35 30 45 33" : "M 25 34 Q 35 31 45 34"} 
-                className="transition-all duration-300"
-              />
-              <path 
-                d={isThinking ? "M 55 35 Q 65 32 75 35" : isSpeaking ? "M 55 33 Q 65 30 75 33" : "M 55 34 Q 65 31 75 34"} 
-                className="transition-all duration-300"
-              />
-            </g>
-
-            {/* Mouth / Voice Visualizer */}
-            <g className="ceo-mouth">
-              {isSpeaking ? (
-                /* Speaking: Animated Voice Bars */
-                <g transform="translate(50, 70)">
-                  {[-14, -7, 0, 7, 14].map((x, i) => (
-                    <rect
-                      key={i}
-                      x={x - 2.5}
-                      y={-6}
-                      width="5"
-                      height="12"
-                      rx="2.5"
-                      fill="url(#ceoEyeGrad)"
-                      className="ceo-voice-bar"
-                      style={{ animationDelay: `${i * 0.08}s` }}
-                    />
-                  ))}
-                </g>
-              ) : isThinking ? (
-                /* Thinking: Contemplative line */
+          {/* Mouth */}
+          <g className="ceo-mouth">
+            {isSpeaking ? (
+              /* Speaking - Animated mouth */
+              <g transform="translate(100, 140)">
                 <ellipse
-                  cx="50"
-                  cy="70"
-                  rx="12"
-                  ry="3"
-                  fill="hsl(var(--muted-foreground))"
-                  opacity="0.4"
-                  className="ceo-think-mouth"
+                  cx="0"
+                  cy="0"
+                  rx="20"
+                  ry="12"
+                  fill="white"
+                  opacity="0.95"
+                  className="ceo-mouth-speaking"
                 />
-              ) : (
-                /* Idle: Friendly smile */
-                <path
-                  d="M 35 68 Q 50 80 65 68"
-                  fill="none"
-                  stroke="url(#ceoEyeGrad)"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  className="ceo-smile"
-                />
-              )}
-            </g>
+                {/* Voice bars inside mouth */}
+                {[-10, -5, 0, 5, 10].map((x, i) => (
+                  <rect
+                    key={i}
+                    x={x - 1.5}
+                    y={-6}
+                    width="3"
+                    height="12"
+                    rx="1.5"
+                    fill="#746CE6"
+                    className="ceo-voice-bar"
+                    style={{ animationDelay: `${i * 0.08}s` }}
+                  />
+                ))}
+              </g>
+            ) : isThinking ? (
+              /* Thinking - Small contemplative mouth */
+              <ellipse
+                cx="100"
+                cy="140"
+                rx="10"
+                ry="5"
+                fill="white"
+                opacity="0.8"
+                className="ceo-mouth-thinking"
+              />
+            ) : (
+              /* Idle - Friendly smile */
+              <path
+                d="M 75 135 Q 100 160 125 135"
+                fill="none"
+                stroke="white"
+                strokeWidth="5"
+                strokeLinecap="round"
+                className="ceo-smile"
+              />
+            )}
+          </g>
 
-            {/* Cheek Highlights */}
-            <circle cx="25" cy="58" r="5" fill="hsl(var(--primary))" opacity="0.08" />
-            <circle cx="75" cy="58" r="5" fill="hsl(var(--accent))" opacity="0.08" />
+          {/* Cheek Blush */}
+          <circle cx="50" cy="120" r="12" fill="#FF6B9D" opacity="0.15" />
+          <circle cx="150" cy="120" r="12" fill="#FF6B9D" opacity="0.15" />
+        </svg>
 
-            {/* Side Circuit Details */}
-            <g stroke="url(#ceoEyeGrad)" strokeWidth="0.5" opacity="0.25" fill="none">
-              <path d="M 15 50 L 10 50 L 10 45 M 10 50 L 10 55" />
-              <path d="M 85 50 L 90 50 L 90 45 M 90 50 L 90 55" />
-            </g>
-          </svg>
-        </div>
-
-        {/* Logo Badge */}
+        {/* IA Badge */}
         <div
           className={cn(
-            "absolute -bottom-1 -right-1 rounded-full p-1.5 shadow-lg border transition-all duration-300",
-            "bg-card border-primary/40",
-            isSpeaking && "ceo-badge-glow"
+            "absolute flex items-center justify-center rounded-full font-bold text-white shadow-lg transition-all duration-300",
+            isSpeaking && "ceo-badge-pulse"
           )}
           style={{
-            boxShadow: "0 4px 15px hsl(var(--primary) / 0.3)",
+            top: "0%",
+            right: "0%",
+            width: dims.container * 0.3,
+            height: dims.container * 0.3,
+            fontSize: dims.fontSize,
+            background: "linear-gradient(135deg, #2692DC, #746CE6)",
+            boxShadow: "0 4px 15px hsl(var(--primary) / 0.4)",
           }}
         >
-          <VistaceoLogo size={dims.container * 0.12} variant="icon" />
+          IA
         </div>
 
         {/* Speaking Audio Waves */}
@@ -313,26 +290,25 @@ export const CEOAvatar = ({
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="absolute inset-0 rounded-full border border-primary/50 ceo-wave"
-                style={{ animationDelay: `${i * 0.25}s` }}
+                className="absolute inset-0 rounded-full border-2 border-primary/40 ceo-wave"
+                style={{ animationDelay: `${i * 0.3}s` }}
               />
             ))}
           </>
         )}
 
-        {/* Thinking Orbital Particles */}
+        {/* Thinking Sparkles */}
         {isThinking && (
-          <div className="absolute inset-0 ceo-orbital">
-            {[0, 1, 2].map((i) => (
+          <div className="absolute inset-0 ceo-sparkles">
+            {[0, 1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="absolute w-2 h-2 rounded-full ceo-orbital-dot"
+                className="absolute w-2 h-2 rounded-full ceo-sparkle"
                 style={{
                   background: "linear-gradient(135deg, #2692DC, #746CE6)",
-                  top: "50%",
-                  left: "50%",
-                  transform: `rotate(${i * 120}deg) translateY(-${dims.container * 0.55}px)`,
-                  animationDelay: `${i * 0.35}s`,
+                  top: `${15 + Math.sin(i * 1.2) * 20}%`,
+                  left: `${50 + Math.cos(i * 1.5) * 45}%`,
+                  animationDelay: `${i * 0.2}s`,
                 }}
               />
             ))}
@@ -348,142 +324,163 @@ export const CEOAvatar = ({
       )}
 
       <style>{`
-        /* === GLOWS === */
+        /* === GLOW STATES === */
         .ceo-glow-idle {
-          background: radial-gradient(circle, hsl(var(--primary) / 0.3), hsl(var(--accent) / 0.15) 50%, transparent 70%);
-          opacity: 0.5;
+          opacity: 0.4;
           animation: ceo-breathe 4s ease-in-out infinite;
         }
-        .ceo-glow-think {
-          background: radial-gradient(circle, hsl(var(--accent) / 0.5), hsl(var(--primary) / 0.2) 50%, transparent 70%);
-          opacity: 0.7;
+        .ceo-glow-thinking {
+          opacity: 0.6;
           animation: ceo-breathe 2s ease-in-out infinite;
         }
-        .ceo-glow-active {
-          background: radial-gradient(circle, hsl(var(--primary) / 0.6), hsl(var(--accent) / 0.3) 50%, transparent 70%);
-          opacity: 0.9;
-          animation: ceo-pulse 0.5s ease-in-out infinite;
+        .ceo-glow-speaking {
+          opacity: 0.8;
+          animation: ceo-pulse-glow 0.5s ease-in-out infinite;
         }
 
         @keyframes ceo-breathe {
           0%, 100% { transform: scale(1); opacity: 0.4; }
-          50% { transform: scale(1.08); opacity: 0.6; }
+          50% { transform: scale(1.1); opacity: 0.6; }
         }
-        @keyframes ceo-pulse {
-          0%, 100% { transform: scale(1); opacity: 0.8; }
-          50% { transform: scale(1.12); opacity: 1; }
-        }
-
-        /* === RINGS === */
-        .ceo-ring-slow { animation: ceo-spin 25s linear infinite; }
-        .ceo-ring-med { animation: ceo-spin 10s linear infinite; }
-        .ceo-ring-fast { animation: ceo-spin 4s linear infinite; }
-        .ceo-ring-counter { animation: ceo-spin-rev 18s linear infinite; }
-
-        @keyframes ceo-spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes ceo-spin-rev {
-          from { transform: rotate(360deg); }
-          to { transform: rotate(0deg); }
+        @keyframes ceo-pulse-glow {
+          0%, 100% { transform: scale(1); opacity: 0.7; }
+          50% { transform: scale(1.15); opacity: 0.9; }
         }
 
-        /* === PULSE RINGS === */
-        .ceo-pulse-slow { animation: ceo-border-pulse 4s ease-in-out infinite; }
-        .ceo-pulse-med { animation: ceo-border-pulse 2s ease-in-out infinite; }
-        .ceo-pulse-fast { animation: ceo-border-pulse 0.7s ease-in-out infinite; }
-
-        @keyframes ceo-border-pulse {
-          0%, 100% { transform: scale(1); opacity: 0.4; }
-          50% { transform: scale(1.04); opacity: 0.7; }
+        /* === BODY ANIMATIONS === */
+        .ceo-bounce {
+          animation: ceo-bounce-anim 0.4s ease-in-out infinite;
+        }
+        .ceo-float {
+          animation: ceo-float-anim 3s ease-in-out infinite;
         }
 
-        /* === EYES === */
-        .ceo-eye-idle { animation: ceo-blink 4s ease-in-out infinite; }
-        .ceo-eye-thinking { animation: ceo-scan 2.5s ease-in-out infinite; }
-        .ceo-eye-speaking { animation: ceo-focus 0.4s ease-in-out infinite; }
+        @keyframes ceo-bounce-anim {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-3px) scale(1.02); }
+        }
+        @keyframes ceo-float-anim {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+
+        /* === GLASSES ANIMATIONS === */
+        .ceo-glasses {
+          animation: ceo-glasses-idle 4s ease-in-out infinite;
+        }
+        .ceo-glasses-thinking {
+          animation: ceo-glasses-think 2s ease-in-out infinite;
+        }
+        .ceo-glasses-speaking {
+          animation: ceo-glasses-speak 0.3s ease-in-out infinite;
+        }
+
+        @keyframes ceo-glasses-idle {
+          0%, 92%, 100% { transform: translateY(0); }
+          96% { transform: translateY(2px); }
+        }
+        @keyframes ceo-glasses-think {
+          0%, 100% { transform: rotate(-2deg); }
+          50% { transform: rotate(2deg); }
+        }
+        @keyframes ceo-glasses-speak {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-1px); }
+        }
+
+        /* === EYE ANIMATIONS === */
+        .ceo-eye-left, .ceo-eye-right {
+          animation: ceo-blink 4s ease-in-out infinite;
+        }
+        .ceo-eye-right {
+          animation-delay: 0.1s;
+        }
+        .ceo-eye-squint rect {
+          height: 10px !important;
+          y: 93 !important;
+        }
 
         @keyframes ceo-blink {
           0%, 92%, 100% { transform: scaleY(1); }
           96% { transform: scaleY(0.1); }
         }
-        @keyframes ceo-scan {
-          0%, 100% { transform: translateX(0); }
-          30% { transform: translateX(-3px); }
-          70% { transform: translateX(3px); }
-        }
-        @keyframes ceo-focus {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.08); }
-        }
 
-        /* === VOICE BARS === */
-        .ceo-voice-bar {
-          animation: ceo-voice 0.25s ease-in-out infinite alternate;
-          transform-origin: center;
-        }
-        @keyframes ceo-voice {
-          0% { transform: scaleY(0.35); }
-          100% { transform: scaleY(1.3); }
-        }
-
-        /* === SMILE === */
+        /* === MOUTH ANIMATIONS === */
         .ceo-smile {
           animation: ceo-smile-float 3s ease-in-out infinite;
         }
+        .ceo-mouth-speaking {
+          animation: ceo-mouth-open 0.3s ease-in-out infinite;
+        }
+        .ceo-mouth-thinking {
+          animation: ceo-mouth-think 2s ease-in-out infinite;
+        }
+
         @keyframes ceo-smile-float {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-1px); }
         }
-
-        /* === THINKING MOUTH === */
-        .ceo-think-mouth {
-          animation: ceo-think-morph 2s ease-in-out infinite;
+        @keyframes ceo-mouth-open {
+          0%, 100% { ry: 12; }
+          50% { ry: 16; }
         }
-        @keyframes ceo-think-morph {
-          0%, 100% { rx: 12; ry: 3; }
+        @keyframes ceo-mouth-think {
+          0%, 100% { rx: 10; ry: 5; }
           50% { rx: 8; ry: 4; }
         }
 
-        /* === AUDIO WAVES === */
+        /* === VOICE BARS === */
+        .ceo-voice-bar {
+          animation: ceo-voice 0.2s ease-in-out infinite alternate;
+          transform-origin: center;
+        }
+        @keyframes ceo-voice {
+          0% { transform: scaleY(0.3); }
+          100% { transform: scaleY(1.2); }
+        }
+
+        /* === BADGE === */
+        .ceo-badge-pulse {
+          animation: ceo-badge-anim 0.5s ease-in-out infinite;
+        }
+        @keyframes ceo-badge-anim {
+          0%, 100% { transform: scale(1); box-shadow: 0 4px 15px hsl(var(--primary) / 0.4); }
+          50% { transform: scale(1.1); box-shadow: 0 4px 25px hsl(var(--primary) / 0.6); }
+        }
+
+        /* === WAVES === */
         .ceo-wave {
           animation: ceo-wave-expand 1.2s ease-out infinite;
         }
         @keyframes ceo-wave-expand {
-          0% { transform: scale(0.95); opacity: 0.6; }
-          100% { transform: scale(1.35); opacity: 0; }
+          0% { transform: scale(0.9); opacity: 0.6; }
+          100% { transform: scale(1.4); opacity: 0; }
         }
 
-        /* === ORBITAL === */
-        .ceo-orbital {
-          animation: ceo-spin 3.5s linear infinite;
+        /* === SPARKLES === */
+        .ceo-sparkle {
+          animation: ceo-sparkle-float 1.5s ease-in-out infinite;
         }
-        .ceo-orbital-dot {
-          animation: ceo-dot-pulse 1.2s ease-in-out infinite;
-        }
-        @keyframes ceo-dot-pulse {
-          0%, 100% { transform: rotate(var(--rotation, 0deg)) translateY(var(--translate, -30px)) scale(0.8); opacity: 0.6; }
-          50% { transform: rotate(var(--rotation, 0deg)) translateY(var(--translate, -30px)) scale(1.4); opacity: 1; }
-        }
-
-        /* === BADGE GLOW === */
-        .ceo-badge-glow {
-          animation: ceo-badge-pulse 0.6s ease-in-out infinite;
-        }
-        @keyframes ceo-badge-pulse {
-          0%, 100% { box-shadow: 0 4px 15px hsl(var(--primary) / 0.3); }
-          50% { box-shadow: 0 4px 25px hsl(var(--primary) / 0.5), 0 0 15px hsl(var(--primary) / 0.3); }
+        @keyframes ceo-sparkle-float {
+          0%, 100% { 
+            transform: translateY(0) scale(0.8); 
+            opacity: 0.4; 
+          }
+          50% { 
+            transform: translateY(-10px) scale(1.2); 
+            opacity: 1; 
+          }
         }
 
         /* === REDUCED MOTION === */
         @media (prefers-reduced-motion: reduce) {
-          .ceo-glow-idle, .ceo-glow-think, .ceo-glow-active,
-          .ceo-ring-slow, .ceo-ring-med, .ceo-ring-fast, .ceo-ring-counter,
-          .ceo-pulse-slow, .ceo-pulse-med, .ceo-pulse-fast,
-          .ceo-eye-idle, .ceo-eye-thinking, .ceo-eye-speaking,
-          .ceo-voice-bar, .ceo-smile, .ceo-think-mouth,
-          .ceo-wave, .ceo-orbital, .ceo-orbital-dot, .ceo-badge-glow {
+          .ceo-glow-idle, .ceo-glow-thinking, .ceo-glow-speaking,
+          .ceo-bounce, .ceo-float,
+          .ceo-glasses, .ceo-glasses-thinking, .ceo-glasses-speaking,
+          .ceo-eye-left, .ceo-eye-right,
+          .ceo-smile, .ceo-mouth-speaking, .ceo-mouth-thinking,
+          .ceo-voice-bar, .ceo-badge-pulse,
+          .ceo-wave, .ceo-sparkle {
             animation: none;
           }
         }
