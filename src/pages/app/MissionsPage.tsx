@@ -648,18 +648,18 @@ const MissionsPage = () => {
         </div>
 
         {/* Progress Overview */}
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
           <div className="dashboard-stat col-span-2">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-primary" />
                 <span className="text-sm font-medium text-foreground">Progreso general</span>
               </div>
-              <span className="text-2xl font-bold text-primary">{Math.round(totalProgress)}%</span>
+              <span className="text-xl md:text-2xl font-bold text-primary">{Math.round(totalProgress)}%</span>
             </div>
             <Progress value={totalProgress} className="h-2" />
             <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-              <span>{completedStepsCount} pasos completados</span>
+              <span>{completedStepsCount} completados</span>
               <span>{allSteps.length} totales</span>
             </div>
           </div>
@@ -668,24 +668,24 @@ const MissionsPage = () => {
             <div className="flex items-center gap-2 mb-2">
               <Play className="w-5 h-5 text-success" />
             </div>
-            <div className="text-3xl font-bold text-foreground">{activeMissions.length}</div>
-            <div className="text-sm text-muted-foreground">Activas</div>
+            <div className="text-2xl md:text-3xl font-bold text-foreground">{activeMissions.length}</div>
+            <div className="text-xs md:text-sm text-muted-foreground">Activas</div>
           </div>
           
           <div className="dashboard-stat">
             <div className="flex items-center gap-2 mb-2">
               <Pause className="w-5 h-5 text-warning" />
             </div>
-            <div className="text-3xl font-bold text-foreground">{pausedMissions.length}</div>
-            <div className="text-sm text-muted-foreground">Pausadas</div>
+            <div className="text-2xl md:text-3xl font-bold text-foreground">{pausedMissions.length}</div>
+            <div className="text-xs md:text-sm text-muted-foreground">Pausadas</div>
           </div>
           
-          <div className="dashboard-stat">
+          <div className="dashboard-stat col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2 mb-2">
               <Layers className="w-5 h-5 text-accent" />
             </div>
-            <div className="text-3xl font-bold text-foreground">{uniqueAreas.length}</div>
-            <div className="text-sm text-muted-foreground">Áreas activas</div>
+            <div className="text-2xl md:text-3xl font-bold text-foreground">{uniqueAreas.length}</div>
+            <div className="text-xs md:text-sm text-muted-foreground">Áreas activas</div>
           </div>
         </div>
 
@@ -694,9 +694,9 @@ const MissionsPage = () => {
           {renderFiltersBar()}
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
-          {/* Missions List - 2 columns */}
-          <div className="col-span-2 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          {/* Missions List - 2 columns on lg+ */}
+          <div className="lg:col-span-2 space-y-4">
             {filteredMissions.length > 0 ? (
               <div className="dashboard-card overflow-hidden">
                 <div className="p-4 border-b border-border bg-secondary/30 flex items-center justify-between">
