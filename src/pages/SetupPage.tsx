@@ -451,14 +451,13 @@ const SetupPage = () => {
             {/* Upgrade to Pro button - only show if user hasn't paid */}
             {showUpgradeButton && (
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => navigate('/checkout?plan=pro_yearly')}
-                className="gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
               >
                 <Crown className="w-4 h-4" />
                 <span className="hidden sm:inline">{lang === 'pt' ? 'Quero Pro' : 'Quiero Pro'}</span>
-                <Badge variant="secondary" className="bg-primary/10 text-primary text-[10px] px-1.5 py-0">
+                <Badge className="bg-primary-foreground/20 text-primary-foreground text-[10px] px-1.5 py-0 border-0">
                   -17%
                 </Badge>
               </Button>
