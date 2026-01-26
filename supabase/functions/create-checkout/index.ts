@@ -14,15 +14,15 @@ interface CheckoutRequest {
   currency?: string;
 }
 
-// Pricing configuration per plan - Updated prices
+// Pricing configuration per plan - Clean prices ending in 99/999
 const PRICING = {
   pro_monthly: {
-    AR: { amount: 29500, currency: "ARS", description: "VistaCEO Pro - Mensual" },
+    AR: { amount: 29999, currency: "ARS", description: "VistaCEO Pro - Mensual" },
     DEFAULT: { amount: 29, currency: "USD", description: "VistaCEO Pro - Monthly" },
   },
   pro_yearly: {
-    AR: { amount: 295000, currency: "ARS", description: "VistaCEO Pro - Anual (2 meses gratis)" },
-    DEFAULT: { amount: 290, currency: "USD", description: "VistaCEO Pro - Yearly (2 months free)" },
+    AR: { amount: 299999, currency: "ARS", description: "VistaCEO Pro - Anual (2 meses gratis)" },
+    DEFAULT: { amount: 299, currency: "USD", description: "VistaCEO Pro - Yearly (2 months free)" },
   },
 };
 
