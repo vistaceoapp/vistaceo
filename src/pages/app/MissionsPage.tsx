@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Target, ChevronRight, Check, Zap, TrendingUp, Clock, Play, Pause, 
   Sparkles, Plus, MoreHorizontal, Info, Filter, 
-  Layers, BarChart3, Star
+  Layers, BarChart3, Star, Crown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -24,6 +24,8 @@ import {
   AREA_CATEGORIES, 
   loadFiltersFromStorage 
 } from "@/components/app/MissionFilters";
+import { FreeLimitsIndicator, LimitReachedBanner } from "@/components/app/FreeLimitsIndicator";
+import { useFreeLimits } from "@/hooks/use-free-limits";
 import {
   Dialog,
   DialogContent,
@@ -146,6 +148,7 @@ const MissionsPage = () => {
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
   const { forceCollapse, restorePrevious } = useSidebar();
+  const { canCreate, remaining, isPro, usage, limits } = useFreeLimits();
   
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -687,11 +690,32 @@ const MissionsPage = () => {
             <div className="text-2xl md:text-3xl font-bold text-foreground">{uniqueAreas.length}</div>
             <div className="text-xs md:text-sm text-muted-foreground">Áreas activas</div>
           </div>
+          
+          {/* Usage Limit - Free users */}
+          {!isPro && (
+            <div className="dashboard-stat col-span-2 lg:col-span-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-5 h-5 text-primary" />
+              </div>
+              <div className="text-2xl md:text-3xl font-bold text-foreground">{usage.missions}/{limits.missions}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Misiones este mes</div>
+            </div>
+          )}
         </div>
+
+        {/* Limit reached banner for free users */}
+        {!isPro && !canCreate.mission && (
+          <LimitReachedBanner type="missions" />
+        )}
 
         {/* Filters Bar */}
         <div className="dashboard-card">
-          {renderFiltersBar()}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            {renderFiltersBar()}
+            {!isPro && (
+              <FreeLimitsIndicator type="missions" variant="compact" />
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">

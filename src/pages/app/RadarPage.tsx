@@ -5,7 +5,7 @@ import {
   Radar as RadarIcon, TrendingUp, X, Zap, Eye, Sparkles, Target, 
   BarChart3, Filter, Bookmark, BookmarkCheck, ThumbsDown, CheckCircle2,
   ArrowUpDown, Info, Lightbulb, Globe, Building2, ExternalLink, MessageCirclePlus,
-  Shield, Clock, AlertCircle, RefreshCw, Rocket
+  Shield, Clock, AlertCircle, RefreshCw, Rocket, Crown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -38,6 +38,8 @@ import { OpportunityDetailEnhanced } from "@/components/app/OpportunityDetailEnh
 import { LearningDetailCard } from "@/components/app/LearningDetailCard";
 import { AlertFAB } from "@/components/app/AlertFAB";
 import { InsightMetricsWidget } from "@/components/app/InsightMetricsWidget";
+import { FreeLimitsIndicator, LimitReachedBanner } from "@/components/app/FreeLimitsIndicator";
+import { useFreeLimits } from "@/hooks/use-free-limits";
 import { 
   runQualityGates, 
   filterAndRankOpportunities,
@@ -153,6 +155,7 @@ const RadarPage = () => {
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
   const { brain } = useBrain();
+  const { canCreate, remaining, isPro, usage, limits } = useFreeLimits();
   
   // Opportunities (INTERNO)
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -912,6 +915,42 @@ const RadarPage = () => {
               <div className="text-xs md:text-sm text-muted-foreground">convertidas</div>
             </div>
           </div>
+
+          {/* Free user limits */}
+          {!isPro && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="dashboard-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-accent" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">Oportunidades internas</p>
+                    <p className="text-lg font-bold text-foreground">{usage.radarOpportunities}/{limits.radarOpportunities}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="dashboard-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+                    <Lightbulb className="w-5 h-5 text-success" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">I+D Externo</p>
+                    <p className="text-lg font-bold text-foreground">{usage.radarResearch}/{limits.radarResearch}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Limit reached banner for free users */}
+          {!isPro && activeTab === "oportunidades" && !canCreate.opportunity && (
+            <LimitReachedBanner type="radar" />
+          )}
+          {!isPro && activeTab === "id" && !canCreate.research && (
+            <LimitReachedBanner type="research" />
+          )}
 
           {/* Filters Bar */}
           <div className="dashboard-card p-4">
