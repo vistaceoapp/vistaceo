@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, TrendingUp, Brain, Target, Zap, CheckCircle2, Star, Clock, ChevronDown } from "lucide-react";
-import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
+import { ArrowRight, Sparkles, TrendingUp, Brain, Target, Zap, CheckCircle2, Star, Clock, ChevronDown, Radar } from "lucide-react";
 import { AnimatedCounter } from "./AnimatedCounter";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCountryDetection } from "@/hooks/use-country-detection";
-import { cn } from "@/lib/utils";
+import { MockupRadar } from "./mockups/MockupRadar";
+import { MockupMissions } from "./mockups/MockupMissions";
 
 // Mockup data for the live dashboard preview
 const MOCK_BUSINESS = {
@@ -27,13 +27,11 @@ const MOCK_BUSINESS = {
     time: "15 min",
     priority: "alta",
   },
-  opportunities: 5,
-  newOpportunities: 3,
 };
 
 export const HeroSection = () => {
   const navigate = useNavigate();
-  const { formatCurrencyShort, monthlyPrice, country, isDetecting } = useCountryDetection();
+  const { formatCurrencyShort, monthlyPrice, isDetecting } = useCountryDetection();
   
   const stats = [
     { value: 500, suffix: "+", label: "Negocios activos" },
@@ -57,30 +55,24 @@ export const HeroSection = () => {
         animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.15, 0.1] }}
         transition={{ duration: 8, repeat: Infinity }}
         className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full blur-[180px]" 
-        style={{ background: 'radial-gradient(circle, hsl(204, 79%, 50%, 0.2) 0%, transparent 70%)' }} 
+        style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.2) 0%, transparent 70%)' }} 
       />
       <motion.div 
         animate={{ scale: [1, 1.3, 1], opacity: [0.08, 0.12, 0.08] }}
         transition={{ duration: 10, repeat: Infinity, delay: 2 }}
         className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-[150px]" 
-        style={{ background: 'radial-gradient(circle, hsl(254, 61%, 67%, 0.15) 0%, transparent 70%)' }} 
+        style={{ background: 'radial-gradient(circle, hsl(var(--accent) / 0.15) 0%, transparent 70%)' }} 
       />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10 flex-1 flex flex-col">
-        <div className="max-w-6xl mx-auto text-center flex-1 flex flex-col">
-          {/* Logo + Live Badge */}
+        <div className="max-w-7xl mx-auto text-center flex-1 flex flex-col">
+          {/* Live Badge - No logo since it's in header */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col items-center gap-4 mb-6"
+            className="flex justify-center mb-6"
           >
-            <motion.div
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <VistaceoLogo size={72} variant="icon" />
-            </motion.div>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20 text-success">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
@@ -195,64 +187,76 @@ export const HeroSection = () => {
             ))}
           </motion.div>
 
-          {/* ULTRA WOW Dashboard Preview - Exactly like the real app */}
+          {/* ULTRA WOW Triple Dashboard Preview */}
           <motion.div 
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.6 }}
-            className="flex-1 flex items-center justify-center"
+            className="flex-1 flex items-start justify-center"
           >
-            <div className="w-full max-w-5xl relative">
+            <div className="w-full max-w-6xl relative">
               {/* Glow effect */}
               <motion.div 
-                animate={{ opacity: [0.4, 0.6, 0.4] }}
+                animate={{ opacity: [0.3, 0.5, 0.3] }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-3xl blur-2xl" 
+                className="absolute -inset-8 bg-gradient-to-r from-primary/15 via-accent/15 to-primary/15 rounded-3xl blur-3xl" 
               />
               
-              {/* Main Dashboard Card */}
-              <div className="relative bg-card/95 backdrop-blur-sm border border-border rounded-2xl shadow-2xl overflow-hidden">
-                {/* Top navigation bar */}
-                <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-border bg-secondary/30">
-                  <div className="flex items-center gap-3">
-                    <VistaceoLogo size={28} variant="icon" />
-                    <div className="hidden sm:block">
-                      <div className="text-sm font-semibold text-foreground">{MOCK_BUSINESS.name}</div>
-                      <div className="text-[10px] text-muted-foreground">{MOCK_BUSINESS.type} • {MOCK_BUSINESS.city}</div>
+              {/* Triple panel layout */}
+              <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                {/* Left: Radar */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 }}
+                  className="hidden lg:block"
+                >
+                  <MockupRadar />
+                </motion.div>
+
+                {/* Center: Main Dashboard Card */}
+                <div className="lg:col-span-1">
+                  <div className="bg-card/95 backdrop-blur-sm border border-border rounded-2xl shadow-2xl overflow-hidden">
+                    {/* Top navigation bar */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/30">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
+                          <Zap className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-foreground">{MOCK_BUSINESS.name}</div>
+                          <div className="text-[10px] text-muted-foreground">{MOCK_BUSINESS.type}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-success/10 text-success text-[10px] font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                        En vivo
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-medium">
-                    <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                    Analizando en tiempo real
-                  </div>
-                </div>
-                
-                {/* Dashboard Grid */}
-                <div className="p-4 sm:p-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    {/* Health Score Widget - Left column */}
-                    <div className="lg:col-span-1">
-                      <div className="bg-secondary/50 rounded-xl border border-border p-4 h-full">
-                        {/* Health score header */}
+                    
+                    {/* Health Score */}
+                    <div className="p-4">
+                      <div className="bg-secondary/50 rounded-xl border border-border p-4 mb-4">
                         <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-foreground">Salud de Negocio</span>
-                            <span className="px-2 py-0.5 rounded-full bg-success/10 text-success text-[10px] font-medium">
-                              {MOCK_BUSINESS.certaintyPct}% certeza
-                            </span>
-                          </div>
+                          <span className="text-sm font-semibold text-foreground">Salud del Negocio</span>
+                          <span className="px-2 py-0.5 rounded-full bg-success/10 text-success text-[10px] font-medium">
+                            {MOCK_BUSINESS.certaintyPct}% certeza
+                          </span>
                         </div>
                         
-                        {/* Score circle */}
-                        <div className="flex items-center gap-4 mb-4">
+                        <div className="flex items-center gap-4">
                           <div className="relative">
-                            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-success/20 to-success/10 border-2 border-success/30 flex flex-col items-center justify-center">
+                            <motion.div 
+                              animate={{ scale: [1, 1.02, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                              className="w-20 h-20 rounded-2xl bg-gradient-to-br from-success/20 to-success/10 border-2 border-success/30 flex flex-col items-center justify-center"
+                            >
                               <span className="text-3xl font-bold text-success">{MOCK_BUSINESS.healthScore}</span>
                               <span className="text-[10px] text-success font-medium">Bueno</span>
-                            </div>
+                            </motion.div>
                             <motion.div
-                              animate={{ scale: [1, 1.1, 1] }}
-                              transition={{ duration: 2, repeat: Infinity }}
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
                               className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-success flex items-center justify-center"
                             >
                               <TrendingUp className="w-3 h-3 text-white" />
@@ -260,12 +264,12 @@ export const HeroSection = () => {
                           </div>
                           
                           <div className="flex-1 space-y-2">
-                            {MOCK_BUSINESS.dimensions.slice(0, 3).map((dim, i) => (
+                            {MOCK_BUSINESS.dimensions.map((dim, i) => (
                               <motion.div 
                                 key={dim.name}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.8 + i * 0.1 }}
+                                transition={{ delay: 0.9 + i * 0.1 }}
                                 className="flex items-center gap-2"
                               >
                                 <span className="text-xs">{dim.icon}</span>
@@ -274,7 +278,7 @@ export const HeroSection = () => {
                                   <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${dim.score}%` }}
-                                    transition={{ delay: 1 + i * 0.1, duration: 0.6 }}
+                                    transition={{ delay: 1.1 + i * 0.1, duration: 0.6 }}
                                     className="h-full rounded-full"
                                     style={{ 
                                       backgroundColor: dim.score >= 80 ? 'hsl(var(--success))' : 
@@ -289,123 +293,109 @@ export const HeroSection = () => {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-2 text-success text-xs">
+                        <div className="flex items-center gap-2 text-success text-xs mt-3 pt-3 border-t border-border">
                           <TrendingUp className="w-3.5 h-3.5" />
                           <span>+{MOCK_BUSINESS.healthChange} pts esta semana</span>
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* Right content - Action + Stats */}
-                    <div className="lg:col-span-2 space-y-4">
-                      {/* Today's Action Card - Premium */}
+
+                      {/* Today's Action */}
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.9 }}
+                        transition={{ delay: 1.2 }}
                         className="bg-gradient-to-br from-primary/10 via-accent/5 to-transparent rounded-xl border border-primary/20 p-4"
                       >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-                                <Zap className="w-4 h-4 text-white" />
-                              </div>
-                              <div>
-                                <span className="text-xs text-muted-foreground">Tu acción de hoy</span>
-                                <span className="text-[10px] ml-2 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-medium uppercase">
-                                  Alta prioridad
-                                </span>
-                              </div>
-                            </div>
-                            
-                            <h4 className="font-semibold text-foreground text-sm sm:text-base mb-2">
-                              {MOCK_BUSINESS.todayAction.title}
-                            </h4>
-                            
-                            <div className="flex flex-wrap items-center gap-3 text-xs">
-                              <span className="flex items-center gap-1 text-success font-medium">
-                                <TrendingUp className="w-3.5 h-3.5" />
-                                {MOCK_BUSINESS.todayAction.impact}
-                              </span>
-                              <span className="flex items-center gap-1 text-muted-foreground">
-                                <Clock className="w-3.5 h-3.5" />
-                                {MOCK_BUSINESS.todayAction.time}
-                              </span>
-                            </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
+                            <Zap className="w-3.5 h-3.5 text-white" />
                           </div>
-                          
-                          <Button size="sm" className="gradient-primary text-white shrink-0">
-                            <CheckCircle2 className="w-4 h-4 mr-1" />
-                            Completar
-                          </Button>
+                          <div className="flex-1">
+                            <span className="text-xs text-muted-foreground">Tu acción de hoy</span>
+                            <span className="text-[10px] ml-2 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-medium uppercase">
+                              Alta prioridad
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <h4 className="font-semibold text-foreground text-sm mb-2">
+                          {MOCK_BUSINESS.todayAction.title}
+                        </h4>
+                        
+                        <div className="flex items-center gap-3 text-xs">
+                          <span className="flex items-center gap-1 text-success font-medium">
+                            <TrendingUp className="w-3.5 h-3.5" />
+                            {MOCK_BUSINESS.todayAction.impact}
+                          </span>
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <Clock className="w-3.5 h-3.5" />
+                            {MOCK_BUSINESS.todayAction.time}
+                          </span>
                         </div>
                       </motion.div>
-                      
-                      {/* Mini stats row */}
-                      <div className="grid grid-cols-3 gap-3">
+                    </div>
+                    
+                    {/* Bottom bar */}
+                    <div className="px-4 py-3 border-t border-border bg-secondary/20">
+                      <div className="flex items-center gap-3">
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1 }}
-                          className="bg-secondary/50 rounded-xl border border-border p-3 text-center"
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center"
                         >
-                          <div className="text-2xl font-bold text-foreground">{MOCK_BUSINESS.opportunities}</div>
-                          <div className="text-[10px] text-muted-foreground">Oportunidades</div>
-                          <div className="text-[10px] text-accent font-medium">+{MOCK_BUSINESS.newOpportunities} nuevas</div>
+                          <Sparkles className="w-3.5 h-3.5 text-white" />
                         </motion.div>
-                        
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.1 }}
-                          className="bg-secondary/50 rounded-xl border border-border p-3 text-center"
-                        >
-                          <div className="text-2xl font-bold text-foreground">3</div>
-                          <div className="text-[10px] text-muted-foreground">Misiones activas</div>
-                          <div className="text-[10px] text-success font-medium">67% completado</div>
-                        </motion.div>
-                        
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.2 }}
-                          className="bg-secondary/50 rounded-xl border border-border p-3 text-center"
-                        >
-                          <div className="text-2xl font-bold text-foreground">12</div>
-                          <div className="text-[10px] text-muted-foreground">Check-ins</div>
-                          <div className="text-[10px] text-primary font-medium">Esta semana</div>
-                        </motion.div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-foreground font-medium">VistaCEO</span>
+                            <motion.div
+                              animate={{ opacity: [0.5, 1, 0.5] }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
+                              className="flex items-center gap-0.5"
+                            >
+                              <span className="w-1 h-1 rounded-full bg-primary" />
+                              <span className="w-1 h-1 rounded-full bg-primary" />
+                              <span className="w-1 h-1 rounded-full bg-primary" />
+                            </motion.div>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">
+                            Analizando datos en tiempo real...
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                {/* Bottom bar - Live typing indicator */}
-                <div className="px-4 sm:px-6 py-3 border-t border-border bg-secondary/20">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center">
-                      <Sparkles className="w-4 h-4 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-foreground font-medium">VistaCEO</span>
-                        <motion.div
-                          animate={{ opacity: [0.5, 1, 0.5] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                          className="flex items-center gap-1"
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary" style={{ animationDelay: "0.2s" }} />
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary" style={{ animationDelay: "0.4s" }} />
-                        </motion.div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Analizando datos de {MOCK_BUSINESS.name}...
-                      </p>
-                    </div>
-                  </div>
-                </div>
+
+                {/* Right: Missions */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.9 }}
+                  className="hidden lg:block"
+                >
+                  <MockupMissions />
+                </motion.div>
+              </div>
+
+              {/* Mobile: Show Radar and Missions below */}
+              <div className="lg:hidden grid grid-cols-2 gap-3 mt-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1 }}
+                  className="scale-[0.85] origin-top"
+                >
+                  <MockupRadar />
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.1 }}
+                  className="scale-[0.85] origin-top"
+                >
+                  <MockupMissions />
+                </motion.div>
               </div>
             </div>
           </motion.div>
