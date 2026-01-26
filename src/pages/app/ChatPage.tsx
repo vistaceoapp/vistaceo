@@ -19,6 +19,7 @@ import { CEOPersonalitySelector, CEOPersonality } from "@/components/chat/CEOPer
 import { ChatLearningPanel } from "@/components/chat/ChatLearningPanel";
 import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
 import { ChatSuggestedQuestions } from "@/components/chat/ChatSuggestedQuestions";
+import { SuggestedQuestionsButton } from "@/components/chat/SuggestedQuestionsButton";
 
 interface Message {
   id: string;
@@ -533,17 +534,16 @@ const ChatPage = () => {
           )}
         </div>
 
-        {/* Suggested Questions (when has messages) */}
+        {/* Suggested Questions Button (when has messages) */}
         {messages.length > 0 && !loading && (
           <div className={cn(
-            "py-2 border-t border-border/20",
+            "py-2 border-t border-border/20 flex items-center justify-center",
             isMobile ? "px-3" : "px-4"
           )}>
-            <ChatSuggestedQuestions
+            <SuggestedQuestionsButton
               businessId={currentBusiness.id}
               onSelectQuestion={sendMessage}
               disabled={loading}
-              compact
             />
           </div>
         )}
