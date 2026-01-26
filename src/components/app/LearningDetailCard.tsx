@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,7 +10,7 @@ import {
 import {
   Globe, ExternalLink, TrendingUp, Clock, BarChart3, 
   CheckCircle2, ThumbsDown, Bookmark, BookmarkCheck,
-  Sparkles, ChevronRight, Lightbulb, Target, Users,
+  ChevronRight, Lightbulb, Target, Users,
   Zap, Building2, FileText, AlertCircle, Rocket
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -116,7 +117,6 @@ const getDetailedSteps = (item: LearningItem, business: Business | null) => {
   const category = business?.category || "gastronomía";
   
   if (existingSteps && existingSteps.length > 0) {
-    // Enhance existing steps with more detail
     return existingSteps.map((step, idx) => ({
       title: step,
       description: `Paso ${idx + 1} adaptado para ${businessName}`,
@@ -129,7 +129,6 @@ const getDetailedSteps = (item: LearningItem, business: Business | null) => {
     }));
   }
   
-  // Generate default steps based on type
   const defaultSteps = [
     {
       title: "Evaluar relevancia",
@@ -219,205 +218,313 @@ const getConfidenceInfo = (item: LearningItem) => {
   };
 };
 
-export const LearningDetailCard = ({
-  item,
-  business,
-  onDismiss,
-  onSave,
-  onClose,
-  onApply,
-  applyLoading
-}: LearningDetailCardProps) => {
-  const typeInfo = getTypeInfo(item.item_type);
-  const TypeIcon = typeInfo.icon;
-  const businessApplication = getBusinessApplication(item, business);
-  const steps = getDetailedSteps(item, business);
-  const confidence = getConfidenceInfo(item);
+// Helper to parse and render content with links properly
+const parseContentWithLinks = (content: string): React.ReactNode => {
+  // Pattern to match markdown links: [text](url) or **text**
+  const parts: React.ReactNode[] = [];
+  let remaining = content;
+  let key = 0;
   
-  return (
-    <>
-      <DialogHeader>
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <Badge variant="outline" className="text-[10px] bg-accent/5 border-accent/20">
-            <ExternalLink className="w-3 h-3 mr-1" />
-            EXTERNO
-          </Badge>
-          <Badge variant="secondary" className={cn("text-[10px]", typeInfo.color)}>
-            <TypeIcon className="w-3 h-3 mr-1" />
-            {typeInfo.label}
-          </Badge>
-          <Badge variant="outline" className="text-[10px]">
-            I+D | {typeInfo.category}
-          </Badge>
-        </div>
-        <DialogTitle className="text-xl leading-tight">{item.title}</DialogTitle>
-        <DialogDescription className="text-sm">
-          Aplicable a {business?.name || "tu negocio"} • {business?.category || "Gastronomía"}
-        </DialogDescription>
-      </DialogHeader>
+  // Match markdown links [text](url)
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match;
+  
+  while ((match = linkRegex.exec(content)) !== null) {
+    // Add text before the link
+    if (match.index > lastIndex) {
+      const textBefore = content.slice(lastIndex, match.index);
+      // Parse bold text in this segment
+      parts.push(<span key={key++}>{parseBoldText(textBefore)}</span>);
+    }
+    
+    // Add the link
+    const linkText = match[1];
+    const linkUrl = match[2];
+    
+    // Extract domain for display
+    let displayText = linkText;
+    try {
+      if (linkText.startsWith('http')) {
+        const url = new URL(linkText);
+        displayText = url.hostname.replace('www.', '');
+      }
+    } catch {
+      // Keep original text
+    }
+    
+    parts.push(
+      <a 
+        key={key++}
+        href={linkUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:underline inline-flex items-center gap-1"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {displayText}
+        <ExternalLink className="w-3 h-3" />
+      </a>
+    );
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text
+  if (lastIndex < content.length) {
+    parts.push(<span key={key++}>{parseBoldText(content.slice(lastIndex))}</span>);
+  }
+  
+  return parts.length > 0 ? parts : parseBoldText(content);
+};
 
-      <ScrollArea className="max-h-[60vh] pr-2">
-        <div className="space-y-5 mt-4">
-          {/* Content - Por qué te lo sugiero */}
-          <div className="p-4 rounded-xl bg-accent/5 border border-accent/20">
-            <h4 className="font-semibold text-accent mb-2 flex items-center gap-2 text-sm">
-              <Globe className="w-4 h-4" />
-              Qué detectamos
-            </h4>
-            <p className="text-sm text-foreground leading-relaxed">
-              {item.content || "Información externa relevante detectada para tu tipo de negocio."}
-            </p>
+// Helper to parse bold text **text**
+const parseBoldText = (text: string): React.ReactNode => {
+  const parts: React.ReactNode[] = [];
+  const boldRegex = /\*\*([^*]+)\*\*/g;
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+  
+  while ((match = boldRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(<strong key={key++}>{match[1]}</strong>);
+    lastIndex = match.index + match[0].length;
+  }
+  
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+  
+  return parts.length > 0 ? <>{parts}</> : text;
+};
+
+// Extract clean source info from URL or source string
+const extractSourceInfo = (source: string | null): { domain: string; url: string | null; date: string | null } => {
+  if (!source) {
+    return { domain: "Fuente externa", url: null, date: null };
+  }
+  
+  // Check if it's a URL
+  if (source.startsWith('http')) {
+    try {
+      const url = new URL(source);
+      const domain = url.hostname.replace('www.', '');
+      // Try to extract date from Google News URLs
+      const dateMatch = source.match(/(\d{4})-(\d{2})/);
+      const date = dateMatch ? `${dateMatch[1]}-${dateMatch[2]}` : null;
+      return { domain, url: source, date };
+    } catch {
+      return { domain: source.slice(0, 30) + '...', url: source, date: null };
+    }
+  }
+  
+  // If it contains a URL, extract it
+  const urlMatch = source.match(/(https?:\/\/[^\s]+)/);
+  if (urlMatch) {
+    try {
+      const url = new URL(urlMatch[1]);
+      return { domain: url.hostname.replace('www.', ''), url: urlMatch[1], date: null };
+    } catch {
+      return { domain: source, url: null, date: null };
+    }
+  }
+  
+  return { domain: source, url: null, date: null };
+};
+
+export const LearningDetailCard = forwardRef<HTMLDivElement, LearningDetailCardProps>(
+  ({ item, business, onDismiss, onSave, onClose, onApply, applyLoading }, ref) => {
+    const typeInfo = getTypeInfo(item.item_type);
+    const TypeIcon = typeInfo.icon;
+    const businessApplication = getBusinessApplication(item, business);
+    const steps = getDetailedSteps(item, business);
+    const confidence = getConfidenceInfo(item);
+    const sourceInfo = extractSourceInfo(item.source);
+    
+    return (
+      <div ref={ref} className="flex flex-col max-h-[80vh]">
+        {/* Header - Fixed */}
+        <DialogHeader className="shrink-0 pb-4">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <Badge variant="outline" className="text-[10px] bg-accent/5 border-accent/20">
+              <ExternalLink className="w-3 h-3 mr-1" />
+              EXTERNO
+            </Badge>
+            <Badge variant="secondary" className={cn("text-[10px]", typeInfo.color)}>
+              <TypeIcon className="w-3 h-3 mr-1" />
+              {typeInfo.label}
+            </Badge>
+            <Badge variant="outline" className="text-[10px]">
+              I+D | {typeInfo.category}
+            </Badge>
           </div>
+          <DialogTitle className="text-lg sm:text-xl leading-tight pr-6">{item.title}</DialogTitle>
+          <DialogDescription className="text-sm">
+            Aplicable a {business?.name || "tu negocio"} • {business?.category || "Gastronomía"}
+          </DialogDescription>
+        </DialogHeader>
 
-          {/* Business Application */}
-          <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-            <h4 className="font-semibold text-primary mb-2 flex items-center gap-2 text-sm">
-              <Building2 className="w-4 h-4" />
-              Cómo aplica a {business?.name || "tu negocio"}
-            </h4>
-            <p className="text-sm text-foreground leading-relaxed">
-              {businessApplication}
-            </p>
-          </div>
+        {/* Scrollable Content */}
+        <ScrollArea className="flex-1 pr-3">
+          <div className="space-y-4 pb-4">
+            {/* Content - Qué detectamos */}
+            <div className="p-4 rounded-xl bg-accent/5 border border-accent/20">
+              <h4 className="font-semibold text-accent mb-2 flex items-center gap-2 text-sm">
+                <Globe className="w-4 h-4" />
+                Qué detectamos
+              </h4>
+              <div className="text-sm text-foreground leading-relaxed">
+                {item.content ? parseContentWithLinks(item.content) : "Información externa relevante detectada para tu tipo de negocio."}
+              </div>
+            </div>
 
-          {/* Detailed Steps */}
-          <div>
-            <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-accent" />
-              Pasos para implementar
-            </h4>
-            <div className="space-y-3">
-              {steps.map((step: any, idx: number) => (
-                <div key={idx} className="p-4 rounded-xl bg-secondary/30 border border-border/50">
-                  <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-full bg-accent/10 flex items-center justify-center text-accent text-sm font-bold shrink-0">
-                      {idx + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
-                        <h5 className="font-medium text-foreground text-sm">
-                          {step.title}
-                        </h5>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-[10px]">
-                            <Clock className="w-3 h-3 mr-1" />
-                            {step.time}
-                          </Badge>
-                          <Badge 
-                            variant="secondary" 
-                            className={cn(
-                              "text-[10px]",
-                              step.applicability === "Alta" ? "text-success" : "text-warning"
-                            )}
-                          >
-                            {step.applicability}
-                          </Badge>
-                        </div>
+            {/* Business Application */}
+            <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+              <h4 className="font-semibold text-primary mb-2 flex items-center gap-2 text-sm">
+                <Building2 className="w-4 h-4" />
+                Cómo aplica a {business?.name || "tu negocio"}
+              </h4>
+              <p className="text-sm text-foreground leading-relaxed">
+                {businessApplication}
+              </p>
+            </div>
+
+            {/* Detailed Steps */}
+            <div>
+              <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
+                <FileText className="w-4 h-4 text-accent" />
+                Pasos para implementar
+              </h4>
+              <div className="space-y-3">
+                {steps.map((step: any, idx: number) => (
+                  <div key={idx} className="p-3 sm:p-4 rounded-xl bg-secondary/30 border border-border/50">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center text-accent text-xs font-bold shrink-0">
+                        {idx + 1}
                       </div>
-                      <p className="text-xs text-muted-foreground mb-2">
-                        {step.description}
-                      </p>
-                      
-                      {/* How to */}
-                      <div className="bg-background/50 rounded-lg p-2">
-                        <p className="text-[10px] font-medium text-muted-foreground uppercase mb-1">Cómo hacerlo:</p>
-                        <ul className="space-y-1">
-                          {step.howTo?.map((item: string, i: number) => (
-                            <li key={i} className="flex items-start gap-2 text-xs text-foreground">
-                              <ChevronRight className="w-3 h-3 text-accent shrink-0 mt-0.5" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-1 sm:gap-2">
+                          <h5 className="font-medium text-foreground text-sm">
+                            {step.title}
+                          </h5>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge variant="outline" className="text-[10px]">
+                              <Clock className="w-3 h-3 mr-1" />
+                              {step.time}
+                            </Badge>
+                            <Badge 
+                              variant="secondary" 
+                              className={cn(
+                                "text-[10px]",
+                                step.applicability === "Alta" ? "text-success" : "text-warning"
+                              )}
+                            >
+                              {step.applicability}
+                            </Badge>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          {step.description}
+                        </p>
+                        
+                        {/* How to */}
+                        <div className="bg-background/50 rounded-lg p-2">
+                          <p className="text-[10px] font-medium text-muted-foreground uppercase mb-1">Cómo hacerlo:</p>
+                          <ul className="space-y-1">
+                            {step.howTo?.map((howToItem: string, i: number) => (
+                              <li key={i} className="flex items-start gap-2 text-xs text-foreground">
+                                <ChevronRight className="w-3 h-3 text-accent shrink-0 mt-0.5" />
+                                <span>{howToItem}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Potential Impact */}
+            <div className="p-4 rounded-xl bg-success/5 border border-success/20">
+              <h4 className="font-semibold text-success mb-2 flex items-center gap-2 text-sm">
+                <TrendingUp className="w-4 h-4" />
+                Potencial de impacto
+              </h4>
+              <div className="grid grid-cols-3 gap-2 mt-3">
+                <div className="text-center p-2 bg-background/50 rounded-lg">
+                  <div className="text-sm sm:text-base font-bold text-foreground">Medio-Alto</div>
+                  <div className="text-[10px] text-muted-foreground">Impacto</div>
                 </div>
-              ))}
+                <div className="text-center p-2 bg-background/50 rounded-lg">
+                  <div className="text-sm sm:text-base font-bold text-foreground">2-4 sem</div>
+                  <div className="text-[10px] text-muted-foreground">Tiempo</div>
+                </div>
+                <div className="text-center p-2 bg-background/50 rounded-lg">
+                  <div className="text-sm sm:text-base font-bold text-foreground">Bajo</div>
+                  <div className="text-[10px] text-muted-foreground">Riesgo</div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Potential Impact - Responsive */}
-          <div className="p-4 rounded-xl bg-success/5 border border-success/20">
-            <h4 className="font-semibold text-success mb-2 flex items-center gap-2 text-sm">
-              <TrendingUp className="w-4 h-4" />
-              Potencial de impacto
-            </h4>
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              <div className="text-center p-2 bg-background/50 rounded-lg">
-                <div className="text-base sm:text-lg font-bold text-foreground">Medio-Alto</div>
-                <div className="text-[10px] text-muted-foreground">Impacto</div>
-              </div>
-              <div className="text-center p-2 bg-background/50 rounded-lg">
-                <div className="text-base sm:text-lg font-bold text-foreground">2-4 sem</div>
-                <div className="text-[10px] text-muted-foreground">Tiempo</div>
-              </div>
-              <div className="text-center p-2 bg-background/50 rounded-lg">
-                <div className="text-base sm:text-lg font-bold text-foreground">Bajo</div>
-                <div className="text-[10px] text-muted-foreground">Riesgo</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Confidence & Source */}
-          <div className={cn("p-4 rounded-xl border", confidence.bgColor)}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">Confianza</span>
-              </div>
-              <Badge variant="outline" className={cn("text-xs", confidence.color)}>
-                {confidence.level}
-              </Badge>
-            </div>
-            <p className="text-xs text-muted-foreground mb-3">{confidence.note}</p>
-            
-            {/* Source with proper truncation */}
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-muted-foreground uppercase">Fuente:</span>
-              {item.source ? (
-                <a 
-                  href={item.source.startsWith('http') ? item.source : undefined}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    "text-xs text-primary truncate max-w-full block",
-                    item.source.startsWith('http') && "hover:underline cursor-pointer"
-                  )}
-                  title={item.source}
-                >
-                  {/* Extract domain or show readable source */}
-                  {item.source.startsWith('http') 
-                    ? (() => {
-                        try {
-                          const url = new URL(item.source);
-                          return `${url.hostname.replace('www.', '')} ↗`;
-                        } catch {
-                          return confidence.sourceType;
-                        }
-                      })()
-                    : confidence.sourceType
-                  }
-                </a>
-              ) : (
-                <Badge variant="secondary" className="text-[10px] w-fit">
-                  {confidence.sourceType}
+            {/* Confidence & Source - Fixed source display */}
+            <div className={cn("p-4 rounded-xl border", confidence.bgColor)}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-foreground">Confianza</span>
+                </div>
+                <Badge variant="outline" className={cn("text-xs", confidence.color)}>
+                  {confidence.level}
                 </Badge>
-              )}
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">{confidence.note}</p>
+              
+              {/* Source with clean display */}
+              <div className="flex flex-col gap-1 pt-2 border-t border-border/30">
+                <span className="text-[10px] text-muted-foreground uppercase">Fuente:</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {sourceInfo.url ? (
+                    <a 
+                      href={sourceInfo.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {sourceInfo.domain}
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  ) : (
+                    <span className="text-xs text-foreground">{sourceInfo.domain}</span>
+                  )}
+                  {sourceInfo.date && (
+                    <Badge variant="outline" className="text-[10px]">
+                      {sourceInfo.date}
+                    </Badge>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
+        </ScrollArea>
 
-          {/* Actions - Responsive grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={onDismiss} className="text-xs">
+        {/* Actions - Fixed at bottom */}
+        <div className="shrink-0 pt-4 border-t border-border/50 mt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <Button variant="outline" size="sm" onClick={onDismiss} className="text-xs h-9">
               <ThumbsDown className="w-3 h-3 mr-1" />
               <span className="truncate">No me interesa</span>
             </Button>
-            <Button variant="ghost" size="sm" onClick={onDismiss} className="text-xs">
+            <Button variant="ghost" size="sm" onClick={onDismiss} className="text-xs h-9">
               <CheckCircle2 className="w-3 h-3 mr-1" />
               <span className="truncate">Ya lo conozco</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={onSave} className="text-xs">
+            <Button variant="outline" size="sm" onClick={onSave} className="text-xs h-9">
               {item.is_saved ? (
                 <>
                   <BookmarkCheck className="w-3 h-3 mr-1 text-primary" />
@@ -433,7 +540,7 @@ export const LearningDetailCard = ({
             {onApply && (
               <Button 
                 size="sm" 
-                className="gradient-primary text-xs col-span-2 sm:col-span-1" 
+                className="gradient-primary text-xs h-9 col-span-2 sm:col-span-1" 
                 onClick={onApply}
                 disabled={applyLoading}
               >
@@ -443,9 +550,11 @@ export const LearningDetailCard = ({
             )}
           </div>
         </div>
-      </ScrollArea>
-    </>
-  );
-};
+      </div>
+    );
+  }
+);
+
+LearningDetailCard.displayName = "LearningDetailCard";
 
 export default LearningDetailCard;
