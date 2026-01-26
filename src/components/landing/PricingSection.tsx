@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Crown, Sparkles, Shield, CreditCard, ArrowRight, Zap } from "lucide-react";
+import { Check, X, Crown, Sparkles, Shield, CreditCard, ArrowRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -23,39 +23,46 @@ const PRICING = {
   },
 };
 
+const freeFeatures = [
+  { name: "Dashboard completo", included: true },
+  { name: "Análisis de tu negocio", included: true },
+  { name: "Acciones diarias personalizadas", included: true },
+  { name: "3 misiones estratégicas/mes", included: true },
+  { name: "5 oportunidades Radar/mes", included: true },
+  { name: "5 investigaciones I+D/mes", included: true },
+  { name: "Chat con VistaCEO", included: false },
+  { name: "Análisis de fotos/documentos", included: false },
+  { name: "Google Reviews integrado", included: false },
+  { name: "Analytics avanzado", included: false },
+];
+
 const proFeatures = [
-  "Todo del plan Free incluido",
-  "Misiones ilimitadas",
-  "Analytics y predicciones IA",
-  "Hablar con VistaCEO (voz)",
-  "Análisis de fotos y documentos",
-  "Radar I+D completo",
-  "Integraciones premium",
-  "Soporte prioritario 24/7",
+  { name: "Todo del plan Free", included: true, highlight: true },
+  { name: "Chat ultra-inteligente con VistaCEO", included: true },
+  { name: "Análisis de fotos, documentos y reportes", included: true },
+  { name: "Radar I+D completo e ilimitado", included: true },
+  { name: "Misiones ilimitadas", included: true },
+  { name: "Google Reviews integrado", included: true },
+  { name: "Analytics avanzado + predicciones IA", included: true },
+  { name: "Soporte prioritario 24/7", included: true },
 ];
 
 export const PricingSection = () => {
   const navigate = useNavigate();
-  const [isYearly, setIsYearly] = useState(false);
+  const [isYearly, setIsYearly] = useState(true);
   const [country, setCountry] = useState<"AR" | "DEFAULT">("DEFAULT");
-  const [isDetecting, setIsDetecting] = useState(true);
 
   // Detect country from browser language
   useEffect(() => {
-    const detectCountry = () => {
-      const lang = navigator.language || "en";
-      if (lang.includes("AR") || lang === "es-AR") {
-        setCountry("AR");
-      }
-      setIsDetecting(false);
-    };
-    detectCountry();
+    const lang = navigator.language || "en";
+    if (lang.includes("AR") || lang === "es-AR") {
+      setCountry("AR");
+    }
   }, []);
 
   const pricing = PRICING[country];
-  const currentPrice = isYearly ? pricing.yearly : pricing.monthly;
   const monthlyEquivalent = isYearly ? Math.round(pricing.yearly / 12) : pricing.monthly;
-  const savings = isYearly ? pricing.monthly * 2 : 0; // 2 months free
+  const savings = isYearly ? pricing.monthly * 2 : 0;
 
   const formatPrice = (price: number) => {
     if (country === "AR") {
@@ -86,14 +93,14 @@ export const PricingSection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center max-w-3xl mx-auto mb-16"
+          className="text-center max-w-3xl mx-auto mb-12"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary mb-6">
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">Precios transparentes</span>
+            <span className="text-sm font-medium">Precios simples y transparentes</span>
           </div>
           
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground mb-6 leading-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
             Elegí tu plan,{" "}
             <span className="text-gradient-primary">empezá a crecer</span>
           </h2>
@@ -103,7 +110,7 @@ export const PricingSection = () => {
           </p>
 
           {/* Country indicator */}
-          <div className="mt-6 text-sm text-muted-foreground">
+          <div className="mt-4 text-sm text-muted-foreground">
             Precios en {pricing.flag} {pricing.currency}
           </div>
         </motion.div>
@@ -113,7 +120,7 @@ export const PricingSection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="flex justify-center mb-12"
+          className="flex justify-center mb-8"
         >
           <div className="inline-flex items-center gap-4 p-2 bg-secondary/50 border border-border rounded-2xl">
             <button
@@ -153,11 +160,11 @@ export const PricingSection = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex justify-center mb-8"
+              className="flex justify-center mb-10"
             >
               <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-success/10 border border-success/20 text-success">
                 <Zap className="w-4 h-4" />
-                <span className="text-sm font-medium">
+                <span className="text-sm font-semibold">
                   Ahorrás {pricing.symbol}{formatPrice(savings)} — 2 meses gratis
                 </span>
               </div>
@@ -180,7 +187,7 @@ export const PricingSection = () => {
                   <Sparkles className="w-6 h-6 text-success" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-semibold text-foreground">Free</h3>
+                  <h3 className="text-2xl font-bold text-foreground">Free</h3>
                   <p className="text-sm text-muted-foreground">Para empezar a ver resultados</p>
                 </div>
               </div>
@@ -202,10 +209,18 @@ export const PricingSection = () => {
             </div>
 
             <div className="space-y-3">
-              {["Dashboard completo", "Diagnóstico de negocio", "1 Acción diaria", "3 Misiones/mes", "Chat con VistaCEO (texto)", "Radar básico"].map((feature, i) => (
+              {freeFeatures.map((feature, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm">
-                  <Check className="w-5 h-5 text-success flex-shrink-0" />
-                  <span className="text-foreground">{feature}</span>
+                  {feature.included ? (
+                    <Check className="w-5 h-5 text-success flex-shrink-0" />
+                  ) : (
+                    <X className="w-5 h-5 text-muted-foreground/50 flex-shrink-0" />
+                  )}
+                  <span className={cn(
+                    feature.included ? "text-foreground" : "text-muted-foreground/60"
+                  )}>
+                    {feature.name}
+                  </span>
                 </div>
               ))}
             </div>
@@ -219,7 +234,7 @@ export const PricingSection = () => {
             className="relative"
           >
             {/* Glow effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-3xl opacity-20 blur-lg animate-pulse-slow" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-3xl opacity-20 blur-lg" />
             
             <div className="relative bg-card border-2 border-primary/30 rounded-3xl p-8 lg:p-10">
               {/* Popular badge */}
@@ -236,7 +251,7 @@ export const PricingSection = () => {
                     <Crown className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-semibold text-foreground">Pro</h3>
+                    <h3 className="text-2xl font-bold text-foreground">Pro</h3>
                     <p className="text-sm text-muted-foreground">El cerebro completo</p>
                   </div>
                 </div>
@@ -267,9 +282,12 @@ export const PricingSection = () => {
 
               <div className="space-y-3">
                 {proFeatures.map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm">
+                  <div key={i} className={cn(
+                    "flex items-center gap-3 text-sm",
+                    feature.highlight && "font-semibold"
+                  )}>
                     <Check className="w-5 h-5 text-primary flex-shrink-0" />
-                    <span className="text-foreground">{feature}</span>
+                    <span className="text-foreground">{feature.name}</span>
                   </div>
                 ))}
               </div>
