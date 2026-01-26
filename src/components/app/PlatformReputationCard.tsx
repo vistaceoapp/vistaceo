@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-export type PlatformType = "google" | "instagram" | "facebook" | "web";
+export type PlatformType = "google" | "instagram" | "facebook";
 
 interface PlatformData {
   platform: PlatformType;
@@ -102,14 +102,7 @@ const platformConfig: Record<PlatformType, {
     scoreLabel: "Rating",
     scoreMax: 5,
   },
-  web: {
-    name: "Tu Web / Ecommerce",
-    icon: <Globe className="w-5 h-5 text-primary" />,
-    color: "from-success/10 to-success/5",
-    borderColor: "border-success/30",
-    scoreLabel: "Conversión",
-    scoreMax: 100,
-  },
+  // Web Analytics removido temporalmente
 };
 
 const formatNumber = (num: number): string => {
