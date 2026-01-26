@@ -34,6 +34,7 @@ import { PlatformReputationCard, PlatformType } from "./PlatformReputationCard";
 import { PlatformConnectModal } from "./PlatformConnectModal";
 import { GoogleReviewsCard } from "./GoogleReviewsCard";
 import { GoogleLocationSelector } from "./GoogleLocationSelector";
+import { SocialProfileInput } from "./SocialProfileInput";
 
 interface ReputationAnalysis {
   overall_score: number;
@@ -70,8 +71,8 @@ interface PlatformIntegration {
 // Web Analytics removido temporalmente
 const MAIN_PLATFORMS: Array<PlatformIntegration["platform"]> = ["google", "instagram", "facebook"];
 
-// Helper para verificar si está conectado (puede ser "connected" o "active")
-const isConnectedStatus = (status: string) => status === "connected" || status === "active";
+// Helper para verificar si está conectado (puede ser "connected", "active" o "scraped")
+const isConnectedStatus = (status: string) => status === "connected" || status === "active" || status === "scraped";
 
 interface ReputationAnalyticsPanelProps {
   className?: string;
@@ -376,6 +377,23 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                       onChangeLocation={() => setLocationSelectorOpen(true)}
                       onSyncComplete={fetchPlatforms}
                       businessId={currentBusiness?.id || ""}
+                    />
+                  );
+                }
+                // For Instagram/Facebook - use SocialProfileInput when not connected
+                if ((platform.platform === "instagram" || platform.platform === "facebook") && !platform.connected) {
+                  return (
+                    <SocialProfileInput
+                      key={platform.platform}
+                      platform={platform.platform}
+                      businessId={currentBusiness?.id || ""}
+                      onSuccess={() => fetchPlatforms()}
+                      existingData={platform.metadata ? {
+                        profile_url: platform.metadata.profile_url,
+                        followers: platform.metadata.followers || platform.metadata.followers_count,
+                        posts: platform.metadata.posts || platform.metadata.media_count,
+                        username: platform.metadata.username,
+                      } : undefined}
                     />
                   );
                 }

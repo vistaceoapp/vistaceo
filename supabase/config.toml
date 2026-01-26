@@ -113,3 +113,6 @@ verify_jwt = false
 
 [functions.payment-webhook]
 verify_jwt = false
+
+[functions.scrape-social-profile]
+verify_jwt = false
