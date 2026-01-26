@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Trash2, Sparkles } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { LessonsPanel } from "@/components/app/LessonsPanel";
 
 // Chat components
 import { ChatWelcome } from "@/components/chat/ChatWelcome";
@@ -416,107 +415,85 @@ const ChatPage = () => {
       <>
         <LearningNotification isVisible={learningIndicator} />
 
-        <div className="flex gap-6 h-[calc(100vh-120px)]">
-          {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6 animate-fade-in">
-              <div className="flex items-center gap-4">
-                <div className="hidden sm:block">
-                  <CEOAvatar size="lg" isSpeaking={isPlayingAudio} isThinking={loading} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold text-foreground">
-                      CEO Chat
-                    </h1>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                      <Sparkles className="w-3 h-3" />
-                      Ultra IA
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Tu mentor ejecutivo • {currentBusiness.name}
-                  </p>
-                </div>
+        <div className="flex flex-col h-[calc(100vh-120px)]">
+          {/* Header - Simplified */}
+          <div className="flex items-center justify-between mb-4 px-1">
+            <div className="flex items-center gap-3">
+              <CEOAvatar size="md" isSpeaking={isPlayingAudio} isThinking={loading} />
+              <div>
+                <h1 className="text-lg font-semibold text-foreground">CEO Chat</h1>
+                <p className="text-xs text-muted-foreground">{currentBusiness.name}</p>
               </div>
-
-              {messages.length > 0 && (
-                <Button variant="outline" size="sm" onClick={clearChat} className="gap-2 rounded-xl">
-                  <Trash2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">Nueva conversación</span>
-                </Button>
-              )}
             </div>
 
-            {/* Messages Area */}
-            <div
-              ref={messagesContainerRef}
-              className="flex-1 overflow-y-auto rounded-2xl border border-border/60 bg-gradient-to-b from-card/80 to-card/40 backdrop-blur-sm"
-            >
-              {messages.length === 0 ? (
-                <ChatWelcome
-                  businessName={currentBusiness.name}
-                  onSelectSuggestion={sendMessage}
-                  disabled={loading}
-                />
-              ) : (
-                <div className="p-6 space-y-6">
-                  {messages.map((message, idx) => (
-                    <ChatMessage
-                      key={message.id}
-                      role={message.role}
-                      content={message.content}
-                      timestamp={message.created_at}
-                      hasLearning={message.hasLearning}
-                      audioScript={message.audioScript}
-                      isPlaying={playingMessageId === message.id}
-                      onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
-                      businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
-                      index={idx}
-                      isSpeaking={playingMessageId === message.id}
-                      attachments={message.attachments}
-                    />
-                  ))}
-
-                  {loading && <ChatThinkingState />}
-
-                  <div ref={messagesEndRef} className="h-4" />
-                </div>
-              )}
-            </div>
-
-            {/* Input Area */}
-            <div className="mt-4">
-              <ChatInput
-                value={input}
-                onChange={setInput}
-                onSend={() => sendMessage()}
-                onStartRecording={startRecording}
-                onStopRecording={stopRecording}
-                isRecording={isRecording}
-                isTranscribing={isTranscribing}
-                isLoading={loading}
-                audioEnabled={audioEnabled}
-                onToggleAudio={() => {
-                  if (isPlayingAudio) {
-                    stopAudio();
-                  } else {
-                    setAudioEnabled(!audioEnabled);
-                  }
-                }}
-                attachedFiles={attachedFiles}
-                onAttachFiles={setAttachedFiles}
-                onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}
-              />
-            </div>
+            {messages.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={clearChat} className="gap-1.5 text-muted-foreground hover:text-foreground">
+                <Trash2 className="w-4 h-4" />
+                <span className="hidden md:inline text-sm">Nueva</span>
+              </Button>
+            )}
           </div>
 
-          {/* Lessons Sidebar */}
-          <div className="w-80 flex-shrink-0 hidden xl:block">
-            <div className="h-full overflow-y-auto rounded-2xl border border-border/60 bg-card/50 backdrop-blur-sm p-4 animate-fade-in">
-              <LessonsPanel />
-            </div>
+          {/* Messages Area */}
+          <div
+            ref={messagesContainerRef}
+            className="flex-1 overflow-y-auto rounded-xl border border-border/40 bg-card/50"
+          >
+            {messages.length === 0 ? (
+              <ChatWelcome
+                businessName={currentBusiness.name}
+                onSelectSuggestion={sendMessage}
+                disabled={loading}
+              />
+            ) : (
+              <div className="p-4 md:p-6 space-y-4">
+                {messages.map((message, idx) => (
+                  <ChatMessage
+                    key={message.id}
+                    role={message.role}
+                    content={message.content}
+                    timestamp={message.created_at}
+                    hasLearning={message.hasLearning}
+                    audioScript={message.audioScript}
+                    isPlaying={playingMessageId === message.id}
+                    onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
+                    businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
+                    index={idx}
+                    isSpeaking={playingMessageId === message.id}
+                    attachments={message.attachments}
+                  />
+                ))}
+
+                {loading && <ChatThinkingState />}
+
+                <div ref={messagesEndRef} className="h-2" />
+              </div>
+            )}
+          </div>
+
+          {/* Input Area */}
+          <div className="mt-3">
+            <ChatInput
+              value={input}
+              onChange={setInput}
+              onSend={() => sendMessage()}
+              onStartRecording={startRecording}
+              onStopRecording={stopRecording}
+              isRecording={isRecording}
+              isTranscribing={isTranscribing}
+              isLoading={loading}
+              audioEnabled={audioEnabled}
+              onToggleAudio={() => {
+                if (isPlayingAudio) {
+                  stopAudio();
+                } else {
+                  setAudioEnabled(!audioEnabled);
+                }
+              }}
+              attachedFiles={attachedFiles}
+              onAttachFiles={setAttachedFiles}
+              onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}
+            />
           </div>
         </div>
       </>
@@ -528,11 +505,24 @@ const ChatPage = () => {
     <>
       <LearningNotification isVisible={learningIndicator} />
 
-      <div className="flex flex-col h-[calc(100vh-180px)]">
+      <div className="flex flex-col h-[calc(100vh-140px)]">
+        {/* Mobile Header */}
+        <div className="flex items-center justify-between px-2 py-2 mb-2">
+          <div className="flex items-center gap-2">
+            <CEOAvatar size="sm" isSpeaking={isPlayingAudio} isThinking={loading} />
+            <span className="text-sm font-medium text-foreground">CEO Chat</span>
+          </div>
+          {messages.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={clearChat} className="h-8 w-8 p-0">
+              <Trash2 className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          )}
+        </div>
+
         {/* Messages Area */}
         <div
           ref={messagesContainerRef}
-          className="flex-1 overflow-y-auto px-2 pb-4"
+          className="flex-1 overflow-y-auto px-2"
         >
           {messages.length === 0 ? (
             <ChatWelcome
@@ -541,7 +531,7 @@ const ChatPage = () => {
               disabled={loading}
             />
           ) : (
-            <div className="space-y-4 pt-4">
+            <div className="space-y-3 pb-4">
               {messages.map((message, idx) => (
                 <ChatMessage
                   key={message.id}
@@ -561,13 +551,13 @@ const ChatPage = () => {
 
               {loading && <ChatThinkingState />}
 
-              <div ref={messagesEndRef} className="h-4" />
+              <div ref={messagesEndRef} className="h-2" />
             </div>
           )}
         </div>
 
         {/* Input Area */}
-        <div className="sticky bottom-0 pt-2 pb-2 px-1 bg-background/80 backdrop-blur-sm">
+        <div className="px-2 py-2 bg-background/90 backdrop-blur-sm border-t border-border/30">
           <ChatInput
             value={input}
             onChange={setInput}
