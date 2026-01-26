@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
+import starAvatar from "@/assets/brand/star-avatar.png";
 
 interface CEOAvatarProps {
   size?: "xs" | "sm" | "md" | "lg";
@@ -12,7 +13,7 @@ const sizeMap = {
   xs: 24,
   sm: 32,
   md: 40,
-  lg: 52,
+  lg: 56,
 };
 
 export const CEOAvatar = ({
@@ -34,32 +35,42 @@ export const CEOAvatar = ({
       className={cn("relative flex-shrink-0", className)}
       style={{ width: dims, height: dims }}
     >
-      {/* Ambient Glow */}
+      {/* Deep Ambient Glow Layer */}
       <div
-        className="absolute inset-0 blur-xl opacity-50"
+        className="absolute inset-0 rounded-full blur-2xl"
         style={{
-          background: "radial-gradient(circle, hsl(var(--primary) / 0.6) 0%, hsl(var(--accent) / 0.3) 50%, transparent 70%)",
-          transform: "scale(2)",
+          background: "radial-gradient(circle, rgba(38, 146, 220, 0.5) 0%, rgba(116, 108, 230, 0.3) 50%, transparent 70%)",
+          transform: "scale(2.5)",
           animation: state === "speaking" 
-            ? "star-glow-pulse 0.8s ease-in-out infinite" 
+            ? "avatar-glow-speak 0.6s ease-in-out infinite" 
             : state === "thinking"
-            ? "star-glow-think 1.5s ease-in-out infinite"
-            : "star-glow-idle 4s ease-in-out infinite",
+            ? "avatar-glow-think 1.2s ease-in-out infinite"
+            : "avatar-glow-idle 4s ease-in-out infinite",
         }}
       />
 
-      {/* Speaking Waves */}
+      {/* Secondary Glow Ring */}
+      <div
+        className="absolute inset-0 rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(59, 184, 195, 0.4) 0%, transparent 60%)",
+          transform: "scale(1.8)",
+          animation: state === "thinking" 
+            ? "avatar-ring-rotate 3s linear infinite"
+            : "avatar-ring-breathe 5s ease-in-out infinite",
+        }}
+      />
+
+      {/* Speaking Ripple Waves */}
       {state === "speaking" && (
         <>
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
-              className="absolute inset-0"
+              className="absolute inset-0 pointer-events-none"
               style={{
-                border: "1px solid hsl(var(--primary) / 0.4)",
-                borderRadius: "20%",
-                transform: "rotate(45deg)",
-                animation: `star-wave 1.5s ease-out infinite`,
+                background: "radial-gradient(circle, transparent 40%, rgba(38, 146, 220, 0.3) 50%, transparent 60%)",
+                animation: "avatar-ripple 2s ease-out infinite",
                 animationDelay: `${i * 0.4}s`,
               }}
             />
@@ -67,152 +78,280 @@ export const CEOAvatar = ({
         </>
       )}
 
-      {/* Main Star SVG */}
-      <svg
-        viewBox="0 0 100 100"
-        className="absolute inset-0 w-full h-full"
+      {/* Thinking Orbital Particles */}
+      {state === "thinking" && (
+        <div 
+          className="absolute inset-0"
+          style={{ animation: "avatar-orbit 2s linear infinite" }}
+        >
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="absolute rounded-full"
+              style={{
+                width: Math.max(2, dims * 0.06),
+                height: Math.max(2, dims * 0.06),
+                background: i % 2 === 0 
+                  ? "linear-gradient(135deg, #2692DC, #3BB8C3)" 
+                  : "linear-gradient(135deg, #746CE6, #9b87f5)",
+                boxShadow: `0 0 ${dims * 0.2}px ${i % 2 === 0 ? 'rgba(38, 146, 220, 0.8)' : 'rgba(116, 108, 230, 0.8)'}`,
+                top: "50%",
+                left: "50%",
+                transform: `rotate(${i * 60}deg) translateY(-${dims * 0.8}px)`,
+                animation: `avatar-particle-float ${1 + (i * 0.15)}s ease-in-out infinite`,
+                animationDelay: `${i * 0.1}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Main Star Image Container */}
+      <div
+        className="absolute inset-0 flex items-center justify-center"
         style={{
-          filter: `drop-shadow(0 0 ${dims * 0.15}px hsl(var(--primary) / 0.6))`,
+          animation: state === "thinking"
+            ? "avatar-star-rotate 2.5s ease-in-out infinite"
+            : state === "speaking"
+            ? "avatar-star-bounce 0.5s ease-in-out infinite"
+            : "avatar-star-float 4s ease-in-out infinite",
         }}
       >
-        <defs>
-          {/* Premium gradient */}
-          <linearGradient id="starGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#1a365d" />
-            <stop offset="30%" stopColor="#2692DC" />
-            <stop offset="60%" stopColor="#3BB8C3" />
-            <stop offset="100%" stopColor="#746CE6" />
-          </linearGradient>
-
-          {/* Glow filter */}
-          <filter id="starGlowFilter" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2" result="glow" />
-            <feMerge>
-              <feMergeNode in="glow" />
-              <feMergeNode in="glow" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-
-          {/* Inner glow */}
-          <radialGradient id="starInnerGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="white" stopOpacity="0.9" />
-            <stop offset="40%" stopColor="white" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="white" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-
-        {/* 4-Point Star - Main Shape */}
-        <g 
-          filter="url(#starGlowFilter)"
-          style={{ 
-            transformOrigin: "50px 50px",
-            animation: state === "thinking" 
-              ? "star-rotate 2s linear infinite" 
-              : state === "speaking"
-              ? "star-pulse 0.6s ease-in-out infinite"
-              : "star-breathe 3s ease-in-out infinite",
+        {/* Star Image */}
+        <img
+          src={starAvatar}
+          alt="VISTA CEO"
+          className="w-full h-full object-contain"
+          style={{
+            filter: `
+              drop-shadow(0 0 ${dims * 0.1}px rgba(38, 146, 220, 0.9))
+              drop-shadow(0 0 ${dims * 0.2}px rgba(116, 108, 230, 0.6))
+              drop-shadow(0 0 ${dims * 0.4}px rgba(59, 184, 195, 0.4))
+            `,
+            transform: "scale(0.85)",
           }}
-        >
-          {/* Outer star with gradient */}
-          <path
-            d="M50 10 L60 40 L90 50 L60 60 L50 90 L40 60 L10 50 L40 40 Z"
-            fill="url(#starGradient)"
-            stroke="white"
-            strokeWidth="0.5"
-            strokeOpacity="0.3"
-          />
-          
-          {/* Inner highlight */}
-          <path
-            d="M50 25 L55 45 L75 50 L55 55 L50 75 L45 55 L25 50 L45 45 Z"
-            fill="url(#starInnerGlow)"
-          />
-          
-          {/* Core circle */}
-          <circle 
-            cx="50" 
-            cy="50" 
-            r="8" 
-            fill="white"
-            fillOpacity="0.95"
-            style={{
-              animation: state !== "idle" ? "star-core-pulse 0.8s ease-in-out infinite" : "none",
-            }}
-          />
-        </g>
+        />
+      </div>
 
-        {/* Thinking Particles */}
-        {state === "thinking" && (
-          <g>
-            <circle cx="25" cy="30" r="2.5" fill="#3BB8C3">
-              <animate attributeName="cy" values="30;18;30" dur="1s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="75" cy="25" r="2" fill="#746CE6">
-              <animate attributeName="cy" values="25;12;25" dur="1.3s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.3s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="50" cy="18" r="1.5" fill="#2692DC">
-              <animate attributeName="cy" values="18;8;18" dur="0.9s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.9;0.1;0.9" dur="0.9s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="30" cy="70" r="1.5" fill="white">
-              <animate attributeName="cy" values="70;78;70" dur="1.1s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.1s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="70" cy="75" r="2" fill="#3BB8C3">
-              <animate attributeName="cy" values="75;85;75" dur="1.2s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.2s" repeatCount="indefinite" />
-            </circle>
-          </g>
-        )}
-      </svg>
+      {/* Center Core Light */}
+      <div
+        className="absolute rounded-full pointer-events-none"
+        style={{
+          width: dims * 0.25,
+          height: dims * 0.25,
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          background: "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 40%, transparent 70%)",
+          animation: state === "speaking"
+            ? "avatar-core-pulse-speak 0.4s ease-in-out infinite"
+            : state === "thinking"
+            ? "avatar-core-pulse-think 0.8s ease-in-out infinite"
+            : "avatar-core-breathe 3s ease-in-out infinite",
+        }}
+      />
+
+      {/* Shimmer Effect */}
+      <div
+        className="absolute inset-0 overflow-hidden pointer-events-none"
+        style={{ borderRadius: "30%" }}
+      >
+        <div
+          className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2"
+          style={{
+            background: "linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%)",
+            animation: "avatar-shimmer 3s ease-in-out infinite",
+          }}
+        />
+      </div>
 
       {/* CSS Animations */}
       <style>{`
-        @keyframes star-wave {
-          0% { transform: rotate(45deg) scale(1); opacity: 0.6; }
-          100% { transform: rotate(45deg) scale(2.5); opacity: 0; }
+        /* === IDLE STATE === */
+        @keyframes avatar-glow-idle {
+          0%, 100% { 
+            opacity: 0.5; 
+            transform: scale(2.5); 
+          }
+          50% { 
+            opacity: 0.7; 
+            transform: scale(2.8); 
+          }
         }
         
-        @keyframes star-rotate {
+        @keyframes avatar-star-float {
+          0%, 100% { 
+            transform: translateY(0) scale(1); 
+          }
+          25% { 
+            transform: translateY(-2px) scale(1.01); 
+          }
+          50% { 
+            transform: translateY(-4px) scale(1.02); 
+          }
+          75% { 
+            transform: translateY(-2px) scale(1.01); 
+          }
+        }
+        
+        @keyframes avatar-core-breathe {
+          0%, 100% { 
+            opacity: 0.7; 
+            transform: translate(-50%, -50%) scale(1); 
+          }
+          50% { 
+            opacity: 1; 
+            transform: translate(-50%, -50%) scale(1.3); 
+          }
+        }
+        
+        @keyframes avatar-ring-breathe {
+          0%, 100% { 
+            opacity: 0.3; 
+            transform: scale(1.8) rotate(0deg); 
+          }
+          50% { 
+            opacity: 0.5; 
+            transform: scale(2) rotate(3deg); 
+          }
+        }
+        
+        /* === THINKING STATE === */
+        @keyframes avatar-glow-think {
+          0%, 100% { 
+            opacity: 0.4; 
+            transform: scale(2.5); 
+          }
+          50% { 
+            opacity: 0.8; 
+            transform: scale(3); 
+          }
+        }
+        
+        @keyframes avatar-star-rotate {
+          0% { 
+            transform: rotate(0deg) scale(1); 
+          }
+          25% { 
+            transform: rotate(90deg) scale(1.05); 
+          }
+          50% { 
+            transform: rotate(180deg) scale(1); 
+          }
+          75% { 
+            transform: rotate(270deg) scale(1.05); 
+          }
+          100% { 
+            transform: rotate(360deg) scale(1); 
+          }
+        }
+        
+        @keyframes avatar-orbit {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
         
-        @keyframes star-pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.08); }
+        @keyframes avatar-particle-float {
+          0%, 100% { 
+            opacity: 0.6; 
+            transform: rotate(inherit) translateY(-${dims * 0.8}px) scale(1); 
+          }
+          50% { 
+            opacity: 1; 
+            transform: rotate(inherit) translateY(-${dims * 0.9}px) scale(1.5); 
+          }
         }
         
-        @keyframes star-breathe {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.03); opacity: 0.95; }
+        @keyframes avatar-ring-rotate {
+          0% { 
+            transform: scale(1.8) rotate(0deg); 
+            opacity: 0.4; 
+          }
+          50% { 
+            opacity: 0.6; 
+          }
+          100% { 
+            transform: scale(1.8) rotate(360deg); 
+            opacity: 0.4; 
+          }
         }
         
-        @keyframes star-core-pulse {
-          0%, 100% { r: 8; opacity: 0.95; }
-          50% { r: 10; opacity: 1; }
+        @keyframes avatar-core-pulse-think {
+          0%, 100% { 
+            opacity: 0.5; 
+            transform: translate(-50%, -50%) scale(0.8); 
+          }
+          50% { 
+            opacity: 1; 
+            transform: translate(-50%, -50%) scale(1.5); 
+          }
         }
         
-        @keyframes star-glow-pulse {
-          0%, 100% { opacity: 0.4; transform: scale(2); }
-          50% { opacity: 0.7; transform: scale(2.3); }
+        /* === SPEAKING STATE === */
+        @keyframes avatar-glow-speak {
+          0%, 100% { 
+            opacity: 0.5; 
+            transform: scale(2.5); 
+          }
+          50% { 
+            opacity: 0.9; 
+            transform: scale(3.2); 
+          }
         }
         
-        @keyframes star-glow-think {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
+        @keyframes avatar-star-bounce {
+          0%, 100% { 
+            transform: scale(1); 
+          }
+          25% { 
+            transform: scale(1.08); 
+          }
+          50% { 
+            transform: scale(0.95); 
+          }
+          75% { 
+            transform: scale(1.05); 
+          }
         }
         
-        @keyframes star-glow-idle {
-          0%, 100% { opacity: 0.4; transform: scale(2); }
-          50% { opacity: 0.5; transform: scale(2.1); }
+        @keyframes avatar-ripple {
+          0% { 
+            transform: scale(0.8); 
+            opacity: 0.6; 
+          }
+          100% { 
+            transform: scale(2.5); 
+            opacity: 0; 
+          }
         }
         
+        @keyframes avatar-core-pulse-speak {
+          0%, 100% { 
+            opacity: 0.8; 
+            transform: translate(-50%, -50%) scale(1); 
+          }
+          50% { 
+            opacity: 1; 
+            transform: translate(-50%, -50%) scale(1.8); 
+          }
+        }
+        
+        /* === SHIMMER === */
+        @keyframes avatar-shimmer {
+          0% { 
+            transform: translateX(-100%) translateY(-100%) rotate(45deg); 
+          }
+          100% { 
+            transform: translateX(100%) translateY(100%) rotate(45deg); 
+          }
+        }
+        
+        /* === ACCESSIBILITY === */
         @media (prefers-reduced-motion: reduce) {
-          * { animation: none !important; }
+          * { 
+            animation-duration: 0.01ms !important; 
+            animation-iteration-count: 1 !important; 
+          }
         }
       `}</style>
     </div>
