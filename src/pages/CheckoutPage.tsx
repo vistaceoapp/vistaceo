@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Crown, Loader2, Shield, Check, Sparkles, ArrowLeft, Zap } from "lucide-react";
+import { Crown, Loader2, Shield, Check, Sparkles, ArrowLeft, Zap, Lock, CreditCard, BadgeCheck, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,12 +10,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useCountryDetection } from "@/hooks/use-country-detection";
+import mercadopagoLogo from "@/assets/payment/mercadopago-logo.png";
+import paypalLogo from "@/assets/payment/paypal-logo.svg";
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  const { country, isDetecting, formatPrice: formatCountryPrice, isArgentina } = useCountryDetection();
+  const { country, isDetecting, isArgentina } = useCountryDetection();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "failure" | "pending">("idle");
 
@@ -32,8 +34,7 @@ const CheckoutPage = () => {
       setStatus("success");
       localStorage.removeItem("pendingPlan");
       localStorage.removeItem("pendingPlanTimestamp");
-      // Redirect to setup after short celebration
-      setTimeout(() => navigate("/setup", { replace: true }), 2000);
+      setTimeout(() => navigate("/setup", { replace: true }), 2500);
     } else if (urlStatus === "failure") {
       setStatus("failure");
     } else if (urlStatus === "pending") {
@@ -44,7 +45,6 @@ const CheckoutPage = () => {
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      // Save plan intent and redirect to auth
       if (planId) {
         localStorage.setItem("pendingPlan", planId);
         localStorage.setItem("pendingPlanTimestamp", Date.now().toString());
@@ -53,17 +53,16 @@ const CheckoutPage = () => {
     }
   }, [user, authLoading, navigate, planId]);
 
-  // Use clean pricing based on country
+  // Pricing based on country
   const monthlyPrice = isArgentina ? 29999 : 29;
   const yearlyPrice = isArgentina ? 299999 : 299;
   const currencyCode = isArgentina ? "ARS" : "USD";
-  const currencySymbol = isArgentina ? "$" : "$";
 
   const formatDisplayPrice = (amount: number) => {
     if (isArgentina) {
-      return `${currencySymbol}${amount.toLocaleString("es-AR")}`;
+      return `$${amount.toLocaleString("es-AR")}`;
     }
-    return `${currencySymbol}${amount.toLocaleString()}`;
+    return `$${amount.toLocaleString()}`;
   };
 
   const handleCheckout = async () => {
@@ -84,7 +83,6 @@ const CheckoutPage = () => {
       if (error) throw error;
 
       if (data?.checkoutUrl) {
-        // Redirect to payment provider
         window.location.href = data.checkoutUrl;
       }
     } catch (error) {
@@ -96,8 +94,11 @@ const CheckoutPage = () => {
 
   if (authLoading || isDetecting) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Preparando checkout seguro...</p>
+        </div>
       </div>
     );
   }
@@ -105,18 +106,27 @@ const CheckoutPage = () => {
   // Success state
   if (status === "success") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-success/10 flex items-center justify-center p-4">
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
+          initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="text-center"
+          transition={{ type: "spring", duration: 0.6 }}
+          className="text-center max-w-md"
         >
-          <div className="w-24 h-24 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-6">
-            <Sparkles className="w-12 h-12 text-success" />
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring" }}
+            className="w-28 h-28 rounded-full bg-gradient-to-br from-success/20 to-success/40 flex items-center justify-center mx-auto mb-8 shadow-lg shadow-success/20"
+          >
+            <Sparkles className="w-14 h-14 text-success" />
+          </motion.div>
+          <h1 className="text-4xl font-bold text-foreground mb-3">¡Bienvenido a Pro!</h1>
+          <p className="text-lg text-muted-foreground mb-6">Tu pago fue procesado correctamente.</p>
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Redirigiendo al setup...</span>
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">¡Bienvenido a Pro!</h1>
-          <p className="text-muted-foreground mb-4">Tu pago fue procesado correctamente.</p>
-          <p className="text-sm text-muted-foreground">Redirigiendo al setup...</p>
         </motion.div>
       </div>
     );
@@ -125,150 +135,228 @@ const CheckoutPage = () => {
   // Failure state
   if (status === "failure") {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 rounded-full bg-destructive/20 flex items-center justify-center mx-auto mb-6">
-              <Crown className="w-10 h-10 text-destructive" />
-            </div>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Pago no completado</h2>
-            <p className="text-muted-foreground mb-6">
-              Hubo un problema con tu pago. Podés intentar nuevamente.
-            </p>
-            <div className="space-y-3">
-              <Button className="w-full" onClick={() => setStatus("idle")}>
-                Intentar de nuevo
-              </Button>
-              <Button variant="ghost" className="w-full" onClick={() => navigate("/setup")}>
-                Continuar sin Pro
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-destructive/5 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="max-w-md w-full border-destructive/20">
+            <CardContent className="p-8 text-center">
+              <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-6">
+                <Crown className="w-10 h-10 text-destructive" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Pago no completado</h2>
+              <p className="text-muted-foreground mb-6">
+                Hubo un problema con tu pago. Podés intentar nuevamente.
+              </p>
+              <div className="space-y-3">
+                <Button className="w-full" size="lg" onClick={() => setStatus("idle")}>
+                  Intentar de nuevo
+                </Button>
+                <Button variant="ghost" className="w-full" onClick={() => navigate("/setup")}>
+                  Continuar sin Pro
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     );
   }
 
+  // Pending state
+  if (status === "pending") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-warning/10 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="max-w-md w-full border-warning/20">
+            <CardContent className="p-8 text-center">
+              <div className="w-20 h-20 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-6">
+                <Loader2 className="w-10 h-10 text-warning animate-spin" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Pago pendiente</h2>
+              <p className="text-muted-foreground mb-6">
+                Tu pago está siendo procesado. Te notificaremos cuando se complete.
+              </p>
+              <Button className="w-full" size="lg" onClick={() => navigate("/setup")}>
+                Continuar al setup
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
+
+  const proFeatures = [
+    { icon: Sparkles, text: "Chat IA ultra-inteligente con análisis de fotos y documentos" },
+    { icon: Zap, text: "Misiones estratégicas ilimitadas" },
+    { icon: BadgeCheck, text: "Radar I+D completo sin límites" },
+    { icon: Check, text: "Integración Google Reviews" },
+    { icon: Check, text: "Analíticas avanzadas y predicciones IA" },
+    { icon: Check, text: "Soporte prioritario 24/7" },
+    ...(isYearly ? [
+      { icon: Crown, text: "2 meses gratis incluidos" },
+      { icon: Crown, text: "Onboarding personalizado 1:1" },
+    ] : []),
+  ];
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
-      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
+      <header className="border-b border-border/30 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="container max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
             Volver
           </Button>
           <VistaceoLogo size={36} variant="full" />
-          <div className="w-20" /> {/* Spacer for centering */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Lock className="w-4 h-4" />
+            <span className="hidden sm:inline">Checkout seguro</span>
+          </div>
         </div>
       </header>
 
-      <main className="container max-w-4xl mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-2 gap-8 items-start">
-          {/* Left: Plan details */}
+      <main className="container max-w-6xl mx-auto px-4 py-8 lg:py-12">
+        {/* Security Banner */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 flex flex-wrap items-center justify-center gap-4 md:gap-8 text-sm text-muted-foreground"
+        >
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-success" />
+            <span>Encriptación SSL 256-bit</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Lock className="w-5 h-5 text-success" />
+            <span>Datos 100% protegidos</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <BadgeCheck className="w-5 h-5 text-success" />
+            <span>Proveedor certificado</span>
+          </div>
+        </motion.div>
+
+        <div className="grid lg:grid-cols-5 gap-8 items-start">
+          {/* Left: Plan details (3 cols) */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
+            className="lg:col-span-3 space-y-6"
           >
             <div>
-              <Badge className="mb-4 bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-500 border-amber-500/30">
-                <Crown className="w-3 h-3 mr-1" />
+              <Badge className="mb-4 bg-accent/20 text-accent-foreground border-accent/30 px-3 py-1">
+                <Crown className="w-3.5 h-3.5 mr-1.5" />
                 Plan Pro
               </Badge>
-              <h1 className="text-3xl font-bold text-foreground mb-2">
-                {isYearly ? "Pro Anual" : "Pro Mensual"}
+              <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-3">
+                {isYearly ? "VistaCEO Pro Anual" : "VistaCEO Pro Mensual"}
               </h1>
-              <p className="text-muted-foreground">
-                Desbloquea todo el poder de tu CEO digital
+              <p className="text-lg text-muted-foreground">
+                Desbloquea todo el poder de tu CEO digital para hacer crecer tu negocio.
               </p>
             </div>
 
-            <div className="space-y-4">
-              {[
-                "Chat IA ultra-inteligente con análisis de fotos/docs",
-                "Misiones estratégicas ilimitadas",
-                "Radar I+D completo sin límites",
-                "Integración Google Reviews",
-                "Analíticas avanzadas y predicciones",
-                "Soporte prioritario 24/7",
-                ...(isYearly ? ["2 meses gratis incluidos", "Onboarding personalizado 1:1"] : []),
-              ].map((feature, idx) => (
-                <div key={idx} className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded-full bg-success/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-success" />
-                  </div>
-                  <span className="text-foreground">{feature}</span>
+            {/* Features Grid */}
+            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Todo lo que incluye Pro
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {proFeatures.map((feature, idx) => (
+                    <motion.div 
+                      key={idx} 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="flex items-start gap-3"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <feature.icon className="w-3.5 h-3.5 text-success" />
+                      </div>
+                      <span className="text-sm text-foreground/90">{feature.text}</span>
+                    </motion.div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </CardContent>
+            </Card>
 
-            {/* Trust signals */}
-            <div className="flex items-center gap-4 pt-4 border-t border-border/50">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Shield className="w-4 h-4" />
-                Pago 100% seguro
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Check className="w-4 h-4" />
-                Cancelá cuando quieras
-              </div>
-            </div>
+            {/* Guarantee Card */}
+            <Card className="border-success/30 bg-success/5">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-7 h-7 text-success" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground">Garantía de satisfacción de 7 días</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Si no ves valor en VistaCEO Pro, te devolvemos el 100% de tu dinero. Sin preguntas.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
-          {/* Right: Payment card */}
+          {/* Right: Payment card (2 cols) */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
+            className="lg:col-span-2"
           >
-            <Card className="border-2 border-primary/30 shadow-xl shadow-primary/10">
-              <CardContent className="p-6 space-y-6">
-                {/* Price */}
-                <div className="text-center pb-4 border-b border-border/50">
-                  <div className="text-4xl font-bold text-foreground">
+            <Card className="border-2 border-primary/30 shadow-2xl shadow-primary/10 overflow-hidden">
+              {/* Price Header */}
+              <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 border-b border-border/50">
+                <div className="text-center">
+                  <div className="text-4xl lg:text-5xl font-bold text-foreground">
                     {formatDisplayPrice(isYearly ? yearlyPrice : monthlyPrice)}
-                    <span className="text-lg font-normal text-muted-foreground ml-2">
-                      {currencyCode}
-                    </span>
                   </div>
-                  <p className="text-muted-foreground">
-                    {isYearly ? "por año" : "por mes"}
-                  </p>
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    <span className="text-muted-foreground text-lg">{currencyCode}</span>
+                    <span className="text-muted-foreground">/ {isYearly ? "año" : "mes"}</span>
+                  </div>
                   {isYearly && (
-                    <Badge variant="secondary" className="mt-2 bg-success/10 text-success border-success/30">
-                      Ahorrás 2 meses
+                    <Badge variant="secondary" className="mt-3 bg-success/10 text-success border-success/30">
+                      🎉 Ahorrás 2 meses
                     </Badge>
                   )}
                 </div>
+              </div>
 
-                {/* Payment method */}
-                <div className="flex items-center justify-center gap-2 py-3 rounded-lg bg-secondary/50">
-                  {isArgentina ? (
-                    <>
+              <CardContent className="p-6 space-y-5">
+                {/* Payment Provider */}
+                <div className="rounded-xl border border-border/50 bg-secondary/30 p-4">
+                  <p className="text-xs text-muted-foreground text-center mb-3">
+                    Procesado de forma segura por
+                  </p>
+                  <div className="flex items-center justify-center">
+                    {isArgentina ? (
                       <img 
-                        src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/5.21.22/mercadopago/logo__large@2x.png" 
-                        alt="MercadoPago"
-                        className="h-5"
+                        src={mercadopagoLogo} 
+                        alt="Mercado Pago"
+                        className="h-10 object-contain"
                       />
-                      <span className="text-sm text-muted-foreground">Pagás con MercadoPago</span>
-                    </>
-                  ) : (
-                    <>
+                    ) : (
                       <img 
-                        src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png" 
+                        src={paypalLogo} 
                         alt="PayPal"
-                        className="h-5"
+                        className="h-8 object-contain"
                       />
-                      <span className="text-sm text-muted-foreground">Pay with PayPal</span>
-                    </>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 {/* CTA Button */}
                 <Button 
-                  size="lg" 
-                  className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                  size="xl" 
+                  className="w-full h-14 text-lg font-semibold gradient-primary shadow-lg"
                   onClick={handleCheckout}
                   disabled={loading}
                 >
@@ -279,38 +367,52 @@ const CheckoutPage = () => {
                     </>
                   ) : (
                     <>
-                      <Zap className="w-5 h-5 mr-2" />
-                      Activar Pro ahora
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      Pagar ahora
                     </>
                   )}
                 </Button>
 
+                {/* Security indicators */}
+                <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>SSL Seguro</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>Datos protegidos</span>
+                  </div>
+                </div>
+
                 {/* Plan toggle */}
-                <div className="text-center">
+                <div className="text-center pt-2">
                   <button
                     onClick={() => navigate(`/checkout?plan=${isYearly ? "pro_monthly" : "pro_yearly"}`)}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline"
                   >
                     {isYearly ? "Prefiero pagar mensual →" : "Ver plan anual (2 meses gratis) →"}
                   </button>
                 </div>
 
-                {/* Guarantee */}
-                <div className="text-center pt-4 border-t border-border/50">
-                  <p className="text-xs text-muted-foreground">
-                    🛡️ Garantía de satisfacción de 7 días. 
-                    <br />Si no ves valor, te devolvemos el 100%.
-                  </p>
+                {/* Trust badges */}
+                <div className="pt-4 border-t border-border/50">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Check className="w-4 h-4 text-success" />
+                      <span>Cancelá cuando quieras</span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Skip option */}
-            <div className="text-center mt-4">
+            <div className="text-center mt-5">
               <Button 
                 variant="ghost" 
                 size="sm"
-                className="text-muted-foreground"
+                className="text-muted-foreground hover:text-foreground"
                 onClick={() => {
                   localStorage.removeItem("pendingPlan");
                   localStorage.removeItem("pendingPlanTimestamp");
@@ -322,6 +424,39 @@ const CheckoutPage = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* Bottom trust section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-12 pt-8 border-t border-border/30"
+        >
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Lock className="w-4 h-4 text-primary" />
+              </div>
+              <span>Transacción encriptada</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Shield className="w-4 h-4 text-primary" />
+              </div>
+              <span>Garantía de 7 días</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <CreditCard className="w-4 h-4 text-primary" />
+              </div>
+              <span>Pagos seguros</span>
+            </div>
+          </div>
+          <p className="text-center text-xs text-muted-foreground/60 mt-6">
+            © {new Date().getFullYear()} VistaCEO. Todos los derechos reservados. 
+            Tus datos están protegidos bajo nuestra política de privacidad.
+          </p>
+        </motion.div>
       </main>
     </div>
   );
