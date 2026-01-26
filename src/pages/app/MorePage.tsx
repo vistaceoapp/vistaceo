@@ -179,7 +179,8 @@ const MorePage = () => {
     {
       title: "Suscripción",
       items: [
-        { icon: CreditCard, label: "Plan y facturación", description: "Gestiona tu suscripción", action: () => toast({ title: "Próximamente" }) },
+        { icon: Crown, label: "Upgrade a Pro", description: "Desbloquea todas las funciones", action: () => navigate("/app/upgrade") },
+        { icon: CreditCard, label: "Facturación", description: "Historial de pagos", action: () => toast({ title: "Próximamente" }) },
       ],
     },
     {
@@ -417,7 +418,7 @@ const MorePage = () => {
                       Desbloquea análisis avanzados, más integraciones y soporte prioritario
                     </p>
                   </div>
-                  <Button className="w-full" onClick={() => toast({ title: "Próximamente" })}>
+                  <Button className="w-full" onClick={() => navigate("/app/upgrade")}>
                     <Crown className="w-4 h-4 mr-2" />
                     Ver planes
                   </Button>
