@@ -5,6 +5,16 @@ import { CEOAvatar } from "./CEOAvatar";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { AttachedFile } from "./ChatInput";
+import { MissionActionCard } from "./MissionActionCard";
+
+interface MissionSuggestion {
+  title: string;
+  description: string;
+  priority: "P0" | "P1" | "P2";
+  kpi?: string;
+  definition_of_done?: string[];
+  due_hint?: string;
+}
 
 interface ChatMessageProps {
   role: "user" | "assistant";
@@ -15,9 +25,11 @@ interface ChatMessageProps {
   isPlaying?: boolean;
   onPlayAudio?: () => void;
   businessInitial: string;
+  businessId: string;
   index: number;
   isSpeaking?: boolean;
   attachments?: AttachedFile[];
+  missionSuggestions?: MissionSuggestion[];
 }
 
 export const ChatMessage = ({
@@ -29,8 +41,10 @@ export const ChatMessage = ({
   isPlaying,
   onPlayAudio,
   businessInitial,
+  businessId,
   isSpeaking,
   attachments,
+  missionSuggestions,
 }: ChatMessageProps) => {
   const isUser = role === "user";
   const isRecent = Date.now() - new Date(timestamp).getTime() < 5000;
@@ -140,6 +154,14 @@ export const ChatMessage = ({
             </div>
           )}
         </div>
+
+        {/* Mission Action Card - when AI suggests missions */}
+        {missionSuggestions && missionSuggestions.length > 0 && !isUser && (
+          <MissionActionCard
+            businessId={businessId}
+            suggestions={missionSuggestions}
+          />
+        )}
 
         {/* Meta info bar */}
         <div

@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voiceId } = await req.json();
+    const { text, voiceId, speed = 1.0 } = await req.json();
     const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
 
     if (!ELEVENLABS_API_KEY) {
@@ -28,8 +28,11 @@ serve(async (req) => {
 
     // Limit text length to avoid excessive API costs
     const trimmedText = text.slice(0, 2000);
+    
+    // Validate speed range (0.7 to 1.2)
+    const validSpeed = Math.min(1.2, Math.max(0.7, speed));
 
-    console.log("Generating TTS for text length:", trimmedText.length);
+    console.log("Generating TTS for text length:", trimmedText.length, "speed:", validSpeed);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId || DEFAULT_VOICE_ID}?output_format=mp3_44100_128`,
@@ -47,7 +50,7 @@ serve(async (req) => {
             similarity_boost: 0.75,
             style: 0.4,
             use_speaker_boost: true,
-            speed: 1.0,
+            speed: validSpeed,
           },
         }),
       }

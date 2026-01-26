@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Mic, MicOff, Volume2, VolumeX, Loader2, Paperclip, Image, X, FileText } from "lucide-react";
+import { Send, Mic, MicOff, Loader2, Paperclip, Image, X, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { AudioSettingsPopover, AudioSettings } from "./AudioSettingsPopover";
 
 export interface AttachedFile {
   id: string;
@@ -25,8 +26,10 @@ interface ChatInputProps {
   isRecording: boolean;
   isTranscribing: boolean;
   isLoading: boolean;
-  audioEnabled: boolean;
-  onToggleAudio: () => void;
+  audioSettings: AudioSettings;
+  onAudioSettingsChange: (settings: AudioSettings) => void;
+  isPlayingAudio?: boolean;
+  onStopAudio?: () => void;
   isMobile?: boolean;
   attachedFiles?: AttachedFile[];
   onAttachFiles?: (files: AttachedFile[]) => void;
@@ -42,8 +45,10 @@ export const ChatInput = ({
   isRecording,
   isTranscribing,
   isLoading,
-  audioEnabled,
-  onToggleAudio,
+  audioSettings,
+  onAudioSettingsChange,
+  isPlayingAudio,
+  onStopAudio,
   isMobile,
   attachedFiles = [],
   onAttachFiles,
@@ -193,18 +198,14 @@ export const ChatInput = ({
           multiple
         />
 
-        {/* Audio toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleAudio}
-          className={cn(
-            "flex-shrink-0 h-10 w-10 rounded-xl",
-            audioEnabled ? "text-primary bg-primary/10" : "text-muted-foreground hover:bg-muted"
-          )}
-        >
-          {audioEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-        </Button>
+        {/* Audio Settings Popover */}
+        <AudioSettingsPopover
+          settings={audioSettings}
+          onSettingsChange={onAudioSettingsChange}
+          isPlaying={isPlayingAudio}
+          onStop={onStopAudio}
+          compact={isMobile}
+        />
 
         {/* Text input */}
         <div className="flex-1 relative">
@@ -284,7 +285,7 @@ export const ChatInput = ({
               <span className="text-destructive">● Grabando - Haz clic para detener</span>
             ) : (
               <>
-                {audioEnabled ? "🔊 Voz activada" : "🔇 Voz desactivada"} • Adjunta fotos o documentos • Enter para enviar
+                {audioSettings.enabled ? "🔊 Voz activada" : "🔇 Voz desactivada"} • Adjunta fotos o documentos • Enter para enviar
               </>
             )}
           </p>
