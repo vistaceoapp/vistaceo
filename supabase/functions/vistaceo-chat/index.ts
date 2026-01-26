@@ -721,33 +721,83 @@ async function processLearningExtract(
     // Get current brain
     const { data: brain } = await supabase
       .from("business_brains")
-      .select("factual_memory, decisions_memory, dynamic_memory")
+      .select("factual_memory, decisions_memory, dynamic_memory, total_signals")
       .eq("business_id", businessId)
       .maybeSingle();
 
     if (!brain) return;
 
     const updates: Record<string, unknown> = {};
+    let learningCount = 0;
 
-    // Process facts_to_add
-    const factsToAdd = learningExtract.facts_to_add as Array<{ key: string; value: unknown; confidence: number }> | undefined;
+    // Process facts_to_add - store with more context
+    const factsToAdd = learningExtract.facts_to_add as Array<{ 
+      key: string; 
+      value: unknown; 
+      confidence: number;
+      scope?: string;
+    }> | undefined;
+    
     if (factsToAdd && Array.isArray(factsToAdd) && factsToAdd.length > 0) {
       const factualMemory = (brain.factual_memory as Record<string, unknown>) || {};
+      
       for (const fact of factsToAdd) {
-        if (fact.key && fact.confidence >= 0.7) {
-          factualMemory[fact.key] = fact.value;
+        if (fact.key && fact.confidence >= 0.5) {
+          // Group by scope for better organization
+          const scope = fact.scope || "general";
+          const scopeKey = `learning_${scope}`;
+          
+          if (!factualMemory[scopeKey]) {
+            factualMemory[scopeKey] = [];
+          }
+          
+          const scopeArray = factualMemory[scopeKey] as unknown[];
+          
+          // Add with timestamp for tracking
+          const newFact = {
+            q: fact.key,
+            a: fact.value,
+            t: new Date().toISOString(),
+            c: fact.confidence,
+          };
+          
+          // Avoid duplicates by checking if similar key exists
+          const existingIdx = scopeArray.findIndex((f: any) => 
+            typeof f === 'object' && f.q === fact.key
+          );
+          
+          if (existingIdx >= 0) {
+            // Update existing
+            scopeArray[existingIdx] = newFact;
+          } else {
+            // Add new, keep max 15 per scope
+            scopeArray.unshift(newFact);
+            if (scopeArray.length > 15) {
+              scopeArray.pop();
+            }
+          }
+          
+          factualMemory[scopeKey] = scopeArray;
+          learningCount++;
         }
       }
       updates.factual_memory = factualMemory;
     }
 
     // Process decisions
-    const decisions = learningExtract.decisions as Array<{ decision: string; status: string; date: string }> | undefined;
+    const decisions = learningExtract.decisions as Array<{ decision: string; status: string; date: string; why?: string }> | undefined;
     if (decisions && Array.isArray(decisions) && decisions.length > 0) {
       const decisionsMemory = (brain.decisions_memory as Record<string, unknown>) || {};
       const existingDecisions = (decisionsMemory.recent_decisions as unknown[]) || [];
-      decisionsMemory.recent_decisions = [...decisions.slice(0, 5), ...existingDecisions.slice(0, 10)];
+      
+      const newDecisions = decisions.map(d => ({
+        ...d,
+        recorded_at: new Date().toISOString(),
+      }));
+      
+      decisionsMemory.recent_decisions = [...newDecisions, ...existingDecisions.slice(0, 20)];
       updates.decisions_memory = decisionsMemory;
+      learningCount += decisions.length;
     }
 
     // Process preferences
@@ -755,24 +805,45 @@ async function processLearningExtract(
     if (preferences && Array.isArray(preferences) && preferences.length > 0) {
       const dynamicMemory = (brain.dynamic_memory as Record<string, unknown>) || {};
       const existingPrefs = (dynamicMemory.user_preferences as Record<string, unknown>) || {};
+      
       for (const pref of preferences) {
-        if (pref.confidence >= 0.6) {
-          existingPrefs[pref.preference] = pref.value;
+        if (pref.confidence >= 0.5) {
+          existingPrefs[pref.preference] = {
+            value: pref.value,
+            confidence: pref.confidence,
+            updated_at: new Date().toISOString(),
+          };
+          learningCount++;
         }
       }
       dynamicMemory.user_preferences = existingPrefs;
       updates.dynamic_memory = dynamicMemory;
     }
 
+    // Process risks and assumptions into dynamic_memory
+    const risks = learningExtract.risks as Array<{ risk: string; severity: string; mitigation: string }> | undefined;
+    if (risks && Array.isArray(risks) && risks.length > 0) {
+      const dynamicMemory = (updates.dynamic_memory as Record<string, unknown>) || 
+                           (brain.dynamic_memory as Record<string, unknown>) || {};
+      const existingRisks = (dynamicMemory.identified_risks as unknown[]) || [];
+      dynamicMemory.identified_risks = [...risks.slice(0, 5), ...existingRisks.slice(0, 10)];
+      updates.dynamic_memory = dynamicMemory;
+    }
+
     // Update brain if there are changes
     if (Object.keys(updates).length > 0) {
       updates.last_learning_at = new Date().toISOString();
+      updates.total_signals = (brain.total_signals || 0) + learningCount;
+      
       await supabase
         .from("business_brains")
         .update(updates)
         .eq("business_id", businessId);
       
-      console.log("Brain updated with learning extract:", Object.keys(updates));
+      console.log("Brain updated with learning:", { 
+        keys: Object.keys(updates), 
+        newLearnings: learningCount 
+      });
     }
 
     // Record signal for learning
@@ -781,7 +852,7 @@ async function processLearningExtract(
       signal_type: "ceo_chat_learning",
       source: "vistaceo-chat",
       content: learningExtract,
-      raw_text: `Learning extracted from message ${messageId}`,
+      raw_text: `Learning extracted: ${learningCount} new items from message ${messageId}`,
       confidence: "high",
       importance: 7,
     });
@@ -801,7 +872,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, businessContext, inputType = "text", messageId } = await req.json();
+    const { messages, businessContext, inputType = "text", messageId, personalityPrompt } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -837,8 +908,16 @@ serve(async (req) => {
     const brainJson = buildBrainJson(memoryContext.brain, businessContext);
     const stateJson = buildStateJson(memoryContext);
 
+    // Build personality injection if provided
+    const personalityInjection = personalityPrompt ? `
+=== PERSONALIDAD DEL CEO ===
+${personalityPrompt}
+=== FIN PERSONALIDAD ===
+` : "";
+
     // Build context injection message
     const contextInjection = `
+${personalityInjection}
 === CONTEXTO DEL NEGOCIO (JSON) ===
 
 CONFIG_JSON:
