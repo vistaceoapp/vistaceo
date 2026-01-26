@@ -20,6 +20,16 @@ import { ChatLearningPanel } from "@/components/chat/ChatLearningPanel";
 import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
 import { ChatSuggestedQuestions } from "@/components/chat/ChatSuggestedQuestions";
 import { SuggestedQuestionsButton } from "@/components/chat/SuggestedQuestionsButton";
+import { AudioSettings } from "@/components/chat/AudioSettingsPopover";
+
+interface MissionSuggestion {
+  title: string;
+  description: string;
+  priority: "P0" | "P1" | "P2";
+  kpi?: string;
+  definition_of_done?: string[];
+  due_hint?: string;
+}
 
 interface Message {
   id: string;
@@ -29,6 +39,7 @@ interface Message {
   hasLearning?: boolean;
   audioScript?: string;
   attachments?: AttachedFile[];
+  missionSuggestions?: MissionSuggestion[];
 }
 
 const ChatPage = () => {
@@ -56,7 +67,11 @@ const ChatPage = () => {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [audioSettings, setAudioSettings] = useState<AudioSettings>({
+    enabled: true,
+    speed: 1.0,
+    autoPlay: true,
+  });
   const [learningIndicator, setLearningIndicator] = useState(false);
 
   // File attachments
@@ -112,7 +127,7 @@ const ChatPage = () => {
   // TTS Playback
   const playAudioResponse = useCallback(
     async (audioScript: string, messageId?: string) => {
-      if (!audioEnabled || !audioScript) return;
+      if (!audioSettings.enabled || !audioScript) return;
 
       try {
         setIsPlayingAudio(true);
@@ -127,7 +142,10 @@ const ChatPage = () => {
               apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             },
-            body: JSON.stringify({ text: audioScript }),
+            body: JSON.stringify({ 
+              text: audioScript,
+              speed: audioSettings.speed,
+            }),
           }
         );
 
@@ -170,7 +188,7 @@ const ChatPage = () => {
         setPlayingMessageId(null);
       }
     },
-    [audioEnabled]
+    [audioSettings.enabled, audioSettings.speed]
   );
 
   const stopAudio = useCallback(() => {
@@ -345,6 +363,9 @@ const ChatPage = () => {
       const aiResponse = aiData?.message || "Lo siento, no pude procesar tu mensaje. Intenta de nuevo.";
       const audioScript = aiData?.audioScript;
       const hasLearning = aiData?.learningExtract && Object.keys(aiData.learningExtract).length > 0;
+      
+      // Extract mission suggestions from learningExtract
+      const missionSuggestions = aiData?.learningExtract?.missions_suggested as MissionSuggestion[] | undefined;
 
       if (hasLearning) {
         setLearningIndicator(true);
@@ -364,6 +385,7 @@ const ChatPage = () => {
         created_at: new Date().toISOString(),
         hasLearning,
         audioScript,
+        missionSuggestions: missionSuggestions && missionSuggestions.length > 0 ? missionSuggestions : undefined,
       };
 
       setMessages((prev) => [
@@ -372,7 +394,7 @@ const ChatPage = () => {
         newAssistantMsg,
       ]);
 
-      if (audioScript && audioEnabled) {
+      if (audioScript && audioSettings.enabled && audioSettings.autoPlay) {
         playAudioResponse(audioScript, newAssistantMsg.id);
       }
 
@@ -521,9 +543,11 @@ const ChatPage = () => {
                   isPlaying={playingMessageId === message.id}
                   onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
                   businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
+                  businessId={currentBusiness.id}
                   index={idx}
                   isSpeaking={playingMessageId === message.id}
                   attachments={message.attachments}
+                  missionSuggestions={message.missionSuggestions}
                 />
               ))}
 
@@ -562,14 +586,10 @@ const ChatPage = () => {
             isRecording={isRecording}
             isTranscribing={isTranscribing}
             isLoading={loading}
-            audioEnabled={audioEnabled}
-            onToggleAudio={() => {
-              if (isPlayingAudio) {
-                stopAudio();
-              } else {
-                setAudioEnabled(!audioEnabled);
-              }
-            }}
+            audioSettings={audioSettings}
+            onAudioSettingsChange={setAudioSettings}
+            isPlayingAudio={isPlayingAudio}
+            onStopAudio={stopAudio}
             attachedFiles={attachedFiles}
             onAttachFiles={setAttachedFiles}
             onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}
