@@ -64,46 +64,18 @@ export const CEOAvatar = ({
       {/* Speaking Ripple Waves */}
       {state === "speaking" && (
         <>
-          {[0, 1, 2, 3].map((i) => (
+          {[0, 1, 2].map((i) => (
             <div
               key={i}
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: "radial-gradient(circle, transparent 40%, rgba(38, 146, 220, 0.3) 50%, transparent 60%)",
-                animation: "avatar-ripple 2s ease-out infinite",
-                animationDelay: `${i * 0.4}s`,
+                background: "radial-gradient(circle, transparent 40%, rgba(38, 146, 220, 0.25) 50%, transparent 60%)",
+                animation: "avatar-ripple 1.8s ease-out infinite",
+                animationDelay: `${i * 0.5}s`,
               }}
             />
           ))}
         </>
-      )}
-
-      {/* Thinking Orbital Particles */}
-      {state === "thinking" && (
-        <div 
-          className="absolute inset-0"
-          style={{ animation: "avatar-orbit 2s linear infinite" }}
-        >
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={i}
-              className="absolute rounded-full"
-              style={{
-                width: Math.max(2, dims * 0.06),
-                height: Math.max(2, dims * 0.06),
-                background: i % 2 === 0 
-                  ? "linear-gradient(135deg, #2692DC, #3BB8C3)" 
-                  : "linear-gradient(135deg, #746CE6, #9b87f5)",
-                boxShadow: `0 0 ${dims * 0.2}px ${i % 2 === 0 ? 'rgba(38, 146, 220, 0.8)' : 'rgba(116, 108, 230, 0.8)'}`,
-                top: "50%",
-                left: "50%",
-                transform: `rotate(${i * 60}deg) translateY(-${dims * 0.8}px)`,
-                animation: `avatar-particle-float ${1 + (i * 0.15)}s ease-in-out infinite`,
-                animationDelay: `${i * 0.1}s`,
-              }}
-            />
-          ))}
-        </div>
       )}
 
       {/* Main Star Image Container */}
