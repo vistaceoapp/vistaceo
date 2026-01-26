@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Trash2 } from "lucide-react";
+import { Plus, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,9 @@ import { ChatInput, AttachedFile } from "@/components/chat/ChatInput";
 import { ChatThinkingState } from "@/components/chat/ChatThinkingState";
 import { LearningNotification } from "@/components/chat/LearningNotification";
 import { CEOAvatar } from "@/components/chat/CEOAvatar";
+import { CEOPersonalitySelector, CEOPersonality } from "@/components/chat/CEOPersonalitySelector";
+import { ChatLearningPanel } from "@/components/chat/ChatLearningPanel";
+import { ChatQuickActions } from "@/components/chat/ChatQuickActions";
 
 interface Message {
   id: string;
@@ -36,6 +39,10 @@ const ChatPage = () => {
   const [initialPromptSent, setInitialPromptSent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Personality state
+  const [personality, setPersonality] = useState<CEOPersonality>("directo");
+  const [personalityPrompt, setPersonalityPrompt] = useState("Sé directo y conciso. Ve al punto sin rodeos. Respuestas cortas y accionables.");
 
   // Audio states
   const [isRecording, setIsRecording] = useState(false);
@@ -126,7 +133,6 @@ const ChatPage = () => {
 
         const data = await response.json();
 
-        // Handle graceful fallback when voice is unavailable
         if (!data.audioContent) {
           console.log("TTS unavailable:", data.message || "No audio returned");
           setIsPlayingAudio(false);
@@ -266,7 +272,6 @@ const ChatPage = () => {
     
     if ((!textToSend && !hasAttachments) || !currentBusiness || loading) return;
 
-    // Store attachments before clearing
     const messageAttachments = [...attachedFiles];
     
     setInput("");
@@ -274,7 +279,6 @@ const ChatPage = () => {
     setLoading(true);
     setLearningIndicator(false);
 
-    // Build message content with attachment info
     let fullContent = textToSend;
     if (hasAttachments) {
       const attachmentDescriptions = messageAttachments.map(f => 
@@ -317,6 +321,7 @@ const ChatPage = () => {
           },
           inputType: hasAttachments ? "multimodal" : inputType,
           messageId: `msg-${Date.now()}`,
+          personalityPrompt: personalityPrompt,
           attachments: messageAttachments.map(f => ({
             name: f.file.name,
             type: f.type,
@@ -334,7 +339,6 @@ const ChatPage = () => {
       const audioScript = aiData?.audioScript;
       const hasLearning = aiData?.learningExtract && Object.keys(aiData.learningExtract).length > 0;
 
-      // Show learning indicator
       if (hasLearning) {
         setLearningIndicator(true);
         setTimeout(() => setLearningIndicator(false), 3500);
@@ -361,7 +365,6 @@ const ChatPage = () => {
         newAssistantMsg,
       ]);
 
-      // Play audio response if enabled
       if (audioScript && audioEnabled) {
         playAudioResponse(audioScript, newAssistantMsg.id);
       }
@@ -385,12 +388,16 @@ const ChatPage = () => {
 
     try {
       await supabase.from("chat_messages").delete().eq("business_id", currentBusiness.id);
-
       setMessages([]);
-      toast({ title: "Conversación borrada" });
+      toast({ title: "Nueva conversación iniciada" });
     } catch (error) {
       console.error("Error clearing chat:", error);
     }
+  };
+
+  const handlePersonalityChange = (p: CEOPersonality, prompt: string) => {
+    setPersonality(p);
+    setPersonalityPrompt(prompt);
   };
 
   // No business state
@@ -409,120 +416,74 @@ const ChatPage = () => {
     );
   }
 
-  // Desktop Layout
-  if (!isMobile) {
-    return (
-      <>
-        <LearningNotification isVisible={learningIndicator} />
-
-        <div className="flex flex-col h-[calc(100vh-120px)]">
-          {/* Header - Simplified */}
-          <div className="flex items-center justify-between mb-4 px-1">
-            <div className="flex items-center gap-3">
-              <CEOAvatar size="md" isSpeaking={isPlayingAudio} isThinking={loading} />
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">CEO Chat</h1>
-                <p className="text-xs text-muted-foreground">{currentBusiness.name}</p>
-              </div>
-            </div>
-
-            {messages.length > 0 && (
-              <Button variant="ghost" size="sm" onClick={clearChat} className="gap-1.5 text-muted-foreground hover:text-foreground">
-                <Trash2 className="w-4 h-4" />
-                <span className="hidden md:inline text-sm">Nueva</span>
-              </Button>
-            )}
-          </div>
-
-          {/* Messages Area */}
-          <div
-            ref={messagesContainerRef}
-            className="flex-1 overflow-y-auto rounded-xl border border-border/40 bg-card/50"
-          >
-            {messages.length === 0 ? (
-              <ChatWelcome
-                businessName={currentBusiness.name}
-                onSelectSuggestion={sendMessage}
-                disabled={loading}
-              />
-            ) : (
-              <div className="p-4 md:p-6 space-y-4">
-                {messages.map((message, idx) => (
-                  <ChatMessage
-                    key={message.id}
-                    role={message.role}
-                    content={message.content}
-                    timestamp={message.created_at}
-                    hasLearning={message.hasLearning}
-                    audioScript={message.audioScript}
-                    isPlaying={playingMessageId === message.id}
-                    onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
-                    businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
-                    index={idx}
-                    isSpeaking={playingMessageId === message.id}
-                    attachments={message.attachments}
-                  />
-                ))}
-
-                {loading && <ChatThinkingState />}
-
-                <div ref={messagesEndRef} className="h-2" />
-              </div>
-            )}
-          </div>
-
-          {/* Input Area */}
-          <div className="mt-3">
-            <ChatInput
-              value={input}
-              onChange={setInput}
-              onSend={() => sendMessage()}
-              onStartRecording={startRecording}
-              onStopRecording={stopRecording}
-              isRecording={isRecording}
-              isTranscribing={isTranscribing}
-              isLoading={loading}
-              audioEnabled={audioEnabled}
-              onToggleAudio={() => {
-                if (isPlayingAudio) {
-                  stopAudio();
-                } else {
-                  setAudioEnabled(!audioEnabled);
-                }
-              }}
-              attachedFiles={attachedFiles}
-              onAttachFiles={setAttachedFiles}
-              onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}
-            />
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // Mobile Layout
+  // Unified Layout (responsive)
   return (
     <>
       <LearningNotification isVisible={learningIndicator} />
 
-      <div className="flex flex-col h-[calc(100vh-140px)]">
-        {/* Mobile Header */}
-        <div className="flex items-center justify-between px-2 py-2 mb-2">
-          <div className="flex items-center gap-2">
-            <CEOAvatar size="sm" isSpeaking={isPlayingAudio} isThinking={loading} />
-            <span className="text-sm font-medium text-foreground">CEO Chat</span>
+      <div className={cn(
+        "flex flex-col",
+        isMobile ? "h-[calc(100dvh-130px)]" : "h-[calc(100vh-100px)]"
+      )}>
+        {/* Header */}
+        <div className={cn(
+          "flex items-center justify-between border-b border-border/30 bg-background/80 backdrop-blur-sm",
+          isMobile ? "px-3 py-2" : "px-4 py-3 mb-2"
+        )}>
+          <div className="flex items-center gap-3">
+            <CEOAvatar size={isMobile ? "sm" : "md"} isSpeaking={isPlayingAudio} isThinking={loading} />
+            <div className="min-w-0">
+              <h1 className={cn(
+                "font-semibold text-foreground truncate",
+                isMobile ? "text-sm" : "text-lg"
+              )}>
+                CEO Chat
+              </h1>
+              {!isMobile && (
+                <p className="text-xs text-muted-foreground truncate">{currentBusiness.name}</p>
+              )}
+            </div>
           </div>
-          {messages.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearChat} className="h-8 w-8 p-0">
-              <Trash2 className="w-4 h-4 text-muted-foreground" />
-            </Button>
-          )}
+
+          <div className="flex items-center gap-1">
+            {/* Personality Selector */}
+            <CEOPersonalitySelector
+              value={personality}
+              onChange={handlePersonalityChange}
+              compact={isMobile}
+            />
+            
+            {/* Learning Panel */}
+            <ChatLearningPanel
+              businessId={currentBusiness.id}
+              compact={isMobile}
+            />
+
+            {/* New Conversation */}
+            {messages.length > 0 && (
+              <Button 
+                variant="ghost" 
+                size={isMobile ? "sm" : "default"}
+                onClick={clearChat} 
+                className={cn(
+                  "gap-1.5 text-muted-foreground hover:text-foreground",
+                  isMobile && "h-8 w-8 p-0"
+                )}
+              >
+                <Plus className={cn("w-4 h-4", isMobile && "w-4 h-4")} />
+                {!isMobile && <span className="text-sm">Nueva</span>}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Messages Area */}
         <div
           ref={messagesContainerRef}
-          className="flex-1 overflow-y-auto px-2"
+          className={cn(
+            "flex-1 overflow-y-auto",
+            isMobile ? "px-3" : "px-4 rounded-xl border border-border/30 bg-card/30"
+          )}
         >
           {messages.length === 0 ? (
             <ChatWelcome
@@ -531,7 +492,10 @@ const ChatPage = () => {
               disabled={loading}
             />
           ) : (
-            <div className="space-y-3 pb-4">
+            <div className={cn(
+              "space-y-4 py-4",
+              isMobile && "space-y-3"
+            )}>
               {messages.map((message, idx) => (
                 <ChatMessage
                   key={message.id}
@@ -549,15 +513,32 @@ const ChatPage = () => {
                 />
               ))}
 
-              {loading && <ChatThinkingState />}
+              {loading && <ChatThinkingState compact={isMobile} />}
 
               <div ref={messagesEndRef} className="h-2" />
             </div>
           )}
         </div>
 
+        {/* Quick Actions (when has messages) */}
+        {messages.length > 0 && !loading && (
+          <div className={cn(
+            "py-2 border-t border-border/20",
+            isMobile ? "px-3" : "px-4"
+          )}>
+            <ChatQuickActions
+              onSelectAction={sendMessage}
+              disabled={loading}
+              compact
+            />
+          </div>
+        )}
+
         {/* Input Area */}
-        <div className="px-2 py-2 bg-background/90 backdrop-blur-sm border-t border-border/30">
+        <div className={cn(
+          "bg-background/90 backdrop-blur-sm",
+          isMobile ? "px-3 py-2 border-t border-border/30" : "mt-2"
+        )}>
           <ChatInput
             value={input}
             onChange={setInput}
@@ -578,7 +559,7 @@ const ChatPage = () => {
             attachedFiles={attachedFiles}
             onAttachFiles={setAttachedFiles}
             onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}
-            isMobile
+            isMobile={isMobile}
           />
         </div>
       </div>
