@@ -67,12 +67,30 @@ const ChatPage = () => {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
-  const [audioSettings, setAudioSettings] = useState<AudioSettings>({
-    enabled: true,
-    speed: 1.0,
-    autoPlay: true,
+  
+  // Load audio settings from localStorage
+  const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => {
+    try {
+      const saved = localStorage.getItem("vistaceo-audio-settings");
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.log("Failed to load audio settings");
+    }
+    return {
+      enabled: true,
+      speed: 1.0,
+      autoPlay: true,
+    };
   });
+  
   const [learningIndicator, setLearningIndicator] = useState(false);
+  
+  // Persist audio settings
+  useEffect(() => {
+    localStorage.setItem("vistaceo-audio-settings", JSON.stringify(audioSettings));
+  }, [audioSettings]);
 
   // File attachments
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
@@ -124,14 +142,33 @@ const ChatPage = () => {
     }
   };
 
-  // TTS Playback
+  // Use ref to always have current audio settings (avoids stale closure)
+  const audioSettingsRef = useRef(audioSettings);
+  useEffect(() => {
+    audioSettingsRef.current = audioSettings;
+  }, [audioSettings]);
+
+  // TTS Playback - uses ref to get current settings
   const playAudioResponse = useCallback(
     async (audioScript: string, messageId?: string) => {
-      if (!audioSettings.enabled || !audioScript) return;
+      const currentSettings = audioSettingsRef.current;
+      
+      // Check if audio is enabled
+      if (!currentSettings.enabled) {
+        console.log("Audio disabled, skipping TTS");
+        return;
+      }
+      
+      if (!audioScript) {
+        console.log("No audio script provided");
+        return;
+      }
 
       try {
         setIsPlayingAudio(true);
         if (messageId) setPlayingMessageId(messageId);
+        
+        console.log("TTS Request - Speed:", currentSettings.speed, "Enabled:", currentSettings.enabled);
 
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
@@ -144,7 +181,7 @@ const ChatPage = () => {
             },
             body: JSON.stringify({ 
               text: audioScript,
-              speed: audioSettings.speed,
+              speed: currentSettings.speed,
             }),
           }
         );
@@ -188,7 +225,7 @@ const ChatPage = () => {
         setPlayingMessageId(null);
       }
     },
-    [audioSettings.enabled, audioSettings.speed]
+    [] // No dependencies needed - uses ref
   );
 
   const stopAudio = useCallback(() => {
@@ -394,8 +431,17 @@ const ChatPage = () => {
         newAssistantMsg,
       ]);
 
-      if (audioScript && audioSettings.enabled && audioSettings.autoPlay) {
+      // Check current settings via ref for autoplay
+      const currentSettings = audioSettingsRef.current;
+      if (audioScript && currentSettings.enabled && currentSettings.autoPlay) {
+        console.log("Auto-playing audio response");
         playAudioResponse(audioScript, newAssistantMsg.id);
+      } else {
+        console.log("Skipping auto-play:", { 
+          hasAudioScript: !!audioScript, 
+          enabled: currentSettings.enabled, 
+          autoPlay: currentSettings.autoPlay 
+        });
       }
 
       await fetchMessages();
