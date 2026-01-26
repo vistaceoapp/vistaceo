@@ -1,27 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, Crown, Sparkles, Shield, CreditCard, ArrowRight, Zap } from "lucide-react";
+import { Check, X, Crown, Sparkles, Shield, CreditCard, ArrowRight, Zap, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
-// Pricing configuration
-const PRICING = {
-  AR: {
-    currency: "ARS",
-    symbol: "$",
-    monthly: 29500,
-    yearly: 295000,
-    flag: "🇦🇷",
-  },
-  DEFAULT: {
-    currency: "USD",
-    symbol: "$",
-    monthly: 29,
-    yearly: 290,
-    flag: "🌎",
-  },
-};
+import { useCountryDetection } from "@/hooks/use-country-detection";
 
 const freeFeatures = [
   { name: "Dashboard completo", included: true },
@@ -50,26 +33,18 @@ const proFeatures = [
 export const PricingSection = () => {
   const navigate = useNavigate();
   const [isYearly, setIsYearly] = useState(true);
-  const [country, setCountry] = useState<"AR" | "DEFAULT">("DEFAULT");
+  
+  const { 
+    country, 
+    isDetecting, 
+    formatCurrencyShort, 
+    yearlySavings,
+    monthlyPrice,
+    yearlyPrice,
+  } = useCountryDetection();
 
-  // Detect country from browser language
-  useEffect(() => {
-    const lang = navigator.language || "en";
-    if (lang.includes("AR") || lang === "es-AR") {
-      setCountry("AR");
-    }
-  }, []);
-
-  const pricing = PRICING[country];
-  const monthlyEquivalent = isYearly ? Math.round(pricing.yearly / 12) : pricing.monthly;
-  const savings = isYearly ? pricing.monthly * 2 : 0;
-
-  const formatPrice = (price: number) => {
-    if (country === "AR") {
-      return new Intl.NumberFormat('es-AR').format(price);
-    }
-    return price.toString();
-  };
+  const monthlyEquivalent = isYearly ? Math.round(yearlyPrice / 12) : monthlyPrice;
+  const savings = yearlySavings();
 
   const handleSelectPlan = (plan: "free" | "pro_monthly" | "pro_yearly") => {
     if (plan === "free") {
@@ -110,8 +85,17 @@ export const PricingSection = () => {
           </p>
 
           {/* Country indicator */}
-          <div className="mt-4 text-sm text-muted-foreground">
-            Precios en {pricing.flag} {pricing.currency}
+          <div className="mt-4 text-sm text-muted-foreground flex items-center justify-center gap-2">
+            {isDetecting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Detectando ubicación...
+              </>
+            ) : (
+              <>
+                Precios en {country.flag} {country.currency}
+              </>
+            )}
           </div>
         </motion.div>
 
@@ -146,7 +130,7 @@ export const PricingSection = () => {
               Anual
               {!isYearly && (
                 <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-success text-white text-xs font-semibold rounded-full">
-                  -17%
+                  -{savings.percentage}%
                 </span>
               )}
             </button>
@@ -165,7 +149,7 @@ export const PricingSection = () => {
               <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-success/10 border border-success/20 text-success">
                 <Zap className="w-4 h-4" />
                 <span className="text-sm font-semibold">
-                  Ahorrás {pricing.symbol}{formatPrice(savings)} — 2 meses gratis
+                  Ahorrás {formatCurrencyShort(savings.amount)} — 2 meses gratis
                 </span>
               </div>
             </motion.div>
@@ -193,7 +177,7 @@ export const PricingSection = () => {
               </div>
               
               <div className="flex items-baseline gap-2 mb-6">
-                <span className="text-5xl font-bold text-foreground">{pricing.symbol}0</span>
+                <span className="text-5xl font-bold text-foreground">{country.symbol}0</span>
                 <span className="text-muted-foreground">/siempre</span>
               </div>
 
@@ -258,14 +242,14 @@ export const PricingSection = () => {
                 
                 <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-5xl font-bold text-foreground">
-                    {pricing.symbol}{formatPrice(monthlyEquivalent)}
+                    {formatCurrencyShort(monthlyEquivalent)}
                   </span>
                   <span className="text-muted-foreground">/mes</span>
                 </div>
                 
                 {isYearly && (
                   <p className="text-sm text-muted-foreground mb-4">
-                    Facturado anualmente ({pricing.symbol}{formatPrice(pricing.yearly)})
+                    Facturado anualmente ({formatCurrencyShort(yearlyPrice)})
                   </p>
                 )}
 
@@ -308,7 +292,7 @@ export const PricingSection = () => {
           </div>
           <div className="flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-primary" />
-            <span>{country === "AR" ? "MercadoPago" : "PayPal"}</span>
+            <span>{country.paymentProvider === "mercadopago" ? "MercadoPago" : "PayPal"}</span>
           </div>
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-accent" />
