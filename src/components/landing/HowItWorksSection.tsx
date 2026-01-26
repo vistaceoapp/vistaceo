@@ -2,9 +2,11 @@ import { Check, ArrowRight, Brain, Radar, Target, TrendingUp, Zap, Lightbulb, Se
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MockupCEOChat } from "./mockups/MockupCEOChat";
-import { MockupRadarExternal } from "./mockups/MockupRadarExternal";
-import { MockupRadarInternal } from "./mockups/MockupRadarInternal";
+
+// Import exact mockup images
+import ceoChatImg from "@/assets/mockups/ceo-chat.png";
+import radarExternoImg from "@/assets/mockups/radar-externo.png";
+import radarInternoImg from "@/assets/mockups/radar-interno.png";
 
 const steps = [
   {
@@ -89,7 +91,7 @@ export const HowItWorksSection = () => {
           </p>
         </motion.div>
 
-        {/* Intelligence Mockups - 3 mockups in a row */}
+        {/* Intelligence Mockups - 3 images in a responsive grid */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -97,7 +99,7 @@ export const HowItWorksSection = () => {
           className="max-w-7xl mx-auto mb-20"
         >
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* CEO Chat Mockup */}
+            {/* CEO Chat Mockup - Larger */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -105,7 +107,13 @@ export const HowItWorksSection = () => {
               transition={{ delay: 0.1 }}
               className="lg:col-span-2"
             >
-              <MockupCEOChat />
+              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
+                <img 
+                  src={ceoChatImg} 
+                  alt="VistaCEO - CEO Chat" 
+                  className="w-full h-auto"
+                />
+              </div>
               <p className="mt-3 text-sm text-muted-foreground text-center">
                 <span className="font-medium text-foreground">CEO Chat</span> — Tu mentor estratégico con personalidades ajustables
               </p>
@@ -119,7 +127,13 @@ export const HowItWorksSection = () => {
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
               >
-                <MockupRadarExternal />
+                <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
+                  <img 
+                    src={radarExternoImg} 
+                    alt="VistaCEO - Radar Externo I+D" 
+                    className="w-full h-auto"
+                  />
+                </div>
                 <p className="mt-3 text-sm text-muted-foreground text-center">
                   <span className="font-medium text-foreground">Radar Externo</span> — Tendencias I+D del mercado
                 </p>
@@ -131,7 +145,13 @@ export const HowItWorksSection = () => {
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
               >
-                <MockupRadarInternal />
+                <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
+                  <img 
+                    src={radarInternoImg} 
+                    alt="VistaCEO - Radar Interno" 
+                    className="w-full h-auto"
+                  />
+                </div>
                 <p className="mt-3 text-sm text-muted-foreground text-center">
                   <span className="font-medium text-foreground">Radar Interno</span> — Diagnóstico de TU negocio
                 </p>
