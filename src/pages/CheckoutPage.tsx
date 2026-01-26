@@ -209,7 +209,19 @@ const CheckoutPage = () => {
       {/* Header */}
       <header className="border-b border-border/30 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => {
+              // Try to go back, fallback to setup or landing
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate('/setup');
+              }
+            }} 
+            className="gap-2"
+          >
             <ArrowLeft className="w-4 h-4" />
             Volver
           </Button>
