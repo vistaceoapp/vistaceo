@@ -205,6 +205,12 @@ const ChatPage = () => {
 
         const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
         const audio = new Audio(audioUrl);
+        
+        // Apply client-side playback rate for speeds > 1.2x
+        if (data.clientPlaybackRate && data.clientPlaybackRate > 1) {
+          audio.playbackRate = data.clientPlaybackRate;
+        }
+        
         currentAudioRef.current = audio;
 
         audio.onended = () => {
