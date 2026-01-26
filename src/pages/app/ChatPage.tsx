@@ -18,7 +18,7 @@ import { CEOAvatar } from "@/components/chat/CEOAvatar";
 import { CEOPersonalitySelector, CEOPersonality } from "@/components/chat/CEOPersonalitySelector";
 import { ChatLearningPanel } from "@/components/chat/ChatLearningPanel";
 import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
-import { ChatQuickActions } from "@/components/chat/ChatQuickActions";
+import { ChatSuggestedQuestions } from "@/components/chat/ChatSuggestedQuestions";
 
 interface Message {
   id: string;
@@ -499,6 +499,7 @@ const ChatPage = () => {
         >
           {messages.length === 0 ? (
             <ChatWelcome
+              businessId={currentBusiness.id}
               businessName={currentBusiness.name}
               onSelectSuggestion={sendMessage}
               disabled={loading}
@@ -532,14 +533,15 @@ const ChatPage = () => {
           )}
         </div>
 
-        {/* Quick Actions (when has messages) */}
+        {/* Suggested Questions (when has messages) */}
         {messages.length > 0 && !loading && (
           <div className={cn(
             "py-2 border-t border-border/20",
             isMobile ? "px-3" : "px-4"
           )}>
-            <ChatQuickActions
-              onSelectAction={sendMessage}
+            <ChatSuggestedQuestions
+              businessId={currentBusiness.id}
+              onSelectQuestion={sendMessage}
               disabled={loading}
               compact
             />

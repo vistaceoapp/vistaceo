@@ -1,14 +1,16 @@
 import { CEOAvatar } from "./CEOAvatar";
-import { ChatQuickActions } from "./ChatQuickActions";
+import { ChatSuggestedQuestions } from "./ChatSuggestedQuestions";
 import { Sparkles } from "lucide-react";
 
 interface ChatWelcomeProps {
+  businessId: string;
   businessName: string;
   onSelectSuggestion: (text: string) => void;
   disabled?: boolean;
 }
 
 export const ChatWelcome = ({
+  businessId,
   businessName,
   onSelectSuggestion,
   disabled,
@@ -32,13 +34,11 @@ export const ChatWelcome = ({
         estrategias personalizadas y acciones concretas.
       </p>
 
-      {/* Quick Actions Grid */}
+      {/* Personalized Questions */}
       <div className="w-full max-w-lg">
-        <p className="text-xs text-muted-foreground mb-3 text-center">
-          ¿En qué te puedo ayudar hoy?
-        </p>
-        <ChatQuickActions 
-          onSelectAction={onSelectSuggestion}
+        <ChatSuggestedQuestions
+          businessId={businessId}
+          onSelectQuestion={onSelectSuggestion}
           disabled={disabled}
         />
       </div>
