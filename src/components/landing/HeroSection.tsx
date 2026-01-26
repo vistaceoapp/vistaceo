@@ -1,19 +1,27 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, TrendingUp, Brain, Target, Zap, CheckCircle2, Star, Clock, ChevronDown, Radar } from "lucide-react";
-import { AnimatedCounter } from "./AnimatedCounter";
+import { ArrowRight, Sparkles, TrendingUp, Brain, Target, Zap, CheckCircle2, Star, Clock, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCountryDetection } from "@/hooks/use-country-detection";
 import { MockupRadar } from "./mockups/MockupRadar";
 import { MockupMissions } from "./mockups/MockupMissions";
+import { TypewriterText } from "./TypewriterText";
+import { LiveCounter } from "./LiveCounter";
+import { FloatingTestimonial } from "./FloatingTestimonial";
+
+// Rotating words for the headline
+const ROTATING_TEXTS = [
+  "CEO digital",
+  "mentor 24/7",
+  "radar inteligente",
+  "estratega IA",
+];
 
 // Mockup data for the live dashboard preview
 const MOCK_BUSINESS = {
   name: "Café Aurora",
   type: "Cafetería Premium",
-  city: "Buenos Aires",
   healthScore: 78,
-  healthChange: +12,
   certaintyPct: 72,
   dimensions: [
     { name: "Crecimiento", score: 82, icon: "📈" },
@@ -22,169 +30,126 @@ const MOCK_BUSINESS = {
     { name: "Finanzas", score: 68, icon: "💰" },
   ],
   todayAction: {
-    title: "Optimizar horario de apertura los sábados",
+    title: "Optimizar horario de sábados",
     impact: "+$45,000/mes",
     time: "15 min",
-    priority: "alta",
   },
 };
 
 export const HeroSection = () => {
   const navigate = useNavigate();
   const { formatCurrencyShort, monthlyPrice, isDetecting } = useCountryDetection();
-  
-  const stats = [
-    { value: 500, suffix: "+", label: "Negocios activos" },
-    { value: 32, suffix: "%", label: "Crecimiento promedio" },
-    { value: 180, suffix: "+", label: "Tipos de negocio" },
-  ];
 
   const benefits = [
-    { icon: Brain, text: "Analiza tu negocio 24/7" },
-    { icon: Target, text: "Te dice qué hacer cada día" },
-    { icon: TrendingUp, text: "Aprende y mejora contigo" },
+    { icon: Brain, text: "Analiza 24/7" },
+    { icon: Target, text: "Acciones diarias" },
+    { icon: TrendingUp, text: "Mejora continua" },
   ];
 
   return (
-    <section className="relative min-h-screen flex flex-col overflow-hidden pt-20 pb-8">
+    <section className="relative min-h-screen flex flex-col overflow-hidden pt-16 pb-8">
       {/* Background with premium animated gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
       
       {/* Animated gradient orbs */}
       <motion.div 
-        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.15, 0.1] }}
+        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
         transition={{ duration: 8, repeat: Infinity }}
         className="absolute top-1/4 left-1/4 w-[600px] h-[600px] rounded-full blur-[180px]" 
-        style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.2) 0%, transparent 70%)' }} 
+        style={{ background: 'radial-gradient(circle, hsl(var(--primary) / 0.25) 0%, transparent 70%)' }} 
       />
       <motion.div 
-        animate={{ scale: [1, 1.3, 1], opacity: [0.08, 0.12, 0.08] }}
+        animate={{ scale: [1, 1.3, 1], opacity: [0.08, 0.15, 0.08] }}
         transition={{ duration: 10, repeat: Infinity, delay: 2 }}
         className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-[150px]" 
-        style={{ background: 'radial-gradient(circle, hsl(var(--accent) / 0.15) 0%, transparent 70%)' }} 
+        style={{ background: 'radial-gradient(circle, hsl(var(--accent) / 0.2) 0%, transparent 70%)' }} 
       />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10 flex-1 flex flex-col">
         <div className="max-w-7xl mx-auto text-center flex-1 flex flex-col">
-          {/* Live Badge - No logo since it's in header */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex justify-center mb-6"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/20 text-success">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
-              </span>
-              <span className="text-sm font-medium">Inteligencia activa 24/7</span>
-            </div>
-          </motion.div>
+          
+          {/* Live Counter - Premium element */}
+          <div className="flex justify-center mb-8">
+            <LiveCounter targetNumber={500} label="negocios activos ahora" />
+          </div>
 
-          {/* Main headline - ULTRA IMPACTANTE */}
+          {/* Main headline with rotating text */}
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 leading-[1.05] tracking-tight"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-[1.1] tracking-tight"
           >
-            Tu{" "}
-            <span className="text-gradient-primary relative">
-              CEO digital
-              <motion.span
-                className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-lg blur-lg -z-10"
-                animate={{ opacity: [0.5, 0.8, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-            </span>
-            <br className="hidden sm:block" />
-            {" "}que piensa por vos
+            Tu <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
+            <br />
+            <span className="text-foreground">que piensa por vos</span>
           </motion.h1>
 
-          {/* Subheadline - CLARÍSIMO */}
+          {/* Subheadline - shorter, more impactful */}
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-6 max-w-3xl mx-auto leading-relaxed"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-6 max-w-2xl mx-auto"
           >
-            VistaCEO analiza tu negocio, detecta oportunidades y te dice{" "}
-            <span className="text-foreground font-semibold">exactamente qué hacer</span>{" "}
-            para crecer. Cada día.
+            Detecta oportunidades. Te dice{" "}
+            <span className="text-foreground font-semibold">qué hacer</span>. Cada día.
           </motion.p>
 
-          {/* Benefits pills */}
+          {/* Benefits pills - compact */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-6"
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="flex flex-wrap justify-center gap-2 mb-6"
           >
             {benefits.map((benefit, i) => (
               <motion.div 
                 key={i}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 + i * 0.1 }}
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-secondary/80 border border-border text-foreground"
+                transition={{ delay: 0.4 + i * 0.1 }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 backdrop-blur-sm border border-border"
               >
                 <benefit.icon className="w-4 h-4 text-primary" />
-                <span className="text-xs sm:text-sm font-medium">{benefit.text}</span>
+                <span className="text-sm font-medium text-foreground">{benefit.text}</span>
               </motion.div>
             ))}
           </motion.div>
 
-          {/* CTA + Price hint */}
+          {/* CTA */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
             className="flex flex-col items-center gap-3 mb-8"
           >
             <Button 
               variant="hero" 
               size="xl" 
-              className="group text-base sm:text-lg px-8 sm:px-10 py-5 sm:py-6 h-auto shadow-2xl"
+              className="group text-base sm:text-lg px-10 py-6 h-auto shadow-2xl"
               onClick={() => navigate("/auth")}
             >
               <Sparkles className="w-5 h-5 mr-2" />
               Empezar gratis ahora
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <div className="flex flex-wrap items-center justify-center gap-2 text-xs sm:text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                <CheckCircle2 className="w-4 h-4 text-success" />
                 Sin tarjeta
               </span>
               <span className="text-border">•</span>
               <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-primary" />
-                3 min de setup
+                <Clock className="w-4 h-4 text-primary" />
+                3 min setup
               </span>
               <span className="text-border">•</span>
               <span className="flex items-center gap-1">
-                <Star className="w-3.5 h-3.5 text-accent" />
-                {!isDetecting && `Pro desde ${formatCurrencyShort(monthlyPrice)}/mes`}
+                <Star className="w-4 h-4 text-warning" />
+                {!isDetecting && `Pro ${formatCurrencyShort(monthlyPrice)}/mes`}
               </span>
             </div>
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="flex flex-wrap justify-center gap-6 sm:gap-12 mb-8"
-          >
-            {stats.map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tabular-nums">
-                  <AnimatedCounter end={stat.value} suffix={stat.suffix} />
-                </div>
-                <div className="text-xs sm:text-sm text-muted-foreground mt-0.5">{stat.label}</div>
-              </div>
-            ))}
           </motion.div>
 
           {/* ULTRA WOW Triple Dashboard Preview */}
@@ -192,9 +157,9 @@ export const HeroSection = () => {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.6 }}
-            className="flex-1 flex items-start justify-center"
+            className="flex-1"
           >
-            <div className="w-full max-w-6xl relative">
+            <div className="w-full max-w-6xl mx-auto relative">
               {/* Glow effect */}
               <motion.div 
                 animate={{ opacity: [0.3, 0.5, 0.3] }}
@@ -203,12 +168,12 @@ export const HeroSection = () => {
               />
               
               {/* Triple panel layout */}
-              <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+              <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-start">
                 {/* Left: Radar */}
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.8 }}
+                  transition={{ delay: 0.8, duration: 0.6 }}
                   className="hidden lg:block"
                 >
                   <MockupRadar />
@@ -217,12 +182,16 @@ export const HeroSection = () => {
                 {/* Center: Main Dashboard Card */}
                 <div className="lg:col-span-1">
                   <div className="bg-card/95 backdrop-blur-sm border border-border rounded-2xl shadow-2xl overflow-hidden">
-                    {/* Top navigation bar */}
+                    {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/30">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
+                        <motion.div 
+                          animate={{ rotate: [0, 5, -5, 0] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                          className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center"
+                        >
                           <Zap className="w-4 h-4 text-white" />
-                        </div>
+                        </motion.div>
                         <div>
                           <div className="text-sm font-semibold text-foreground">{MOCK_BUSINESS.name}</div>
                           <div className="text-[10px] text-muted-foreground">{MOCK_BUSINESS.type}</div>
@@ -245,23 +214,21 @@ export const HeroSection = () => {
                         </div>
                         
                         <div className="flex items-center gap-4">
-                          <div className="relative">
-                            <motion.div 
-                              animate={{ scale: [1, 1.02, 1] }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                              className="w-20 h-20 rounded-2xl bg-gradient-to-br from-success/20 to-success/10 border-2 border-success/30 flex flex-col items-center justify-center"
-                            >
-                              <span className="text-3xl font-bold text-success">{MOCK_BUSINESS.healthScore}</span>
-                              <span className="text-[10px] text-success font-medium">Bueno</span>
-                            </motion.div>
+                          <motion.div 
+                            animate={{ scale: [1, 1.02, 1] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="w-20 h-20 rounded-2xl bg-gradient-to-br from-success/20 to-success/10 border-2 border-success/30 flex flex-col items-center justify-center relative"
+                          >
+                            <span className="text-3xl font-bold text-success">{MOCK_BUSINESS.healthScore}</span>
+                            <span className="text-[10px] text-success font-medium">Bueno</span>
                             <motion.div
-                              animate={{ scale: [1, 1.2, 1] }}
+                              animate={{ scale: [1, 1.3, 1] }}
                               transition={{ duration: 1.5, repeat: Infinity }}
                               className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-success flex items-center justify-center"
                             >
                               <TrendingUp className="w-3 h-3 text-white" />
                             </motion.div>
-                          </div>
+                          </motion.div>
                           
                           <div className="flex-1 space-y-2">
                             {MOCK_BUSINESS.dimensions.map((dim, i) => (
@@ -269,7 +236,7 @@ export const HeroSection = () => {
                                 key={dim.name}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.9 + i * 0.1 }}
+                                transition={{ delay: 1 + i * 0.1 }}
                                 className="flex items-center gap-2"
                               >
                                 <span className="text-xs">{dim.icon}</span>
@@ -278,7 +245,7 @@ export const HeroSection = () => {
                                   <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${dim.score}%` }}
-                                    transition={{ delay: 1.1 + i * 0.1, duration: 0.6 }}
+                                    transition={{ delay: 1.2 + i * 0.1, duration: 0.6 }}
                                     className="h-full rounded-full"
                                     style={{ 
                                       backgroundColor: dim.score >= 80 ? 'hsl(var(--success))' : 
@@ -292,30 +259,23 @@ export const HeroSection = () => {
                             ))}
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-2 text-success text-xs mt-3 pt-3 border-t border-border">
-                          <TrendingUp className="w-3.5 h-3.5" />
-                          <span>+{MOCK_BUSINESS.healthChange} pts esta semana</span>
-                        </div>
                       </div>
 
                       {/* Today's Action */}
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.2 }}
+                        transition={{ delay: 1.3 }}
                         className="bg-gradient-to-br from-primary/10 via-accent/5 to-transparent rounded-xl border border-primary/20 p-4"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
                             <Zap className="w-3.5 h-3.5 text-white" />
                           </div>
-                          <div className="flex-1">
-                            <span className="text-xs text-muted-foreground">Tu acción de hoy</span>
-                            <span className="text-[10px] ml-2 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-medium uppercase">
-                              Alta prioridad
-                            </span>
-                          </div>
+                          <span className="text-xs text-muted-foreground">Tu acción de hoy</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-medium">
+                            PRIORIDAD
+                          </span>
                         </div>
                         
                         <h4 className="font-semibold text-foreground text-sm mb-2">
@@ -323,7 +283,7 @@ export const HeroSection = () => {
                         </h4>
                         
                         <div className="flex items-center gap-3 text-xs">
-                          <span className="flex items-center gap-1 text-success font-medium">
+                          <span className="flex items-center gap-1 text-success font-semibold">
                             <TrendingUp className="w-3.5 h-3.5" />
                             {MOCK_BUSINESS.todayAction.impact}
                           </span>
@@ -334,57 +294,27 @@ export const HeroSection = () => {
                         </div>
                       </motion.div>
                     </div>
-                    
-                    {/* Bottom bar */}
-                    <div className="px-4 py-3 border-t border-border bg-secondary/20">
-                      <div className="flex items-center gap-3">
-                        <motion.div
-                          animate={{ rotate: [0, 10, -10, 0] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center"
-                        >
-                          <Sparkles className="w-3.5 h-3.5 text-white" />
-                        </motion.div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-foreground font-medium">VistaCEO</span>
-                            <motion.div
-                              animate={{ opacity: [0.5, 1, 0.5] }}
-                              transition={{ duration: 1.5, repeat: Infinity }}
-                              className="flex items-center gap-0.5"
-                            >
-                              <span className="w-1 h-1 rounded-full bg-primary" />
-                              <span className="w-1 h-1 rounded-full bg-primary" />
-                              <span className="w-1 h-1 rounded-full bg-primary" />
-                            </motion.div>
-                          </div>
-                          <p className="text-[10px] text-muted-foreground">
-                            Analizando datos en tiempo real...
-                          </p>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
                 {/* Right: Missions */}
                 <motion.div
-                  initial={{ opacity: 0, x: 20 }}
+                  initial={{ opacity: 0, x: 30 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.9 }}
+                  transition={{ delay: 0.9, duration: 0.6 }}
                   className="hidden lg:block"
                 >
                   <MockupMissions />
                 </motion.div>
               </div>
 
-              {/* Mobile: Show Radar and Missions below */}
+              {/* Mobile: Show panels below */}
               <div className="lg:hidden grid grid-cols-2 gap-3 mt-4">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1 }}
-                  className="scale-[0.85] origin-top"
+                  className="transform scale-90 origin-top"
                 >
                   <MockupRadar />
                 </motion.div>
@@ -392,7 +322,7 @@ export const HeroSection = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.1 }}
-                  className="scale-[0.85] origin-top"
+                  className="transform scale-90 origin-top"
                 >
                   <MockupMissions />
                 </motion.div>
@@ -400,11 +330,21 @@ export const HeroSection = () => {
             </div>
           </motion.div>
 
+          {/* Floating Testimonial */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.5 }}
+            className="mt-8"
+          >
+            <FloatingTestimonial />
+          </motion.div>
+
           {/* Scroll indicator */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.5 }}
+            transition={{ delay: 2 }}
             className="flex flex-col items-center mt-6"
           >
             <motion.div
