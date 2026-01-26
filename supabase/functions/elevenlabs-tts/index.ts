@@ -29,10 +29,12 @@ serve(async (req) => {
     // Limit text length to avoid excessive API costs
     const trimmedText = text.slice(0, 2000);
     
-    // Validate speed range (0.7 to 2.0)
-    const validSpeed = Math.min(2.0, Math.max(0.7, speed));
+    // Validate speed range - ElevenLabs only supports 0.7 to 1.2
+    // For speeds > 1.2, we'll cap at 1.2 and let the client handle playback rate
+    const apiSpeed = Math.min(1.2, Math.max(0.7, speed));
+    const needsClientSpeedup = speed > 1.2;
 
-    console.log("Generating TTS for text length:", trimmedText.length, "speed:", validSpeed);
+    console.log("Generating TTS for text length:", trimmedText.length, "apiSpeed:", apiSpeed, "requestedSpeed:", speed);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId || DEFAULT_VOICE_ID}?output_format=mp3_44100_128`,
@@ -50,7 +52,7 @@ serve(async (req) => {
             similarity_boost: 0.75,
             style: 0.4,
             use_speaker_boost: true,
-            speed: validSpeed,
+            speed: apiSpeed,
           },
         }),
       }
@@ -95,7 +97,9 @@ serve(async (req) => {
       JSON.stringify({ 
         audioContent: base64Audio,
         format: "mp3",
-        duration_estimate: Math.ceil(trimmedText.length / 15), // rough estimate in seconds
+        duration_estimate: Math.ceil(trimmedText.length / 15),
+        requestedSpeed: speed,
+        clientPlaybackRate: needsClientSpeedup ? speed / 1.2 : 1.0,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
