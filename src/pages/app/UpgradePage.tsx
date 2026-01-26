@@ -43,7 +43,7 @@ const UpgradePage = () => {
     {
       id: "pro_monthly",
       name: "Pro Mensual",
-      price: isArgentina ? "$29.500 ARS" : "$29 USD",
+      price: isArgentina ? "$29.999 ARS" : "$29 USD",
       period: "/mes",
       popular: false,
       features: [
@@ -58,10 +58,10 @@ const UpgradePage = () => {
     {
       id: "pro_yearly",
       name: "Pro Anual",
-      price: isArgentina ? "$295.000 ARS" : "$290 USD",
+      price: isArgentina ? "$299.999 ARS" : "$299 USD",
       period: "/año",
       popular: true,
-      savings: isArgentina ? "Ahorrás $59.000 (2 meses gratis)" : "Save $58 (2 months free)",
+      savings: isArgentina ? "Ahorrás $59.989 (2 meses gratis)" : "Save $49 (2 months free)",
       features: [
         "Todo lo del plan mensual",
         "2 meses gratis incluidos",
