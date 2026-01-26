@@ -133,24 +133,6 @@ export const CEOAvatar = ({
         />
       </div>
 
-      {/* Center Core Light */}
-      <div
-        className="absolute rounded-full pointer-events-none"
-        style={{
-          width: dims * 0.25,
-          height: dims * 0.25,
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          background: "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 40%, transparent 70%)",
-          animation: state === "speaking"
-            ? "avatar-core-pulse-speak 0.4s ease-in-out infinite"
-            : state === "thinking"
-            ? "avatar-core-pulse-think 0.8s ease-in-out infinite"
-            : "avatar-core-breathe 3s ease-in-out infinite",
-        }}
-      />
-
       {/* Shimmer Effect */}
       <div
         className="absolute inset-0 overflow-hidden pointer-events-none"
