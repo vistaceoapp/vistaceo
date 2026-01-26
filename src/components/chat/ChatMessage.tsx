@@ -24,6 +24,7 @@ interface ChatMessageProps {
   audioScript?: string;
   isPlaying?: boolean;
   onPlayAudio?: () => void;
+  onReplayAudio?: () => void;
   businessInitial: string;
   businessId: string;
   index: number;
@@ -40,6 +41,7 @@ export const ChatMessage = ({
   audioScript,
   isPlaying,
   onPlayAudio,
+  onReplayAudio,
   businessInitial,
   businessId,
   isSpeaking,
@@ -103,12 +105,28 @@ export const ChatMessage = ({
         {/* Message content */}
         <div
           className={cn(
-            "inline-block rounded-2xl px-4 py-3 shadow-sm",
+            "inline-block rounded-2xl px-4 py-3 shadow-sm relative group",
             isUser
               ? "gradient-primary text-primary-foreground rounded-tr-md"
-              : "bg-card/90 backdrop-blur-sm border border-border/60 text-foreground rounded-tl-md"
+              : "bg-card/90 backdrop-blur-sm border border-border/60 text-foreground rounded-tl-md",
+            audioScript && !isUser && "cursor-pointer hover:bg-card/95 transition-colors"
           )}
+          onClick={audioScript && !isUser && onReplayAudio ? onReplayAudio : undefined}
         >
+          {/* Replay audio hint */}
+          {audioScript && !isUser && (
+            <div className={cn(
+              "absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity",
+              "bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg",
+              isPlaying && "opacity-100 animate-pulse"
+            )}>
+              {isPlaying ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Volume2 className="w-3 h-3" />
+              )}
+            </div>
+          )}
           {isUser ? (
             <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
           ) : (
