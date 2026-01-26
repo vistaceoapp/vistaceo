@@ -29,8 +29,8 @@ serve(async (req) => {
     // Limit text length to avoid excessive API costs
     const trimmedText = text.slice(0, 2000);
     
-    // Validate speed range (0.7 to 1.2)
-    const validSpeed = Math.min(1.2, Math.max(0.7, speed));
+    // Validate speed range (0.7 to 2.0)
+    const validSpeed = Math.min(2.0, Math.max(0.7, speed));
 
     console.log("Generating TTS for text length:", trimmedText.length, "speed:", validSpeed);
 

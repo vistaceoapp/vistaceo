@@ -36,7 +36,8 @@ interface AudioSettingsPopoverProps {
 const speedPresets = [
   { value: 0.8, label: "Lento", icon: "🐢" },
   { value: 1.0, label: "Normal", icon: "▶️" },
-  { value: 1.2, label: "Rápido", icon: "⚡" },
+  { value: 1.5, label: "Rápido", icon: "⚡" },
+  { value: 2.0, label: "Turbo", icon: "🚀" },
 ];
 
 export const AudioSettingsPopover = ({
@@ -71,8 +72,9 @@ export const AudioSettingsPopover = ({
 
   const getSpeedLabel = () => {
     if (settings.speed <= 0.85) return "Lento";
-    if (settings.speed <= 1.05) return "Normal";
-    return "Rápido";
+    if (settings.speed <= 1.15) return "Normal";
+    if (settings.speed <= 1.75) return "Rápido";
+    return "Turbo";
   };
 
   return (
@@ -175,8 +177,8 @@ export const AudioSettingsPopover = ({
               </span>
             </div>
             
-            {/* Preset buttons */}
-            <div className="grid grid-cols-3 gap-2">
+          {/* Preset buttons */}
+            <div className="grid grid-cols-4 gap-2">
               {speedPresets.map((preset) => (
                 <button
                   key={preset.value}
@@ -199,15 +201,16 @@ export const AudioSettingsPopover = ({
               <Slider
                 value={[settings.speed]}
                 min={0.7}
-                max={1.2}
-                step={0.05}
+                max={2.0}
+                step={0.1}
                 onValueChange={handleSpeedChange}
                 className="w-full"
               />
               <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
                 <span>0.7x</span>
                 <span>1.0x</span>
-                <span>1.2x</span>
+                <span>1.5x</span>
+                <span>2.0x</span>
               </div>
             </div>
           </div>

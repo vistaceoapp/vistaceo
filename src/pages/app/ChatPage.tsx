@@ -589,6 +589,7 @@ const ChatPage = () => {
                   audioScript={message.audioScript}
                   isPlaying={playingMessageId === message.id}
                   onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
+                  onReplayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
                   businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
                   businessId={currentBusiness.id}
                   index={idx}
