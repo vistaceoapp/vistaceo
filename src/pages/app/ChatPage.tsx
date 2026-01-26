@@ -17,6 +17,7 @@ import { LearningNotification } from "@/components/chat/LearningNotification";
 import { CEOAvatar } from "@/components/chat/CEOAvatar";
 import { CEOPersonalitySelector, CEOPersonality } from "@/components/chat/CEOPersonalitySelector";
 import { ChatLearningPanel } from "@/components/chat/ChatLearningPanel";
+import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
 import { ChatQuickActions } from "@/components/chat/ChatQuickActions";
 
 interface Message {
@@ -40,9 +41,14 @@ const ChatPage = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Personality state
-  const [personality, setPersonality] = useState<CEOPersonality>("directo");
-  const [personalityPrompt, setPersonalityPrompt] = useState("Sé directo y conciso. Ve al punto sin rodeos. Respuestas cortas y accionables.");
+  // Personality state - "balanceada" is default
+  const [personality, setPersonality] = useState<CEOPersonality>("balanceada");
+  const [personalityPrompt, setPersonalityPrompt] = useState(`Sos un CEO mentor con estilo balanceado y profesional. Combinás claridad con calidez.
+- Usá un tono profesional pero accesible
+- Sé claro y estructurado sin ser frío
+- Incluí datos cuando sean relevantes
+- Motivá sin exagerar
+- Adaptate al contexto: más técnico para métricas, más cercano para problemas personales`);
 
   // Audio states
   const [isRecording, setIsRecording] = useState(false);
@@ -450,6 +456,12 @@ const ChatPage = () => {
             <CEOPersonalitySelector
               value={personality}
               onChange={handlePersonalityChange}
+              compact={isMobile}
+            />
+            
+            {/* History Panel */}
+            <ChatHistoryPanel
+              businessId={currentBusiness.id}
               compact={isMobile}
             />
             
