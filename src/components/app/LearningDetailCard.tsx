@@ -337,23 +337,23 @@ export const LearningDetailCard = ({
             </div>
           </div>
 
-          {/* Potential Impact */}
+          {/* Potential Impact - Responsive */}
           <div className="p-4 rounded-xl bg-success/5 border border-success/20">
             <h4 className="font-semibold text-success mb-2 flex items-center gap-2 text-sm">
               <TrendingUp className="w-4 h-4" />
               Potencial de impacto
             </h4>
-            <div className="grid grid-cols-3 gap-3 mt-3">
-              <div className="text-center">
-                <div className="text-lg font-bold text-foreground">Medio-Alto</div>
-                <div className="text-[10px] text-muted-foreground">Impacto estimado</div>
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              <div className="text-center p-2 bg-background/50 rounded-lg">
+                <div className="text-base sm:text-lg font-bold text-foreground">Medio-Alto</div>
+                <div className="text-[10px] text-muted-foreground">Impacto</div>
               </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-foreground">2-4 sem</div>
-                <div className="text-[10px] text-muted-foreground">Tiempo para ver resultados</div>
+              <div className="text-center p-2 bg-background/50 rounded-lg">
+                <div className="text-base sm:text-lg font-bold text-foreground">2-4 sem</div>
+                <div className="text-[10px] text-muted-foreground">Tiempo</div>
               </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-foreground">Bajo</div>
+              <div className="text-center p-2 bg-background/50 rounded-lg">
+                <div className="text-base sm:text-lg font-bold text-foreground">Bajo</div>
                 <div className="text-[10px] text-muted-foreground">Riesgo</div>
               </div>
             </div>
@@ -372,46 +372,73 @@ export const LearningDetailCard = ({
             </div>
             <p className="text-xs text-muted-foreground mb-3">{confidence.note}</p>
             
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-muted-foreground">Fuente:</span>
-              <Badge variant="secondary" className="text-[10px]">
-                {confidence.sourceType}
-              </Badge>
+            {/* Source with proper truncation */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-muted-foreground uppercase">Fuente:</span>
+              {item.source ? (
+                <a 
+                  href={item.source.startsWith('http') ? item.source : undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    "text-xs text-primary truncate max-w-full block",
+                    item.source.startsWith('http') && "hover:underline cursor-pointer"
+                  )}
+                  title={item.source}
+                >
+                  {/* Extract domain or show readable source */}
+                  {item.source.startsWith('http') 
+                    ? (() => {
+                        try {
+                          const url = new URL(item.source);
+                          return `${url.hostname.replace('www.', '')} ↗`;
+                        } catch {
+                          return confidence.sourceType;
+                        }
+                      })()
+                    : confidence.sourceType
+                  }
+                </a>
+              ) : (
+                <Badge variant="secondary" className="text-[10px] w-fit">
+                  {confidence.sourceType}
+                </Badge>
+              )}
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={onDismiss}>
-              <ThumbsDown className="w-4 h-4 mr-1" />
-              No me interesa
+          {/* Actions - Responsive grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={onDismiss} className="text-xs">
+              <ThumbsDown className="w-3 h-3 mr-1" />
+              <span className="truncate">No me interesa</span>
             </Button>
-            <Button variant="ghost" size="sm" onClick={onDismiss}>
-              <CheckCircle2 className="w-4 h-4 mr-1" />
-              Ya lo conozco
+            <Button variant="ghost" size="sm" onClick={onDismiss} className="text-xs">
+              <CheckCircle2 className="w-3 h-3 mr-1" />
+              <span className="truncate">Ya lo conozco</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={onSave}>
+            <Button variant="outline" size="sm" onClick={onSave} className="text-xs">
               {item.is_saved ? (
                 <>
-                  <BookmarkCheck className="w-4 h-4 mr-1 text-primary" />
-                  Guardado
+                  <BookmarkCheck className="w-3 h-3 mr-1 text-primary" />
+                  <span className="truncate">Guardado</span>
                 </>
               ) : (
                 <>
-                  <Bookmark className="w-4 h-4 mr-1" />
-                  Guardar
+                  <Bookmark className="w-3 h-3 mr-1" />
+                  <span className="truncate">Guardar</span>
                 </>
               )}
             </Button>
             {onApply && (
               <Button 
                 size="sm" 
-                className="flex-1 gradient-primary" 
+                className="gradient-primary text-xs col-span-2 sm:col-span-1" 
                 onClick={onApply}
                 disabled={applyLoading}
               >
-                <Rocket className={cn("w-4 h-4 mr-1", applyLoading && "animate-spin")} />
-                {applyLoading ? "Creando misión..." : "Aplicar → Misión"}
+                <Rocket className={cn("w-3 h-3 mr-1", applyLoading && "animate-spin")} />
+                <span className="truncate">{applyLoading ? "Creando..." : "Aplicar"}</span>
               </Button>
             )}
           </div>
