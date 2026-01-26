@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { motion } from "framer-motion";
 
 interface LiveCounterProps {
   targetNumber: number;
@@ -49,51 +50,48 @@ export const LiveCounter = ({ targetNumber, label }: LiveCounterProps) => {
     return () => clearInterval(timer);
   }, [isVisible, targetNumber]);
 
-  // Format number with dots for thousands
-  const formatNumber = (num: number) => {
-    return num.toLocaleString("es-ES");
-  };
-
   return (
-    <div 
+    <motion.div 
       ref={ref}
-      className="flex items-center gap-4 px-6 py-4 rounded-2xl bg-card/80 border border-border/50 backdrop-blur-sm"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-card/60 backdrop-blur-sm border border-border/50"
     >
-      {/* Live indicator */}
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30">
+      {/* Live dot */}
+      <div className="flex items-center gap-1.5">
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
         </span>
-        <span className="text-xs font-semibold text-success uppercase tracking-wide">En vivo</span>
+        <span className="text-[10px] font-semibold text-success uppercase tracking-wider">Live</span>
       </div>
 
-      {/* Avatars */}
-      <div className="flex -space-x-2">
-        {[
-          "👩🏻‍💼", "👨🏽‍💻", "👩🏾‍🔧", "👨🏼‍🍳", "👩🏻‍⚕️"
-        ].map((emoji, i) => (
-          <div
+      {/* Divider */}
+      <div className="w-px h-4 bg-border/50" />
+
+      {/* Mini avatars */}
+      <div className="flex -space-x-1.5">
+        {["👩🏻‍💼", "👨🏽‍💻", "👩🏾‍🔧", "👨🏼‍🍳"].map((emoji, i) => (
+          <motion.div
             key={i}
-            className="w-8 h-8 rounded-full bg-secondary border-2 border-card flex items-center justify-center text-sm"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 + i * 0.08 }}
+            className="w-6 h-6 rounded-full bg-secondary/80 border border-card flex items-center justify-center text-[10px]"
           >
             {emoji}
-          </div>
+          </motion.div>
         ))}
       </div>
 
       {/* Counter */}
-      <div className="flex items-baseline gap-2">
-        <span className="text-2xl sm:text-3xl font-bold text-gradient-primary tabular-nums">
-          {formatNumber(count)}
-        </span>
-        <span className="text-2xl sm:text-3xl font-bold text-primary">+</span>
-      </div>
-
-      {/* Label */}
-      <span className="text-sm text-muted-foreground hidden sm:block">
+      <span className="text-sm font-bold text-foreground tabular-nums">
+        {count}+
+      </span>
+      <span className="text-xs text-muted-foreground hidden sm:inline">
         {label}
       </span>
-    </div>
+    </motion.div>
   );
 };
