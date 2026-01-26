@@ -52,6 +52,7 @@ import { IntegrationsPanel } from "@/components/app/IntegrationsPanel";
 import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
 import { FocusSelector } from "@/components/app/FocusSelector";
 import { useSubscription } from "@/hooks/use-subscription";
+import { SubscriptionStatusSection } from "@/components/app/SubscriptionStatusSection";
 
 const MorePage = () => {
   const { user, signOut } = useAuth();
@@ -407,26 +408,8 @@ const MorePage = () => {
               </CardContent>
             </Card>
 
-            {/* Upgrade Card */}
-            <Card className="bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 border-primary/20">
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/20 flex items-center justify-center">
-                    <Zap className="w-8 h-8 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg text-foreground">Actualiza a Pro</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Desbloquea análisis avanzados, más integraciones y soporte prioritario
-                    </p>
-                  </div>
-                  <Button className="w-full" onClick={() => navigate("/app/upgrade")}>
-                    <Crown className="w-4 h-4 mr-2" />
-                    Ver planes
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Subscription Status Section */}
+            <SubscriptionStatusSection />
 
             {/* Quick Stats */}
             <Card>

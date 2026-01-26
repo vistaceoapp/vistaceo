@@ -7,11 +7,10 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
-  TrendingUp,
   Zap,
   HelpCircle,
-  BarChart3
+  BarChart3,
+  Crown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
@@ -19,15 +18,16 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { PlanStatusCard } from "@/components/app/PlanStatusCard";
+import { useSubscription } from "@/hooks/use-subscription";
 
 const navItems = [
-  { path: "/app", icon: Home, label: "Inicio", description: "Dashboard principal", badge: null },
-  { path: "/app/chat", icon: MessageCircle, label: "Chat", description: "Asistente IA", badge: "IA" },
-  { path: "/app/missions", icon: Target, label: "Misiones", description: "Proyectos activos", badge: null },
-  { path: "/app/radar", icon: Radar, label: "Radar", description: "Oportunidades", badge: "3" },
-  { path: "/app/analytics", icon: BarChart3, label: "Analytics", description: "Métricas y tendencias", badge: "Nuevo" },
+  { path: "/app", icon: Home, label: "Inicio", description: "Dashboard principal", badge: null, isPro: false },
+  { path: "/app/chat", icon: MessageCircle, label: "Chat", description: "Asistente IA", badge: "Pro", isPro: true },
+  { path: "/app/missions", icon: Target, label: "Misiones", description: "Proyectos activos", badge: null, isPro: false },
+  { path: "/app/radar", icon: Radar, label: "Radar", description: "Oportunidades", badge: null, isPro: false },
+  { path: "/app/analytics", icon: BarChart3, label: "Analytics", description: "Métricas y tendencias", badge: "Pro", isPro: true },
 ];
 
 const bottomNavItems = [
@@ -42,6 +42,7 @@ interface DashboardSidebarProps {
 export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps) => {
   const location = useLocation();
   const { currentBusiness } = useBusiness();
+  const { isPro } = useSubscription();
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -149,9 +150,14 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
                         variant={isActive ? "secondary" : "outline"} 
                         className={cn(
                           "text-[10px] h-5 px-1.5",
-                          isActive ? "bg-white/20 text-white border-0" : "border-primary/30 text-primary"
+                          isActive 
+                            ? "bg-white/20 text-white border-0" 
+                            : item.isPro && !isPro
+                              ? "border-warning/30 text-warning bg-warning/10"
+                              : "border-primary/30 text-primary"
                         )}
                       >
+                        {item.isPro && !isPro && <Crown className="w-2.5 h-2.5 mr-0.5" />}
                         {item.badge}
                       </Badge>
                     )}
@@ -181,19 +187,10 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
         </nav>
 
 
-        {/* Upgrade Card (only when expanded) */}
+        {/* Plan Status Card (only when expanded) */}
         {!collapsed && (
-          <div className="mx-3 mb-3 p-3 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors cursor-pointer group">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <Zap className="w-5 h-5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">Plan Free</p>
-                <p className="text-xs text-muted-foreground">Actualiza a Pro</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-            </div>
+          <div className="mx-3 mb-3">
+            <PlanStatusCard variant="sidebar" />
           </div>
         )}
 
