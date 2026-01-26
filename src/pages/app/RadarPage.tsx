@@ -789,18 +789,22 @@ const RadarPage = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Learning Preview Dialog */}
+        {/* Learning Preview Dialog - Mobile */}
         <Dialog open={!!selectedLearning} onOpenChange={() => setSelectedLearning(null)}>
-          <DialogContent className="max-w-xl">
-            {selectedLearning && (
-              <LearningDetailCard 
-                item={selectedLearning}
-                business={currentBusiness}
-                onDismiss={() => dismissLearning(selectedLearning.id)}
-                onSave={() => toggleSaveLearning(selectedLearning.id)}
-                onClose={() => setSelectedLearning(null)}
-              />
-            )}
+          <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-hidden p-0">
+            <div className="p-4 sm:p-6 overflow-y-auto max-h-[85vh]">
+              {selectedLearning && (
+                <LearningDetailCard 
+                  item={selectedLearning}
+                  business={currentBusiness}
+                  onDismiss={() => dismissLearning(selectedLearning.id)}
+                  onSave={() => toggleSaveLearning(selectedLearning.id)}
+                  onClose={() => setSelectedLearning(null)}
+                  onApply={() => convertLearningToMission(selectedLearning)}
+                  applyLoading={actionLoading}
+                />
+              )}
+            </div>
           </DialogContent>
         </Dialog>
         
@@ -855,11 +859,17 @@ const RadarPage = () => {
         </Button>
       </div>
 
-      {/* Tabs - Only 2 tabs: Oportunidades and I+D */}
+      {/* Tabs - Responsive text */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="oportunidades">Oportunidades de mejora</TabsTrigger>
-          <TabsTrigger value="id">Investigación + Desarrollo (I+D)</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-6 h-auto">
+          <TabsTrigger value="oportunidades" className="text-xs sm:text-sm py-2.5 px-2 sm:px-4">
+            <span className="hidden sm:inline">Oportunidades de mejora</span>
+            <span className="sm:hidden">Oportunidades</span>
+          </TabsTrigger>
+          <TabsTrigger value="id" className="text-xs sm:text-sm py-2.5 px-2 sm:px-4">
+            <span className="hidden sm:inline">Investigación + Desarrollo (I+D)</span>
+            <span className="sm:hidden">I+D Externo</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Tab: Oportunidades de mejora (INTERNO) */}
@@ -1156,57 +1166,57 @@ const RadarPage = () => {
 
         {/* Tab: I+D (EXTERNO) */}
         <TabsContent value="id" className="space-y-6">
-          {/* Stats + Metrics Widget */}
-          <div className="grid grid-cols-5 gap-4">
+          {/* Stats + Metrics Widget - Responsive grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             <div className="dashboard-stat">
               <div className="flex items-center justify-between mb-2">
                 <Globe className="w-5 h-5 text-accent" />
-                <Badge variant="outline" className="text-[10px] bg-accent/5">
+                <Badge variant="outline" className="text-[10px] bg-accent/5 hidden sm:flex">
                   <ExternalLink className="w-3 h-3 mr-1" />
                   EXTERNO
                 </Badge>
               </div>
-              <div className="text-3xl font-bold text-foreground">{learningItems.filter(i => !i.is_saved).length}</div>
-              <div className="text-sm text-muted-foreground">nuevos insights</div>
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">{learningItems.filter(i => !i.is_saved).length}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">insights</div>
             </div>
             
             <div className="dashboard-stat">
               <div className="flex items-center justify-between mb-2">
                 <Lightbulb className="w-5 h-5 text-warning" />
               </div>
-              <div className="text-3xl font-bold text-foreground">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">
                 {learningItems.filter(i => i.item_type === "trend").length}
               </div>
-              <div className="text-sm text-muted-foreground">tendencias</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">tendencias</div>
             </div>
             
             <div className="dashboard-stat">
               <div className="flex items-center justify-between mb-2">
                 <BookmarkCheck className="w-5 h-5 text-success" />
               </div>
-              <div className="text-3xl font-bold text-foreground">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">
                 {learningItems.filter(i => i.is_saved).length}
               </div>
-              <div className="text-sm text-muted-foreground">guardados</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">guardados</div>
             </div>
             
             <div className="dashboard-stat">
               <div className="flex items-center justify-between mb-2">
                 <TrendingUp className="w-5 h-5 text-primary" />
               </div>
-              <div className="text-3xl font-bold text-foreground">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">
                 {learningItems.filter(i => i.item_type === "opportunity").length}
               </div>
-              <div className="text-sm text-muted-foreground">oportunidades</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">oportunidades</div>
             </div>
 
-            <div className="dashboard-stat">
+            <div className="dashboard-stat col-span-2 sm:col-span-1">
               <div className="flex items-center justify-between mb-2">
                 <BarChart3 className="w-5 h-5 text-accent" />
                 <Badge variant="outline" className="text-[10px]">AUTO</Badge>
               </div>
-              <div className="text-3xl font-bold text-foreground">7d</div>
-              <div className="text-sm text-muted-foreground">escaneo automático</div>
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">7d</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">escaneo automático</div>
             </div>
           </div>
 
@@ -1240,27 +1250,27 @@ const RadarPage = () => {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {learningItems.filter(i => !i.is_saved).map((item) => (
                 <div 
                   key={item.id}
-                  className="dashboard-card p-5 hover:shadow-lg transition-all cursor-pointer group"
+                  className="dashboard-card p-4 sm:p-5 hover:shadow-lg transition-all cursor-pointer group"
                   onClick={() => setSelectedLearning(item)}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-[10px] bg-accent/5 border-accent/20">
+                  <div className="flex items-start justify-between mb-3 gap-2">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <Badge variant="outline" className="text-[10px] bg-accent/5 border-accent/20 whitespace-nowrap">
                         <ExternalLink className="w-3 h-3 mr-1" />
                         EXTERNO
                       </Badge>
-                      <Badge variant="secondary" className="text-[10px]">
-                        I+D | {translateItemType(item.item_type)}
+                      <Badge variant="secondary" className="text-[10px] whitespace-nowrap">
+                        {translateItemType(item.item_type)}
                       </Badge>
                     </div>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                       onClick={(e) => { e.stopPropagation(); toggleSaveLearning(item.id); }}
                     >
                       {item.is_saved ? (
@@ -1271,7 +1281,7 @@ const RadarPage = () => {
                     </Button>
                   </div>
                   
-                  <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
+                  <h3 className="font-semibold text-foreground mb-2 line-clamp-2">{item.title}</h3>
                   
                   {item.content && (
                     <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
@@ -1279,27 +1289,27 @@ const RadarPage = () => {
                     </p>
                   )}
                   
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
-                    <Badge variant="outline" className="text-[10px] capitalize">
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50 gap-2">
+                    <Badge variant="outline" className="text-[10px] capitalize truncate max-w-[100px]">
                       {ID_NATURES[Math.floor(Math.random() * ID_NATURES.length)]}
                     </Badge>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                       <Button 
                         size="sm" 
                         variant="ghost" 
-                        className="text-xs"
+                        className="text-xs h-7 w-7 p-0"
                         onClick={(e) => { e.stopPropagation(); dismissLearning(item.id); }}
                       >
                         <X className="w-3 h-3" />
                       </Button>
                       <Button 
                         size="sm" 
-                        className="text-xs gradient-primary"
+                        className="text-xs gradient-primary h-7 px-2"
                         onClick={(e) => { e.stopPropagation(); convertLearningToMission(item); }}
                         disabled={actionLoading}
                       >
-                        <Rocket className="w-3 h-3 mr-1" />
-                        Aplicar
+                        <Rocket className="w-3 h-3 sm:mr-1" />
+                        <span className="hidden sm:inline">Aplicar</span>
                       </Button>
                     </div>
                   </div>
@@ -1308,24 +1318,24 @@ const RadarPage = () => {
             </div>
           )}
 
-          {/* Saved/Backlog Section */}
+          {/* Saved/Backlog Section - Responsive grid */}
           {learningItems.filter(i => i.is_saved).length > 0 && (
             <div className="mt-8">
               <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <BookmarkCheck className="w-5 h-5 text-primary" />
                 Guardados / Backlog
               </h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {learningItems.filter(i => i.is_saved).map((item) => (
                   <div 
                     key={item.id}
-                    className="dashboard-card p-4 border-dashed"
+                    className="dashboard-card p-4 border-dashed cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() => setSelectedLearning(item)}
                   >
                     <div className="flex items-start gap-3">
-                      <BookmarkCheck className="w-4 h-4 text-primary mt-1" />
+                      <BookmarkCheck className="w-4 h-4 text-primary mt-1 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-foreground text-sm truncate">{item.title}</h4>
+                        <h4 className="font-medium text-foreground text-sm line-clamp-2">{item.title}</h4>
                         <p className="text-xs text-muted-foreground mt-1">{translateItemType(item.item_type)}</p>
                       </div>
                     </div>
@@ -1356,20 +1366,22 @@ const RadarPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Learning Preview Dialog */}
+      {/* Learning Preview Dialog - Improved responsiveness */}
       <Dialog open={!!selectedLearning} onOpenChange={() => setSelectedLearning(null)}>
-        <DialogContent className="max-w-xl">
-          {selectedLearning && (
-            <LearningDetailCard 
-              item={selectedLearning}
-              business={currentBusiness}
-              onDismiss={() => dismissLearning(selectedLearning.id)}
-              onSave={() => toggleSaveLearning(selectedLearning.id)}
-              onClose={() => setSelectedLearning(null)}
-              onApply={() => convertLearningToMission(selectedLearning)}
-              applyLoading={actionLoading}
-            />
-          )}
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-hidden p-0">
+          <div className="p-6 overflow-y-auto max-h-[90vh]">
+            {selectedLearning && (
+              <LearningDetailCard 
+                item={selectedLearning}
+                business={currentBusiness}
+                onDismiss={() => dismissLearning(selectedLearning.id)}
+                onSave={() => toggleSaveLearning(selectedLearning.id)}
+                onClose={() => setSelectedLearning(null)}
+                onApply={() => convertLearningToMission(selectedLearning)}
+                applyLoading={actionLoading}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
