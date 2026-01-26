@@ -88,16 +88,19 @@ export const HeroSection = () => {
           <LiveCounter targetNumber={500} label="activos" />
         </motion.div>
 
-        {/* Main headline with rotating text - Fixed spacing */}
+        {/* Main headline with rotating text - Fixed for no truncation */}
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-[1.2] tracking-tight"
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground mb-6 leading-[1.3] tracking-tight px-2"
         >
-          <span className="block sm:inline">Tu </span>
-          <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
-          <span className="block sm:inline"> que piensa por vos</span>
+          Tu{" "}
+          <span className="inline-block">
+            <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
+          </span>
+          <br className="sm:hidden" />
+          {" "}que piensa por vos
         </motion.h1>
 
         {/* Subheadline */}

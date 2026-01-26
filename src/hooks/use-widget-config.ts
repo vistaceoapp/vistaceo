@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useSubscription } from "@/hooks/use-subscription";
 import type { Json } from "@/integrations/supabase/types";
 
 export interface WidgetConfig {
@@ -26,9 +27,9 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
 
 export const useWidgetConfig = () => {
   const { currentBusiness } = useBusiness();
+  const { isPro } = useSubscription();
   const [widgets, setWidgets] = useState<WidgetConfig[]>(DEFAULT_WIDGETS);
   const [loading, setLoading] = useState(true);
-  const [isPro, setIsPro] = useState(false);
 
   useEffect(() => {
     loadConfig();
@@ -58,7 +59,6 @@ export const useWidgetConfig = () => {
           });
           setWidgets(mergedConfig);
         }
-        setIsPro(settings.isPro || false);
       }
     } catch (error) {
       console.error("Error loading widget config:", error);
