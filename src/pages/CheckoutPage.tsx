@@ -212,14 +212,7 @@ const CheckoutPage = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => {
-              // Try to go back, fallback to setup or landing
-              if (window.history.length > 1) {
-                navigate(-1);
-              } else {
-                navigate('/setup');
-              }
-            }} 
+            onClick={() => navigate('/setup')} 
             className="gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
