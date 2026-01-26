@@ -36,7 +36,7 @@ interface AudioSettingsPopoverProps {
 const speedPresets = [
   { value: 0.8, label: "Lento", icon: "🐢" },
   { value: 1.0, label: "Normal", icon: "▶️" },
-  { value: 1.15, label: "Rápido", icon: "⚡" },
+  { value: 1.2, label: "Rápido", icon: "⚡" },
 ];
 
 export const AudioSettingsPopover = ({
