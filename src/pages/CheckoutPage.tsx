@@ -250,7 +250,7 @@ const CheckoutPage = () => {
             className="lg:col-span-3 space-y-6"
           >
             <div>
-              <Badge className="mb-4 bg-accent/20 text-accent-foreground border-accent/30 px-3 py-1">
+              <Badge className="mb-4 bg-primary text-primary-foreground px-3 py-1 shadow-sm">
                 <Crown className="w-3.5 h-3.5 mr-1.5" />
                 Plan Pro
               </Badge>
