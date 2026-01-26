@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import { CheckCircle2, Zap, Brain, Target, BarChart3, Lightbulb, Gift } from "lucide-react";
+import { CheckCircle2, Zap, Brain, Target, BarChart3, Lightbulb, Gift, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import dashboardMainImg from "@/assets/mockups/dashboard-main.png";
 
 const freeFeatures = [
   { icon: BarChart3, text: "Dashboard completo" },
@@ -79,7 +79,7 @@ export const FreeExperienceSection = () => {
               </p>
             </motion.div>
 
-            {/* Right: Visual card */}
+            {/* Right: Dashboard Main Image */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -90,49 +90,16 @@ export const FreeExperienceSection = () => {
                 {/* Glow effect */}
                 <div className="absolute -inset-4 bg-gradient-to-r from-success/20 to-primary/20 rounded-3xl blur-2xl opacity-50" />
                 
-                <div className="relative bg-card border border-border rounded-3xl p-8 shadow-2xl">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-success/10 flex items-center justify-center">
-                        <Gift className="w-7 h-7 text-success" />
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-foreground">Plan Free</div>
-                        <div className="text-sm text-muted-foreground">Todo esto incluido</div>
-                      </div>
-                    </div>
-                    <div className="text-4xl font-bold text-foreground">$0</div>
-                  </div>
-
-                  {/* Features list */}
-                  <div className="space-y-4 mb-8">
-                    {[
-                      "Dashboard completo",
-                      "Análisis de tu negocio",
-                      "Acciones diarias personalizadas",
-                      "3 misiones estratégicas/mes",
-                      "5 oportunidades del Radar/mes",
-                      "5 investigaciones I+D/mes",
-                    ].map((feature, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
-                        <span className="text-foreground">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Divider */}
-                  <div className="h-px bg-border mb-6" />
-
-                  {/* Note */}
-                  <div className="p-4 rounded-xl bg-success/5 border border-success/20">
-                    <p className="text-sm text-muted-foreground">
-                      <span className="text-success font-semibold">El Free no es demo.</span>{" "}
-                      Es valor real que ya genera resultados en miles de negocios.
-                    </p>
-                  </div>
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border">
+                  <img 
+                    src={dashboardMainImg} 
+                    alt="VistaCEO - Dashboard Principal" 
+                    className="w-full h-auto"
+                  />
                 </div>
+                <p className="mt-4 text-sm text-muted-foreground text-center">
+                  <span className="font-medium text-foreground">Dashboard Principal</span> — Todo tu negocio en una sola vista
+                </p>
               </div>
             </motion.div>
           </div>

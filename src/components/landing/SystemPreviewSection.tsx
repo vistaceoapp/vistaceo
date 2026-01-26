@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MockupHealthDashboard } from "./mockups/MockupHealthDashboard";
+import analyticsSaludImg from "@/assets/mockups/analytics-salud.png";
 
 export const SystemPreviewSection = () => {
   return (
@@ -26,7 +26,7 @@ export const SystemPreviewSection = () => {
           </p>
         </motion.div>
 
-        {/* Health Dashboard Preview - Exact replica */}
+        {/* Health Dashboard Preview - Exact image */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -34,7 +34,13 @@ export const SystemPreviewSection = () => {
           transition={{ delay: 0.1 }}
           className="max-w-5xl mx-auto"
         >
-          <MockupHealthDashboard />
+          <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
+            <img 
+              src={analyticsSaludImg} 
+              alt="VistaCEO - Salud del Negocio" 
+              className="w-full h-auto"
+            />
+          </div>
           <p className="mt-4 text-sm text-muted-foreground text-center">
             <span className="font-medium text-foreground">Salud del Negocio</span> — Diagnóstico en 7 dimensiones con radar visual y métricas detalladas
           </p>
