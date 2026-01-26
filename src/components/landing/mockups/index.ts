@@ -5,3 +5,5 @@ export { MockupMission } from './MockupMission';
 export { MockupChat } from './MockupChat';
 export { MockupRadar } from './MockupRadar';
 export { MockupMissions } from './MockupMissions';
+export { MockupAnalyticsDashboard } from './MockupAnalyticsDashboard';
+export { MockupMissionsView } from './MockupMissionsView';
