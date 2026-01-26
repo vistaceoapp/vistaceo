@@ -202,6 +202,69 @@ async function fetchGoogleNewsRss(query: string, locale: { hl: string; gl: strin
   return items;
 }
 
+// Resolve Google News redirect URL to actual article URL
+async function resolveGoogleNewsUrl(googleNewsUrl: string): Promise<string> {
+  // If not a Google News URL, return as-is
+  if (!googleNewsUrl.includes('news.google.com')) {
+    return googleNewsUrl;
+  }
+
+  try {
+    // Follow the redirect with a HEAD request to get the actual URL
+    const response = await fetch(googleNewsUrl, {
+      method: 'HEAD',
+      redirect: 'follow',
+      headers: { 
+        'User-Agent': 'Mozilla/5.0 (compatible; lovable-bot/1.0)'
+      }
+    });
+    
+    // The final URL after redirects is the actual article
+    const finalUrl = response.url;
+    
+    // If we got a real URL (not Google), return it
+    if (finalUrl && !finalUrl.includes('news.google.com')) {
+      console.log(`Resolved Google News URL to: ${finalUrl}`);
+      return finalUrl;
+    }
+    
+    // Fallback: try to extract domain from the base64 encoded article ID
+    // Google News URLs contain base64 encoded data that sometimes includes the real URL
+    const match = googleNewsUrl.match(/articles\/([A-Za-z0-9_-]+)/);
+    if (match) {
+      try {
+        // The article ID is base64url encoded, decode it
+        const decoded = atob(match[1].replace(/-/g, '+').replace(/_/g, '/'));
+        // Try to find a URL in the decoded string
+        const urlMatch = decoded.match(/https?:\/\/[^\s"'<>]+/);
+        if (urlMatch) {
+          console.log(`Extracted URL from article ID: ${urlMatch[0]}`);
+          return urlMatch[0];
+        }
+      } catch {
+        // Base64 decode failed, continue to fallback
+      }
+    }
+    
+    // If all else fails, return the original URL
+    return googleNewsUrl;
+  } catch (error) {
+    console.warn(`Failed to resolve Google News URL: ${error}`);
+    return googleNewsUrl;
+  }
+}
+
+// Extract clean source info for display
+function extractSourceForDisplay(url: string, publisher?: string): { domain: string; cleanUrl: string } {
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname.replace('www.', '');
+    return { domain: publisher || domain, cleanUrl: url };
+  } catch {
+    return { domain: publisher || 'Fuente', cleanUrl: url };
+  }
+}
+
 function formatRssForContext(items: RssItem[]): string {
   if (!items.length) return "(sin titulares externos confiables disponibles)";
   return items
@@ -1122,21 +1185,36 @@ Antes de devolver, pregúntate para cada oportunidad:
           continue;
         }
 
-        // Build source string from first real source
+        // Build source string from first real source - RESOLVE GOOGLE NEWS URLS
         const firstSource = sourcesArr.find((s) => s?.url?.startsWith("http"));
-        const sourceStr = firstSource
-          ? `${firstSource.publisher || "Fuente"} (${freshness}) | ${firstSource.url}`
+        let resolvedUrl = firstSource?.url || "";
+        let sourcePublisher = firstSource?.publisher || "Fuente";
+        
+        // Resolve Google News redirect URLs to actual article URLs
+        if (resolvedUrl.includes('news.google.com')) {
+          try {
+            resolvedUrl = await resolveGoogleNewsUrl(resolvedUrl);
+            // Extract clean domain from resolved URL
+            const sourceInfo = extractSourceForDisplay(resolvedUrl, firstSource?.publisher);
+            sourcePublisher = sourceInfo.domain;
+          } catch (e) {
+            console.warn(`Could not resolve Google News URL, using original: ${e}`);
+          }
+        }
+        
+        const sourceStr = resolvedUrl
+          ? `${sourcePublisher} (${freshness}) | ${resolvedUrl}`
           : `mercado | ${freshness}`;
 
-        // Build content with why_applies + source citation
-        const enrichedContent = `${content}\n\n**Por qué aplica a tu negocio:** ${whyApplies || "Relevante para tu sector y mercado."}\n\n**Fuente:** [${firstSource?.title || "Ver artículo"}](${firstSource?.url || "#"})`;
+        // Build content with why_applies + source citation (using resolved URL)
+        const enrichedContent = `${content}\n\n**Por qué aplica a tu negocio:** ${whyApplies || "Relevante para tu sector y mercado."}\n\n**Fuente:** [${firstSource?.title || sourcePublisher}](${resolvedUrl || "#"})`;
 
         const { error: insertErr } = await supabase.from("learning_items").insert({
           business_id: businessId,
           title,
           content: enrichedContent,
           item_type: itemType,
-          source: sourceStr,
+          source: resolvedUrl || sourceStr, // Store the resolved URL directly
           action_steps: actionSteps,
           is_read: false,
           is_saved: false,
