@@ -10,20 +10,30 @@ import {
   TrendingUp, 
   Target,
   ChevronRight,
-  PartyPopper
+  PartyPopper,
+  Crown,
+  Zap
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
 const SetupCompletePage = () => {
   const navigate = useNavigate();
   const [showContent, setShowContent] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+
+  // Check for pending plan
+  const pendingPlan = localStorage.getItem("pendingPlan");
+  const pendingPlanTimestamp = localStorage.getItem("pendingPlanTimestamp");
+  const hasPendingPlan = pendingPlan && pendingPlanTimestamp && 
+    (Date.now() - parseInt(pendingPlanTimestamp)) < 24 * 60 * 60 * 1000; // 24 hours
 
   useEffect(() => {
-    // Trigger confetti celebration
+    // Trigger confetti celebration with Pro colors if pending plan
     const duration = 3000;
     const animationEnd = Date.now() + duration;
-
-    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+    const colors = hasPendingPlan 
+      ? ['#F59E0B', '#F97316', '#FBBF24', '#8B5CF6', '#10B981']
+      : ['#8B5CF6', '#A855F7', '#D946EF', '#10B981', '#F59E0B'];
 
     const interval = setInterval(() => {
       const timeLeft = animationEnd - Date.now();
@@ -37,25 +47,48 @@ const SetupCompletePage = () => {
         angle: 60,
         spread: 55,
         origin: { x: 0 },
-        colors: ['#8B5CF6', '#A855F7', '#D946EF', '#10B981', '#F59E0B'],
+        colors,
       });
       confetti({
         particleCount: 3,
         angle: 120,
         spread: 55,
         origin: { x: 1 },
-        colors: ['#8B5CF6', '#A855F7', '#D946EF', '#10B981', '#F59E0B'],
+        colors,
       });
     }, 50);
 
     // Show content after initial animation
     setTimeout(() => setShowContent(true), 500);
 
+    // Auto-redirect countdown for pending plan
+    if (hasPendingPlan) {
+      setCountdown(5);
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev && prev <= 1) {
+            clearInterval(countdownInterval);
+            navigate("/app/upgrade", { replace: true });
+            return null;
+          }
+          return prev ? prev - 1 : null;
+        });
+      }, 1000);
+      return () => {
+        clearInterval(interval);
+        clearInterval(countdownInterval);
+      };
+    }
+
     return () => clearInterval(interval);
-  }, []);
+  }, [hasPendingPlan, navigate]);
 
   const handleStart = () => {
-    navigate("/app", { replace: true });
+    if (hasPendingPlan) {
+      navigate("/app/upgrade", { replace: true });
+    } else {
+      navigate("/app", { replace: true });
+    }
   };
 
   const features = [
@@ -115,6 +148,16 @@ const SetupCompletePage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
+            {/* Pro plan pending message */}
+            {hasPendingPlan && (
+              <div className="mb-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
+                <Crown className="w-5 h-5 text-amber-500" />
+                <span className="text-sm font-semibold text-amber-500">
+                  ¡Un paso más para activar Pro!
+                </span>
+              </div>
+            )}
+
             <div className="flex items-center justify-center gap-2 mb-4">
               <PartyPopper className="w-6 h-6 text-warning" />
               <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -124,12 +167,22 @@ const SetupCompletePage = () => {
             </div>
 
             <h1 className="text-4xl font-bold text-foreground mb-3">
-              ¡Listo! Tu negocio está configurado
+              {hasPendingPlan ? "¡Excelente! Tu negocio está listo" : "¡Listo! Tu negocio está configurado"}
             </h1>
             
             <p className="text-lg text-muted-foreground mb-8">
-              Tu CEO digital ya está analizando tu negocio y preparando recomendaciones personalizadas.
+              {hasPendingPlan 
+                ? "Solo falta activar tu plan Pro para desbloquear todo el poder de VistaCEO."
+                : "Tu CEO digital ya está analizando tu negocio y preparando recomendaciones personalizadas."
+              }
             </p>
+
+            {/* Countdown for Pro redirect */}
+            {hasPendingPlan && countdown !== null && (
+              <div className="mb-6 text-sm text-muted-foreground">
+                Redirigiendo a pago en <span className="font-bold text-amber-500">{countdown}</span> segundos...
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -171,15 +224,32 @@ const SetupCompletePage = () => {
             <Button 
               size="lg" 
               onClick={handleStart}
-              className="w-full h-14 text-lg font-semibold gap-2 group"
+              className={`w-full h-14 text-lg font-semibold gap-2 group ${
+                hasPendingPlan 
+                  ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" 
+                  : ""
+              }`}
             >
-              <Rocket className="w-5 h-5 transition-transform group-hover:-translate-y-0.5" />
-              Empezar a usar Vistaceo
-              <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+              {hasPendingPlan ? (
+                <>
+                  <Zap className="w-5 h-5" />
+                  Activar Pro ahora
+                  <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+                </>
+              ) : (
+                <>
+                  <Rocket className="w-5 h-5 transition-transform group-hover:-translate-y-0.5" />
+                  Empezar a usar Vistaceo
+                  <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+                </>
+              )}
             </Button>
 
             <p className="text-sm text-muted-foreground mt-4">
-              Tu dashboard está listo y esperándote
+              {hasPendingPlan 
+                ? "7 días de garantía. Si no ves valor, te devolvemos el 100%."
+                : "Tu dashboard está listo y esperándote"
+              }
             </p>
           </motion.div>
         )}

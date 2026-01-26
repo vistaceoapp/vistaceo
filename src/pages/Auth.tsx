@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { toast } from "sonner";
-import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, Sparkles, TrendingUp, Target } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, Sparkles, TrendingUp, Target, Crown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,6 +22,18 @@ const Auth = () => {
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // Capture plan intent from URL
+  const planParam = searchParams.get("plan"); // pro_monthly or pro_yearly
+  const pendingPlan = planParam === "pro_monthly" || planParam === "pro_yearly" ? planParam : null;
+
+  // Store pending plan in localStorage
+  useEffect(() => {
+    if (pendingPlan) {
+      localStorage.setItem("pendingPlan", pendingPlan);
+      localStorage.setItem("pendingPlanTimestamp", Date.now().toString());
+    }
+  }, [pendingPlan]);
 
   // Check if user already logged in and redirect
   useEffect(() => {
@@ -147,6 +160,16 @@ const Auth = () => {
                 : "Empieza a mejorar tu negocio hoy"
               }
             </p>
+            
+            {/* Plan badge if coming from pricing */}
+            {pendingPlan && (
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
+                <Crown className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-medium text-amber-500">
+                  Plan seleccionado: {pendingPlan === "pro_yearly" ? "Pro Anual" : "Pro Mensual"}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Google Sign In - PRIMARY */}

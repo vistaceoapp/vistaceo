@@ -1,10 +1,17 @@
 import { Header } from "@/components/landing/Header";
 import { HeroSection } from "@/components/landing/HeroSection";
-import { FeaturesSection } from "@/components/landing/FeaturesSection";
+import { SocialProofBar } from "@/components/landing/SocialProofBar";
+import { ProblemSection } from "@/components/landing/ProblemSection";
+import { SolutionSection } from "@/components/landing/SolutionSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
+import { FreeExperienceSection } from "@/components/landing/FreeExperienceSection";
+import { ProExperienceSection } from "@/components/landing/ProExperienceSection";
+import { ComparisonSection } from "@/components/landing/ComparisonSection";
+import { ROICalculator } from "@/components/landing/ROICalculator";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
-import { CTASection } from "@/components/landing/CTASection";
+import { GuaranteeSection } from "@/components/landing/GuaranteeSection";
+import { FinalCTASection } from "@/components/landing/FinalCTASection";
 import { Footer } from "@/components/landing/Footer";
 import { FloatingParticles } from "@/components/landing/FloatingParticles";
 
@@ -18,11 +25,18 @@ const Index = () => {
       <div className="relative z-10">
         <Header />
         <HeroSection />
-        <FeaturesSection />
+        <SocialProofBar />
+        <ProblemSection />
+        <SolutionSection />
         <HowItWorksSection />
-        <TestimonialsSection />
+        <FreeExperienceSection />
+        <ProExperienceSection />
+        <ComparisonSection />
+        <ROICalculator />
         <PricingSection />
-        <CTASection />
+        <TestimonialsSection />
+        <GuaranteeSection />
+        <FinalCTASection />
         <Footer />
       </div>
     </main>
