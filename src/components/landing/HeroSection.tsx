@@ -122,179 +122,92 @@ export const HeroSection = () => {
             </div>
           </motion.div>
 
-          {/* ULTRA WOW Triple Dashboard Preview */}
+          {/* Premium App Preview - Simple & Clean */}
           <motion.div 
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.6 }}
-            className="flex-1"
+            transition={{ duration: 0.8, delay: 0.5 }}
+            className="relative max-w-4xl mx-auto mt-4"
           >
-            <div className="w-full max-w-6xl mx-auto relative">
-              {/* Glow effect */}
-              <motion.div 
-                animate={{ opacity: [0.3, 0.5, 0.3] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute -inset-8 bg-gradient-to-r from-primary/15 via-accent/15 to-primary/15 rounded-3xl blur-3xl" 
-              />
-              
-              {/* Triple panel layout */}
-              <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 items-start">
-                {/* Left: Radar */}
-                <motion.div
-                  initial={{ opacity: 0, x: -30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.8, duration: 0.6 }}
-                  className="hidden lg:block"
-                >
-                  <MockupRadar />
-                </motion.div>
-
-                {/* Center: Main Dashboard Card */}
-                <div className="lg:col-span-1">
-                  <div className="bg-card/95 backdrop-blur-sm border border-border rounded-2xl shadow-2xl overflow-hidden">
-                    {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/30">
-                      <div className="flex items-center gap-3">
-                        <motion.div 
-                          animate={{ rotate: [0, 5, -5, 0] }}
-                          transition={{ duration: 3, repeat: Infinity }}
-                          className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center"
-                        >
-                          <Zap className="w-4 h-4 text-white" />
-                        </motion.div>
-                        <div>
-                          <div className="text-sm font-semibold text-foreground">{MOCK_BUSINESS.name}</div>
-                          <div className="text-[10px] text-muted-foreground">{MOCK_BUSINESS.type}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-success/10 text-success text-[10px] font-medium">
-                        <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                        En vivo
-                      </div>
-                    </div>
-                    
-                    {/* Health Score */}
-                    <div className="p-4">
-                      <div className="bg-secondary/50 rounded-xl border border-border p-4 mb-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm font-semibold text-foreground">Salud del Negocio</span>
-                          <span className="px-2 py-0.5 rounded-full bg-success/10 text-success text-[10px] font-medium">
-                            {MOCK_BUSINESS.certaintyPct}% certeza
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-4">
-                          <motion.div 
-                            animate={{ scale: [1, 1.02, 1] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                            className="w-20 h-20 rounded-2xl bg-gradient-to-br from-success/20 to-success/10 border-2 border-success/30 flex flex-col items-center justify-center relative"
-                          >
-                            <span className="text-3xl font-bold text-success">{MOCK_BUSINESS.healthScore}</span>
-                            <span className="text-[10px] text-success font-medium">Bueno</span>
-                            <motion.div
-                              animate={{ scale: [1, 1.3, 1] }}
-                              transition={{ duration: 1.5, repeat: Infinity }}
-                              className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-success flex items-center justify-center"
-                            >
-                              <TrendingUp className="w-3 h-3 text-white" />
-                            </motion.div>
-                          </motion.div>
-                          
-                          <div className="flex-1 space-y-2">
-                            {MOCK_BUSINESS.dimensions.map((dim, i) => (
-                              <motion.div 
-                                key={dim.name}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 1 + i * 0.1 }}
-                                className="flex items-center gap-2"
-                              >
-                                <span className="text-xs">{dim.icon}</span>
-                                <span className="text-[10px] text-muted-foreground w-16 truncate">{dim.name}</span>
-                                <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
-                                  <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${dim.score}%` }}
-                                    transition={{ delay: 1.2 + i * 0.1, duration: 0.6 }}
-                                    className="h-full rounded-full"
-                                    style={{ 
-                                      backgroundColor: dim.score >= 80 ? 'hsl(var(--success))' : 
-                                                       dim.score >= 60 ? 'hsl(var(--primary))' : 
-                                                       'hsl(var(--warning))' 
-                                    }}
-                                  />
-                                </div>
-                                <span className="text-[10px] font-medium text-foreground w-6 text-right">{dim.score}</span>
-                              </motion.div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Today's Action */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.3 }}
-                        className="bg-gradient-to-br from-primary/10 via-accent/5 to-transparent rounded-xl border border-primary/20 p-4"
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
-                            <Zap className="w-3.5 h-3.5 text-white" />
-                          </div>
-                          <span className="text-xs text-muted-foreground">Tu acción de hoy</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-destructive/10 text-destructive font-medium">
-                            PRIORIDAD
-                          </span>
-                        </div>
-                        
-                        <h4 className="font-semibold text-foreground text-sm mb-2">
-                          {MOCK_BUSINESS.todayAction.title}
-                        </h4>
-                        
-                        <div className="flex items-center gap-3 text-xs">
-                          <span className="flex items-center gap-1 text-success font-semibold">
-                            <TrendingUp className="w-3.5 h-3.5" />
-                            {MOCK_BUSINESS.todayAction.impact}
-                          </span>
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Clock className="w-3.5 h-3.5" />
-                            {MOCK_BUSINESS.todayAction.time}
-                          </span>
-                        </div>
-                      </motion.div>
-                    </div>
+            {/* Glow effect */}
+            <motion.div 
+              animate={{ opacity: [0.2, 0.4, 0.2] }}
+              transition={{ duration: 4, repeat: Infinity }}
+              className="absolute -inset-10 bg-gradient-to-r from-primary/20 via-accent/15 to-primary/20 rounded-3xl blur-3xl" 
+            />
+            
+            {/* Single elegant preview card */}
+            <div className="relative bg-card/90 backdrop-blur-sm border border-border rounded-2xl shadow-2xl overflow-hidden">
+              {/* Browser-like header */}
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-secondary/40">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-destructive/60" />
+                  <div className="w-3 h-3 rounded-full bg-warning/60" />
+                  <div className="w-3 h-3 rounded-full bg-success/60" />
+                </div>
+                <div className="flex-1 flex justify-center">
+                  <div className="px-4 py-1 rounded-full bg-secondary/60 text-[10px] text-muted-foreground">
+                    app.vistaceo.com
                   </div>
                 </div>
-
-                {/* Right: Missions */}
-                <motion.div
-                  initial={{ opacity: 0, x: 30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.9, duration: 0.6 }}
-                  className="hidden lg:block"
-                >
-                  <MockupMissions />
-                </motion.div>
               </div>
+              
+              {/* Dashboard preview - simplified */}
+              <div className="p-6 bg-gradient-to-b from-secondary/20 to-transparent">
+                <div className="grid grid-cols-3 gap-4 items-center">
+                  {/* Left stat */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 }}
+                    className="text-center p-4 rounded-xl bg-card/60 border border-border"
+                  >
+                    <div className="text-3xl font-bold text-success mb-1">78</div>
+                    <div className="text-xs text-muted-foreground">Salud</div>
+                  </motion.div>
 
-              {/* Mobile: Show panels below */}
-              <div className="lg:hidden grid grid-cols-2 gap-3 mt-4">
+                  {/* Center - Main score with animation */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.8, duration: 0.5 }}
+                    className="text-center"
+                  >
+                    <motion.div 
+                      animate={{ scale: [1, 1.02, 1] }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                      className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary/30 flex flex-col items-center justify-center mb-2"
+                    >
+                      <Zap className="w-8 h-8 text-primary mb-1" />
+                      <span className="text-xs text-primary font-medium">En vivo</span>
+                    </motion.div>
+                    <div className="text-sm font-semibold text-foreground">Analizando</div>
+                  </motion.div>
+
+                  {/* Right stat */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.9 }}
+                    className="text-center p-4 rounded-xl bg-card/60 border border-border"
+                  >
+                    <div className="text-3xl font-bold text-accent mb-1">5</div>
+                    <div className="text-xs text-muted-foreground">Oportunidades</div>
+                  </motion.div>
+                </div>
+
+                {/* Action hint */}
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1 }}
-                  className="transform scale-90 origin-top"
+                  className="mt-4 p-3 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 text-center"
                 >
-                  <MockupRadar />
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.1 }}
-                  className="transform scale-90 origin-top"
-                >
-                  <MockupMissions />
+                  <div className="flex items-center justify-center gap-2 text-sm text-foreground">
+                    <TrendingUp className="w-4 h-4 text-success" />
+                    <span className="font-medium">+$45,000/mes</span>
+                    <span className="text-muted-foreground">potencial detectado</span>
+                  </div>
                 </motion.div>
               </div>
             </div>
