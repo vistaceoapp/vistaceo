@@ -1,4 +1,6 @@
 import { CEOAvatar } from "./CEOAvatar";
+import { ChatQuickActions } from "./ChatQuickActions";
+import { Sparkles } from "lucide-react";
 
 interface ChatWelcomeProps {
   businessName: string;
@@ -6,49 +8,45 @@ interface ChatWelcomeProps {
   disabled?: boolean;
 }
 
-const SUGGESTIONS = [
-  { emoji: "📊", text: "¿Cómo mejorar mis ventas?" },
-  { emoji: "⭐", text: "Analiza mis reseñas" },
-  { emoji: "💡", text: "Ideas de marketing" },
-  { emoji: "💰", text: "¿Cómo reducir costos?" },
-];
-
 export const ChatWelcome = ({
   businessName,
   onSelectSuggestion,
   disabled,
 }: ChatWelcomeProps) => {
   return (
-    <div className="flex flex-col items-center justify-center h-full px-4 py-6">
+    <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 py-8">
       {/* Avatar */}
-      <div className="mb-4">
+      <div className="relative mb-6">
         <CEOAvatar size="lg" />
+        <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+          <Sparkles className="w-3 h-3 text-primary-foreground" />
+        </div>
       </div>
 
-      {/* Greeting */}
-      <h1 className="text-xl md:text-2xl font-bold text-foreground mb-1 text-center">
+      {/* Welcome Text */}
+      <h2 className="text-xl font-semibold text-foreground mb-2 text-center">
         Hola, {businessName.split(" ")[0]}
-      </h1>
-      <p className="text-sm text-muted-foreground text-center mb-6 max-w-xs">
-        Soy tu CEO virtual. ¿En qué puedo ayudarte?
+      </h2>
+      <p className="text-sm text-muted-foreground text-center mb-8 max-w-md leading-relaxed">
+        Soy tu CEO virtual. Estoy aquí para ayudarte a crecer tu negocio con 
+        estrategias personalizadas y acciones concretas.
       </p>
 
-      {/* Quick Suggestions */}
-      <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
-        {SUGGESTIONS.map((s, i) => (
-          <button
-            key={i}
-            onClick={() => !disabled && onSelectSuggestion(s.text)}
-            disabled={disabled}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-left text-sm
-              bg-card/80 border border-border/50 hover:border-primary/40 hover:bg-primary/5
-              transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none"
-          >
-            <span className="text-base">{s.emoji}</span>
-            <span className="text-foreground/90 line-clamp-1">{s.text}</span>
-          </button>
-        ))}
+      {/* Quick Actions Grid */}
+      <div className="w-full max-w-lg">
+        <p className="text-xs text-muted-foreground mb-3 text-center">
+          ¿En qué te puedo ayudar hoy?
+        </p>
+        <ChatQuickActions 
+          onSelectAction={onSelectSuggestion}
+          disabled={disabled}
+        />
       </div>
+
+      {/* Tip */}
+      <p className="text-[11px] text-muted-foreground/60 mt-8 text-center max-w-xs">
+        💡 Tip: También puedes enviar fotos, documentos o notas de voz
+      </p>
     </div>
   );
 };
