@@ -5,7 +5,7 @@ type Theme = "light" | "dark";
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("uceo-theme") as Theme;
+      const stored = localStorage.getItem("vistaceo-theme") as Theme;
       if (stored) return stored;
       // Default to light
       return "light";
@@ -22,7 +22,7 @@ export function useTheme() {
       root.classList.remove("dark");
     }
     
-    localStorage.setItem("uceo-theme", theme);
+    localStorage.setItem("vistaceo-theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {

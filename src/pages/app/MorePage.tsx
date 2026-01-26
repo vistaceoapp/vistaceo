@@ -434,7 +434,7 @@ const MorePage = () => {
               <CardContent className="space-y-4">
                 <div>
                   <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Consultas con UCEO</span>
+                    <span className="text-muted-foreground">Consultas con VistaCEO</span>
                     <span className="font-medium text-foreground">45/100</span>
                   </div>
                   <div className="h-2 bg-secondary rounded-full overflow-hidden">
