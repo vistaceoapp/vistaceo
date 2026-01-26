@@ -97,9 +97,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGoogle = async () => {
     // Check for pending plan and redirect to checkout
     const pendingPlan = localStorage.getItem("pendingPlan");
-    const redirectUrl = pendingPlan 
-      ? `${window.location.origin}/checkout?plan=${pendingPlan}`
-      : `${window.location.origin}/app`;
+    let redirectUrl: string;
+    
+    if (pendingPlan === "pro_monthly" || pendingPlan === "pro_yearly") {
+      redirectUrl = `${window.location.origin}/checkout?plan=${pendingPlan}`;
+    } else {
+      // Default: check if user has business after auth
+      redirectUrl = `${window.location.origin}/auth`;
+    }
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

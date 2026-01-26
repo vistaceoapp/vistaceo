@@ -74,13 +74,13 @@ const AppRoutes = () => {
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
       
-      {/* Checkout - standalone payment page (no setup required) */}
+      {/* Checkout - standalone payment page (requires auth but not setup) */}
       <Route
         path="/checkout"
         element={
-          <AuthProvider>
+          <ProtectedRoute>
             <CheckoutPage />
-          </AuthProvider>
+          </ProtectedRoute>
         }
       />
 

@@ -129,7 +129,14 @@ const Auth = () => {
         // Send welcome email for manual signup
         await sendWelcomeEmail(email, fullName, 'email');
         toast.success("¡Cuenta creada! Bienvenido");
-        navigate("/setup", { replace: true });
+        
+        // Check for pending plan - redirect to checkout if exists
+        const storedPlan = localStorage.getItem("pendingPlan");
+        if (storedPlan === "pro_monthly" || storedPlan === "pro_yearly") {
+          navigate("/checkout", { replace: true });
+        } else {
+          navigate("/setup", { replace: true });
+        }
       }
     } catch (err) {
       toast.error("Algo salió mal. Intenta de nuevo.");
