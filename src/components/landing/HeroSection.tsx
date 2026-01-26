@@ -68,87 +68,57 @@ export const HeroSection = () => {
       <div className="container mx-auto px-4 sm:px-6 relative z-10 flex-1 flex flex-col">
         <div className="max-w-7xl mx-auto text-center flex-1 flex flex-col">
           
-          {/* Live Counter - Premium element */}
-          <div className="flex justify-center mb-8">
-            <LiveCounter targetNumber={500} label="negocios activos ahora" />
+          {/* Live Counter - Compact premium */}
+          <div className="flex justify-center mb-6">
+            <LiveCounter targetNumber={500} label="activos" />
           </div>
 
-          {/* Main headline with rotating text */}
+          {/* Main headline with rotating text - More compact */}
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-[1.1] tracking-tight"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 leading-[1.1] tracking-tight"
           >
             Tu <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
             <br />
-            <span className="text-foreground">que piensa por vos</span>
+            que piensa por vos
           </motion.h1>
 
-          {/* Subheadline - shorter, more impactful */}
+          {/* Subheadline - Ultra short */}
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-lg sm:text-xl md:text-2xl text-muted-foreground mb-6 max-w-2xl mx-auto"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-base sm:text-lg text-muted-foreground mb-5 max-w-lg mx-auto"
           >
-            Detecta oportunidades. Te dice{" "}
-            <span className="text-foreground font-semibold">qué hacer</span>. Cada día.
+            Detecta oportunidades. Acciones claras. <span className="text-foreground font-medium">Resultados reales.</span>
           </motion.p>
 
-          {/* Benefits pills - compact */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="flex flex-wrap justify-center gap-2 mb-6"
-          >
-            {benefits.map((benefit, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 + i * 0.1 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 backdrop-blur-sm border border-border"
-              >
-                <benefit.icon className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">{benefit.text}</span>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* CTA */}
+          {/* CTA - Compact */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="flex flex-col items-center gap-3 mb-8"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col items-center gap-2 mb-6"
           >
             <Button 
               variant="hero" 
-              size="xl" 
-              className="group text-base sm:text-lg px-10 py-6 h-auto shadow-2xl"
+              size="lg" 
+              className="group text-sm sm:text-base px-6 sm:px-8 py-4 sm:py-5 h-auto shadow-xl"
               onClick={() => navigate("/auth")}
             >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Empezar gratis ahora
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              <Sparkles className="w-4 h-4 mr-2" />
+              Empezar gratis
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <CheckCircle2 className="w-4 h-4 text-success" />
-                Sin tarjeta
-              </span>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <CheckCircle2 className="w-3 h-3 text-success" />
+              <span>Sin tarjeta</span>
               <span className="text-border">•</span>
-              <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4 text-primary" />
-                3 min setup
-              </span>
+              <span>3 min</span>
               <span className="text-border">•</span>
-              <span className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-warning" />
-                {!isDetecting && `Pro ${formatCurrencyShort(monthlyPrice)}/mes`}
-              </span>
+              <span>{!isDetecting && `Pro ${formatCurrencyShort(monthlyPrice)}/mes`}</span>
             </div>
           </motion.div>
 
