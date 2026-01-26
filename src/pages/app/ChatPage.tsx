@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, Settings2 } from "lucide-react";
+import { Plus, Settings2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,7 @@ import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
 import { ChatSuggestedQuestions } from "@/components/chat/ChatSuggestedQuestions";
 import { SuggestedQuestionsButton } from "@/components/chat/SuggestedQuestionsButton";
 import { AudioSettings } from "@/components/chat/AudioSettingsPopover";
+import { ProPageGate } from "@/components/app/ProPageGate";
 
 interface MissionSuggestion {
   title: string;
@@ -498,9 +499,20 @@ const ChatPage = () => {
     );
   }
 
-  // Unified Layout (responsive)
+  // Wrap in Pro gate - Free users see upgrade CTA
   return (
-    <>
+    <ProPageGate
+      featureName="Chat con VistaCEO"
+      featureDescription="Tu CEO virtual ultra-inteligente que analiza fotos, documentos y te guía con decisiones estratégicas."
+      features={[
+        "Conversaciones inteligentes con contexto de tu negocio",
+        "Análisis de fotos, documentos y reportes",
+        "Respuestas por voz con ElevenLabs",
+        "Sugerencias proactivas basadas en tus datos",
+        "Historial completo de conversaciones"
+      ]}
+      icon={<MessageCircle className="w-10 h-10 text-primary" />}
+    >
       <LearningNotification isVisible={learningIndicator} />
 
       <div className={cn(
@@ -651,7 +663,7 @@ const ChatPage = () => {
           />
         </div>
       </div>
-    </>
+    </ProPageGate>
   );
 };
 
