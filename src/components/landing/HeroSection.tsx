@@ -82,11 +82,9 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-[1.1] tracking-tight"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-[1.15] tracking-tight"
         >
-          Tu <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
-          <br />
-          que piensa por vos
+          Tu <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" /> que piensa por vos
         </motion.h1>
 
         {/* Subheadline */}
