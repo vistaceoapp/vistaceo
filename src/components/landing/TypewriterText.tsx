@@ -9,14 +9,22 @@ export const TypewriterText = ({ texts, className }: TypewriterTextProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentText, setCurrentText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
+    if (isPaused) return;
+    
     const text = texts[currentIndex];
-    const timeout = isDeleting ? 50 : 100;
+    // Much slower typing speeds
+    const typingSpeed = isDeleting ? 80 : 120;
 
     if (!isDeleting && currentText === text) {
-      // Pause before deleting
-      const pauseTimeout = setTimeout(() => setIsDeleting(true), 2000);
+      // Long pause before deleting (5 seconds)
+      setIsPaused(true);
+      const pauseTimeout = setTimeout(() => {
+        setIsPaused(false);
+        setIsDeleting(true);
+      }, 5000);
       return () => clearTimeout(pauseTimeout);
     }
 
@@ -30,10 +38,10 @@ export const TypewriterText = ({ texts, className }: TypewriterTextProps) => {
       setCurrentText((prev) =>
         isDeleting ? prev.slice(0, -1) : text.slice(0, prev.length + 1)
       );
-    }, timeout);
+    }, typingSpeed);
 
     return () => clearTimeout(timer);
-  }, [currentText, isDeleting, currentIndex, texts]);
+  }, [currentText, isDeleting, currentIndex, texts, isPaused]);
 
   return (
     <span className={className}>

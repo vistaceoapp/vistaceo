@@ -7,7 +7,7 @@ import { MockupRadar } from "./mockups/MockupRadar";
 import { MockupMissions } from "./mockups/MockupMissions";
 import { TypewriterText } from "./TypewriterText";
 import { LiveCounter } from "./LiveCounter";
-import { FloatingTestimonial } from "./FloatingTestimonial";
+
 
 // Rotating words for the headline
 const ROTATING_TEXTS = [
@@ -298,16 +298,6 @@ export const HeroSection = () => {
                 </motion.div>
               </div>
             </div>
-          </motion.div>
-
-          {/* Floating Testimonial */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.5 }}
-            className="mt-8"
-          >
-            <FloatingTestimonial />
           </motion.div>
 
           {/* Scroll indicator */}
