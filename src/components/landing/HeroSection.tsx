@@ -95,12 +95,12 @@ export const HeroSection = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground mb-6 leading-[1.3] tracking-tight px-2"
         >
-          Tu{" "}
-          <span className="inline-block">
-            <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
+          <span className="block sm:inline">Tu </span>
+          <span className="inline-block min-w-[200px] sm:min-w-[280px] md:min-w-[340px] lg:min-w-[420px]">
+            <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary whitespace-nowrap" />
           </span>
-          <br className="sm:hidden" />
-          {" "}que piensa por vos
+          <br className="hidden sm:block" />
+          <span className="block sm:inline"> que piensa por vos</span>
         </motion.h1>
 
         {/* Subheadline */}
