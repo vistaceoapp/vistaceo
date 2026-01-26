@@ -33,7 +33,7 @@ const personalities: PersonalityOption[] = [
   {
     id: "balanceada",
     label: "Balanceada",
-    description: "Predeterminada",
+    description: "Respuestas equilibradas",
     icon: Scale,
     isDefault: true,
     prompt: `IDENTIDAD: Mentor Ejecutivo Equilibrado
