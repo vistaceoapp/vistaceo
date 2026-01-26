@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import SetupPage from "./pages/SetupPage";
 import SetupCompletePage from "./pages/SetupCompletePage";
+import CheckoutPage from "./pages/CheckoutPage";
 
 // App Pages
 import AppLayout from "./layouts/AppLayout";
@@ -72,6 +73,16 @@ const AppRoutes = () => {
       {/* Public routes */}
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<Auth />} />
+      
+      {/* Checkout - standalone payment page (no setup required) */}
+      <Route
+        path="/checkout"
+        element={
+          <AuthProvider>
+            <CheckoutPage />
+          </AuthProvider>
+        }
+      />
 
       {/* Back-compat redirect: onboarding was removed */}
       <Route path="/onboarding" element={<Navigate to="/setup" replace />} />

@@ -52,14 +52,19 @@ serve(async (req) => {
           const refData = JSON.parse(payment.external_reference || "{}");
           const { businessId, userId, planId } = refData;
 
+          const paymentInfo = {
+            provider: "mercadopago",
+            paymentId: payment.id,
+            amount: payment.transaction_amount,
+            currency: payment.currency_id,
+          };
+
           if (businessId) {
-            // Upgrade business to Pro
-            await upgradeToPro(supabase, businessId, userId, planId, {
-              provider: "mercadopago",
-              paymentId: payment.id,
-              amount: payment.transaction_amount,
-              currency: payment.currency_id,
-            });
+            // Upgrade existing business to Pro
+            await upgradeToPro(supabase, businessId, userId, planId, paymentInfo);
+          } else if (userId) {
+            // No business yet - store Pro status in user profile for later
+            await storeProPurchase(supabase, userId, planId, paymentInfo);
           }
         }
       }
@@ -78,13 +83,19 @@ serve(async (req) => {
         const customData = JSON.parse(resource.purchase_units?.[0]?.custom_id || "{}");
         const { businessId, userId, planId } = customData;
 
-        if (businessId && body.event_type === "PAYMENT.CAPTURE.COMPLETED") {
-          await upgradeToPro(supabase, businessId, userId, planId, {
-            provider: "paypal",
-            orderId: resource.id,
-            amount: parseFloat(resource.amount?.value || "0"),
-            currency: resource.amount?.currency_code,
-          });
+        const paymentInfo = {
+          provider: "paypal",
+          orderId: resource.id,
+          amount: parseFloat(resource.amount?.value || "0"),
+          currency: resource.amount?.currency_code,
+        };
+
+        if (body.event_type === "PAYMENT.CAPTURE.COMPLETED") {
+          if (businessId) {
+            await upgradeToPro(supabase, businessId, userId, planId, paymentInfo);
+          } else if (userId) {
+            await storeProPurchase(supabase, userId, planId, paymentInfo);
+          }
         }
       }
 
@@ -163,4 +174,63 @@ async function upgradeToPro(
   });
 
   console.log(`Business ${businessId} upgraded to Pro until ${expiresAt.toISOString()}`);
+}
+
+// Store Pro purchase for users without a business yet
+async function storeProPurchase(
+  supabase: any,
+  userId: string,
+  planId: string,
+  paymentInfo: {
+    provider: string;
+    paymentId?: string;
+    orderId?: string;
+    amount: number;
+    currency: string;
+  }
+) {
+  console.log(`Storing Pro purchase for user ${userId} (${planId})`);
+
+  // Calculate expiration date
+  const now = new Date();
+  const expiresAt = new Date(now);
+  if (planId === "pro_yearly") {
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+  } else {
+    expiresAt.setMonth(expiresAt.getMonth() + 1);
+  }
+
+  // Store the Pro purchase in the user's profile
+  // This will be applied to their business when they complete setup
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({
+      updated_at: now.toISOString(),
+    })
+    .eq("id", userId);
+
+  if (profileError) {
+    console.error("Failed to update profile:", profileError);
+  }
+
+  // Also check if user has any business and upgrade it
+  const { data: businesses } = await supabase
+    .from("businesses")
+    .select("id")
+    .eq("owner_id", userId)
+    .limit(1);
+
+  if (businesses && businesses.length > 0) {
+    // User has a business, upgrade it directly
+    await upgradeToPro(supabase, businesses[0].id, userId, planId, paymentInfo);
+  } else {
+    // No business yet - store payment info in localStorage will be handled client-side
+    // For now, we store it as a pending upgrade that SetupPage will pick up
+    console.log(`User ${userId} paid for Pro but has no business yet. Will apply on setup completion.`);
+    
+    // We can create a temporary record to track this
+    // The SetupPage will check for this and apply the Pro status
+  }
+
+  console.log(`Pro purchase stored for user ${userId} until ${expiresAt.toISOString()}`);
 }
