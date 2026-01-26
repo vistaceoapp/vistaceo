@@ -81,7 +81,7 @@ serve(async (req) => {
         },
         auto_return: "approved",
         external_reference: JSON.stringify({ businessId, userId, planId }),
-        notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook`,
+        notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook?provider=mercadopago`,
       };
 
       const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {

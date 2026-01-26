@@ -21,11 +21,12 @@ const SetupCompletePage = () => {
   const [showContent, setShowContent] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
 
-  // Check for pending plan
+  // Check for pending plan (within 24 hours)
   const pendingPlan = localStorage.getItem("pendingPlan");
   const pendingPlanTimestamp = localStorage.getItem("pendingPlanTimestamp");
   const hasPendingPlan = pendingPlan && pendingPlanTimestamp && 
-    (Date.now() - parseInt(pendingPlanTimestamp)) < 24 * 60 * 60 * 1000; // 24 hours
+    (Date.now() - parseInt(pendingPlanTimestamp)) < 24 * 60 * 60 * 1000 &&
+    (pendingPlan === "pro_monthly" || pendingPlan === "pro_yearly");
 
   useEffect(() => {
     // Trigger confetti celebration with Pro colors if pending plan

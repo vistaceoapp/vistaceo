@@ -28,14 +28,7 @@ const UpgradePage = () => {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<"success" | "failure" | "pending" | null>(null);
-
-  // Check payment status from URL
-  useEffect(() => {
-    const status = searchParams.get("status");
-    if (status === "success" || status === "failure" || status === "pending") {
-      setPaymentStatus(status);
-    }
-  }, [searchParams]);
+  const [autoCheckoutTriggered, setAutoCheckoutTriggered] = useState(false);
 
   const isArgentina = currentBusiness?.country === "AR";
 
@@ -98,12 +91,8 @@ const UpgradePage = () => {
       if (error) throw error;
 
       if (data?.checkoutUrl) {
-        // Open checkout in new tab for security
-        window.open(data.checkoutUrl, "_blank");
-        toast({
-          title: "Checkout iniciado",
-          description: `Se abrió la página de pago de ${data.provider === "mercadopago" ? "MercadoPago" : "PayPal"}`,
-        });
+        // Redirect to checkout (same window for better UX)
+        window.location.href = data.checkoutUrl;
       }
     } catch (error) {
       console.error("Checkout error:", error);
@@ -116,6 +105,40 @@ const UpgradePage = () => {
       setLoading(null);
     }
   };
+
+  // Check payment status from URL
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (status === "success" || status === "failure" || status === "pending") {
+      setPaymentStatus(status);
+      // Clear pending plan on success
+      if (status === "success") {
+        localStorage.removeItem("pendingPlan");
+        localStorage.removeItem("pendingPlanTimestamp");
+      }
+    }
+  }, [searchParams]);
+
+  // Auto-trigger checkout if coming from pending plan
+  useEffect(() => {
+    if (autoCheckoutTriggered || !currentBusiness || paymentStatus || loading) return;
+    
+    const pendingPlan = localStorage.getItem("pendingPlan");
+    const pendingPlanTimestamp = localStorage.getItem("pendingPlanTimestamp");
+    const isValidPlan = pendingPlan && pendingPlanTimestamp && 
+      (Date.now() - parseInt(pendingPlanTimestamp)) < 24 * 60 * 60 * 1000;
+    
+    if (isValidPlan && (pendingPlan === "pro_monthly" || pendingPlan === "pro_yearly")) {
+      setAutoCheckoutTriggered(true);
+      // Clear immediately to prevent re-trigger
+      localStorage.removeItem("pendingPlan");
+      localStorage.removeItem("pendingPlanTimestamp");
+      // Small delay to let the UI render first
+      setTimeout(() => {
+        handleUpgrade(pendingPlan);
+      }, 500);
+    }
+  }, [currentBusiness, autoCheckoutTriggered, paymentStatus, loading]);
 
   // Check if business is already Pro
   const businessSettings = currentBusiness?.settings as Record<string, any> | null;
