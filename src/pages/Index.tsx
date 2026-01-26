@@ -11,6 +11,7 @@ import { ComparisonSection } from "@/components/landing/ComparisonSection";
 import { ROICalculator } from "@/components/landing/ROICalculator";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
+import { FAQSection } from "@/components/landing/FAQSection";
 import { GuaranteeSection } from "@/components/landing/GuaranteeSection";
 import { FinalCTASection } from "@/components/landing/FinalCTASection";
 import { Footer } from "@/components/landing/Footer";
@@ -37,6 +38,7 @@ const Index = () => {
         <ROICalculator />
         <PricingSection />
         <TestimonialsSection />
+        <FAQSection />
         <GuaranteeSection />
         <FinalCTASection />
         <Footer />
