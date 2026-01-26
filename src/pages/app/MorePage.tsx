@@ -51,10 +51,12 @@ import { LanguageSelector } from "@/components/app/LanguageSelector";
 import { IntegrationsPanel } from "@/components/app/IntegrationsPanel";
 import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
 import { FocusSelector } from "@/components/app/FocusSelector";
+import { useSubscription } from "@/hooks/use-subscription";
 
 const MorePage = () => {
   const { user, signOut } = useAuth();
   const { currentBusiness, refreshBusinesses } = useBusiness();
+  const { isPro } = useSubscription();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [profileDialog, setProfileDialog] = useState(false);
@@ -528,7 +530,7 @@ const MorePage = () => {
                   currentMode={userMode}
                   userId={user.id}
                   onModeChange={(mode) => setUserMode(mode)}
-                  isPro={false}  // TODO: Check actual user plan
+                  isPro={isPro}
                 />
               )}
             </div>

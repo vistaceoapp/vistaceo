@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from '@/lib/utils';
 import { useBusiness } from '@/contexts/BusinessContext';
+import { useSubscription } from '@/hooks/use-subscription';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -42,14 +43,12 @@ import { Slider } from '@/components/ui/slider';
 const DiagnosticPage = () => {
   const navigate = useNavigate();
   const { currentBusiness, refreshBusinesses } = useBusiness();
+  const { isPro } = useSubscription();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [setupData, setSetupData] = useState<Record<string, any>>({});
-  
-  // Check if user is PRO (for now, simulate FREE)
-  const isPro = false; // TODO: Replace with actual plan check
   
   // Get business context
   const country = currentBusiness?.country || 'AR';
