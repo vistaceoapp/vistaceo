@@ -90,6 +90,7 @@ const ChatPage = () => {
   // Persist audio settings
   useEffect(() => {
     localStorage.setItem("vistaceo-audio-settings", JSON.stringify(audioSettings));
+    console.log("Audio settings updated:", audioSettings);
   }, [audioSettings]);
 
   // File attachments
