@@ -7,10 +7,11 @@ const corsHeaders = {
 };
 
 interface CheckoutRequest {
-  businessId: string;
+  businessId?: string; // Optional - may not exist before setup
   userId: string;
   planId: "pro_monthly" | "pro_yearly";
   country: string;
+  email?: string;
   currency?: string;
 }
 
@@ -32,11 +33,12 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, userId, planId, country, currency } = await req.json() as CheckoutRequest;
+    const { businessId, userId, planId, country, email } = await req.json() as CheckoutRequest;
 
-    if (!businessId || !userId || !planId) {
+    // Only userId and planId are required - businessId may not exist before setup
+    if (!userId || !planId) {
       return new Response(
-        JSON.stringify({ error: "businessId, userId, and planId are required" }),
+        JSON.stringify({ error: "userId and planId are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -72,15 +74,15 @@ serve(async (req) => {
           currency_id: pricing.currency,
         }],
         payer: {
-          email: "", // Will be filled by MP
+          email: email || "", // Use provided email or MP will fill
         },
         back_urls: {
-          success: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/app/upgrade?status=success`,
-          failure: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/app/upgrade?status=failure`,
-          pending: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/app/upgrade?status=pending`,
+          success: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/checkout?status=success`,
+          failure: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/checkout?status=failure`,
+          pending: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/checkout?status=pending`,
         },
         auto_return: "approved",
-        external_reference: JSON.stringify({ businessId, userId, planId }),
+        external_reference: JSON.stringify({ businessId: businessId || null, userId, planId }),
         notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook?provider=mercadopago`,
       };
 
@@ -155,9 +157,9 @@ serve(async (req) => {
       const orderData = {
         intent: "CAPTURE",
         purchase_units: [{
-          reference_id: `${businessId}_${planId}`,
+          reference_id: `${userId}_${planId}`,
           description: pricing.description,
-          custom_id: JSON.stringify({ businessId, userId, planId }),
+          custom_id: JSON.stringify({ businessId: businessId || null, userId, planId }),
           amount: {
             currency_code: pricing.currency,
             value: pricing.amount.toFixed(2),
@@ -167,8 +169,8 @@ serve(async (req) => {
           brand_name: "VistaCEO",
           landing_page: "BILLING",
           user_action: "PAY_NOW",
-          return_url: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/app/upgrade?status=success`,
-          cancel_url: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/app/upgrade?status=cancelled`,
+          return_url: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/checkout?status=success`,
+          cancel_url: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/checkout?status=cancelled`,
         },
       };
 

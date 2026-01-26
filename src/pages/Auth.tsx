@@ -38,9 +38,14 @@ const Auth = () => {
   // Check if user already logged in and redirect
   useEffect(() => {
     if (user) {
+      // If pending plan, go directly to checkout
+      if (pendingPlan) {
+        navigate("/checkout", { replace: true });
+        return;
+      }
       checkUserAndRedirect();
     }
-  }, [user]);
+  }, [user, pendingPlan]);
 
   const checkUserAndRedirect = async () => {
     if (!user) return;
@@ -52,11 +57,11 @@ const Auth = () => {
       .eq("owner_id", user.id)
       .limit(1);
 
-    if (businesses && businesses.length > 0) {
-      // Has business - go to app (setup gate will redirect to /setup if needed)
+    if (businesses && businesses.length > 0 && businesses[0].setup_completed) {
+      // Has completed business - go to app
       navigate("/app", { replace: true });
     } else {
-      // No business - start intelligent setup
+      // No business or setup not complete - start setup
       navigate("/setup", { replace: true });
     }
   };

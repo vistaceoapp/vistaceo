@@ -95,10 +95,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    // Check for pending plan and include in redirect
+    // Check for pending plan and redirect to checkout
     const pendingPlan = localStorage.getItem("pendingPlan");
     const redirectUrl = pendingPlan 
-      ? `${window.location.origin}/setup-complete`  // Will auto-redirect to upgrade
+      ? `${window.location.origin}/checkout?plan=${pendingPlan}`
       : `${window.location.origin}/app`;
     
     const { error } = await supabase.auth.signInWithOAuth({
