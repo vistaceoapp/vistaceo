@@ -5,53 +5,46 @@ interface CEOAvatarProps {
   size?: "xs" | "sm" | "md" | "lg";
   isThinking?: boolean;
   isSpeaking?: boolean;
-  isListening?: boolean;
   className?: string;
-  showStatus?: boolean;
 }
 
 const sizeMap = {
-  xs: 28,
-  sm: 36,
-  md: 44,
-  lg: 56,
+  xs: 24,
+  sm: 32,
+  md: 40,
+  lg: 52,
 };
 
 export const CEOAvatar = ({
   size = "md",
   isThinking = false,
   isSpeaking = false,
-  isListening = false,
   className,
-  showStatus = false,
 }: CEOAvatarProps) => {
   const dims = sizeMap[size];
 
   const state = useMemo(() => {
     if (isSpeaking) return "speaking";
     if (isThinking) return "thinking";
-    if (isListening) return "listening";
     return "idle";
-  }, [isSpeaking, isThinking, isListening]);
+  }, [isSpeaking, isThinking]);
 
   return (
     <div 
       className={cn("relative flex-shrink-0", className)}
       style={{ width: dims, height: dims }}
     >
-      {/* Glow Layer */}
+      {/* Ambient Glow */}
       <div
-        className={cn(
-          "absolute inset-0 rounded-full blur-md transition-all duration-500",
-          state === "speaking" && "animate-pulse"
-        )}
+        className="absolute inset-0 rounded-full blur-lg opacity-60"
         style={{
-          background: state === "thinking" 
-            ? "radial-gradient(circle, rgba(116,108,230,0.5) 0%, transparent 70%)"
-            : state === "speaking"
-            ? "radial-gradient(circle, rgba(59,184,195,0.6) 0%, transparent 70%)"
-            : "radial-gradient(circle, rgba(38,146,220,0.4) 0%, transparent 70%)",
-          transform: "scale(1.4)",
+          background: "radial-gradient(circle, rgba(38,146,220,0.5) 0%, rgba(116,108,230,0.3) 50%, transparent 70%)",
+          transform: "scale(1.8)",
+          animation: state === "speaking" 
+            ? "ceo-glow-pulse 1s ease-in-out infinite" 
+            : state === "thinking"
+            ? "ceo-glow-think 2s ease-in-out infinite"
+            : "none",
         }}
       />
 
@@ -61,175 +54,165 @@ export const CEOAvatar = ({
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="absolute inset-0 rounded-full border border-[#3BB8C3]/40"
+              className="absolute inset-0 rounded-full"
               style={{
-                animation: `ceo-wave 1.5s ease-out infinite`,
-                animationDelay: `${i * 0.4}s`,
+                border: "1px solid rgba(59,184,195,0.4)",
+                animation: `ceo-wave 1.8s ease-out infinite`,
+                animationDelay: `${i * 0.5}s`,
               }}
             />
           ))}
         </>
       )}
 
-      {/* Main Core */}
+      {/* Main Orb */}
       <div
-        className={cn(
-          "absolute inset-0 rounded-full overflow-hidden",
-          "transition-transform duration-300",
-          state === "thinking" && "animate-[ceo-float_3s_ease-in-out_infinite]",
-          state === "speaking" && "animate-[ceo-pulse_0.8s_ease-in-out_infinite]"
-        )}
+        className="absolute inset-0 rounded-full overflow-hidden"
         style={{
-          background: "linear-gradient(145deg, #2692DC 0%, #3BB8C3 35%, #746CE6 100%)",
+          background: "linear-gradient(135deg, #1a365d 0%, #2692DC 30%, #3BB8C3 50%, #746CE6 100%)",
           boxShadow: `
-            0 0 ${dims * 0.3}px rgba(38,146,220,0.4),
-            inset 0 -${dims * 0.1}px ${dims * 0.2}px rgba(0,0,0,0.2),
-            inset 0 ${dims * 0.05}px ${dims * 0.1}px rgba(255,255,255,0.3)
+            0 4px ${dims * 0.4}px rgba(38,146,220,0.35),
+            inset 0 -${dims * 0.15}px ${dims * 0.25}px rgba(0,0,0,0.25),
+            inset 0 ${dims * 0.08}px ${dims * 0.12}px rgba(255,255,255,0.4)
           `,
+          animation: state === "thinking" 
+            ? "ceo-float 2.5s ease-in-out infinite" 
+            : state === "speaking"
+            ? "ceo-speak-bounce 0.6s ease-in-out infinite"
+            : "none",
         }}
       >
         {/* Glass Highlight */}
         <div
-          className="absolute top-0 left-0 right-0 h-1/2 rounded-t-full"
+          className="absolute top-0 left-1/4 right-1/4 h-1/3 rounded-full"
           style={{
-            background: "linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.05) 100%)",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.1) 100%)",
           }}
         />
 
-        {/* Star Core */}
-        <svg
-          viewBox="0 0 100 100"
-          className="absolute inset-0 w-full h-full"
-        >
-          <defs>
-            <filter id="ceoStarGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          
-          {/* 4-Point Star */}
-          <g 
-            filter="url(#ceoStarGlow)"
-            style={{ 
-              transformOrigin: "50px 50px",
-              animation: state === "thinking" 
-                ? "ceo-star-rotate 4s linear infinite" 
-                : state === "speaking"
-                ? "ceo-star-pulse 0.6s ease-in-out infinite"
-                : "none"
-            }}
-          >
-            <path
-              d="M50 25 L56 44 L75 50 L56 56 L50 75 L44 56 L25 50 L44 44 Z"
-              fill="#ffffff"
-              opacity="0.95"
-            />
-            <circle 
-              cx="50" 
-              cy="50" 
-              r="6" 
-              fill="#ffffff"
-              opacity="0.9"
-            >
-              <animate
-                attributeName="r"
-                values="6;7;6"
-                dur="2s"
-                repeatCount="indefinite"
-              />
-            </circle>
-          </g>
-
-          {/* Thinking Particles */}
-          {state === "thinking" && (
-            <g>
-              <circle cx="35" cy="40" r="2" fill="#ffffff" opacity="0.7">
-                <animate attributeName="cy" values="40;32;40" dur="1.8s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.8s" repeatCount="indefinite" />
-              </circle>
-              <circle cx="65" cy="35" r="1.5" fill="#ffffff" opacity="0.5">
-                <animate attributeName="cy" values="35;28;35" dur="2.2s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.5;0.1;0.5" dur="2.2s" repeatCount="indefinite" />
-              </circle>
-              <circle cx="50" cy="30" r="1.8" fill="#ffffff" opacity="0.6">
-                <animate attributeName="cy" values="30;22;30" dur="1.5s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.6;0.15;0.6" dur="1.5s" repeatCount="indefinite" />
-              </circle>
-            </g>
-          )}
-        </svg>
-
-        {/* Gradient Shimmer */}
+        {/* Inner Gradient Animation */}
         <div
           className="absolute inset-0"
           style={{
-            background: "linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%)",
-            animation: "ceo-shimmer 3s ease-in-out infinite",
+            background: "linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%)",
+            animation: "ceo-shimmer 4s ease-in-out infinite",
           }}
         />
       </div>
 
-      {/* Status Indicator */}
-      {showStatus && state !== "idle" && (
-        <div 
-          className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-background"
-          style={{
-            backgroundColor: state === "speaking" 
-              ? "#3BB8C3" 
-              : state === "thinking" 
-              ? "#746CE6" 
-              : "#2692DC",
-            animation: "ceo-status-pulse 1.5s ease-in-out infinite",
+      {/* Logo Star Core */}
+      <svg
+        viewBox="0 0 100 100"
+        className="absolute inset-0 w-full h-full"
+        style={{
+          filter: "drop-shadow(0 0 4px rgba(255,255,255,0.8))",
+        }}
+      >
+        <defs>
+          <filter id="starGlow" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="2" result="glow" />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* 4-Point Star (Logo) */}
+        <g 
+          filter="url(#starGlow)"
+          style={{ 
+            transformOrigin: "50px 50px",
+            animation: state === "thinking" 
+              ? "ceo-star-rotate 3s linear infinite" 
+              : state === "speaking"
+              ? "ceo-star-pulse 0.5s ease-in-out infinite"
+              : "ceo-star-breathe 4s ease-in-out infinite",
           }}
-        />
-      )}
+        >
+          <path
+            d="M50 22 L56 42 L78 50 L56 58 L50 78 L44 58 L22 50 L44 42 Z"
+            fill="#ffffff"
+            opacity="0.95"
+          />
+          <circle 
+            cx="50" 
+            cy="50" 
+            r="8" 
+            fill="rgba(255,255,255,0.9)"
+          />
+        </g>
+
+        {/* Thinking Particles */}
+        {state === "thinking" && (
+          <g>
+            <circle cx="30" cy="35" r="3" fill="#ffffff" opacity="0.8">
+              <animate attributeName="cy" values="35;25;35" dur="1.5s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.5s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="70" cy="30" r="2" fill="#3BB8C3" opacity="0.7">
+              <animate attributeName="cy" values="30;20;30" dur="1.8s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.7;0.2;0.7" dur="1.8s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="50" cy="25" r="2.5" fill="#746CE6" opacity="0.6">
+              <animate attributeName="cy" values="25;15;25" dur="1.2s" repeatCount="indefinite" />
+              <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.2s" repeatCount="indefinite" />
+            </circle>
+          </g>
+        )}
+      </svg>
 
       {/* CSS Animations */}
       <style>{`
         @keyframes ceo-wave {
-          0% { transform: scale(1); opacity: 0.6; }
-          100% { transform: scale(2); opacity: 0; }
+          0% { transform: scale(1); opacity: 0.5; }
+          100% { transform: scale(2.2); opacity: 0; }
         }
         
         @keyframes ceo-float {
           0%, 100% { transform: translateY(0) scale(1); }
-          50% { transform: translateY(-3px) scale(1.02); }
+          50% { transform: translateY(-2px) scale(1.02); }
         }
         
-        @keyframes ceo-pulse {
+        @keyframes ceo-speak-bounce {
           0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
+          50% { transform: scale(1.04); }
+        }
+        
+        @keyframes ceo-glow-pulse {
+          0%, 100% { opacity: 0.5; transform: scale(1.8); }
+          50% { opacity: 0.8; transform: scale(2); }
+        }
+        
+        @keyframes ceo-glow-think {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.7; }
         }
         
         @keyframes ceo-star-rotate {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% { transform: rotate(0deg) scale(1); }
+          50% { transform: rotate(180deg) scale(0.95); }
+          100% { transform: rotate(360deg) scale(1); }
         }
         
         @keyframes ceo-star-pulse {
           0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.15); }
+          50% { transform: scale(1.12); }
+        }
+        
+        @keyframes ceo-star-breathe {
+          0%, 100% { transform: scale(1); opacity: 0.95; }
+          50% { transform: scale(1.05); opacity: 1; }
         }
         
         @keyframes ceo-shimmer {
-          0%, 100% { transform: translateX(-100%); }
-          50% { transform: translateX(100%); }
-        }
-        
-        @keyframes ceo-status-pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.7; transform: scale(1.15); }
+          0% { transform: translateX(-100%) rotate(45deg); }
+          50% { transform: translateX(100%) rotate(45deg); }
+          100% { transform: translateX(100%) rotate(45deg); }
         }
         
         @media (prefers-reduced-motion: reduce) {
-          .animate-pulse,
-          [style*="animation"] {
-            animation: none !important;
-          }
+          * { animation: none !important; }
         }
       `}</style>
     </div>

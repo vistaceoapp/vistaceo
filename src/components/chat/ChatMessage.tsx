@@ -54,7 +54,7 @@ export const ChatMessage = ({
           <span className="text-sm font-bold">{businessInitial}</span>
         </div>
       ) : (
-        <CEOAvatar size="sm" isSpeaking={isSpeaking} showStatus={false} />
+        <CEOAvatar size="sm" isSpeaking={isSpeaking} />
       )}
 
       {/* Message bubble */}
