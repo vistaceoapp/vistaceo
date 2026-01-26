@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowRight, ArrowLeft, Loader2, Brain, Sparkles, Check } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowRight, ArrowLeft, Loader2, Brain, Sparkles, Check, Crown } from 'lucide-react';
 import { VistaceoLogo } from '@/components/ui/VistaceoLogo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useBusiness } from '@/contexts/BusinessContext';
@@ -59,6 +60,9 @@ const SetupPage = () => {
   const [creatingBusiness, setCreatingBusiness] = useState(false);
   const [createProgress, setCreateProgress] = useState(0);
   
+  // Check if user already has Pro (from pre-setup purchase stored in localStorage)
+  const hasPendingProPurchase = localStorage.getItem('proPurchaseCompleted') === 'true';
+  const showUpgradeButton = !hasPendingProPurchase;
 
   const [data, setData] = useState<SetupData>({
     countryCode: 'AR',
@@ -443,7 +447,22 @@ const SetupPage = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border/50">
         <div className="container max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <VistaceoLogo size={32} variant="full" />
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Upgrade to Pro button - only show if user hasn't paid */}
+            {showUpgradeButton && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/checkout?plan=pro_yearly')}
+                className="gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+              >
+                <Crown className="w-4 h-4" />
+                <span className="hidden sm:inline">{lang === 'pt' ? 'Quero Pro' : 'Quiero Pro'}</span>
+                <Badge variant="secondary" className="bg-primary/10 text-primary text-[10px] px-1.5 py-0">
+                  -17%
+                </Badge>
+              </Button>
+            )}
             {/* Subtle back to auth link - only on first step */}
             {currentStep === 0 && (
               <button
@@ -453,7 +472,7 @@ const SetupPage = () => {
                 {lang === 'pt' ? 'Outra conta' : 'Otra cuenta'}
               </button>
             )}
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-muted-foreground hidden sm:inline">
               {lang === 'pt' ? 'Passo' : 'Paso'} {currentStep + 1} de {totalSteps}
             </span>
             <ThemeToggle />
