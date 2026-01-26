@@ -1,9 +1,7 @@
 import { motion } from "framer-motion";
 import { 
   Home, MessageSquare, Target, Sparkles, BarChart3, 
-  Settings, HelpCircle, Moon, ChevronDown, RefreshCw,
-  TrendingDown, Users, DollarSign, Gauge, TrendingUp,
-  Zap
+  TrendingDown, RefreshCw
 } from "lucide-react";
 
 export const MockupAnalyticsDashboard = () => {
@@ -17,30 +15,31 @@ export const MockupAnalyticsDashboard = () => {
   ];
 
   return (
-    <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border shadow-2xl overflow-hidden w-full">
+    <div className="bg-background rounded-2xl border border-border shadow-2xl overflow-hidden w-full">
       {/* Browser header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-secondary/40">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30">
         <div className="flex gap-1.5">
           <div className="w-3 h-3 rounded-full bg-destructive/60" />
           <div className="w-3 h-3 rounded-full bg-warning/60" />
           <div className="w-3 h-3 rounded-full bg-success/60" />
         </div>
         <div className="flex-1 flex justify-center">
-          <div className="px-4 py-1 rounded-full bg-secondary/60 text-[10px] text-muted-foreground">
+          <div className="px-4 py-1 rounded-full bg-muted text-[10px] text-muted-foreground">
             app.vistaceo.com/analytics
           </div>
         </div>
       </div>
 
       <div className="flex min-h-[450px]">
-        {/* Sidebar */}
-        <div className="w-48 bg-secondary/20 border-r border-border p-3 hidden md:flex flex-col">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="text-lg font-bold text-primary">vistaceo</div>
-          </div>
+        {/* Sidebar - Exact match to real platform */}
+        <div className="w-52 bg-card border-r border-border p-4 hidden md:flex flex-col">
+          {/* Logo */}
+          <div className="text-xl font-bold text-primary mb-6">vistaceo</div>
           
-          <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Principal</div>
+          {/* Navigation label */}
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">Principal</div>
           
+          {/* Navigation items */}
           <div className="space-y-1">
             {[
               { icon: Home, label: "Inicio", sub: "Dashboard principal" },
@@ -51,22 +50,22 @@ export const MockupAnalyticsDashboard = () => {
             ].map((item, i) => (
               <div 
                 key={i}
-                className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
                   item.active 
                     ? 'bg-primary text-primary-foreground' 
-                    : 'text-muted-foreground hover:bg-secondary/50'
+                    : 'text-foreground hover:bg-muted'
                 }`}
               >
-                <item.icon className="w-4 h-4" />
+                <item.icon className="w-5 h-5" />
                 <div className="flex-1">
                   <div className="font-medium">{item.label}</div>
-                  <div className={`text-[9px] ${item.active ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                  <div className={`text-[10px] ${item.active ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                     {item.sub}
                   </div>
                 </div>
                 {item.badge && (
-                  <span className={`px-1.5 py-0.5 rounded text-[8px] ${
-                    item.active ? 'bg-primary-foreground/20' : 'bg-primary/20 text-primary'
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium ${
+                    item.active ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-primary/10 text-primary'
                   }`}>
                     {item.badge}
                   </span>
@@ -74,92 +73,83 @@ export const MockupAnalyticsDashboard = () => {
               </div>
             ))}
           </div>
-
-          <div className="mt-auto space-y-1">
-            <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground">
-              <Zap className="w-4 h-4" />
-              <span>Plan Free</span>
-            </div>
-          </div>
         </div>
 
         {/* Main content */}
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-6 bg-background">
           {/* Alert bar */}
-          <div className="h-1 bg-destructive/80 rounded-t-lg -mx-4 -mt-4 mb-4" />
+          <div className="h-1 bg-destructive rounded-t-lg -mx-6 -mt-6 mb-6" />
           
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold text-foreground">Salud General del Negocio</h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-1 rounded-full bg-secondary text-[10px] text-muted-foreground flex items-center gap-1">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl font-bold text-foreground">Salud General del Negocio</h2>
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1.5 rounded-lg bg-muted text-xs text-muted-foreground flex items-center gap-2">
                 <span>⏱</span> Hoy
               </span>
-              <button className="px-3 py-1.5 rounded-lg border border-border text-xs flex items-center gap-1 hover:bg-secondary">
-                <RefreshCw className="w-3 h-3" />
+              <button className="px-4 py-2 rounded-lg border border-border text-sm flex items-center gap-2 hover:bg-muted transition-colors">
+                <RefreshCw className="w-4 h-4" />
                 Actualizar
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Health Score */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Health Score - Exact match */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
               className="flex flex-col items-center justify-center"
             >
-              <div className="w-32 h-32 rounded-2xl border-4 border-destructive/30 flex flex-col items-center justify-center bg-destructive/5">
+              <div className="w-36 h-36 rounded-2xl border-4 border-destructive/40 flex flex-col items-center justify-center bg-destructive/5">
                 <motion.div 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.4, type: "spring" }}
-                  className="text-4xl font-bold text-destructive"
+                  className="text-5xl font-bold text-destructive"
                 >
                   38
                 </motion.div>
-                <TrendingDown className="w-4 h-4 text-destructive" />
-                <span className="text-xs font-medium text-destructive mt-1">Crítico</span>
+                <TrendingDown className="w-5 h-5 text-destructive mt-1" />
+                <span className="text-sm font-medium text-destructive mt-2">Crítico</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">Requiere atención urgente</p>
-              <span className="text-xs text-destructive mt-1">-3 pts vs anterior</span>
+              <p className="text-base text-muted-foreground mt-4">Requiere atención urgente</p>
+              <span className="text-sm text-destructive mt-1">-3 pts vs anterior</span>
             </motion.div>
 
-            {/* Radar Chart Placeholder */}
+            {/* Radar Chart - 7 dimensions matching real platform */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3 }}
               className="flex items-center justify-center"
             >
-              <div className="relative w-40 h-40">
-                {/* Radar background */}
-                <div className="absolute inset-0 border border-border/30 rounded-full" />
-                <div className="absolute inset-4 border border-border/30 rounded-full" />
-                <div className="absolute inset-8 border border-border/30 rounded-full" />
+              <div className="relative w-48 h-48">
+                {/* Radar background circles */}
+                <div className="absolute inset-0 border border-border/40 rounded-full" />
+                <div className="absolute inset-6 border border-border/40 rounded-full" />
+                <div className="absolute inset-12 border border-border/40 rounded-full" />
                 
                 {/* Radar shape */}
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
                   <polygon
-                    points="50,25 75,35 70,65 50,80 30,65 25,35"
-                    fill="hsl(var(--primary) / 0.2)"
+                    points="50,30 70,38 68,62 50,75 32,62 30,38"
+                    fill="hsl(var(--primary) / 0.25)"
                     stroke="hsl(var(--primary))"
-                    strokeWidth="1"
+                    strokeWidth="2"
                   />
                 </svg>
                 
-                {/* Labels */}
+                {/* Labels - 7 dimensions */}
                 {["Tráfico", "Rentabilidad", "Equipo", "Finanzas", "Eficiencia", "Crecimiento", "Reputación"].map((label, i) => {
                   const angle = (i * 360 / 7 - 90) * (Math.PI / 180);
-                  const x = 50 + 45 * Math.cos(angle);
-                  const y = 50 + 45 * Math.sin(angle);
+                  const x = 50 + 48 * Math.cos(angle);
+                  const y = 50 + 48 * Math.sin(angle);
                   return (
                     <span
                       key={label}
-                      className="absolute text-[8px] text-muted-foreground"
+                      className="absolute text-[10px] text-muted-foreground font-medium"
                       style={{
                         left: `${x}%`,
                         top: `${y}%`,
@@ -174,35 +164,35 @@ export const MockupAnalyticsDashboard = () => {
             </motion.div>
           </div>
 
-          {/* Dimension Cards */}
-          <div className="grid grid-cols-2 gap-2 mt-4">
+          {/* Dimension Cards - Exact match to real platform */}
+          <div className="grid grid-cols-2 gap-3">
             {dimensions.map((dim, i) => (
               <motion.div
                 key={dim.name}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + i * 0.1 }}
-                className={`p-2 rounded-lg border-l-2 ${
-                  dim.status === "Crítico" ? "border-l-destructive bg-destructive/5" : "border-l-warning bg-warning/5"
+                className={`p-4 rounded-xl border-l-4 bg-card ${
+                  dim.status === "Crítico" ? "border-l-destructive" : "border-l-warning"
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">{dim.icon}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">{dim.icon}</span>
                     <div>
-                      <div className="text-xs font-medium text-foreground flex items-center gap-1">
+                      <div className="text-sm font-medium text-foreground flex items-center gap-2">
                         {dim.name}
-                        <TrendingDown className="w-3 h-3 text-destructive" />
+                        <TrendingDown className="w-4 h-4 text-destructive" />
                       </div>
-                      <div className="text-[9px] text-muted-foreground">Descripción breve</div>
+                      <div className="text-xs text-muted-foreground">Descripción breve</div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className={`text-lg font-bold ${dim.color}`}>{dim.score}</div>
-                    <span className={`text-[8px] px-1.5 py-0.5 rounded ${
+                    <div className={`text-2xl font-bold ${dim.color}`}>{dim.score}</div>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-medium ${
                       dim.status === "Crítico" 
-                        ? "bg-destructive/20 text-destructive" 
-                        : "bg-warning/20 text-warning"
+                        ? "bg-destructive/15 text-destructive" 
+                        : "bg-warning/15 text-warning"
                     }`}>
                       {dim.status}
                     </span>
