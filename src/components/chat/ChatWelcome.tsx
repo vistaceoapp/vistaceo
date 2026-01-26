@@ -52,7 +52,7 @@ export const ChatWelcome = ({
       <div className="text-center mb-8 animate-fade-in">
         {/* CEO Avatar */}
         <div className="flex justify-center mb-5">
-          <CEOAvatar size="xl" />
+          <CEOAvatar size="lg" />
         </div>
 
         {/* Greeting */}

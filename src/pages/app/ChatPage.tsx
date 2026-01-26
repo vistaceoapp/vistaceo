@@ -398,7 +398,7 @@ const ChatPage = () => {
   if (!currentBusiness) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-        <CEOAvatar size="xl" />
+        <CEOAvatar size="lg" />
         <h2 className="text-2xl font-bold text-foreground mb-3 mt-6">Tu CEO virtual</h2>
         <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
           Tu mentor ejecutivo para gestionar tu negocio de manera inteligente.
