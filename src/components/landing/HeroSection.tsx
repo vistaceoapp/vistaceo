@@ -3,11 +3,8 @@ import { ArrowRight, Sparkles, TrendingUp, Brain, Target, Zap, CheckCircle2, Sta
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useCountryDetection } from "@/hooks/use-country-detection";
-import { MockupRadar } from "./mockups/MockupRadar";
-import { MockupMissions } from "./mockups/MockupMissions";
 import { TypewriterText } from "./TypewriterText";
 import { LiveCounter } from "./LiveCounter";
-
 
 // Rotating words for the headline
 const ROTATING_TEXTS = [
@@ -17,24 +14,15 @@ const ROTATING_TEXTS = [
   "estratega IA",
 ];
 
-// Mockup data for the live dashboard preview
-const MOCK_BUSINESS = {
-  name: "Café Aurora",
-  type: "Cafetería Premium",
-  healthScore: 78,
-  certaintyPct: 72,
-  dimensions: [
-    { name: "Crecimiento", score: 82, icon: "📈" },
-    { name: "Reputación", score: 91, icon: "⭐" },
-    { name: "Eficiencia", score: 74, icon: "⚡" },
-    { name: "Finanzas", score: 68, icon: "💰" },
-  ],
-  todayAction: {
-    title: "Optimizar horario de sábados",
-    impact: "+$45,000/mes",
-    time: "15 min",
-  },
-};
+// Floating stats for background
+const FLOATING_STATS = [
+  { text: "+48% facturación", position: "top-[20%] left-[8%]", delay: 0 },
+  { text: "12 misiones completadas", position: "top-[35%] right-[5%]", delay: 0.5 },
+  { text: "+23% clientes nuevos", position: "bottom-[40%] left-[5%]", delay: 1 },
+  { text: "Salud: 87 pts", position: "top-[15%] right-[12%]", delay: 1.5 },
+  { text: "5 oportunidades detectadas", position: "bottom-[25%] right-[8%]", delay: 2 },
+  { text: "-15% costos operativos", position: "bottom-[55%] left-[10%]", delay: 2.5 },
+];
 
 export const HeroSection = () => {
   const navigate = useNavigate();
@@ -65,7 +53,30 @@ export const HeroSection = () => {
         style={{ background: 'radial-gradient(circle, hsl(var(--accent) / 0.2) 0%, transparent 70%)' }} 
       />
 
-      <div className="relative z-10 text-center max-w-3xl mx-auto">
+      {/* Floating Stats Background - Hidden on mobile for cleaner look */}
+      <div className="absolute inset-0 pointer-events-none hidden md:block">
+        {FLOATING_STATS.map((stat, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ 
+              opacity: [0, 0.6, 0.4, 0.6],
+              y: [20, 0, -5, 0]
+            }}
+            transition={{ 
+              duration: 4, 
+              repeat: Infinity,
+              delay: stat.delay,
+              ease: "easeInOut"
+            }}
+            className={`absolute ${stat.position} px-3 py-1.5 rounded-full bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg`}
+          >
+            <span className="text-xs font-medium text-muted-foreground">{stat.text}</span>
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="relative z-10 text-center max-w-4xl mx-auto">
         
         {/* Live Counter - Compact premium */}
         <motion.div 
@@ -77,14 +88,16 @@ export const HeroSection = () => {
           <LiveCounter targetNumber={500} label="activos" />
         </motion.div>
 
-        {/* Main headline with rotating text */}
+        {/* Main headline with rotating text - Fixed spacing */}
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-[1.15] tracking-tight"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-[1.2] tracking-tight"
         >
-          Tu <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" /> que piensa por vos
+          <span className="block sm:inline">Tu </span>
+          <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
+          <span className="block sm:inline"> que piensa por vos</span>
         </motion.h1>
 
         {/* Subheadline */}
