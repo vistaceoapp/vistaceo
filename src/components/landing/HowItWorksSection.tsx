@@ -2,53 +2,69 @@ import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { MockupDashboard, MockupCheckin, MockupActionCard, MockupMission } from "./mockups";
 
 const steps = [
   {
     number: "01",
     title: "Configurás en 3 minutos",
-    description: "Elegí tu tipo de negocio y país. VistaCEO se adapta automáticamente.",
+    description: "Elegí tu tipo de negocio y país. VistaCEO se adapta automáticamente a tu realidad.",
     details: [
       "Sin tarjeta de crédito",
       "+180 tipos de negocio",
-      "Soporte multi-país",
+      "Restaurantes, clínicas, tiendas, servicios...",
     ],
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop",
+    mockup: "dashboard",
   },
   {
     number: "02",
-    title: "VistaCEO aprende tu negocio",
-    description: "Respondés check-ins rápidos de 10 segundos. La IA conecta los puntos.",
+    title: "Respondés check-ins de 10 segundos",
+    description: "Sin complicaciones. Tocás cómo te fue hoy, y VistaCEO conecta los puntos por vos.",
     details: [
-      "Check-ins de 10 segundos",
-      "Funciona sin integraciones",
-      "Análisis inteligente automático",
+      "Un toque: excelente, normal o flojo",
+      "Notas opcionales rápidas",
+      "Funciona sin ninguna integración",
     ],
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop",
+    mockup: "checkin",
   },
   {
     number: "03",
     title: "Recibís tu acción del día",
-    description: "Cada mañana, una acción concreta con impacto real. Sin ruido.",
+    description: "Cada mañana, una acción concreta con impacto real. Personalizada para tu negocio.",
     details: [
-      "Priorizada por impacto",
-      "Con pasos claros",
-      "Tiempo estimado incluido",
+      "Priorizada por impacto económico",
+      "Con pasos claros y tiempo estimado",
+      "Basada en TUS datos, no genérica",
     ],
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop",
+    mockup: "action",
   },
   {
     number: "04",
-    title: "Ejecutás y crecés",
-    description: "Marcás como hecho, VistaCEO aprende. Cada día más inteligente.",
+    title: "Ejecutás, aprendés, crecés",
+    description: "Marcás como hecho, VistaCEO aprende qué funciona. Misiones estratégicas para crecer.",
     details: [
       "Memoria de lo que funciona",
-      "Mejora continua",
-      "Resultados medibles",
+      "Misiones con objetivos claros",
+      "Resultados medibles semana a semana",
     ],
-    image: "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=600&h=400&fit=crop",
+    mockup: "mission",
   },
 ];
+
+const renderMockup = (type: string) => {
+  switch (type) {
+    case "dashboard":
+      return <MockupDashboard />;
+    case "checkin":
+      return <MockupCheckin />;
+    case "action":
+      return <MockupActionCard />;
+    case "mission":
+      return <MockupMission />;
+    default:
+      return null;
+  }
+};
 
 export const HowItWorksSection = () => {
   const navigate = useNavigate();
@@ -79,7 +95,7 @@ export const HowItWorksSection = () => {
         </motion.div>
 
         {/* Steps */}
-        <div className="max-w-6xl mx-auto space-y-24">
+        <div className="max-w-6xl mx-auto space-y-32">
           {steps.map((step, index) => (
             <motion.div
               key={step.number}
@@ -91,24 +107,28 @@ export const HowItWorksSection = () => {
                 index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"
               } gap-8 lg:gap-16 items-center`}
             >
-              {/* Image */}
-              <div className="flex-1 w-full">
-                <div className="relative group">
+              {/* Mockup */}
+              <div className="flex-1 w-full flex justify-center">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                  className="relative"
+                >
                   {/* Glow */}
-                  <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute -inset-8 bg-gradient-to-r from-primary/20 to-accent/20 rounded-3xl blur-2xl opacity-50" />
                   
-                  <div className="relative overflow-hidden rounded-2xl border border-border shadow-2xl">
-                    <img 
-                      src={step.image} 
-                      alt={step.title}
-                      className="w-full h-64 sm:h-80 object-cover transform group-hover:scale-105 transition-transform duration-700"
-                    />
-                    {/* Overlay with step number */}
-                    <div className="absolute top-4 right-4 w-14 h-14 rounded-xl gradient-primary flex items-center justify-center font-bold text-lg text-white shadow-lg">
-                      {step.number}
-                    </div>
+                  {/* Step number badge */}
+                  <div className="absolute -top-4 -left-4 w-12 h-12 rounded-xl gradient-primary flex items-center justify-center font-bold text-lg text-white shadow-lg z-10">
+                    {step.number}
                   </div>
-                </div>
+                  
+                  {/* Mockup component */}
+                  <div className="relative">
+                    {renderMockup(step.mockup)}
+                  </div>
+                </motion.div>
               </div>
 
               {/* Content */}
@@ -154,6 +174,9 @@ export const HowItWorksSection = () => {
             Empezar gratis ahora
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
+          <p className="text-sm text-muted-foreground mt-4">
+            Sin tarjeta • Configuración en 3 minutos • Valor desde el día 1
+          </p>
         </motion.div>
       </div>
     </section>
