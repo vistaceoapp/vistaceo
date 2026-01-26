@@ -53,15 +53,17 @@ const CheckoutPage = () => {
     }
   }, [user, authLoading, navigate, planId]);
 
-  const prices = country?.prices || { monthly: 29, yearly: 299 };
-  const currency = country?.currency || "USD";
-  const symbol = country?.symbol || "$";
+  // Use clean pricing based on country
+  const monthlyPrice = isArgentina ? 29999 : 29;
+  const yearlyPrice = isArgentina ? 299999 : 299;
+  const currencyCode = isArgentina ? "ARS" : "USD";
+  const currencySymbol = isArgentina ? "$" : "$";
 
   const formatDisplayPrice = (amount: number) => {
-    if (currency === "ARS") {
-      return `${symbol}${amount.toLocaleString("es-AR")}`;
+    if (isArgentina) {
+      return `${currencySymbol}${amount.toLocaleString("es-AR")}`;
     }
-    return `${symbol}${amount.toLocaleString()}`;
+    return `${currencySymbol}${amount.toLocaleString()}`;
   };
 
   const handleCheckout = async () => {
@@ -225,9 +227,9 @@ const CheckoutPage = () => {
                 {/* Price */}
                 <div className="text-center pb-4 border-b border-border/50">
                   <div className="text-4xl font-bold text-foreground">
-                    {formatDisplayPrice(isYearly ? prices.yearly : prices.monthly)}
-                    <span className="text-lg font-normal text-muted-foreground ml-1">
-                      {currency}
+                    {formatDisplayPrice(isYearly ? yearlyPrice : monthlyPrice)}
+                    <span className="text-lg font-normal text-muted-foreground ml-2">
+                      {currencyCode}
                     </span>
                   </div>
                   <p className="text-muted-foreground">

@@ -32,11 +32,26 @@ const UpgradePage = () => {
 
   const isArgentina = currentBusiness?.country === "AR";
 
+  // Clean pricing display function
+  const formatCleanPrice = (amount: number, currency: string) => {
+    if (currency === "ARS") {
+      return `$${amount.toLocaleString("es-AR")}`;
+    }
+    return `$${amount}`;
+  };
+
+  // Get prices based on country
+  const monthlyPrice = isArgentina ? 29999 : 29;
+  const yearlyPrice = isArgentina ? 299999 : 299;
+  const yearlySavings = isArgentina ? 59989 : 49;
+  const currency = isArgentina ? "ARS" : "USD";
+
   const plans = [
     {
       id: "pro_monthly",
       name: "Pro Mensual",
-      price: isArgentina ? "$29.999 ARS" : "$29 USD",
+      price: formatCleanPrice(monthlyPrice, currency),
+      currency,
       period: "/mes",
       popular: false,
       features: [
@@ -51,10 +66,11 @@ const UpgradePage = () => {
     {
       id: "pro_yearly",
       name: "Pro Anual",
-      price: isArgentina ? "$299.999 ARS" : "$299 USD",
+      price: formatCleanPrice(yearlyPrice, currency),
+      currency,
       period: "/año",
       popular: true,
-      savings: isArgentina ? "Ahorrás $59.989 (2 meses gratis)" : "Save $49 (2 months free)",
+      savings: `Ahorrás ${formatCleanPrice(yearlySavings, currency)} (2 meses gratis)`,
       features: [
         "Todo lo del plan mensual",
         "2 meses gratis incluidos",
@@ -316,6 +332,7 @@ const UpgradePage = () => {
                 <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
                 <div className="flex items-baseline gap-1 mt-2">
                   <span className="text-3xl font-bold text-foreground">{plan.price}</span>
+                  <span className="text-sm text-muted-foreground ml-1">{plan.currency}</span>
                   <span className="text-muted-foreground">{plan.period}</span>
                 </div>
                 {plan.savings && (
