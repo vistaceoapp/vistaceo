@@ -88,19 +88,17 @@ export const HeroSection = () => {
           <LiveCounter targetNumber={500} label="activos" />
         </motion.div>
 
-        {/* Main headline with rotating text - Fixed for no truncation */}
+        {/* Main headline with rotating text */}
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground mb-6 leading-[1.3] tracking-tight px-2"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground mb-6 leading-tight tracking-tight"
         >
-          <span className="block sm:inline">Tu </span>
-          <span className="inline-block min-w-[200px] sm:min-w-[280px] md:min-w-[340px] lg:min-w-[420px]">
-            <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary whitespace-nowrap" />
+          <span className="block">
+            Tu <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
           </span>
-          <br className="hidden sm:block" />
-          <span className="block sm:inline"> que piensa por vos</span>
+          <span className="block">que piensa por vos</span>
         </motion.h1>
 
         {/* Subheadline */}
@@ -123,21 +121,13 @@ export const HeroSection = () => {
           <Button 
             variant="hero" 
             size="lg" 
-            className="group text-base sm:text-lg px-8 sm:px-10 py-5 sm:py-6 h-auto shadow-xl"
+            className="group text-base sm:text-lg px-10 sm:px-12 py-6 h-auto shadow-xl"
             onClick={() => navigate("/auth")}
           >
             <Sparkles className="w-5 h-5 mr-2" />
             Empezar gratis
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CheckCircle2 className="w-4 h-4 text-success" />
-            <span>Sin tarjeta</span>
-            <span className="text-border">•</span>
-            <span>3 min setup</span>
-            <span className="text-border">•</span>
-            <span>{!isDetecting && `Pro ${formatCurrencyShort(monthlyPrice)}/mes`}</span>
-          </div>
         </motion.div>
       </div>
 
