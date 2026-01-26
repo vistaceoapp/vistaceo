@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
-import { MockupAnalyticsDashboard } from "./mockups/MockupAnalyticsDashboard";
-import { MockupMissionsView } from "./mockups/MockupMissionsView";
+import { MockupHealthDashboard } from "./mockups/MockupHealthDashboard";
 
 export const SystemPreviewSection = () => {
   return (
@@ -27,31 +26,17 @@ export const SystemPreviewSection = () => {
           </p>
         </motion.div>
 
-        {/* Analytics Dashboard Preview */}
+        {/* Health Dashboard Preview - Exact replica */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.1 }}
-          className="max-w-5xl mx-auto mb-12"
-        >
-          <MockupAnalyticsDashboard />
-          <p className="mt-4 text-sm text-muted-foreground text-center">
-            <span className="font-medium text-foreground">Salud del Negocio</span> — Diagnóstico en 7 dimensiones con radar visual
-          </p>
-        </motion.div>
-
-        {/* Missions View Preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2 }}
           className="max-w-5xl mx-auto"
         >
-          <MockupMissionsView />
+          <MockupHealthDashboard />
           <p className="mt-4 text-sm text-muted-foreground text-center">
-            <span className="font-medium text-foreground">Misiones Guiadas</span> — Plan de acción paso a paso con métricas de impacto
+            <span className="font-medium text-foreground">Salud del Negocio</span> — Diagnóstico en 7 dimensiones con radar visual y métricas detalladas
           </p>
         </motion.div>
       </div>

@@ -2,6 +2,9 @@ import { Check, ArrowRight, Brain, Radar, Target, TrendingUp, Zap, Lightbulb, Se
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { MockupCEOChat } from "./mockups/MockupCEOChat";
+import { MockupRadarExternal } from "./mockups/MockupRadarExternal";
+import { MockupRadarInternal } from "./mockups/MockupRadarInternal";
 
 const steps = [
   {
@@ -84,6 +87,57 @@ export const HowItWorksSection = () => {
           <p className="text-lg text-muted-foreground">
             Un sistema que diagnostica, detecta oportunidades y te guía paso a paso.
           </p>
+        </motion.div>
+
+        {/* Intelligence Mockups - 3 mockups in a row */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-7xl mx-auto mb-20"
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* CEO Chat Mockup */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="lg:col-span-2"
+            >
+              <MockupCEOChat />
+              <p className="mt-3 text-sm text-muted-foreground text-center">
+                <span className="font-medium text-foreground">CEO Chat</span> — Tu mentor estratégico con personalidades ajustables
+              </p>
+            </motion.div>
+
+            {/* Radar Mockups stacked */}
+            <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+              >
+                <MockupRadarExternal />
+                <p className="mt-3 text-sm text-muted-foreground text-center">
+                  <span className="font-medium text-foreground">Radar Externo</span> — Tendencias I+D del mercado
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <MockupRadarInternal />
+                <p className="mt-3 text-sm text-muted-foreground text-center">
+                  <span className="font-medium text-foreground">Radar Interno</span> — Diagnóstico de TU negocio
+                </p>
+              </motion.div>
+            </div>
+          </div>
         </motion.div>
 
         {/* Steps Grid */}
