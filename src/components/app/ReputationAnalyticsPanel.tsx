@@ -57,7 +57,7 @@ interface ReputationAnalysis {
 }
 
 interface PlatformIntegration {
-  platform: "google" | "instagram" | "facebook" | "web";
+  platform: "google" | "instagram" | "facebook";
   connected: boolean;
   status?: string; // "connected", "error", "pending"
   metadata?: Record<string, any>;
@@ -66,8 +66,9 @@ interface PlatformIntegration {
   avgRating?: number;
 }
 
-// Plataformas principales (mostradas prominentemente)
-const MAIN_PLATFORMS: Array<PlatformIntegration["platform"]> = ["google", "instagram", "facebook", "web"];
+// Plataformas principales: Google Reviews + Meta (Instagram/Facebook)
+// Web Analytics removido temporalmente
+const MAIN_PLATFORMS: Array<PlatformIntegration["platform"]> = ["google", "instagram", "facebook"];
 
 // Helper para verificar si está conectado (puede ser "connected" o "active")
 const isConnectedStatus = (status: string) => status === "connected" || status === "active";
@@ -129,7 +130,6 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
         google: { platform: "google", connected: false },
         instagram: { platform: "instagram", connected: false },
         facebook: { platform: "facebook", connected: false },
-        web: { platform: "web", connected: false },
       };
 
       if (integrations) {
@@ -162,15 +162,8 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
               metadata: meta,
               lastSync: integration.last_sync_at,
             };
-          } else if (integration.integration_type === "web_analytics") {
-            platformMap.web = {
-              platform: "web",
-              connected: isConnectedStatus(integration.status),
-              status: integration.status,
-              metadata: meta,
-              lastSync: integration.last_sync_at,
-            };
           }
+          // Web Analytics removido temporalmente
         }
       }
       
@@ -331,14 +324,8 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
         { label: "Seguidores", value: formatNumber(platform.metadata.followers_count || 0), icon: <Users className="w-3 h-3" /> },
         { label: "Reseñas", value: platform.metadata.review_count || 0, icon: <MessageSquare className="w-3 h-3" /> },
       ];
-    } else if (platform.platform === "web" && platform.metadata) {
-      data.metrics.mainScore = platform.metadata.conversion_rate || 0;
-      data.metrics.secondary = [
-        { label: "Visitas", value: formatNumber(platform.metadata.visitors || 0), icon: <Eye className="w-3 h-3" /> },
-        { label: "Carrito→Compra", value: `${platform.metadata.cart_to_purchase || 0}%`, icon: <BarChart3 className="w-3 h-3" /> },
-        { label: "Comentarios", value: platform.metadata.comments_count || 0, icon: <MessageSquare className="w-3 h-3" /> },
-      ];
     }
+    // Web Analytics removido temporalmente
     return data;
   };
 

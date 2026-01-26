@@ -61,11 +61,7 @@ const platformInfo: Record<PlatformType, {
     oauthSupported: true,
     requiresMetaGuide: true,
   },
-  web: {
-    name: "Tu Web / Ecommerce",
-    description: "Agrega un script de tracking a tu sitio web para monitorear visitas, conversiones y comportamiento.",
-    oauthSupported: false,
-  },
+  // Web Analytics removido temporalmente
 };
 
 export const PlatformConnectModal = ({
@@ -318,102 +314,6 @@ export const PlatformConnectModal = ({
                 Estamos trabajando para agregar esta integración pronto.
               </p>
             </div>
-          ) : platform === "web" ? (
-            <>
-              {!trackingScript ? (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="website">URL de tu sitio web</Label>
-                    <Input
-                      id="website"
-                      placeholder="https://tusitio.com"
-                      value={websiteUrl}
-                      onChange={(e) => {
-                        let value = e.target.value;
-                        // Auto-add https:// if missing
-                        if (value && !value.startsWith("http://") && !value.startsWith("https://")) {
-                          value = "https://" + value;
-                        }
-                        setWebsiteUrl(value);
-                      }}
-                    />
-                  </div>
-                  
-                  <div className="bg-secondary/50 rounded-lg p-3">
-                    <p className="text-xs text-muted-foreground">
-                      <strong>¿Qué trackearemos?</strong>
-                      <br />• Visitas y páginas vistas
-                      <br />• Clics y formularios
-                      <br />• Carritos y compras (ecommerce)
-                      <br />• Comentarios y engagement
-                    </p>
-                  </div>
-
-                  <Button 
-                    className="w-full" 
-                    onClick={handleWebAnalyticsSetup}
-                    disabled={loading || !websiteUrl}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Generando script...
-                      </>
-                    ) : (
-                      <>
-                        <Globe className="w-4 h-4 mr-2" />
-                        Generar script de tracking
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="bg-success/10 border border-success/30 rounded-lg p-3 text-center">
-                    <Check className="w-6 h-6 text-success mx-auto mb-2" />
-                    <p className="text-sm font-medium text-success">¡Script generado!</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Tu script de tracking</Label>
-                    <div className="relative">
-                      <pre className="bg-secondary rounded-lg p-3 text-xs overflow-x-auto max-h-32">
-                        {trackingScript}
-                      </pre>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="absolute top-2 right-2"
-                        onClick={copyScript}
-                      >
-                        {copied ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="bg-primary/10 rounded-lg p-3">
-                    <p className="text-xs text-muted-foreground">
-                      <strong>Instrucciones:</strong>
-                      <br />1. Copia el script de arriba
-                      <br />2. Pégalo antes de {"</head>"} en tu sitio
-                      <br />3. Los datos comenzarán a aparecer en 24h
-                    </p>
-                  </div>
-
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    Listo
-                  </Button>
-                </div>
-              )}
-            </>
           ) : info.requiresMetaGuide ? (
             renderMetaContent()
           ) : (
