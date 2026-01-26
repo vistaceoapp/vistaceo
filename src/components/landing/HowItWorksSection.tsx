@@ -99,13 +99,14 @@ export const HowItWorksSection = () => {
           viewport={{ once: true }}
           className="max-w-7xl mx-auto mb-20"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
-            {/* CEO Chat */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+            {/* CEO Chat - 2/3 width */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
+              className="lg:col-span-2"
             >
               <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
                 <img 
@@ -119,12 +120,13 @@ export const HowItWorksSection = () => {
               </p>
             </motion.div>
 
-            {/* Radar Externo */}
+            {/* Radar Externo - 1/3 width */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.15 }}
+              className="lg:col-span-1"
             >
               <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
                 <img 
@@ -138,12 +140,13 @@ export const HowItWorksSection = () => {
               </p>
             </motion.div>
 
-            {/* Misiones */}
+            {/* Misiones - 2/3 width */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
+              className="lg:col-span-2"
             >
               <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
                 <img 
@@ -157,12 +160,13 @@ export const HowItWorksSection = () => {
               </p>
             </motion.div>
 
-            {/* Radar Interno */}
+            {/* Radar Interno - 1/3 width */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.25 }}
+              className="lg:col-span-1"
             >
               <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
                 <img 
@@ -172,7 +176,7 @@ export const HowItWorksSection = () => {
                 />
               </div>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground text-center">
-                <span className="font-medium text-foreground">Radar Interno</span> — Diagnóstico de TU negocio
+                <span className="font-medium text-foreground">Radar Interno</span> — Diagnóstico
               </p>
             </motion.div>
           </div>
