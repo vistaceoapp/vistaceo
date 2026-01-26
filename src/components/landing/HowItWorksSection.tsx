@@ -99,84 +99,82 @@ export const HowItWorksSection = () => {
           viewport={{ once: true }}
           className="max-w-7xl mx-auto mb-20"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left column - CEO Chat + Misiones stacked */}
-            <div className="space-y-6">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-              >
-                <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
-                  <img 
-                    src={ceoChatImg} 
-                    alt="VistaCEO - CEO Chat" 
-                    className="w-full h-auto"
-                  />
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground text-center">
-                  <span className="font-medium text-foreground">CEO Chat</span> — Tu mentor estratégico con personalidades ajustables
-                </p>
-              </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+            {/* CEO Chat */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
+                <img 
+                  src={ceoChatImg} 
+                  alt="VistaCEO - CEO Chat" 
+                  className="w-full h-auto"
+                />
+              </div>
+              <p className="mt-2 text-xs sm:text-sm text-muted-foreground text-center">
+                <span className="font-medium text-foreground">CEO Chat</span> — Mentor estratégico
+              </p>
+            </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.25 }}
-              >
-                <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
-                  <img 
-                    src={misionesImg} 
-                    alt="VistaCEO - Misiones" 
-                    className="w-full h-auto"
-                  />
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground text-center">
-                  <span className="font-medium text-foreground">Misiones</span> — Guía paso a paso con métricas de impacto
-                </p>
-              </motion.div>
-            </div>
+            {/* Radar Externo */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.15 }}
+            >
+              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
+                <img 
+                  src={radarExternoImg} 
+                  alt="VistaCEO - Radar Externo I+D" 
+                  className="w-full h-auto"
+                />
+              </div>
+              <p className="mt-2 text-xs sm:text-sm text-muted-foreground text-center">
+                <span className="font-medium text-foreground">Radar Externo</span> — Tendencias I+D
+              </p>
+            </motion.div>
 
-            {/* Right column - Radars stacked */}
-            <div className="space-y-6">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
-                  <img 
-                    src={radarExternoImg} 
-                    alt="VistaCEO - Radar Externo I+D" 
-                    className="w-full h-auto"
-                  />
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground text-center">
-                  <span className="font-medium text-foreground">Radar Externo</span> — Tendencias I+D del mercado
-                </p>
-              </motion.div>
+            {/* Misiones */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
+                <img 
+                  src={misionesImg} 
+                  alt="VistaCEO - Misiones" 
+                  className="w-full h-auto"
+                />
+              </div>
+              <p className="mt-2 text-xs sm:text-sm text-muted-foreground text-center">
+                <span className="font-medium text-foreground">Misiones</span> — Guía paso a paso
+              </p>
+            </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-              >
-                <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
-                  <img 
-                    src={radarInternoImg} 
-                    alt="VistaCEO - Radar Interno" 
-                    className="w-full h-auto"
-                  />
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground text-center">
-                  <span className="font-medium text-foreground">Radar Interno</span> — Diagnóstico de TU negocio
-                </p>
-              </motion.div>
-            </div>
+            {/* Radar Interno */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.25 }}
+            >
+              <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
+                <img 
+                  src={radarInternoImg} 
+                  alt="VistaCEO - Radar Interno" 
+                  className="w-full h-auto"
+                />
+              </div>
+              <p className="mt-2 text-xs sm:text-sm text-muted-foreground text-center">
+                <span className="font-medium text-foreground">Radar Interno</span> — Diagnóstico de TU negocio
+              </p>
+            </motion.div>
           </div>
         </motion.div>
 
