@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MockupDashboard } from "./mockups/MockupDashboard";
+import { MockupFullDashboard } from "./mockups/MockupFullDashboard";
 import { MockupRadar } from "./mockups/MockupRadar";
 import { MockupMissions } from "./mockups/MockupMissions";
 
@@ -28,22 +28,22 @@ export const SystemPreviewSection = () => {
           </p>
         </motion.div>
 
-        {/* Mockups Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {/* Dashboard */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="flex flex-col items-center"
-          >
-            <MockupDashboard />
-            <p className="mt-4 text-sm text-muted-foreground text-center">
-              <span className="font-medium text-foreground">Salud del Negocio</span> — Score en tiempo real
-            </p>
-          </motion.div>
+        {/* Full Dashboard Preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="max-w-4xl mx-auto mb-12"
+        >
+          <MockupFullDashboard />
+          <p className="mt-4 text-sm text-muted-foreground text-center">
+            <span className="font-medium text-foreground">Dashboard completo</span> — Tu negocio en tiempo real
+          </p>
+        </motion.div>
 
+        {/* Secondary Mockups Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {/* Radar */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -64,7 +64,7 @@ export const SystemPreviewSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="flex flex-col items-center md:col-span-2 lg:col-span-1"
+            className="flex flex-col items-center"
           >
             <MockupMissions />
             <p className="mt-4 text-sm text-muted-foreground text-center">
