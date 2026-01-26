@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useCountryDetection } from "@/hooks/use-country-detection";
 import mercadopagoLogo from "@/assets/payment/mercadopago-logo.png";
-import paypalLogo from "@/assets/payment/paypal-logo.svg";
+import paypalLogo from "@/assets/payment/paypal-logo.png";
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
