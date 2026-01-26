@@ -700,7 +700,56 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
     result.userReply = rawResponse.trim();
   }
 
+  // CRITICAL: Auto-generate audio script if missing but we have userReply
+  // This ensures TTS always works even if the model forgets the audio block
+  if (!result.audioScript && result.userReply) {
+    result.audioScript = generateAudioScriptFromReply(result.userReply);
+    console.log("Auto-generated audio script from userReply");
+  }
+
   return result;
+}
+
+// Generate a natural audio script from the markdown reply
+function generateAudioScriptFromReply(userReply: string): string {
+  // Remove markdown formatting for natural speech
+  let script = userReply
+    // Remove headers
+    .replace(/#{1,6}\s*/g, "")
+    // Remove bold/italic markers
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/_([^_]+)_/g, "$1")
+    // Remove bullet points and replace with natural pauses
+    .replace(/^[-•*]\s*/gm, "... ")
+    // Remove numbered lists
+    .replace(/^\d+\.\s*/gm, "... ")
+    // Remove links
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    // Remove code blocks
+    .replace(/```[\s\S]*?```/g, "")
+    .replace(/`([^`]+)`/g, "$1")
+    // Clean up multiple spaces and newlines
+    .replace(/\n{2,}/g, "... ")
+    .replace(/\n/g, " ")
+    .replace(/\s{2,}/g, " ")
+    // Remove emojis for cleaner speech
+    .replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, "")
+    .trim();
+
+  // Limit length for TTS (max ~500 chars for reasonable audio length)
+  if (script.length > 600) {
+    // Find a good cut point
+    const cutPoint = script.lastIndexOf(".", 550);
+    if (cutPoint > 300) {
+      script = script.substring(0, cutPoint + 1);
+    } else {
+      script = script.substring(0, 550) + "...";
+    }
+  }
+
+  return script;
 }
 
 // =====================
