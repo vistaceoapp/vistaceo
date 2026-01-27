@@ -520,8 +520,8 @@ const LandingV3 = () => {
         )}
       </motion.header>
 
-      {/* ============= HERO ============= */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-20 pb-16 md:pt-28 md:pb-20 overflow-hidden">
+      {/* ============= HERO ULTRA - Business Cases First ============= */}
+      <section ref={heroRef} className="relative min-h-screen flex flex-col pt-20 overflow-hidden">
         {/* Enhanced animated background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div 
@@ -534,164 +534,196 @@ const LandingV3 = () => {
             transition={{ duration: 12, repeat: Infinity, delay: 2 }}
             className="absolute bottom-0 -right-1/4 w-[60%] h-[50%] bg-accent/20 rounded-full blur-[150px]" 
           />
-          <motion.div 
-            animate={{ scale: [1, 1.3, 1], opacity: [0.05, 0.15, 0.05] }}
-            transition={{ duration: 8, repeat: Infinity, delay: 4 }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" 
-          />
         </div>
 
+        {/* Hero Content - Centered */}
         <motion.div 
           style={{ opacity: heroOpacity, scale: heroScale }}
-          className="container mx-auto px-4 relative z-10"
+          className="container mx-auto px-4 relative z-10 flex-1 flex flex-col justify-center py-8"
         >
-          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-              {/* Left: Text content */}
+          <div className="max-w-7xl mx-auto w-full">
+            {/* Top: Hero Text + CTA - Compact */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="text-center mb-10"
+            >
               <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className="text-center lg:text-left"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="mb-5"
               >
-                {/* Animated badge */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
+                <Badge 
+                  variant="outline" 
+                  className="px-4 py-2 border-primary/40 bg-primary/10 backdrop-blur-sm"
                 >
-                  <Badge 
-                    variant="outline" 
-                    className="mb-6 px-4 py-2 border-primary/40 bg-primary/10 backdrop-blur-sm"
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                   >
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                    >
-                      <Sparkles className="w-4 h-4 mr-2 text-primary" />
-                    </motion.div>
-                    <span className="text-sm font-medium">+500 negocios creciendo con IA</span>
-                  </Badge>
-                </motion.div>
-                
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-[1.05] tracking-tight">
-                  Tu negocio
-                  <br />
-                  merece un{" "}
-                  <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
-                </h1>
-                
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-lg md:text-xl text-muted-foreground mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed"
+                    <Sparkles className="w-4 h-4 mr-2 text-primary" />
+                  </motion.div>
+                  <span className="text-sm font-medium">+500 negocios creciendo con IA</span>
+                </Badge>
+              </motion.div>
+              
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 leading-[1.05] tracking-tight">
+                Tu negocio merece un{" "}
+                <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
+              </h1>
+              
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"
+              >
+                Inteligencia artificial que <span className="text-foreground font-semibold">diagnostica</span>, <span className="text-foreground font-semibold">planifica</span> y <span className="text-foreground font-semibold">ejecuta</span>.
+              </motion.p>
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="flex justify-center mb-8"
+              >
+                <ShimmerButton
+                  className="px-10 py-4 text-lg"
+                  onClick={() => navigate("/auth")}
                 >
-                  Inteligencia artificial que <span className="text-foreground font-semibold">diagnostica</span>, <span className="text-foreground font-semibold">planifica</span> y <span className="text-foreground font-semibold">ejecuta</span> para hacer crecer tu negocio.
-                </motion.p>
-                
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-10"
-                >
-                  <ShimmerButton
-                    className="w-full sm:w-auto px-10 py-4 text-lg"
-                    onClick={() => navigate("/auth")}
-                  >
-                    Empezar gratis ahora
-                    <ArrowRight className="w-5 h-5" />
-                  </ShimmerButton>
-                </motion.div>
+                  Empezar gratis ahora
+                  <ArrowRight className="w-5 h-5" />
+                </ShimmerButton>
+              </motion.div>
+            </motion.div>
 
-                {/* Enhanced Stats with icons */}
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                  className="grid grid-cols-2 sm:grid-cols-4 gap-3"
-                >
-                  {stats.map((stat, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.9 + i * 0.1 }}
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      className="p-3 rounded-xl bg-card/50 border border-border/50 backdrop-blur-sm text-center lg:text-left"
-                    >
-                      <div className="flex items-center gap-2 mb-1 justify-center lg:justify-start">
-                        <stat.icon className="w-4 h-4 text-primary" />
-                        <span className="text-xl md:text-2xl font-bold text-foreground">
-                          <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                        </span>
-                      </div>
-                      <div className="text-xs text-muted-foreground">{stat.label}</div>
-                    </motion.div>
-                  ))}
-                </motion.div>
+            {/* Diverse Business Cases Gallery - THE WOW FACTOR */}
+            <motion.div
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.4 }}
+              className="relative"
+            >
+              {/* Section label */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="text-center mb-6"
+              >
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Negocios reales • Resultados reales
+                </span>
               </motion.div>
 
-              {/* Right: Real Dashboard Mockup with enhanced effects */}
-              <motion.div
-                initial={{ opacity: 0, y: 60, rotateY: -8 }}
-                animate={{ opacity: 1, y: 0, rotateY: 0 }}
-                transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
-                className="relative perspective-1000"
-              >
-                <div className="relative">
-                  {/* Animated glow effect */}
-                  <motion.div 
-                    className="absolute -inset-6 bg-gradient-to-r from-primary/40 via-accent/30 to-primary/40 rounded-3xl blur-3xl"
-                    animate={{ opacity: [0.4, 0.7, 0.4], scale: [0.95, 1.05, 0.95] }}
-                    transition={{ duration: 4, repeat: Infinity }}
-                  />
-                  
-                  {/* Browser frame with enhanced styling */}
-                  <motion.div 
-                    className="relative bg-card/95 backdrop-blur-xl rounded-2xl border border-border/80 shadow-2xl shadow-primary/10 overflow-hidden"
-                    whileHover={{ y: -5 }}
-                    transition={{ duration: 0.3 }}
+              {/* Business showcase carousel */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                {testimonials.map((t, i) => (
+                  <motion.div
+                    key={t.business}
+                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
+                    whileHover={{ scale: 1.03, y: -5 }}
+                    className="group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer"
                   >
-                    <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                      <div className="flex gap-1.5">
-                        <motion.div whileHover={{ scale: 1.2 }} className="w-3 h-3 rounded-full bg-destructive/70" />
-                        <motion.div whileHover={{ scale: 1.2 }} className="w-3 h-3 rounded-full bg-accent/70" />
-                        <motion.div whileHover={{ scale: 1.2 }} className="w-3 h-3 rounded-full bg-primary/70" />
+                    {/* Business Photo Background */}
+                    <img 
+                      src={t.image} 
+                      alt={t.business}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    
+                    {/* Gradient Overlay */}
+                    <div className={cn(
+                      "absolute inset-0 bg-gradient-to-t opacity-80 group-hover:opacity-90 transition-opacity",
+                      t.gradient ? `${t.gradient.replace('from-', 'from-').replace('to-', 'via-')} to-black/90` : "from-primary via-primary/60 to-black/90"
+                    )} />
+                    
+                    {/* Content */}
+                    <div className="absolute inset-0 p-3 md:p-4 flex flex-col justify-between text-white">
+                      {/* Top: Type badge */}
+                      <div>
+                        <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[10px] font-medium">
+                          <span className="truncate max-w-[80px]">{t.type.split(' / ')[0]}</span>
+                        </div>
                       </div>
-                      <div className="flex-1 flex justify-center">
-                        <div className="px-4 py-1.5 rounded-full bg-background/60 text-xs text-muted-foreground border border-border/50 flex items-center gap-2">
-                          <LockKeyhole className="w-3 h-3" />
-                          app.vistaceo.com
+                      
+                      {/* Bottom: Info */}
+                      <div>
+                        {/* Growth metric - prominent */}
+                        <motion.div 
+                          className="mb-2"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.8 + i * 0.1 }}
+                        >
+                          <div className="text-2xl md:text-3xl font-bold tracking-tight">
+                            {t.metrics.growth}
+                          </div>
+                          <div className="text-[10px] md:text-xs text-white/80">
+                            en {t.metrics.months} meses
+                          </div>
+                        </motion.div>
+                        
+                        {/* Business name */}
+                        <div className="text-xs md:text-sm font-semibold truncate">
+                          {t.business}
+                        </div>
+                        <div className="text-[10px] text-white/70 truncate">
+                          {t.location.split(',')[0]}
                         </div>
                       </div>
                     </div>
-                    <div className="p-4 bg-gradient-to-br from-secondary/30 to-background">
-                      <MockupProDashboard business="argentina" />
-                    </div>
+
+                    {/* Hover: System preview peek */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileHover={{ opacity: 1, y: 0 }}
+                      className="absolute inset-x-3 bottom-3 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                    >
+                      <div className="bg-card/95 backdrop-blur-xl rounded-lg p-2 border border-border/50 shadow-xl">
+                        <div className="flex items-center gap-2 text-[10px]">
+                          <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                            <Activity className="w-3 h-3 text-primary" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-foreground">Salud: {t.metrics.health} pts</div>
+                            <div className="text-muted-foreground">{t.metrics.missions} misiones</div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
                   </motion.div>
-                  
-                  {/* Floating badge */}
+                ))}
+              </div>
+
+              {/* Stats row below */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2 }}
+                className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6"
+              >
+                {stats.map((stat, i) => (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 1.5, type: "spring" }}
-                    className="absolute -bottom-4 -right-4 bg-card border border-border rounded-xl p-3 shadow-xl"
+                    key={i}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    className="p-3 md:p-4 rounded-xl bg-card/60 border border-border/50 backdrop-blur-sm text-center"
                   >
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
-                        <TrendingUp className="w-4 h-4 text-success" />
-                      </div>
-                      <div>
-                        <div className="text-xs text-muted-foreground">Este mes</div>
-                        <div className="text-sm font-bold text-success">+28% ventas</div>
-                      </div>
+                    <div className="flex items-center gap-2 justify-center mb-1">
+                      <stat.icon className="w-4 h-4 text-primary" />
+                      <span className="text-xl md:text-2xl font-bold text-foreground">
+                        <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                      </span>
                     </div>
+                    <div className="text-xs text-muted-foreground">{stat.label}</div>
                   </motion.div>
-                </div>
+                ))}
               </motion.div>
-            </div>
+            </motion.div>
           </div>
         </motion.div>
 
@@ -716,6 +748,180 @@ const LandingV3 = () => {
             </motion.div>
           </motion.div>
         </motion.div>
+      </section>
+
+      {/* ============= SYSTEM SHOWCASE - Deep Dive ============= */}
+      <section className="py-16 md:py-24 relative overflow-hidden bg-gradient-to-b from-background via-secondary/5 to-background">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/5">
+              <Brain className="w-4 h-4 mr-2" />
+              El Sistema en Acción
+            </Badge>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              Así se ve <span className="text-gradient-primary">tu negocio</span> con VistaCEO
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Dashboard inteligente, misiones accionables y radar de oportunidades en tiempo real.
+            </p>
+          </motion.div>
+
+          {/* Featured Business Deep Dive */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-6xl mx-auto"
+          >
+            {/* Business Context Header */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-8">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="flex items-center gap-4"
+              >
+                <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg">
+                  <img src={parrillaImg} alt="Parrilla Don Martín" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                </div>
+                <div className="text-left">
+                  <div className="text-lg md:text-xl font-bold text-foreground">Parrilla Don Martín</div>
+                  <div className="text-sm text-muted-foreground">Buenos Aires, Argentina</div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className="bg-success/10 text-success border-success/20 text-xs">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      +28% ventas
+                    </Badge>
+                  </div>
+                </div>
+              </motion.div>
+
+              <div className="hidden md:block w-px h-12 bg-border" />
+              
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="flex items-center gap-4"
+              >
+                <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg">
+                  <img src={boutiqueImg} alt="Boutique Carmela" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                </div>
+                <div className="text-left">
+                  <div className="text-lg md:text-xl font-bold text-foreground">Boutique Carmela</div>
+                  <div className="text-sm text-muted-foreground">Ciudad de México, México</div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className="bg-success/10 text-success border-success/20 text-xs">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      +45% ventas
+                    </Badge>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Product Tabs with Real Mockups */}
+            <div className="bg-card/50 backdrop-blur-xl rounded-3xl border border-border/50 shadow-2xl overflow-hidden">
+              {/* Tab Headers */}
+              <div className="flex overflow-x-auto border-b border-border bg-muted/30">
+                {productTabs.map((tab, i) => (
+                  <motion.button
+                    key={tab.id}
+                    whileHover={{ backgroundColor: "hsl(var(--muted))" }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setActiveTab(i)}
+                    className={cn(
+                      "flex-1 min-w-[140px] flex items-center justify-center gap-2 px-4 py-4 md:py-5 transition-all relative font-medium text-sm md:text-base",
+                      activeTab === i ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <tab.icon className="w-4 h-4 md:w-5 md:h-5" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    {activeTab === i && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                      />
+                    )}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-4 md:p-8">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="text-center mb-6">
+                      <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">
+                        {productTabs[activeTab].label}
+                      </h3>
+                      <p className="text-muted-foreground max-w-xl mx-auto">
+                        {productTabs[activeTab].description}
+                      </p>
+                    </div>
+                    
+                    {/* Browser frame */}
+                    <div className="relative">
+                      <motion.div 
+                        className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-accent/15 to-primary/20 rounded-3xl blur-2xl opacity-60"
+                        animate={{ opacity: [0.4, 0.6, 0.4] }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                      />
+                      <div className="relative bg-card rounded-2xl border border-border shadow-xl overflow-hidden">
+                        <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40">
+                          <div className="flex gap-1.5">
+                            <div className="w-3 h-3 rounded-full bg-destructive/70" />
+                            <div className="w-3 h-3 rounded-full bg-accent/70" />
+                            <div className="w-3 h-3 rounded-full bg-primary/70" />
+                          </div>
+                          <div className="flex-1 flex justify-center">
+                            <div className="px-4 py-1.5 rounded-full bg-background/60 text-xs text-muted-foreground border border-border/50 flex items-center gap-2">
+                              <LockKeyhole className="w-3 h-3" />
+                              app.vistaceo.com/{productTabs[activeTab].id}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-4 bg-gradient-to-br from-secondary/20 to-background">
+                          {productTabs[activeTab].component}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* CTA after showcase */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mt-10"
+            >
+              <ShimmerButton
+                className="px-10 py-4 text-lg"
+                onClick={() => navigate("/auth")}
+              >
+                Quiero esto para mi negocio
+                <ArrowRight className="w-5 h-5" />
+              </ShimmerButton>
+            </motion.div>
+          </motion.div>
+        </div>
       </section>
 
       {/* ============= HOW IT WORKS ============= */}
