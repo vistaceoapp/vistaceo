@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 
 // Real mockup components (100% real system UI) - Pro users
 import { MockupProDashboard } from "@/components/landing/mockups/MockupProDashboard";
+import { MockupFullDashboard } from "@/components/landing/mockups/MockupFullDashboard";
 import { MockupProMissions } from "@/components/landing/mockups/MockupProMissions";
 import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
 import { MockupProChat } from "@/components/landing/mockups/MockupProChat";
@@ -229,7 +230,7 @@ const LandingV3 = () => {
       label: "Dashboard", 
       icon: BarChart3,
       description: "Visualiza la salud de tu negocio en 7 dimensiones con métricas en tiempo real.",
-      component: <MockupProDashboard business="argentina" />
+      component: <MockupFullDashboard business="argentina" />
     },
     { 
       id: "missions", 
