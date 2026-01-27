@@ -62,6 +62,7 @@ interface UseBrainResult {
   refreshBrain: () => Promise<void>;
   updateFocus: (focus: string, secondaryFocus?: string) => Promise<void>;
   recordSignal: (signalType: string, content: Record<string, unknown>, source: string) => Promise<void>;
+  recordDismissal: (itemType: 'opportunity' | 'learning_item', itemId: string, conceptHash: string | null, intentSignature: string | null, reason?: string, feedback?: string) => Promise<void>;
 }
 
 const FOCUS_LABELS: Record<string, string> = {
@@ -256,6 +257,43 @@ export const useBrain = (): UseBrainResult => {
     }
   }, [currentBusiness, fetchBrainData]);
 
+  // COGNITIVE OS v5: Record dismissed opportunity/learning item
+  const recordDismissal = useCallback(async (
+    itemType: 'opportunity' | 'learning_item',
+    itemId: string,
+    conceptHash: string | null,
+    intentSignature: string | null,
+    reason: string = 'dismissed',
+    feedback?: string
+  ) => {
+    if (!currentBusiness) return;
+
+    const signalType = itemType === 'opportunity' 
+      ? 'radar_item_dismissed' 
+      : 'learning_item_dismissed';
+
+    try {
+      await supabase.functions.invoke("brain-record-signal", {
+        body: {
+          businessId: currentBusiness.id,
+          signalType,
+          content: {
+            [`${itemType}Id`]: itemId,
+            concept_hash: conceptHash,
+            intent_signature: intentSignature,
+            reason,
+            feedback,
+          },
+          source: 'radar',
+        }
+      });
+      
+      console.log(`[use-brain] Recorded dismissal for ${itemType}: ${conceptHash}`);
+    } catch (err) {
+      console.error("Error recording dismissal:", err);
+    }
+  }, [currentBusiness]);
+
   // Initial fetch
   useEffect(() => {
     fetchBrainData();
@@ -291,6 +329,7 @@ export const useBrain = (): UseBrainResult => {
     refreshBrain: fetchBrainData,
     updateFocus,
     recordSignal,
+    recordDismissal,
   };
 };
 

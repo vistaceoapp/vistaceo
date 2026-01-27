@@ -270,7 +270,7 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, opportunityId } = await req.json();
+    const { businessId, opportunityId, regenerate = false, version = 1 } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -288,7 +288,40 @@ serve(async (req) => {
       throw new Error("Missing required parameters");
     }
 
-    console.log(`[generate-opportunity-plan] Generating for business ${businessId}, opportunity ${opportunityId}`);
+    console.log(`[generate-opportunity-plan] Request for business ${businessId}, opportunity ${opportunityId}, regenerate=${regenerate}`);
+
+    // COGNITIVE OS v5: Check for existing pre-generated plan
+    if (opportunityId && !regenerate) {
+      const { data: opportunity } = await supabase
+        .from("opportunities")
+        .select("ai_plan_json, title")
+        .eq("id", opportunityId)
+        .single();
+
+      if (opportunity?.ai_plan_json && Object.keys(opportunity.ai_plan_json).length > 0) {
+        console.log(`[generate-opportunity-plan] Using cached ai_plan_json for "${opportunity.title}"`);
+        return new Response(JSON.stringify({ 
+          plan: opportunity.ai_plan_json, 
+          success: true,
+          cached: true,
+          version: opportunity.ai_plan_json.version || 1
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // If regenerate requested, check version limit
+    if (regenerate && version > 3) {
+      console.log(`[generate-opportunity-plan] Max regenerations (3) reached for opportunity ${opportunityId}`);
+      return new Response(JSON.stringify({ 
+        error: "Máximo de regeneraciones alcanzado (3)",
+        success: false 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const context = await fetchOpportunityContext(supabase, businessId, opportunityId);
     
@@ -297,7 +330,19 @@ serve(async (req) => {
     }
 
     const userPrompt = buildPrompt(context);
-    console.log(`[generate-opportunity-plan] Context built, ${userPrompt.length} chars`);
+    
+    // Add regeneration context if applicable
+    let systemPrompt = SYSTEM_PROMPT;
+    if (regenerate && version > 1) {
+      systemPrompt += `\n\n## REGENERACIÓN v${version}
+Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
+- Usá una estrategia COMPLETAMENTE distinta a la anterior
+- Si antes era gradual, ahora hacelo más directo
+- Si antes era conservador, ahora podés ser más audaz
+- Cambiá el orden de prioridades`;
+    }
+
+    console.log(`[generate-opportunity-plan] Generating new plan v${version}, ${userPrompt.length} chars`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -308,10 +353,10 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        temperature: 0.7,
+        temperature: regenerate ? 0.85 : 0.7, // Higher temp for regeneration = more variety
       }),
     });
 
@@ -365,9 +410,36 @@ serve(async (req) => {
       };
     }
 
-    console.log(`[generate-opportunity-plan] Generated plan with ${plan.steps?.length || 0} steps`);
+    // Add metadata
+    plan.version = version;
+    plan.generated_at = new Date().toISOString();
+    plan.based_on_context_hash = context.brain?.id || businessId;
 
-    return new Response(JSON.stringify({ plan, success: true }), {
+    // COGNITIVE OS v5: Persist the generated plan to the opportunity
+    if (opportunityId) {
+      const { error: updateError } = await supabase
+        .from("opportunities")
+        .update({ 
+          ai_plan_json: plan,
+          quality_gate_score: plan.confidence === 'high' ? 90 : plan.confidence === 'medium' ? 70 : 50
+        })
+        .eq("id", opportunityId);
+
+      if (updateError) {
+        console.error("[generate-opportunity-plan] Failed to persist plan:", updateError);
+      } else {
+        console.log(`[generate-opportunity-plan] Persisted plan v${version} to opportunity ${opportunityId}`);
+      }
+    }
+
+    console.log(`[generate-opportunity-plan] Generated plan v${version} with ${plan.steps?.length || 0} steps`);
+
+    return new Response(JSON.stringify({ 
+      plan, 
+      success: true,
+      cached: false,
+      version
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
