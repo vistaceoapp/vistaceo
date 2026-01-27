@@ -11,3 +11,4 @@ export { MockupHealthDashboard } from './MockupHealthDashboard';
 export { MockupRadarExternal } from './MockupRadarExternal';
 export { MockupRadarInternal } from './MockupRadarInternal';
 export { MockupCEOChat } from './MockupCEOChat';
+export { MockupProAnalytics } from './MockupProAnalytics';
