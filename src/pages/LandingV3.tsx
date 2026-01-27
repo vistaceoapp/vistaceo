@@ -520,8 +520,8 @@ const LandingV3 = () => {
         )}
       </motion.header>
 
-      {/* ============= HERO ULTRA - Business Cases First ============= */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col pt-20 overflow-hidden">
+      {/* ============= HERO ULTRA - Compact & Graphic ============= */}
+      <section ref={heroRef} className="relative min-h-[100svh] flex flex-col pt-20 pb-8 overflow-hidden">
         {/* Enhanced animated background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div 
@@ -536,198 +536,154 @@ const LandingV3 = () => {
           />
         </div>
 
-        {/* Hero Content - Centered */}
+        {/* Main Hero Content */}
         <motion.div 
           style={{ opacity: heroOpacity, scale: heroScale }}
-          className="container mx-auto px-4 relative z-10 flex-1 flex flex-col justify-center py-8"
+          className="container mx-auto px-4 relative z-10 flex-1 flex flex-col"
         >
-          <div className="max-w-7xl mx-auto w-full">
-            {/* Top: Hero Text + CTA - Compact */}
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="text-center mb-10"
-            >
+          <div className="max-w-7xl mx-auto w-full flex flex-col flex-1">
+            {/* Top Section: Headline + CTA + Stats */}
+            <div className="flex-1 flex flex-col justify-center">
               <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-                className="mb-5"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="text-center mb-6"
               >
-                <Badge 
-                  variant="outline" 
-                  className="px-4 py-2 border-primary/40 bg-primary/10 backdrop-blur-sm"
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="mb-4"
                 >
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  <Badge 
+                    variant="outline" 
+                    className="px-3 py-1.5 border-primary/40 bg-primary/10 backdrop-blur-sm"
                   >
-                    <Sparkles className="w-4 h-4 mr-2 text-primary" />
-                  </motion.div>
-                  <span className="text-sm font-medium">+500 negocios creciendo con IA</span>
-                </Badge>
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                    <span className="text-xs font-medium">+500 negocios creciendo</span>
+                  </Badge>
+                </motion.div>
+                
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-3 leading-[1.1] tracking-tight">
+                  Tu negocio merece un{" "}
+                  <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
+                </h1>
+                
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-base md:text-lg text-muted-foreground mb-4 max-w-xl mx-auto"
+                >
+                  IA que <span className="text-foreground font-semibold">diagnostica</span>, <span className="text-foreground font-semibold">planifica</span> y <span className="text-foreground font-semibold">ejecuta</span>.
+                </motion.p>
+                
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex justify-center"
+                >
+                  <ShimmerButton
+                    className="px-8 py-3.5 text-base"
+                    onClick={() => navigate("/auth")}
+                  >
+                    Empezar gratis
+                    <ArrowRight className="w-4 h-4" />
+                  </ShimmerButton>
+                </motion.div>
               </motion.div>
-              
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 leading-[1.05] tracking-tight">
-                Tu negocio merece un{" "}
-                <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
-              </h1>
-              
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"
-              >
-                Inteligencia artificial que <span className="text-foreground font-semibold">diagnostica</span>, <span className="text-foreground font-semibold">planifica</span> y <span className="text-foreground font-semibold">ejecuta</span>.
-              </motion.p>
-              
+
+              {/* Compact Stats Row */}
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="flex justify-center mb-8"
+                transition={{ delay: 0.5 }}
+                className="flex flex-wrap justify-center gap-4 md:gap-8 mb-6"
               >
-                <ShimmerButton
-                  className="px-10 py-4 text-lg"
-                  onClick={() => navigate("/auth")}
-                >
-                  Empezar gratis ahora
-                  <ArrowRight className="w-5 h-5" />
-                </ShimmerButton>
+                {stats.map((stat, i) => (
+                  <div key={i} className="flex items-center gap-2 text-center">
+                    <stat.icon className="w-4 h-4 text-primary" />
+                    <span className="text-lg md:text-xl font-bold text-foreground">
+                      <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                    </span>
+                    <span className="text-xs text-muted-foreground">{stat.label}</span>
+                  </div>
+                ))}
               </motion.div>
-            </motion.div>
+            </div>
 
-            {/* Diverse Business Cases Gallery - THE WOW FACTOR */}
+            {/* Bottom: Business Cases Strip - Compact & Visual */}
             <motion.div
-              initial={{ opacity: 0, y: 60 }}
+              initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.4 }}
-              className="relative"
+              transition={{ duration: 0.8, delay: 0.3 }}
             >
-              {/* Section label */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                className="text-center mb-6"
-              >
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {/* Label */}
+              <div className="text-center mb-3">
+                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
                   Negocios reales • Resultados reales
                 </span>
-              </motion.div>
+              </div>
 
-              {/* Business showcase carousel */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-                {testimonials.map((t, i) => (
-                  <motion.div
-                    key={t.business}
-                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
-                    whileHover={{ scale: 1.03, y: -5 }}
-                    className="group relative rounded-2xl overflow-hidden aspect-[3/4] cursor-pointer"
-                  >
-                    {/* Business Photo Background */}
-                    <img 
-                      src={t.image} 
-                      alt={t.business}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    
-                    {/* Gradient Overlay */}
-                    <div className={cn(
-                      "absolute inset-0 bg-gradient-to-t opacity-80 group-hover:opacity-90 transition-opacity",
-                      t.gradient ? `${t.gradient.replace('from-', 'from-').replace('to-', 'via-')} to-black/90` : "from-primary via-primary/60 to-black/90"
-                    )} />
-                    
-                    {/* Content */}
-                    <div className="absolute inset-0 p-3 md:p-4 flex flex-col justify-between text-white">
-                      {/* Top: Type badge */}
-                      <div>
-                        <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[10px] font-medium">
-                          <span className="truncate max-w-[80px]">{t.type.split(' / ')[0]}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Bottom: Info */}
-                      <div>
-                        {/* Growth metric - prominent */}
-                        <motion.div 
-                          className="mb-2"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.8 + i * 0.1 }}
-                        >
-                          <div className="text-2xl md:text-3xl font-bold tracking-tight">
-                            {t.metrics.growth}
-                          </div>
-                          <div className="text-[10px] md:text-xs text-white/80">
-                            en {t.metrics.months} meses
-                          </div>
-                        </motion.div>
-                        
-                        {/* Business name */}
-                        <div className="text-xs md:text-sm font-semibold truncate">
-                          {t.business}
-                        </div>
-                        <div className="text-[10px] text-white/70 truncate">
-                          {t.location.split(',')[0]}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Hover: System preview peek */}
+              {/* Horizontal Scroll Strip */}
+              <div className="relative -mx-4 px-4">
+                <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+                  {testimonials.map((t, i) => (
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      whileHover={{ opacity: 1, y: 0 }}
-                      className="absolute inset-x-3 bottom-3 opacity-0 group-hover:opacity-100 transition-all duration-300"
+                      key={t.business}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.4 + i * 0.08 }}
+                      whileHover={{ scale: 1.02, y: -3 }}
+                      className="group relative flex-shrink-0 w-[140px] md:w-[180px] rounded-xl overflow-hidden cursor-pointer snap-start"
                     >
-                      <div className="bg-card/95 backdrop-blur-xl rounded-lg p-2 border border-border/50 shadow-xl">
-                        <div className="flex items-center gap-2 text-[10px]">
-                          <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                            <Activity className="w-3 h-3 text-primary" />
+                      {/* Photo */}
+                      <div className="relative aspect-[4/5]">
+                        <img 
+                          src={t.image} 
+                          alt={t.business}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                        
+                        {/* Content */}
+                        <div className="absolute inset-0 p-2.5 flex flex-col justify-between">
+                          {/* Type */}
+                          <div className="inline-flex self-start items-center px-1.5 py-0.5 rounded-md bg-white/20 backdrop-blur-sm text-[9px] font-medium text-white">
+                            {t.type.split(' / ')[0]}
                           </div>
-                          <div>
-                            <div className="font-medium text-foreground">Salud: {t.metrics.health} pts</div>
-                            <div className="text-muted-foreground">{t.metrics.missions} misiones</div>
+                          
+                          {/* Bottom */}
+                          <div className="text-white">
+                            <div className="text-xl md:text-2xl font-bold leading-none">{t.metrics.growth}</div>
+                            <div className="text-[9px] text-white/70 mb-1">en {t.metrics.months} meses</div>
+                            <div className="text-[10px] font-semibold truncate">{t.business}</div>
+                            <div className="flex items-center gap-1 text-[9px] text-white/60">
+                              <Activity className="w-2.5 h-2.5" />
+                              <span>{t.metrics.health} pts</span>
+                              <span>•</span>
+                              <span>{t.metrics.missions} misiones</span>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </motion.div>
-                  </motion.div>
-                ))}
+                  ))}
+                </div>
+                
+                {/* Fade edges */}
+                <div className="absolute left-0 top-0 bottom-2 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none" />
               </div>
-
-              {/* Stats row below */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.2 }}
-                className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6"
-              >
-                {stats.map((stat, i) => (
-                  <motion.div
-                    key={i}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    className="p-3 md:p-4 rounded-xl bg-card/60 border border-border/50 backdrop-blur-sm text-center"
-                  >
-                    <div className="flex items-center gap-2 justify-center mb-1">
-                      <stat.icon className="w-4 h-4 text-primary" />
-                      <span className="text-xl md:text-2xl font-bold text-foreground">
-                        <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                      </span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">{stat.label}</div>
-                  </motion.div>
-                ))}
-              </motion.div>
             </motion.div>
           </div>
         </motion.div>
 
-        {/* Enhanced scroll indicator */}
+        {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
