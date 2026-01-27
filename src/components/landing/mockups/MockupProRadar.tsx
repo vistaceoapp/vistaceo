@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Lightbulb, TrendingUp, ExternalLink, Sparkles, Globe, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { forwardRef } from "react";
 
 interface MockupProRadarProps {
   business?: "argentina" | "mexico";
@@ -63,7 +64,7 @@ const radarData = {
   }
 };
 
-export const MockupProRadar = ({ business = "argentina" }: MockupProRadarProps) => {
+export const MockupProRadar = forwardRef<HTMLDivElement, MockupProRadarProps>(({ business = "argentina" }, ref) => {
   const data = radarData[business];
   
   return (
@@ -169,4 +170,6 @@ export const MockupProRadar = ({ business = "argentina" }: MockupProRadarProps) 
       </div>
     </div>
   );
-};
+});
+
+MockupProRadar.displayName = "MockupProRadar";
