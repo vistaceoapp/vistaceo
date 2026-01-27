@@ -3,45 +3,54 @@ import { Target, CheckCircle2, Clock, TrendingUp, Sparkles, ChevronRight, Zap, P
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 
+// Import real business photos
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
+
 interface MockupProMissionsProps {
   business?: "argentina" | "mexico";
 }
 
+// Ultra-personalized missions with specific business context
 const missionsData = {
   argentina: {
     name: "Parrilla Don Martín",
     avatar: "DM",
+    image: parrillaImg,
     totalCompleted: 12,
     missions: [
       {
-        title: "Optimizar horarios de apertura",
+        title: "Lanzar menú ejecutivo almuerzo $8.500",
         progress: 75,
         steps: 4,
         completedSteps: 3,
-        impact: "+$45.000/mes",
+        impact: "+$185.000/mes",
         status: "active",
         area: "Ventas",
-        priority: "alta"
+        priority: "alta",
+        detail: "Detectamos que el 62% de tu tráfico de mediodía no consume porque no hay opción rápida"
       },
       {
-        title: "Mejorar tiempo de servicio",
+        title: "Responder 8 reseñas pendientes en Google",
         progress: 100,
         steps: 5,
         completedSteps: 5,
-        impact: "+15% satisfacción",
+        impact: "+0.3 estrellas",
         status: "completed",
-        area: "Eficiencia",
-        priority: "media"
+        area: "Reputación",
+        priority: "media",
+        detail: "Tu rating actual es 4.2, con respuestas podés llegar a 4.5"
       },
       {
-        title: "Programa fidelización asado lovers",
-        progress: 33,
+        title: "Implementar sistema de reservas sábados noche",
+        progress: 40,
         steps: 6,
         completedSteps: 2,
-        impact: "+22% retención",
+        impact: "-45% rechazos",
         status: "active",
-        area: "Marketing",
-        priority: "alta"
+        area: "Operaciones",
+        priority: "alta",
+        detail: "Perdés 12 mesas promedio cada sábado por no gestionar reservas"
       },
     ],
     gradient: "from-orange-500 to-red-500"
@@ -49,37 +58,41 @@ const missionsData = {
   mexico: {
     name: "Boutique Carmela",
     avatar: "BC",
+    image: boutiqueImg,
     totalCompleted: 18,
     missions: [
       {
-        title: "Campaña Instagram accesorios",
+        title: "Campaña Instagram: Accesorios de temporada con influencer local",
         progress: 60,
         steps: 5,
         completedSteps: 3,
         impact: "+18% conversión",
         status: "active",
         area: "Marketing",
-        priority: "alta"
+        priority: "alta",
+        detail: "Tu engagement está 40% arriba del promedio, ideal para colaboración"
       },
       {
-        title: "Optimizar inventario temporada",
+        title: "Liquidar 23 prendas de colección anterior",
         progress: 100,
         steps: 4,
         completedSteps: 4,
-        impact: "-30% stock muerto",
+        impact: "+$42.000 MXN",
         status: "completed",
-        area: "Operaciones",
-        priority: "media"
+        area: "Inventario",
+        priority: "media",
+        detail: "Recuperaste capital inmovilizado en stock de más de 90 días"
       },
       {
-        title: "Lanzar colección exclusiva",
+        title: "Lanzar colección cápsulas exclusivas edición limitada",
         progress: 25,
         steps: 8,
         completedSteps: 2,
         impact: "+$85.000 MXN/mes",
         status: "active",
         area: "Ventas",
-        priority: "alta"
+        priority: "alta",
+        detail: "Tus clientas VIP (15%) generan 52% de tus ventas - ideal para exclusividad"
       },
     ],
     gradient: "from-pink-500 to-purple-500"
@@ -95,8 +108,12 @@ export const MockupProMissions = forwardRef<HTMLDivElement, MockupProMissionsPro
       <div className="px-4 py-3 border-b border-border bg-secondary/30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center text-white font-bold shadow-lg", data.gradient)}>
-              {data.avatar}
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg border-2 border-primary/30">
+              <img 
+                src={data.image} 
+                alt={data.name} 
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <span className="text-sm font-bold text-foreground">Misiones Estratégicas</span>
@@ -126,7 +143,7 @@ export const MockupProMissions = forwardRef<HTMLDivElement, MockupProMissionsPro
                 : "bg-card border-border hover:border-primary/30"
             )}
           >
-            <div className="flex items-start justify-between gap-2 mb-2.5">
+            <div className="flex items-start justify-between gap-2 mb-2">
               <div className="flex items-center gap-2.5 flex-1 min-w-0">
                 {mission.status === "completed" ? (
                   <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
@@ -136,7 +153,7 @@ export const MockupProMissions = forwardRef<HTMLDivElement, MockupProMissionsPro
                   </div>
                 )}
                 <div className="min-w-0">
-                  <span className="text-sm font-semibold text-foreground line-clamp-1">{mission.title}</span>
+                  <span className="text-sm font-semibold text-foreground line-clamp-2">{mission.title}</span>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[10px] text-muted-foreground">{mission.area}</span>
                     {mission.priority === "alta" && mission.status !== "completed" && (
@@ -170,7 +187,7 @@ export const MockupProMissions = forwardRef<HTMLDivElement, MockupProMissionsPro
               </span>
               <span className={cn(
                 "font-bold flex items-center gap-1",
-                mission.status === "completed" ? "text-success" : "text-success"
+                "text-success"
               )}>
                 <TrendingUp className="w-3 h-3" />
                 {mission.impact}

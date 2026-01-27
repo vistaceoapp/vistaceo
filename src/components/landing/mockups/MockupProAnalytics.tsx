@@ -3,6 +3,10 @@ import { BarChart3, TrendingUp, TrendingDown, ArrowUpRight, PieChart, LineChart,
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 
+// Import real business photos
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
+
 interface MockupProAnalyticsProps {
   business?: "argentina" | "mexico";
 }
@@ -11,13 +15,14 @@ const analyticsData = {
   argentina: {
     name: "Parrilla Don Martín",
     avatar: "DM",
+    image: parrillaImg,
     gradient: "from-orange-500 to-red-500",
     period: "Últimos 30 días",
     metrics: [
       { label: "Ingresos", value: "$2.4M", change: "+18%", positive: true, icon: DollarSign },
       { label: "Clientes", value: "1,284", change: "+24%", positive: true, icon: Users },
-      { label: "Ticket promedio", value: "$18.500", change: "+8%", positive: true, icon: Target },
-      { label: "Satisfacción", value: "4.7", change: "+0.3", positive: true, icon: Star },
+      { label: "Ticket prom.", value: "$18.5K", change: "+8%", positive: true, icon: Target },
+      { label: "Rating", value: "4.7★", change: "+0.3", positive: true, icon: Star },
     ],
     dimensions: [
       { name: "Ventas", current: 82, previous: 68, change: "+14" },
@@ -30,13 +35,14 @@ const analyticsData = {
   mexico: {
     name: "Boutique Carmela",
     avatar: "BC",
+    image: boutiqueImg,
     gradient: "from-pink-500 to-purple-500",
     period: "Últimos 30 días",
     metrics: [
       { label: "Ingresos", value: "$485K", change: "+32%", positive: true, icon: DollarSign },
       { label: "Clientes", value: "892", change: "+45%", positive: true, icon: Users },
-      { label: "Ticket promedio", value: "$5,200", change: "+12%", positive: true, icon: Target },
-      { label: "Satisfacción", value: "4.9", change: "+0.2", positive: true, icon: Star },
+      { label: "Ticket prom.", value: "$5.2K", change: "+12%", positive: true, icon: Target },
+      { label: "Rating", value: "4.9★", change: "+0.2", positive: true, icon: Star },
     ],
     dimensions: [
       { name: "Ventas", current: 88, previous: 72, change: "+16" },
@@ -56,12 +62,16 @@ export const MockupProAnalytics = forwardRef<HTMLDivElement, MockupProAnalyticsP
       {/* Header */}
       <div className="px-4 py-3 border-b border-border bg-secondary/30">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={cn("w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center", data.gradient)}>
-              <BarChart3 className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg border-2 border-primary/30">
+              <img 
+                src={data.image} 
+                alt={data.name} 
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
-              <span className="text-sm font-semibold text-foreground">Analíticas Avanzadas</span>
+              <span className="text-sm font-bold text-foreground">Analíticas Avanzadas</span>
               <div className="text-[10px] text-muted-foreground">{data.name}</div>
             </div>
           </div>
