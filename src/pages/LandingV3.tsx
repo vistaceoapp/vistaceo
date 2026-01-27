@@ -609,12 +609,12 @@ const LandingV3 = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mb-5"
             >
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.25] tracking-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-normal tracking-tight">
                 Tu negocio merece un
               </h1>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.35] tracking-tight min-h-[1.4em]">
+              <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-normal tracking-tight pb-2">
                 <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
-              </h1>
+              </div>
             </motion.div>
             
             {/* Subtitle - More descriptive */}
