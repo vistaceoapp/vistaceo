@@ -642,41 +642,41 @@ const LandingV3 = () => {
               >
                 {/* Double the items for seamless loop */}
                 {[...testimonials, ...testimonials].map((t, i) => (
-                  <motion.div
+                  <div
                     key={`${t.business}-${i}`}
-                    whileHover={{ scale: 1.05, y: -4, zIndex: 20 }}
-                    className="group relative flex-shrink-0 w-[100px] md:w-[120px] rounded-xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all"
+                    className="group relative flex-shrink-0 w-[110px] md:w-[130px] rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-shadow duration-300 border border-white/10"
                   >
                     {/* Photo */}
-                    <div className="relative aspect-[4/5]">
+                    <div className="relative aspect-[3/4]">
                       <img 
                         src={t.image} 
                         alt={t.business}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        className="absolute inset-0 w-full h-full object-cover"
                       />
                       
-                      {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                      {/* Strong Gradient Overlay for readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20" />
                       
                       {/* Content */}
-                      <div className="absolute inset-0 p-2 flex flex-col justify-between">
-                        {/* Type Badge */}
-                        <div className="inline-flex self-start items-center px-1.5 py-0.5 rounded bg-white/20 backdrop-blur-sm text-[8px] font-semibold text-white/90">
+                      <div className="absolute inset-0 p-2.5 flex flex-col justify-between">
+                        {/* Type Badge - More visible */}
+                        <div className="inline-flex self-start items-center px-2 py-1 rounded-md bg-white/90 text-[9px] font-bold text-gray-800 shadow-sm">
                           {t.type.split(' / ')[0]}
                         </div>
                         
-                        {/* Bottom Info */}
-                        <div className="text-white">
-                          <div className="text-base md:text-lg font-bold leading-none text-success">{t.metrics.growth}</div>
-                          <div className="text-[7px] text-white/60 mt-0.5">{t.metrics.months} meses</div>
-                          <div className="text-[8px] font-medium truncate leading-tight mt-0.5 text-white/90">{t.business}</div>
+                        {/* Bottom Info - Better contrast */}
+                        <div>
+                          {/* Growth - Big & Bold */}
+                          <div className="text-xl md:text-2xl font-black leading-none text-white drop-shadow-lg">{t.metrics.growth}</div>
+                          <div className="text-[9px] text-white/80 font-medium mt-1">en {t.metrics.months} meses</div>
+                          <div className="text-[10px] font-semibold truncate leading-tight mt-1 text-white">{t.business}</div>
+                          <div className="flex items-center gap-1.5 text-[9px] text-white/70 mt-1">
+                            <span className="px-1.5 py-0.5 rounded bg-white/20 font-medium">{t.metrics.health} pts</span>
+                          </div>
                         </div>
                       </div>
-                      
-                      {/* Hover glow */}
-                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-gradient-to-br from-primary/30 to-transparent" />
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </motion.div>
             </div>
