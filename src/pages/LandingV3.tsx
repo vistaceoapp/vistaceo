@@ -602,29 +602,29 @@ const LandingV3 = () => {
               </Badge>
             </motion.div>
             
-            {/* Main Headline - Fixed height to prevent layout shift */}
+            {/* Main Headline - Bigger & Fixed height */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-4"
+              className="mb-5"
             >
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.15] tracking-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-[1.25] tracking-tight">
                 Tu negocio merece un
               </h1>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.15] tracking-tight min-h-[1.2em]">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.35] tracking-tight min-h-[1.4em]">
                 <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
               </h1>
             </motion.div>
             
-            {/* Subtitle */}
+            {/* Subtitle - More descriptive */}
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
-              className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"
+              className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed"
             >
-              IA que <span className="text-foreground font-semibold">diagnostica</span>, <span className="text-foreground font-semibold">planifica</span> y <span className="text-foreground font-semibold">ejecuta</span>.
+              Inteligencia artificial que <span className="text-foreground font-semibold">analiza tu negocio</span>, <span className="text-foreground font-semibold">detecta oportunidades</span> y te guía con <span className="text-foreground font-semibold">acciones concretas</span> cada día.
             </motion.p>
             
             {/* CTA Button */}
