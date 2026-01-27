@@ -58,6 +58,7 @@ export type Database = {
       business_brains: {
         Row: {
           business_id: string
+          concept_graph: Json | null
           confidence_score: number | null
           created_at: string
           current_focus: string
@@ -67,19 +68,23 @@ export type Database = {
           focus_priority: number | null
           id: string
           last_learning_at: string | null
+          locale_profile: Json | null
           mvc_completion_pct: number | null
           mvc_gaps: Json | null
           preferences_memory: Json
           primary_business_type: string
           secondary_business_type: string | null
           secondary_type_weight: number | null
+          success_patterns: Json | null
           total_signals: number | null
           updated_at: string
+          user_style_model: Json | null
           version: number | null
           version_history: Json | null
         }
         Insert: {
           business_id: string
+          concept_graph?: Json | null
           confidence_score?: number | null
           created_at?: string
           current_focus?: string
@@ -89,19 +94,23 @@ export type Database = {
           focus_priority?: number | null
           id?: string
           last_learning_at?: string | null
+          locale_profile?: Json | null
           mvc_completion_pct?: number | null
           mvc_gaps?: Json | null
           preferences_memory?: Json
           primary_business_type?: string
           secondary_business_type?: string | null
           secondary_type_weight?: number | null
+          success_patterns?: Json | null
           total_signals?: number | null
           updated_at?: string
+          user_style_model?: Json | null
           version?: number | null
           version_history?: Json | null
         }
         Update: {
           business_id?: string
+          concept_graph?: Json | null
           confidence_score?: number | null
           created_at?: string
           current_focus?: string
@@ -111,14 +120,17 @@ export type Database = {
           focus_priority?: number | null
           id?: string
           last_learning_at?: string | null
+          locale_profile?: Json | null
           mvc_completion_pct?: number | null
           mvc_gaps?: Json | null
           preferences_memory?: Json
           primary_business_type?: string
           secondary_business_type?: string | null
           secondary_type_weight?: number | null
+          success_patterns?: Json | null
           total_signals?: number | null
           updated_at?: string
+          user_style_model?: Json | null
           version?: number | null
           version_history?: Json | null
         }
@@ -1194,36 +1206,45 @@ export type Database = {
         Row: {
           action_steps: Json | null
           business_id: string
+          concept_hash: string | null
           content: string | null
           created_at: string
           id: string
+          intent_signature: string | null
           is_read: boolean | null
           is_saved: boolean | null
           item_type: string
+          quality_gate_score: number | null
           source: string | null
           title: string
         }
         Insert: {
           action_steps?: Json | null
           business_id: string
+          concept_hash?: string | null
           content?: string | null
           created_at?: string
           id?: string
+          intent_signature?: string | null
           is_read?: boolean | null
           is_saved?: boolean | null
           item_type?: string
+          quality_gate_score?: number | null
           source?: string | null
           title: string
         }
         Update: {
           action_steps?: Json | null
           business_id?: string
+          concept_hash?: string | null
           content?: string | null
           created_at?: string
           id?: string
+          intent_signature?: string | null
           is_read?: boolean | null
           is_saved?: boolean | null
           item_type?: string
+          quality_gate_score?: number | null
           source?: string | null
           title?: string
         }
@@ -1384,12 +1405,14 @@ export type Database = {
           area: string | null
           business_id: string
           completed_at: string | null
+          concept_hash: string | null
           created_at: string | null
           current_step: number | null
           description: string | null
           effort_score: number | null
           id: string
           impact_score: number | null
+          source_opportunity_id: string | null
           started_at: string | null
           status: Database["public"]["Enums"]["mission_status"] | null
           steps: Json | null
@@ -1399,12 +1422,14 @@ export type Database = {
           area?: string | null
           business_id: string
           completed_at?: string | null
+          concept_hash?: string | null
           created_at?: string | null
           current_step?: number | null
           description?: string | null
           effort_score?: number | null
           id?: string
           impact_score?: number | null
+          source_opportunity_id?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["mission_status"] | null
           steps?: Json | null
@@ -1414,12 +1439,14 @@ export type Database = {
           area?: string | null
           business_id?: string
           completed_at?: string | null
+          concept_hash?: string | null
           created_at?: string | null
           current_step?: number | null
           description?: string | null
           effort_score?: number | null
           id?: string
           impact_score?: number | null
+          source_opportunity_id?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["mission_status"] | null
           steps?: Json | null
@@ -1433,11 +1460,20 @@ export type Database = {
             referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "missions_source_opportunity_id_fkey"
+            columns: ["source_opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       opportunities: {
         Row: {
+          ai_plan_json: Json | null
           business_id: string
+          concept_hash: string | null
           converted_to_mission_id: string | null
           created_at: string | null
           description: string | null
@@ -1446,12 +1482,18 @@ export type Database = {
           evidence: Json | null
           id: string
           impact_score: number | null
+          intent_signature: string | null
           is_converted: boolean | null
+          quality_gate_details: Json | null
+          quality_gate_score: number | null
+          root_problem_signature: string | null
           source: string | null
           title: string
         }
         Insert: {
+          ai_plan_json?: Json | null
           business_id: string
+          concept_hash?: string | null
           converted_to_mission_id?: string | null
           created_at?: string | null
           description?: string | null
@@ -1460,12 +1502,18 @@ export type Database = {
           evidence?: Json | null
           id?: string
           impact_score?: number | null
+          intent_signature?: string | null
           is_converted?: boolean | null
+          quality_gate_details?: Json | null
+          quality_gate_score?: number | null
+          root_problem_signature?: string | null
           source?: string | null
           title: string
         }
         Update: {
+          ai_plan_json?: Json | null
           business_id?: string
+          concept_hash?: string | null
           converted_to_mission_id?: string | null
           created_at?: string | null
           description?: string | null
@@ -1474,7 +1522,11 @@ export type Database = {
           evidence?: Json | null
           id?: string
           impact_score?: number | null
+          intent_signature?: string | null
           is_converted?: boolean | null
+          quality_gate_details?: Json | null
+          quality_gate_score?: number | null
+          root_problem_signature?: string | null
           source?: string | null
           title?: string
         }
@@ -1816,6 +1868,56 @@ export type Database = {
             columns: ["opportunity_id"]
             isOneToOne: false
             referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rejected_concepts: {
+        Row: {
+          blocked_until: string | null
+          business_id: string
+          concept_hash: string
+          created_at: string
+          id: string
+          intent_signature: string | null
+          reason: string
+          root_problem_signature: string | null
+          source_id: string | null
+          source_type: string
+          user_feedback: string | null
+        }
+        Insert: {
+          blocked_until?: string | null
+          business_id: string
+          concept_hash: string
+          created_at?: string
+          id?: string
+          intent_signature?: string | null
+          reason?: string
+          root_problem_signature?: string | null
+          source_id?: string | null
+          source_type?: string
+          user_feedback?: string | null
+        }
+        Update: {
+          blocked_until?: string | null
+          business_id?: string
+          concept_hash?: string
+          created_at?: string
+          id?: string
+          intent_signature?: string | null
+          reason?: string
+          root_problem_signature?: string | null
+          source_id?: string | null
+          source_type?: string
+          user_feedback?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rejected_concepts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
