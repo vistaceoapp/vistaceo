@@ -341,19 +341,32 @@ const CheckoutPage = () => {
                   <p className="text-xs text-muted-foreground text-center mb-3">
                     Procesado de forma segura por
                   </p>
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center gap-2">
                     {isArgentina ? (
-                      <img 
-                        src={mercadopagoLogo} 
-                        alt="Mercado Pago"
-                        className="h-10 object-contain"
-                      />
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background">
+                        <img 
+                          src={mercadopagoLogo} 
+                          alt="MercadoPago"
+                          className="h-6 w-6 object-contain"
+                          onError={(e) => {
+                            // Fallback: hide broken image
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                        <span className="text-sm font-medium text-foreground">Pagás con MercadoPago</span>
+                      </div>
                     ) : (
-                      <img 
-                        src={paypalLogo} 
-                        alt="PayPal"
-                        className="h-8 object-contain"
-                      />
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background">
+                        <img 
+                          src={paypalLogo} 
+                          alt="PayPal"
+                          className="h-5 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                        <span className="text-sm font-medium text-foreground">Pay with PayPal</span>
+                      </div>
                     )}
                   </div>
                 </div>
