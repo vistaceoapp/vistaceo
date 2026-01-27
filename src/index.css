@@ -292,6 +292,17 @@
   .font-codec {
     font-family: 'Codec Pro', Inter, system-ui, sans-serif;
   }
+
+
+  /* Hide scrollbar for horizontal scroll strips */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @keyframes float {
