@@ -44,9 +44,18 @@ export const TypewriterText = ({ texts, className }: TypewriterTextProps) => {
   }, [currentText, isDeleting, currentIndex, texts, isPaused]);
 
   return (
-    <span className={`${className} inline-block`} style={{ fontKerning: 'normal', textRendering: 'optimizeLegibility' }}>
-      {currentText}
-      <span className="animate-pulse text-primary ml-0.5">|</span>
+    <span
+      className={`${className} inline-flex items-baseline whitespace-pre`}
+      style={{
+        fontKerning: "normal",
+        textRendering: "optimizeLegibility",
+        lineHeight: 1.15,
+        paddingBottom: "0.12em",
+        overflow: "visible",
+      }}
+    >
+      <span className="inline-block overflow-visible">{currentText}</span>
+      <span className="animate-pulse text-primary ml-0.5 inline-block align-baseline leading-none">|</span>
     </span>
   );
 };
