@@ -73,7 +73,7 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
   const data = businessData[business];
   
   return (
-    <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border shadow-2xl overflow-hidden w-full max-w-md">
+    <div ref={ref} className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border shadow-2xl overflow-hidden w-full">
       {/* Color stripe based on health score */}
       <div className="h-1.5 bg-success" />
       
