@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { TrendingUp, CheckCircle2, Target, Sparkles, ChevronDown, Star, Brain } from "lucide-react";
+import { TrendingUp, CheckCircle2, Target, Sparkles, ChevronDown, Star, Brain, RefreshCw, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 
@@ -29,7 +29,9 @@ const businessData = {
     completedMissions: 12,
     radarAlerts: 5,
     lastAction: "Optimizar horario sábados",
-    currency: "ARS"
+    currency: "ARS",
+    weeklyImprovement: "+4 pts esta semana",
+    lastSync: "Hace 5 min"
   },
   mexico: {
     name: "Boutique Carmela",
@@ -51,7 +53,9 @@ const businessData = {
     completedMissions: 18,
     radarAlerts: 3,
     lastAction: "Campaña Instagram Stories",
-    currency: "MXN"
+    currency: "MXN",
+    weeklyImprovement: "+6 pts esta semana",
+    lastSync: "Hace 2 min"
   }
 };
 
@@ -69,6 +73,13 @@ const getScoreBg = (score: number) => {
   return "bg-destructive/10 border-destructive/30";
 };
 
+const getScoreLabel = (score: number) => {
+  if (score >= 85) return "Excelente";
+  if (score >= 70) return "Bueno";
+  if (score >= 50) return "Regular";
+  return "Crítico";
+};
+
 export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardProps>(({ business = "argentina" }, ref) => {
   const data = businessData[business];
   
@@ -81,17 +92,17 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
         {/* Business Header */}
         <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border">
           <div className={cn(
-            "w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm",
+            "w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg",
             business === "argentina" ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-pink-500 to-purple-500"
           )}>
             {data.avatar}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-foreground truncate">{data.name}</div>
+            <div className="font-bold text-foreground truncate text-base">{data.name}</div>
             <div className="text-xs text-muted-foreground">{data.location}</div>
           </div>
-          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-success/10 text-success text-xs font-medium">
-            <Sparkles className="w-3 h-3" />
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold border border-primary/30">
+            <Sparkles className="w-3.5 h-3.5" />
             Pro
           </div>
         </div>
@@ -99,7 +110,7 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
         {/* Health Score Section */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-foreground text-sm">Salud de Negocio</h3>
+            <h3 className="font-bold text-foreground text-sm">Salud de Negocio</h3>
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/10 text-success border border-success/30">
               <CheckCircle2 className="w-3 h-3" />
               {data.certaintyPct}% certeza
@@ -114,7 +125,7 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
           <motion.div
             whileHover={{ scale: 1.02 }}
             className={cn(
-              "flex flex-col items-center justify-center p-4 rounded-2xl transition-all cursor-pointer",
+              "flex flex-col items-center justify-center p-4 rounded-2xl transition-all cursor-pointer min-w-[100px]",
               "ring-2 ring-offset-2 ring-offset-background",
               getScoreBg(data.healthScore),
               "ring-success/30"
@@ -129,7 +140,7 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
               </span>
             </div>
             <span className="mt-1 px-2 py-0.5 rounded-full border text-xs text-success border-success/30 bg-success/10">
-              {data.healthScore >= 80 ? "Excelente" : "Bueno"}
+              {getScoreLabel(data.healthScore)}
             </span>
           </motion.div>
 
@@ -145,7 +156,7 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
               >
                 <span className="text-sm">{dim.icon}</span>
                 <span className="text-xs text-muted-foreground w-16 truncate">{dim.name}</span>
-                <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${dim.score}%` }}
@@ -157,7 +168,7 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
                     )}
                   />
                 </div>
-                <span className={cn("text-xs font-medium w-6 text-right", getScoreColor(dim.score))}>
+                <span className={cn("text-xs font-bold w-6 text-right", getScoreColor(dim.score))}>
                   {dim.score}
                 </span>
               </motion.div>
@@ -167,25 +178,25 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
 
         {/* Quick Stats Row */}
         <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-border">
-          <div className="text-center p-2 rounded-lg bg-primary/5">
+          <div className="text-center p-2.5 rounded-lg bg-primary/5 border border-primary/20">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Target className="w-3 h-3 text-primary" />
+              <Target className="w-3.5 h-3.5 text-primary" />
             </div>
-            <div className="text-lg font-bold text-foreground">{data.activeMissions}</div>
+            <div className="text-xl font-bold text-foreground">{data.activeMissions}</div>
             <div className="text-[10px] text-muted-foreground">Misiones activas</div>
           </div>
-          <div className="text-center p-2 rounded-lg bg-success/5">
+          <div className="text-center p-2.5 rounded-lg bg-success/5 border border-success/20">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <CheckCircle2 className="w-3 h-3 text-success" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-success" />
             </div>
-            <div className="text-lg font-bold text-foreground">{data.completedMissions}</div>
+            <div className="text-xl font-bold text-foreground">{data.completedMissions}</div>
             <div className="text-[10px] text-muted-foreground">Completadas</div>
           </div>
-          <div className="text-center p-2 rounded-lg bg-accent/5">
+          <div className="text-center p-2.5 rounded-lg bg-accent/5 border border-accent/20">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Sparkles className="w-3 h-3 text-accent" />
+              <Sparkles className="w-3.5 h-3.5 text-accent" />
             </div>
-            <div className="text-lg font-bold text-foreground">{data.radarAlerts}</div>
+            <div className="text-xl font-bold text-foreground">{data.radarAlerts}</div>
             <div className="text-[10px] text-muted-foreground">Oportunidades</div>
           </div>
         </div>
@@ -194,9 +205,21 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
         <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20">
           <div className="flex items-center gap-2 mb-1">
             <Brain className="w-4 h-4 text-primary" />
-            <span className="text-xs font-medium text-primary">Acción sugerida hoy</span>
+            <span className="text-xs font-semibold text-primary">Acción sugerida hoy</span>
           </div>
-          <p className="text-sm text-foreground">{data.lastAction}</p>
+          <p className="text-sm font-medium text-foreground">{data.lastAction}</p>
+        </div>
+
+        {/* Footer with sync info */}
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <RefreshCw className="w-3 h-3" />
+            <span>{data.lastSync}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <TrendingUp className="w-3 h-3 text-success" />
+            <span className="text-success font-medium">{data.weeklyImprovement}</span>
+          </div>
         </div>
       </div>
     </div>

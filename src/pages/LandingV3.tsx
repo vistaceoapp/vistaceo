@@ -37,6 +37,7 @@ import { MockupProDashboard } from "@/components/landing/mockups/MockupProDashbo
 import { MockupProMissions } from "@/components/landing/mockups/MockupProMissions";
 import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
 import { MockupProChat } from "@/components/landing/mockups/MockupProChat";
+import { MockupProAnalytics } from "@/components/landing/mockups/MockupProAnalytics";
 import { MockupSetup } from "@/components/landing/mockups/MockupSetup";
 
 // Floating particles component
@@ -235,6 +236,13 @@ const LandingV3 = () => {
       icon: Radar,
       description: "Detecta oportunidades internas y tendencias del mercado automáticamente.",
       component: <MockupProRadar business="argentina" />
+    },
+    { 
+      id: "analytics", 
+      label: "Analíticas", 
+      icon: Activity,
+      description: "Métricas de rendimiento, evolución y comparativas de crecimiento.",
+      component: <MockupProAnalytics business="mexico" />
     },
     { 
       id: "chat", 
