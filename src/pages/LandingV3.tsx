@@ -15,20 +15,16 @@ import {
   TrendingUp,
   Users,
   Crown,
-  Play,
   ChevronDown,
   Activity,
   Globe,
   Lightbulb,
   CheckCircle2,
   Clock,
-  ArrowUpRight,
-  Quote,
   Menu,
   X,
   LockKeyhole,
   Rocket,
-  Eye,
   Award
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,6 +37,7 @@ import { MockupProDashboard } from "@/components/landing/mockups/MockupProDashbo
 import { MockupProMissions } from "@/components/landing/mockups/MockupProMissions";
 import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
 import { MockupProChat } from "@/components/landing/mockups/MockupProChat";
+import { MockupSetup } from "@/components/landing/mockups/MockupSetup";
 
 // Floating particles component
 import { FloatingParticles } from "@/components/landing/FloatingParticles";
@@ -48,6 +45,14 @@ import { FloatingParticles } from "@/components/landing/FloatingParticles";
 // Logo
 import logoFull from "@/assets/brand/logo-light-full.png";
 import logoDark from "@/assets/brand/logo-dark-full.png";
+
+// Business photos for testimonials
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
+import hotelImg from "@/assets/testimonials/hotel-boutique.jpg";
+import dentalImg from "@/assets/testimonials/clinica-dental.jpg";
+import legalImg from "@/assets/testimonials/estudio-juridico.jpg";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
+import cafeImg from "@/assets/testimonials/cafeteria.jpg";
 
 // ============= ANIMATION COMPONENTS =============
 
@@ -215,7 +220,7 @@ const LandingV3 = () => {
     },
   ];
 
-  // Business testimonials with real case data
+  // Business testimonials with real case data and photos
   const testimonials = [
     {
       name: "Martín Rodríguez",
@@ -223,8 +228,9 @@ const LandingV3 = () => {
       location: "Buenos Aires, Argentina",
       type: "Restaurante / Parrilla",
       avatar: "MR",
+      image: parrillaImg,
       quote: "En 3 meses aumenté mis ventas un 28%. VistaCEO me mostró que mis sábados tenían 23% menos tráfico que la competencia. Cambié el horario y todo cambió.",
-      metrics: { growth: "+28%", missions: 12, health: 78 },
+      metrics: { growth: "+28%", missions: 12, health: 78, months: 3 },
       gradient: "from-orange-500 to-red-500"
     },
     {
@@ -233,19 +239,54 @@ const LandingV3 = () => {
       location: "Ciudad de México, México",
       type: "Retail / Moda",
       avatar: "CM",
+      image: boutiqueImg,
       quote: "Las misiones son increíbles. Cada una tiene pasos claros y puedo medir el impacto. Es como tener un consultor disponible las 24 horas.",
-      metrics: { growth: "+45%", missions: 18, health: 85 },
+      metrics: { growth: "+45%", missions: 18, health: 85, months: 4 },
       gradient: "from-pink-500 to-purple-500"
     },
     {
-      name: "Diego Fernández",
+      name: "Dr. Diego Fernández",
       business: "Clínica Sonrisas",
       location: "Santiago, Chile",
       type: "Salud / Odontología",
       avatar: "DF",
-      quote: "El diagnóstico de salud del negocio me abrió los ojos. Descubrí que perdía el 40% de mis pacientes nuevos por mal seguimiento. Ahora tengo el 92%.",
-      metrics: { growth: "+52%", missions: 24, health: 92 },
+      image: dentalImg,
+      quote: "Descubrí que perdía el 40% de mis pacientes nuevos por mal seguimiento. Ahora retengo el 92% y las recomendaciones se duplicaron.",
+      metrics: { growth: "+52%", missions: 24, health: 92, months: 5 },
       gradient: "from-emerald-500 to-teal-500"
+    },
+    {
+      name: "Lucía Fernández",
+      business: "Hotel Casa Serena",
+      location: "Montevideo, Uruguay",
+      type: "Hotelería / Boutique",
+      avatar: "LF",
+      image: hotelImg,
+      quote: "El radar me alertó que mi competencia bajó precios en temporada baja. Ajusté mi estrategia y mantuve la ocupación al 85%.",
+      metrics: { growth: "+38%", missions: 15, health: 88, months: 6 },
+      gradient: "from-amber-500 to-orange-500"
+    },
+    {
+      name: "Roberto Guzmán",
+      business: "Café Origen",
+      location: "Bogotá, Colombia",
+      type: "Cafetería / Specialty",
+      avatar: "RG",
+      image: cafeImg,
+      quote: "Pasé de vender 80 cafés por día a 200. El sistema me mostró que mi ticket promedio era 40% menor al de la zona.",
+      metrics: { growth: "+150%", missions: 21, health: 94, months: 4 },
+      gradient: "from-yellow-600 to-amber-600"
+    },
+    {
+      name: "Dra. Patricia Morales",
+      business: "Morales & Asociados",
+      location: "Lima, Perú",
+      type: "Servicios Profesionales / Legal",
+      avatar: "PM",
+      image: legalImg,
+      quote: "El diagnóstico reveló que perdía 30% de leads por no hacer seguimiento. Ahora convierto el 78% de las consultas iniciales.",
+      metrics: { growth: "+65%", missions: 28, health: 91, months: 5 },
+      gradient: "from-slate-600 to-zinc-700"
     },
   ];
 
@@ -350,33 +391,33 @@ const LandingV3 = () => {
     },
   ];
 
-  // How it works steps
+  // How it works steps - using real system screens
   const howItWorks = [
     {
       step: 1,
       title: "Contanos de tu negocio",
-      description: "15 minutos de setup guiado. Respondé preguntas simples sobre tu operación.",
-      icon: MessageSquare,
-      visual: <MockupProChat business="argentina" />
+      description: "15 minutos de setup guiado. Respondé preguntas simples sobre tu operación, equipo y objetivos.",
+      icon: Brain,
+      visual: <MockupSetup business="argentina" />
     },
     {
       step: 2,
       title: "Recibí tu diagnóstico",
-      description: "Obtené un análisis profundo de las 7 dimensiones de salud de tu negocio.",
+      description: "Obtené un análisis profundo de las 7 dimensiones de salud de tu negocio con métricas claras.",
       icon: Activity,
       visual: <MockupProDashboard business="mexico" />
     },
     {
       step: 3,
       title: "Ejecutá misiones",
-      description: "Seguí planes de acción paso a paso con métricas claras de impacto.",
+      description: "Seguí planes de acción paso a paso con impacto medible y tiempo estimado para cada tarea.",
       icon: Target,
       visual: <MockupProMissions business="argentina" />
     },
     {
       step: 4,
       title: "Crecé sin límites",
-      description: "El radar detecta oportunidades y el cerebro aprende de cada decisión.",
+      description: "El radar detecta oportunidades y tu mentor IA te acompaña 24/7 con recomendaciones personalizadas.",
       icon: Rocket,
       visual: <MockupProRadar business="mexico" />
     },
@@ -556,20 +597,12 @@ const LandingV3 = () => {
                   className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-10"
                 >
                   <ShimmerButton
-                    className="w-full sm:w-auto px-8 py-4 text-lg"
+                    className="w-full sm:w-auto px-10 py-4 text-lg"
                     onClick={() => navigate("/auth")}
                   >
-                    Empezar gratis
+                    Empezar gratis ahora
                     <ArrowRight className="w-5 h-5" />
                   </ShimmerButton>
-                  <Button 
-                    variant="outline" 
-                    size="lg"
-                    className="w-full sm:w-auto rounded-full px-8 h-14 text-lg group border-2 hover:border-primary/50 hover:bg-primary/5"
-                  >
-                    <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                    Ver demo
-                  </Button>
                 </motion.div>
 
                 {/* Enhanced Stats with icons */}
@@ -752,6 +785,105 @@ const LandingV3 = () => {
         </div>
       </section>
 
+      {/* ============= BEFORE/AFTER COMPARISON ============= */}
+      <section className="py-20 md:py-32 relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12 md:mb-16"
+          >
+            <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/5">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Transformación
+            </Badge>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              De la incertidumbre a la <span className="text-gradient-primary">claridad</span>
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Así es como VistaCEO transforma la forma en que gestionás tu negocio.
+            </p>
+          </motion.div>
+
+          <div className="max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Before */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="relative"
+              >
+                <div className="absolute -top-3 left-4 z-10">
+                  <Badge className="bg-muted text-muted-foreground border-0">❌ Sin VistaCEO</Badge>
+                </div>
+                <div className="p-6 rounded-2xl bg-muted/50 border border-border/50 h-full">
+                  <ul className="space-y-4">
+                    {[
+                      { text: "Decisiones basadas en intuición", icon: "🎯" },
+                      { text: "Sin visibilidad de métricas clave", icon: "📊" },
+                      { text: "Perder oportunidades por no detectarlas", icon: "👁️" },
+                      { text: "Ejecutar sin saber el impacto", icon: "❓" },
+                      { text: "Sentirte solo tomando decisiones", icon: "😰" },
+                      { text: "No saber qué priorizar cada día", icon: "📋" },
+                    ].map((item, i) => (
+                      <motion.li
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 + i * 0.1 }}
+                        className="flex items-center gap-3 text-muted-foreground"
+                      >
+                        <span className="text-lg">{item.icon}</span>
+                        <span>{item.text}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
+
+              {/* After */}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="relative"
+              >
+                <div className="absolute -top-3 left-4 z-10">
+                  <Badge className="bg-success text-success-foreground border-0">✅ Con VistaCEO</Badge>
+                </div>
+                <div className="p-6 rounded-2xl bg-success/5 border border-success/20 h-full">
+                  <ul className="space-y-4">
+                    {[
+                      { text: "Decisiones respaldadas por datos", icon: "🎯" },
+                      { text: "Dashboard con 7 dimensiones de salud", icon: "📊" },
+                      { text: "Radar que detecta oportunidades 24/7", icon: "👁️" },
+                      { text: "Misiones con impacto proyectado", icon: "✨" },
+                      { text: "Mentor IA disponible siempre", icon: "🧠" },
+                      { text: "Acción diaria sugerida cada mañana", icon: "📋" },
+                    ].map((item, i) => (
+                      <motion.li
+                        key={i}
+                        initial={{ opacity: 0, x: 10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 + i * 0.1 }}
+                        className="flex items-center gap-3 text-foreground"
+                      >
+                        <span className="text-lg">{item.icon}</span>
+                        <span className="font-medium">{item.text}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ============= PRODUCT SHOWCASE ============= */}
       <section id="producto" className="py-20 md:py-32 bg-gradient-to-b from-secondary/50 to-background">
         <div className="container mx-auto px-4">
@@ -912,8 +1044,14 @@ const LandingV3 = () => {
       </section>
 
       {/* ============= TESTIMONIALS ============= */}
-      <section id="casos-de-éxito" className="py-20 md:py-32 bg-gradient-to-b from-secondary/50 to-background">
-        <div className="container mx-auto px-4">
+      <section id="casos-de-éxito" className="py-20 md:py-32 bg-gradient-to-b from-secondary/50 to-background relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -921,7 +1059,7 @@ const LandingV3 = () => {
             className="text-center mb-12 md:mb-16"
           >
             <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/5">
-              <Star className="w-4 h-4 mr-2" />
+              <Award className="w-4 h-4 mr-2" />
               Casos de Éxito
             </Badge>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
@@ -932,69 +1070,113 @@ const LandingV3 = () => {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {/* Testimonial cards with business photos */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {testimonials.map((testimonial, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.15 }}
+                transition={{ delay: i * 0.1, duration: 0.6 }}
+                whileHover={{ y: -8 }}
                 className="group"
               >
-                <div className="h-full p-6 md:p-8 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all relative overflow-hidden">
-                  {/* Growth badge */}
-                  <Badge className="absolute top-4 right-4 bg-primary/10 text-primary border-primary/20 font-bold">
-                    {testimonial.metrics.growth}
-                  </Badge>
-
-                  {/* Stars */}
-                  <div className="flex gap-1 mb-4">
-                    {[...Array(5)].map((_, j) => (
-                      <Star key={j} className="w-4 h-4 fill-accent text-accent" />
-                    ))}
+                <div className="h-full rounded-2xl bg-card border border-border hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 overflow-hidden">
+                  {/* Business image */}
+                  <div className="relative h-40 overflow-hidden">
+                    <img 
+                      src={testimonial.image} 
+                      alt={testimonial.business}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+                    
+                    {/* Growth badge on image */}
+                    <Badge className="absolute top-3 right-3 bg-success/90 text-success-foreground border-0 font-bold shadow-lg">
+                      {testimonial.metrics.growth}
+                    </Badge>
+                    
+                    {/* Business type badge */}
+                    <Badge variant="secondary" className="absolute bottom-3 left-3 bg-card/90 backdrop-blur-sm text-xs">
+                      {testimonial.type}
+                    </Badge>
                   </div>
-
-                  {/* Quote */}
-                  <p className="text-foreground mb-6 leading-relaxed">"{testimonial.quote}"</p>
-
-                  {/* Author */}
-                  <div className="flex items-center gap-3 pt-4 border-t border-border">
-                    <div className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold bg-gradient-to-br",
-                      testimonial.gradient
-                    )}>
-                      {testimonial.avatar}
+                  
+                  <div className="p-5">
+                    {/* Stars */}
+                    <div className="flex gap-1 mb-3">
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} className="w-4 h-4 fill-accent text-accent" />
+                      ))}
                     </div>
-                    <div>
-                      <div className="font-semibold text-foreground">{testimonial.name}</div>
-                      <div className="text-sm text-muted-foreground">{testimonial.business}</div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Globe className="w-3 h-3" />
-                        {testimonial.location}
+
+                    {/* Quote */}
+                    <p className="text-foreground text-sm mb-4 leading-relaxed line-clamp-3">"{testimonial.quote}"</p>
+
+                    {/* Author */}
+                    <div className="flex items-center gap-3 pt-3 border-t border-border">
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold bg-gradient-to-br shrink-0",
+                        testimonial.gradient
+                      )}>
+                        {testimonial.avatar}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-foreground text-sm truncate">{testimonial.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">{testimonial.business}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Globe className="w-3 h-3 shrink-0" />
+                          <span className="truncate">{testimonial.location}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Metrics */}
-                  <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-border">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-primary">{testimonial.metrics.missions}</div>
-                      <div className="text-xs text-muted-foreground">Misiones</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-primary">{testimonial.metrics.health}</div>
-                      <div className="text-xs text-muted-foreground">Score</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-primary">{testimonial.metrics.growth}</div>
-                      <div className="text-xs text-muted-foreground">Crecimiento</div>
+                    {/* Metrics row */}
+                    <div className="grid grid-cols-4 gap-1 mt-4 pt-3 border-t border-border">
+                      <div className="text-center">
+                        <div className="text-sm font-bold text-primary">{testimonial.metrics.months}</div>
+                        <div className="text-[10px] text-muted-foreground">meses</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm font-bold text-primary">{testimonial.metrics.missions}</div>
+                        <div className="text-[10px] text-muted-foreground">misiones</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm font-bold text-success">{testimonial.metrics.health}</div>
+                        <div className="text-[10px] text-muted-foreground">score</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm font-bold text-success">{testimonial.metrics.growth}</div>
+                        <div className="text-[10px] text-muted-foreground">creció</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
+          
+          {/* Social proof row */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-wrap justify-center gap-6 mt-12 text-sm text-muted-foreground"
+          >
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/50 border border-border">
+              <Users className="w-4 h-4 text-primary" />
+              <span>+500 negocios activos</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/50 border border-border">
+              <Globe className="w-4 h-4 text-primary" />
+              <span>12 países de LATAM</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/50 border border-border">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              <span>32% crecimiento promedio</span>
+            </div>
+          </motion.div>
         </div>
       </section>
 
