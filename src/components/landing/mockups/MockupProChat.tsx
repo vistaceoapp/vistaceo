@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Send, Mic, Paperclip, Sparkles, Star, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { forwardRef } from "react";
 
 interface MockupProChatProps {
   business?: "argentina" | "mexico";
@@ -35,7 +36,7 @@ const chatData = {
   }
 };
 
-export const MockupProChat = ({ business = "argentina" }: MockupProChatProps) => {
+export const MockupProChat = forwardRef<HTMLDivElement, MockupProChatProps>(({ business = "argentina" }, ref) => {
   const data = chatData[business];
   
   return (
@@ -128,4 +129,6 @@ export const MockupProChat = ({ business = "argentina" }: MockupProChatProps) =>
       </div>
     </div>
   );
-};
+});
+
+MockupProChat.displayName = "MockupProChat";

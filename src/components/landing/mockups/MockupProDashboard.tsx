@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { TrendingUp, CheckCircle2, Target, Sparkles, ChevronDown, Star, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { forwardRef } from "react";
 
 interface MockupProDashboardProps {
   business?: "argentina" | "mexico";
@@ -68,7 +69,7 @@ const getScoreBg = (score: number) => {
   return "bg-destructive/10 border-destructive/30";
 };
 
-export const MockupProDashboard = ({ business = "argentina" }: MockupProDashboardProps) => {
+export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardProps>(({ business = "argentina" }, ref) => {
   const data = businessData[business];
   
   return (
@@ -200,4 +201,6 @@ export const MockupProDashboard = ({ business = "argentina" }: MockupProDashboar
       </div>
     </div>
   );
-};
+});
+
+MockupProDashboard.displayName = "MockupProDashboard";

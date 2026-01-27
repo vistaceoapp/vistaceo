@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Target, CheckCircle2, Clock, TrendingUp, Sparkles, ChevronRight, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { forwardRef } from "react";
 
 interface MockupProMissionsProps {
   business?: "argentina" | "mexico";
@@ -75,7 +76,7 @@ const missionsData = {
   }
 };
 
-export const MockupProMissions = ({ business = "argentina" }: MockupProMissionsProps) => {
+export const MockupProMissions = forwardRef<HTMLDivElement, MockupProMissionsProps>(({ business = "argentina" }, ref) => {
   const data = missionsData[business];
   
   return (
@@ -171,4 +172,6 @@ export const MockupProMissions = ({ business = "argentina" }: MockupProMissionsP
       </div>
     </div>
   );
-};
+});
+
+MockupProMissions.displayName = "MockupProMissions";
