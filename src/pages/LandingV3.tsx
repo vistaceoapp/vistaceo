@@ -520,8 +520,8 @@ const LandingV3 = () => {
         )}
       </motion.header>
 
-      {/* ============= HERO ULTRA - Compact & Graphic ============= */}
-      <section ref={heroRef} className="relative min-h-[100svh] flex flex-col pt-20 pb-8 overflow-hidden">
+      {/* ============= HERO ULTRA - Ultra Compact & WOW ============= */}
+      <section ref={heroRef} className="relative min-h-[100svh] flex flex-col justify-center pt-20 pb-6 overflow-hidden">
         {/* Enhanced animated background */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <motion.div 
@@ -539,165 +539,160 @@ const LandingV3 = () => {
         {/* Main Hero Content */}
         <motion.div 
           style={{ opacity: heroOpacity, scale: heroScale }}
-          className="container mx-auto px-4 relative z-10 flex-1 flex flex-col"
+          className="container mx-auto px-4 relative z-10"
         >
-          <div className="max-w-7xl mx-auto w-full flex flex-col flex-1">
-            {/* Top Section: Headline + CTA + Stats */}
-            <div className="flex-1 flex flex-col justify-center">
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="text-center mb-6"
+          <div className="max-w-5xl mx-auto text-center">
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+              className="mb-5"
+            >
+              <Badge 
+                variant="outline" 
+                className="px-4 py-1.5 border-primary/40 bg-primary/10 backdrop-blur-sm"
               >
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="mb-4"
-                >
-                  <Badge 
-                    variant="outline" 
-                    className="px-3 py-1.5 border-primary/40 bg-primary/10 backdrop-blur-sm"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
-                    <span className="text-xs font-medium">+500 negocios creciendo</span>
-                  </Badge>
-                </motion.div>
-                
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-3 leading-[1.1] tracking-tight">
-                  Tu negocio merece un{" "}
-                  <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
-                </h1>
-                
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-base md:text-lg text-muted-foreground mb-4 max-w-xl mx-auto"
-                >
-                  IA que <span className="text-foreground font-semibold">diagnostica</span>, <span className="text-foreground font-semibold">planifica</span> y <span className="text-foreground font-semibold">ejecuta</span>.
-                </motion.p>
-                
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="flex justify-center"
-                >
-                  <ShimmerButton
-                    className="px-8 py-3.5 text-base"
-                    onClick={() => navigate("/auth")}
-                  >
-                    Empezar gratis
-                    <ArrowRight className="w-4 h-4" />
-                  </ShimmerButton>
-                </motion.div>
-              </motion.div>
+                <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                <span className="text-xs font-medium">+500 negocios creciendo</span>
+              </Badge>
+            </motion.div>
+            
+            {/* Main Headline - Bigger & Clearer */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 leading-[1.05] tracking-tight"
+            >
+              Tu negocio merece un{" "}
+              <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
+            </motion.h1>
+            
+            {/* Subtitle */}
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"
+            >
+              IA que <span className="text-foreground font-semibold">diagnostica</span>, <span className="text-foreground font-semibold">planifica</span> y <span className="text-foreground font-semibold">ejecuta</span>.
+            </motion.p>
+            
+            {/* CTA Button */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+              className="flex justify-center mb-8"
+            >
+              <ShimmerButton
+                className="px-10 py-4 text-base md:text-lg"
+                onClick={() => navigate("/auth")}
+              >
+                Empezar gratis
+                <ArrowRight className="w-5 h-5" />
+              </ShimmerButton>
+            </motion.div>
 
-              {/* Compact Stats Row */}
+            {/* Stats Row - Compact & Clear */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+              className="flex flex-wrap justify-center gap-6 md:gap-10 mb-10"
+            >
+              {stats.map((stat, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <stat.icon className="w-4 h-4 text-primary/70" />
+                  <span className="text-xl md:text-2xl font-bold text-foreground">
+                    <AnimatedCounter value={stat.value} suffix={stat.suffix} />
+                  </span>
+                  <span className="text-xs md:text-sm text-muted-foreground">{stat.label}</span>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Business Types Carousel - Ultra Compact & Auto-scroll */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65 }}
+            className="max-w-6xl mx-auto"
+          >
+            {/* Label */}
+            <div className="text-center mb-3">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                +180 tipos de negocio • Resultados reales
+              </span>
+            </div>
+
+            {/* Auto-scrolling Carousel */}
+            <div className="relative overflow-hidden">
+              {/* Fade edges */}
+              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+              
+              {/* Scrolling container */}
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="flex flex-wrap justify-center gap-4 md:gap-8 mb-6"
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                className="flex gap-3"
               >
-                {stats.map((stat, i) => (
-                  <div key={i} className="flex items-center gap-2 text-center">
-                    <stat.icon className="w-4 h-4 text-primary" />
-                    <span className="text-lg md:text-xl font-bold text-foreground">
-                      <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                    </span>
-                    <span className="text-xs text-muted-foreground">{stat.label}</span>
-                  </div>
+                {/* Double the items for seamless loop */}
+                {[...testimonials, ...testimonials].map((t, i) => (
+                  <motion.div
+                    key={`${t.business}-${i}`}
+                    whileHover={{ scale: 1.05, y: -4, zIndex: 20 }}
+                    className="group relative flex-shrink-0 w-[100px] md:w-[120px] rounded-xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all"
+                  >
+                    {/* Photo */}
+                    <div className="relative aspect-[4/5]">
+                      <img 
+                        src={t.image} 
+                        alt={t.business}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                      
+                      {/* Content */}
+                      <div className="absolute inset-0 p-2 flex flex-col justify-between">
+                        {/* Type Badge */}
+                        <div className="inline-flex self-start items-center px-1.5 py-0.5 rounded bg-white/20 backdrop-blur-sm text-[8px] font-semibold text-white/90">
+                          {t.type.split(' / ')[0]}
+                        </div>
+                        
+                        {/* Bottom Info */}
+                        <div className="text-white">
+                          <div className="text-base md:text-lg font-bold leading-none text-success">{t.metrics.growth}</div>
+                          <div className="text-[7px] text-white/60 mt-0.5">{t.metrics.months} meses</div>
+                          <div className="text-[8px] font-medium truncate leading-tight mt-0.5 text-white/90">{t.business}</div>
+                        </div>
+                      </div>
+                      
+                      {/* Hover glow */}
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-gradient-to-br from-primary/30 to-transparent" />
+                    </div>
+                  </motion.div>
                 ))}
               </motion.div>
             </div>
-
-            {/* Bottom: Business Cases Carousel - Ultra Compact */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-auto"
-            >
-              {/* Label */}
-              <div className="text-center mb-2">
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                  +180 tipos de negocio • Resultados reales
-                </span>
-              </div>
-
-              {/* Compact Cards Row */}
-              <div className="relative">
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                  {testimonials.map((t, i) => (
-                    <motion.div
-                      key={t.business}
-                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      transition={{ delay: 0.35 + i * 0.06 }}
-                      whileHover={{ scale: 1.04, y: -4, zIndex: 10 }}
-                      className="group relative flex-shrink-0 w-[120px] md:w-[140px] rounded-lg overflow-hidden cursor-pointer shadow-lg hover:shadow-xl transition-shadow"
-                    >
-                      {/* Photo */}
-                      <div className="relative aspect-[5/6]">
-                        <img 
-                          src={t.image} 
-                          alt={t.business}
-                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        
-                        {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/10" />
-                        
-                        {/* Content */}
-                        <div className="absolute inset-0 p-2 flex flex-col justify-between">
-                          {/* Type Badge */}
-                          <div className="inline-flex self-start items-center px-1.5 py-0.5 rounded bg-white/25 backdrop-blur-sm text-[8px] font-semibold text-white shadow-sm">
-                            {t.type.split(' / ')[0]}
-                          </div>
-                          
-                          {/* Bottom Info */}
-                          <div className="text-white">
-                            <div className="text-lg md:text-xl font-bold leading-none tracking-tight">{t.metrics.growth}</div>
-                            <div className="text-[8px] text-white/60 mb-0.5">en {t.metrics.months} meses</div>
-                            <div className="text-[9px] font-semibold truncate leading-tight">{t.business}</div>
-                            <div className="flex items-center gap-1 text-[8px] text-white/50 mt-0.5">
-                              <Activity className="w-2 h-2" />
-                              <span>{t.metrics.health}pts</span>
-                              <span>•</span>
-                              <span>{t.metrics.missions}m</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Hover glow effect */}
-                        <motion.div
-                          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                          style={{ 
-                            background: `linear-gradient(135deg, ${t.gradient?.includes('orange') ? 'rgba(249,115,22,0.2)' : t.gradient?.includes('pink') ? 'rgba(236,72,153,0.2)' : t.gradient?.includes('emerald') ? 'rgba(16,185,129,0.2)' : t.gradient?.includes('amber') ? 'rgba(245,158,11,0.2)' : 'rgba(99,102,241,0.2)'}, transparent)` 
-                          }}
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 2 }}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden md:block"
+          transition={{ delay: 1.5 }}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2"
         >
           <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
             className="flex flex-col items-center gap-2 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
           >
             <span className="text-xs uppercase tracking-[0.2em] font-medium">Descubrí más</span>
