@@ -110,6 +110,83 @@ async function recordSignal(supabase: any, input: SignalInput): Promise<string |
     }
   }
 
+  // Register rejected concepts for deduplication (Cognitive OS v5)
+  if (input.signalType === 'radar_item_dismissed' || input.signalType === 'opportunity_dismissed') {
+    const conceptHash = input.content.concept_hash || input.content.conceptHash;
+    const intentSignature = input.content.intent_signature || input.content.intentSignature;
+    const rootProblem = input.content.root_problem_signature || input.content.rootProblemSignature;
+    
+    if (conceptHash) {
+      // Insert into rejected_concepts table
+      await supabase
+        .from('rejected_concepts')
+        .upsert({
+          business_id: input.businessId,
+          concept_hash: conceptHash,
+          intent_signature: intentSignature || null,
+          root_problem_signature: rootProblem || null,
+          source_type: 'opportunity',
+          source_id: input.content.opportunityId || input.content.opportunity_id || null,
+          reason: input.content.reason || 'dismissed',
+          user_feedback: input.content.feedback || null,
+          blocked_until: null, // Permanent block
+        }, { onConflict: 'business_id,concept_hash' });
+      
+      console.log(`[brain-record-signal] Registered rejected concept: ${conceptHash}`);
+    }
+    
+    // Also update decisions_memory
+    if (brain?.id) {
+      const { data: currentBrain } = await supabase
+        .from('business_brains')
+        .select('decisions_memory')
+        .eq('id', brain.id)
+        .single();
+
+      const decisionsMemory = currentBrain?.decisions_memory || {};
+      const rejectedConcepts = decisionsMemory.rejected_concepts || [];
+      
+      rejectedConcepts.push({
+        conceptHash,
+        intentSignature,
+        rootProblem,
+        reason: input.content.reason || 'dismissed',
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Keep last 100 rejections
+      decisionsMemory.rejected_concepts = rejectedConcepts.slice(-100);
+      
+      await supabase
+        .from('business_brains')
+        .update({ decisions_memory: decisionsMemory })
+        .eq('id', brain.id);
+    }
+  }
+
+  // Register learning item dismissals
+  if (input.signalType === 'learning_item_dismissed' || input.signalType === 'research_dismissed') {
+    const conceptHash = input.content.concept_hash || input.content.conceptHash;
+    
+    if (conceptHash) {
+      await supabase
+        .from('rejected_concepts')
+        .upsert({
+          business_id: input.businessId,
+          concept_hash: conceptHash,
+          intent_signature: input.content.intent_signature || null,
+          root_problem_signature: null,
+          source_type: 'learning_item',
+          source_id: input.content.learningItemId || input.content.learning_item_id || null,
+          reason: input.content.reason || 'dismissed',
+          user_feedback: input.content.feedback || null,
+          blocked_until: null,
+        }, { onConflict: 'business_id,concept_hash' });
+      
+      console.log(`[brain-record-signal] Registered rejected learning item: ${conceptHash}`);
+    }
+  }
+
   // Update dynamic memory for mission signals
   if (brain?.id && input.signalType.startsWith('mission_')) {
     const { data: currentBrain } = await supabase
