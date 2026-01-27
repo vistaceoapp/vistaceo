@@ -214,7 +214,15 @@ const LandingV3 = () => {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 0.95]);
 
-  // Product showcase tabs with REAL mockups
+  // Product showcase tabs with REAL mockups - URL paths
+  const tabUrls: Record<string, string> = {
+    dashboard: "vistaceo.com/inicio",
+    missions: "vistaceo.com/misiones",
+    radar: "vistaceo.com/radar",
+    analytics: "vistaceo.com/analiticas",
+    chat: "vistaceo.com/chat"
+  };
+
   const productTabs = [
     { 
       id: "dashboard", 
@@ -926,7 +934,7 @@ const LandingV3 = () => {
                           <div className="flex-1 flex justify-center">
                             <div className="px-3 py-1 rounded-full bg-background/60 text-[10px] text-muted-foreground border border-border/50 flex items-center gap-1.5">
                               <LockKeyhole className="w-2.5 h-2.5" />
-                              app.vistaceo.com/{productTabs[activeTab].id}
+                              {tabUrls[productTabs[activeTab].id] || `vistaceo.com/${productTabs[activeTab].id}`}
                             </div>
                           </div>
                         </div>

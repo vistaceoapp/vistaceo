@@ -1,19 +1,24 @@
 import { motion } from "framer-motion";
-import { TrendingUp, CheckCircle2, Target, Sparkles, ChevronDown, Star, Brain, RefreshCw, Calendar } from "lucide-react";
+import { TrendingUp, CheckCircle2, Target, Sparkles, ChevronDown, Star, Brain, RefreshCw, Calendar, Zap, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
+
+// Import real business photos
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
 
 interface MockupProDashboardProps {
   business?: "argentina" | "mexico";
 }
 
-// Two real Pro user profiles
+// Two real Pro user profiles with images
 const businessData = {
   argentina: {
     name: "Parrilla Don Martín",
     type: "Restaurante / Parrilla",
     location: "Palermo, Buenos Aires",
     avatar: "DM",
+    image: parrillaImg,
     healthScore: 78,
     healthChange: +12,
     certaintyPct: 85,
@@ -28,16 +33,19 @@ const businessData = {
     activeMissions: 3,
     completedMissions: 12,
     radarAlerts: 5,
-    lastAction: "Optimizar horario sábados",
+    lastAction: "Implementar menú ejecutivo para aumentar ticket almuerzo",
     currency: "ARS",
     weeklyImprovement: "+4 pts esta semana",
-    lastSync: "Hace 5 min"
+    lastSync: "Hace 5 min",
+    brainKnowledge: 127,
+    pulseToday: "Almuerzo fuerte"
   },
   mexico: {
     name: "Boutique Carmela",
     type: "Retail / Moda",
     location: "Polanco, CDMX",
     avatar: "BC",
+    image: boutiqueImg,
     healthScore: 85,
     healthChange: +18,
     certaintyPct: 92,
@@ -52,10 +60,12 @@ const businessData = {
     activeMissions: 2,
     completedMissions: 18,
     radarAlerts: 3,
-    lastAction: "Campaña Instagram Stories",
+    lastAction: "Lanzar campaña de rebajas de temporada en Instagram",
     currency: "MXN",
     weeklyImprovement: "+6 pts esta semana",
-    lastSync: "Hace 2 min"
+    lastSync: "Hace 2 min",
+    brainKnowledge: 184,
+    pulseToday: "Tráfico alto"
   }
 };
 
@@ -89,13 +99,14 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
       <div className="h-1.5 bg-success" />
       
       <div className="p-4 sm:p-5">
-        {/* Business Header */}
+        {/* Business Header with REAL photo */}
         <div className="flex items-center gap-3 mb-4 pb-4 border-b border-border">
-          <div className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg",
-            business === "argentina" ? "bg-gradient-to-br from-orange-500 to-red-500" : "bg-gradient-to-br from-pink-500 to-purple-500"
-          )}>
-            {data.avatar}
+          <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg border-2 border-primary/30">
+            <img 
+              src={data.image} 
+              alt={data.name} 
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-foreground truncate text-base">{data.name}</div>
@@ -201,8 +212,26 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
           </div>
         </div>
 
+        {/* Brain Knowledge Widget */}
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="p-2.5 rounded-xl bg-secondary/30 border border-border">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Brain className="w-3.5 h-3.5 text-primary" />
+              <span className="text-[10px] text-muted-foreground">Conocimiento</span>
+            </div>
+            <div className="text-sm font-bold text-foreground">{data.brainKnowledge} datos</div>
+          </div>
+          <div className="p-2.5 rounded-xl bg-secondary/30 border border-border">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Zap className="w-3.5 h-3.5 text-success" />
+              <span className="text-[10px] text-muted-foreground">Pulso hoy</span>
+            </div>
+            <div className="text-sm font-bold text-foreground">{data.pulseToday}</div>
+          </div>
+        </div>
+
         {/* Current Action */}
-        <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20">
+        <div className="mt-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
           <div className="flex items-center gap-2 mb-1">
             <Brain className="w-4 h-4 text-primary" />
             <span className="text-xs font-semibold text-primary">Acción sugerida hoy</span>
