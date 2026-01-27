@@ -220,7 +220,51 @@ const LandingV3 = () => {
     },
   ];
 
-  // Business testimonials with real case data and photos
+  // 40 unique business types for the carousel
+  const businessTypes = [
+    { type: "Parrilla", business: "Don Martín", image: parrillaImg, growth: "+28%", months: 3, health: 78 },
+    { type: "Boutique", business: "Carmela", image: boutiqueImg, growth: "+45%", months: 4, health: 85 },
+    { type: "Clínica Dental", business: "Sonrisas", image: dentalImg, growth: "+52%", months: 5, health: 92 },
+    { type: "Hotel", business: "Casa Serena", image: hotelImg, growth: "+38%", months: 6, health: 88 },
+    { type: "Cafetería", business: "Café Origen", image: cafeImg, growth: "+150%", months: 4, health: 94 },
+    { type: "Estudio Legal", business: "Morales & Asoc.", image: legalImg, growth: "+65%", months: 5, health: 91 },
+    { type: "Pizzería", business: "La Napolitana", image: parrillaImg, growth: "+42%", months: 3, health: 82 },
+    { type: "Spa", business: "Zen Relax", image: hotelImg, growth: "+55%", months: 4, health: 89 },
+    { type: "Gimnasio", business: "FitLife", image: dentalImg, growth: "+33%", months: 5, health: 76 },
+    { type: "Peluquería", business: "Studio Hair", image: boutiqueImg, growth: "+48%", months: 3, health: 84 },
+    { type: "Hamburguesería", business: "Burger Lab", image: parrillaImg, growth: "+72%", months: 4, health: 87 },
+    { type: "Veterinaria", business: "Pet Care", image: dentalImg, growth: "+41%", months: 5, health: 90 },
+    { type: "Florería", business: "Jardín Feliz", image: boutiqueImg, growth: "+35%", months: 4, health: 83 },
+    { type: "Pastelería", business: "Dulce Hogar", image: cafeImg, growth: "+58%", months: 3, health: 88 },
+    { type: "Taller Mecánico", business: "AutoPro", image: legalImg, growth: "+29%", months: 6, health: 75 },
+    { type: "Inmobiliaria", business: "Casa Nueva", image: hotelImg, growth: "+44%", months: 5, health: 86 },
+    { type: "Farmacia", business: "Salud Total", image: dentalImg, growth: "+22%", months: 4, health: 91 },
+    { type: "Ferretería", business: "El Constructor", image: legalImg, growth: "+31%", months: 5, health: 79 },
+    { type: "Librería", business: "Letras Vivas", image: boutiqueImg, growth: "+27%", months: 6, health: 82 },
+    { type: "Heladería", business: "Cremoso", image: cafeImg, growth: "+85%", months: 3, health: 93 },
+    { type: "Sushi Bar", business: "Tokyo Rolls", image: parrillaImg, growth: "+62%", months: 4, health: 88 },
+    { type: "Agencia Viajes", business: "Destino Feliz", image: hotelImg, growth: "+47%", months: 5, health: 85 },
+    { type: "Lavandería", business: "Clean Express", image: legalImg, growth: "+34%", months: 4, health: 80 },
+    { type: "Óptica", business: "VisionPlus", image: dentalImg, growth: "+39%", months: 5, health: 87 },
+    { type: "Joyería", business: "Brillante", image: boutiqueImg, growth: "+51%", months: 6, health: 89 },
+    { type: "Cervecería", business: "Craft House", image: cafeImg, growth: "+68%", months: 3, health: 86 },
+    { type: "Estética", business: "Beauty Lab", image: boutiqueImg, growth: "+56%", months: 4, health: 91 },
+    { type: "Consultoría", business: "Strategy Pro", image: legalImg, growth: "+43%", months: 5, health: 84 },
+    { type: "Arquitectura", business: "Design Studio", image: hotelImg, growth: "+37%", months: 6, health: 82 },
+    { type: "Contabilidad", business: "Números OK", image: legalImg, growth: "+26%", months: 4, health: 88 },
+    { type: "Panadería", business: "El Trigal", image: cafeImg, growth: "+49%", months: 3, health: 90 },
+    { type: "Restaurante", business: "Sabor Casero", image: parrillaImg, growth: "+54%", months: 5, health: 83 },
+    { type: "Aseguradora", business: "Protect Life", image: legalImg, growth: "+32%", months: 6, health: 81 },
+    { type: "Psicología", business: "MenteClara", image: dentalImg, growth: "+46%", months: 4, health: 92 },
+    { type: "Fisioterapia", business: "RecuperaYa", image: dentalImg, growth: "+41%", months: 5, health: 89 },
+    { type: "Vinería", business: "Bacco", image: cafeImg, growth: "+59%", months: 4, health: 87 },
+    { type: "Coworking", business: "WorkHub", image: hotelImg, growth: "+63%", months: 3, health: 85 },
+    { type: "Academia", business: "EduCenter", image: legalImg, growth: "+38%", months: 5, health: 90 },
+    { type: "Guardería", business: "Pequeños", image: boutiqueImg, growth: "+44%", months: 6, health: 93 },
+    { type: "Food Truck", business: "Street Food", image: parrillaImg, growth: "+95%", months: 3, health: 84 },
+  ];
+
+  // Original testimonials for the testimonial section
   const testimonials = [
     {
       name: "Martín Rodríguez",
@@ -558,16 +602,20 @@ const LandingV3 = () => {
               </Badge>
             </motion.div>
             
-            {/* Main Headline - Bigger & Clearer */}
-            <motion.h1
+            {/* Main Headline - Fixed height to prevent layout shift */}
+            <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 leading-[1.05] tracking-tight"
+              className="mb-4"
             >
-              Tu negocio merece un{" "}
-              <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
-            </motion.h1>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-[1.15] tracking-tight">
+                Tu negocio merece un
+              </h1>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.15] tracking-tight min-h-[1.2em]">
+                <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
+              </h1>
+            </motion.div>
             
             {/* Subtitle */}
             <motion.p 
@@ -637,42 +685,40 @@ const LandingV3 = () => {
               {/* Scrolling container */}
               <motion.div 
                 animate={{ x: ["0%", "-50%"] }}
-                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                className="flex gap-3"
+                transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+                className="flex gap-2.5"
               >
-                {/* Double the items for seamless loop */}
-                {[...testimonials, ...testimonials].map((t, i) => (
+                {/* 40 unique business types, then duplicate for seamless loop */}
+                {[...businessTypes, ...businessTypes].map((b, i) => (
                   <div
-                    key={`${t.business}-${i}`}
-                    className="group relative flex-shrink-0 w-[110px] md:w-[130px] rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-shadow duration-300 border border-white/10"
+                    key={`${b.type}-${i}`}
+                    className="group relative flex-shrink-0 w-[100px] md:w-[115px] rounded-xl overflow-hidden cursor-pointer shadow-lg hover:shadow-2xl transition-shadow duration-300 border border-border/30"
                   >
                     {/* Photo */}
                     <div className="relative aspect-[3/4]">
                       <img 
-                        src={t.image} 
-                        alt={t.business}
+                        src={b.image} 
+                        alt={b.type}
                         className="absolute inset-0 w-full h-full object-cover"
                       />
                       
                       {/* Strong Gradient Overlay for readability */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/20" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10" />
                       
                       {/* Content */}
-                      <div className="absolute inset-0 p-2.5 flex flex-col justify-between">
-                        {/* Type Badge - More visible */}
-                        <div className="inline-flex self-start items-center px-2 py-1 rounded-md bg-white/90 text-[9px] font-bold text-gray-800 shadow-sm">
-                          {t.type.split(' / ')[0]}
+                      <div className="absolute inset-0 p-2 flex flex-col justify-between">
+                        {/* Type Badge - Clear & Visible */}
+                        <div className="inline-flex self-start items-center px-1.5 py-0.5 rounded bg-background/95 text-[8px] font-bold text-foreground shadow-sm">
+                          {b.type}
                         </div>
                         
-                        {/* Bottom Info - Better contrast */}
+                        {/* Bottom Info */}
                         <div>
                           {/* Growth - Big & Bold */}
-                          <div className="text-xl md:text-2xl font-black leading-none text-white drop-shadow-lg">{t.metrics.growth}</div>
-                          <div className="text-[9px] text-white/80 font-medium mt-1">en {t.metrics.months} meses</div>
-                          <div className="text-[10px] font-semibold truncate leading-tight mt-1 text-white">{t.business}</div>
-                          <div className="flex items-center gap-1.5 text-[9px] text-white/70 mt-1">
-                            <span className="px-1.5 py-0.5 rounded bg-white/20 font-medium">{t.metrics.health} pts</span>
-                          </div>
+                          <div className="text-lg md:text-xl font-black leading-none text-white drop-shadow-lg">{b.growth}</div>
+                          <div className="text-[8px] text-white/70 font-medium mt-0.5">{b.months} meses</div>
+                          <div className="text-[9px] font-semibold truncate leading-tight mt-0.5 text-white/90">{b.business}</div>
+                          <div className="text-[8px] text-white/60 mt-0.5">{b.health} pts</div>
                         </div>
                       </div>
                     </div>
