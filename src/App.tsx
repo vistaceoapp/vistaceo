@@ -9,6 +9,7 @@ import { BusinessProvider, useBusiness } from "@/contexts/BusinessContext";
 // Pages
 import Index from "./pages/Index";
 import LandingV2 from "./pages/LandingV2";
+import LandingUltra from "./pages/LandingUltra";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import SetupPage from "./pages/SetupPage";
@@ -74,6 +75,7 @@ const AppRoutes = () => {
       {/* Public routes */}
       <Route path="/" element={<Index />} />
       <Route path="/v2" element={<LandingV2 />} />
+      <Route path="/ultra" element={<LandingUltra />} />
       <Route path="/auth" element={<Auth />} />
       
       {/* Checkout - standalone payment page (requires auth but not setup) */}
