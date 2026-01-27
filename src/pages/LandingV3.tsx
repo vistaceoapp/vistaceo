@@ -46,13 +46,35 @@ import { FloatingParticles } from "@/components/landing/FloatingParticles";
 import logoFull from "@/assets/brand/logo-light-full.png";
 import logoDark from "@/assets/brand/logo-dark-full.png";
 
-// Business photos for testimonials
+// Business photos for testimonials (original)
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
 import hotelImg from "@/assets/testimonials/hotel-boutique.jpg";
 import dentalImg from "@/assets/testimonials/clinica-dental.jpg";
 import legalImg from "@/assets/testimonials/estudio-juridico.jpg";
 import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
 import cafeImg from "@/assets/testimonials/cafeteria.jpg";
+
+// New distinctive business type images
+import hotelBoutiqueImg from "@/assets/business-types/hotel-boutique.jpg";
+import bodegaVinosImg from "@/assets/business-types/bodega-vinos.jpg";
+import marketingDigitalImg from "@/assets/business-types/marketing-digital.jpg";
+import estudioContableImg from "@/assets/business-types/estudio-contable.jpg";
+import academiaMusicaImg from "@/assets/business-types/academia-musica.jpg";
+import marroquineriaImg from "@/assets/business-types/marroquineria.jpg";
+import ecommerceImg from "@/assets/business-types/ecommerce.jpg";
+import nutricionistaImg from "@/assets/business-types/nutricionista.jpg";
+import yogaStudioImg from "@/assets/business-types/yoga-studio.jpg";
+import agenciaViajesImg from "@/assets/business-types/agencia-viajes.jpg";
+import pizzeriaImg from "@/assets/business-types/pizzeria.jpg";
+import heladeriaImg from "@/assets/business-types/heladeria.jpg";
+import educacionImg from "@/assets/business-types/educacion.jpg";
+import asesorFinancieroImg from "@/assets/business-types/asesor-financiero.jpg";
+import gimnasioImg from "@/assets/business-types/gimnasio.jpg";
+import peluqueriaImg from "@/assets/business-types/peluqueria.jpg";
+import hamburgueseriaImg from "@/assets/business-types/hamburgueseria.jpg";
+import veterinariaImg from "@/assets/business-types/veterinaria.jpg";
+import panaderiaImg from "@/assets/business-types/panaderia.jpg";
+import spaImg from "@/assets/business-types/spa.jpg";
 
 // ============= ANIMATION COMPONENTS =============
 
@@ -220,48 +242,48 @@ const LandingV3 = () => {
     },
   ];
 
-  // 40 unique business types for the carousel
+  // 40 unique business types for the carousel - each with distinctive images
   const businessTypes = [
     { type: "Parrilla", business: "Don Martín", image: parrillaImg, growth: "+28%", months: 3, health: 78 },
-    { type: "Boutique", business: "Carmela", image: boutiqueImg, growth: "+45%", months: 4, health: 85 },
+    { type: "Boutique Moda", business: "Carmela", image: boutiqueImg, growth: "+45%", months: 4, health: 85 },
     { type: "Clínica Dental", business: "Sonrisas", image: dentalImg, growth: "+52%", months: 5, health: 92 },
-    { type: "Hotel", business: "Casa Serena", image: hotelImg, growth: "+38%", months: 6, health: 88 },
+    { type: "Hotel Boutique", business: "Casa Serena", image: hotelBoutiqueImg, growth: "+38%", months: 6, health: 88 },
     { type: "Cafetería", business: "Café Origen", image: cafeImg, growth: "+150%", months: 4, health: 94 },
     { type: "Estudio Legal", business: "Morales & Asoc.", image: legalImg, growth: "+65%", months: 5, health: 91 },
-    { type: "Pizzería", business: "La Napolitana", image: parrillaImg, growth: "+42%", months: 3, health: 82 },
-    { type: "Spa", business: "Zen Relax", image: hotelImg, growth: "+55%", months: 4, health: 89 },
-    { type: "Gimnasio", business: "FitLife", image: dentalImg, growth: "+33%", months: 5, health: 76 },
-    { type: "Peluquería", business: "Studio Hair", image: boutiqueImg, growth: "+48%", months: 3, health: 84 },
-    { type: "Hamburguesería", business: "Burger Lab", image: parrillaImg, growth: "+72%", months: 4, health: 87 },
-    { type: "Veterinaria", business: "Pet Care", image: dentalImg, growth: "+41%", months: 5, health: 90 },
+    { type: "Pizzería", business: "La Napolitana", image: pizzeriaImg, growth: "+42%", months: 3, health: 82 },
+    { type: "Spa & Wellness", business: "Zen Relax", image: spaImg, growth: "+55%", months: 4, health: 89 },
+    { type: "Gimnasio", business: "FitLife", image: gimnasioImg, growth: "+33%", months: 5, health: 76 },
+    { type: "Peluquería", business: "Studio Hair", image: peluqueriaImg, growth: "+48%", months: 3, health: 84 },
+    { type: "Hamburguesería", business: "Burger Lab", image: hamburgueseriaImg, growth: "+72%", months: 4, health: 87 },
+    { type: "Veterinaria", business: "Pet Care", image: veterinariaImg, growth: "+41%", months: 5, health: 90 },
+    { type: "Bodega Vinos", business: "Viñedos Sol", image: bodegaVinosImg, growth: "+58%", months: 4, health: 88 },
+    { type: "Marketing Digital", business: "Growth Lab", image: marketingDigitalImg, growth: "+85%", months: 3, health: 93 },
+    { type: "Estudio Contable", business: "Números OK", image: estudioContableImg, growth: "+29%", months: 6, health: 75 },
+    { type: "Academia Música", business: "Melodía", image: academiaMusicaImg, growth: "+44%", months: 5, health: 86 },
+    { type: "Marroquinería", business: "Cuero Arte", image: marroquineriaImg, growth: "+51%", months: 4, health: 91 },
+    { type: "Ecommerce", business: "TiendaYa", image: ecommerceImg, growth: "+95%", months: 5, health: 79 },
+    { type: "Nutricionista", business: "Vida Sana", image: nutricionistaImg, growth: "+47%", months: 6, health: 82 },
+    { type: "Centro Yoga", business: "Om Studio", image: yogaStudioImg, growth: "+62%", months: 3, health: 93 },
+    { type: "Agencia Viajes", business: "Destino Feliz", image: agenciaViajesImg, growth: "+47%", months: 5, health: 85 },
+    { type: "Heladería", business: "Cremoso", image: heladeriaImg, growth: "+85%", months: 3, health: 93 },
+    { type: "Educación", business: "EduCenter", image: educacionImg, growth: "+38%", months: 5, health: 90 },
+    { type: "Asesor Financiero", business: "Capital Pro", image: asesorFinancieroImg, growth: "+56%", months: 4, health: 91 },
+    { type: "Panadería", business: "El Trigal", image: panaderiaImg, growth: "+49%", months: 3, health: 90 },
     { type: "Florería", business: "Jardín Feliz", image: boutiqueImg, growth: "+35%", months: 4, health: 83 },
-    { type: "Pastelería", business: "Dulce Hogar", image: cafeImg, growth: "+58%", months: 3, health: 88 },
-    { type: "Taller Mecánico", business: "AutoPro", image: legalImg, growth: "+29%", months: 6, health: 75 },
-    { type: "Inmobiliaria", business: "Casa Nueva", image: hotelImg, growth: "+44%", months: 5, health: 86 },
-    { type: "Farmacia", business: "Salud Total", image: dentalImg, growth: "+22%", months: 4, health: 91 },
-    { type: "Ferretería", business: "El Constructor", image: legalImg, growth: "+31%", months: 5, health: 79 },
-    { type: "Librería", business: "Letras Vivas", image: boutiqueImg, growth: "+27%", months: 6, health: 82 },
-    { type: "Heladería", business: "Cremoso", image: cafeImg, growth: "+85%", months: 3, health: 93 },
-    { type: "Sushi Bar", business: "Tokyo Rolls", image: parrillaImg, growth: "+62%", months: 4, health: 88 },
-    { type: "Agencia Viajes", business: "Destino Feliz", image: hotelImg, growth: "+47%", months: 5, health: 85 },
-    { type: "Lavandería", business: "Clean Express", image: legalImg, growth: "+34%", months: 4, health: 80 },
-    { type: "Óptica", business: "VisionPlus", image: dentalImg, growth: "+39%", months: 5, health: 87 },
     { type: "Joyería", business: "Brillante", image: boutiqueImg, growth: "+51%", months: 6, health: 89 },
     { type: "Cervecería", business: "Craft House", image: cafeImg, growth: "+68%", months: 3, health: 86 },
-    { type: "Estética", business: "Beauty Lab", image: boutiqueImg, growth: "+56%", months: 4, health: 91 },
-    { type: "Consultoría", business: "Strategy Pro", image: legalImg, growth: "+43%", months: 5, health: 84 },
-    { type: "Arquitectura", business: "Design Studio", image: hotelImg, growth: "+37%", months: 6, health: 82 },
-    { type: "Contabilidad", business: "Números OK", image: legalImg, growth: "+26%", months: 4, health: 88 },
-    { type: "Panadería", business: "El Trigal", image: cafeImg, growth: "+49%", months: 3, health: 90 },
+    { type: "Arquitectura", business: "Design Studio", image: marketingDigitalImg, growth: "+37%", months: 6, health: 82 },
     { type: "Restaurante", business: "Sabor Casero", image: parrillaImg, growth: "+54%", months: 5, health: 83 },
-    { type: "Aseguradora", business: "Protect Life", image: legalImg, growth: "+32%", months: 6, health: 81 },
-    { type: "Psicología", business: "MenteClara", image: dentalImg, growth: "+46%", months: 4, health: 92 },
+    { type: "Psicología", business: "MenteClara", image: nutricionistaImg, growth: "+46%", months: 4, health: 92 },
     { type: "Fisioterapia", business: "RecuperaYa", image: dentalImg, growth: "+41%", months: 5, health: 89 },
-    { type: "Vinería", business: "Bacco", image: cafeImg, growth: "+59%", months: 4, health: 87 },
-    { type: "Coworking", business: "WorkHub", image: hotelImg, growth: "+63%", months: 3, health: 85 },
-    { type: "Academia", business: "EduCenter", image: legalImg, growth: "+38%", months: 5, health: 90 },
-    { type: "Guardería", business: "Pequeños", image: boutiqueImg, growth: "+44%", months: 6, health: 93 },
-    { type: "Food Truck", business: "Street Food", image: parrillaImg, growth: "+95%", months: 3, health: 84 },
+    { type: "Vinería", business: "Bacco", image: bodegaVinosImg, growth: "+59%", months: 4, health: 87 },
+    { type: "Coworking", business: "WorkHub", image: marketingDigitalImg, growth: "+63%", months: 3, health: 85 },
+    { type: "Guardería", business: "Pequeños", image: educacionImg, growth: "+44%", months: 6, health: 93 },
+    { type: "Food Truck", business: "Street Food", image: hamburgueseriaImg, growth: "+95%", months: 3, health: 84 },
+    { type: "Inmobiliaria", business: "Casa Nueva", image: hotelBoutiqueImg, growth: "+44%", months: 5, health: 86 },
+    { type: "Óptica", business: "VisionPlus", image: dentalImg, growth: "+39%", months: 5, health: 87 },
+    { type: "Consultoría", business: "Strategy Pro", image: asesorFinancieroImg, growth: "+43%", months: 5, health: 84 },
+    { type: "Sushi Bar", business: "Tokyo Rolls", image: pizzeriaImg, growth: "+62%", months: 4, health: 88 },
   ];
 
   // Original testimonials for the testimonial section
