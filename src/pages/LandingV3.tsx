@@ -614,33 +614,34 @@ const LandingV3 = () => {
               </motion.div>
             </div>
 
-            {/* Bottom: Business Cases Strip - Compact & Visual */}
+            {/* Bottom: Business Cases Carousel - Ultra Compact */}
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mt-auto"
             >
               {/* Label */}
-              <div className="text-center mb-3">
+              <div className="text-center mb-2">
                 <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                  Negocios reales • Resultados reales
+                  +180 tipos de negocio • Resultados reales
                 </span>
               </div>
 
-              {/* Horizontal Scroll Strip */}
-              <div className="relative -mx-4 px-4">
-                <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+              {/* Compact Cards Row */}
+              <div className="relative">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {testimonials.map((t, i) => (
                     <motion.div
                       key={t.business}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.4 + i * 0.08 }}
-                      whileHover={{ scale: 1.02, y: -3 }}
-                      className="group relative flex-shrink-0 w-[140px] md:w-[180px] rounded-xl overflow-hidden cursor-pointer snap-start"
+                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ delay: 0.35 + i * 0.06 }}
+                      whileHover={{ scale: 1.04, y: -4, zIndex: 10 }}
+                      className="group relative flex-shrink-0 w-[120px] md:w-[140px] rounded-lg overflow-hidden cursor-pointer shadow-lg hover:shadow-xl transition-shadow"
                     >
                       {/* Photo */}
-                      <div className="relative aspect-[4/5]">
+                      <div className="relative aspect-[5/6]">
                         <img 
                           src={t.image} 
                           alt={t.business}
@@ -648,36 +649,40 @@ const LandingV3 = () => {
                         />
                         
                         {/* Gradient Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-black/10" />
                         
                         {/* Content */}
-                        <div className="absolute inset-0 p-2.5 flex flex-col justify-between">
-                          {/* Type */}
-                          <div className="inline-flex self-start items-center px-1.5 py-0.5 rounded-md bg-white/20 backdrop-blur-sm text-[9px] font-medium text-white">
+                        <div className="absolute inset-0 p-2 flex flex-col justify-between">
+                          {/* Type Badge */}
+                          <div className="inline-flex self-start items-center px-1.5 py-0.5 rounded bg-white/25 backdrop-blur-sm text-[8px] font-semibold text-white shadow-sm">
                             {t.type.split(' / ')[0]}
                           </div>
                           
-                          {/* Bottom */}
+                          {/* Bottom Info */}
                           <div className="text-white">
-                            <div className="text-xl md:text-2xl font-bold leading-none">{t.metrics.growth}</div>
-                            <div className="text-[9px] text-white/70 mb-1">en {t.metrics.months} meses</div>
-                            <div className="text-[10px] font-semibold truncate">{t.business}</div>
-                            <div className="flex items-center gap-1 text-[9px] text-white/60">
-                              <Activity className="w-2.5 h-2.5" />
-                              <span>{t.metrics.health} pts</span>
+                            <div className="text-lg md:text-xl font-bold leading-none tracking-tight">{t.metrics.growth}</div>
+                            <div className="text-[8px] text-white/60 mb-0.5">en {t.metrics.months} meses</div>
+                            <div className="text-[9px] font-semibold truncate leading-tight">{t.business}</div>
+                            <div className="flex items-center gap-1 text-[8px] text-white/50 mt-0.5">
+                              <Activity className="w-2 h-2" />
+                              <span>{t.metrics.health}pts</span>
                               <span>•</span>
-                              <span>{t.metrics.missions} misiones</span>
+                              <span>{t.metrics.missions}m</span>
                             </div>
                           </div>
                         </div>
+                        
+                        {/* Hover glow effect */}
+                        <motion.div
+                          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                          style={{ 
+                            background: `linear-gradient(135deg, ${t.gradient?.includes('orange') ? 'rgba(249,115,22,0.2)' : t.gradient?.includes('pink') ? 'rgba(236,72,153,0.2)' : t.gradient?.includes('emerald') ? 'rgba(16,185,129,0.2)' : t.gradient?.includes('amber') ? 'rgba(245,158,11,0.2)' : 'rgba(99,102,241,0.2)'}, transparent)` 
+                          }}
+                        />
                       </div>
                     </motion.div>
                   ))}
                 </div>
-                
-                {/* Fade edges */}
-                <div className="absolute left-0 top-0 bottom-2 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none" />
-                <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none" />
               </div>
             </motion.div>
           </div>
@@ -812,46 +817,46 @@ const LandingV3 = () => {
               </div>
 
               {/* Tab Content */}
-              <div className="p-4 md:p-8">
+              <div className="p-3 md:p-6">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={activeTab}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <div className="text-center mb-6">
-                      <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">
+                    <div className="text-center mb-4">
+                      <h3 className="text-lg md:text-xl font-bold text-foreground mb-1">
                         {productTabs[activeTab].label}
                       </h3>
-                      <p className="text-muted-foreground max-w-xl mx-auto">
+                      <p className="text-sm text-muted-foreground max-w-lg mx-auto">
                         {productTabs[activeTab].description}
                       </p>
                     </div>
                     
-                    {/* Browser frame */}
+                    {/* Browser frame - Full width mockup */}
                     <div className="relative">
                       <motion.div 
-                        className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-accent/15 to-primary/20 rounded-3xl blur-2xl opacity-60"
+                        className="absolute -inset-2 bg-gradient-to-r from-primary/15 via-accent/10 to-primary/15 rounded-2xl blur-xl opacity-60"
                         animate={{ opacity: [0.4, 0.6, 0.4] }}
                         transition={{ duration: 3, repeat: Infinity }}
                       />
-                      <div className="relative bg-card rounded-2xl border border-border shadow-xl overflow-hidden">
-                        <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/40">
-                          <div className="flex gap-1.5">
-                            <div className="w-3 h-3 rounded-full bg-destructive/70" />
-                            <div className="w-3 h-3 rounded-full bg-accent/70" />
-                            <div className="w-3 h-3 rounded-full bg-primary/70" />
+                      <div className="relative bg-card rounded-xl border border-border shadow-lg overflow-hidden">
+                        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/40">
+                          <div className="flex gap-1">
+                            <div className="w-2.5 h-2.5 rounded-full bg-destructive/70" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-accent/70" />
+                            <div className="w-2.5 h-2.5 rounded-full bg-primary/70" />
                           </div>
                           <div className="flex-1 flex justify-center">
-                            <div className="px-4 py-1.5 rounded-full bg-background/60 text-xs text-muted-foreground border border-border/50 flex items-center gap-2">
-                              <LockKeyhole className="w-3 h-3" />
+                            <div className="px-3 py-1 rounded-full bg-background/60 text-[10px] text-muted-foreground border border-border/50 flex items-center gap-1.5">
+                              <LockKeyhole className="w-2.5 h-2.5" />
                               app.vistaceo.com/{productTabs[activeTab].id}
                             </div>
                           </div>
                         </div>
-                        <div className="p-4 bg-gradient-to-br from-secondary/20 to-background">
+                        <div className="p-3 md:p-4 bg-gradient-to-br from-secondary/10 to-background">
                           {productTabs[activeTab].component}
                         </div>
                       </div>

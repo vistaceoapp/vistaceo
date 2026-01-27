@@ -68,7 +68,7 @@ export const MockupProRadar = forwardRef<HTMLDivElement, MockupProRadarProps>(({
   const data = radarData[business];
   
   return (
-    <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border shadow-2xl overflow-hidden w-full max-w-md">
+    <div ref={ref} className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border shadow-2xl overflow-hidden w-full">
       {/* Header */}
       <div className="px-4 py-3 border-b border-border bg-secondary/30">
         <div className="flex items-center justify-between">
