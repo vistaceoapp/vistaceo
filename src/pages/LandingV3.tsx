@@ -134,12 +134,15 @@ const TypewriterText = ({ texts }: { texts: string[] }) => {
   }, [displayText, isDeleting, currentText, texts]);
 
   return (
-    <span className="text-gradient-primary relative">
-      {displayText}
+    <span
+      className="text-gradient-primary relative inline-flex items-baseline whitespace-pre"
+      style={{ lineHeight: 1.15, paddingBottom: "0.12em", overflow: "visible" }}
+    >
+      <span className="inline-block overflow-visible">{displayText}</span>
       <motion.span
         animate={{ opacity: [1, 0] }}
         transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
-        className="inline-block w-0.5 h-[1em] bg-primary ml-1 align-middle"
+        className="inline-block w-0.5 h-[0.9em] bg-primary ml-1 align-baseline"
       />
     </span>
   );
