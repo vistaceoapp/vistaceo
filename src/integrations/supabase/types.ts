@@ -55,6 +55,327 @@ export type Database = {
           },
         ]
       }
+      blog_config: {
+        Row: {
+          created_at: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      blog_plan: {
+        Row: {
+          country_code: string
+          created_at: string
+          id: string
+          last_attempt_at: string | null
+          pillar: string
+          planned_date: string
+          publish_attempts: number | null
+          skip_reason: string | null
+          status: string
+          topic_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          country_code?: string
+          created_at?: string
+          id?: string
+          last_attempt_at?: string | null
+          pillar: string
+          planned_date: string
+          publish_attempts?: number | null
+          skip_reason?: string | null
+          status?: string
+          topic_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          id?: string
+          last_attempt_at?: string | null
+          pillar?: string
+          planned_date?: string
+          publish_attempts?: number | null
+          skip_reason?: string | null
+          status?: string
+          topic_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_plan_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "blog_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          author_bio: string | null
+          author_name: string | null
+          author_url: string | null
+          canonical_url: string | null
+          category: string | null
+          content_md: string
+          country_code: string
+          created_at: string
+          excerpt: string | null
+          external_sources: Json | null
+          hero_image_url: string | null
+          id: string
+          image_alt_text: string | null
+          intent: string | null
+          internal_links: Json | null
+          meta_description: string | null
+          meta_title: string | null
+          pillar: string | null
+          plan_id: string | null
+          primary_keyword: string | null
+          publish_at: string | null
+          quality_gate_report: Json | null
+          reading_time_min: number | null
+          required_subtopics: string[] | null
+          schema_jsonld: Json | null
+          secondary_keywords: string[] | null
+          sector: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          topic_id: string | null
+          unique_angle: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_bio?: string | null
+          author_name?: string | null
+          author_url?: string | null
+          canonical_url?: string | null
+          category?: string | null
+          content_md: string
+          country_code?: string
+          created_at?: string
+          excerpt?: string | null
+          external_sources?: Json | null
+          hero_image_url?: string | null
+          id?: string
+          image_alt_text?: string | null
+          intent?: string | null
+          internal_links?: Json | null
+          meta_description?: string | null
+          meta_title?: string | null
+          pillar?: string | null
+          plan_id?: string | null
+          primary_keyword?: string | null
+          publish_at?: string | null
+          quality_gate_report?: Json | null
+          reading_time_min?: number | null
+          required_subtopics?: string[] | null
+          schema_jsonld?: Json | null
+          secondary_keywords?: string[] | null
+          sector?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          topic_id?: string | null
+          unique_angle?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_bio?: string | null
+          author_name?: string | null
+          author_url?: string | null
+          canonical_url?: string | null
+          category?: string | null
+          content_md?: string
+          country_code?: string
+          created_at?: string
+          excerpt?: string | null
+          external_sources?: Json | null
+          hero_image_url?: string | null
+          id?: string
+          image_alt_text?: string | null
+          intent?: string | null
+          internal_links?: Json | null
+          meta_description?: string | null
+          meta_title?: string | null
+          pillar?: string | null
+          plan_id?: string | null
+          primary_keyword?: string | null
+          publish_at?: string | null
+          quality_gate_report?: Json | null
+          reading_time_min?: number | null
+          required_subtopics?: string[] | null
+          schema_jsonld?: Json | null
+          secondary_keywords?: string[] | null
+          sector?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          topic_id?: string | null
+          unique_angle?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "blog_plan"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_posts_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "blog_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_runs: {
+        Row: {
+          chosen_plan_id: string | null
+          chosen_topic_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          post_id: string | null
+          quality_gate_report: Json | null
+          result: string
+          run_at: string
+          skip_reason: string | null
+        }
+        Insert: {
+          chosen_plan_id?: string | null
+          chosen_topic_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          post_id?: string | null
+          quality_gate_report?: Json | null
+          result: string
+          run_at?: string
+          skip_reason?: string | null
+        }
+        Update: {
+          chosen_plan_id?: string | null
+          chosen_topic_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          post_id?: string | null
+          quality_gate_report?: Json | null
+          result?: string
+          run_at?: string
+          skip_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_runs_chosen_plan_id_fkey"
+            columns: ["chosen_plan_id"]
+            isOneToOne: false
+            referencedRelation: "blog_plan"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_runs_chosen_topic_id_fkey"
+            columns: ["chosen_topic_id"]
+            isOneToOne: false
+            referencedRelation: "blog_topics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_runs_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_topics: {
+        Row: {
+          category: string | null
+          country_codes: string[] | null
+          created_at: string
+          generated_filler: boolean | null
+          id: string
+          intent: string | null
+          last_used_at: string | null
+          pillar: string
+          primary_keyword: string | null
+          priority_score: number | null
+          required_subtopics: string[] | null
+          seasonality: string | null
+          secondary_keywords: string[] | null
+          sector: string | null
+          slug: string
+          title_base: string
+          unique_angle_options: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          country_codes?: string[] | null
+          created_at?: string
+          generated_filler?: boolean | null
+          id?: string
+          intent?: string | null
+          last_used_at?: string | null
+          pillar: string
+          primary_keyword?: string | null
+          priority_score?: number | null
+          required_subtopics?: string[] | null
+          seasonality?: string | null
+          secondary_keywords?: string[] | null
+          sector?: string | null
+          slug: string
+          title_base: string
+          unique_angle_options?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          country_codes?: string[] | null
+          created_at?: string
+          generated_filler?: boolean | null
+          id?: string
+          intent?: string | null
+          last_used_at?: string | null
+          pillar?: string
+          primary_keyword?: string | null
+          priority_score?: number | null
+          required_subtopics?: string[] | null
+          seasonality?: string | null
+          secondary_keywords?: string[] | null
+          sector?: string | null
+          slug?: string
+          title_base?: string
+          unique_angle_options?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       business_brains: {
         Row: {
           business_id: string
