@@ -21,16 +21,16 @@ export function BlogMarkdownRenderer({ content, className }: BlogMarkdownRendere
         // Typography - very generous line height
         "prose-headings:scroll-mt-24 prose-headings:font-semibold prose-headings:tracking-tight",
         // H2 styling - HUGE spacing above for clear sections
-        "prose-h2:text-[1.65rem] prose-h2:mt-20 prose-h2:mb-10 prose-h2:pb-4 prose-h2:border-b prose-h2:border-border/30",
-        // H3 styling - generous spacing
-        "prose-h3:text-[1.3rem] prose-h3:mt-14 prose-h3:mb-6 prose-h3:text-foreground/90",
-        // Paragraph spacing - PATCH V4 (1.9 line-height, large margin)
-        "prose-p:leading-[1.9] prose-p:mb-7 prose-p:text-foreground/80",
+        "prose-h2:text-[1.65rem] prose-h2:mt-24 prose-h2:mb-12 prose-h2:pb-4 prose-h2:border-b prose-h2:border-border/30",
+        // H3 styling - MASSIVE spacing to separate subsections clearly
+        "prose-h3:text-[1.25rem] prose-h3:mt-16 prose-h3:mb-5 prose-h3:text-foreground prose-h3:font-semibold",
+        // Paragraph spacing - generous
+        "prose-p:leading-[1.85] prose-p:mb-6 prose-p:text-foreground/85",
         // List styling - very generous breathing room
-        "prose-li:my-3 prose-li:leading-[1.85]",
-        "prose-ul:my-10 prose-ol:my-10 prose-ul:space-y-3 prose-ol:space-y-3",
-        // Blockquote styling for examples - card-like appearance
-        "prose-blockquote:border-l-4 prose-blockquote:border-primary/50 prose-blockquote:bg-muted/50 prose-blockquote:py-5 prose-blockquote:px-7 prose-blockquote:rounded-r-2xl prose-blockquote:not-italic prose-blockquote:my-12 prose-blockquote:shadow-sm",
+        "prose-li:my-3 prose-li:leading-[1.8]",
+        "prose-ul:my-8 prose-ol:my-8 prose-ul:space-y-2 prose-ol:space-y-2",
+        // Blockquote styling for examples - distinct card-like appearance
+        "prose-blockquote:border-l-4 prose-blockquote:border-primary/40 prose-blockquote:bg-muted/40 prose-blockquote:py-5 prose-blockquote:px-6 prose-blockquote:rounded-r-xl prose-blockquote:not-italic prose-blockquote:my-10 prose-blockquote:text-foreground/80",
         // Strong/bold - less aggressive
         "prose-strong:text-foreground/95 prose-strong:font-medium",
         // Links
