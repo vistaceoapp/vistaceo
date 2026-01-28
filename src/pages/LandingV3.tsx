@@ -548,6 +548,13 @@ const LandingV3 = () => {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
                 </a>
               ))}
+              <a
+                href="/blog"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors relative group"
+              >
+                Blog
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
+              </a>
             </nav>
             
             {/* CTA Buttons */}
