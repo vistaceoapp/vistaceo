@@ -127,16 +127,4 @@ export const PILLARS = {
   sistema_inteligente: { label: 'Sistema Inteligente', emoji: '🧠' },
 } as const;
 
-export const COUNTRIES = {
-  AR: { name: 'Argentina', flag: '🇦🇷' },
-  CL: { name: 'Chile', flag: '🇨🇱' },
-  UY: { name: 'Uruguay', flag: '🇺🇾' },
-  CO: { name: 'Colombia', flag: '🇨🇴' },
-  EC: { name: 'Ecuador', flag: '🇪🇨' },
-  CR: { name: 'Costa Rica', flag: '🇨🇷' },
-  MX: { name: 'México', flag: '🇲🇽' },
-  PA: { name: 'Panamá', flag: '🇵🇦' },
-} as const;
-
 export type PillarKey = keyof typeof PILLARS;
-export type CountryCode = keyof typeof COUNTRIES;

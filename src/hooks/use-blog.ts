@@ -10,7 +10,6 @@ type DbBlogRun = Database['public']['Tables']['blog_runs']['Row'];
 
 // Fetch published posts with optional filters
 export function useBlogPosts(filters?: {
-  country?: string;
   pillar?: string;
   tag?: string;
   search?: string;
@@ -26,9 +25,6 @@ export function useBlogPosts(filters?: {
         .eq('status', 'published')
         .order('publish_at', { ascending: false });
 
-      if (filters?.country) {
-        query = query.eq('country_code', filters.country);
-      }
       if (filters?.pillar) {
         query = query.eq('pillar', filters.pillar);
       }
@@ -120,24 +116,20 @@ export function useBlogStats() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('blog_posts')
-        .select('pillar, country_code')
+        .select('pillar')
         .eq('status', 'published');
 
       if (error) throw error;
 
       const byPillar: Record<string, number> = {};
-      const byCountry: Record<string, number> = {};
       
       data.forEach(post => {
         if (post.pillar) {
           byPillar[post.pillar] = (byPillar[post.pillar] || 0) + 1;
         }
-        if (post.country_code) {
-          byCountry[post.country_code] = (byCountry[post.country_code] || 0) + 1;
-        }
       });
 
-      return { total: data.length, byPillar, byCountry };
+      return { total: data.length, byPillar };
     },
   });
 }
