@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { List } from 'lucide-react';
 
@@ -13,7 +13,8 @@ interface BlogTableOfContentsProps {
   className?: string;
 }
 
-export function BlogTableOfContents({ content, className }: BlogTableOfContentsProps) {
+export const BlogTableOfContents = forwardRef<HTMLElement, BlogTableOfContentsProps>(
+  function BlogTableOfContents({ content, className }, ref) {
   const [headings, setHeadings] = useState<TOCItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
 
@@ -111,4 +112,4 @@ export function BlogTableOfContents({ content, className }: BlogTableOfContentsP
       </ul>
     </nav>
   );
-}
+});

@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { forwardRef } from 'react';
 
 interface BlogCTAProps {
   variant?: 'sidebar' | 'footer';
 }
 
-export function BlogCTA({ variant = 'footer' }: BlogCTAProps) {
+export const BlogCTA = forwardRef<HTMLDivElement, BlogCTAProps>(
+  function BlogCTA({ variant = 'footer' }, ref) {
   if (variant === 'sidebar') {
     return (
       <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
@@ -63,4 +65,4 @@ export function BlogCTA({ variant = 'footer' }: BlogCTAProps) {
       </CardContent>
     </Card>
   );
-}
+});
