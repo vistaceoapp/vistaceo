@@ -1,7 +1,7 @@
 // Spa / Centro de Masajes - 70 Ultra-Personalized Questions
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const SPA_COMPLETE: GastroQuestion[] = [
+export const SPA_COMPLETE: VistaSetupQuestion[] = [
   // IDENTIDAD (8)
   { id: 'SA_SPA_001', category: 'identity', mode: 'both', dimension: 'reputation', weight: 9, title: { es: '¿Qué tipo de servicios ofrecés?', 'pt-BR': 'Que tipo de serviços você oferece?' }, type: 'multi', required: true, businessTypes: ['spa_masajes'], options: [
     { id: 'massage', label: { es: 'Masajes', 'pt-BR': 'Massagens' }, emoji: '💆', impactScore: 18 },

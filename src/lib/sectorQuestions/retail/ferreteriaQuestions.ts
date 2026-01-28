@@ -1,9 +1,9 @@
 // Ferretería / Herramientas - Complete Questionnaire
 // 70 hyper-personalized questions for hardware stores
 
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const FERRETERIA_QUESTIONS: GastroQuestion[] = [
+export const FERRETERIA_QUESTIONS: VistaSetupQuestion[] = [
   // ============ IDENTIDAD Y POSICIONAMIENTO (6) ============
   { id: 'RT_FER_001', category: 'identity', mode: 'both', dimension: 'reputation', weight: 9, title: { es: '¿Qué tipo de productos vendés principalmente?', 'pt-BR': 'Que tipo de produtos você vende principalmente?' }, type: 'multi', required: true, businessTypes: ['ferreteria'], options: [
     { id: 'tools', label: { es: 'Herramientas manuales y eléctricas', 'pt-BR': 'Ferramentas manuais e elétricas' }, emoji: '🔧' },

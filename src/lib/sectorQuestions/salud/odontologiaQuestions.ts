@@ -1,7 +1,7 @@
 // Centro Odontológico / Dental - 70 Ultra-Personalized Questions
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const ODONTOLOGIA_COMPLETE: GastroQuestion[] = [
+export const ODONTOLOGIA_COMPLETE: VistaSetupQuestion[] = [
   // IDENTIDAD (8)
   { id: 'SA_ODO_001', category: 'identity', mode: 'both', dimension: 'reputation', weight: 9, title: { es: '¿Qué especialidades ofrecés?', 'pt-BR': 'Que especialidades você oferece?' }, type: 'multi', required: true, businessTypes: ['centro_odontologico'], options: [
     { id: 'general', label: { es: 'Odontología general', 'pt-BR': 'Odontologia geral' }, emoji: '🦷', impactScore: 15 },

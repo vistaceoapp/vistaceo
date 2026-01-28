@@ -22,4 +22,4 @@ export * from './suscripcionQuestions';
 export * from './mayoristaQuestions';
 
 // Re-export types
-export type { GastroQuestion as RetailQuestion } from '../../gastroQuestionsEngine';
+export type { VistaSetupQuestion, VistaSetupQuestion as RetailQuestion } from '../../vistaSetupQuestion';

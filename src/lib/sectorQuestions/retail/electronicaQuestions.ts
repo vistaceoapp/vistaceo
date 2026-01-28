@@ -1,7 +1,7 @@
 // Electrónica y Tecnología - 70 Ultra-Personalized Questions
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const ELECTRONICA_COMPLETE: GastroQuestion[] = [
+export const ELECTRONICA_COMPLETE: VistaSetupQuestion[] = [
   // IDENTIDAD (8)
   { id: 'RT_ELE_001', category: 'identity', mode: 'both', dimension: 'reputation', weight: 9, title: { es: '¿Qué tipo de productos electrónicos vendés?', 'pt-BR': 'Que tipo de produtos eletrônicos você vende?' }, type: 'multi', required: true, businessTypes: ['electronica_tecnologia'], options: [
     { id: 'phones', label: { es: 'Celulares/Smartphones', 'pt-BR': 'Celulares/Smartphones' }, emoji: '📱', impactScore: 18 },

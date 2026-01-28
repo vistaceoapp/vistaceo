@@ -1,9 +1,9 @@
 // E-commerce D2C (Direct to Consumer) - Complete Questionnaire
 // 70 hyper-personalized questions for D2C brands
 
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const ECOMMERCE_D2C_QUESTIONS: GastroQuestion[] = [
+export const ECOMMERCE_D2C_QUESTIONS: VistaSetupQuestion[] = [
   // ============ IDENTIDAD Y POSICIONAMIENTO (6) ============
   { id: 'RT_D2C_001', category: 'identity', mode: 'both', dimension: 'reputation', weight: 9, title: { es: '¿Qué tipo de productos vendés?', 'pt-BR': 'Que tipo de produtos você vende?' }, type: 'multi', required: true, businessTypes: ['ecommerce_d2c'], options: [
     { id: 'fashion', label: { es: 'Moda/Indumentaria', 'pt-BR': 'Moda/Vestuário' }, emoji: '👗' },

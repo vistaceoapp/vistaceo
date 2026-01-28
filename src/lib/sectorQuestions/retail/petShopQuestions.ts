@@ -1,9 +1,9 @@
 // Pet Shop - Complete Questionnaire  
 // 70 hyper-personalized questions for pet stores
 
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const PET_SHOP_QUESTIONS: GastroQuestion[] = [
+export const PET_SHOP_QUESTIONS: VistaSetupQuestion[] = [
   // ============ IDENTIDAD Y POSICIONAMIENTO (6) ============
   { id: 'RT_PET_001', category: 'identity', mode: 'both', dimension: 'reputation', weight: 9, title: { es: '¿Qué productos y servicios ofrecés?', 'pt-BR': 'Que produtos e serviços você oferece?' }, type: 'multi', required: true, businessTypes: ['pet_shop'], options: [
     { id: 'food', label: { es: 'Alimentos (balanceados, snacks)', 'pt-BR': 'Alimentos (rações, petiscos)' }, emoji: '🍖' },

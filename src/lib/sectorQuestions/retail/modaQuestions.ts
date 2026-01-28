@@ -1,9 +1,9 @@
 // Tienda de Moda / Indumentaria - 70 Ultra-Personalized Questions
 // Categories: identity, operation, sales, menu, finance, team, marketing, reputation, goals
 
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const MODA_COMPLETE: GastroQuestion[] = [
+export const MODA_COMPLETE: VistaSetupQuestion[] = [
   // IDENTIDAD (6)
   { id: 'RT_MOD_001', category: 'identity', mode: 'both', dimension: 'reputation', weight: 9, title: { es: '¿Qué tipo de ropa vendés principalmente?', 'pt-BR': 'Que tipo de roupa você vende principalmente?' }, type: 'multi', required: true, businessTypes: ['moda_indumentaria'], options: [
     { id: 'women', label: { es: 'Mujer', 'pt-BR': 'Feminino' }, emoji: '👗', impactScore: 15 },

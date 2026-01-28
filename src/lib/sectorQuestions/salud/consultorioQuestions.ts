@@ -1,9 +1,9 @@
 // Consultorio Médico - 70 Ultra-Personalized Questions
 // Categories: identity, operation, sales, menu, finance, team, marketing, reputation, goals
 
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const CONSULTORIO_COMPLETE: GastroQuestion[] = [
+export const CONSULTORIO_COMPLETE: VistaSetupQuestion[] = [
   // IDENTIDAD (7)
   { id: 'SA_CON_001', category: 'identity', mode: 'both', dimension: 'reputation', weight: 9, title: { es: '¿Cuál es tu especialidad médica?', 'pt-BR': 'Qual é sua especialidade médica?' }, type: 'single', required: true, businessTypes: ['consultorio_medico'], options: [
     { id: 'general', label: { es: 'Medicina general', 'pt-BR': 'Clínica geral' }, emoji: '🩺', impactScore: 12 },

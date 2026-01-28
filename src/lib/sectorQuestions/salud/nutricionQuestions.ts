@@ -2,9 +2,9 @@
 // 23 questions across 9 valid categories
 // Categories: identity, operation, sales, menu, finance, team, marketing, reputation, goals
 
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const NUTRICION_QUESTIONS: GastroQuestion[] = [
+export const NUTRICION_QUESTIONS: VistaSetupQuestion[] = [
   // ==================== IDENTITY (3) ====================
   {
     id: 'SA_NUT_001',
