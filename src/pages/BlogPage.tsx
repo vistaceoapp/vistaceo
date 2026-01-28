@@ -60,11 +60,11 @@ export default function BlogPage() {
                 </div>
                 
                 <h1 className="text-3xl md:text-5xl font-bold mb-5 bg-gradient-to-r from-[#2692DC] via-[#5A7FE1] to-[#746CE6] bg-clip-text text-transparent">
-                  Recursos para hacer crecer tu negocio
+                  Inteligencia para liderar tu negocio
                 </h1>
                 
                 <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-                  Guías accionables, plantillas listas para usar y estrategias probadas por dueños de negocios en toda Latinoamérica.
+                  Estrategia · Tecnología · Liderazgo · Finanzas · Tendencias · IA aplicada · Operaciones · Marketing · Crecimiento
                 </p>
                 
                 {stats && (
