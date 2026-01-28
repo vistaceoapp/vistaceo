@@ -1,3 +1,4 @@
+// seed-blog-topics v2 - Fixed priority_score integer
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.89.0";
 
@@ -316,7 +317,7 @@ serve(async (req) => {
     // Build topic entries
     const countries = ['AR', 'CL', 'UY', 'CO', 'EC', 'CR', 'MX', 'PA'];
     const topics: any[] = [];
-    let priorityScore = 100;
+    let priorityIndex = 0;
 
     for (const pillarData of SEED_DATA) {
       for (const title of pillarData.titles) {
@@ -325,6 +326,9 @@ serve(async (req) => {
         // Check for duplicate slugs
         const existingSlug = topics.find(t => t.slug === slug);
         const finalSlug = existingSlug ? `${slug}-${topics.length}` : slug;
+
+        // Priority score as integer: 100 down to 1
+        const priorityScore = Math.max(1, 100 - Math.floor(priorityIndex / 2));
 
         topics.push({
           title_base: title,
@@ -336,7 +340,7 @@ serve(async (req) => {
           generated_filler: false,
         });
 
-        priorityScore -= 0.5;
+        priorityIndex++;
       }
     }
 

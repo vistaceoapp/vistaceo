@@ -21,6 +21,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 // Blog Pages
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
+import BlogAdminPage from "./pages/admin/BlogAdminPage";
 
 // App Pages
 import AppLayout from "./layouts/AppLayout";
@@ -88,6 +89,7 @@ const AppRoutes = () => {
       {/* Blog routes */}
       <Route path="/blog" element={<BlogPage />} />
       <Route path="/blog/:slug" element={<BlogPostPage />} />
+      <Route path="/admin/blog" element={<BlogAdminPage />} />
       
       {/* Checkout - standalone payment page (requires auth but not setup) */}
       <Route
