@@ -12,64 +12,103 @@ export function BlogMarkdownRenderer({ content, className }: BlogMarkdownRendere
   let headingIndex = 0;
   
   return (
-    <article className={cn("prose prose-slate dark:prose-invert max-w-none", className)}>
+    <article 
+      className={cn(
+        // Base prose styles with improved readability
+        "prose prose-slate dark:prose-invert max-w-none",
+        // Typography improvements
+        "prose-headings:scroll-mt-24 prose-headings:font-semibold",
+        // H2 styling - more spacing
+        "prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/50",
+        // H3 styling
+        "prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4",
+        // Paragraph spacing and line height
+        "prose-p:leading-relaxed prose-p:mb-5 prose-p:text-foreground/90",
+        // List styling
+        "prose-li:my-1.5 prose-li:leading-relaxed",
+        "prose-ul:my-5 prose-ol:my-5",
+        // Blockquote styling for examples
+        "prose-blockquote:border-l-4 prose-blockquote:border-primary/50 prose-blockquote:bg-muted/30 prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:my-6",
+        // Strong/bold
+        "prose-strong:text-foreground prose-strong:font-semibold",
+        // Links
+        "prose-a:text-primary prose-a:no-underline hover:prose-a:underline",
+        // Code
+        "prose-code:text-sm prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none",
+        // Pre/code blocks
+        "prose-pre:bg-muted prose-pre:border prose-pre:border-border",
+        // Tables
+        "prose-table:border prose-table:border-border prose-th:bg-muted prose-th:px-4 prose-th:py-2 prose-td:px-4 prose-td:py-2 prose-td:border-t prose-td:border-border",
+        // Images
+        "prose-img:rounded-xl prose-img:shadow-lg prose-img:my-8",
+        className
+      )}
+    >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
           h2: ({ children, ...props }) => {
             const text = String(children);
-            const id = `heading-${headingIndex++}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+            const id = `heading-${headingIndex++}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
             return (
-              <h2 id={id} className="scroll-mt-24" {...props}>
+              <h2 id={id} {...props}>
                 {children}
               </h2>
             );
           },
           h3: ({ children, ...props }) => {
             const text = String(children);
-            const id = `heading-${headingIndex++}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+            const id = `heading-${headingIndex++}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
             return (
-              <h3 id={id} className="scroll-mt-24" {...props}>
+              <h3 id={id} {...props}>
                 {children}
               </h3>
             );
           },
+          // Don't render H1 - page already has it
+          h1: () => null,
           a: ({ href, children, ...props }) => (
             <a
               href={href}
               target={href?.startsWith('http') ? '_blank' : undefined}
               rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-              className="text-primary hover:underline"
               {...props}
             >
               {children}
             </a>
           ),
           img: ({ src, alt, ...props }) => (
-            <img
-              src={src}
-              alt={alt || ''}
-              loading="lazy"
-              className="rounded-lg"
-              {...props}
-            />
+            <figure className="my-8">
+              <img
+                src={src}
+                alt={alt || ''}
+                loading="lazy"
+                className="w-full rounded-xl shadow-lg"
+                {...props}
+              />
+              {alt && (
+                <figcaption className="text-center text-sm text-muted-foreground mt-3">
+                  {alt}
+                </figcaption>
+              )}
+            </figure>
           ),
           table: ({ children, ...props }) => (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto my-6 rounded-lg border border-border">
               <table className="w-full" {...props}>
                 {children}
               </table>
             </div>
           ),
           pre: ({ children, ...props }) => (
-            <pre className="bg-muted rounded-lg p-4 overflow-x-auto" {...props}>
+            <pre className="rounded-lg p-4 overflow-x-auto my-6" {...props}>
               {children}
             </pre>
           ),
           code: ({ className, children, ...props }) => {
             const isInline = !className;
             return isInline ? (
-              <code className="bg-muted px-1.5 py-0.5 rounded text-sm" {...props}>
+              <code {...props}>
                 {children}
               </code>
             ) : (
@@ -79,19 +118,47 @@ export function BlogMarkdownRenderer({ content, className }: BlogMarkdownRendere
             );
           },
           blockquote: ({ children, ...props }) => (
-            <blockquote className="border-l-4 border-primary/50 pl-4 italic" {...props}>
+            <blockquote {...props}>
               {children}
             </blockquote>
           ),
-          ul: ({ children, ...props }) => (
-            <ul className="list-disc pl-6 space-y-2" {...props}>
-              {children}
-            </ul>
-          ),
+          ul: ({ children, ...props }) => {
+            // Check if it's a checklist
+            const isChecklist = String(children).includes('[ ]') || String(children).includes('[x]');
+            return (
+              <ul className={cn("space-y-2", isChecklist && "list-none pl-0")} {...props}>
+                {children}
+              </ul>
+            );
+          },
+          li: ({ children, ...props }) => {
+            const text = String(children);
+            // Handle checkbox items
+            if (text.startsWith('[ ] ') || text.startsWith('[x] ')) {
+              const isChecked = text.startsWith('[x]');
+              const content = text.slice(4);
+              return (
+                <li className="flex items-start gap-2 list-none" {...props}>
+                  <span className={cn(
+                    "inline-flex items-center justify-center w-5 h-5 mt-0.5 rounded border",
+                    isChecked ? "bg-primary border-primary text-primary-foreground" : "border-border"
+                  )}>
+                    {isChecked && '✓'}
+                  </span>
+                  <span>{content}</span>
+                </li>
+              );
+            }
+            return <li {...props}>{children}</li>;
+          },
           ol: ({ children, ...props }) => (
-            <ol className="list-decimal pl-6 space-y-2" {...props}>
+            <ol className="space-y-2" {...props}>
               {children}
             </ol>
+          ),
+          // Horizontal rule for section breaks
+          hr: () => (
+            <hr className="my-10 border-t-2 border-border/50" />
           ),
         }}
       >
