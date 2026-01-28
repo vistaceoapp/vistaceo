@@ -74,7 +74,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={<LandingV3 />} />
       <Route path="/v2" element={<LandingV2 />} />
       <Route path="/ultra" element={<LandingUltra />} />
       <Route path="/v3" element={<LandingV3 />} />
