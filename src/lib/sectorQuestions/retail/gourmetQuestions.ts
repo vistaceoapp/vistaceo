@@ -4,9 +4,9 @@
 // Quick: 15 preguntas | Complete: 70 preguntas
 // =============================================
 
-import { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const GOURMET_QUESTIONS: GastroQuestion[] = [
+export const GOURMET_QUESTIONS: VistaSetupQuestion[] = [
   // ========== IDENTIDAD Y POSICIONAMIENTO ==========
   {
     id: 'GOU_ID_01',

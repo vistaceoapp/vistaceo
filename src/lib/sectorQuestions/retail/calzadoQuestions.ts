@@ -1,9 +1,9 @@
 // Zapatería / Calzado - 70 Ultra-Personalized Questions
 // Categories: identity, operation, sales, menu, finance, team, marketing, reputation, goals
 
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const CALZADO_COMPLETE: GastroQuestion[] = [
+export const CALZADO_COMPLETE: VistaSetupQuestion[] = [
   // IDENTIDAD (7)
   { id: 'RT_CAL_001', category: 'identity', mode: 'both', dimension: 'reputation', weight: 9, title: { es: '¿Qué tipo de calzado vendés principalmente?', 'pt-BR': 'Que tipo de calçado você vende principalmente?' }, type: 'multi', required: true, businessTypes: ['zapateria_calzado'], options: [
     { id: 'casual', label: { es: 'Casual/Urbano', 'pt-BR': 'Casual/Urbano' }, emoji: '👟', impactScore: 15 },

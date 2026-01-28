@@ -4,9 +4,9 @@
 // Quick: 15 preguntas | Complete: 70 preguntas
 // =============================================
 
-import { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const MAYORISTA_QUESTIONS: GastroQuestion[] = [
+export const MAYORISTA_QUESTIONS: VistaSetupQuestion[] = [
   // ========== IDENTIDAD Y POSICIONAMIENTO ==========
   {
     id: 'MAY_ID_01',

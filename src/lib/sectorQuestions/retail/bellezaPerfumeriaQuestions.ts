@@ -4,9 +4,9 @@
 // Quick: 15 preguntas | Complete: 70 preguntas
 // =============================================
 
-import { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const BELLEZA_PERFUMERIA_QUESTIONS: GastroQuestion[] = [
+export const BELLEZA_PERFUMERIA_QUESTIONS: VistaSetupQuestion[] = [
   // ========== IDENTIDAD Y POSICIONAMIENTO ==========
   {
     id: 'BEL_ID_01',

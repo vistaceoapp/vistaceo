@@ -1,10 +1,10 @@
 // Tourism, Hospitality, Leisure & Events - COMPLETE 18 Business Types
 // Sector A2_TURISMO - Ultra-specific questionnaires
 
-import type { GastroQuestion } from '../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../vistaSetupQuestion';
 
 // ============= POSADA / LODGE QUESTIONS =============
-export const POSADA_LODGE_QUESTIONS: GastroQuestion[] = [
+export const POSADA_LODGE_QUESTIONS: VistaSetupQuestion[] = [
   {
     id: 'Q_POSADA_STYLE',
     category: 'identity',
@@ -93,7 +93,7 @@ export const POSADA_LODGE_QUESTIONS: GastroQuestion[] = [
 ];
 
 // ============= APART HOTEL / SUITES QUESTIONS =============
-export const APART_HOTEL_QUESTIONS: GastroQuestion[] = [
+export const APART_HOTEL_QUESTIONS: VistaSetupQuestion[] = [
   {
     id: 'Q_APART_TARGET',
     category: 'identity',
@@ -181,7 +181,7 @@ export const APART_HOTEL_QUESTIONS: GastroQuestion[] = [
 ];
 
 // ============= ALQUILER TEMPORARIO / SHORT STAY QUESTIONS =============
-export const ALQUILER_TEMPORARIO_QUESTIONS: GastroQuestion[] = [
+export const ALQUILER_TEMPORARIO_QUESTIONS: VistaSetupQuestion[] = [
   {
     id: 'Q_ALQUILER_PROPERTY_TYPE',
     category: 'identity',
@@ -269,7 +269,7 @@ export const ALQUILER_TEMPORARIO_QUESTIONS: GastroQuestion[] = [
 ];
 
 // ============= OPERADOR TURISTICO / RECEPTIVO QUESTIONS =============
-export const OPERADOR_TURISTICO_QUESTIONS: GastroQuestion[] = [
+export const OPERADOR_TURISTICO_QUESTIONS: VistaSetupQuestion[] = [
   {
     id: 'Q_OPERADOR_TYPE',
     category: 'identity',
@@ -358,7 +358,7 @@ export const OPERADOR_TURISTICO_QUESTIONS: GastroQuestion[] = [
 ];
 
 // ============= TURISMO AVENTURA / OUTDOOR QUESTIONS =============
-export const TURISMO_AVENTURA_QUESTIONS: GastroQuestion[] = [
+export const TURISMO_AVENTURA_QUESTIONS: VistaSetupQuestion[] = [
   {
     id: 'Q_AVENTURA_ACTIVITIES',
     category: 'identity',
@@ -447,7 +447,7 @@ export const TURISMO_AVENTURA_QUESTIONS: GastroQuestion[] = [
 ];
 
 // ============= ATRACCIONES / TICKETS / EXPERIENCIAS QUESTIONS =============
-export const ATRACCIONES_TICKETS_QUESTIONS: GastroQuestion[] = [
+export const ATRACCIONES_TICKETS_QUESTIONS: VistaSetupQuestion[] = [
   {
     id: 'Q_ATRACCION_TYPE',
     category: 'identity',
@@ -521,7 +521,7 @@ export const ATRACCIONES_TICKETS_QUESTIONS: GastroQuestion[] = [
 ];
 
 // ============= TEATRO / SALA DE ESPECTACULOS QUESTIONS =============
-export const TEATRO_ESPECTACULOS_QUESTIONS: GastroQuestion[] = [
+export const TEATRO_ESPECTACULOS_QUESTIONS: VistaSetupQuestion[] = [
   {
     id: 'Q_TEATRO_TYPE',
     category: 'identity',
@@ -609,7 +609,7 @@ export const TEATRO_ESPECTACULOS_QUESTIONS: GastroQuestion[] = [
 ];
 
 // ============= EVENTOS CORPORATIVOS (MICE) QUESTIONS =============
-export const EVENTOS_MICE_QUESTIONS: GastroQuestion[] = [
+export const EVENTOS_MICE_QUESTIONS: VistaSetupQuestion[] = [
   {
     id: 'Q_MICE_TYPE',
     category: 'identity',
@@ -699,7 +699,7 @@ export const EVENTOS_MICE_QUESTIONS: GastroQuestion[] = [
 ];
 
 // ============= PRODUCTORA DE EVENTOS QUESTIONS =============
-export const PRODUCTORA_EVENTOS_QUESTIONS: GastroQuestion[] = [
+export const PRODUCTORA_EVENTOS_QUESTIONS: VistaSetupQuestion[] = [
   {
     id: 'Q_PRODUCTORA_TYPE',
     category: 'identity',
@@ -788,7 +788,7 @@ export const PRODUCTORA_EVENTOS_QUESTIONS: GastroQuestion[] = [
 ];
 
 // Export all additional tourism questions
-export const TURISMO_ADDITIONAL_QUESTIONS: GastroQuestion[] = [
+export const TURISMO_ADDITIONAL_QUESTIONS: VistaSetupQuestion[] = [
   ...POSADA_LODGE_QUESTIONS,
   ...APART_HOTEL_QUESTIONS,
   ...ALQUILER_TEMPORARIO_QUESTIONS,
@@ -801,7 +801,7 @@ export const TURISMO_ADDITIONAL_QUESTIONS: GastroQuestion[] = [
 ];
 
 // Export function to get additional tourism questions for a specific business type
-export function getTurismAdditionalQuestions(businessTypeId: string): GastroQuestion[] {
+export function getTurismAdditionalQuestions(businessTypeId: string): VistaSetupQuestion[] {
   return TURISMO_ADDITIONAL_QUESTIONS.filter(q => 
     q.businessTypes?.includes(businessTypeId)
   );

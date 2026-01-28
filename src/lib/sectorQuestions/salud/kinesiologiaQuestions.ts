@@ -2,9 +2,9 @@
 // 24 questions across 9 valid categories
 // Categories: identity, operation, sales, menu, finance, team, marketing, reputation, goals
 
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const KINESIOLOGIA_QUESTIONS: GastroQuestion[] = [
+export const KINESIOLOGIA_QUESTIONS: VistaSetupQuestion[] = [
   // ==================== IDENTITY (4) ====================
   {
     id: 'SA_KIN_001',

@@ -2,9 +2,9 @@
 // 24 questions across 9 valid categories
 // Categories: identity, operation, sales, menu, finance, team, marketing, reputation, goals
 
-import type { GastroQuestion } from '../../gastroQuestionsEngine';
+import type { VistaSetupQuestion } from '../../vistaSetupQuestion';
 
-export const PSICOLOGIA_QUESTIONS: GastroQuestion[] = [
+export const PSICOLOGIA_QUESTIONS: VistaSetupQuestion[] = [
   // ==================== IDENTITY (4) ====================
   {
     id: 'SA_PSI_001',

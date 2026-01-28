@@ -1,4 +1,4 @@
-// Gastronomy Questions Engine v9 - Ultra-Intelligent Question Filtering
+// Gastronomy Questions Engine v10 - Ultra-Intelligent Question Filtering
 // Complete 70+ Questions with Health Impact Scores
 // Now with smart business type filtering - never ask irrelevant questions
 
@@ -7,6 +7,8 @@ import { getTypeSpecificQuestions } from './businessTypeQuestions';
 import { shouldShowQuestion, filterQuestionOptions } from './businessTypeQuestionRules';
 
 // ============= TYPES =============
+// Note: VistaSetupQuestion is the canonical interface in vistaSetupQuestion.ts
+// GastroQuestion is kept here for backward compatibility
 
 // Dimensiones de salud del negocio - 7 dimensiones claras y accionables
 export type HealthDimension = 
@@ -68,6 +70,9 @@ export interface GastroQuestion {
   businessTypes?: string[];     // Only show for these business types
   countries?: string[];         // Only show in these countries
 }
+
+// Type alias - VistaSetupQuestion is the canonical name going forward
+export type VistaSetupQuestion = GastroQuestion;
 
 // ============= CATEGORY LABELS =============
 
