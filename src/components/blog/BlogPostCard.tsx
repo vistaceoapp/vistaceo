@@ -49,16 +49,6 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
             </div>
           )}
           
-          {/* Country badge overlay */}
-          {country && COUNTRIES[country] && (
-            <Badge 
-              variant="secondary" 
-              className="absolute top-3 right-3 gap-1 bg-background/90 backdrop-blur-sm shadow-sm"
-            >
-              <span>{COUNTRIES[country].flag}</span>
-              <span className="text-xs font-medium">{country}</span>
-            </Badge>
-          )}
         </div>
 
         <CardContent className="p-5 space-y-3">
