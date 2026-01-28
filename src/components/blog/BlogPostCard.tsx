@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PILLARS, COUNTRIES, type PillarKey, type CountryCode } from '@/lib/blog/types';
+import { PILLARS, type PillarKey } from '@/lib/blog/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -15,14 +15,12 @@ interface BlogPostCardProps {
     publish_at: string | null;
     reading_time_min: number;
     pillar: string | null;
-    country_code: string;
     tags?: string[];
   };
 }
 
 export function BlogPostCard({ post }: BlogPostCardProps) {
   const pillar = post.pillar as PillarKey | null;
-  const country = post.country_code as CountryCode;
   
   return (
     <Link to={`/blog/${post.slug}`}>

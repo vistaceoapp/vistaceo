@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { PILLARS, COUNTRIES, type PillarKey, type CountryCode } from '@/lib/blog/types';
+import { PILLARS, type PillarKey } from '@/lib/blog/types';
 
 export default function BlogAdminPage() {
   const queryClient = useQueryClient();
@@ -41,20 +41,18 @@ export default function BlogAdminPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('blog_plan')
-        .select('status, country_code, pillar');
+        .select('status, pillar');
       if (error) throw error;
       
       const byStatus: Record<string, number> = {};
-      const byCountry: Record<string, number> = {};
       const byPillar: Record<string, number> = {};
       
       (data || []).forEach(item => {
         byStatus[item.status] = (byStatus[item.status] || 0) + 1;
-        byCountry[item.country_code] = (byCountry[item.country_code] || 0) + 1;
         byPillar[item.pillar] = (byPillar[item.pillar] || 0) + 1;
       });
       
-      return { total: data?.length || 0, byStatus, byCountry, byPillar };
+      return { total: data?.length || 0, byStatus, byPillar };
     }
   });
 
@@ -305,7 +303,6 @@ export default function BlogAdminPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Fecha</TableHead>
-                        <TableHead>País</TableHead>
                         <TableHead>Pilar</TableHead>
                         <TableHead>Título</TableHead>
                         <TableHead>Estado</TableHead>
@@ -316,12 +313,6 @@ export default function BlogAdminPage() {
                         <TableRow key={item.id}>
                           <TableCell className="font-mono text-sm">
                             {format(new Date(item.planned_date), 'dd MMM', { locale: es })}
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-lg mr-1">
-                              {COUNTRIES[item.country_code as CountryCode]?.flag}
-                            </span>
-                            {item.country_code}
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">
@@ -336,7 +327,7 @@ export default function BlogAdminPage() {
                       ))}
                       {(!upcomingPlan || upcomingPlan.length === 0) && (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                             No hay publicaciones planificadas. Ejecuta "Construir Calendario Anual".
                           </TableCell>
                         </TableRow>
@@ -397,25 +388,7 @@ export default function BlogAdminPage() {
 
           {/* Distribution Tab */}
           <TabsContent value="distribution">
-            <div className="grid md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Por País</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {Object.entries(planStats?.byCountry || {}).map(([code, count]) => (
-                      <div key={code} className="flex items-center justify-between">
-                        <span className="flex items-center gap-2">
-                          <span className="text-lg">{COUNTRIES[code as CountryCode]?.flag}</span>
-                          {COUNTRIES[code as CountryCode]?.name || code}
-                        </span>
-                        <Badge variant="secondary">{count as number}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="grid md:grid-cols-1 gap-4">
               
               <Card>
                 <CardHeader>

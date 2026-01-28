@@ -293,7 +293,3 @@ export const SEED_TITLES: SeedTitle[] = [
 
 // Verify we have exactly 200 titles
 export const TOTAL_SEED_TITLES = SEED_TITLES.length;
-
-// Countries for distribution
-export const TARGET_COUNTRIES = ['AR', 'CL', 'UY', 'CO', 'EC', 'CR', 'MX', 'PA'] as const;
-export type TargetCountry = typeof TARGET_COUNTRIES[number];

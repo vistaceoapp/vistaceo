@@ -10,7 +10,7 @@ import { BlogSchema } from '@/components/blog/BlogSchema';
 import { useBlogPost, useRelatedPosts } from '@/hooks/use-blog';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PILLARS, COUNTRIES, type PillarKey, type CountryCode } from '@/lib/blog/types';
+import { PILLARS, type PillarKey } from '@/lib/blog/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -59,7 +59,6 @@ export default function BlogPostPage() {
   }
 
   const pillar = post.pillar as PillarKey | null;
-  const country = post.country_code as CountryCode;
   const url = `https://vistaceo.lovable.app/blog/${post.slug}`;
   
   // Parse external sources if available
@@ -108,12 +107,6 @@ export default function BlogPostPage() {
                       <Badge variant="default" className="gap-1">
                         <span>{PILLARS[pillar].emoji}</span>
                         <span>{PILLARS[pillar].label}</span>
-                      </Badge>
-                    )}
-                    {country && COUNTRIES[country] && (
-                      <Badge variant="outline" className="gap-1">
-                        <span>{COUNTRIES[country].flag}</span>
-                        <span>{COUNTRIES[country].name}</span>
                       </Badge>
                     )}
                   </div>
