@@ -116,3 +116,12 @@ verify_jwt = false
 
 [functions.scrape-social-profile]
 verify_jwt = false
+
+[functions.generate-blog-post]
+verify_jwt = false
+
+[functions.build-annual-calendar]
+verify_jwt = false
+
+[functions.seed-blog-topics]
+verify_jwt = false
