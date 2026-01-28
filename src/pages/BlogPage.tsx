@@ -48,19 +48,34 @@ export default function BlogPage() {
               <span className="text-foreground">Blog</span>
             </nav>
 
-            {/* Header */}
-            <div className="mb-10">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-                Recursos para hacer crecer tu negocio
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
-                Guías accionables, plantillas listas para usar y estrategias probadas por dueños de negocios en toda Latinoamérica.
-              </p>
-              {stats && (
-                <p className="text-sm text-primary/80 mt-3 font-medium">
-                  {stats.total} artículos disponibles
+            {/* Header - Ultra Premium */}
+            <div className="mb-12 relative">
+              {/* Subtle gradient background */}
+              <div className="absolute -inset-4 bg-gradient-to-r from-[#2692DC]/5 via-[#746CE6]/5 to-transparent rounded-3xl blur-xl" />
+              
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-1 w-12 bg-gradient-to-r from-[#2692DC] to-[#746CE6] rounded-full" />
+                  <span className="text-sm font-medium text-[#746CE6]">Blog VistaCEO</span>
+                </div>
+                
+                <h1 className="text-3xl md:text-5xl font-bold mb-5 bg-gradient-to-r from-[#2692DC] via-[#5A7FE1] to-[#746CE6] bg-clip-text text-transparent">
+                  Recursos para hacer crecer tu negocio
+                </h1>
+                
+                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
+                  Guías accionables, plantillas listas para usar y estrategias probadas por dueños de negocios en toda Latinoamérica.
                 </p>
-              )}
+                
+                {stats && (
+                  <div className="flex items-center gap-2 mt-5">
+                    <div className="h-2 w-2 rounded-full bg-gradient-to-r from-[#2692DC] to-[#746CE6] animate-pulse" />
+                    <p className="text-sm font-medium bg-gradient-to-r from-[#2692DC] to-[#746CE6] bg-clip-text text-transparent">
+                      {stats.total} artículos disponibles
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Filters */}

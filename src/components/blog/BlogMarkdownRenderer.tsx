@@ -62,7 +62,11 @@ export function BlogMarkdownRenderer({ content, className }: BlogMarkdownRendere
             const text = String(children);
             const id = `heading-${headingIndex++}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
             return (
-              <h3 id={id} {...props}>
+              <h3 
+                id={id} 
+                className="!mt-14 !pt-8 !mb-6 text-[1.2rem] font-semibold text-foreground border-t border-border/20"
+                {...props}
+              >
                 {children}
               </h3>
             );
