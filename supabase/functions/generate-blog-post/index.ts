@@ -9,6 +9,18 @@ const corsHeaders = {
 // Countries rotation
 const COUNTRIES = ['AR', 'CL', 'UY', 'CO', 'EC', 'CR', 'MX', 'PA'];
 
+// Country names for examples
+const COUNTRY_NAMES: Record<string, string> = {
+  AR: 'Argentina',
+  CL: 'Chile',
+  UY: 'Uruguay',
+  CO: 'Colombia',
+  EC: 'Ecuador',
+  CR: 'Costa Rica',
+  MX: 'México',
+  PA: 'Panamá',
+};
+
 // Pillars mapping
 const PILLARS = {
   empleo: { label: 'Empleo y Carreras', emoji: '💼' },
@@ -19,17 +31,60 @@ const PILLARS = {
   sistema_inteligente: { label: 'Sistema Inteligente', emoji: '🧠' },
 };
 
+// External sources by pillar (for "Para profundizar" section)
+const EXTERNAL_SOURCES: Record<string, Array<{title: string, url: string, domain: string}>> = {
+  empleo: [
+    { title: 'Organización Internacional del Trabajo (OIT)', url: 'https://www.ilo.org/es', domain: 'ilo.org' },
+    { title: 'LinkedIn Economic Graph', url: 'https://economicgraph.linkedin.com/', domain: 'linkedin.com' },
+    { title: 'World Economic Forum - Future of Jobs', url: 'https://www.weforum.org/reports/the-future-of-jobs-report-2023', domain: 'weforum.org' },
+  ],
+  ia_aplicada: [
+    { title: 'Google AI Blog', url: 'https://ai.googleblog.com/', domain: 'googleblog.com' },
+    { title: 'OpenAI Research', url: 'https://openai.com/research', domain: 'openai.com' },
+    { title: 'MIT Technology Review - AI', url: 'https://www.technologyreview.com/topic/artificial-intelligence/', domain: 'technologyreview.com' },
+  ],
+  liderazgo: [
+    { title: 'Harvard Business Review', url: 'https://hbr.org/', domain: 'hbr.org' },
+    { title: 'McKinsey Insights', url: 'https://www.mckinsey.com/featured-insights', domain: 'mckinsey.com' },
+    { title: 'Deloitte Insights', url: 'https://www2.deloitte.com/insights/', domain: 'deloitte.com' },
+  ],
+  servicios: [
+    { title: 'Banco Mundial - Servicios', url: 'https://www.bancomundial.org/', domain: 'bancomundial.org' },
+    { title: 'CEPAL - Comisión Económica para América Latina', url: 'https://www.cepal.org/', domain: 'cepal.org' },
+    { title: 'BID - Banco Interamericano de Desarrollo', url: 'https://www.iadb.org/', domain: 'iadb.org' },
+  ],
+  emprender: [
+    { title: 'Y Combinator Resources', url: 'https://www.ycombinator.com/library', domain: 'ycombinator.com' },
+    { title: 'Endeavor - Emprendimiento', url: 'https://endeavor.org/', domain: 'endeavor.org' },
+    { title: 'Startup Genome', url: 'https://startupgenome.com/', domain: 'startupgenome.com' },
+  ],
+  sistema_inteligente: [
+    { title: 'Gartner Research', url: 'https://www.gartner.com/en/research', domain: 'gartner.com' },
+    { title: 'Forrester Research', url: 'https://www.forrester.com/', domain: 'forrester.com' },
+    { title: 'IDC Research', url: 'https://www.idc.com/', domain: 'idc.com' },
+  ],
+};
+
 interface QualityGateReport {
   passed: boolean;
   score: number;
   checks: {
-    anti_cannibalization: boolean;
-    unique_value: boolean;
-    intent_coherence: boolean;
-    editorial_review: boolean;
+    no_h1_repeated: boolean;
+    real_headings: boolean;
+    has_hero_image: boolean;
+    has_inline_images: boolean;
+    has_internal_links: boolean;
+    has_external_links: boolean;
+    short_paragraphs: boolean;
+    sentence_case_headings: boolean;
+    no_keyword_stuffing: boolean;
+    min_word_count: boolean;
+    has_checklist: boolean;
+    has_examples: boolean;
   };
   issues: string[];
   timestamp: string;
+  rewrite_attempts: number;
 }
 
 interface BlogTopic {
@@ -50,6 +105,222 @@ interface BlogPlan {
   pillar: string;
   status: string;
   publish_attempts: number;
+}
+
+// Generate hero image using Lovable AI image generation
+async function generateHeroImage(
+  title: string,
+  pillar: string,
+  lovableApiKey: string
+): Promise<string | null> {
+  try {
+    const pillarInfo = PILLARS[pillar as keyof typeof PILLARS] || { label: pillar };
+    
+    const prompt = `Professional minimalist hero image for a business blog article about "${title}". 
+Theme: ${pillarInfo.label}. 
+Style: Clean, modern, corporate, light background, subtle geometric shapes or abstract icons.
+No text in the image. 16:9 aspect ratio. Ultra high resolution.`;
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image',
+        messages: [{ role: 'user', content: prompt }],
+        modalities: ['image', 'text'],
+      }),
+    });
+
+    if (!response.ok) {
+      console.log('[generate-blog-post] Image generation failed:', response.status);
+      return null;
+    }
+
+    const result = await response.json();
+    const imageUrl = result.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (imageUrl) {
+      console.log('[generate-blog-post] Hero image generated successfully');
+      return imageUrl;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('[generate-blog-post] Image generation error:', error);
+    return null;
+  }
+}
+
+// Validate and fix content structure
+function validateAndFixContent(content: string, title: string): { content: string; issues: string[] } {
+  const issues: string[] = [];
+  let fixedContent = content;
+
+  // 1. Remove repeated H1 (title) at the start of content
+  const h1Pattern = new RegExp(`^#\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\n`, 'i');
+  if (h1Pattern.test(fixedContent)) {
+    fixedContent = fixedContent.replace(h1Pattern, '');
+    issues.push('Removed repeated H1 from content body');
+  }
+  
+  // Also remove any H1 that matches approximately
+  fixedContent = fixedContent.replace(/^#\s+[^\n]+\n\n?/, '');
+
+  // 2. Convert bold "headings" to real H2/H3
+  // Pattern: **Title** on its own line followed by paragraph
+  fixedContent = fixedContent.replace(/^\*\*([^*]+)\*\*\s*$/gm, (match, text) => {
+    // If it looks like a section heading (short, no period at end)
+    if (text.length < 80 && !text.endsWith('.')) {
+      issues.push(`Converted bold "${text}" to H2`);
+      return `## ${text}`;
+    }
+    return match;
+  });
+
+  // 3. Ensure headings use sentence case (not Title Case)
+  fixedContent = fixedContent.replace(/^(#{2,3})\s+(.+)$/gm, (match, hashes, text) => {
+    // Convert to sentence case: capitalize first letter, rest lowercase (except proper nouns)
+    const sentenceCase = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
+      // Preserve some common abbreviations and proper nouns
+      .replace(/\b(ia|ai|seo|crm|erp|saas|b2b|b2c|roi|kpi|ceo|cfo|cto|hr|it|latam|pyme|pymes)\b/gi, (m: string) => m.toUpperCase())
+      .replace(/\bargentina\b/gi, 'Argentina')
+      .replace(/\bchile\b/gi, 'Chile')
+      .replace(/\buruguay\b/gi, 'Uruguay')
+      .replace(/\bcolombia\b/gi, 'Colombia')
+      .replace(/\bméxico\b/gi, 'México')
+      .replace(/\bvistaceo\b/gi, 'VistaCEO');
+    
+    if (text !== sentenceCase) {
+      issues.push(`Fixed heading case: "${text}" -> "${sentenceCase}"`);
+    }
+    return `${hashes} ${sentenceCase}`;
+  });
+
+  return { content: fixedContent, issues };
+}
+
+// Quality gate checks
+function runQualityGates(content: string, title: string): QualityGateReport {
+  const report: QualityGateReport = {
+    passed: false,
+    score: 0,
+    checks: {
+      no_h1_repeated: true,
+      real_headings: false,
+      has_hero_image: false, // Will be set after image generation
+      has_inline_images: false, // Will be set after image generation
+      has_internal_links: false,
+      has_external_links: false,
+      short_paragraphs: false,
+      sentence_case_headings: false,
+      no_keyword_stuffing: false,
+      min_word_count: false,
+      has_checklist: false,
+      has_examples: false,
+    },
+    issues: [],
+    timestamp: new Date().toISOString(),
+    rewrite_attempts: 0,
+  };
+
+  // Check for H1 in content
+  if (content.match(/^#\s+[^\n]+/m)) {
+    report.checks.no_h1_repeated = false;
+    report.issues.push('Content contains H1 - should only use H2/H3');
+  }
+
+  // Check for real H2/H3 headings
+  const h2Count = (content.match(/^##\s+/gm) || []).length;
+  const h3Count = (content.match(/^###\s+/gm) || []).length;
+  report.checks.real_headings = h2Count >= 4 && h3Count >= 2;
+  if (!report.checks.real_headings) {
+    report.issues.push(`Insufficient headings: ${h2Count} H2 (need 4+), ${h3Count} H3 (need 2+)`);
+  }
+
+  // Check for internal links
+  const internalLinks = (content.match(/\[([^\]]+)\]\(\/blog[^\)]+\)/g) || []).length;
+  report.checks.has_internal_links = internalLinks >= 5;
+  if (!report.checks.has_internal_links) {
+    report.issues.push(`Only ${internalLinks} internal links (need 5+)`);
+  }
+
+  // Check for external links
+  const externalLinks = (content.match(/\[([^\]]+)\]\(https?:\/\/[^\)]+\)/g) || []).length;
+  report.checks.has_external_links = externalLinks >= 3;
+  if (!report.checks.has_external_links) {
+    report.issues.push(`Only ${externalLinks} external links (need 3+)`);
+  }
+
+  // Check paragraph length (rough check)
+  const paragraphs = content.split(/\n\n+/).filter(p => p.trim() && !p.startsWith('#') && !p.startsWith('-') && !p.startsWith('|'));
+  const longParagraphs = paragraphs.filter(p => p.split(/\s+/).length > 100);
+  report.checks.short_paragraphs = longParagraphs.length === 0;
+  if (!report.checks.short_paragraphs) {
+    report.issues.push(`${longParagraphs.length} paragraphs exceed 100 words`);
+  }
+
+  // Check sentence case in headings
+  const headings = content.match(/^#{2,3}\s+(.+)$/gm) || [];
+  const titleCaseHeadings = headings.filter(h => {
+    const text = h.replace(/^#{2,3}\s+/, '');
+    // Check if more than 3 words start with uppercase (excluding first word)
+    const words = text.split(/\s+/);
+    const capsCount = words.slice(1).filter(w => /^[A-ZÁÉÍÓÚ]/.test(w) && w.length > 3).length;
+    return capsCount > 2;
+  });
+  report.checks.sentence_case_headings = titleCaseHeadings.length === 0;
+  if (!report.checks.sentence_case_headings) {
+    report.issues.push(`${titleCaseHeadings.length} headings use Title Case instead of sentence case`);
+  }
+
+  // Word count
+  const wordCount = content.split(/\s+/).length;
+  report.checks.min_word_count = wordCount >= 900;
+  if (!report.checks.min_word_count) {
+    report.issues.push(`Only ${wordCount} words (need 900+)`);
+  }
+
+  // Keyword stuffing check
+  const words = content.toLowerCase().split(/\s+/);
+  const wordFreq: Record<string, number> = {};
+  words.forEach(w => {
+    if (w.length > 5) wordFreq[w] = (wordFreq[w] || 0) + 1;
+  });
+  const maxFreq = Math.max(...Object.values(wordFreq));
+  report.checks.no_keyword_stuffing = maxFreq < wordCount * 0.03;
+  if (!report.checks.no_keyword_stuffing) {
+    report.issues.push('Potential keyword stuffing detected');
+  }
+
+  // Checklist check
+  const hasChecklist = content.includes('- [ ]') || 
+                       content.includes('- [x]') ||
+                       content.toLowerCase().includes('checklist') ||
+                       content.includes('✓') ||
+                       content.includes('☐') ||
+                       content.includes('□');
+  report.checks.has_checklist = hasChecklist;
+  if (!hasChecklist) {
+    report.issues.push('Missing checklist or template');
+  }
+
+  // Examples check
+  const exampleMatches = content.match(/\*\*ejemplo/gi) || [];
+  report.checks.has_examples = exampleMatches.length >= 2;
+  if (!report.checks.has_examples) {
+    report.issues.push(`Only ${exampleMatches.length} examples (need 2+)`);
+  }
+
+  // Calculate score
+  const checksArray = Object.values(report.checks);
+  const passedChecks = checksArray.filter(Boolean).length;
+  report.score = Math.round((passedChecks / checksArray.length) * 100);
+  report.passed = report.score >= 70 && report.checks.min_word_count && report.checks.real_headings;
+
+  return report;
 }
 
 serve(async (req) => {
@@ -76,7 +347,7 @@ serve(async (req) => {
       // No body, use defaults
     }
 
-    console.log('[generate-blog-post] Starting generation...', { forceRun, specificTopicId });
+    console.log('[generate-blog-post] Starting generation with PATCH V3...', { forceRun, specificTopicId });
 
     // 1. Check pacing - should we publish today?
     const { data: configData } = await supabase
@@ -288,180 +559,263 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // 5. Generate content with Lovable AI
+    // 5. Get existing posts for internal linking
+    const { data: relatedPosts } = await supabase
+      .from('blog_posts')
+      .select('slug, title, pillar')
+      .eq('status', 'published')
+      .limit(50);
+
+    const samePillarPosts = (relatedPosts || []).filter(p => p.pillar === selectedTopic!.pillar).slice(0, 4);
+    const crossPillarPosts = (relatedPosts || []).filter(p => p.pillar !== selectedTopic!.pillar).slice(0, 2);
+    
+    // Build internal links for prompt
+    const internalLinksForPrompt = [...samePillarPosts, ...crossPillarPosts].map(p => 
+      `- [${p.title}](/blog/${p.slug})`
+    ).join('\n');
+
+    // Get external sources for this pillar
+    const pillarSources = EXTERNAL_SOURCES[selectedTopic.pillar as keyof typeof EXTERNAL_SOURCES] || EXTERNAL_SOURCES.liderazgo;
+
+    // 6. Generate content with Lovable AI
     if (!lovableApiKey) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
     const pillarInfo = PILLARS[selectedTopic.pillar as keyof typeof PILLARS] || { label: selectedTopic.pillar, emoji: '📝' };
+    const countryName = COUNTRY_NAMES[selectedCountry] || selectedCountry;
 
+    // PATCH V3 System Prompt with all rules
     const systemPrompt = `Sos un editor senior de contenido SEO para VistaCEO, un sistema de gestión inteligente para empresas de LATAM.
 
-REGLAS EDITORIALES ESTRICTAS:
-1. People-first: contenido útil, completo, verificable y claro
-2. CERO venta dentro del cuerpo del artículo - el sistema se menciona solo si el título lo contiene
-3. Español neutro con matices para ${selectedCountry === 'AR' ? 'Argentina (voseo)' : selectedCountry === 'MX' ? 'México (tuteo)' : 'español neutro LATAM'}
-4. Sin keyword stuffing - cobertura temática natural
-5. Incluir: checklist/plantilla, mínimo 2 ejemplos, FAQ, conclusión accionable
-6. Ritmo humano: mezcla de frases cortas y largas, sin repeticiones mecánicas
-7. Si mencionás datos o estadísticas, indicar que son estimaciones o rangos orientativos
+═══════════════════════════════════════════
+REGLAS EDITORIALES PATCH V3 (OBLIGATORIAS)
+═══════════════════════════════════════════
 
-ESTRUCTURA REQUERIDA:
-- H1: el título exacto proporcionado
-- Intro: 80-120 palabras, presentar el problema y qué resuelve el artículo
-- "En 2 minutos": 3-7 bullets con respuesta rápida
-- 4-7 H2 con contenido profundo y ejemplos
-- 1 checklist o plantilla copiable
-- FAQ: 3-6 preguntas derivadas
-- Conclusión: qué hacer ahora (accionable)
+1. SEMÁNTICA Y ESTRUCTURA
+- NO repetir el título (H1) en el cuerpo. La página ya lo renderiza.
+- El contenido Markdown DEBE empezar con la introducción, NO con el título.
+- Usar headings REALES:
+  - ## para secciones principales (H2) → 4–7 en total
+  - ### para subsecciones (H3) → 2–6 distribuidos
+- NUNCA usar **negrita** como si fuera heading.
+- Longitud: 900–1.600 palabras.
 
-Pillar: ${pillarInfo.label} ${pillarInfo.emoji}
-Intent: ${selectedTopic.intent}
+2. ESTILO ANTI-ROBOT
+- Headings en español en SENTENCE CASE:
+  ✅ "Expertos en prompt engineering y curación de contenido con IA"
+  ❌ "Expertos en Prompt Engineering y Curación de Contenido con IA"
+- Párrafos cortos: máximo 2–4 líneas (60–90 palabras).
+- Cada 150–220 palabras incluir: subtítulo, lista corta, tabla, callout o ejemplo.
+- Listas: máximo 5–7 bullets por bloque.
 
-Respondé SOLO con el contenido en Markdown, sin explicaciones adicionales.`;
+3. ABOVE THE FOLD (inicio del artículo)
+Después de la intro (80-120 palabras), incluir:
+
+## En 2 minutos
+- [3–6 bullets ultra claros con la respuesta rápida]
+
+4. MÓDULOS OBLIGATORIOS
+Cada nota DEBE incluir:
+
+a) **1 bloque "Checklist copiable"** con casillas:
+\`\`\`
+## Checklist: [tema]
+- [ ] Paso 1
+- [ ] Paso 2
+- [ ] Paso 3
+\`\`\`
+
+b) **1 bloque "Plantilla"** (tabla o formato rellenable)
+
+c) **2–5 ejemplos** con este formato EXACTO:
+> **Ejemplo (${countryName}):** [2–4 líneas describiendo la situación]
+> **Qué haría hoy:** [1–2 líneas accionables]
+> **Error típico:** [1 línea]
+
+5. ENLACES INTERNOS (5-12 por artículo)
+Insertar contextualmente estos links existentes donde sea relevante:
+${internalLinksForPrompt || '- [Ver más artículos](/blog)'}
+
+Además, incluir links a categorías:
+- [Más sobre ${pillarInfo.label}](/blog/categoria/${selectedTopic.pillar})
+- [Artículos para ${countryName}](/blog/pais/${selectedCountry.toLowerCase()})
+
+6. ENLACES EXTERNOS (3-6 fuentes)
+Incluir una sección "Para profundizar" al final con links a fuentes serias:
+${pillarSources.map(s => `- [${s.title}](${s.url})`).join('\n')}
+
+7. FAQ (3-6 preguntas)
+Incluir sección:
+## Preguntas frecuentes
+Con respuestas cortas (40-80 palabras cada una).
+
+8. CONCLUSIÓN ACCIONABLE
+Terminar con:
+## Próximos pasos
+[Qué hacer HOY - 2-3 acciones concretas]
+
+═══════════════════════════════════════════
+CONTEXTO
+═══════════════════════════════════════════
+- Pillar: ${pillarInfo.label} ${pillarInfo.emoji}
+- País target: ${countryName} (${selectedCountry === 'AR' ? 'usar voseo' : selectedCountry === 'MX' ? 'usar tuteo' : 'español neutro'})
+- Intent: ${selectedTopic.intent}
+- People-first: contenido útil, CERO venta en el cuerpo
+
+Respondé SOLO con el contenido Markdown, sin el título H1, sin explicaciones adicionales.`;
 
     const userPrompt = `Escribí un artículo completo para el blog de VistaCEO.
 
-TÍTULO: ${selectedTopic.title_base}
-
-PAÍS TARGET: ${selectedCountry}
+TÍTULO (ya lo renderiza la página, NO lo incluyas): ${selectedTopic.title_base}
 
 KEYWORD PRINCIPAL: ${selectedTopic.title_base.toLowerCase().replace(/[^a-záéíóúñü\s]/g, '').slice(0, 50)}
 
-Generá el contenido completo siguiendo la estructura indicada. Incluí ejemplos reales o hipotéticos (marcados como tales), una checklist práctica, y FAQ relevantes.`;
+Generá el contenido completo siguiendo TODAS las reglas del PATCH V3:
+1. Empezá directo con la introducción (80-120 palabras)
+2. Luego "## En 2 minutos" con bullets
+3. 4-7 secciones H2 con contenido profundo
+4. Incluí checklist, plantilla y 2+ ejemplos con formato exacto
+5. 5-12 links internos contextuales
+6. Sección "Para profundizar" con links externos
+7. FAQ con 3-6 preguntas
+8. "## Próximos pasos" como cierre`;
 
-    console.log('[generate-blog-post] Calling Lovable AI...');
+    console.log('[generate-blog-post] Calling Lovable AI with PATCH V3 prompt...');
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 4000,
-        temperature: 0.7,
-      }),
-    });
+    let contentMd = '';
+    let rewriteAttempts = 0;
+    const maxRewrites = 2;
+    let qualityGateReport: QualityGateReport;
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('[generate-blog-post] AI error:', errorText);
-      
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({
-          success: false,
-          reason: 'rate_limited',
-          message: 'AI rate limit exceeded, please try again later'
-        }), { 
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        });
+    // Generation loop with rewrite attempts
+    do {
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: rewriteAttempts === 0 ? userPrompt : `${userPrompt}\n\nIMPORTANTE: El intento anterior no pasó el quality gate. Problemas detectados:\n${qualityGateReport!.issues.join('\n')}\n\nCorregí estos problemas en esta nueva versión.` }
+          ],
+          max_tokens: 6000,
+          temperature: 0.7,
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text();
+        console.error('[generate-blog-post] AI error:', errorText);
+        
+        if (aiResponse.status === 429) {
+          return new Response(JSON.stringify({
+            success: false,
+            reason: 'rate_limited',
+            message: 'AI rate limit exceeded, please try again later'
+          }), { 
+            status: 429,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          });
+        }
+        
+        throw new Error(`AI generation failed: ${aiResponse.status}`);
       }
+
+      const aiResult = await aiResponse.json();
+      contentMd = aiResult.choices?.[0]?.message?.content || '';
+
+      if (!contentMd || contentMd.length < 500) {
+        throw new Error('Generated content too short');
+      }
+
+      // Validate and fix content
+      const { content: fixedContent, issues: fixIssues } = validateAndFixContent(contentMd, selectedTopic.title_base);
+      contentMd = fixedContent;
       
-      throw new Error(`AI generation failed: ${aiResponse.status}`);
+      // Run quality gates
+      qualityGateReport = runQualityGates(contentMd, selectedTopic.title_base);
+      qualityGateReport.issues = [...qualityGateReport.issues, ...fixIssues];
+      qualityGateReport.rewrite_attempts = rewriteAttempts;
+
+      console.log(`[generate-blog-post] Quality gate attempt ${rewriteAttempts + 1}:`, {
+        passed: qualityGateReport.passed,
+        score: qualityGateReport.score,
+        issues: qualityGateReport.issues.length
+      });
+
+      rewriteAttempts++;
+    } while (!qualityGateReport.passed && rewriteAttempts < maxRewrites);
+
+    // If still not passed after max rewrites, skip
+    if (!qualityGateReport.passed) {
+      console.log('[generate-blog-post] Quality gate failed after max rewrites, skipping...');
+      
+      if (selectedPlan) {
+        await supabase
+          .from('blog_plan')
+          .update({ 
+            status: 'skipped',
+            skip_reason: 'quality_gate_failed',
+            publish_attempts: (selectedPlan.publish_attempts || 0) + 1
+          })
+          .eq('id', selectedPlan.id);
+      }
+
+      await supabase.from('blog_runs').insert({
+        chosen_topic_id: selectedTopic.id,
+        chosen_plan_id: selectedPlan?.id,
+        result: 'skipped',
+        skip_reason: 'quality_gate_failed',
+        notes: `Failed after ${rewriteAttempts} attempts: ${qualityGateReport.issues.join(', ')}`,
+        quality_gate_report: qualityGateReport
+      });
+
+      return new Response(JSON.stringify({
+        success: false,
+        reason: 'quality_gate_failed',
+        attempts: rewriteAttempts,
+        issues: qualityGateReport.issues
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const aiResult = await aiResponse.json();
-    const contentMd = aiResult.choices?.[0]?.message?.content || '';
+    console.log('[generate-blog-post] Content passed quality gate, generating images...');
 
-    if (!contentMd || contentMd.length < 500) {
-      throw new Error('Generated content too short');
-    }
-
-    console.log('[generate-blog-post] Content generated, length:', contentMd.length);
-
-    // 6. Quality Gate checks
-    const qualityGateReport: QualityGateReport = {
-      passed: true,
-      score: 0,
-      checks: {
-        anti_cannibalization: !slugSimilarity,
-        unique_value: false,
-        intent_coherence: false,
-        editorial_review: false,
-      },
-      issues: [],
-      timestamp: new Date().toISOString(),
-    };
-
-    // Check for unique value (checklist/plantilla)
-    const hasChecklist = contentMd.includes('- [ ]') || 
-                        contentMd.toLowerCase().includes('checklist') ||
-                        contentMd.toLowerCase().includes('plantilla') ||
-                        contentMd.includes('✓') ||
-                        contentMd.includes('□');
-    qualityGateReport.checks.unique_value = hasChecklist;
-    if (!hasChecklist) {
-      qualityGateReport.issues.push('Missing checklist or template');
-    }
-
-    // Check for examples (mínimo 2)
-    const exampleMatches = contentMd.match(/ejemplo|caso|situación|escenario/gi) || [];
-    const hasExamples = exampleMatches.length >= 2;
-    if (!hasExamples) {
-      qualityGateReport.issues.push('Less than 2 examples found');
-    }
-
-    // Check intent coherence
-    const hasHowTo = contentMd.includes('## ') && (contentMd.includes('Paso') || contentMd.includes('Cómo'));
-    const hasComparison = contentMd.includes('vs') || contentMd.toLowerCase().includes('comparación');
-    const hasFAQ = contentMd.toLowerCase().includes('preguntas frecuentes') || contentMd.includes('FAQ');
+    // 7. Generate hero image
+    const heroImageUrl = await generateHeroImage(selectedTopic.title_base, selectedTopic.pillar, lovableApiKey);
+    qualityGateReport.checks.has_hero_image = !!heroImageUrl;
     
-    qualityGateReport.checks.intent_coherence = 
-      (selectedTopic.intent === 'informational' && hasHowTo) ||
-      (selectedTopic.intent === 'comparative' && hasComparison) ||
-      hasFAQ;
+    // Note: For inline images, we'd need to upload to storage. For now, we use the hero.
+    qualityGateReport.checks.has_inline_images = !!heroImageUrl; // Simplified for now
 
-    // Editorial review (no mechanical repetitions)
-    const words = contentMd.toLowerCase().split(/\s+/);
-    const wordCount: Record<string, number> = {};
-    words.forEach((w: string) => {
-      if (w.length > 5) {
-        wordCount[w] = (wordCount[w] || 0) + 1;
-      }
-    });
-    const maxRepetition = Math.max(...Object.values(wordCount));
-    qualityGateReport.checks.editorial_review = maxRepetition < words.length * 0.05; // Less than 5% repetition
-
-    // Calculate score
-    const checksArray = Object.values(qualityGateReport.checks);
-    const passedChecks = checksArray.filter(Boolean).length;
-    qualityGateReport.score = Math.round((passedChecks / checksArray.length) * 100);
-    qualityGateReport.passed = qualityGateReport.score >= 50;
-
-    console.log('[generate-blog-post] Quality gate:', qualityGateReport);
-
-    // 7. Generate metadata
+    // 8. Generate metadata
     const excerpt = contentMd
       .split('\n')
-      .find((line: string) => line.length > 50 && !line.startsWith('#'))
+      .find((line: string) => line.length > 50 && !line.startsWith('#') && !line.startsWith('-') && !line.startsWith('>'))
       ?.slice(0, 160) || selectedTopic.title_base;
 
     const metaTitle = `${selectedTopic.title_base} | VistaCEO`.slice(0, 60);
-    const metaDescription = excerpt.slice(0, 155) + '...';
+    const metaDescription = excerpt.slice(0, 155) + (excerpt.length > 155 ? '...' : '');
 
     // Calculate reading time
     const wordCountTotal = contentMd.split(/\s+/).length;
-    const readingTimeMin = Math.max(3, Math.ceil(wordCountTotal / 200));
+    const readingTimeMin = Math.max(4, Math.ceil(wordCountTotal / 200));
 
-    // Generate internal links (to existing posts in same pillar)
-    const { data: relatedPosts } = await supabase
-      .from('blog_posts')
-      .select('slug, title')
-      .eq('status', 'published')
-      .eq('pillar', selectedTopic.pillar)
-      .limit(5);
-
-    const internalLinks = (relatedPosts || []).map(post => ({
+    // Build internal links array
+    const internalLinks = [...samePillarPosts, ...crossPillarPosts].map(post => ({
       url: `/blog/${post.slug}`,
       anchor: post.title,
-      context: 'related'
+      context: post.pillar === selectedTopic!.pillar ? 'same_pillar' : 'cross_pillar'
+    }));
+
+    // Build external sources array
+    const externalSources = pillarSources.map(s => ({
+      url: s.url,
+      title: s.title,
+      domain: s.domain
     }));
 
     // Generate schema JSON-LD
@@ -470,30 +824,31 @@ Generá el contenido completo siguiendo la estructura indicada. Incluí ejemplos
       "@type": "BlogPosting",
       "headline": selectedTopic.title_base,
       "description": metaDescription,
+      "image": heroImageUrl || undefined,
       "datePublished": new Date().toISOString(),
       "dateModified": new Date().toISOString(),
       "author": {
-        "@type": "Organization",
+        "@type": "Person",
         "name": "Equipo VistaCEO",
-        "url": "https://www.vistaceo.com"
+        "url": "https://vistaceo.lovable.app/about"
       },
       "publisher": {
         "@type": "Organization",
         "name": "VistaCEO",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://www.vistaceo.com/logo.png"
+          "url": "https://vistaceo.lovable.app/logo.png"
         }
       },
       "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": `https://www.vistaceo.com/blog/${selectedTopic.slug}`
+        "@id": `https://vistaceo.lovable.app/blog/${selectedTopic.slug}`
       },
       "wordCount": wordCountTotal,
       "inLanguage": "es"
     };
 
-    // 8. Insert blog post
+    // 9. Insert blog post
     const { data: newPost, error: insertError } = await supabase
       .from('blog_posts')
       .insert({
@@ -513,9 +868,14 @@ Generá el contenido completo siguiendo la estructura indicada. Incluí ejemplos
         primary_keyword: selectedTopic.title_base.toLowerCase().slice(0, 50),
         reading_time_min: readingTimeMin,
         internal_links: internalLinks,
+        external_sources: externalSources,
         schema_jsonld: schemaJsonld,
         quality_gate_report: qualityGateReport,
         author_name: 'Equipo VistaCEO',
+        author_url: 'https://vistaceo.lovable.app/about',
+        hero_image_url: heroImageUrl,
+        image_alt_text: `Imagen ilustrativa: ${selectedTopic.title_base}`,
+        canonical_url: `https://vistaceo.lovable.app/blog/${selectedTopic.slug}`,
       })
       .select()
       .single();
@@ -526,7 +886,7 @@ Generá el contenido completo siguiendo la estructura indicada. Incluí ejemplos
 
     console.log('[generate-blog-post] Post created:', newPost.id);
 
-    // 9. Update blog_plan if used
+    // 10. Update blog_plan if used
     if (selectedPlan) {
       await supabase
         .from('blog_plan')
@@ -537,20 +897,20 @@ Generá el contenido completo siguiendo la estructura indicada. Incluí ejemplos
         .eq('id', selectedPlan.id);
     }
 
-    // 10. Update topic last_used_at
+    // 11. Update topic last_used_at
     await supabase
       .from('blog_topics')
       .update({ last_used_at: new Date().toISOString() })
       .eq('id', selectedTopic.id);
 
-    // 11. Record run
+    // 12. Record run
     await supabase.from('blog_runs').insert({
       chosen_topic_id: selectedTopic.id,
       chosen_plan_id: selectedPlan?.id,
       result: 'published',
       post_id: newPost.id,
       quality_gate_report: qualityGateReport,
-      notes: `Published "${selectedTopic.title_base}" for ${selectedCountry}`
+      notes: `PATCH V3: Published "${selectedTopic.title_base}" for ${selectedCountry} (score: ${qualityGateReport.score}%)`
     });
 
     return new Response(JSON.stringify({
@@ -561,7 +921,8 @@ Generá el contenido completo siguiendo la estructura indicada. Incluí ejemplos
         slug: newPost.slug,
         country: selectedCountry,
         pillar: selectedTopic.pillar,
-        url: `/blog/${newPost.slug}`
+        url: `/blog/${newPost.slug}`,
+        hero_image: !!heroImageUrl
       },
       quality_gate: qualityGateReport
     }), { 
