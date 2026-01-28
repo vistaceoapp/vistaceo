@@ -59,12 +59,12 @@ export default function BlogPage() {
                   <span className="text-sm font-medium text-[#746CE6]">Blog VistaCEO</span>
                 </div>
                 
-                <h1 className="text-3xl md:text-5xl font-bold mb-5 bg-gradient-to-r from-[#2692DC] via-[#5A7FE1] to-[#746CE6] bg-clip-text text-transparent">
-                  Notas, noticias y tendencias para dueños de negocios
+                <h1 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#2692DC] via-[#5A7FE1] to-[#746CE6] bg-clip-text text-transparent">
+                  Notas, noticias y tendencias
                 </h1>
                 
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl leading-relaxed">
-                  Análisis · Guías prácticas · Casos reales · Herramientas · Lo último en IA y tecnología
+                <p className="text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed">
+                  Análisis · Guías prácticas · Casos reales · Herramientas · Lo último en IA y tecnología · Estrategia · Liderazgo · Finanzas · Operaciones · Marketing · Crecimiento
                 </p>
                 
                 {stats && (
