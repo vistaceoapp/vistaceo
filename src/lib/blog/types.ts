@@ -120,11 +120,11 @@ export interface QualityGateReport {
 
 export const PILLARS = {
   empleo: { label: 'Empleo y Carreras', emoji: '💼' },
-  ia_aplicada: { label: 'IA Aplicada', emoji: '🤖' },
+  ia_aplicada: { label: 'IA y Tecnología', emoji: '🤖' },
   liderazgo: { label: 'Liderazgo y Gestión', emoji: '🎯' },
   servicios: { label: 'Servicios Profesionales', emoji: '📋' },
   emprender: { label: 'Emprender', emoji: '🚀' },
-  sistema_inteligente: { label: 'Sistema Inteligente', emoji: '🧠' },
+  tendencias: { label: 'Tendencias y Oportunidades', emoji: '📈' },
 } as const;
 
 export type PillarKey = keyof typeof PILLARS;
