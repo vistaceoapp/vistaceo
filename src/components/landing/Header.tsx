@@ -35,6 +35,7 @@ export const Header = () => {
     { label: "Cómo funciona", href: "#how-it-works" },
     { label: "Características", href: "#features" },
     { label: "Precios", href: "#pricing" },
+    { label: "Blog", href: "/blog" },
   ];
 
   return (
