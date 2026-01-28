@@ -12,22 +12,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function BlogPage() {
   const [search, setSearch] = useState('');
-  const [country, setCountry] = useState('all');
   const [pillar, setPillar] = useState('all');
 
   const filters = useMemo(() => ({
     search: search || undefined,
-    country: country !== 'all' ? country : undefined,
     pillar: pillar !== 'all' ? pillar : undefined,
     limit: 50,
-  }), [search, country, pillar]);
+  }), [search, pillar]);
 
   const { data: posts, isLoading } = useBlogPosts(filters);
   const { data: stats } = useBlogStats();
 
   const handleReset = () => {
     setSearch('');
-    setCountry('all');
     setPillar('all');
   };
 
@@ -52,17 +49,16 @@ export default function BlogPage() {
             </nav>
 
             {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold mb-3">
-                Blog VistaCEO
+            <div className="mb-10">
+              <h1 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                Recursos para hacer crecer tu negocio
               </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl">
-                Recursos prácticos para dueños de negocios: guías, plantillas y estrategias 
-                que realmente funcionan en LATAM.
+              <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
+                Guías accionables, plantillas listas para usar y estrategias probadas por dueños de negocios en toda Latinoamérica.
               </p>
               {stats && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  {stats.total} artículos publicados
+                <p className="text-sm text-primary/80 mt-3 font-medium">
+                  {stats.total} artículos disponibles
                 </p>
               )}
             </div>
@@ -72,8 +68,6 @@ export default function BlogPage() {
               <BlogFilters
                 search={search}
                 onSearchChange={setSearch}
-                country={country}
-                onCountryChange={setCountry}
                 pillar={pillar}
                 onPillarChange={setPillar}
                 onReset={handleReset}
