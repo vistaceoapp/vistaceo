@@ -80,19 +80,14 @@ export function BlogMarkdownRenderer({ content, className }: BlogMarkdownRendere
             </a>
           ),
           img: ({ src, alt, ...props }) => (
-            <figure className="my-8">
+            <figure className="my-12">
               <img
                 src={src}
                 alt={alt || ''}
                 loading="lazy"
-                className="w-full rounded-xl shadow-lg"
+                className="w-full rounded-2xl shadow-xl"
                 {...props}
               />
-              {alt && (
-                <figcaption className="text-center text-sm text-muted-foreground mt-3">
-                  {alt}
-                </figcaption>
-              )}
             </figure>
           ),
           table: ({ children, ...props }) => (
