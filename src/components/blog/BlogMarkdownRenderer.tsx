@@ -14,35 +14,35 @@ export function BlogMarkdownRenderer({ content, className }: BlogMarkdownRendere
   return (
     <article 
       className={cn(
-        // Base prose styles with improved readability - PATCH V3 spacing
+        // Base prose styles - PATCH V4 ultra-readable
         "prose prose-lg prose-slate dark:prose-invert",
-        // Max width for optimal reading
-        "max-w-[780px]",
-        // Typography improvements - generous line height
+        // Max width for optimal reading (65-75 chars per line)
+        "max-w-[720px]",
+        // Typography - very generous line height
         "prose-headings:scroll-mt-24 prose-headings:font-semibold prose-headings:tracking-tight",
-        // H2 styling - MUCH more spacing above
-        "prose-h2:text-2xl prose-h2:mt-16 prose-h2:mb-8 prose-h2:pb-3 prose-h2:border-b prose-h2:border-border/40",
-        // H3 styling - more spacing
-        "prose-h3:text-xl prose-h3:mt-12 prose-h3:mb-6",
-        // Paragraph spacing and line height - PATCH V3 (1.8 line-height, more margin)
-        "prose-p:leading-[1.8] prose-p:mb-6 prose-p:text-foreground/85",
-        // List styling - more breathing room
-        "prose-li:my-2 prose-li:leading-[1.75]",
-        "prose-ul:my-8 prose-ol:my-8 prose-ul:space-y-2 prose-ol:space-y-2",
-        // Blockquote styling for examples - stand out more
-        "prose-blockquote:border-l-4 prose-blockquote:border-primary/60 prose-blockquote:bg-primary/5 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-xl prose-blockquote:not-italic prose-blockquote:my-10",
-        // Strong/bold
-        "prose-strong:text-foreground prose-strong:font-semibold",
+        // H2 styling - HUGE spacing above for clear sections
+        "prose-h2:text-[1.65rem] prose-h2:mt-20 prose-h2:mb-10 prose-h2:pb-4 prose-h2:border-b prose-h2:border-border/30",
+        // H3 styling - generous spacing
+        "prose-h3:text-[1.3rem] prose-h3:mt-14 prose-h3:mb-6 prose-h3:text-foreground/90",
+        // Paragraph spacing - PATCH V4 (1.9 line-height, large margin)
+        "prose-p:leading-[1.9] prose-p:mb-7 prose-p:text-foreground/80",
+        // List styling - very generous breathing room
+        "prose-li:my-3 prose-li:leading-[1.85]",
+        "prose-ul:my-10 prose-ol:my-10 prose-ul:space-y-3 prose-ol:space-y-3",
+        // Blockquote styling for examples - card-like appearance
+        "prose-blockquote:border-l-4 prose-blockquote:border-primary/50 prose-blockquote:bg-muted/50 prose-blockquote:py-5 prose-blockquote:px-7 prose-blockquote:rounded-r-2xl prose-blockquote:not-italic prose-blockquote:my-12 prose-blockquote:shadow-sm",
+        // Strong/bold - less aggressive
+        "prose-strong:text-foreground/95 prose-strong:font-medium",
         // Links
         "prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-a:font-medium",
         // Code
         "prose-code:text-sm prose-code:bg-muted prose-code:px-2 prose-code:py-1 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none",
         // Pre/code blocks
-        "prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-pre:my-8",
+        "prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-pre:my-10",
         // Tables
         "prose-table:border prose-table:border-border prose-th:bg-muted prose-th:px-4 prose-th:py-3 prose-td:px-4 prose-td:py-3 prose-td:border-t prose-td:border-border",
-        // Images - more spacing
-        "prose-img:rounded-2xl prose-img:shadow-xl prose-img:my-12",
+        // Images - generous spacing
+        "prose-img:rounded-2xl prose-img:shadow-xl prose-img:my-14",
         className
       )}
     >
