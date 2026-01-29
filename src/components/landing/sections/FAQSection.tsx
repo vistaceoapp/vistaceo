@@ -34,6 +34,13 @@ export const FAQSection = memo(() => {
   const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
+    // Fallback: if IntersectionObserver isn't available (some mobile browsers), show content immediately
+    if (typeof window === "undefined" || typeof IntersectionObserver === "undefined") {
+      if (headerRef.current) headerRef.current.classList.add("is-visible");
+      itemsRef.current.forEach((item) => item?.classList.add("is-visible"));
+      return;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
@@ -70,7 +77,9 @@ export const FAQSection = memo(() => {
           {faqs.map((faq, i) => (
             <div
               key={i}
-              ref={el => itemsRef.current[i] = el}
+              ref={(el) => {
+                itemsRef.current[i] = el;
+              }}
               className="bg-card rounded-xl border border-border p-6 animate-on-scroll transition-all duration-300 hover:border-primary/30 hover:shadow-md"
               style={{ transitionDelay: `${i * 100}ms` }}
             >
