@@ -40,7 +40,7 @@ const MockupProAnalytics = lazy(() => import("@/components/landing/mockups/Mocku
 const MockupSetup = lazy(() => import("@/components/landing/mockups/MockupSetup").then(m => ({ default: m.MockupSetup })));
 
 // Lazy load particles (heavy animation)
-const FloatingParticles = lazy(() => import("@/components/landing/FloatingParticles").then(m => ({ default: m.FloatingParticles })));
+const FloatingParticles = lazy(() => import("@/components/landing/FloatingParticles"));
 
 // Shared Header
 import { HeaderV3 } from "@/components/landing/HeaderV3";

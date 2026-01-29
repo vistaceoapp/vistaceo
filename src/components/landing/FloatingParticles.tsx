@@ -10,7 +10,7 @@ interface Particle {
   hue: number;
 }
 
-export const FloatingParticles = memo(() => {
+const FloatingParticles = memo(() => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const animationRef = useRef<number>();
@@ -96,3 +96,6 @@ export const FloatingParticles = memo(() => {
 });
 
 FloatingParticles.displayName = "FloatingParticles";
+
+export { FloatingParticles };
+export default FloatingParticles;
