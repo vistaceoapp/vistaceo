@@ -1,93 +1,286 @@
-import { useEffect, useRef, memo } from "react";
-import { MessageSquare } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { memo } from "react";
+import { motion } from "framer-motion";
+import { 
+  Building2, 
+  CreditCard, 
+  Brain, 
+  Shield, 
+  Zap, 
+  Radar as RadarIcon, 
+  Target, 
+  Heart, 
+  TrendingUp 
+} from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const faqs = [
   {
+    icon: Building2,
     question: "¿Qué tipo de negocios pueden usar VistaCEO?",
-    answer: "VistaCEO está diseñado para cualquier negocio con operaciones en LATAM: restaurantes, retail, servicios profesionales, salud, hotelería, educación y más. El sistema se adapta a más de 180 tipos de negocio diferentes."
+    answer: `VistaCEO está diseñado para potenciar **cualquier negocio** con operaciones en LATAM, sin importar su tamaño o sector. El sistema se adapta a **más de 180 tipos de negocio** organizados en **10 sectores principales**:
+
+• **Gastronomía**: Restaurantes, cafeterías, bares, heladerías, panaderías, dark kitchens, food trucks, pizzerías, hamburgueserías, sushi bars, cervecerías artesanales...
+• **Retail & Comercio**: Tiendas de ropa, calzado, electrónica, joyerías, ferreterías, farmacias, librerías, jugueterías, perfumerías, tiendas gourmet, pet shops...
+• **Salud & Bienestar**: Clínicas dentales, consultorios médicos, spas, gimnasios, centros estéticos, ópticas, laboratorios, kinesiólogos, nutricionistas, psicólogos...
+• **Turismo & Hotelería**: Hoteles boutique, hostels, cabañas, agencias de viaje, tours operadores, apart-hoteles, bodegas con visitas...
+• **Servicios Profesionales**: Agencias de marketing, consultorías, estudios contables, estudios jurídicos, arquitectura, desarrolladores de software, productoras audiovisuales...
+• **Educación**: Academias de idiomas, institutos, tutorías, escuelas de música, centros de capacitación corporativa, plataformas de e-learning...
+• **Hogar & Construcción**: Mueblerías, decoración de interiores, inmobiliarias, constructoras, arquitectos, paisajismo...
+• **Transporte & Logística**: Flotas de transporte, mensajería, mudanzas, parking, rent-a-car...
+• **Agro & Industria**: Productores, distribuidores, procesadoras, bodegas, exportadores...
+• **Tecnología & Digital**: Agencias digitales, SaaS, e-commerce D2C, marketplaces, startups tecnológicas...
+
+El sistema adapta automáticamente las preguntas, métricas, misiones y recomendaciones según tu sector, tipo de negocio específico y ubicación geográfica.`,
   },
   {
-    question: "¿Cuánto tiempo toma ver resultados?",
-    answer: "La mayoría de usuarios reportan mejoras visibles en las primeras 2-4 semanas. El sistema aprende de tu negocio cada día, así que los resultados se aceleran con el tiempo."
+    icon: CreditCard,
+    question: "¿Cómo funciona el plan gratuito?",
+    answer: `¡El plan gratuito de VistaCEO **funciona perfectamente desde el primer día** y es **totalmente gratuito para siempre**! No es una prueba limitada en el tiempo.
+
+**Lo que incluye el plan gratuito:**
+• ✅ **Cerebro Personal**: Un asistente IA que aprende continuamente sobre tu negocio
+• ✅ **Dashboard de Salud**: Visión completa de las 7 dimensiones de tu negocio
+• ✅ **Radar de Oportunidades**: Detección de áreas de mejora internas y externas
+• ✅ **3 Misiones Activas por Mes**: Tareas guiadas para impulsar tu crecimiento
+• ✅ **5 Preguntas al Chat Ultra Inteligente por Mes**: Análisis profundos y personalizados
+• ✅ **Check-ins de Pulso Diarios**: Registro rápido de cómo te fue cada día
+
+**Funcionalidades que NO incluye el plan gratuito:**
+• ❌ Analytics y métricas avanzadas (disponible en Pro)
+• ❌ Predicciones IA (próximamente)
+• ❌ Misiones ilimitadas
+• ❌ Chat ilimitado con análisis de fotos y documentos
+
+VistaCEO está diseñado para crecer contigo. Empezá gratis, y cuando estés listo para escalar, activá Pro.`,
   },
   {
-    question: "¿Necesito conocimientos técnicos?",
-    answer: "No, para nada. VistaCEO está diseñado para dueños de negocios, no para técnicos. La interfaz es simple y el mentor IA te guía paso a paso."
+    icon: RadarIcon,
+    question: "¿Qué es el Radar de Oportunidades?",
+    answer: `El **Radar de Oportunidades** es una de las herramientas más poderosas de VistaCEO. Analiza continuamente múltiples fuentes para detectar **oportunidades de crecimiento personalizadas** para tu negocio.
+
+**Radar Interno** — Analiza tu operación:
+• Detecta patrones en tus ventas y operaciones
+• Identifica días/horarios de bajo rendimiento
+• Sugiere optimizaciones basadas en tu historial
+• Encuentra oportunidades de mejora en tu servicio
+
+**Radar I+D (Externo)** — Analiza tu mercado:
+• Monitorea tendencias emergentes en tu sector
+• Detecta movimientos de la competencia
+• Identifica oportunidades de innovación
+• Sugiere nuevos productos o servicios basados en demanda real
+
+Cada oportunidad viene con un **plan de acción detallado** que podés convertir en una Misión ejecutable.`,
   },
   {
+    icon: Target,
+    question: "¿Qué son las Misiones?",
+    answer: `Las **Misiones** son tareas guiadas y accionables diseñadas específicamente para tu negocio. Cada misión te lleva paso a paso hacia un objetivo concreto.
+
+**Características de las Misiones:**
+• **Personalizadas**: Basadas en los datos de tu negocio, no genéricas
+• **Paso a paso**: Cada misión tiene etapas claras y ejecutables
+• **Con impacto medible**: Sabés exactamente qué resultado esperar
+• **Adaptadas a tu tiempo**: Indicamos el esfuerzo estimado de cada una
+
+**Ejemplos de Misiones:**
+• "Recuperar el 15% de clientes inactivos del último trimestre"
+• "Optimizar tu carta eliminando 3 platos de bajo margen"
+• "Implementar sistema de reseñas para subir tu rating"
+• "Lanzar promoción estratégica para el horario de las 15-17h"
+
+Las misiones se generan desde el Radar, desde el Chat con el Mentor IA, o desde insights del sistema.`,
+  },
+  {
+    icon: Heart,
+    question: "¿Cómo funciona la Salud del Negocio?",
+    answer: `La **Salud del Negocio** es un indicador integral que te muestra el estado real de tu empresa en un vistazo. VistaCEO evalúa **7 dimensiones críticas**:
+
+• **📈 Ventas**: Volumen, tendencia, ticket promedio
+• **💰 Finanzas**: Márgenes, costos, flujo de caja
+• **📣 Marketing**: Visibilidad, alcance, conversión
+• **⭐ Reputación**: Reviews, NPS, satisfacción del cliente
+• **⚙️ Operaciones**: Eficiencia, tiempos, procesos
+• **👥 Equipo**: Productividad, rotación, clima laboral
+• **🚀 Innovación**: Nuevos productos, mejoras, adaptación
+
+Cada dimensión tiene un **puntaje de 0-100** y una **tendencia** (mejorando, estable o bajando). El sistema te muestra qué áreas requieren atención inmediata y cuáles están funcionando bien.
+
+Mientras más interactuás con VistaCEO, más preciso se vuelve el diagnóstico de salud.`,
+  },
+  {
+    icon: Brain,
+    question: "¿Cómo aprende VistaCEO sobre mi negocio?",
+    answer: `VistaCEO utiliza un **Cerebro de Negocio** que aprende continuamente de múltiples fuentes:
+
+**1. Setup inicial** (3-5 minutos)
+Respondés un cuestionario adaptado a tu sector específico
+
+**2. Check-ins diarios** (10 segundos)
+Tocás cómo te fue hoy: excelente, normal o flojo
+
+**3. Preguntas de aprendizaje**
+El sistema te hace preguntas personalizadas para entender mejor tu operación
+
+**4. Tus decisiones**
+Cada misión que completás, pausás o rechazás enseña al sistema qué funciona para vos
+
+**5. Integraciones** (opcional)
+Si conectás Google Reviews u otras plataformas, el sistema analiza automáticamente
+
+**El resultado:**
+• Empezás con ~70% de certeza
+• Con uso regular, llegás a 90-95%+ de precisión
+• Las recomendaciones se vuelven cada vez más acertadas
+• El sistema anticipa tus necesidades antes de que las menciones`,
+  },
+  {
+    icon: TrendingUp,
+    question: "¿Puedo tener diferentes objetivos para mi negocio?",
+    answer: `¡Absolutamente! Cada negocio es único y VistaCEO se adapta a **tus objetivos específicos**. Podés enfocarte en:
+
+**Objetivos de Crecimiento:**
+• Aumentar ventas mensuales
+• Expandir a nuevas ubicaciones
+• Lanzar nuevos productos o servicios
+• Captar más clientes nuevos
+
+**Objetivos de Rentabilidad:**
+• Mejorar márgenes de ganancia
+• Reducir costos operativos
+• Optimizar inventario
+• Negociar mejor con proveedores
+
+**Objetivos de Reputación:**
+• Subir rating en Google/redes
+• Mejorar experiencia del cliente
+• Aumentar recomendaciones
+• Construir marca reconocida
+
+**Objetivos de Eficiencia:**
+• Automatizar procesos repetitivos
+• Reducir tiempos de espera
+• Optimizar turnos y personal
+• Digitalizar operaciones
+
+VistaCEO prioriza las misiones y recomendaciones según el objetivo que elijas como foco principal.`,
+  },
+  {
+    icon: Zap,
+    question: "¿Cuánto tiempo necesito dedicarle?",
+    answer: `VistaCEO está diseñado para dueños de negocio **ocupados**:
+
+• **Setup inicial**: 3-5 minutos (respondés preguntas simples)
+• **Check-in diario**: 10 segundos (un toque: excelente, normal o flojo)
+• **Revisar misiones**: 2-3 minutos por día
+
+**El sistema hace el trabajo pesado por vos:**
+• Analiza datos automáticamente
+• Detecta patrones y oportunidades
+• Investiga tendencias del mercado
+• Te presenta todo en acciones concretas
+
+**No tenés que ser experto en nada.** VistaCEO traduce análisis complejos a pasos simples que podés ejecutar sin conocimientos técnicos.`,
+  },
+  {
+    icon: Shield,
     question: "¿Mis datos están seguros?",
-    answer: "Absolutamente. Usamos encriptación de nivel bancario, nunca vendemos datos a terceros, y cumplimos con regulaciones de privacidad internacionales. Tus datos son tuyos."
-  },
-  {
-    question: "¿Puedo cancelar cuando quiera?",
-    answer: "Sí, puedes cancelar tu suscripción en cualquier momento sin penalidades. Además, ofrecemos garantía de devolución de 7 días si no estás satisfecho."
-  },
-  {
-    question: "¿Cómo funciona la prueba gratuita?",
-    answer: "El plan gratuito es permanente, no es una prueba limitada. Tenés acceso al dashboard básico, 3 misiones semanales y el chat con mentor IA de forma indefinida."
+    answer: `Absolutamente. Tu información está protegida con los más altos estándares:
+
+• **Encriptación de extremo a extremo** en tránsito y en reposo
+• **Infraestructura cloud** de clase empresarial
+• **Sin acceso de terceros**: Nunca vendemos ni compartimos tu información
+• **Control total**: Podés exportar o eliminar tus datos cuando quieras
+
+**Importante:**
+VistaCEO **no requiere acceso a tu cuenta bancaria ni sistema de punto de venta**. Trabajamos con rangos y estimaciones que vos proporcionás, nunca datos financieros exactos.
+
+Cumplimos con regulaciones de protección de datos de Argentina, Chile, México y toda Latinoamérica.`,
   },
 ];
 
 export const FAQSection = memo(() => {
-  const headerRef = useRef<HTMLDivElement>(null);
-  const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
-
-  useEffect(() => {
-    // Fallback: if IntersectionObserver isn't available (some mobile browsers), show content immediately
-    if (typeof window === "undefined" || typeof IntersectionObserver === "undefined") {
-      if (headerRef.current) headerRef.current.classList.add("is-visible");
-      itemsRef.current.forEach((item) => item?.classList.add("is-visible"));
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    if (headerRef.current) observer.observe(headerRef.current);
-    itemsRef.current.forEach(item => {
-      if (item) observer.observe(item);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <section id="faq" className="py-20 md:py-32 bg-gradient-to-b from-secondary/50 to-background">
-      <div className="container mx-auto px-4">
-        <div ref={headerRef} className="text-center mb-12 md:mb-16 animate-on-scroll">
-          <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/5">
-            <MessageSquare className="w-4 h-4 mr-2" aria-hidden="true" />
-            FAQ
-          </Badge>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            Preguntas <span className="text-gradient-primary">frecuentes</span>
+    <section id="faq" className="py-20 lg:py-28 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/10 to-background" />
+
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        {/* Section header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center max-w-2xl mx-auto mb-12"
+        >
+          <span className="inline-block text-xs font-medium text-primary mb-3 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+            Preguntas frecuentes
+          </span>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 leading-tight">
+            Todo lo que necesitás <span className="text-gradient-primary">saber</span>
           </h2>
+          <p className="text-muted-foreground">
+            Respuestas claras a las dudas más comunes sobre VistaCEO
+          </p>
+        </motion.div>
+
+        {/* FAQ Accordion */}
+        <div className="max-w-3xl mx-auto">
+          <Accordion type="single" collapsible className="space-y-3">
+            {faqs.map((faq, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <AccordionItem
+                  value={`item-${index}`}
+                  className="bg-card/80 backdrop-blur-sm border border-border rounded-xl px-4 sm:px-5 data-[state=open]:border-primary/30 data-[state=open]:shadow-lg data-[state=open]:shadow-primary/5 transition-all duration-200"
+                >
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3 text-left">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <faq.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                      </div>
+                      <span className="text-sm sm:text-base font-medium text-foreground pr-2">
+                        {faq.question}
+                      </span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-5 pt-0">
+                    <div className="pl-12 sm:pl-13 text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {faq.answer.split('**').map((part, i) => 
+                        i % 2 === 0 ? part : <strong key={i} className="text-foreground font-medium">{part}</strong>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </motion.div>
+            ))}
+          </Accordion>
         </div>
 
-        <div className="max-w-3xl mx-auto space-y-4">
-          {faqs.map((faq, i) => (
-            <div
-              key={i}
-              ref={(el) => {
-                itemsRef.current[i] = el;
-              }}
-              className="bg-card rounded-xl border border-border p-6 animate-on-scroll transition-all duration-300 hover:border-primary/30 hover:shadow-md"
-              style={{ transitionDelay: `${i * 100}ms` }}
-            >
-              <h3 className="text-lg font-semibold text-foreground mb-2">{faq.question}</h3>
-              <p className="text-muted-foreground">{faq.answer}</p>
-            </div>
-          ))}
-        </div>
+        {/* Bottom CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mt-12"
+        >
+          <p className="text-muted-foreground text-sm">
+            ¿Tenés más preguntas?{" "}
+            <a href="#" className="text-primary hover:underline font-medium">
+              Contactanos
+            </a>
+          </p>
+        </motion.div>
       </div>
     </section>
   );
