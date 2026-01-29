@@ -286,10 +286,10 @@ export const HowItWorksSection = memo(() => {
           <AnimatePresence mode="wait">
             <motion.div
               key={`${activeTab}-${activeBusiness}`}
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.98 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
             >
               {activeTab === "salud" && (
                 <MockupProDashboard business={activeBusiness} />
