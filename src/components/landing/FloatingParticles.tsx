@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 
 interface Particle {
   x: number;
@@ -10,7 +10,7 @@ interface Particle {
   hue: number;
 }
 
-export const FloatingParticles = () => {
+export const FloatingParticles = memo(() => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
   const animationRef = useRef<number>();
@@ -28,21 +28,32 @@ export const FloatingParticles = () => {
     };
 
     resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("resize", resizeCanvas, { passive: true });
 
-    // Initialize particles
-    const particleCount = 50;
+    // Initialize particles - REDUCED for better TBT
+    const particleCount = 20; // Reduced from 50
     particlesRef.current = Array.from({ length: particleCount }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      size: Math.random() * 3 + 1,
-      speedX: (Math.random() - 0.5) * 0.5,
-      speedY: (Math.random() - 0.5) * 0.5,
-      opacity: Math.random() * 0.5 + 0.1,
-      hue: Math.random() * 30 + 260, // Purple to blue range
+      size: Math.random() * 2 + 1,
+      speedX: (Math.random() - 0.5) * 0.3,
+      speedY: (Math.random() - 0.5) * 0.3,
+      opacity: Math.random() * 0.3 + 0.1,
+      hue: Math.random() * 30 + 260,
     }));
 
-    const animate = () => {
+    let lastTime = 0;
+    const targetFPS = 30; // Cap at 30fps for better performance
+    const frameInterval = 1000 / targetFPS;
+
+    const animate = (currentTime: number) => {
+      animationRef.current = requestAnimationFrame(animate);
+      
+      // Throttle to target FPS
+      const elapsed = currentTime - lastTime;
+      if (elapsed < frameInterval) return;
+      lastTime = currentTime - (elapsed % frameInterval);
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       particlesRef.current.forEach((particle) => {
@@ -55,51 +66,17 @@ export const FloatingParticles = () => {
         if (particle.y < 0) particle.y = canvas.height;
         if (particle.y > canvas.height) particle.y = 0;
 
-        // Draw particle
+        // Draw particle (simplified - no glow for perf)
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `hsla(${particle.hue}, 91%, 65%, ${particle.opacity})`;
-        ctx.fill();
-
-        // Draw glow
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size * 2, 0, Math.PI * 2);
-        const gradient = ctx.createRadialGradient(
-          particle.x,
-          particle.y,
-          0,
-          particle.x,
-          particle.y,
-          particle.size * 3
-        );
-        gradient.addColorStop(0, `hsla(${particle.hue}, 91%, 65%, ${particle.opacity * 0.3})`);
-        gradient.addColorStop(1, "transparent");
-        ctx.fillStyle = gradient;
+        ctx.fillStyle = `hsla(${particle.hue}, 70%, 60%, ${particle.opacity})`;
         ctx.fill();
       });
 
-      // Draw connections
-      particlesRef.current.forEach((p1, i) => {
-        particlesRef.current.slice(i + 1).forEach((p2) => {
-          const dx = p1.x - p2.x;
-          const dy = p1.y - p2.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < 150) {
-            ctx.beginPath();
-            ctx.moveTo(p1.x, p1.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `hsla(271, 91%, 65%, ${0.1 * (1 - distance / 150)})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        });
-      });
-
-      animationRef.current = requestAnimationFrame(animate);
+      // Skip connection lines for better performance
     };
 
-    animate();
+    animationRef.current = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
@@ -116,4 +93,6 @@ export const FloatingParticles = () => {
       style={{ opacity: 0.6 }}
     />
   );
-};
+});
+
+FloatingParticles.displayName = "FloatingParticles";
