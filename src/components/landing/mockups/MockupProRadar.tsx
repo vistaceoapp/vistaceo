@@ -164,9 +164,9 @@ export const MockupProRadar = forwardRef<HTMLDivElement, MockupProRadarProps>(({
         {opportunities.map((opp, i) => (
           <motion.div
             key={`${activeTab}-${i}`}
-            initial={{ opacity: 0, x: -10 }}
+            initial={{ opacity: 0, x: -5 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.1 }}
+            transition={{ delay: i * 0.05, duration: 0.15, ease: "easeOut" }}
             className={cn(
               "p-2.5 sm:p-3 rounded-xl border cursor-pointer hover:shadow-md transition-all",
               activeTab === "internal" 
