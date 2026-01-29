@@ -17,12 +17,23 @@ const chatData: Record<BusinessKey, {
   argentina: {
     name: "Parrilla Don Martín",
     greeting: "Martín",
-    userMessage: "¿Cómo puedo aumentar las reservas para los sábados?",
+    userMessage: "¿Cómo puedo aumentar el ticket del almuerzo?",
     aiResponse: {
       intro: "Analicé tus datos y encontré algo interesante:",
-      insight: "Tus sábados tienen 23% menos tráfico que la competencia. Tu horario de apertura (20:00) es más tarde que el promedio (19:00).",
-      action: "Probá abrir a las 19:00 los próximos 3 sábados y promocioná el 'Happy Hour de Parrilla' en Instagram.",
-      impact: "+$45.000/mes estimado"
+      insight: "El 62% de tu tráfico de mediodía no consume porque no hay opción rápida. Tu ticket promedio de almuerzo es $6.200, un 35% menor que la cena.",
+      action: "Lanzá un menú ejecutivo de $8.500 con entrada + principal + bebida. Tiempo de servicio: 25 min máximo.",
+      impact: "+$185.000/mes estimado"
+    },
+  },
+  odontologia: {
+    name: "Clínica Dental Sonrisa",
+    greeting: "Daniela",
+    userMessage: "¿Cómo puedo llenar los horarios de la tarde?",
+    aiResponse: {
+      intro: "Analicé tu agenda y encontré un patrón:",
+      insight: "El horario 14-16h tiene 40% menos ocupación. Detecté 45 min promedio de gaps entre citas que podrían optimizarse.",
+      action: "Lanzá 'Almuerzo Dental' - atención express 13:30-14:30 para profesionales con descuento 15%.",
+      impact: "+4 pacientes/día estimado"
     },
   },
   mexico: {
@@ -31,7 +42,7 @@ const chatData: Record<BusinessKey, {
     userMessage: "¿Qué productos debería promocionar este mes?",
     aiResponse: {
       intro: "Basándome en tus ventas y la temporada:",
-      insight: "Tu colección de accesorios tiene un margen 40% mayor que la ropa, pero solo representa el 15% de tus ventas.",
+      insight: "Tu colección de accesorios tiene un margen 40% mayor que la ropa, pero solo representa el 15% de tus ventas. Tus clientas VIP generan 52% de ventas.",
       action: "Creá una campaña de Stories mostrando combinaciones de accesorios con outfits. Usá el hashtag #CarmelaStyle.",
       impact: "+18% conversión estimada"
     },
@@ -42,20 +53,9 @@ const chatData: Record<BusinessKey, {
     userMessage: "¿Cómo puedo retener a mis clientes principales?",
     aiResponse: {
       intro: "Revisé tu cartera y detecté riesgos:",
-      insight: "3 de tus clientes top tienen contratos por renovar en 45 días. Su engagement bajó 20% el último mes.",
+      insight: "3 de tus clientes top tienen contratos por renovar en 45 días. Su engagement bajó 20% el último mes. Actualmente dedicás 3 horas por cliente en reportes manuales.",
       action: "Agendá reuniones de revisión de resultados esta semana. Preparé un deck con sus métricas de éxito.",
       impact: "Retención $2.5M CLP en juego"
-    },
-  },
-  odontologia: {
-    name: "Clínica Dental Sonrisa",
-    greeting: "Daniela",
-    userMessage: "¿Cómo puedo llenar los horarios de la tarde?",
-    aiResponse: {
-      intro: "Analicé tu agenda y encontré un patrón:",
-      insight: "El horario 14-16h tiene 40% menos ocupación. Coincide con que el 35% de tus pacientes son trabajadores de oficina.",
-      action: "Lanzá 'Almuerzo Dental' - atención express 13:30-14:30 para profesionales con descuento 15%.",
-      impact: "+4 pacientes/día estimado"
     },
   }
 };

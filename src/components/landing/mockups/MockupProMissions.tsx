@@ -48,7 +48,7 @@ const missionsData: Record<BusinessKey, {
         status: "active",
         area: "Ventas",
         priority: "alta",
-        detail: "Detectamos que el 62% de tu tráfico de mediodía no consume porque no hay opción rápida"
+        detail: "El 62% de tu tráfico de mediodía no consume porque no hay opción rápida"
       },
       {
         title: "Responder 8 reseñas pendientes en Google",
@@ -71,6 +71,47 @@ const missionsData: Record<BusinessKey, {
         area: "Operaciones",
         priority: "alta",
         detail: "Perdés 12 mesas promedio cada sábado"
+      },
+    ],
+  },
+  odontologia: {
+    name: "Clínica Dental Sonrisa",
+    avatar: "CS",
+    image: clinicaDentalImg,
+    totalCompleted: 31,
+    missions: [
+      {
+        title: "Activar recordatorios controles semestrales",
+        progress: 70,
+        steps: 4,
+        completedSteps: 3,
+        impact: "+15 citas/mes",
+        status: "active",
+        area: "Retención",
+        priority: "alta",
+        detail: "El 60% de pacientes no vuelve a control preventivo"
+      },
+      {
+        title: "Lanzar campaña blanqueamiento verano",
+        progress: 100,
+        steps: 5,
+        completedSteps: 5,
+        impact: "+$1.2M CLP",
+        status: "completed",
+        area: "Ventas",
+        priority: "alta",
+        detail: "Temporada alta para tratamientos estéticos"
+      },
+      {
+        title: "Optimizar agenda para reducir tiempos muertos",
+        progress: 55,
+        steps: 6,
+        completedSteps: 3,
+        impact: "+4 pacientes/día",
+        status: "active",
+        area: "Eficiencia",
+        priority: "media",
+        detail: "Detectamos 45 min promedio de gaps entre citas"
       },
     ],
   },
@@ -153,47 +194,6 @@ const missionsData: Record<BusinessKey, {
         area: "Marketing",
         priority: "media",
         detail: "Tu cliente 'Moda Urbana' tuvo +180% ROI"
-      },
-    ],
-  },
-  odontologia: {
-    name: "Clínica Dental Sonrisa",
-    avatar: "CS",
-    image: clinicaDentalImg,
-    totalCompleted: 31,
-    missions: [
-      {
-        title: "Activar recordatorios controles semestrales",
-        progress: 70,
-        steps: 4,
-        completedSteps: 3,
-        impact: "+15 citas/mes",
-        status: "active",
-        area: "Retención",
-        priority: "alta",
-        detail: "El 60% de pacientes no vuelve a control preventivo"
-      },
-      {
-        title: "Lanzar campaña blanqueamiento verano",
-        progress: 100,
-        steps: 5,
-        completedSteps: 5,
-        impact: "+$1.2M CLP",
-        status: "completed",
-        area: "Ventas",
-        priority: "alta",
-        detail: "Temporada alta para tratamientos estéticos"
-      },
-      {
-        title: "Optimizar agenda para reducir tiempos muertos",
-        progress: 55,
-        steps: 6,
-        completedSteps: 3,
-        impact: "+4 pacientes/día",
-        status: "active",
-        area: "Eficiencia",
-        priority: "media",
-        detail: "Detectamos 45 min promedio de gaps entre citas"
       },
     ],
   }

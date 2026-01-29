@@ -86,31 +86,31 @@ const mockupTabs = [
 
 type TabKey = typeof mockupTabs[number]["key"];
 
-// 4 Business profiles with photos
+// 4 Business profiles with photos - Order: Parrilla, Clínica Dental, Boutique, Rocket
 const businesses: Record<BusinessKey, { name: string; location: string; type: string; image: string }> = {
+  argentina: {
+    name: "Parrilla Don Martín",
+    location: "Palermo, Buenos Aires",
+    type: "Restaurante / Parrilla",
+    image: parrillaImg,
+  },
+  odontologia: {
+    name: "Clínica Dental Sonrisa",
+    location: "Las Condes, Santiago",
+    type: "Odontología",
+    image: clinicaDentalImg,
+  },
   mexico: {
     name: "Boutique Carmela",
     location: "Polanco, CDMX",
     type: "Retail / Moda",
     image: boutiqueImg,
   },
-  argentina: {
-    name: "Parrilla Don Martín",
-    location: "Palermo, Buenos Aires",
-    type: "Restaurante",
-    image: parrillaImg,
-  },
   marketing: {
     name: "Rocket Digital",
-    location: "Santiago, Chile",
-    type: "Agencia Marketing",
+    location: "Providencia, Santiago",
+    type: "Agencia de Marketing",
     image: marketingImg,
-  },
-  odontologia: {
-    name: "Clínica Dental Sonrisa",
-    location: "Las Condes, Chile",
-    type: "Odontología",
-    image: clinicaDentalImg,
   },
 };
 
@@ -148,7 +148,7 @@ StepCard.displayName = "StepCard";
 export const HowItWorksSection = memo(() => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabKey>("salud");
-  const [activeBusiness, setActiveBusiness] = useState<BusinessKey>("odontologia");
+  const [activeBusiness, setActiveBusiness] = useState<BusinessKey>("argentina");
 
   const currentBusiness = businesses[activeBusiness];
 
@@ -186,7 +186,7 @@ export const HowItWorksSection = memo(() => {
             Explorá cómo se ve para diferentes negocios:
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {(["odontologia", "marketing", "mexico", "argentina"] as BusinessKey[]).map((key) => {
+            {(["argentina", "odontologia", "mexico", "marketing"] as BusinessKey[]).map((key) => {
               const biz = businesses[key];
               const isActive = activeBusiness === key;
               return (
