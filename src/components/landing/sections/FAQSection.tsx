@@ -45,16 +45,17 @@ El sistema adapta automáticamente las preguntas, métricas, misiones y recomend
 **Lo que incluye el plan gratuito:**
 • ✅ **Cerebro Personal**: Un asistente IA que aprende continuamente sobre tu negocio
 • ✅ **Dashboard de Salud**: Visión completa de las 7 dimensiones de tu negocio
-• ✅ **Radar de Oportunidades**: Detección de áreas de mejora internas y externas
+• ✅ **3 Oportunidades del Radar**: Detección de áreas de mejora internas y externas
 • ✅ **3 Misiones Activas por Mes**: Tareas guiadas para impulsar tu crecimiento
-• ✅ **5 Preguntas al Chat Ultra Inteligente por Mes**: Análisis profundos y personalizados
+• ✅ **3 Preguntas al Chat IA por Mes**: Análisis profundos y personalizados
 • ✅ **Check-ins de Pulso Diarios**: Registro rápido de cómo te fue cada día
 
 **Funcionalidades que NO incluye el plan gratuito:**
-• ❌ Analytics y métricas avanzadas (disponible en Pro)
-• ❌ Predicciones IA (próximamente)
-• ❌ Misiones ilimitadas
-• ❌ Chat ilimitado con análisis de fotos y documentos
+• ❌ **Analytics y Métricas Avanzadas**: Dashboards detallados con evolución histórica, comparativas de períodos, exportación de reportes y métricas por dimensión
+• ❌ **Predicciones IA**: Motor predictivo que anticipa tendencias de ventas, detecta riesgos antes de que ocurran y sugiere acciones preventivas basadas en patrones históricos
+• ❌ **Misiones Ilimitadas**: Sin límite en la cantidad de misiones activas simultáneas
+• ❌ **Radar de Oportunidades Ilimitado**: Análisis continuo sin restricciones de oportunidades internas y de mercado
+• ❌ **Chat IA Ilimitado**: Conversaciones sin límite incluyendo análisis de fotos, documentos y reportes
 
 VistaCEO está diseñado para crecer contigo. Empezá gratis, y cuando estés listo para escalar, activá Pro.`,
   },
