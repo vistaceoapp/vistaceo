@@ -1,15 +1,14 @@
-import { memo, useMemo, useRef, useEffect, useState } from "react";
-import { Check, ArrowRight, Brain, Radar, Target, Zap, TrendingUp, BarChart3, Lightbulb, Search } from "lucide-react";
+import { memo, useState } from "react";
+import { Check, ArrowRight, Brain, Radar, Target, Zap, TrendingUp, BarChart3, Lightbulb, Search, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-// Import ALL mockup images
-import dashboardMainImg from "@/assets/mockups/dashboard-main.png";
-import analyticsSaludImg from "@/assets/mockups/analytics-salud.png";
-import misionesImg from "@/assets/mockups/misiones.png";
-import radarInternoImg from "@/assets/mockups/radar-interno.png";
-import ceoChatImg from "@/assets/mockups/ceo-chat.png";
+// Import real mockup components  
+import { MockupProDashboard } from "@/components/landing/mockups/MockupProDashboard";
+import { MockupProMissions } from "@/components/landing/mockups/MockupProMissions";
+import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
 
 const steps = [
   {
@@ -66,10 +65,37 @@ const improvementAreas = [
   { icon: Zap, label: "Eficiencia" },
 ];
 
+// Interactive tabs with real mockups
+const mockupTabs = [
+  { 
+    key: "salud", 
+    label: "Salud del Negocio", 
+    sub: "Diagnóstico completo",
+    icon: Heart
+  },
+  { 
+    key: "misiones", 
+    label: "Misiones", 
+    sub: "Guía paso a paso",
+    icon: Target
+  },
+  { 
+    key: "radar", 
+    label: "Radar", 
+    sub: "Oportunidades",
+    icon: Radar
+  },
+] as const;
+
+type TabKey = typeof mockupTabs[number]["key"];
+
 const StepCard = memo(({ step, index }: { step: typeof steps[0]; index: number }) => (
-  <div
-    className="relative bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-5 md:p-6 hover:border-primary/30 transition-colors animate-fade-in"
-    style={{ animationDelay: `${index * 100}ms` }}
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ delay: index * 0.1 }}
+    className="relative bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-5 md:p-6 hover:border-primary/30 transition-colors"
   >
     <div className="absolute -top-3 -left-3 w-9 h-9 md:w-10 md:h-10 rounded-xl gradient-primary flex items-center justify-center font-bold text-xs md:text-sm text-white shadow-lg">
       {step.number}
@@ -90,30 +116,14 @@ const StepCard = memo(({ step, index }: { step: typeof steps[0]; index: number }
         </li>
       ))}
     </ul>
-  </div>
+  </motion.div>
 ));
 StepCard.displayName = "StepCard";
 
 export const HowItWorksSection = memo(() => {
   const navigate = useNavigate();
-  const [active, setActive] = useState<string>("analytics");
-
-  const anchors = useMemo(
-    () =>
-      [
-        { key: "analytics", label: "Analytics", sub: "Salud del negocio" },
-        { key: "missions", label: "Misiones", sub: "Paso a paso" },
-        { key: "radar", label: "Radar", sub: "Oportunidades" },
-        { key: "chat", label: "CEO Chat", sub: "Mentor 24/7" },
-      ] as const,
-    []
-  );
-
-  const scrollTo = (key: (typeof anchors)[number]["key"]) => {
-    setActive(key);
-    const el = document.getElementById(`how-${key}`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  const [activeTab, setActiveTab] = useState<TabKey>("salud");
+  const [activeBusiness, setActiveBusiness] = useState<"argentina" | "mexico">("mexico");
 
   return (
     <section id="how-it-works" className="py-16 md:py-28 relative overflow-hidden">
@@ -121,133 +131,129 @@ export const HowItWorksSection = memo(() => {
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Section header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
-          <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/5">
-            <Zap className="w-4 h-4 mr-2" aria-hidden="true" />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center max-w-3xl mx-auto mb-12 md:mb-16"
+        >
+          <span className="inline-block text-sm font-medium text-primary mb-4 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20">
             Cómo funciona
-          </Badge>
+          </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 leading-tight">
             Inteligencia que <span className="text-gradient-primary">trabaja para vos</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground">
             Un sistema que diagnostica, detecta oportunidades y te guía paso a paso.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Interactive nav (tap-to-jump) */}
-        <div className="max-w-5xl mx-auto mb-8 md:mb-10">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {anchors.map((item) => {
-              const isActive = item.key === active;
+        {/* Business selector - toggle between profiles */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-md mx-auto mb-6"
+        >
+          <div className="flex bg-secondary/50 rounded-xl p-1 border border-border">
+            <button
+              onClick={() => setActiveBusiness("mexico")}
+              className={cn(
+                "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all",
+                activeBusiness === "mexico"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Boutique Carmela
+            </button>
+            <button
+              onClick={() => setActiveBusiness("argentina")}
+              className={cn(
+                "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all",
+                activeBusiness === "argentina"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Parrilla Don Martín
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Interactive tabs (tap-to-switch) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-2xl mx-auto mb-8"
+        >
+          <div className="grid grid-cols-3 gap-2">
+            {mockupTabs.map((tab) => {
+              const isActive = tab.key === activeTab;
+              const Icon = tab.icon;
               return (
                 <button
-                  key={item.key}
+                  key={tab.key}
                   type="button"
-                  onClick={() => scrollTo(item.key)}
-                  className={
-                    "text-left rounded-xl border px-3 py-2.5 transition-colors bg-card/60 " +
-                    (isActive
-                      ? "border-primary/40 bg-primary/10"
-                      : "border-border hover:border-primary/20 hover:bg-secondary/50")
-                  }
+                  onClick={() => setActiveTab(tab.key)}
+                  className={cn(
+                    "text-left rounded-xl border px-3 py-3 transition-all bg-card/60",
+                    isActive
+                      ? "border-primary/40 bg-primary/10 shadow-lg shadow-primary/10"
+                      : "border-border hover:border-primary/20 hover:bg-secondary/50"
+                  )}
                 >
-                  <div className="text-sm font-semibold text-foreground">{item.label}</div>
-                  <div className="text-[11px] text-muted-foreground truncate">{item.sub}</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon className={cn("w-4 h-4", isActive ? "text-primary" : "text-muted-foreground")} />
+                    <span className={cn("text-sm font-semibold", isActive ? "text-primary" : "text-foreground")}>{tab.label}</span>
+                  </div>
+                  <div className="text-[11px] text-muted-foreground truncate">{tab.sub}</div>
                 </button>
               );
             })}
           </div>
-        </div>
+        </motion.div>
 
-        {/* HERO MOCKUP - Dashboard principal */}
-        <div className="max-w-5xl mx-auto mb-12 md:mb-16">
-          <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-border bg-card">
-            <img 
-              src={dashboardMainImg} 
-              alt="Dashboard Principal" 
-              width={1200}
-              height={675}
-              loading="eager"
-              className="w-full h-auto block"
-            />
-          </div>
-          <p className="mt-3 text-sm text-muted-foreground text-center">
-            <span className="font-semibold text-foreground">Dashboard Principal</span> — Tu centro de comando diario
+        {/* Main Mockup Display - Animated switching */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-lg mx-auto mb-16 md:mb-20"
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${activeTab}-${activeBusiness}`}
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.98 }}
+              transition={{ duration: 0.3 }}
+            >
+              {activeTab === "salud" && (
+                <MockupProDashboard business={activeBusiness} />
+              )}
+              {activeTab === "misiones" && (
+                <MockupProMissions business={activeBusiness} />
+              )}
+              {activeTab === "radar" && (
+                <MockupProRadar business={activeBusiness} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+          
+          <p className="mt-4 text-sm text-muted-foreground text-center">
+            <span className="font-medium text-foreground">
+              {activeTab === "salud" && "Salud del Negocio"}
+              {activeTab === "misiones" && "Misiones Estratégicas"}
+              {activeTab === "radar" && "Radar de Oportunidades"}
+            </span>
+            {" — "}
+            {activeTab === "salud" && "Diagnóstico integral en tiempo real"}
+            {activeTab === "misiones" && "Guías paso a paso personalizadas"}
+            {activeTab === "radar" && "Detectando lo que vos no ves"}
           </p>
-        </div>
-
-        {/* Mockups Grid - 2x2 layout */}
-        <div className="max-w-6xl mx-auto mb-16 md:mb-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-            {/* Analytics Salud */}
-            <div id="how-analytics" className="scroll-mt-24">
-              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
-                <img 
-                  src={analyticsSaludImg} 
-                  alt="Salud del Negocio" 
-                  width={600}
-                  height={400}
-                  loading="lazy"
-                  className="w-full h-auto block"
-                />
-              </div>
-              <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
-                <span className="font-medium text-foreground">Salud del Negocio</span> — Diagnóstico integral
-              </p>
-            </div>
-
-            {/* Misiones */}
-            <div id="how-missions" className="scroll-mt-24">
-              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
-                <img 
-                  src={misionesImg} 
-                  alt="Misiones" 
-                  width={600}
-                  height={400}
-                  loading="lazy"
-                  className="w-full h-auto block"
-                />
-              </div>
-              <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
-                <span className="font-medium text-foreground">Misiones</span> — Guía paso a paso
-              </p>
-            </div>
-
-            {/* Radar Interno */}
-            <div id="how-radar" className="scroll-mt-24">
-              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
-                <img 
-                  src={radarInternoImg} 
-                  alt="Radar Interno" 
-                  width={600}
-                  height={400}
-                  loading="lazy"
-                  className="w-full h-auto block"
-                />
-              </div>
-              <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
-                <span className="font-medium text-foreground">Radar Interno</span> — Oportunidades de tu negocio
-              </p>
-            </div>
-
-            {/* CEO Chat */}
-            <div id="how-chat" className="scroll-mt-24">
-              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
-                <img 
-                  src={ceoChatImg} 
-                  alt="CEO Chat" 
-                  width={600}
-                  height={400}
-                  loading="lazy"
-                  className="w-full h-auto block"
-                />
-              </div>
-              <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
-                <span className="font-medium text-foreground">CEO Chat</span> — Mentor estratégico 24/7
-              </p>
-            </div>
-          </div>
-        </div>
+        </motion.div>
 
         {/* Steps Grid */}
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-12 md:mb-16">
@@ -257,7 +263,12 @@ export const HowItWorksSection = memo(() => {
         </div>
 
         {/* Improvement areas */}
-        <div className="max-w-3xl mx-auto text-center mb-10 md:mb-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto text-center mb-10 md:mb-12"
+        >
           <p className="text-sm text-muted-foreground mb-4">Áreas que podés mejorar</p>
           <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {improvementAreas.map((area) => (
@@ -270,10 +281,15 @@ export const HowItWorksSection = memo(() => {
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Bottom CTA */}
-        <div className="text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center"
+        >
           <Button 
             size="lg" 
             className="gradient-primary text-primary-foreground rounded-full px-8 py-6 text-base md:text-lg font-semibold shadow-xl shadow-primary/25"
@@ -285,7 +301,7 @@ export const HowItWorksSection = memo(() => {
           <p className="text-xs text-muted-foreground mt-3">
             Sin tarjeta • 3 min de setup • Valor desde el día 1
           </p>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
