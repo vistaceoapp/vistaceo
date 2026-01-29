@@ -160,7 +160,7 @@ export const HeroSection = memo(() => {
           
           {/* Main Headline */}
           <div className="mb-5 animate-fade-in-up-delay-2">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-normal tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-normal tracking-tight whitespace-nowrap">
               Tu negocio merece un
             </h1>
             <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-normal tracking-tight pb-2">
