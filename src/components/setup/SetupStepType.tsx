@@ -17,8 +17,8 @@ interface SetupStepTypeProps {
 export const SetupStepType = ({ countryCode, areaId, value, onChange }: SetupStepTypeProps) => {
   const [search, setSearch] = useState('');
   
-  // Get language based on country
-  const lang = countryCode === 'BR' ? 'pt-BR' : 'es';
+  // Solo español para todos los países
+  const lang = 'es';
   
   // Get business types for the selected area
   const businessTypes = useMemo(() => getBusinessTypesForArea(areaId), [areaId]);
@@ -35,10 +35,10 @@ export const SetupStepType = ({ countryCode, areaId, value, onChange }: SetupSte
     });
   }, [search, lang, businessTypes]);
 
-  const title = lang === 'pt-BR' ? 'Qual é o tipo do seu negócio?' : '¿Qué tipo de negocio es?';
-  const subtitle = lang === 'pt-BR' ? 'Selecione o tipo que melhor te descreve' : 'Seleccioná el tipo que mejor te describe';
-  const searchPlaceholder = lang === 'pt-BR' ? 'Buscar tipo de negócio...' : 'Buscar tipo de negocio...';
-  const noResultsText = lang === 'pt-BR' ? 'Não encontramos tipos com' : 'No encontramos tipos con';
+  const title = '¿Qué tipo de negocio es?';
+  const subtitle = 'Seleccioná el tipo que mejor te describe';
+  const searchPlaceholder = 'Buscar tipo de negocio...';
+  const noResultsText = 'No encontramos tipos con';
 
   return (
     <div className="space-y-6">

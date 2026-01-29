@@ -10,17 +10,17 @@ interface SetupStepCountryProps {
   onChange: (code: CountryCode) => void;
 }
 
+// Países ordenados alfabéticamente (solo español)
 const COUNTRY_FLAGS: Record<string, string> = {
   AR: '🇦🇷',
-  UY: '🇺🇾',
-  BR: '🇧🇷',
   CL: '🇨🇱',
   CO: '🇨🇴',
+  CR: '🇨🇷',
   EC: '🇪🇨',
   MX: '🇲🇽',
-  CR: '🇨🇷',
   PA: '🇵🇦',
-  US: '🇺🇸',
+  PY: '🇵🇾',
+  UY: '🇺🇾',
 };
 
 export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => {

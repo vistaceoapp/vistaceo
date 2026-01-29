@@ -28,11 +28,14 @@ const footerLinks = {
 
 const countries = [
   { code: "AR", name: "Argentina" },
-  { code: "MX", name: "México" },
   { code: "CL", name: "Chile" },
-  { code: "BR", name: "Brasil" },
   { code: "CO", name: "Colombia" },
-  { code: "US", name: "Estados Unidos" },
+  { code: "CR", name: "Costa Rica" },
+  { code: "EC", name: "Ecuador" },
+  { code: "MX", name: "México" },
+  { code: "PA", name: "Panamá" },
+  { code: "PY", name: "Paraguay" },
+  { code: "UY", name: "Uruguay" },
 ];
 
 export const Footer = () => {

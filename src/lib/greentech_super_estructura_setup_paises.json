@@ -4,25 +4,25 @@
     "generated_at": "2025-12-29T03:12:02",
     "countries_supported": [
       "AR",
-      "UY",
-      "BR",
       "CL",
       "CO",
+      "CR",
       "EC",
       "MX",
-      "CR",
-      "PA"
+      "PA",
+      "PY",
+      "UY"
     ],
     "default_language_by_country": {
       "AR": "es-AR",
-      "UY": "es-UY",
-      "BR": "pt-BR",
       "CL": "es-CL",
       "CO": "es-CO",
+      "CR": "es-CR",
       "EC": "es-EC",
       "MX": "es-MX",
-      "CR": "es-CR",
-      "PA": "es-PA"
+      "PA": "es-PA",
+      "PY": "es-PY",
+      "UY": "es-UY"
     },
     "selection_rules": {
       "max_types_per_user": 2,
@@ -66,16 +66,6 @@
       "language": "es-AR"
     },
     {
-      "code": "UY",
-      "name": "Uruguay",
-      "language": "es-UY"
-    },
-    {
-      "code": "BR",
-      "name": "Brasil",
-      "language": "pt-BR"
-    },
-    {
       "code": "CL",
       "name": "Chile",
       "language": "es-CL"
@@ -84,6 +74,11 @@
       "code": "CO",
       "name": "Colombia",
       "language": "es-CO"
+    },
+    {
+      "code": "CR",
+      "name": "Costa Rica",
+      "language": "es-CR"
     },
     {
       "code": "EC",
@@ -96,14 +91,19 @@
       "language": "es-MX"
     },
     {
-      "code": "CR",
-      "name": "Costa Rica",
-      "language": "es-CR"
-    },
-    {
       "code": "PA",
       "name": "Panamá",
       "language": "es-PA"
+    },
+    {
+      "code": "PY",
+      "name": "Paraguay",
+      "language": "es-PY"
+    },
+    {
+      "code": "UY",
+      "name": "Uruguay",
+      "language": "es-UY"
     }
   ],
   "modules": [
