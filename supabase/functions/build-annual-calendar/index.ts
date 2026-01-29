@@ -75,20 +75,18 @@ serve(async (req) => {
     // Take only the first 200
     const selectedTopics = targetTopics.slice(0, ANNUAL_TARGET);
 
-    // 3. Generate publication slots (200 dates over 365 days)
+    // 3. Generate publication slots (350 dates over 365 days)
     const random = seededRandom(randomSeed);
     const slots: Date[] = [];
     
-    // Average gap: 365/200 ≈ 1.825 days
-    // We'll use gaps of 1-2 days with some randomization
-    let currentDate = new Date(startDate);
-    
+    // 350 posts in 365 days = almost 1 post per day
+    // Distribute evenly with slight randomization
     for (let i = 0; i < ANNUAL_TARGET; i++) {
-      slots.push(new Date(currentDate));
-      
-      // Gap between 1-2 days, occasionally 3 for variety
-      const gap = random() < 0.7 ? (random() < 0.5 ? 1 : 2) : (random() < 0.8 ? 2 : 3);
-      currentDate.setDate(currentDate.getDate() + gap);
+      // Calculate exact position in the year (0 to 364)
+      const dayOffset = Math.floor((i / ANNUAL_TARGET) * HORIZON_DAYS);
+      const slotDate = new Date(startDate);
+      slotDate.setDate(slotDate.getDate() + dayOffset);
+      slots.push(slotDate);
     }
 
     console.log(`[build-annual-calendar] Generated ${slots.length} publication slots`);
