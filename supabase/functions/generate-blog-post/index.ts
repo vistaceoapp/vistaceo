@@ -117,9 +117,25 @@ function detectBrokenFormattingIssues(content: string): string[] {
   const issues: string[] = [];
   const lines = content.split('\n');
 
-  const veryLongLines = lines.filter(l => l.length > 300);
-  if (veryLongLines.length > 0) {
-    issues.push(`Found ${veryLongLines.length} very long line(s) (>300 chars) - likely broken formatting`);
+  // Skip code fences and blockquotes for length checks
+  let insideCodeBlock = false;
+  let problematicLongLines = 0;
+  
+  for (const line of lines) {
+    if (line.trim().startsWith('```')) {
+      insideCodeBlock = !insideCodeBlock;
+      continue;
+    }
+    // Allow long lines inside code blocks or blockquotes
+    if (insideCodeBlock || line.trim().startsWith('>')) continue;
+    
+    if (line.length > 400) {
+      problematicLongLines++;
+    }
+  }
+  
+  if (problematicLongLines > 2) {
+    issues.push(`Found ${problematicLongLines} very long line(s) (>400 chars outside code blocks) - likely broken formatting`);
   }
 
   const pipeSpamLines = lines.filter(l => (l.match(/\|/g) || []).length >= 12);
@@ -685,12 +701,17 @@ serve(async (req) => {
     const pillarInfo = PILLARS[selectedTopic.pillar as keyof typeof PILLARS] || { label: selectedTopic.pillar, emoji: '📝' };
     const countryName = COUNTRY_NAMES[selectedCountry] || selectedCountry;
 
-    // PATCH V3 System Prompt with all rules
+    // PATCH V4 System Prompt with all rules
     const systemPrompt = `Sos un editor senior de contenido SEO para VistaCEO, un sistema de gestión inteligente para empresas de LATAM.
 
 ═══════════════════════════════════════════
-REGLAS EDITORIALES PATCH V3 (OBLIGATORIAS)
+REGLAS EDITORIALES PATCH V4 (OBLIGATORIAS)
 ═══════════════════════════════════════════
+
+⛔ PROHIBIDO (causa errores de renderizado):
+- NUNCA usar tablas Markdown (con pipes |). Se rompen en publicación.
+- NUNCA usar plantillas con columnas o pipes.
+- NUNCA generar líneas de más de 200 caracteres.
 
 1. SEMÁNTICA Y ESTRUCTURA
 - NO repetir el título (H1) en el cuerpo. La página ya lo renderiza.
@@ -706,7 +727,7 @@ REGLAS EDITORIALES PATCH V3 (OBLIGATORIAS)
   ✅ "Expertos en prompt engineering y curación de contenido con IA"
   ❌ "Expertos en Prompt Engineering y Curación de Contenido con IA"
 - Párrafos cortos: máximo 2–4 líneas (60–90 palabras).
-- Cada 150–220 palabras incluir: subtítulo, lista corta, tabla, callout o ejemplo.
+- Cada 150–220 palabras incluir: subtítulo, lista corta, callout o ejemplo.
 - Listas: máximo 5–7 bullets por bloque.
 
 3. ABOVE THE FOLD (inicio del artículo)
@@ -726,8 +747,15 @@ a) **1 bloque "Checklist copiable"** con casillas:
 - [ ] Paso 3
 \`\`\`
 
- b) **1 bloque "Plantilla"** (SIN TABLAS Markdown; usar lista rellenable o bloque de código)
-    - Prohibido usar tablas con pipes (|). Se rompen en publicación.
+b) **1 bloque "Plantilla"** (formato rellenable SIN TABLA):
+Usá una lista o bloque de código. NUNCA pipes (|).
+Ejemplo correcto:
+\`\`\`
+## Plantilla: autoevaluación
+- Habilidad 1: _____ (nivel 1-5)
+- Habilidad 2: _____ (nivel 1-5)
+- Habilidad 3: _____ (nivel 1-5)
+\`\`\`
 
 c) **2–5 ejemplos** con este formato EXACTO:
 > **Ejemplo (${countryName}):** [2–4 líneas describiendo la situación]
@@ -772,22 +800,22 @@ TÍTULO (ya lo renderiza la página, NO lo incluyas): ${selectedTopic.title_base
 
 KEYWORD PRINCIPAL: ${selectedTopic.title_base.toLowerCase().replace(/[^a-záéíóúñü\s]/g, '').slice(0, 50)}
 
-Generá el contenido completo siguiendo TODAS las reglas del PATCH V3:
+Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
 1. Empezá directo con la introducción (80-120 palabras)
 2. Luego "## En 2 minutos" con bullets
 3. 4-7 secciones H2 con contenido profundo
 4. Incluí checklist, plantilla y 2+ ejemplos con formato exacto
-   - IMPORTANTE: La "Plantilla" NO puede ser una tabla Markdown. Usá lista rellenable o bloque de código.
+   - ⛔ PROHIBIDO: La "Plantilla" NO puede usar tablas Markdown (pipes |). Usá lista rellenable o bloque de código.
 5. 5-12 links internos contextuales
 6. Sección "Para profundizar" con links externos
 7. FAQ con 3-6 preguntas
 8. "## Próximos pasos" como cierre`;
 
-    console.log('[generate-blog-post] Calling Lovable AI with PATCH V3 prompt...');
+    console.log('[generate-blog-post] Calling Lovable AI with PATCH V4 prompt...');
 
     let contentMd = '';
     let rewriteAttempts = 0;
-    const maxRewrites = 2;
+    const maxRewrites = 4;
     let qualityGateReport: QualityGateReport;
 
     // Generation loop with rewrite attempts
@@ -846,7 +874,8 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V3:
       console.log(`[generate-blog-post] Quality gate attempt ${rewriteAttempts + 1}:`, {
         passed: qualityGateReport.passed,
         score: qualityGateReport.score,
-        issues: qualityGateReport.issues.length
+        issueCount: qualityGateReport.issues.length,
+        issuesList: qualityGateReport.issues.slice(0, 8)
       });
 
       rewriteAttempts++;
