@@ -1,6 +1,7 @@
-import { lazy, Suspense, memo } from "react";
+import { useState, useEffect, lazy, Suspense, memo } from "react";
 import { HeaderV3 } from "@/components/landing/HeaderV3";
 import { HeroSection } from "@/components/landing/sections/HeroSection";
+import { LoadingScreen } from "@/components/landing/LoadingScreen";
 
 // Lazy load all below-the-fold sections for better initial load
 const HowItWorksSection = lazy(() => import("@/components/landing/sections/HowItWorksSection"));
@@ -47,8 +48,40 @@ const Footer = memo(() => (
 Footer.displayName = "Footer";
 
 const LandingV3 = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Minimum loading time for smooth UX + wait for critical resources
+    const minLoadTime = 800;
+    const startTime = Date.now();
+
+    const handleLoad = () => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, minLoadTime - elapsed);
+      
+      setTimeout(() => {
+        setIsLoading(false);
+      }, remaining);
+    };
+
+    // Check if document is already loaded
+    if (document.readyState === 'complete') {
+      handleLoad();
+    } else {
+      window.addEventListener('load', handleLoad);
+      // Fallback timeout
+      setTimeout(() => setIsLoading(false), 2000);
+    }
+
+    return () => window.removeEventListener('load', handleLoad);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden relative">
+    <div className="min-h-screen bg-background overflow-x-hidden relative animate-fade-in">
       {/* Static gradient orbs - no JS animations */}
       <div className="absolute w-[600px] h-[600px] bg-primary/10 top-0 -left-64 rounded-full blur-[150px] pointer-events-none" />
       <div className="absolute w-[500px] h-[500px] bg-accent/10 top-1/3 -right-48 rounded-full blur-[150px] pointer-events-none" />

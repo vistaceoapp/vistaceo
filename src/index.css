@@ -432,6 +432,23 @@
   animation: shimmer 2s infinite linear;
 }
 
+/* Loading progress bar animation */
+@keyframes loadingProgress {
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-loading-progress {
+  animation: loadingProgress 1.5s ease-out forwards;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-float,
