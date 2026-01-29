@@ -15,10 +15,9 @@ interface HeaderV3Props {
 }
 
 const navItems = [
-  { label: "Características", href: "#características" },
-  { label: "Casos de Éxito", href: "#casos-de-éxito" },
-  { label: "Precios", href: "#precios" },
-  { label: "FAQ", href: "#faq" },
+  { label: "Características", href: "/#características" },
+  { label: "Precios", href: "/#precios" },
+  { label: "FAQ", href: "/#faq" },
   { label: "Blog", href: "/blog", isRoute: true },
 ];
 
@@ -39,8 +38,21 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
     setMobileMenuOpen(false);
     if (isRoute) {
       navigate(href);
+    } else if (href.startsWith("/#")) {
+      // Navigate to landing page with anchor
+      const hash = href.substring(1); // Remove leading /
+      if (window.location.pathname === "/") {
+        // Already on landing, just scroll
+        const element = document.querySelector(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      } else {
+        // Navigate to landing then scroll
+        navigate("/" + hash);
+      }
     } else {
-      // Smooth scroll to section
+      // Smooth scroll to section on same page
       const element = document.querySelector(href);
       if (element) {
         element.scrollIntoView({ behavior: "smooth" });
