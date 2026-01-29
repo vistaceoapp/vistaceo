@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
-// Import ALL mockup images - best ones
+// Import ALL mockup images
 import dashboardMainImg from "@/assets/mockups/dashboard-main.png";
 import analyticsSaludImg from "@/assets/mockups/analytics-salud.png";
 import misionesImg from "@/assets/mockups/misiones.png";
 import radarInternoImg from "@/assets/mockups/radar-interno.png";
 import ceoChatImg from "@/assets/mockups/ceo-chat.png";
-import radarExternoImg from "@/assets/mockups/radar-externo.png";
 
 const steps = [
   {
@@ -67,68 +66,36 @@ const improvementAreas = [
   { icon: Zap, label: "Eficiencia" },
 ];
 
-const StepCard = memo(({ step, index }: { step: typeof steps[0]; index: number }) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-        }
-      },
-      { threshold: 0.1 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className="animate-on-scroll relative bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-5 md:p-6 hover:border-primary/30 transition-colors"
-      style={{ transitionDelay: `${index * 100}ms` }}
-    >
-      <div className="absolute -top-3 -left-3 w-9 h-9 md:w-10 md:h-10 rounded-xl gradient-primary flex items-center justify-center font-bold text-xs md:text-sm text-white shadow-lg">
-        {step.number}
-      </div>
-      
-      <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 md:mb-4 mt-2">
-        <step.icon className="w-5 h-5 md:w-6 md:h-6 text-primary" aria-hidden="true" />
-      </div>
-      
-      <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">{step.title}</h3>
-      <p className="text-muted-foreground text-sm mb-3 md:mb-4">{step.description}</p>
-
-      <ul className="space-y-1.5 md:space-y-2">
-        {step.details.map((detail) => (
-          <li key={detail} className="flex items-start gap-2 text-xs md:text-sm">
-            <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-success shrink-0 mt-0.5" aria-hidden="true" />
-            <span className="text-foreground/80">{detail}</span>
-          </li>
-        ))}
-      </ul>
+const StepCard = memo(({ step, index }: { step: typeof steps[0]; index: number }) => (
+  <div
+    className="relative bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-5 md:p-6 hover:border-primary/30 transition-colors animate-fade-in"
+    style={{ animationDelay: `${index * 100}ms` }}
+  >
+    <div className="absolute -top-3 -left-3 w-9 h-9 md:w-10 md:h-10 rounded-xl gradient-primary flex items-center justify-center font-bold text-xs md:text-sm text-white shadow-lg">
+      {step.number}
     </div>
-  );
-});
+    
+    <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 md:mb-4 mt-2">
+      <step.icon className="w-5 h-5 md:w-6 md:h-6 text-primary" aria-hidden="true" />
+    </div>
+    
+    <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">{step.title}</h3>
+    <p className="text-muted-foreground text-sm mb-3 md:mb-4">{step.description}</p>
+
+    <ul className="space-y-1.5 md:space-y-2">
+      {step.details.map((detail) => (
+        <li key={detail} className="flex items-start gap-2 text-xs md:text-sm">
+          <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-success shrink-0 mt-0.5" aria-hidden="true" />
+          <span className="text-foreground/80">{detail}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+));
 StepCard.displayName = "StepCard";
 
 export const HowItWorksSection = memo(() => {
   const navigate = useNavigate();
-  const headerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-        }
-      },
-      { threshold: 0.1 }
-    );
-    if (headerRef.current) observer.observe(headerRef.current);
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <section id="how-it-works" className="py-16 md:py-28 relative overflow-hidden">
@@ -136,7 +103,7 @@ export const HowItWorksSection = memo(() => {
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Section header */}
-        <div ref={headerRef} className="text-center max-w-3xl mx-auto mb-12 md:mb-16 animate-on-scroll">
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
           <Badge variant="outline" className="mb-4 border-primary/30 bg-primary/5">
             <Zap className="w-4 h-4 mr-2" aria-hidden="true" />
             Cómo funciona
@@ -150,16 +117,15 @@ export const HowItWorksSection = memo(() => {
         </div>
 
         {/* HERO MOCKUP - Dashboard principal */}
-        <div className="max-w-5xl mx-auto mb-12 md:mb-16 animate-on-scroll">
+        <div className="max-w-5xl mx-auto mb-12 md:mb-16">
           <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-border bg-card">
             <img 
               src={dashboardMainImg} 
-              alt="VistaCEO - Dashboard Principal" 
+              alt="Dashboard Principal" 
               width={1200}
               height={675}
               loading="eager"
-              decoding="async"
-              className="w-full h-auto"
+              className="w-full h-auto block"
             />
           </div>
           <p className="mt-3 text-sm text-muted-foreground text-center">
@@ -167,20 +133,19 @@ export const HowItWorksSection = memo(() => {
           </p>
         </div>
 
-        {/* Mockups Grid - 2x2 layout with best mockups */}
+        {/* Mockups Grid - 2x2 layout */}
         <div className="max-w-6xl mx-auto mb-16 md:mb-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
             {/* Analytics Salud */}
-            <div className="animate-on-scroll">
+            <div>
               <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
                   src={analyticsSaludImg} 
-                  alt="VistaCEO - Salud del Negocio" 
+                  alt="Salud del Negocio" 
                   width={600}
                   height={400}
                   loading="lazy"
-                  decoding="async"
-                  className="w-full h-auto"
+                  className="w-full h-auto block"
                 />
               </div>
               <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
@@ -189,16 +154,15 @@ export const HowItWorksSection = memo(() => {
             </div>
 
             {/* Misiones */}
-            <div className="animate-on-scroll" style={{ transitionDelay: '100ms' }}>
+            <div>
               <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
                   src={misionesImg} 
-                  alt="VistaCEO - Misiones" 
+                  alt="Misiones" 
                   width={600}
                   height={400}
                   loading="lazy"
-                  decoding="async"
-                  className="w-full h-auto"
+                  className="w-full h-auto block"
                 />
               </div>
               <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
@@ -207,16 +171,15 @@ export const HowItWorksSection = memo(() => {
             </div>
 
             {/* Radar Interno */}
-            <div className="animate-on-scroll" style={{ transitionDelay: '200ms' }}>
+            <div>
               <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
                   src={radarInternoImg} 
-                  alt="VistaCEO - Radar Interno" 
+                  alt="Radar Interno" 
                   width={600}
                   height={400}
                   loading="lazy"
-                  decoding="async"
-                  className="w-full h-auto"
+                  className="w-full h-auto block"
                 />
               </div>
               <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
@@ -225,16 +188,15 @@ export const HowItWorksSection = memo(() => {
             </div>
 
             {/* CEO Chat */}
-            <div className="animate-on-scroll" style={{ transitionDelay: '300ms' }}>
+            <div>
               <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
                   src={ceoChatImg} 
-                  alt="VistaCEO - CEO Chat" 
+                  alt="CEO Chat" 
                   width={600}
                   height={400}
                   loading="lazy"
-                  decoding="async"
-                  className="w-full h-auto"
+                  className="w-full h-auto block"
                 />
               </div>
               <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
@@ -252,7 +214,7 @@ export const HowItWorksSection = memo(() => {
         </div>
 
         {/* Improvement areas */}
-        <div className="max-w-3xl mx-auto text-center mb-10 md:mb-12 animate-on-scroll">
+        <div className="max-w-3xl mx-auto text-center mb-10 md:mb-12">
           <p className="text-sm text-muted-foreground mb-4">Áreas que podés mejorar</p>
           <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {improvementAreas.map((area) => (
@@ -268,7 +230,7 @@ export const HowItWorksSection = memo(() => {
         </div>
 
         {/* Bottom CTA */}
-        <div className="text-center animate-on-scroll">
+        <div className="text-center">
           <Button 
             size="lg" 
             className="gradient-primary text-primary-foreground rounded-full px-8 py-6 text-base md:text-lg font-semibold shadow-xl shadow-primary/25"
