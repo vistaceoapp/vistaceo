@@ -15,7 +15,6 @@ interface HeaderV3Props {
 }
 
 const navItems = [
-  { label: "Producto", href: "#producto" },
   { label: "Características", href: "#características" },
   { label: "Casos de Éxito", href: "#casos-de-éxito" },
   { label: "Precios", href: "#precios" },
