@@ -21,31 +21,36 @@ import {
   Lightbulb,
   CheckCircle2,
   Clock,
-  Menu,
-  X,
   LockKeyhole,
   Rocket,
   Award
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
 
-// Real mockup components (100% real system UI) - Pro users
-import { MockupProDashboard } from "@/components/landing/mockups/MockupProDashboard";
-import { MockupFullDashboard } from "@/components/landing/mockups/MockupFullDashboard";
-import { MockupProMissions } from "@/components/landing/mockups/MockupProMissions";
-import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
-import { MockupProChat } from "@/components/landing/mockups/MockupProChat";
-import { MockupProAnalytics } from "@/components/landing/mockups/MockupProAnalytics";
-import { MockupSetup } from "@/components/landing/mockups/MockupSetup";
+// Lazy load heavy mockup components to reduce initial bundle
+const MockupProDashboard = lazy(() => import("@/components/landing/mockups/MockupProDashboard").then(m => ({ default: m.MockupProDashboard })));
+const MockupFullDashboard = lazy(() => import("@/components/landing/mockups/MockupFullDashboard").then(m => ({ default: m.MockupFullDashboard })));
+const MockupProMissions = lazy(() => import("@/components/landing/mockups/MockupProMissions").then(m => ({ default: m.MockupProMissions })));
+const MockupProRadar = lazy(() => import("@/components/landing/mockups/MockupProRadar").then(m => ({ default: m.MockupProRadar })));
+const MockupProChat = lazy(() => import("@/components/landing/mockups/MockupProChat").then(m => ({ default: m.MockupProChat })));
+const MockupProAnalytics = lazy(() => import("@/components/landing/mockups/MockupProAnalytics").then(m => ({ default: m.MockupProAnalytics })));
+const MockupSetup = lazy(() => import("@/components/landing/mockups/MockupSetup").then(m => ({ default: m.MockupSetup })));
 
-// Floating particles component
-import { FloatingParticles } from "@/components/landing/FloatingParticles";
+// Lazy load particles (heavy animation)
+const FloatingParticles = lazy(() => import("@/components/landing/FloatingParticles").then(m => ({ default: m.FloatingParticles })));
 
 // Shared Header
 import { HeaderV3 } from "@/components/landing/HeaderV3";
+
+// Skeleton loader for mockups
+const MockupSkeleton = () => (
+  <div className="w-full h-64 bg-secondary/50 rounded-xl animate-pulse flex items-center justify-center">
+    <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+  </div>
+);
 
 // Business photos for testimonials (original)
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
@@ -229,35 +234,35 @@ const LandingV3 = () => {
       label: "Dashboard", 
       icon: BarChart3,
       description: "Visualiza la salud de tu negocio en 7 dimensiones con métricas en tiempo real.",
-      component: <MockupFullDashboard business="argentina" />
+      component: <Suspense fallback={<MockupSkeleton />}><MockupFullDashboard business="argentina" /></Suspense>
     },
     { 
       id: "missions", 
       label: "Misiones", 
       icon: Target,
       description: "Planes de acción paso a paso con impacto medible y tiempo estimado.",
-      component: <MockupProMissions business="mexico" />
+      component: <Suspense fallback={<MockupSkeleton />}><MockupProMissions business="mexico" /></Suspense>
     },
     { 
       id: "radar", 
       label: "Radar", 
       icon: Radar,
       description: "Detecta oportunidades internas y tendencias del mercado automáticamente.",
-      component: <MockupProRadar business="argentina" />
+      component: <Suspense fallback={<MockupSkeleton />}><MockupProRadar business="argentina" /></Suspense>
     },
     { 
       id: "analytics", 
       label: "Analíticas", 
       icon: Activity,
       description: "Métricas de rendimiento, evolución y comparativas de crecimiento.",
-      component: <MockupProAnalytics business="mexico" />
+      component: <Suspense fallback={<MockupSkeleton />}><MockupProAnalytics business="mexico" /></Suspense>
     },
     { 
       id: "chat", 
       label: "Chat CEO", 
       icon: MessageSquare,
       description: "Tu mentor ejecutivo 24/7. Preguntale cualquier cosa de tu negocio.",
-      component: <MockupProChat business="mexico" />
+      component: <Suspense fallback={<MockupSkeleton />}><MockupProChat business="mexico" /></Suspense>
     },
   ];
 
@@ -476,64 +481,59 @@ const LandingV3 = () => {
     },
   ];
 
-  // How it works steps - using real system screens
   const howItWorks = [
     {
       step: 1,
       title: "Contanos de tu negocio",
       description: "15 minutos de setup guiado. Respondé preguntas simples sobre tu operación, equipo y objetivos.",
       icon: Brain,
-      visual: <MockupSetup business="argentina" />
+      visual: <Suspense fallback={<MockupSkeleton />}><MockupSetup business="argentina" /></Suspense>
     },
     {
       step: 2,
       title: "Recibí tu diagnóstico",
       description: "Obtené un análisis profundo de las 7 dimensiones de salud de tu negocio con métricas claras.",
       icon: Activity,
-      visual: <MockupProDashboard business="mexico" />
+      visual: <Suspense fallback={<MockupSkeleton />}><MockupProDashboard business="mexico" /></Suspense>
     },
     {
       step: 3,
       title: "Ejecutá misiones",
       description: "Seguí planes de acción paso a paso con impacto medible y tiempo estimado para cada tarea.",
       icon: Target,
-      visual: <MockupProMissions business="argentina" />
+      visual: <Suspense fallback={<MockupSkeleton />}><MockupProMissions business="argentina" /></Suspense>
     },
     {
       step: 4,
       title: "Crecé sin límites",
       description: "El radar detecta oportunidades y tu mentor IA te acompaña 24/7 con recomendaciones personalizadas.",
       icon: Rocket,
-      visual: <MockupProRadar business="mexico" />
+      visual: <Suspense fallback={<MockupSkeleton />}><MockupProRadar business="mexico" /></Suspense>
     },
   ];
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden relative">
-      {/* Floating particles background */}
-      <FloatingParticles />
+      {/* Floating particles background - lazy loaded */}
+      <Suspense fallback={null}>
+        <FloatingParticles />
+      </Suspense>
       
-      {/* Animated gradient orbs */}
-      <GlowingOrb className="w-[600px] h-[600px] bg-primary/20 top-0 -left-64" delay={0} />
-      <GlowingOrb className="w-[500px] h-[500px] bg-accent/20 top-1/3 -right-48" delay={2} />
-      <GlowingOrb className="w-[400px] h-[400px] bg-primary/15 bottom-1/4 left-1/4" delay={4} />
+      {/* Static gradient orbs (CSS-only, no JS animation) for better TBT */}
+      <div className="absolute w-[600px] h-[600px] bg-primary/15 top-0 -left-64 rounded-full blur-[150px] pointer-events-none" />
+      <div className="absolute w-[500px] h-[500px] bg-accent/15 top-1/3 -right-48 rounded-full blur-[150px] pointer-events-none" />
+      
       {/* ============= HEADER ============= */}
       <HeaderV3 />
 
-      {/* ============= HERO ULTRA - Ultra Compact & WOW ============= */}
+      {/* ============= MAIN CONTENT ============= */}
+      <main>
+      {/* ============= HERO ULTRA ============= */}
       <section ref={heroRef} className="relative min-h-[100svh] flex flex-col justify-center pt-20 pb-6 overflow-hidden">
-        {/* Enhanced animated background */}
+        {/* Static background gradients (CSS-only for better TBT) */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <motion.div 
-            animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
-            transition={{ duration: 10, repeat: Infinity }}
-            className="absolute top-0 -left-1/4 w-[70%] h-[60%] bg-primary/20 rounded-full blur-[150px]" 
-          />
-          <motion.div 
-            animate={{ scale: [1.2, 1, 1.2], opacity: [0.1, 0.2, 0.1] }}
-            transition={{ duration: 12, repeat: Infinity, delay: 2 }}
-            className="absolute bottom-0 -right-1/4 w-[60%] h-[50%] bg-accent/20 rounded-full blur-[150px]" 
-          />
+          <div className="absolute top-0 -left-1/4 w-[70%] h-[60%] bg-primary/15 rounded-full blur-[150px] animate-pulse-slow" />
+          <div className="absolute bottom-0 -right-1/4 w-[60%] h-[50%] bg-accent/10 rounded-full blur-[150px]" />
         </div>
 
         {/* Main Hero Content */}
@@ -1582,6 +1582,8 @@ const LandingV3 = () => {
           </motion.div>
         </div>
       </section>
+
+      </main>
 
       {/* ============= FOOTER ============= */}
       <footer className="py-12 border-t border-border bg-card/50 relative z-10">
