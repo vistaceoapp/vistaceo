@@ -44,9 +44,8 @@ import { MockupSetup } from "@/components/landing/mockups/MockupSetup";
 // Floating particles component
 import { FloatingParticles } from "@/components/landing/FloatingParticles";
 
-// Logo
-import logoFull from "@/assets/brand/logo-light-full.png";
-import logoDark from "@/assets/brand/logo-dark-full.png";
+// Shared Header
+import { HeaderV3 } from "@/components/landing/HeaderV3";
 
 // Business photos for testimonials (original)
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
@@ -519,99 +518,7 @@ const LandingV3 = () => {
       <GlowingOrb className="w-[500px] h-[500px] bg-accent/20 top-1/3 -right-48" delay={2} />
       <GlowingOrb className="w-[400px] h-[400px] bg-primary/15 bottom-1/4 left-1/4" delay={4} />
       {/* ============= HEADER ============= */}
-      <motion.header 
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50"
-      >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            {/* Logo */}
-            <motion.div 
-              whileHover={{ scale: 1.02 }}
-              className="flex items-center"
-            >
-              <img src={logoDark} alt="VistaCEO" className="h-7 md:h-8 dark:hidden" />
-              <img src={logoFull} alt="VistaCEO" className="h-7 md:h-8 hidden dark:block" />
-            </motion.div>
-            
-            {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-8">
-              {['Producto', 'Características', 'Casos de Éxito', 'Precios', 'FAQ'].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase().replace(/ /g, '-')}`}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors relative group"
-                >
-                  {item}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
-                </a>
-              ))}
-              <a
-                href="/blog"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors relative group"
-              >
-                Blog
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
-              </a>
-            </nav>
-            
-            {/* CTA Buttons */}
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => navigate("/auth")}
-                className="hidden sm:flex"
-              >
-                Iniciar sesión
-              </Button>
-              <Button 
-                size="sm"
-                className="gradient-primary text-primary-foreground rounded-full px-5 font-medium shadow-lg shadow-primary/25"
-                onClick={() => navigate("/auth")}
-              >
-                Empezar gratis
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-              
-              {/* Mobile menu */}
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="md:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-border bg-background"
-          >
-            <nav className="container mx-auto px-4 py-4 flex flex-col gap-3">
-              {['Producto', 'Características', 'Casos de Éxito', 'Precios', 'FAQ'].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase().replace(/ /g, '-')}`}
-                  className="py-2 text-foreground hover:text-primary transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item}
-                </a>
-              ))}
-            </nav>
-          </motion.div>
-        )}
-      </motion.header>
+      <HeaderV3 />
 
       {/* ============= HERO ULTRA - Ultra Compact & WOW ============= */}
       <section ref={heroRef} className="relative min-h-[100svh] flex flex-col justify-center pt-20 pb-6 overflow-hidden">
@@ -748,6 +655,10 @@ const LandingV3 = () => {
                       <img 
                         src={b.image} 
                         alt={b.type}
+                        width={115}
+                        height={153}
+                        loading="lazy"
+                        decoding="async"
                         className="absolute inset-0 w-full h-full object-cover"
                       />
                       
@@ -838,7 +749,15 @@ const LandingV3 = () => {
                 className="flex items-center gap-4"
               >
                 <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg">
-                  <img src={parrillaImg} alt="Parrilla Don Martín" className="w-full h-full object-cover" />
+                  <img 
+                    src={parrillaImg} 
+                    alt="Parrilla Don Martín" 
+                    width={80}
+                    height={80}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover" 
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 </div>
                 <div className="text-left">
@@ -863,7 +782,15 @@ const LandingV3 = () => {
                 className="flex items-center gap-4"
               >
                 <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 border-primary/30 shadow-lg">
-                  <img src={boutiqueImg} alt="Boutique Carmela" className="w-full h-full object-cover" />
+                  <img 
+                    src={boutiqueImg} 
+                    alt="Boutique Carmela" 
+                    width={80}
+                    height={80}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover" 
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 </div>
                 <div className="text-left">
@@ -1345,6 +1272,10 @@ const LandingV3 = () => {
                     <img 
                       src={testimonial.image} 
                       alt={testimonial.business}
+                      width={400}
+                      height={160}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
@@ -1657,8 +1588,13 @@ const LandingV3 = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <img src={logoDark} alt="VistaCEO" className="h-6 dark:hidden" />
-              <img src={logoFull} alt="VistaCEO" className="h-6 hidden dark:block" />
+              <img 
+                src="/favicon.png" 
+                alt="VistaCEO" 
+                width={24}
+                height={24}
+                className="h-6 w-6 object-contain" 
+              />
               <span className="text-sm text-muted-foreground">© 2025 VistaCEO. Todos los derechos reservados.</span>
             </div>
             

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { ChevronRight } from 'lucide-react';
-import { Header } from '@/components/landing/Header';
+import { HeaderV3 } from '@/components/landing/HeaderV3';
 import { Footer } from '@/components/landing/Footer';
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
 import { BlogFilters } from '@/components/blog/BlogFilters';
@@ -37,7 +37,7 @@ export default function BlogPage() {
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        <Header />
+        <HeaderV3 variant="blog" />
         
         <main className="pt-24 pb-16">
           <div className="container mx-auto px-4 max-w-7xl">

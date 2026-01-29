@@ -1,4 +1,4 @@
-@import url('https://fonts.cdnfonts.com/css/codec-pro');
+/* Fonts are loaded in index.html with display=swap for better CLS */
 
 @tailwind base;
 @tailwind components;
