@@ -25,6 +25,12 @@ export const FinalCTASection = memo(() => {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Fallback: if IntersectionObserver isn't available (some mobile browsers), show content immediately
+    if (typeof window === "undefined" || typeof IntersectionObserver === "undefined") {
+      if (sectionRef.current) sectionRef.current.classList.add("is-visible");
+      return;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {

@@ -1,4 +1,4 @@
-import { memo, useRef, useEffect } from "react";
+import { memo, useMemo, useRef, useEffect, useState } from "react";
 import { Check, ArrowRight, Brain, Radar, Target, Zap, TrendingUp, BarChart3, Lightbulb, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -96,6 +96,24 @@ StepCard.displayName = "StepCard";
 
 export const HowItWorksSection = memo(() => {
   const navigate = useNavigate();
+  const [active, setActive] = useState<string>("analytics");
+
+  const anchors = useMemo(
+    () =>
+      [
+        { key: "analytics", label: "Analytics", sub: "Salud del negocio" },
+        { key: "missions", label: "Misiones", sub: "Paso a paso" },
+        { key: "radar", label: "Radar", sub: "Oportunidades" },
+        { key: "chat", label: "CEO Chat", sub: "Mentor 24/7" },
+      ] as const,
+    []
+  );
+
+  const scrollTo = (key: (typeof anchors)[number]["key"]) => {
+    setActive(key);
+    const el = document.getElementById(`how-${key}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <section id="how-it-works" className="py-16 md:py-28 relative overflow-hidden">
@@ -114,6 +132,31 @@ export const HowItWorksSection = memo(() => {
           <p className="text-base md:text-lg text-muted-foreground">
             Un sistema que diagnostica, detecta oportunidades y te guía paso a paso.
           </p>
+        </div>
+
+        {/* Interactive nav (tap-to-jump) */}
+        <div className="max-w-5xl mx-auto mb-8 md:mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {anchors.map((item) => {
+              const isActive = item.key === active;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => scrollTo(item.key)}
+                  className={
+                    "text-left rounded-xl border px-3 py-2.5 transition-colors bg-card/60 " +
+                    (isActive
+                      ? "border-primary/40 bg-primary/10"
+                      : "border-border hover:border-primary/20 hover:bg-secondary/50")
+                  }
+                >
+                  <div className="text-sm font-semibold text-foreground">{item.label}</div>
+                  <div className="text-[11px] text-muted-foreground truncate">{item.sub}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* HERO MOCKUP - Dashboard principal */}
@@ -137,7 +180,7 @@ export const HowItWorksSection = memo(() => {
         <div className="max-w-6xl mx-auto mb-16 md:mb-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
             {/* Analytics Salud */}
-            <div>
+            <div id="how-analytics" className="scroll-mt-24">
               <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
                   src={analyticsSaludImg} 
@@ -154,7 +197,7 @@ export const HowItWorksSection = memo(() => {
             </div>
 
             {/* Misiones */}
-            <div>
+            <div id="how-missions" className="scroll-mt-24">
               <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
                   src={misionesImg} 
@@ -171,7 +214,7 @@ export const HowItWorksSection = memo(() => {
             </div>
 
             {/* Radar Interno */}
-            <div>
+            <div id="how-radar" className="scroll-mt-24">
               <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
                   src={radarInternoImg} 
@@ -188,7 +231,7 @@ export const HowItWorksSection = memo(() => {
             </div>
 
             {/* CEO Chat */}
-            <div>
+            <div id="how-chat" className="scroll-mt-24">
               <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
                   src={ceoChatImg} 
