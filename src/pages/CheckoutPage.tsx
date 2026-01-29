@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Crown, Loader2, Shield, Check, Sparkles, ArrowLeft, Zap, Lock, CreditCard, BadgeCheck, ShieldCheck } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Crown, Loader2, Shield, Check, Sparkles, ArrowLeft, Zap, 
+  Lock, CreditCard, BadgeCheck, ShieldCheck, X, ArrowRight 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,20 +15,47 @@ import { toast } from "sonner";
 import { useCountryDetection } from "@/hooks/use-country-detection";
 import mercadopagoLogo from "@/assets/payment/mercadopago-logo.png";
 import paypalLogo from "@/assets/payment/paypal-logo.png";
+import { cn } from "@/lib/utils";
+
+// Pro features list - exact match with landing
+const proFeatures = [
+  { name: "Dashboard de Salud", detail: "Completo" },
+  { name: "Misiones", detail: "Ilimitadas" },
+  { name: "Chat IA", detail: "Ilimitado" },
+  { name: "Radar de Oportunidades", detail: "Ilimitado" },
+  { name: "Check-ins de Pulso", detail: "Diarios" },
+  { name: "Analytics avanzadas", detail: null },
+  { name: "Predicciones IA", detail: null },
+  { name: "Integraciones premium", detail: null },
+  { name: "Soporte prioritario", detail: null },
+];
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  const { country, isDetecting, isArgentina } = useCountryDetection();
+  const { 
+    country, 
+    isDetecting, 
+    isArgentina, 
+    formatCurrencyShort, 
+    monthlyPrice, 
+    yearlyPrice,
+    yearlySavings 
+  } = useCountryDetection();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "failure" | "pending">("idle");
+  const [isYearly, setIsYearly] = useState(true);
 
   // Get plan from URL or localStorage
   const urlPlan = searchParams.get("plan");
   const storedPlan = localStorage.getItem("pendingPlan");
   const planId = urlPlan || storedPlan || "pro_yearly";
-  const isYearly = planId === "pro_yearly";
+
+  // Sync isYearly with planId
+  useEffect(() => {
+    setIsYearly(planId === "pro_yearly");
+  }, [planId]);
 
   // Check payment status from URL
   useEffect(() => {
@@ -53,17 +83,8 @@ const CheckoutPage = () => {
     }
   }, [user, authLoading, navigate, planId]);
 
-  // Pricing based on country
-  const monthlyPrice = isArgentina ? 29999 : 29;
-  const yearlyPrice = isArgentina ? 299999 : 299;
-  const currencyCode = isArgentina ? "ARS" : "USD";
-
-  const formatDisplayPrice = (amount: number) => {
-    if (isArgentina) {
-      return `$${amount.toLocaleString("es-AR")}`;
-    }
-    return `$${amount.toLocaleString()}`;
-  };
+  const monthlyEquivalent = Math.round(yearlyPrice / 12);
+  const savings = yearlySavings();
 
   const handleCheckout = async () => {
     if (!user) return;
@@ -71,11 +92,12 @@ const CheckoutPage = () => {
     setLoading(true);
     
     try {
+      const currentPlanId = isYearly ? "pro_yearly" : "pro_monthly";
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           userId: user.id,
-          planId,
-          country: country?.code || "US",
+          planId: currentPlanId,
+          country: country?.code || "AR",
           email: user.email,
         },
       });
@@ -136,10 +158,7 @@ const CheckoutPage = () => {
   if (status === "failure") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-destructive/5 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="max-w-md w-full border-destructive/20">
             <CardContent className="p-8 text-center">
               <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-6">
@@ -168,10 +187,7 @@ const CheckoutPage = () => {
   if (status === "pending") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-warning/10 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <Card className="max-w-md w-full border-warning/20">
             <CardContent className="p-8 text-center">
               <div className="w-20 h-20 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-6">
@@ -191,30 +207,12 @@ const CheckoutPage = () => {
     );
   }
 
-  const proFeatures = [
-    { icon: Sparkles, text: "Chat IA ultra-inteligente con análisis de fotos y documentos" },
-    { icon: Zap, text: "Misiones estratégicas ilimitadas" },
-    { icon: BadgeCheck, text: "Radar I+D completo sin límites" },
-    { icon: Check, text: "Integración Google Reviews" },
-    { icon: Check, text: "Analíticas avanzadas y predicciones IA" },
-    { icon: Check, text: "Soporte prioritario 24/7" },
-    ...(isYearly ? [
-      { icon: Crown, text: "2 meses gratis incluidos" },
-      { icon: Crown, text: "Onboarding personalizado 1:1" },
-    ] : []),
-  ];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <header className="border-b border-border/30 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate('/setup')} 
-            className="gap-2"
-          >
+          <Button variant="ghost" size="sm" onClick={() => navigate('/setup')} className="gap-2">
             <ArrowLeft className="w-4 h-4" />
             Volver
           </Button>
@@ -226,7 +224,7 @@ const CheckoutPage = () => {
         </div>
       </header>
 
-      <main className="container max-w-6xl mx-auto px-4 py-8 lg:py-12">
+      <main className="container max-w-3xl mx-auto px-4 py-8 lg:py-12">
         {/* Security Banner */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
@@ -247,234 +245,209 @@ const CheckoutPage = () => {
           </div>
         </motion.div>
 
-        <div className="grid lg:grid-cols-5 gap-8 items-start">
-          {/* Left: Plan details (3 cols) */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="lg:col-span-3 space-y-6"
-          >
-            <div>
-              <Badge className="mb-4 bg-primary text-primary-foreground px-3 py-1 shadow-sm">
-                <Crown className="w-3.5 h-3.5 mr-1.5" />
-                Plan Pro
-              </Badge>
-              <h1 className="text-3xl lg:text-4xl font-bold text-foreground mb-3">
-                {isYearly ? "VistaCEO Pro Anual" : "VistaCEO Pro Mensual"}
-              </h1>
-              <p className="text-lg text-muted-foreground">
-                Desbloquea todo el poder de tu CEO digital para hacer crecer tu negocio.
-              </p>
-            </div>
-
-            {/* Features Grid */}
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  Todo lo que incluye Pro
-                </h3>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {proFeatures.map((feature, idx) => (
-                    <motion.div 
-                      key={idx} 
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="flex items-start gap-3"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <feature.icon className="w-3.5 h-3.5 text-success" />
-                      </div>
-                      <span className="text-sm text-foreground/90">{feature.text}</span>
-                    </motion.div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Guarantee Card */}
-            <Card className="border-success/30 bg-success/5">
-              <CardContent className="p-5 flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
-                  <Shield className="w-7 h-7 text-success" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-foreground">Garantía de satisfacción de 7 días</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Si no ves valor en VistaCEO Pro, te devolvemos el 100% de tu dinero. Sin preguntas.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Right: Payment card (2 cols) */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-2"
-          >
-            <Card className="border-2 border-primary/30 shadow-2xl shadow-primary/10 overflow-hidden">
-              {/* Price Header */}
-              <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 border-b border-border/50">
-                <div className="text-center">
-                  <div className="text-4xl lg:text-5xl font-bold text-foreground">
-                    {formatDisplayPrice(isYearly ? yearlyPrice : monthlyPrice)}
-                  </div>
-                  <div className="flex items-center justify-center gap-2 mt-2">
-                    <span className="text-muted-foreground text-lg">{currencyCode}</span>
-                    <span className="text-muted-foreground">/ {isYearly ? "año" : "mes"}</span>
-                  </div>
-                  {isYearly && (
-                    <Badge variant="secondary" className="mt-3 bg-success/10 text-success border-success/30">
-                      🎉 Ahorrás 2 meses
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              <CardContent className="p-6 space-y-5">
-                {/* Payment Provider */}
-                <div className="rounded-xl border border-border/50 bg-secondary/30 p-4">
-                  <p className="text-xs text-muted-foreground text-center mb-3">
-                    Procesado de forma segura por
-                  </p>
-                  <div className="flex items-center justify-center gap-2">
-                    {isArgentina ? (
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background">
-                        <img 
-                          src={mercadopagoLogo} 
-                          alt="MercadoPago"
-                          className="h-6 w-6 object-contain"
-                          onError={(e) => {
-                            // Fallback: hide broken image
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                        <span className="text-sm font-medium text-foreground">Pagás con MercadoPago</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background">
-                        <img 
-                          src={paypalLogo} 
-                          alt="PayPal"
-                          className="h-5 object-contain"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                        <span className="text-sm font-medium text-foreground">Pay with PayPal</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* CTA Button */}
-                <Button 
-                  size="xl" 
-                  className="w-full h-14 text-lg font-semibold gradient-primary shadow-lg"
-                  onClick={handleCheckout}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Procesando...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      Pagar ahora
-                    </>
-                  )}
-                </Button>
-
-                {/* Security indicators */}
-                <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Lock className="w-3.5 h-3.5" />
-                    <span>SSL Seguro</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Shield className="w-3.5 h-3.5" />
-                    <span>Datos protegidos</span>
-                  </div>
-                </div>
-
-                {/* Plan toggle */}
-                <div className="text-center pt-2">
-                  <button
-                    onClick={() => navigate(`/checkout?plan=${isYearly ? "pro_monthly" : "pro_yearly"}`)}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline"
-                  >
-                    {isYearly ? "Prefiero pagar mensual →" : "Ver plan anual (2 meses gratis) →"}
-                  </button>
-                </div>
-
-                {/* Trust badges */}
-                <div className="pt-4 border-t border-border/50">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Check className="w-4 h-4 text-success" />
-                      <span>Cancelá cuando quieras</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Skip option */}
-            <div className="text-center mt-5">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  localStorage.removeItem("pendingPlan");
-                  localStorage.removeItem("pendingPlanTimestamp");
-                  navigate("/setup");
-                }}
-              >
-                Continuar con plan Free →
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Bottom trust section */}
-        <motion.div 
+        {/* Main Card - Pro Plan */}
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-12 pt-8 border-t border-border/30"
+          className="relative"
         >
-          <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Lock className="w-4 h-4 text-primary" />
+          {/* Glow effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-3xl opacity-20 blur-lg" />
+          
+          <Card className="relative border-2 border-primary/30 rounded-3xl overflow-hidden">
+            {/* Header with badge */}
+            <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 lg:p-8 border-b border-border/50">
+              <div className="absolute -top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-primary to-accent text-white text-sm font-semibold shadow-lg">
+                  <Crown className="w-4 h-4" />
+                  Todo el poder del sistema
+                </div>
               </div>
-              <span>Transacción encriptada</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Shield className="w-4 h-4 text-primary" />
+
+              <div className="pt-4 text-center">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
+                    <Crown className="w-6 h-6 text-white" />
+                  </div>
+                  <h1 className="text-3xl font-bold text-foreground">VistaCEO Pro</h1>
+                </div>
+
+                {/* Billing Toggle */}
+                <div className="flex justify-center mb-6">
+                  <div className="inline-flex items-center gap-4 p-2 bg-secondary/50 border border-border rounded-2xl">
+                    <button
+                      onClick={() => setIsYearly(false)}
+                      className={cn(
+                        "px-5 py-2.5 rounded-xl text-sm font-medium transition-all",
+                        !isYearly 
+                          ? "bg-card text-foreground shadow-md" 
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      Mensual
+                    </button>
+                    <button
+                      onClick={() => setIsYearly(true)}
+                      className={cn(
+                        "px-5 py-2.5 rounded-xl text-sm font-medium transition-all relative",
+                        isYearly 
+                          ? "bg-card text-foreground shadow-md" 
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      Anual
+                      {!isYearly && (
+                        <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-success text-white text-xs font-semibold rounded-full">
+                          -{savings.percentage}%
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Price display */}
+                <div className="flex items-baseline justify-center gap-2">
+                  <span className="text-5xl lg:text-6xl font-bold text-foreground">
+                    {formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}
+                  </span>
+                  <span className="text-lg text-muted-foreground">{country.currency}/mes</span>
+                </div>
+
+                {isYearly && (
+                  <div className="mt-3 space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      Anual: {formatCurrencyShort(yearlyPrice)} {country.currency}/año
+                    </p>
+                    <Badge variant="secondary" className="bg-success/10 text-success border-success/30">
+                      2 meses gratis • {savings.percentage}% ahorro
+                    </Badge>
+                  </div>
+                )}
               </div>
-              <span>Garantía de 7 días</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <CreditCard className="w-4 h-4 text-primary" />
+
+            <CardContent className="p-6 lg:p-8 space-y-6">
+              {/* Features Grid */}
+              <div className="grid gap-2">
+                {proFeatures.map((feature, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-secondary/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-3.5 h-3.5 text-success" />
+                      </div>
+                      <span className="text-foreground">{feature.name}</span>
+                    </div>
+                    {feature.detail && (
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-0 font-medium">
+                        {feature.detail}
+                      </Badge>
+                    )}
+                  </motion.div>
+                ))}
               </div>
-              <span>Pagos seguros</span>
-            </div>
-          </div>
-          <p className="text-center text-xs text-muted-foreground/60 mt-6">
-            © {new Date().getFullYear()} VistaCEO. Todos los derechos reservados. 
-            Tus datos están protegidos bajo nuestra política de privacidad.
-          </p>
+
+              {/* Payment Provider */}
+              <div className="rounded-xl border border-border/50 bg-secondary/30 p-4">
+                <p className="text-xs text-muted-foreground text-center mb-3">
+                  Procesado de forma segura por
+                </p>
+                <div className="flex items-center justify-center">
+                  {isArgentina ? (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background">
+                      <img 
+                        src={mercadopagoLogo} 
+                        alt="MercadoPago"
+                        className="h-6 w-6 object-contain"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                      <span className="text-sm font-medium text-foreground">Pagás con MercadoPago</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background">
+                      <img 
+                        src={paypalLogo} 
+                        alt="PayPal"
+                        className="h-5 object-contain"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                      <span className="text-sm font-medium text-foreground">Pay with PayPal</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <Button 
+                size="xl" 
+                className="w-full h-14 text-lg font-semibold gradient-primary shadow-lg group"
+                onClick={handleCheckout}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-5 h-5 mr-2" />
+                    {isYearly ? "Comenzar con 2 meses gratis" : "Comenzar con Pro"}
+                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </Button>
+
+              {/* Guarantee Card */}
+              <Card className="border-success/30 bg-success/5">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-6 h-6 text-success" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground">Garantía de 7 días</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Si no ves valor, te devolvemos el 100%. Sin preguntas.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Trust badges */}
+              <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <Shield className="w-4 h-4 text-success" />
+                  <span>7 días de garantía</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-primary" />
+                  <span>{isArgentina ? "MercadoPago" : "PayPal"}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-accent" />
+                  <span>Cancelás cuando quieras</span>
+                </div>
+              </div>
+
+              {/* Country indicator */}
+              <p className="text-center text-xs text-muted-foreground">
+                Precios en {country.flag} {country.currency}
+              </p>
+            </CardContent>
+          </Card>
         </motion.div>
+
+        {/* Skip to free */}
+        <div className="text-center mt-8">
+          <Button variant="ghost" onClick={() => navigate("/setup")} className="text-muted-foreground">
+            Continuar con plan Free →
+          </Button>
+        </div>
       </main>
     </div>
   );

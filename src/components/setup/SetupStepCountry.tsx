@@ -1,9 +1,10 @@
-// Step 0: Country Selection
+// Step 0: Country Selection with auto-detection
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CountryCode, getCountries } from '@/lib/setupBusinessTypes';
-
+import { useCountryDetection } from '@/hooks/use-country-detection';
 
 interface SetupStepCountryProps {
   value: CountryCode;
@@ -25,17 +26,49 @@ const COUNTRY_FLAGS: Record<string, string> = {
 
 export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => {
   const countries = getCountries();
+  const { detectedCountryCode, isDetecting, isSupportedCountry } = useCountryDetection();
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
+
+  // Auto-select detected country on first load
+  useEffect(() => {
+    if (!isDetecting && detectedCountryCode && !hasAutoSelected && !value) {
+      if (isSupportedCountry(detectedCountryCode)) {
+        onChange(detectedCountryCode as CountryCode);
+        setHasAutoSelected(true);
+      }
+    }
+  }, [isDetecting, detectedCountryCode, hasAutoSelected, value, onChange, isSupportedCountry]);
+
+  if (isDetecting) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Detectando tu ubicación...</h2>
+          <p className="text-muted-foreground">Esto define moneda, impuestos y plataformas locales</p>
+        </div>
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-foreground mb-2">¿Dónde está tu negocio?</h2>
         <p className="text-muted-foreground">Esto define moneda, impuestos y plataformas locales</p>
+        {detectedCountryCode && isSupportedCountry(detectedCountryCode) && (
+          <p className="text-sm text-primary mt-2">
+            Detectamos que estás en {COUNTRY_FLAGS[detectedCountryCode]} — podés cambiarlo
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
         {countries.map((country, idx) => {
           const isSelected = value === country.code;
+          const isDetected = detectedCountryCode === country.code;
           return (
             <motion.button
               key={country.code}
@@ -49,7 +82,9 @@ export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => 
                 'hover:border-primary/50 hover:bg-primary/5',
                 isSelected
                   ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
-                  : 'border-border bg-card'
+                  : isDetected && !value
+                    ? 'border-primary/30 bg-primary/5'
+                    : 'border-border bg-card'
               )}
             >
               <span className="text-4xl">{COUNTRY_FLAGS[country.code] || '🌍'}</span>
