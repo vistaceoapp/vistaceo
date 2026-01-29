@@ -1,22 +1,31 @@
 import { motion } from "framer-motion";
-import { BarChart3, TrendingUp, TrendingDown, ArrowUpRight, PieChart, LineChart, Target, Star, Users, DollarSign, Activity } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Users, Target, Star, LineChart, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 
 // Import real business photos
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
 import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
+import marketingImg from "@/assets/business-types/marketing-digital.jpg";
+import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg";
+
+export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia";
 
 interface MockupProAnalyticsProps {
-  business?: "argentina" | "mexico";
+  business?: BusinessKey;
 }
 
-const analyticsData = {
+const analyticsData: Record<BusinessKey, {
+  name: string;
+  image: string;
+  period: string;
+  metrics: Array<{ label: string; value: string; change: string; positive: boolean; icon: typeof DollarSign }>;
+  dimensions: Array<{ name: string; current: number; previous: number; change: string }>;
+  weeklyData: number[];
+}> = {
   argentina: {
     name: "Parrilla Don Martín",
-    avatar: "DM",
     image: parrillaImg,
-    gradient: "from-orange-500 to-red-500",
     period: "Últimos 30 días",
     metrics: [
       { label: "Ingresos", value: "$2.4M", change: "+18%", positive: true, icon: DollarSign },
@@ -34,9 +43,7 @@ const analyticsData = {
   },
   mexico: {
     name: "Boutique Carmela",
-    avatar: "BC",
     image: boutiqueImg,
-    gradient: "from-pink-500 to-purple-500",
     period: "Últimos 30 días",
     metrics: [
       { label: "Ingresos", value: "$485K", change: "+32%", positive: true, icon: DollarSign },
@@ -51,6 +58,42 @@ const analyticsData = {
       { name: "Finanzas", current: 78, previous: 65, change: "+13" },
     ],
     weeklyData: [70, 75, 82, 78, 85, 90, 92],
+  },
+  marketing: {
+    name: "Rocket Digital",
+    image: marketingImg,
+    period: "Últimos 30 días",
+    metrics: [
+      { label: "Facturación", value: "$8.2M", change: "+22%", positive: true, icon: DollarSign },
+      { label: "Clientes", value: "18", change: "+3", positive: true, icon: Users },
+      { label: "MRR", value: "$2.8M", change: "+15%", positive: true, icon: Target },
+      { label: "NPS", value: "72", change: "+8", positive: true, icon: Star },
+    ],
+    dimensions: [
+      { name: "Ventas", current: 85, previous: 70, change: "+15" },
+      { name: "Clientes", current: 79, previous: 72, change: "+7" },
+      { name: "Eficiencia", current: 88, previous: 75, change: "+13" },
+      { name: "Finanzas", current: 76, previous: 68, change: "+8" },
+    ],
+    weeklyData: [68, 74, 80, 76, 82, 85, 88],
+  },
+  odontologia: {
+    name: "Clínica Dental Sonrisa",
+    image: clinicaDentalImg,
+    period: "Últimos 30 días",
+    metrics: [
+      { label: "Ingresos", value: "$12.5M", change: "+28%", positive: true, icon: DollarSign },
+      { label: "Pacientes", value: "342", change: "+35", positive: true, icon: Users },
+      { label: "Ticket prom.", value: "$185K", change: "+12%", positive: true, icon: Target },
+      { label: "Rating", value: "4.9★", change: "+0.1", positive: true, icon: Star },
+    ],
+    dimensions: [
+      { name: "Pacientes", current: 92, previous: 78, change: "+14" },
+      { name: "Reputación", current: 96, previous: 92, change: "+4" },
+      { name: "Eficiencia", current: 84, previous: 70, change: "+14" },
+      { name: "Finanzas", current: 81, previous: 72, change: "+9" },
+    ],
+    weeklyData: [75, 80, 85, 82, 88, 92, 95],
   }
 };
 
@@ -60,10 +103,10 @@ export const MockupProAnalytics = forwardRef<HTMLDivElement, MockupProAnalyticsP
   return (
     <div ref={ref} className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border shadow-2xl overflow-hidden w-full">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-border bg-secondary/30">
+      <div className="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border bg-secondary/30">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg border-2 border-primary/30">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden shadow-lg border-2 border-primary/30">
               <img 
                 src={data.image} 
                 alt={data.name} 
@@ -71,12 +114,12 @@ export const MockupProAnalytics = forwardRef<HTMLDivElement, MockupProAnalyticsP
               />
             </div>
             <div>
-              <span className="text-sm font-bold text-foreground">Analíticas Avanzadas</span>
-              <div className="text-[10px] text-muted-foreground">{data.name}</div>
+              <span className="text-xs sm:text-sm font-bold text-foreground">Analíticas Avanzadas</span>
+              <div className="text-[9px] sm:text-[10px] text-muted-foreground">{data.name}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-1 rounded-full bg-muted text-muted-foreground text-[10px] font-medium">
+            <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-muted text-muted-foreground text-[9px] sm:text-[10px] font-medium">
               {data.period}
             </span>
           </div>
@@ -84,26 +127,26 @@ export const MockupProAnalytics = forwardRef<HTMLDivElement, MockupProAnalyticsP
       </div>
 
       {/* Metrics Grid */}
-      <div className="p-3 grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="p-2.5 sm:p-3 grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2">
         {data.metrics.map((metric, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + i * 0.1 }}
-            className="p-2.5 rounded-xl bg-secondary/30 border border-border"
+            transition={{ delay: i * 0.05, duration: 0.15 }}
+            className="p-2 sm:p-2.5 rounded-xl bg-secondary/30 border border-border"
           >
-            <div className="flex items-center gap-1.5 mb-1">
-              <metric.icon className="w-3 h-3 text-muted-foreground" />
-              <span className="text-[10px] text-muted-foreground">{metric.label}</span>
+            <div className="flex items-center gap-1 sm:gap-1.5 mb-0.5 sm:mb-1">
+              <metric.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-muted-foreground" />
+              <span className="text-[9px] sm:text-[10px] text-muted-foreground">{metric.label}</span>
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-bold text-foreground">{metric.value}</span>
+            <div className="flex items-baseline gap-1 sm:gap-1.5">
+              <span className="text-base sm:text-lg font-bold text-foreground">{metric.value}</span>
               <span className={cn(
-                "text-[10px] font-medium flex items-center",
+                "text-[9px] sm:text-[10px] font-medium flex items-center",
                 metric.positive ? "text-success" : "text-destructive"
               )}>
-                {metric.positive ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
+                {metric.positive ? <TrendingUp className="w-2 h-2 sm:w-2.5 sm:h-2.5" /> : <TrendingDown className="w-2 h-2 sm:w-2.5 sm:h-2.5" />}
                 {metric.change}
               </span>
             </div>
@@ -112,24 +155,24 @@ export const MockupProAnalytics = forwardRef<HTMLDivElement, MockupProAnalyticsP
       </div>
 
       {/* Evolution Chart */}
-      <div className="px-3 pb-3">
-        <div className="p-3 rounded-xl bg-secondary/20 border border-border">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <LineChart className="w-4 h-4 text-primary" />
-              <span className="text-xs font-medium text-foreground">Evolución de Salud</span>
+      <div className="px-2.5 sm:px-3 pb-2.5 sm:pb-3">
+        <div className="p-2.5 sm:p-3 rounded-xl bg-secondary/20 border border-border">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <LineChart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+              <span className="text-[10px] sm:text-xs font-medium text-foreground">Evolución de Salud</span>
             </div>
-            <span className="text-[10px] text-muted-foreground">Últimos 7 días</span>
+            <span className="text-[9px] sm:text-[10px] text-muted-foreground">Últimos 7 días</span>
           </div>
           
           {/* Mini chart visualization */}
-          <div className="flex items-end gap-1 h-16">
+          <div className="flex items-end gap-1 h-12 sm:h-16">
             {data.weeklyData.map((value, i) => (
               <motion.div
                 key={i}
                 initial={{ height: 0 }}
                 animate={{ height: `${(value / 100) * 100}%` }}
-                transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
+                transition={{ delay: 0.15 + i * 0.05, duration: 0.3 }}
                 className={cn(
                   "flex-1 rounded-t-sm",
                   i === data.weeklyData.length - 1 ? "bg-primary" : "bg-primary/40"
@@ -137,7 +180,7 @@ export const MockupProAnalytics = forwardRef<HTMLDivElement, MockupProAnalyticsP
               />
             ))}
           </div>
-          <div className="flex justify-between mt-1 text-[8px] text-muted-foreground">
+          <div className="flex justify-between mt-1 text-[7px] sm:text-[8px] text-muted-foreground">
             <span>Lun</span>
             <span>Mar</span>
             <span>Mié</span>
@@ -150,23 +193,23 @@ export const MockupProAnalytics = forwardRef<HTMLDivElement, MockupProAnalyticsP
       </div>
 
       {/* Dimension Comparison */}
-      <div className="px-3 pb-3">
-        <div className="p-3 rounded-xl bg-secondary/20 border border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <Activity className="w-4 h-4 text-primary" />
-            <span className="text-xs font-medium text-foreground">Mejora por Dimensión</span>
+      <div className="px-2.5 sm:px-3 pb-2.5 sm:pb-3">
+        <div className="p-2.5 sm:p-3 rounded-xl bg-secondary/20 border border-border">
+          <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+            <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+            <span className="text-[10px] sm:text-xs font-medium text-foreground">Mejora por Dimensión</span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             {data.dimensions.map((dim, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: -10 }}
+                initial={{ opacity: 0, x: -5 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 + i * 0.1 }}
-                className="flex items-center gap-2"
+                transition={{ delay: 0.25 + i * 0.05, duration: 0.15 }}
+                className="flex items-center gap-1.5 sm:gap-2"
               >
-                <span className="text-[10px] text-muted-foreground w-16 truncate">{dim.name}</span>
-                <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden relative">
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground w-14 sm:w-16 truncate">{dim.name}</span>
+                <div className="flex-1 h-1.5 sm:h-2 bg-secondary rounded-full overflow-hidden relative">
                   {/* Previous */}
                   <div 
                     className="absolute inset-y-0 left-0 bg-muted-foreground/30 rounded-full"
@@ -176,11 +219,11 @@ export const MockupProAnalytics = forwardRef<HTMLDivElement, MockupProAnalyticsP
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${dim.current}%` }}
-                    transition={{ delay: 0.6 + i * 0.1, duration: 0.6 }}
+                    transition={{ delay: 0.3 + i * 0.05, duration: 0.4 }}
                     className="absolute inset-y-0 left-0 bg-success rounded-full"
                   />
                 </div>
-                <span className="text-[10px] font-bold text-success">{dim.change}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-success">{dim.change}</span>
               </motion.div>
             ))}
           </div>

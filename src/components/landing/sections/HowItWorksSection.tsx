@@ -15,6 +15,10 @@ import { MockupProAnalytics } from "@/components/landing/mockups/MockupProAnalyt
 // Import business photos
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
 import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
+import marketingImg from "@/assets/business-types/marketing-digital.jpg";
+import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg";
+
+import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
 const steps = [
   {
@@ -24,7 +28,7 @@ const steps = [
     description: "Elegí tu tipo de negocio y país. VistaCEO crea tu perfil inteligente en minutos.",
     details: [
       "+180 tipos de negocio soportados",
-      "Restaurantes, clínicas, tiendas, servicios...",
+      "Restaurantes, clínicas, agencias, servicios...",
       "Sin tarjeta de crédito",
     ],
   },
@@ -71,44 +75,19 @@ const improvementAreas = [
   { icon: Zap, label: "Eficiencia" },
 ];
 
-// Interactive tabs with real mockups - now 5 tabs
+// Interactive tabs with real mockups - 5 tabs
 const mockupTabs = [
-  { 
-    key: "salud", 
-    label: "Salud", 
-    sub: "Diagnóstico",
-    icon: Heart
-  },
-  { 
-    key: "misiones", 
-    label: "Misiones", 
-    sub: "Paso a paso",
-    icon: Target
-  },
-  { 
-    key: "radar", 
-    label: "Radar", 
-    sub: "Oportunidades",
-    icon: Radar
-  },
-  { 
-    key: "chat", 
-    label: "Chat CEO", 
-    sub: "Mentor 24/7",
-    icon: MessageCircle
-  },
-  { 
-    key: "analytics", 
-    label: "Métricas", 
-    sub: "Evolución",
-    icon: BarChart3
-  },
+  { key: "salud", label: "Salud", sub: "Diagnóstico", icon: Heart },
+  { key: "misiones", label: "Misiones", sub: "Paso a paso", icon: Target },
+  { key: "radar", label: "Radar", sub: "Oportunidades", icon: Radar },
+  { key: "chat", label: "Chat CEO", sub: "Mentor 24/7", icon: MessageCircle },
+  { key: "analytics", label: "Métricas", sub: "Evolución", icon: BarChart3 },
 ] as const;
 
 type TabKey = typeof mockupTabs[number]["key"];
 
-// Business profiles with photos
-const businesses = {
+// 4 Business profiles with photos
+const businesses: Record<BusinessKey, { name: string; location: string; type: string; image: string }> = {
   mexico: {
     name: "Boutique Carmela",
     location: "Polanco, CDMX",
@@ -118,9 +97,21 @@ const businesses = {
   argentina: {
     name: "Parrilla Don Martín",
     location: "Palermo, Buenos Aires",
-    type: "Restaurante / Parrilla",
+    type: "Restaurante",
     image: parrillaImg,
-  }
+  },
+  marketing: {
+    name: "Rocket Digital",
+    location: "Santiago, Chile",
+    type: "Agencia Marketing",
+    image: marketingImg,
+  },
+  odontologia: {
+    name: "Clínica Dental Sonrisa",
+    location: "Las Condes, Chile",
+    type: "Odontología",
+    image: clinicaDentalImg,
+  },
 };
 
 const StepCard = memo(({ step, index }: { step: typeof steps[0]; index: number }) => (
@@ -157,7 +148,7 @@ StepCard.displayName = "StepCard";
 export const HowItWorksSection = memo(() => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabKey>("salud");
-  const [activeBusiness, setActiveBusiness] = useState<"argentina" | "mexico">("mexico");
+  const [activeBusiness, setActiveBusiness] = useState<BusinessKey>("odontologia");
 
   const currentBusiness = businesses[activeBusiness];
 
@@ -194,8 +185,8 @@ export const HowItWorksSection = memo(() => {
           <p className="text-center text-xs sm:text-sm text-muted-foreground mb-3">
             Explorá cómo se ve para diferentes negocios:
           </p>
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            {(["mexico", "argentina"] as const).map((key) => {
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {(["odontologia", "marketing", "mexico", "argentina"] as BusinessKey[]).map((key) => {
               const biz = businesses[key];
               const isActive = activeBusiness === key;
               return (
@@ -210,7 +201,7 @@ export const HowItWorksSection = memo(() => {
                   )}
                 >
                   {/* Business photo */}
-                  <div className="relative h-20 sm:h-28 md:h-32">
+                  <div className="relative h-16 sm:h-20 md:h-24">
                     <img 
                       src={biz.image} 
                       alt={biz.name} 
