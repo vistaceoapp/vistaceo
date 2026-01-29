@@ -272,6 +272,62 @@
     animation: glow-pulse 3s ease-in-out infinite;
   }
 
+  /* Performance-optimized animations for landing */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  .animate-fade-in-up-delay-1 {
+    animation: fadeInUp 0.6s ease-out 0.1s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-up-delay-2 {
+    animation: fadeInUp 0.6s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-up-delay-3 {
+    animation: fadeInUp 0.6s ease-out 0.35s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-up-delay-4 {
+    animation: fadeInUp 0.6s ease-out 0.45s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-up-delay-5 {
+    animation: fadeInUp 0.6s ease-out 0.55s forwards;
+    opacity: 0;
+  }
+
+  .animate-fade-in-up-delay-6 {
+    animation: fadeInUp 0.6s ease-out 0.65s forwards;
+    opacity: 0;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out forwards;
+  }
+
+  /* Infinite scroll for carousel - CSS only */
+  .animate-scroll-left {
+    animation: scrollLeft 60s linear infinite;
+  }
+
+  /* Intersection observer based animation */
+  .animate-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+
+  .animate-on-scroll.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   /* Dashboard specific utilities */
   .dashboard-card {
     @apply bg-card rounded-xl border border-border transition-all duration-200;
@@ -314,6 +370,37 @@
   }
 }
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scrollLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 @keyframes glow {
   from {
     box-shadow: 0 0 16px hsl(204, 79%, 50%, 0.12);
@@ -350,7 +437,15 @@
   .animate-float,
   .animate-pulse-slow,
   .animate-glow,
-  .animate-glow-pulse {
+  .animate-glow-pulse,
+  .animate-fade-in-up,
+  .animate-scroll-left,
+  .animate-shimmer {
     animation: none;
+  }
+  
+  .animate-on-scroll {
+    opacity: 1;
+    transform: none;
   }
 }
