@@ -154,57 +154,48 @@ const TypewriterText = ({ texts }: { texts: string[] }) => {
   );
 };
 
-// Floating mockup with enhanced glow
-const FloatingMockup = ({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 60, rotateX: 10 }}
-    whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 1, delay, ease: "easeOut" }}
-    className={cn("relative group perspective-1000", className)}
-  >
-    <motion.div 
-      className="absolute -inset-6 bg-gradient-to-r from-primary/30 via-accent/20 to-primary/30 rounded-3xl blur-3xl opacity-0 group-hover:opacity-100 transition-all duration-700"
-      animate={{ scale: [1, 1.05, 1] }}
-      transition={{ duration: 4, repeat: Infinity }}
-    />
-    <motion.div 
-      className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl opacity-50"
-      animate={{ opacity: [0.3, 0.6, 0.3] }}
-      transition={{ duration: 3, repeat: Infinity }}
-    />
-    <div className="relative">{children}</div>
-  </motion.div>
-);
+// Floating mockup with enhanced glow - using forwardRef
+const FloatingMockup = ({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "relative group perspective-1000 transition-all duration-700",
+        isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-16",
+        className
+      )}
+      style={{ transitionDelay: `${delay * 1000}ms` }}
+    >
+      <div className="absolute -inset-6 bg-gradient-to-r from-primary/30 via-accent/20 to-primary/30 rounded-3xl blur-3xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
+      <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl opacity-50" />
+      <div className="relative">{children}</div>
+    </div>
+  );
+};
 
-// Glowing orb background
-const GlowingOrb = ({ className, delay = 0 }: { className?: string; delay?: number }) => (
-  <motion.div
-    initial={{ scale: 0.8, opacity: 0 }}
-    animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.6, 0.3] }}
-    transition={{ duration: 8, delay, repeat: Infinity, ease: "easeInOut" }}
-    className={cn("absolute rounded-full blur-3xl pointer-events-none", className)}
+// Glowing orb background - CSS only, no JS animation
+const GlowingOrb = ({ className }: { className?: string }) => (
+  <div
+    className={cn("absolute rounded-full blur-3xl pointer-events-none animate-pulse", className)}
   />
 );
 
-// Shimmer button effect
-const ShimmerButton = ({ children, className, onClick }: { children: React.ReactNode; className?: string; onClick?: () => void }) => (
-  <motion.button
-    whileHover={{ scale: 1.02 }}
-    whileTap={{ scale: 0.98 }}
+// Shimmer button effect - CSS-based for better TBT
+const ShimmerButton = ({ children, className, onClick, ariaLabel }: { children: React.ReactNode; className?: string; onClick?: () => void; ariaLabel?: string }) => (
+  <button
     onClick={onClick}
+    aria-label={ariaLabel}
     className={cn(
-      "relative overflow-hidden gradient-primary text-primary-foreground font-semibold rounded-full shadow-xl shadow-primary/30",
+      "relative overflow-hidden gradient-primary text-primary-foreground font-semibold rounded-full shadow-xl shadow-primary/30 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]",
       className
     )}
   >
-    <motion.div
-      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-      animate={{ x: ["-100%", "100%"] }}
-      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-    />
+    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
     <span className="relative z-10 flex items-center justify-center gap-2">{children}</span>
-  </motion.button>
+  </button>
 );
 
 // ============= MAIN COMPONENT =============
@@ -593,9 +584,10 @@ const LandingV3 = () => {
               <ShimmerButton
                 className="px-10 py-4 text-base md:text-lg"
                 onClick={() => navigate("/auth")}
+                ariaLabel="Empezar gratis con VistaCEO"
               >
                 Empezar gratis
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5" aria-hidden="true" />
               </ShimmerButton>
             </motion.div>
 
