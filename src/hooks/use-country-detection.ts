@@ -14,9 +14,9 @@ interface CountryInfo {
 }
 
 // Comprehensive country configuration with local currencies
-// All prices end in 99 or 999 for better visual appeal
+// All prices are rounded to attractive numbers for each market
 const COUNTRY_CONFIG: Record<string, CountryInfo> = {
-  // Latin America - MercadoPago
+  // Argentina - MercadoPago (único país que paga en moneda local)
   AR: {
     code: "AR",
     currency: "ARS",
@@ -26,78 +26,185 @@ const COUNTRY_CONFIG: Record<string, CountryInfo> = {
     flag: "🇦🇷",
     locale: "es-AR",
   },
+  // México - PayPal (muestra MXN, paga USD)
   MX: {
     code: "MX",
     currency: "MXN",
     symbol: "$",
     paymentProvider: "paypal",
-    prices: { monthly: 499, yearly: 4999 },
+    prices: { monthly: 499, yearly: 4990 },
     flag: "🇲🇽",
     locale: "es-MX",
   },
+  // Chile - PayPal (muestra CLP, paga USD)
   CL: {
     code: "CL",
     currency: "CLP",
     symbol: "$",
     paymentProvider: "paypal",
-    prices: { monthly: 24999, yearly: 249999 },
+    prices: { monthly: 24990, yearly: 249900 },
     flag: "🇨🇱",
     locale: "es-CL",
   },
+  // Colombia - PayPal (muestra COP, paga USD)
   CO: {
     code: "CO",
     currency: "COP",
     symbol: "$",
     paymentProvider: "paypal",
-    prices: { monthly: 119999, yearly: 1199999 },
+    prices: { monthly: 119900, yearly: 1199000 },
     flag: "🇨🇴",
     locale: "es-CO",
   },
+  // Perú - PayPal (muestra PEN, paga USD)
   PE: {
     code: "PE",
     currency: "PEN",
     symbol: "S/",
     paymentProvider: "paypal",
-    prices: { monthly: 109, yearly: 1099 },
+    prices: { monthly: 109, yearly: 1090 },
     flag: "🇵🇪",
     locale: "es-PE",
   },
+  // Uruguay - PayPal (muestra UYU, paga USD)
   UY: {
     code: "UY",
     currency: "UYU",
     symbol: "$",
     paymentProvider: "paypal",
-    prices: { monthly: 1199, yearly: 11999 },
+    prices: { monthly: 1190, yearly: 11900 },
     flag: "🇺🇾",
     locale: "es-UY",
   },
+  // Brasil - PayPal (muestra BRL, paga USD)
   BR: {
     code: "BR",
     currency: "BRL",
     symbol: "R$",
     paymentProvider: "paypal",
-    prices: { monthly: 149, yearly: 1499 },
+    prices: { monthly: 149, yearly: 1490 },
     flag: "🇧🇷",
     locale: "pt-BR",
   },
+  // Ecuador - USD (dolarizado)
   EC: {
     code: "EC",
     currency: "USD",
     symbol: "$",
     paymentProvider: "paypal",
-    prices: { monthly: 29, yearly: 299 },
+    prices: { monthly: 29, yearly: 290 },
     flag: "🇪🇨",
     locale: "es-EC",
   },
-  // Europe
+  // España - PayPal (muestra EUR, paga USD)
   ES: {
     code: "ES",
     currency: "EUR",
     symbol: "€",
     paymentProvider: "paypal",
-    prices: { monthly: 27, yearly: 279 },
+    prices: { monthly: 27, yearly: 270 },
     flag: "🇪🇸",
     locale: "es-ES",
+  },
+  // Panamá - USD (dolarizado)
+  PA: {
+    code: "PA",
+    currency: "USD",
+    symbol: "$",
+    paymentProvider: "paypal",
+    prices: { monthly: 29, yearly: 290 },
+    flag: "🇵🇦",
+    locale: "es-PA",
+  },
+  // Paraguay - PayPal (muestra PYG, paga USD)
+  PY: {
+    code: "PY",
+    currency: "PYG",
+    symbol: "₲",
+    paymentProvider: "paypal",
+    prices: { monthly: 219900, yearly: 2199000 },
+    flag: "🇵🇾",
+    locale: "es-PY",
+  },
+  // Bolivia - PayPal (muestra BOB, paga USD)
+  BO: {
+    code: "BO",
+    currency: "BOB",
+    symbol: "Bs",
+    paymentProvider: "paypal",
+    prices: { monthly: 199, yearly: 1990 },
+    flag: "🇧🇴",
+    locale: "es-BO",
+  },
+  // Venezuela - USD (economía dolarizada de facto)
+  VE: {
+    code: "VE",
+    currency: "USD",
+    symbol: "$",
+    paymentProvider: "paypal",
+    prices: { monthly: 29, yearly: 290 },
+    flag: "🇻🇪",
+    locale: "es-VE",
+  },
+  // Costa Rica - PayPal (muestra CRC, paga USD)
+  CR: {
+    code: "CR",
+    currency: "CRC",
+    symbol: "₡",
+    paymentProvider: "paypal",
+    prices: { monthly: 14990, yearly: 149900 },
+    flag: "🇨🇷",
+    locale: "es-CR",
+  },
+  // Guatemala - PayPal (muestra GTQ, paga USD)
+  GT: {
+    code: "GT",
+    currency: "GTQ",
+    symbol: "Q",
+    paymentProvider: "paypal",
+    prices: { monthly: 229, yearly: 2290 },
+    flag: "🇬🇹",
+    locale: "es-GT",
+  },
+  // República Dominicana - PayPal (muestra DOP, paga USD)
+  DO: {
+    code: "DO",
+    currency: "DOP",
+    symbol: "RD$",
+    paymentProvider: "paypal",
+    prices: { monthly: 1690, yearly: 16900 },
+    flag: "🇩🇴",
+    locale: "es-DO",
+  },
+  // Honduras - PayPal (muestra HNL, paga USD)
+  HN: {
+    code: "HN",
+    currency: "HNL",
+    symbol: "L",
+    paymentProvider: "paypal",
+    prices: { monthly: 719, yearly: 7190 },
+    flag: "🇭🇳",
+    locale: "es-HN",
+  },
+  // El Salvador - USD (dolarizado)
+  SV: {
+    code: "SV",
+    currency: "USD",
+    symbol: "$",
+    paymentProvider: "paypal",
+    prices: { monthly: 29, yearly: 290 },
+    flag: "🇸🇻",
+    locale: "es-SV",
+  },
+  // Nicaragua - PayPal (muestra NIO, paga USD)
+  NI: {
+    code: "NI",
+    currency: "NIO",
+    symbol: "C$",
+    paymentProvider: "paypal",
+    prices: { monthly: 1090, yearly: 10900 },
+    flag: "🇳🇮",
+    locale: "es-NI",
   },
   // Default - USD
   DEFAULT: {
