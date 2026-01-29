@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import type { CountryCode } from "@/lib/countryPacks";
 
 interface CountryInfo {
-  code: string;
+  code: CountryCode | "DEFAULT";
   currency: string;
   symbol: string;
   paymentProvider: "mercadopago" | "paypal";
@@ -11,10 +12,11 @@ interface CountryInfo {
   };
   flag: string;
   locale: string;
+  name: string;
 }
 
-// Comprehensive country configuration with local currencies
-// All prices are rounded to attractive numbers for each market
+// Countries supported in the system (Spanish-speaking LATAM only)
+// Ordered alphabetically for UI consistency
 const COUNTRY_CONFIG: Record<string, CountryInfo> = {
   // Argentina - MercadoPago (único país que paga en moneda local)
   AR: {
@@ -25,16 +27,7 @@ const COUNTRY_CONFIG: Record<string, CountryInfo> = {
     prices: { monthly: 29990, yearly: 299900 },
     flag: "🇦🇷",
     locale: "es-AR",
-  },
-  // México - PayPal (muestra MXN, paga USD)
-  MX: {
-    code: "MX",
-    currency: "MXN",
-    symbol: "$",
-    paymentProvider: "paypal",
-    prices: { monthly: 499, yearly: 4990 },
-    flag: "🇲🇽",
-    locale: "es-MX",
+    name: "Argentina",
   },
   // Chile - PayPal (muestra CLP, paga USD)
   CL: {
@@ -45,6 +38,7 @@ const COUNTRY_CONFIG: Record<string, CountryInfo> = {
     prices: { monthly: 24990, yearly: 249900 },
     flag: "🇨🇱",
     locale: "es-CL",
+    name: "Chile",
   },
   // Colombia - PayPal (muestra COP, paga USD)
   CO: {
@@ -55,96 +49,7 @@ const COUNTRY_CONFIG: Record<string, CountryInfo> = {
     prices: { monthly: 119900, yearly: 1199000 },
     flag: "🇨🇴",
     locale: "es-CO",
-  },
-  // Perú - PayPal (muestra PEN, paga USD)
-  PE: {
-    code: "PE",
-    currency: "PEN",
-    symbol: "S/",
-    paymentProvider: "paypal",
-    prices: { monthly: 109, yearly: 1090 },
-    flag: "🇵🇪",
-    locale: "es-PE",
-  },
-  // Uruguay - PayPal (muestra UYU, paga USD)
-  UY: {
-    code: "UY",
-    currency: "UYU",
-    symbol: "$",
-    paymentProvider: "paypal",
-    prices: { monthly: 1190, yearly: 11900 },
-    flag: "🇺🇾",
-    locale: "es-UY",
-  },
-  // Brasil - PayPal (muestra BRL, paga USD)
-  BR: {
-    code: "BR",
-    currency: "BRL",
-    symbol: "R$",
-    paymentProvider: "paypal",
-    prices: { monthly: 149, yearly: 1490 },
-    flag: "🇧🇷",
-    locale: "pt-BR",
-  },
-  // Ecuador - USD (dolarizado)
-  EC: {
-    code: "EC",
-    currency: "USD",
-    symbol: "$",
-    paymentProvider: "paypal",
-    prices: { monthly: 29, yearly: 290 },
-    flag: "🇪🇨",
-    locale: "es-EC",
-  },
-  // España - PayPal (muestra EUR, paga USD)
-  ES: {
-    code: "ES",
-    currency: "EUR",
-    symbol: "€",
-    paymentProvider: "paypal",
-    prices: { monthly: 27, yearly: 270 },
-    flag: "🇪🇸",
-    locale: "es-ES",
-  },
-  // Panamá - USD (dolarizado)
-  PA: {
-    code: "PA",
-    currency: "USD",
-    symbol: "$",
-    paymentProvider: "paypal",
-    prices: { monthly: 29, yearly: 290 },
-    flag: "🇵🇦",
-    locale: "es-PA",
-  },
-  // Paraguay - PayPal (muestra PYG, paga USD)
-  PY: {
-    code: "PY",
-    currency: "PYG",
-    symbol: "₲",
-    paymentProvider: "paypal",
-    prices: { monthly: 219900, yearly: 2199000 },
-    flag: "🇵🇾",
-    locale: "es-PY",
-  },
-  // Bolivia - PayPal (muestra BOB, paga USD)
-  BO: {
-    code: "BO",
-    currency: "BOB",
-    symbol: "Bs",
-    paymentProvider: "paypal",
-    prices: { monthly: 199, yearly: 1990 },
-    flag: "🇧🇴",
-    locale: "es-BO",
-  },
-  // Venezuela - USD (economía dolarizada de facto)
-  VE: {
-    code: "VE",
-    currency: "USD",
-    symbol: "$",
-    paymentProvider: "paypal",
-    prices: { monthly: 29, yearly: 290 },
-    flag: "🇻🇪",
-    locale: "es-VE",
+    name: "Colombia",
   },
   // Costa Rica - PayPal (muestra CRC, paga USD)
   CR: {
@@ -155,68 +60,78 @@ const COUNTRY_CONFIG: Record<string, CountryInfo> = {
     prices: { monthly: 14990, yearly: 149900 },
     flag: "🇨🇷",
     locale: "es-CR",
+    name: "Costa Rica",
   },
-  // Guatemala - PayPal (muestra GTQ, paga USD)
-  GT: {
-    code: "GT",
-    currency: "GTQ",
-    symbol: "Q",
-    paymentProvider: "paypal",
-    prices: { monthly: 229, yearly: 2290 },
-    flag: "🇬🇹",
-    locale: "es-GT",
-  },
-  // República Dominicana - PayPal (muestra DOP, paga USD)
-  DO: {
-    code: "DO",
-    currency: "DOP",
-    symbol: "RD$",
-    paymentProvider: "paypal",
-    prices: { monthly: 1690, yearly: 16900 },
-    flag: "🇩🇴",
-    locale: "es-DO",
-  },
-  // Honduras - PayPal (muestra HNL, paga USD)
-  HN: {
-    code: "HN",
-    currency: "HNL",
-    symbol: "L",
-    paymentProvider: "paypal",
-    prices: { monthly: 719, yearly: 7190 },
-    flag: "🇭🇳",
-    locale: "es-HN",
-  },
-  // El Salvador - USD (dolarizado)
-  SV: {
-    code: "SV",
+  // Ecuador - USD (dolarizado)
+  EC: {
+    code: "EC",
     currency: "USD",
     symbol: "$",
     paymentProvider: "paypal",
     prices: { monthly: 29, yearly: 290 },
-    flag: "🇸🇻",
-    locale: "es-SV",
+    flag: "🇪🇨",
+    locale: "es-EC",
+    name: "Ecuador",
   },
-  // Nicaragua - PayPal (muestra NIO, paga USD)
-  NI: {
-    code: "NI",
-    currency: "NIO",
-    symbol: "C$",
+  // México - PayPal (muestra MXN, paga USD)
+  MX: {
+    code: "MX",
+    currency: "MXN",
+    symbol: "$",
     paymentProvider: "paypal",
-    prices: { monthly: 1090, yearly: 10900 },
-    flag: "🇳🇮",
-    locale: "es-NI",
+    prices: { monthly: 499, yearly: 4990 },
+    flag: "🇲🇽",
+    locale: "es-MX",
+    name: "México",
   },
-  // Default - USD
+  // Panamá - USD (dolarizado)
+  PA: {
+    code: "PA",
+    currency: "USD",
+    symbol: "$",
+    paymentProvider: "paypal",
+    prices: { monthly: 29, yearly: 290 },
+    flag: "🇵🇦",
+    locale: "es-PA",
+    name: "Panamá",
+  },
+  // Paraguay - PayPal (muestra PYG, paga USD)
+  PY: {
+    code: "PY",
+    currency: "PYG",
+    symbol: "₲",
+    paymentProvider: "paypal",
+    prices: { monthly: 219900, yearly: 2199000 },
+    flag: "🇵🇾",
+    locale: "es-PY",
+    name: "Paraguay",
+  },
+  // Uruguay - PayPal (muestra UYU, paga USD)
+  UY: {
+    code: "UY",
+    currency: "UYU",
+    symbol: "$",
+    paymentProvider: "paypal",
+    prices: { monthly: 1190, yearly: 11900 },
+    flag: "🇺🇾",
+    locale: "es-UY",
+    name: "Uruguay",
+  },
+  // Default fallback - Argentina
   DEFAULT: {
     code: "DEFAULT",
-    currency: "USD",
+    currency: "ARS",
     symbol: "$",
-    paymentProvider: "paypal",
-    prices: { monthly: 29, yearly: 290 },
-    flag: "🌎",
-    locale: "en-US",
+    paymentProvider: "mercadopago",
+    prices: { monthly: 29990, yearly: 299900 },
+    flag: "🇦🇷",
+    locale: "es-AR",
+    name: "Argentina",
   },
 };
+
+// Supported country codes for validation
+const SUPPORTED_COUNTRY_CODES: CountryCode[] = ['AR', 'CL', 'CO', 'CR', 'EC', 'MX', 'PA', 'PY', 'UY'];
 
 // Free IP Geolocation API
 const GEOLOCATION_API = "https://ipapi.co/json/";
@@ -224,7 +139,7 @@ const GEOLOCATION_API = "https://ipapi.co/json/";
 export const useCountryDetection = () => {
   const [country, setCountry] = useState<CountryInfo>(COUNTRY_CONFIG.DEFAULT);
   const [isDetecting, setIsDetecting] = useState(true);
-  const [detectedCountryCode, setDetectedCountryCode] = useState<string>("DEFAULT");
+  const [detectedCountryCode, setDetectedCountryCode] = useState<CountryCode | null>(null);
 
   useEffect(() => {
     const detectCountry = async () => {
@@ -240,7 +155,7 @@ export const useCountryDetection = () => {
           
           if (countryCode && COUNTRY_CONFIG[countryCode]) {
             setCountry(COUNTRY_CONFIG[countryCode]);
-            setDetectedCountryCode(countryCode);
+            setDetectedCountryCode(countryCode as CountryCode);
             setIsDetecting(false);
             return;
           }
@@ -257,23 +172,20 @@ export const useCountryDetection = () => {
         
         if (countryFromLang && COUNTRY_CONFIG[countryFromLang]) {
           setCountry(COUNTRY_CONFIG[countryFromLang]);
-          setDetectedCountryCode(countryFromLang);
+          setDetectedCountryCode(countryFromLang as CountryCode);
         } else if (lang.startsWith("es")) {
           // Default Spanish speakers to Argentina
           setCountry(COUNTRY_CONFIG.AR);
           setDetectedCountryCode("AR");
-        } else if (lang.startsWith("pt")) {
-          // Default Portuguese speakers to Brazil
-          setCountry(COUNTRY_CONFIG.BR);
-          setDetectedCountryCode("BR");
         } else {
-          setCountry(COUNTRY_CONFIG.DEFAULT);
-          setDetectedCountryCode("DEFAULT");
+          // Default to Argentina for unsupported regions
+          setCountry(COUNTRY_CONFIG.AR);
+          setDetectedCountryCode("AR");
         }
       } catch (error) {
         console.error("Error detecting country:", error);
-        setCountry(COUNTRY_CONFIG.DEFAULT);
-        setDetectedCountryCode("DEFAULT");
+        setCountry(COUNTRY_CONFIG.AR);
+        setDetectedCountryCode("AR");
       } finally {
         setIsDetecting(false);
       }
@@ -299,7 +211,7 @@ export const useCountryDetection = () => {
 
   const formatCurrencyShort = (price: number) => {
     const formatted = formatPrice(price);
-    return `${country.symbol} ${formatted}`;
+    return `${country.symbol}${formatted}`;
   };
 
   // Calculate savings for yearly plan
@@ -310,6 +222,16 @@ export const useCountryDetection = () => {
       amount: saved,
       percentage: Math.round((saved / monthlyTotal) * 100),
     };
+  };
+
+  // Get country info by code
+  const getCountryByCode = (code: CountryCode): CountryInfo => {
+    return COUNTRY_CONFIG[code] || COUNTRY_CONFIG.AR;
+  };
+
+  // Check if detected country is supported
+  const isSupportedCountry = (code: string): code is CountryCode => {
+    return SUPPORTED_COUNTRY_CODES.includes(code as CountryCode);
   };
 
   return {
@@ -323,5 +245,12 @@ export const useCountryDetection = () => {
     isArgentina: country.code === "AR",
     monthlyPrice: country.prices.monthly,
     yearlyPrice: country.prices.yearly,
+    getCountryByCode,
+    isSupportedCountry,
+    SUPPORTED_COUNTRY_CODES,
   };
 };
+
+// Export the config for use in other components
+export { COUNTRY_CONFIG, SUPPORTED_COUNTRY_CODES };
+export type { CountryInfo };

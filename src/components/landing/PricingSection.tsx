@@ -299,6 +299,16 @@ export const PricingSection = () => {
             <span>Cancelás cuando quieras</span>
           </div>
         </motion.div>
+
+        {/* Currency/region indicator */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center text-xs text-muted-foreground mt-6"
+        >
+          Precios en {country.flag} {country.currency}
+        </motion.p>
       </div>
     </section>
   );
