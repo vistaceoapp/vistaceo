@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
-// Import exact mockup images
+// Import ALL mockup images - best ones
+import dashboardMainImg from "@/assets/mockups/dashboard-main.png";
+import analyticsSaludImg from "@/assets/mockups/analytics-salud.png";
+import misionesImg from "@/assets/mockups/misiones.png";
+import radarInternoImg from "@/assets/mockups/radar-interno.png";
 import ceoChatImg from "@/assets/mockups/ceo-chat.png";
 import radarExternoImg from "@/assets/mockups/radar-externo.png";
-import radarInternoImg from "@/assets/mockups/radar-interno.png";
-import misionesImg from "@/assets/mockups/misiones.png";
 
 const steps = [
   {
@@ -87,12 +89,10 @@ const StepCard = memo(({ step, index }: { step: typeof steps[0]; index: number }
       className="animate-on-scroll relative bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-5 md:p-6 hover:border-primary/30 transition-colors"
       style={{ transitionDelay: `${index * 100}ms` }}
     >
-      {/* Step number */}
       <div className="absolute -top-3 -left-3 w-9 h-9 md:w-10 md:h-10 rounded-xl gradient-primary flex items-center justify-center font-bold text-xs md:text-sm text-white shadow-lg">
         {step.number}
       </div>
       
-      {/* Icon */}
       <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 md:mb-4 mt-2">
         <step.icon className="w-5 h-5 md:w-6 md:h-6 text-primary" aria-hidden="true" />
       </div>
@@ -100,7 +100,6 @@ const StepCard = memo(({ step, index }: { step: typeof steps[0]; index: number }
       <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">{step.title}</h3>
       <p className="text-muted-foreground text-sm mb-3 md:mb-4">{step.description}</p>
 
-      {/* Details */}
       <ul className="space-y-1.5 md:space-y-2">
         {step.details.map((detail) => (
           <li key={detail} className="flex items-start gap-2 text-xs md:text-sm">
@@ -133,7 +132,6 @@ export const HowItWorksSection = memo(() => {
 
   return (
     <section id="how-it-works" className="py-16 md:py-28 relative overflow-hidden">
-      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/20 to-background pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">
@@ -151,53 +149,53 @@ export const HowItWorksSection = memo(() => {
           </p>
         </div>
 
-        {/* Mockups Grid - Real screenshots */}
+        {/* HERO MOCKUP - Dashboard principal */}
+        <div className="max-w-5xl mx-auto mb-12 md:mb-16 animate-on-scroll">
+          <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-border bg-card">
+            <img 
+              src={dashboardMainImg} 
+              alt="VistaCEO - Dashboard Principal" 
+              width={1200}
+              height={675}
+              loading="eager"
+              decoding="async"
+              className="w-full h-auto"
+            />
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground text-center">
+            <span className="font-semibold text-foreground">Dashboard Principal</span> — Tu centro de comando diario
+          </p>
+        </div>
+
+        {/* Mockups Grid - 2x2 layout with best mockups */}
         <div className="max-w-6xl mx-auto mb-16 md:mb-20">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-            {/* CEO Chat - 2/3 width */}
-            <div className="lg:col-span-2 animate-on-scroll">
-              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-border">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+            {/* Analytics Salud */}
+            <div className="animate-on-scroll">
+              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
-                  src={ceoChatImg} 
-                  alt="VistaCEO - CEO Chat" 
-                  width={800}
-                  height={450}
+                  src={analyticsSaludImg} 
+                  alt="VistaCEO - Salud del Negocio" 
+                  width={600}
+                  height={400}
                   loading="lazy"
                   decoding="async"
                   className="w-full h-auto"
                 />
               </div>
               <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
-                <span className="font-medium text-foreground">CEO Chat</span> — Mentor estratégico 24/7
+                <span className="font-medium text-foreground">Salud del Negocio</span> — Diagnóstico integral
               </p>
             </div>
 
-            {/* Radar Externo - 1/3 width */}
-            <div className="lg:col-span-1 animate-on-scroll" style={{ transitionDelay: '100ms' }}>
-              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-border">
-                <img 
-                  src={radarExternoImg} 
-                  alt="VistaCEO - Radar Externo I+D" 
-                  width={400}
-                  height={450}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-auto"
-                />
-              </div>
-              <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
-                <span className="font-medium text-foreground">Radar I+D</span> — Tendencias del mercado
-              </p>
-            </div>
-
-            {/* Misiones - 2/3 width */}
-            <div className="lg:col-span-2 animate-on-scroll" style={{ transitionDelay: '200ms' }}>
-              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-border">
+            {/* Misiones */}
+            <div className="animate-on-scroll" style={{ transitionDelay: '100ms' }}>
+              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
                   src={misionesImg} 
                   alt="VistaCEO - Misiones" 
-                  width={800}
-                  height={450}
+                  width={600}
+                  height={400}
                   loading="lazy"
                   decoding="async"
                   className="w-full h-auto"
@@ -208,21 +206,39 @@ export const HowItWorksSection = memo(() => {
               </p>
             </div>
 
-            {/* Radar Interno - 1/3 width */}
-            <div className="lg:col-span-1 animate-on-scroll" style={{ transitionDelay: '300ms' }}>
-              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-2xl border border-border">
+            {/* Radar Interno */}
+            <div className="animate-on-scroll" style={{ transitionDelay: '200ms' }}>
+              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
                 <img 
                   src={radarInternoImg} 
                   alt="VistaCEO - Radar Interno" 
-                  width={400}
-                  height={450}
+                  width={600}
+                  height={400}
                   loading="lazy"
                   decoding="async"
                   className="w-full h-auto"
                 />
               </div>
               <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
-                <span className="font-medium text-foreground">Radar Interno</span> — Diagnóstico de tu negocio
+                <span className="font-medium text-foreground">Radar Interno</span> — Oportunidades de tu negocio
+              </p>
+            </div>
+
+            {/* CEO Chat */}
+            <div className="animate-on-scroll" style={{ transitionDelay: '300ms' }}>
+              <div className="rounded-xl md:rounded-2xl overflow-hidden shadow-xl border border-border bg-card">
+                <img 
+                  src={ceoChatImg} 
+                  alt="VistaCEO - CEO Chat" 
+                  width={600}
+                  height={400}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto"
+                />
+              </div>
+              <p className="mt-2 text-xs md:text-sm text-muted-foreground text-center">
+                <span className="font-medium text-foreground">CEO Chat</span> — Mentor estratégico 24/7
               </p>
             </div>
           </div>
