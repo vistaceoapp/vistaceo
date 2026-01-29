@@ -189,12 +189,12 @@ export const HowItWorksSection = memo(() => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-2xl mx-auto mb-8"
+          className="max-w-xl mx-auto mb-6"
         >
-          <p className="text-center text-sm text-muted-foreground mb-4">
+          <p className="text-center text-xs sm:text-sm text-muted-foreground mb-3">
             Explorá cómo se ve para diferentes negocios:
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {(["mexico", "argentina"] as const).map((key) => {
               const biz = businesses[key];
               const isActive = activeBusiness === key;
@@ -203,14 +203,14 @@ export const HowItWorksSection = memo(() => {
                   key={key}
                   onClick={() => setActiveBusiness(key)}
                   className={cn(
-                    "relative overflow-hidden rounded-2xl border-2 transition-all p-0",
+                    "relative overflow-hidden rounded-xl sm:rounded-2xl border-2 transition-all p-0",
                     isActive 
                       ? "border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/20" 
                       : "border-border hover:border-primary/30"
                   )}
                 >
                   {/* Business photo */}
-                  <div className="relative h-24 sm:h-32">
+                  <div className="relative h-20 sm:h-28 md:h-32">
                     <img 
                       src={biz.image} 
                       alt={biz.name} 
@@ -219,15 +219,15 @@ export const HowItWorksSection = memo(() => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                     
                     {/* Business info overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-3 text-left">
-                      <div className="font-bold text-white text-sm sm:text-base">{biz.name}</div>
-                      <div className="text-white/70 text-xs">{biz.location}</div>
+                    <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 text-left">
+                      <div className="font-bold text-white text-xs sm:text-sm md:text-base truncate">{biz.name}</div>
+                      <div className="text-white/70 text-[10px] sm:text-xs truncate">{biz.location}</div>
                     </div>
 
                     {/* Active indicator */}
                     {isActive && (
-                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                        <Check className="w-4 h-4 text-primary-foreground" />
+                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-3 h-3 sm:w-4 sm:h-4 text-primary-foreground" />
                       </div>
                     )}
                   </div>
@@ -237,14 +237,14 @@ export const HowItWorksSection = memo(() => {
           </div>
         </motion.div>
 
-        {/* Interactive tabs (tap-to-switch) - 5 tabs */}
+        {/* Interactive tabs (tap-to-switch) - 5 tabs ultra responsive */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-3xl mx-auto mb-8"
+          className="max-w-md sm:max-w-xl md:max-w-3xl mx-auto mb-6 sm:mb-8"
         >
-          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+          <div className="flex gap-1 sm:gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
             {mockupTabs.map((tab) => {
               const isActive = tab.key === activeTab;
               const Icon = tab.icon;
@@ -254,24 +254,21 @@ export const HowItWorksSection = memo(() => {
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
                   className={cn(
-                    "text-center rounded-xl border px-2 py-2.5 sm:px-3 sm:py-3 transition-all",
+                    "flex-1 min-w-[60px] sm:min-w-[70px] text-center rounded-lg sm:rounded-xl border px-1.5 py-2 sm:px-3 sm:py-2.5 transition-all",
                     isActive
-                      ? "border-primary bg-primary/10 shadow-lg shadow-primary/10"
+                      ? "border-primary bg-primary/10 shadow-md shadow-primary/10"
                       : "border-border bg-card/60 hover:border-primary/20 hover:bg-secondary/50"
                   )}
                 >
                   <Icon className={cn(
-                    "w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1",
+                    "w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 mx-auto mb-0.5 sm:mb-1",
                     isActive ? "text-primary" : "text-muted-foreground"
                   )} />
                   <div className={cn(
-                    "text-[10px] sm:text-xs font-semibold truncate",
+                    "text-[9px] sm:text-[10px] md:text-xs font-semibold truncate",
                     isActive ? "text-primary" : "text-foreground"
                   )}>
                     {tab.label}
-                  </div>
-                  <div className="text-[8px] sm:text-[10px] text-muted-foreground truncate hidden sm:block">
-                    {tab.sub}
                   </div>
                 </button>
               );
@@ -284,7 +281,7 @@ export const HowItWorksSection = memo(() => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-lg mx-auto mb-16 md:mb-20"
+          className="max-w-sm sm:max-w-md md:max-w-lg mx-auto mb-12 sm:mb-16 md:mb-20 px-1"
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -312,7 +309,7 @@ export const HowItWorksSection = memo(() => {
             </motion.div>
           </AnimatePresence>
           
-          <p className="mt-4 text-sm text-muted-foreground text-center">
+          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground text-center px-2">
             <span className="font-medium text-foreground">
               {activeTab === "salud" && "Salud del Negocio"}
               {activeTab === "misiones" && "Misiones Estratégicas"}
@@ -320,12 +317,14 @@ export const HowItWorksSection = memo(() => {
               {activeTab === "chat" && "Chat CEO"}
               {activeTab === "analytics" && "Analíticas Avanzadas"}
             </span>
-            {" — "}
-            {activeTab === "salud" && "Diagnóstico integral en tiempo real"}
-            {activeTab === "misiones" && "Guías ultra personalizadas paso a paso"}
-            {activeTab === "radar" && "Detectando lo que vos no ves"}
-            {activeTab === "chat" && "Tu mentor estratégico disponible 24/7"}
-            {activeTab === "analytics" && "Métricas y evolución de tu negocio"}
+            <span className="hidden sm:inline">
+              {" — "}
+              {activeTab === "salud" && "Diagnóstico integral en tiempo real"}
+              {activeTab === "misiones" && "Guías ultra personalizadas paso a paso"}
+              {activeTab === "radar" && "Detectando lo que vos no ves"}
+              {activeTab === "chat" && "Tu mentor estratégico disponible 24/7"}
+              {activeTab === "analytics" && "Métricas y evolución de tu negocio"}
+            </span>
           </p>
         </motion.div>
 
