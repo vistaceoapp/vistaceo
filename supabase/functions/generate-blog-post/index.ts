@@ -81,10 +81,62 @@ interface QualityGateReport {
     min_word_count: boolean;
     has_checklist: boolean;
     has_examples: boolean;
+    no_markdown_tables: boolean;
+    no_broken_lines: boolean;
   };
   issues: string[];
   timestamp: string;
   rewrite_attempts: number;
+}
+
+function hashStringToInt(input: string): number {
+  // Simple stable hash (djb2)
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) + hash) + input.charCodeAt(i);
+    hash = hash & 0xffffffff;
+  }
+  return Math.abs(hash);
+}
+
+function hasMarkdownTable(content: string): boolean {
+  // Detect markdown tables: header line + separator line
+  const lines = content.split('\n');
+  for (let i = 0; i < lines.length - 1; i++) {
+    const a = lines[i].trim();
+    const b = lines[i + 1].trim();
+    if (!a.startsWith('|')) continue;
+    if (!b.startsWith('|')) continue;
+    // separator like: | --- | :---: |
+    if (/^\|\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?$/.test(b)) return true;
+  }
+  return false;
+}
+
+function detectBrokenFormattingIssues(content: string): string[] {
+  const issues: string[] = [];
+  const lines = content.split('\n');
+
+  const veryLongLines = lines.filter(l => l.length > 300);
+  if (veryLongLines.length > 0) {
+    issues.push(`Found ${veryLongLines.length} very long line(s) (>300 chars) - likely broken formatting`);
+  }
+
+  const pipeSpamLines = lines.filter(l => (l.match(/\|/g) || []).length >= 12);
+  if (pipeSpamLines.length > 0) {
+    issues.push(`Found ${pipeSpamLines.length} line(s) with excessive pipes - likely malformed table`);
+  }
+
+  if (content.includes('||')) {
+    issues.push('Found "||" sequence - likely malformed markdown or broken template');
+  }
+
+  const fenceCount = (content.match(/```/g) || []).length;
+  if (fenceCount % 2 !== 0) {
+    issues.push('Unbalanced code fences (```), likely broken markdown');
+  }
+
+  return issues;
 }
 
 interface BlogTopic {
@@ -220,6 +272,8 @@ function runQualityGates(content: string, title: string): QualityGateReport {
       min_word_count: false,
       has_checklist: false,
       has_examples: false,
+      no_markdown_tables: false,
+      no_broken_lines: false,
     },
     issues: [],
     timestamp: new Date().toISOString(),
@@ -314,11 +368,28 @@ function runQualityGates(content: string, title: string): QualityGateReport {
     report.issues.push(`Only ${exampleMatches.length} examples (need 2+)`);
   }
 
+  // Hard block: markdown tables are NOT allowed (they caused broken renders)
+  report.checks.no_markdown_tables = !hasMarkdownTable(content);
+  if (!report.checks.no_markdown_tables) {
+    report.issues.push('Markdown tables detected. Tables are forbidden: use a fillable template as a bullet list or code block instead.');
+  }
+
+  // Hard block: broken formatting patterns
+  const brokenIssues = detectBrokenFormattingIssues(content);
+  report.checks.no_broken_lines = brokenIssues.length === 0;
+  if (!report.checks.no_broken_lines) {
+    report.issues.push(...brokenIssues);
+  }
+
   // Calculate score
   const checksArray = Object.values(report.checks);
   const passedChecks = checksArray.filter(Boolean).length;
   report.score = Math.round((passedChecks / checksArray.length) * 100);
-  report.passed = report.score >= 70 && report.checks.min_word_count && report.checks.real_headings;
+  report.passed = report.score >= 75 &&
+    report.checks.min_word_count &&
+    report.checks.real_headings &&
+    report.checks.no_markdown_tables &&
+    report.checks.no_broken_lines;
 
   return report;
 }
@@ -338,16 +409,18 @@ serve(async (req) => {
     // Parse request body for manual run options
     let forceRun = false;
     let specificTopicId: string | null = null;
+    let automated = false;
     
     try {
       const body = await req.json();
       forceRun = body.force || false;
       specificTopicId = body.topic_id || null;
+      automated = body.automated || false;
     } catch {
       // No body, use defaults
     }
 
-    console.log('[generate-blog-post] Starting generation with PATCH V3...', { forceRun, specificTopicId });
+    console.log('[generate-blog-post] Starting generation with PATCH V3...', { forceRun, specificTopicId, automated });
 
     // 1. Check pacing - should we publish today?
     const { data: configData } = await supabase
@@ -402,6 +475,30 @@ serve(async (req) => {
         reason: 'already_published_today',
         message: `Already published ${publishedToday} post(s) today`
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // 1.5) Automated runs: vary publish hour by day (deterministic), but keep <= 1/day.
+    // Manual/admin runs are not blocked by this.
+    if (automated && !forceRun) {
+      const todayKey = now.toISOString().slice(0, 10); // YYYY-MM-DD
+      const hourSlot = 8 + (hashStringToInt(todayKey) % 11); // 08..18 UTC
+      const nowHourUtc = now.getUTCHours();
+
+      if (nowHourUtc !== hourSlot) {
+        await supabase.from('blog_runs').insert({
+          result: 'skipped',
+          skip_reason: 'waiting_for_publish_slot',
+          notes: `Automated run: waiting for UTC hour slot ${hourSlot}:00 (now ${nowHourUtc}:00)`
+        });
+
+        return new Response(JSON.stringify({
+          success: false,
+          skipped: true,
+          reason: 'waiting_for_publish_slot',
+          target_hour_utc: hourSlot,
+          now_hour_utc: nowHourUtc
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
     }
 
     // 2. Select topic from blog_plan
@@ -629,7 +726,8 @@ a) **1 bloque "Checklist copiable"** con casillas:
 - [ ] Paso 3
 \`\`\`
 
-b) **1 bloque "Plantilla"** (tabla o formato rellenable)
+ b) **1 bloque "Plantilla"** (SIN TABLAS Markdown; usar lista rellenable o bloque de código)
+    - Prohibido usar tablas con pipes (|). Se rompen en publicación.
 
 c) **2–5 ejemplos** con este formato EXACTO:
 > **Ejemplo (${countryName}):** [2–4 líneas describiendo la situación]
@@ -679,6 +777,7 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V3:
 2. Luego "## En 2 minutos" con bullets
 3. 4-7 secciones H2 con contenido profundo
 4. Incluí checklist, plantilla y 2+ ejemplos con formato exacto
+   - IMPORTANTE: La "Plantilla" NO puede ser una tabla Markdown. Usá lista rellenable o bloque de código.
 5. 5-12 links internos contextuales
 6. Sección "Para profundizar" con links externos
 7. FAQ con 3-6 preguntas
