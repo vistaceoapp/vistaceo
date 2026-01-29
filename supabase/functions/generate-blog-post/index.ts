@@ -24,11 +24,11 @@ const COUNTRY_NAMES: Record<string, string> = {
 // Pillars mapping
 const PILLARS = {
   empleo: { label: 'Empleo y Carreras', emoji: '💼' },
-  ia_aplicada: { label: 'IA Aplicada', emoji: '🤖' },
+  ia_aplicada: { label: 'IA y Tecnología', emoji: '🤖' },
   liderazgo: { label: 'Liderazgo y Gestión', emoji: '🎯' },
   servicios: { label: 'Servicios Profesionales', emoji: '📋' },
   emprender: { label: 'Emprender', emoji: '🚀' },
-  sistema_inteligente: { label: 'Sistema Inteligente', emoji: '🧠' },
+  tendencias: { label: 'Tendencias y Oportunidades', emoji: '📈' },
 };
 
 // External sources by pillar (for "Para profundizar" section)
@@ -58,10 +58,10 @@ const EXTERNAL_SOURCES: Record<string, Array<{title: string, url: string, domain
     { title: 'Endeavor - Emprendimiento', url: 'https://endeavor.org/', domain: 'endeavor.org' },
     { title: 'Startup Genome', url: 'https://startupgenome.com/', domain: 'startupgenome.com' },
   ],
-  sistema_inteligente: [
+  tendencias: [
     { title: 'Gartner Research', url: 'https://www.gartner.com/en/research', domain: 'gartner.com' },
     { title: 'Forrester Research', url: 'https://www.forrester.com/', domain: 'forrester.com' },
-    { title: 'IDC Research', url: 'https://www.idc.com/', domain: 'idc.com' },
+    { title: 'World Economic Forum', url: 'https://www.weforum.org/', domain: 'weforum.org' },
   ],
 };
 
@@ -360,44 +360,47 @@ serve(async (req) => {
     });
 
     const goLiveDate = config.go_live_date?.date || new Date().toISOString().split('T')[0];
-    const annualTarget = config.annual_target_posts?.count || 200;
+    const annualTarget = config.annual_target_posts?.count || 350;
     const horizonDays = config.horizon_days?.days || 365;
 
-    // Calculate pacing
+    // Calculate pacing - 350 posts / 365 days ≈ 1 post per day
     const now = new Date();
     const goLive = new Date(goLiveDate);
-    const daysElapsed = Math.floor((now.getTime() - goLive.getTime()) / (1000 * 60 * 60 * 24));
-    const expectedPublishes = Math.floor((daysElapsed / horizonDays) * annualTarget);
+    const daysElapsed = Math.max(1, Math.floor((now.getTime() - goLive.getTime()) / (1000 * 60 * 60 * 24)));
+    const expectedPublishes = Math.max(daysElapsed, 1); // At least 1 post per day elapsed
 
-    // Get actual publishes count
-    const { count: actualPublishes } = await supabase
+    // Check if we already published today
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    
+    const { count: publishedToday } = await supabase
       .from('blog_posts')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'published')
-      .gte('publish_at', goLiveDate);
+      .gte('publish_at', todayStart.toISOString());
 
     console.log('[generate-blog-post] Pacing check:', { 
       daysElapsed, 
       expectedPublishes, 
-      actualPublishes,
+      publishedToday,
       forceRun 
     });
 
-    // Pacing control (skip if ahead, unless forced)
-    if (!forceRun && (actualPublishes || 0) > expectedPublishes) {
-      console.log('[generate-blog-post] Ahead of schedule, skipping...');
+    // Only skip if we already published today (unless forced)
+    if (!forceRun && (publishedToday || 0) >= 1) {
+      console.log('[generate-blog-post] Already published today, skipping...');
       
       await supabase.from('blog_runs').insert({
         result: 'skipped',
-        skip_reason: 'ahead_of_schedule',
-        notes: `Actual: ${actualPublishes}, Expected: ${expectedPublishes}`,
-        quality_gate_report: { pacing: 'skipped' }
+        skip_reason: 'already_published_today',
+        notes: `Published today: ${publishedToday}`,
+        quality_gate_report: { pacing: 'daily_limit_reached' }
       });
 
       return new Response(JSON.stringify({
         success: false,
-        reason: 'ahead_of_schedule',
-        message: `Already have ${actualPublishes} posts, expected ${expectedPublishes}`
+        reason: 'already_published_today',
+        message: `Already published ${publishedToday} post(s) today`
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
