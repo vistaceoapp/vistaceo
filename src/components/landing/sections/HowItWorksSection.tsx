@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Check, ArrowRight, Brain, Radar, Target, Zap, TrendingUp, BarChart3, Lightbulb, Search, Heart } from "lucide-react";
+import { Check, ArrowRight, Brain, Radar, Target, Zap, TrendingUp, BarChart3, Lightbulb, Search, Heart, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +9,12 @@ import { cn } from "@/lib/utils";
 import { MockupProDashboard } from "@/components/landing/mockups/MockupProDashboard";
 import { MockupProMissions } from "@/components/landing/mockups/MockupProMissions";
 import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
+import { MockupProChat } from "@/components/landing/mockups/MockupProChat";
+import { MockupProAnalytics } from "@/components/landing/mockups/MockupProAnalytics";
+
+// Import business photos
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
 
 const steps = [
   {
@@ -65,18 +71,18 @@ const improvementAreas = [
   { icon: Zap, label: "Eficiencia" },
 ];
 
-// Interactive tabs with real mockups
+// Interactive tabs with real mockups - now 5 tabs
 const mockupTabs = [
   { 
     key: "salud", 
-    label: "Salud del Negocio", 
-    sub: "Diagnóstico completo",
+    label: "Salud", 
+    sub: "Diagnóstico",
     icon: Heart
   },
   { 
     key: "misiones", 
     label: "Misiones", 
-    sub: "Guía paso a paso",
+    sub: "Paso a paso",
     icon: Target
   },
   { 
@@ -85,9 +91,37 @@ const mockupTabs = [
     sub: "Oportunidades",
     icon: Radar
   },
+  { 
+    key: "chat", 
+    label: "Chat CEO", 
+    sub: "Mentor 24/7",
+    icon: MessageCircle
+  },
+  { 
+    key: "analytics", 
+    label: "Métricas", 
+    sub: "Evolución",
+    icon: BarChart3
+  },
 ] as const;
 
 type TabKey = typeof mockupTabs[number]["key"];
+
+// Business profiles with photos
+const businesses = {
+  mexico: {
+    name: "Boutique Carmela",
+    location: "Polanco, CDMX",
+    type: "Retail / Moda",
+    image: boutiqueImg,
+  },
+  argentina: {
+    name: "Parrilla Don Martín",
+    location: "Palermo, Buenos Aires",
+    type: "Restaurante / Parrilla",
+    image: parrillaImg,
+  }
+};
 
 const StepCard = memo(({ step, index }: { step: typeof steps[0]; index: number }) => (
   <motion.div
@@ -125,6 +159,8 @@ export const HowItWorksSection = memo(() => {
   const [activeTab, setActiveTab] = useState<TabKey>("salud");
   const [activeBusiness, setActiveBusiness] = useState<"argentina" | "mexico">("mexico");
 
+  const currentBusiness = businesses[activeBusiness];
+
   return (
     <section id="how-it-works" className="py-16 md:py-28 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/20 to-background pointer-events-none" />
@@ -148,47 +184,67 @@ export const HowItWorksSection = memo(() => {
           </p>
         </motion.div>
 
-        {/* Business selector - toggle between profiles */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-md mx-auto mb-6"
-        >
-          <div className="flex bg-secondary/50 rounded-xl p-1 border border-border">
-            <button
-              onClick={() => setActiveBusiness("mexico")}
-              className={cn(
-                "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all",
-                activeBusiness === "mexico"
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Boutique Carmela
-            </button>
-            <button
-              onClick={() => setActiveBusiness("argentina")}
-              className={cn(
-                "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all",
-                activeBusiness === "argentina"
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Parrilla Don Martín
-            </button>
-          </div>
-        </motion.div>
-
-        {/* Interactive tabs (tap-to-switch) */}
+        {/* Business selector with PROMINENT photos */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="max-w-2xl mx-auto mb-8"
         >
-          <div className="grid grid-cols-3 gap-2">
+          <p className="text-center text-sm text-muted-foreground mb-4">
+            Explorá cómo se ve para diferentes negocios:
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {(["mexico", "argentina"] as const).map((key) => {
+              const biz = businesses[key];
+              const isActive = activeBusiness === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveBusiness(key)}
+                  className={cn(
+                    "relative overflow-hidden rounded-2xl border-2 transition-all p-0",
+                    isActive 
+                      ? "border-primary shadow-lg shadow-primary/20 ring-2 ring-primary/20" 
+                      : "border-border hover:border-primary/30"
+                  )}
+                >
+                  {/* Business photo */}
+                  <div className="relative h-24 sm:h-32">
+                    <img 
+                      src={biz.image} 
+                      alt={biz.name} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    
+                    {/* Business info overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3 text-left">
+                      <div className="font-bold text-white text-sm sm:text-base">{biz.name}</div>
+                      <div className="text-white/70 text-xs">{biz.location}</div>
+                    </div>
+
+                    {/* Active indicator */}
+                    {isActive && (
+                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-4 h-4 text-primary-foreground" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* Interactive tabs (tap-to-switch) - 5 tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-3xl mx-auto mb-8"
+        >
+          <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
             {mockupTabs.map((tab) => {
               const isActive = tab.key === activeTab;
               const Icon = tab.icon;
@@ -198,17 +254,25 @@ export const HowItWorksSection = memo(() => {
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
                   className={cn(
-                    "text-left rounded-xl border px-3 py-3 transition-all bg-card/60",
+                    "text-center rounded-xl border px-2 py-2.5 sm:px-3 sm:py-3 transition-all",
                     isActive
-                      ? "border-primary/40 bg-primary/10 shadow-lg shadow-primary/10"
-                      : "border-border hover:border-primary/20 hover:bg-secondary/50"
+                      ? "border-primary bg-primary/10 shadow-lg shadow-primary/10"
+                      : "border-border bg-card/60 hover:border-primary/20 hover:bg-secondary/50"
                   )}
                 >
-                  <div className="flex items-center gap-2 mb-1">
-                    <Icon className={cn("w-4 h-4", isActive ? "text-primary" : "text-muted-foreground")} />
-                    <span className={cn("text-sm font-semibold", isActive ? "text-primary" : "text-foreground")}>{tab.label}</span>
+                  <Icon className={cn(
+                    "w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1",
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  )} />
+                  <div className={cn(
+                    "text-[10px] sm:text-xs font-semibold truncate",
+                    isActive ? "text-primary" : "text-foreground"
+                  )}>
+                    {tab.label}
                   </div>
-                  <div className="text-[11px] text-muted-foreground truncate">{tab.sub}</div>
+                  <div className="text-[8px] sm:text-[10px] text-muted-foreground truncate hidden sm:block">
+                    {tab.sub}
+                  </div>
                 </button>
               );
             })}
@@ -239,6 +303,12 @@ export const HowItWorksSection = memo(() => {
               {activeTab === "radar" && (
                 <MockupProRadar business={activeBusiness} />
               )}
+              {activeTab === "chat" && (
+                <MockupProChat business={activeBusiness} />
+              )}
+              {activeTab === "analytics" && (
+                <MockupProAnalytics business={activeBusiness} />
+              )}
             </motion.div>
           </AnimatePresence>
           
@@ -247,11 +317,15 @@ export const HowItWorksSection = memo(() => {
               {activeTab === "salud" && "Salud del Negocio"}
               {activeTab === "misiones" && "Misiones Estratégicas"}
               {activeTab === "radar" && "Radar de Oportunidades"}
+              {activeTab === "chat" && "Chat CEO"}
+              {activeTab === "analytics" && "Analíticas Avanzadas"}
             </span>
             {" — "}
             {activeTab === "salud" && "Diagnóstico integral en tiempo real"}
-            {activeTab === "misiones" && "Guías paso a paso personalizadas"}
+            {activeTab === "misiones" && "Guías ultra personalizadas paso a paso"}
             {activeTab === "radar" && "Detectando lo que vos no ves"}
+            {activeTab === "chat" && "Tu mentor estratégico disponible 24/7"}
+            {activeTab === "analytics" && "Métricas y evolución de tu negocio"}
           </p>
         </motion.div>
 
