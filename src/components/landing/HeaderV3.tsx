@@ -74,7 +74,7 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
               alt="VistaCEO"
               width={36}
               height={36}
-              className="h-9 w-9 object-contain md:hidden"
+              className="h-9 w-9 object-contain lg:hidden"
               loading="eager"
               decoding="async"
             />
@@ -83,7 +83,7 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
               alt="VistaCEO"
               width={140}
               height={36}
-              className="h-8 w-auto object-contain hidden md:block"
+              className="h-8 w-auto object-contain hidden lg:block"
               loading="eager"
               decoding="async"
             />
