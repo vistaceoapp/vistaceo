@@ -14,23 +14,31 @@ export const PricingSection = memo(() => {
 
   const savings = yearlySavings();
 
+  // Core features that exist in both plans (limited vs unlimited)
+  const coreFeatures = [
+    { free: "Dashboard de Salud básico", pro: "Dashboard completo 7 dimensiones" },
+    { free: "3 misiones activas por mes", pro: "Misiones ilimitadas" },
+    { free: "3 preguntas al Chat IA por mes", pro: "Chat IA sin límites" },
+    { free: "3 oportunidades del Radar por mes", pro: "Radar interno + externo ilimitado" },
+    { free: "Check-ins de Pulso diarios", pro: "Check-ins de Pulso diarios" },
+  ];
+
+  // Pro-only features
+  const proExclusiveFeatures = [
+    "Analytics y métricas avanzadas",
+    "Predicciones IA",
+    "Integraciones premium",
+    "Soporte prioritario",
+  ];
+
   const pricingPlans = [
     {
       name: "Gratis",
       description: "Probá el sistema sin compromiso",
       price: "$0",
       period: "/siempre",
-      features: [
-        { text: "Dashboard de Salud básico", included: true },
-        { text: "3 Misiones activas por mes", included: true },
-        { text: "3 Preguntas al Chat IA por mes", included: true },
-        { text: "3 Oportunidades del Radar por mes", included: true },
-        { text: "Check-ins de Pulso diarios", included: true },
-      ],
-      notIncluded: [
-        "Analytics avanzadas",
-        "Predicciones IA",
-      ],
+      features: coreFeatures.map(f => f.free),
+      notIncluded: proExclusiveFeatures.slice(0, 2), // Analytics y Predicciones
       cta: "Empezar gratis",
       highlighted: false,
     },
@@ -45,14 +53,8 @@ export const PricingSection = memo(() => {
         monthsSaved: "2 meses gratis",
       },
       features: [
-        { text: "Dashboard completo 7 dimensiones", included: true },
-        { text: "Misiones ilimitadas", included: true },
-        { text: "Chat IA sin límites", included: true },
-        { text: "Radar interno + externo ilimitado", included: true },
-        { text: "Analytics y métricas avanzadas", included: true },
-        { text: "Predicciones IA", included: true },
-        { text: "Integraciones premium", included: true },
-        { text: "Soporte prioritario", included: true },
+        ...coreFeatures.map(f => f.pro),
+        ...proExclusiveFeatures,
       ],
       cta: "Activar Pro",
       highlighted: true,
@@ -141,12 +143,12 @@ export const PricingSection = memo(() => {
                 {plan.features.map((feature, j) => (
                   <li key={j} className="flex items-start gap-3 text-foreground text-sm">
                     <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                    {feature.text}
+                    {typeof feature === 'string' ? feature : feature}
                   </li>
                 ))}
               </ul>
 
-              {plan.notIncluded && (
+              {plan.notIncluded && plan.notIncluded.length > 0 && (
                 <ul className="space-y-2 mb-6 pt-4 border-t border-border/50">
                   {plan.notIncluded.map((item, j) => (
                     <li key={j} className="flex items-start gap-3 text-muted-foreground text-sm">
