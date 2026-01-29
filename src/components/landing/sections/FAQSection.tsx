@@ -45,7 +45,7 @@ El sistema adapta automáticamente las preguntas, métricas, misiones y recomend
 **Lo que incluye el plan gratuito:**
 • ✅ **Cerebro Personal**: Un asistente IA que aprende continuamente sobre tu negocio
 • ✅ **Dashboard de Salud**: Visión completa de las 7 dimensiones de tu negocio
-• ✅ **3 Oportunidades del Radar**: Detección de áreas de mejora internas y externas
+• ✅ **3 Oportunidades del Radar nuevas por mes**: Detección de áreas de mejora internas y externas
 • ✅ **3 Misiones Activas por Mes**: Tareas guiadas para impulsar tu crecimiento
 • ✅ **3 Preguntas al Chat IA por Mes**: Análisis profundos y personalizados
 • ✅ **Check-ins de Pulso Diarios**: Registro rápido de cómo te fue cada día
