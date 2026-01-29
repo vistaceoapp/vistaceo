@@ -167,8 +167,9 @@ export const HowItWorksSection = memo(() => {
           <span className="inline-block text-sm font-medium text-primary mb-4 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20">
             Cómo funciona
           </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 leading-tight">
-            Inteligencia que <span className="text-gradient-primary">trabaja para vos</span>
+          <h2 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 leading-tight">
+            <span className="block sm:inline">Inteligencia que</span>{" "}
+            <span className="text-gradient-primary">trabaja para vos</span>
           </h2>
           <p className="text-base md:text-lg text-muted-foreground">
             Un sistema que diagnostica, detecta oportunidades y te guía paso a paso.
@@ -180,12 +181,12 @@ export const HowItWorksSection = memo(() => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-xl mx-auto mb-6"
+          className="max-w-2xl mx-auto mb-6"
         >
           <p className="text-center text-xs sm:text-sm text-muted-foreground mb-3">
             Explorá cómo se ve para diferentes negocios:
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
             {(["argentina", "odontologia", "mexico", "marketing"] as BusinessKey[]).map((key) => {
               const biz = businesses[key];
               const isActive = activeBusiness === key;
@@ -201,18 +202,18 @@ export const HowItWorksSection = memo(() => {
                   )}
                 >
                   {/* Business photo */}
-                  <div className="relative h-16 sm:h-20 md:h-24">
+                  <div className="relative h-20 sm:h-24 md:h-28 lg:h-32">
                     <img 
                       src={biz.image} 
                       alt={biz.name} 
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                     
                     {/* Business info overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 text-left">
-                      <div className="font-bold text-white text-xs sm:text-sm md:text-base truncate">{biz.name}</div>
-                      <div className="text-white/70 text-[10px] sm:text-xs truncate">{biz.location}</div>
+                    <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 md:p-4 text-left">
+                      <div className="font-bold text-white text-[11px] sm:text-sm md:text-base lg:text-lg leading-tight">{biz.name}</div>
+                      <div className="text-white/80 text-[9px] sm:text-xs md:text-sm mt-0.5">{biz.location}</div>
                     </div>
 
                     {/* Active indicator */}
