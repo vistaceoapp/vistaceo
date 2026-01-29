@@ -1,49 +1,63 @@
 import { useEffect, useRef, memo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Check, Crown, Shield, CheckCircle2, LockKeyhole, Sparkles } from "lucide-react";
+import { ArrowRight, Check, Crown, Shield, CheckCircle2, LockKeyhole, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
-const pricingPlans = [
-  {
-    name: "Gratis",
-    description: "Para probar el sistema sin compromiso",
-    price: { ars: "$0", usd: "$0" },
-    period: "/siempre",
-    features: [
-      "Dashboard de salud básico",
-      "3 misiones por semana",
-      "Chat con mentor IA (limitado)",
-      "Radar interno básico",
-    ],
-    cta: "Empezar gratis",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    description: "Todo el poder del sistema para tu negocio",
-    price: { ars: "$15.000", usd: "$15" },
-    period: "/mes",
-    annual: { ars: "$120.000", savings: "33% ahorro" },
-    features: [
-      "Dashboard completo 7 dimensiones",
-      "Misiones ilimitadas",
-      "Chat mentor IA sin límites",
-      "Radar interno + externo",
-      "Analíticas avanzadas",
-      "Integraciones premium",
-      "Soporte prioritario",
-    ],
-    cta: "Activar Pro",
-    highlighted: true,
-  },
-];
+import { useCountryDetection } from "@/hooks/use-country-detection";
 
 export const PricingSection = memo(() => {
   const navigate = useNavigate();
   const headerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const { formatCurrencyShort, monthlyPrice, yearlyPrice, yearlySavings } = useCountryDetection();
+
+  const savings = yearlySavings();
+
+  const pricingPlans = [
+    {
+      name: "Gratis",
+      description: "Probá el sistema sin compromiso",
+      price: "$0",
+      period: "/siempre",
+      features: [
+        { text: "Dashboard de Salud básico", included: true },
+        { text: "3 Misiones activas por mes", included: true },
+        { text: "3 Preguntas al Chat IA por mes", included: true },
+        { text: "3 Oportunidades del Radar por mes", included: true },
+        { text: "Check-ins de Pulso diarios", included: true },
+      ],
+      notIncluded: [
+        "Analytics avanzadas",
+        "Predicciones IA",
+      ],
+      cta: "Empezar gratis",
+      highlighted: false,
+    },
+    {
+      name: "Pro",
+      description: "Todo el poder del sistema para tu negocio",
+      price: formatCurrencyShort(monthlyPrice),
+      period: "/mes",
+      annual: {
+        price: formatCurrencyShort(yearlyPrice),
+        savings: `${savings.percentage}% ahorro`,
+        monthsSaved: "2 meses gratis",
+      },
+      features: [
+        { text: "Dashboard completo 7 dimensiones", included: true },
+        { text: "Misiones ilimitadas", included: true },
+        { text: "Chat IA sin límites", included: true },
+        { text: "Radar interno + externo ilimitado", included: true },
+        { text: "Analytics y métricas avanzadas", included: true },
+        { text: "Predicciones IA", included: true },
+        { text: "Integraciones premium", included: true },
+        { text: "Soporte prioritario", included: true },
+      ],
+      cta: "Activar Pro",
+      highlighted: true,
+    },
+  ];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -87,7 +101,7 @@ export const PricingSection = memo(() => {
               key={i}
               ref={el => cardsRef.current[i] = el}
               className={cn(
-                "relative rounded-2xl p-8 animate-on-scroll transition-transform duration-300 hover:-translate-y-2",
+                "relative rounded-2xl p-6 md:p-8 animate-on-scroll transition-transform duration-300 hover:-translate-y-2",
                 plan.highlighted
                   ? "bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 border-2 border-primary/30"
                   : "bg-card border border-border"
@@ -103,29 +117,45 @@ export const PricingSection = memo(() => {
 
               <div className="mb-6">
                 <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
-                <p className="text-muted-foreground">{plan.description}</p>
+                <p className="text-muted-foreground text-sm">{plan.description}</p>
               </div>
 
               <div className="mb-6">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-foreground">{plan.price.ars}</span>
+                  <span className="text-4xl font-bold text-foreground">{plan.price}</span>
                   <span className="text-muted-foreground">{plan.period}</span>
                 </div>
                 {plan.annual && (
-                  <p className="text-sm text-primary mt-2">
-                    Anual: {plan.annual.ars}/año ({plan.annual.savings})
-                  </p>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-sm text-primary font-medium">
+                      Anual: {plan.annual.price}/año
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {plan.annual.monthsSaved} • {plan.annual.savings}
+                    </p>
+                  </div>
                 )}
               </div>
 
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-2.5 mb-6">
                 {plan.features.map((feature, j) => (
-                  <li key={j} className="flex items-center gap-3 text-foreground">
-                    <Check className="w-5 h-5 text-primary shrink-0" aria-hidden="true" />
-                    {feature}
+                  <li key={j} className="flex items-start gap-3 text-foreground text-sm">
+                    <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
+                    {feature.text}
                   </li>
                 ))}
               </ul>
+
+              {plan.notIncluded && (
+                <ul className="space-y-2 mb-6 pt-4 border-t border-border/50">
+                  {plan.notIncluded.map((item, j) => (
+                    <li key={j} className="flex items-start gap-3 text-muted-foreground text-sm">
+                      <X className="w-4 h-4 shrink-0 mt-0.5 opacity-50" aria-hidden="true" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              )}
 
               <Button 
                 className={cn(
