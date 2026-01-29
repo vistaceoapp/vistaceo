@@ -6,20 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Countries rotation
-const COUNTRIES = ['AR', 'CL', 'UY', 'CO', 'EC', 'CR', 'MX', 'PA'];
-
-// Country names for examples
-const COUNTRY_NAMES: Record<string, string> = {
-  AR: 'Argentina',
-  CL: 'Chile',
-  UY: 'Uruguay',
-  CO: 'Colombia',
-  EC: 'Ecuador',
-  CR: 'Costa Rica',
-  MX: 'México',
-  PA: 'Panamá',
-};
+// LATAM-wide content - no country-specific targeting
+const DEFAULT_REGION = 'LATAM';
 
 // Pillars mapping
 const PILLARS = {
@@ -601,26 +589,8 @@ serve(async (req) => {
 
     console.log('[generate-blog-post] Selected topic:', selectedTopic.title_base);
 
-    // 3. Select country (rotate based on balance)
-    const { data: countryStats } = await supabase
-      .from('blog_posts')
-      .select('country_code')
-      .eq('status', 'published');
-
-    const countryCounts: Record<string, number> = {};
-    COUNTRIES.forEach(c => countryCounts[c] = 0);
-    (countryStats || []).forEach(post => {
-      if (post.country_code) {
-        countryCounts[post.country_code] = (countryCounts[post.country_code] || 0) + 1;
-      }
-    });
-
-    // Select least-used country
-    const selectedCountry = COUNTRIES.reduce((min, c) => 
-      (countryCounts[c] || 0) < (countryCounts[min] || 0) ? c : min
-    , COUNTRIES[0]);
-
-    console.log('[generate-blog-post] Selected country:', selectedCountry);
+    // 3. LATAM-wide content (no country rotation)
+    console.log('[generate-blog-post] Using LATAM-wide content (no country targeting)');
 
     // 4. Anti-cannibalization check
     const { data: existingPosts } = await supabase
@@ -699,7 +669,6 @@ serve(async (req) => {
     }
 
     const pillarInfo = PILLARS[selectedTopic.pillar as keyof typeof PILLARS] || { label: selectedTopic.pillar, emoji: '📝' };
-    const countryName = COUNTRY_NAMES[selectedCountry] || selectedCountry;
 
     // PATCH V4 System Prompt with all rules
     const systemPrompt = `Sos un editor senior de contenido SEO para VistaCEO, un sistema de gestión inteligente para empresas de LATAM.
@@ -758,7 +727,7 @@ Ejemplo correcto:
 \`\`\`
 
 c) **2–5 ejemplos** con este formato EXACTO:
-> **Ejemplo (${countryName}):** [2–4 líneas describiendo la situación]
+> **Ejemplo:** [2–4 líneas describiendo la situación aplicable a LATAM]
 > **Qué haría hoy:** [1–2 líneas accionables]
 > **Error típico:** [1 línea]
 
@@ -768,7 +737,6 @@ ${internalLinksForPrompt || '- [Ver más artículos](/blog)'}
 
 Además, incluir links a categorías:
 - [Más sobre ${pillarInfo.label}](/blog/categoria/${selectedTopic.pillar})
-- [Artículos para ${countryName}](/blog/pais/${selectedCountry.toLowerCase()})
 
 6. ENLACES EXTERNOS (3-6 fuentes)
 Incluir una sección "Para profundizar" al final con links a fuentes serias:
@@ -788,7 +756,7 @@ Terminar con:
 CONTEXTO
 ═══════════════════════════════════════════
 - Pillar: ${pillarInfo.label} ${pillarInfo.emoji}
-- País target: ${countryName} (${selectedCountry === 'AR' ? 'usar voseo' : selectedCountry === 'MX' ? 'usar tuteo' : 'español neutro'})
+- Audiencia: emprendedores y profesionales de LATAM (usar español neutro con voseo)
 - Intent: ${selectedTopic.intent}
 - People-first: contenido útil, CERO venta en el cuerpo
 
@@ -987,7 +955,7 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
         plan_id: selectedPlan?.id,
         status: 'published',
         publish_at: new Date().toISOString(),
-        country_code: selectedCountry,
+        country_code: 'AR', // Default for LATAM-wide content
         pillar: selectedTopic.pillar,
         intent: selectedTopic.intent,
         title: selectedTopic.title_base,
@@ -1041,7 +1009,7 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
       result: 'published',
       post_id: newPost.id,
       quality_gate_report: qualityGateReport,
-      notes: `PATCH V3: Published "${selectedTopic.title_base}" for ${selectedCountry} (score: ${qualityGateReport.score}%)`
+      notes: `PATCH V4: Published "${selectedTopic.title_base}" for LATAM (score: ${qualityGateReport.score}%)`
     });
 
     return new Response(JSON.stringify({
@@ -1050,7 +1018,7 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
         id: newPost.id,
         title: newPost.title,
         slug: newPost.slug,
-        country: selectedCountry,
+        region: 'LATAM',
         pillar: selectedTopic.pillar,
         url: `/blog/${newPost.slug}`,
         hero_image: !!heroImageUrl

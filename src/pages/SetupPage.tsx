@@ -175,7 +175,7 @@ const SetupPage = () => {
           integrations_profiled: data.integrationsProfiled,
         },
         preferences_memory: {
-          language: data.countryCode === 'BR' ? 'pt-BR' : 'es',
+          language: 'es',
           autopilot_mode: 'standard',
           country_code: data.countryCode,
         },

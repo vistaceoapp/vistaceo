@@ -2420,7 +2420,18 @@ export type Database = {
         | "heladeria"
         | "panaderia"
         | "dark_kitchen"
-      country_code: "AR" | "MX" | "CL" | "UY" | "BR" | "CO" | "CR" | "PA" | "US"
+      country_code:
+        | "AR"
+        | "MX"
+        | "CL"
+        | "UY"
+        | "BR"
+        | "CO"
+        | "CR"
+        | "PA"
+        | "US"
+        | "EC"
+        | "PY"
       mission_status: "active" | "completed" | "paused" | "abandoned"
       priority_level: "low" | "medium" | "high" | "urgent"
       user_mode: "nano" | "standard" | "proactive" | "sos"
@@ -2561,7 +2572,19 @@ export const Constants = {
         "panaderia",
         "dark_kitchen",
       ],
-      country_code: ["AR", "MX", "CL", "UY", "BR", "CO", "CR", "PA", "US"],
+      country_code: [
+        "AR",
+        "MX",
+        "CL",
+        "UY",
+        "BR",
+        "CO",
+        "CR",
+        "PA",
+        "US",
+        "EC",
+        "PY",
+      ],
       mission_status: ["active", "completed", "paused", "abandoned"],
       priority_level: ["low", "medium", "high", "urgent"],
       user_mode: ["nano", "standard", "proactive", "sos"],

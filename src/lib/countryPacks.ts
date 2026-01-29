@@ -1,9 +1,10 @@
 // Country Packs - Configuración completa por país
 // Basado en spec v1: 9 países soportados
 
-export type CountryCode = 'AR' | 'MX' | 'CL' | 'CO' | 'BR' | 'UY' | 'CR' | 'PA' | 'US';
+// 9 países soportados - Solo español (ordenados alfabéticamente)
+export type CountryCode = 'AR' | 'CL' | 'CO' | 'CR' | 'EC' | 'MX' | 'PA' | 'PY' | 'UY';
 
-export const SUPPORTED_COUNTRIES: CountryCode[] = ['AR', 'MX', 'CL', 'CO', 'BR', 'UY', 'CR', 'PA', 'US'];
+export const SUPPORTED_COUNTRIES: CountryCode[] = ['AR', 'CL', 'CO', 'CR', 'EC', 'MX', 'PA', 'PY', 'UY'];
 
 export interface CountryPack {
   code: CountryCode;
@@ -118,27 +119,49 @@ export const COUNTRY_PACKS: Record<CountryCode, CountryPack> = {
     },
     additionalSteps: [],
   },
-  BR: {
-    code: 'BR',
-    name: 'Brasil',
-    flag: '🇧🇷',
-    currency: 'BRL',
-    currencySymbol: 'R$',
-    locale: 'pt-BR',
-    timezone: 'America/Sao_Paulo',
-    dayparts: ['Café da manhã', 'Almoço', 'Café da tarde', 'Jantar', 'Madrugada'],
+  EC: {
+    code: 'EC',
+    name: 'Ecuador',
+    flag: '🇪🇨',
+    currency: 'USD',
+    currencySymbol: '$',
+    locale: 'es-EC',
+    timezone: 'America/Guayaquil',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
     platforms: {
-      delivery: ['iFood', 'Rappi'],
-      reservations: ['TheFork (Restorando)'],
+      delivery: ['PedidosYa', 'Rappi'],
+      reservations: ['TheFork'],
       reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
     },
     lexicon: {
-      receipt: 'nota fiscal',
+      receipt: 'factura',
       order: 'pedido',
-      tip: 'gorjeta',
-      serviceCharge: 'taxa de serviço',
+      tip: 'propina',
+      serviceCharge: 'servicio',
     },
-    additionalSteps: ['serviceFee'], // Taxa de serviço obligatorio
+    additionalSteps: [],
+  },
+  PY: {
+    code: 'PY',
+    name: 'Paraguay',
+    flag: '🇵🇾',
+    currency: 'PYG',
+    currencySymbol: '₲',
+    locale: 'es-PY',
+    timezone: 'America/Asuncion',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['PedidosYa'],
+      reservations: [],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
+    },
+    lexicon: {
+      receipt: 'factura',
+      order: 'pedido',
+      tip: 'propina',
+      serviceCharge: 'servicio',
+    },
+    additionalSteps: [],
   },
   UY: {
     code: 'UY',
@@ -205,28 +228,6 @@ export const COUNTRY_PACKS: Record<CountryCode, CountryPack> = {
       serviceCharge: 'servicio',
     },
     additionalSteps: [],
-  },
-  US: {
-    code: 'US',
-    name: 'Estados Unidos',
-    flag: '🇺🇸',
-    currency: 'USD',
-    currencySymbol: '$',
-    locale: 'en-US',
-    timezone: 'America/New_York', // Fallback
-    dayparts: ['Breakfast', 'Lunch', 'Afternoon', 'Dinner', 'Late night'],
-    platforms: {
-      delivery: ['DoorDash', 'Uber Eats', 'Grubhub'],
-      reservations: ['OpenTable', 'Google Reserve'],
-      reviews: ['Google Maps / Business Profile', 'Yelp', 'Tripadvisor'],
-    },
-    lexicon: {
-      receipt: 'receipt',
-      order: 'order',
-      tip: 'tip',
-      serviceCharge: 'service charge',
-    },
-    additionalSteps: ['salesTax', 'tipping'], // Sales tax + tips obligatorios
   },
 };
 
@@ -330,73 +331,73 @@ export interface MetricStatus {
 
 export interface RevenueRange {
   id: string;
-  label: { es: string; 'pt-BR': string };
+  label: { es: string };
   impactScore: number;
 }
 
 export const REVENUE_RANGES: Record<CountryCode, RevenueRange[]> = {
   AR: [
-    { id: 'tier1', label: { es: 'Menos de $2M ARS', 'pt-BR': 'Menos de $2M ARS' }, impactScore: -5 },
-    { id: 'tier2', label: { es: '$2M - $5M ARS', 'pt-BR': '$2M - $5M ARS' }, impactScore: 5 },
-    { id: 'tier3', label: { es: '$5M - $15M ARS', 'pt-BR': '$5M - $15M ARS' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Más de $15M ARS', 'pt-BR': 'Mais de $15M ARS' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+    { id: 'tier1', label: { es: 'Menos de $2M ARS' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$2M - $5M ARS' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$5M - $15M ARS' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $15M ARS' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
   MX: [
-    { id: 'tier1', label: { es: 'Menos de $100k MXN', 'pt-BR': 'Menos de $100k MXN' }, impactScore: -5 },
-    { id: 'tier2', label: { es: '$100k - $300k MXN', 'pt-BR': '$100k - $300k MXN' }, impactScore: 5 },
-    { id: 'tier3', label: { es: '$300k - $800k MXN', 'pt-BR': '$300k - $800k MXN' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Más de $800k MXN', 'pt-BR': 'Mais de $800k MXN' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+    { id: 'tier1', label: { es: 'Menos de $100k MXN' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$100k - $300k MXN' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$300k - $800k MXN' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $800k MXN' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
   CL: [
-    { id: 'tier1', label: { es: 'Menos de $5M CLP', 'pt-BR': 'Menos de $5M CLP' }, impactScore: -5 },
-    { id: 'tier2', label: { es: '$5M - $15M CLP', 'pt-BR': '$5M - $15M CLP' }, impactScore: 5 },
-    { id: 'tier3', label: { es: '$15M - $40M CLP', 'pt-BR': '$15M - $40M CLP' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Más de $40M CLP', 'pt-BR': 'Mais de $40M CLP' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+    { id: 'tier1', label: { es: 'Menos de $5M CLP' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$5M - $15M CLP' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$15M - $40M CLP' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $40M CLP' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
   CO: [
-    { id: 'tier1', label: { es: 'Menos de $20M COP', 'pt-BR': 'Menos de $20M COP' }, impactScore: -5 },
-    { id: 'tier2', label: { es: '$20M - $60M COP', 'pt-BR': '$20M - $60M COP' }, impactScore: 5 },
-    { id: 'tier3', label: { es: '$60M - $150M COP', 'pt-BR': '$60M - $150M COP' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Más de $150M COP', 'pt-BR': 'Mais de $150M COP' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+    { id: 'tier1', label: { es: 'Menos de $20M COP' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$20M - $60M COP' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$60M - $150M COP' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $150M COP' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
-  BR: [
-    { id: 'tier1', label: { es: 'Menos de R$50k', 'pt-BR': 'Menos de R$50k' }, impactScore: -5 },
-    { id: 'tier2', label: { es: 'R$50k - R$150k', 'pt-BR': 'R$50k - R$150k' }, impactScore: 5 },
-    { id: 'tier3', label: { es: 'R$150k - R$500k', 'pt-BR': 'R$150k - R$500k' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Mais de R$500k', 'pt-BR': 'Mais de R$500k' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+  EC: [
+    { id: 'tier1', label: { es: 'Menos de $1k USD' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$1k - $5k USD' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$5k - $15k USD' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $15k USD' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+  ],
+  PY: [
+    { id: 'tier1', label: { es: 'Menos de ₲10M' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '₲10M - ₲50M' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '₲50M - ₲150M' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de ₲150M' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
   UY: [
-    { id: 'tier1', label: { es: 'Menos de $200k UYU', 'pt-BR': 'Menos de $200k UYU' }, impactScore: -5 },
-    { id: 'tier2', label: { es: '$200k - $600k UYU', 'pt-BR': '$200k - $600k UYU' }, impactScore: 5 },
-    { id: 'tier3', label: { es: '$600k - $1.5M UYU', 'pt-BR': '$600k - $1.5M UYU' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Más de $1.5M UYU', 'pt-BR': 'Mais de $1.5M UYU' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+    { id: 'tier1', label: { es: 'Menos de $200k UYU' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$200k - $600k UYU' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$600k - $1.5M UYU' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $1.5M UYU' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
   CR: [
-    { id: 'tier1', label: { es: 'Menos de ₡3M', 'pt-BR': 'Menos de ₡3M' }, impactScore: -5 },
-    { id: 'tier2', label: { es: '₡3M - ₡10M', 'pt-BR': '₡3M - ₡10M' }, impactScore: 5 },
-    { id: 'tier3', label: { es: '₡10M - ₡25M', 'pt-BR': '₡10M - ₡25M' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Más de ₡25M', 'pt-BR': 'Mais de ₡25M' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+    { id: 'tier1', label: { es: 'Menos de ₡3M' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '₡3M - ₡10M' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '₡10M - ₡25M' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de ₡25M' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
   PA: [
-    { id: 'tier1', label: { es: 'Menos de B/.5k', 'pt-BR': 'Menos de B/.5k' }, impactScore: -5 },
-    { id: 'tier2', label: { es: 'B/.5k - B/.15k', 'pt-BR': 'B/.5k - B/.15k' }, impactScore: 5 },
-    { id: 'tier3', label: { es: 'B/.15k - B/.40k', 'pt-BR': 'B/.15k - B/.40k' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Más de B/.40k', 'pt-BR': 'Mais de B/.40k' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
-  ],
-  US: [
-    { id: 'tier1', label: { es: 'Less than $10k USD', 'pt-BR': 'Menos de $10k USD' }, impactScore: -5 },
-    { id: 'tier2', label: { es: '$10k - $30k USD', 'pt-BR': '$10k - $30k USD' }, impactScore: 5 },
-    { id: 'tier3', label: { es: '$30k - $80k USD', 'pt-BR': '$30k - $80k USD' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'More than $80k USD', 'pt-BR': 'Mais de $80k USD' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefer not to say', 'pt-BR': 'Prefiro não dizer' }, impactScore: 0 },
+    { id: 'tier1', label: { es: 'Menos de B/.5k' }, impactScore: -5 },
+    { id: 'tier2', label: { es: 'B/.5k - B/.15k' }, impactScore: 5 },
+    { id: 'tier3', label: { es: 'B/.15k - B/.40k' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de B/.40k' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
 };
 

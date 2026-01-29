@@ -309,25 +309,6 @@ export const SETUP_STEPS: SetupStep[] = [
     inputType: 'cta',
     required: true,
   },
-  // Pasos adicionales por país
-  {
-    id: 'US_TAX',
-    order: 5.5, // Entre capacity y sales
-    title: () => 'Sales Tax & Tips',
-    subtitle: () => 'Required for US: sales tax rate and tipping structure.',
-    inputType: 'slider',
-    required: true,
-    condition: (data) => data.countryCode === 'US',
-  },
-  {
-    id: 'BR_SERVICE',
-    order: 5.5,
-    title: () => 'Taxa de serviço',
-    subtitle: () => 'Configure a taxa de serviço (gorjeta) padrão.',
-    inputType: 'slider',
-    required: true,
-    condition: (data) => data.countryCode === 'BR',
-  },
 ];
 
 // Helper para obtener pasos ordenados y filtrados

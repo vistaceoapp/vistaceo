@@ -116,9 +116,9 @@ const DEFAULT_SECTOR = {
   description: { es: 'Otros negocios', 'pt-BR': 'Outros negócios' }
 };
 
-// Get language based on country
-const getLanguage = (countryCode: CountryCode): 'es' | 'pt-BR' => {
-  return countryCode === 'BR' ? 'pt-BR' : 'es';
+// Solo español para todos los países
+const getLanguage = (_countryCode: CountryCode): 'es' => {
+  return 'es';
 };
 
 export const SetupStepSector = ({ countryCode, value, onChange }: SetupStepSectorProps) => {
@@ -139,15 +139,13 @@ export const SetupStepSector = ({ countryCode, value, onChange }: SetupStepSecto
       <div className="text-center mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm mb-4">
           <Sparkles className="w-4 h-4" />
-          <span>{lang === 'pt-BR' ? 'Setor' : 'Sector'}</span>
+          <span>Sector</span>
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">
-          {lang === 'pt-BR' ? 'Em qual setor você opera?' : '¿En qué sector operás?'}
+          ¿En qué sector operás?
         </h2>
         <p className="text-muted-foreground">
-          {lang === 'pt-BR' 
-            ? 'Selecione sua indústria principal para personalizar sua experiência'
-            : 'Seleccioná tu industria principal para personalizar tu experiencia'}
+          Seleccioná tu industria principal para personalizar tu experiencia
         </p>
       </div>
 
@@ -156,7 +154,7 @@ export const SetupStepSector = ({ countryCode, value, onChange }: SetupStepSecto
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <Input
           type="text"
-          placeholder={lang === 'pt-BR' ? 'Buscar setor...' : 'Buscar sector...'}
+          placeholder="Buscar sector..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10 h-12 bg-secondary/50 border-border/50 focus:border-primary"
@@ -230,9 +228,7 @@ export const SetupStepSector = ({ countryCode, value, onChange }: SetupStepSecto
         <div className="text-center py-12">
           <span className="text-4xl mb-4 block">🔍</span>
           <p className="text-muted-foreground">
-            {lang === 'pt-BR' 
-              ? `Não encontramos setores com "${search}"`
-              : `No encontramos sectores con "${search}"`}
+            No encontramos sectores con "{search}"
           </p>
         </div>
       )}
