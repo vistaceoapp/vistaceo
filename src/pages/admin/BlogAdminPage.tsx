@@ -203,7 +203,7 @@ export default function BlogAdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{topicsData || 0}</div>
-              <p className="text-xs text-muted-foreground">de 200 objetivo</p>
+              <p className="text-xs text-muted-foreground">de 350 objetivo</p>
             </CardContent>
           </Card>
           
@@ -258,7 +258,7 @@ export default function BlogAdminPage() {
           <CardContent className="flex flex-wrap gap-3">
             <Button onClick={seedTopics} disabled={isSeeding} variant="outline">
               {isSeeding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Database className="w-4 h-4 mr-2" />}
-              Seed 200 Tópicos
+              Seed 350 Tópicos
             </Button>
             
             <Button onClick={buildCalendar} disabled={isBuildingCalendar} variant="outline">

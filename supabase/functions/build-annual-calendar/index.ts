@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const COUNTRIES = ['AR', 'CL', 'UY', 'CO', 'EC', 'CR', 'MX', 'PA'];
-const ANNUAL_TARGET = 200;
+const ANNUAL_TARGET = 350;
 const HORIZON_DAYS = 365;
 
 // Seeded random number generator for reproducibility
