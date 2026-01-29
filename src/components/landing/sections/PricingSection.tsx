@@ -10,16 +10,29 @@ export const PricingSection = memo(() => {
   const navigate = useNavigate();
   const headerRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const { formatCurrencyShort, monthlyPrice, yearlyPrice, yearlySavings } = useCountryDetection();
+  const { 
+    country, 
+    formatPrice, 
+    monthlyPrice, 
+    yearlyPrice, 
+    yearlySavings,
+    isArgentina 
+  } = useCountryDetection();
 
   const savings = yearlySavings();
+
+  // Format price with currency code
+  const formatWithCurrency = (price: number) => {
+    const formatted = formatPrice(price);
+    return `${country.symbol}${formatted} ${country.currency}`;
+  };
 
   // Feature comparison - what differs between plans
   const comparisonFeatures = [
     { name: "Dashboard de Salud", free: "Completo", pro: "Completo" },
-    { name: "Misiones", free: "3 por mes", pro: "Ilimitadas" },
-    { name: "Chat IA", free: "3 por mes", pro: "Ilimitado" },
-    { name: "Radar de Oportunidades", free: "3 por mes", pro: "Ilimitado" },
+    { name: "Misiones", free: "3/mes", pro: "Ilimitadas" },
+    { name: "Chat IA", free: "3/mes", pro: "Ilimitado" },
+    { name: "Radar de Oportunidades", free: "3/mes", pro: "Ilimitado" },
     { name: "Check-ins de Pulso", free: "Diarios", pro: "Diarios" },
     { name: "Analytics avanzadas", free: false, pro: true },
     { name: "Predicciones IA", free: false, pro: true },
@@ -58,14 +71,21 @@ export const PricingSection = memo(() => {
     
     if (value === "Ilimitadas" || value === "Ilimitado") {
       return (
-        <span className="flex items-center gap-1.5 text-primary font-medium">
+        <span className="flex items-center gap-1 text-primary font-medium text-xs md:text-sm">
           <Infinity className="w-4 h-4" />
-          {value}
+          <span className="hidden sm:inline">{value}</span>
         </span>
       );
     }
     
-    return <span className={isProColumn ? "text-foreground" : "text-muted-foreground"}>{value}</span>;
+    return (
+      <span className={cn(
+        "text-xs md:text-sm",
+        isProColumn ? "text-foreground" : "text-muted-foreground"
+      )}>
+        {value}
+      </span>
+    );
   };
 
   return (
@@ -84,82 +104,128 @@ export const PricingSection = memo(() => {
           </p>
         </div>
 
-        {/* Comparison Table */}
-        <div 
-          ref={el => cardsRef.current[0] = el}
-          className="max-w-4xl mx-auto animate-on-scroll"
-        >
-          <div className="rounded-2xl border border-border overflow-hidden bg-card">
-            {/* Header Row */}
-            <div className="grid grid-cols-3 border-b border-border">
-              <div className="p-4 md:p-6 bg-muted/30">
-                <span className="text-sm font-medium text-muted-foreground">Funcionalidad</span>
+        {/* Two Cards Side by Side */}
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          {/* Free Plan Card */}
+          <div
+            ref={el => cardsRef.current[0] = el}
+            className="relative rounded-2xl p-6 md:p-8 animate-on-scroll bg-card border border-border"
+          >
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold text-foreground mb-1">Gratis</h3>
+              <p className="text-sm text-muted-foreground mb-4">Probá sin compromiso</p>
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-4xl md:text-5xl font-bold text-foreground">$0</span>
               </div>
-              <div className="p-4 md:p-6 text-center border-l border-border">
-                <h3 className="text-lg font-bold text-foreground">Gratis</h3>
-                <p className="text-2xl md:text-3xl font-bold text-foreground mt-1">$0</p>
-                <p className="text-xs text-muted-foreground">/siempre</p>
+              <p className="text-sm text-muted-foreground mt-1">/siempre</p>
+            </div>
+
+            <ul className="space-y-3 mb-6">
+              {comparisonFeatures.map((feature, i) => {
+                const value = feature.free;
+                const isIncluded = value !== false;
+                return (
+                  <li key={i} className="flex items-center justify-between text-sm">
+                    <span className={cn(
+                      "flex items-center gap-2",
+                      !isIncluded && "text-muted-foreground/60"
+                    )}>
+                      {isIncluded ? (
+                        <Check className="w-4 h-4 text-primary shrink-0" />
+                      ) : (
+                        <X className="w-4 h-4 text-muted-foreground/40 shrink-0" />
+                      )}
+                      {feature.name}
+                    </span>
+                    {typeof value === "string" && (
+                      <span className="text-muted-foreground text-xs">{value}</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+
+            <Button 
+              variant="outline"
+              className="w-full rounded-full h-12"
+              onClick={() => navigate("/auth")}
+            >
+              Empezar gratis
+            </Button>
+          </div>
+
+          {/* Pro Plan Card */}
+          <div
+            ref={el => cardsRef.current[1] = el}
+            className="relative rounded-2xl p-6 md:p-8 animate-on-scroll bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 border-2 border-primary/30"
+            style={{ transitionDelay: "150ms" }}
+          >
+            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 gradient-primary text-primary-foreground px-4">
+              <Sparkles className="w-3 h-3 mr-1" aria-hidden="true" />
+              Más popular
+            </Badge>
+
+            <div className="text-center mb-6 pt-2">
+              <h3 className="text-xl font-bold text-foreground mb-1">Pro</h3>
+              <p className="text-sm text-muted-foreground mb-4">Todo el poder del sistema</p>
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-4xl md:text-5xl font-bold text-primary">
+                  {country.symbol}{formatPrice(monthlyPrice)}
+                </span>
+                <span className="text-lg text-muted-foreground ml-1">{country.currency}</span>
               </div>
-              <div className="p-4 md:p-6 text-center border-l border-border bg-primary/5 relative">
-                <Badge className="absolute -top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 gradient-primary text-primary-foreground text-xs">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  Popular
-                </Badge>
-                <h3 className="text-lg font-bold text-foreground">Pro</h3>
-                <p className="text-2xl md:text-3xl font-bold text-primary mt-1">{formatCurrencyShort(monthlyPrice)}</p>
-                <p className="text-xs text-muted-foreground">/mes</p>
-                <p className="text-xs text-primary mt-1 font-medium">
-                  Anual: {formatCurrencyShort(yearlyPrice)}/año
+              <p className="text-sm text-muted-foreground mt-1">/mes</p>
+              
+              <div className="mt-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                <p className="text-sm font-medium text-primary">
+                  Anual: {country.symbol}{formatPrice(yearlyPrice)} {country.currency}/año
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-1">
                   2 meses gratis • {savings.percentage}% ahorro
                 </p>
               </div>
+              
+              {!isArgentina && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  * Pago procesado en USD
+                </p>
+              )}
             </div>
 
-            {/* Feature Rows */}
-            {comparisonFeatures.map((feature, i) => (
-              <div 
-                key={i} 
-                className={cn(
-                  "grid grid-cols-3 border-b border-border last:border-b-0",
-                  i % 2 === 0 ? "bg-background" : "bg-muted/20"
-                )}
-              >
-                <div className="p-3 md:p-4 flex items-center">
-                  <span className="text-sm text-foreground">{feature.name}</span>
-                </div>
-                <div className="p-3 md:p-4 flex items-center justify-center border-l border-border text-sm">
-                  {renderValue(feature.free, false)}
-                </div>
-                <div className="p-3 md:p-4 flex items-center justify-center border-l border-border bg-primary/5 text-sm">
-                  {renderValue(feature.pro, true)}
-                </div>
-              </div>
-            ))}
+            <ul className="space-y-3 mb-6">
+              {comparisonFeatures.map((feature, i) => {
+                const value = feature.pro;
+                return (
+                  <li key={i} className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-primary shrink-0" />
+                      {feature.name}
+                    </span>
+                    {typeof value === "string" && (
+                      <span className={cn(
+                        "text-xs font-medium",
+                        value === "Ilimitadas" || value === "Ilimitado" 
+                          ? "text-primary flex items-center gap-1" 
+                          : "text-foreground"
+                      )}>
+                        {(value === "Ilimitadas" || value === "Ilimitado") && (
+                          <Infinity className="w-3 h-3" />
+                        )}
+                        {value}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
 
-            {/* CTA Row */}
-            <div className="grid grid-cols-3 bg-muted/30">
-              <div className="p-4 md:p-6" />
-              <div className="p-4 md:p-6 flex items-center justify-center border-l border-border">
-                <Button 
-                  variant="outline"
-                  className="rounded-full w-full max-w-[160px]"
-                  onClick={() => navigate("/auth")}
-                >
-                  Empezar gratis
-                </Button>
-              </div>
-              <div className="p-4 md:p-6 flex items-center justify-center border-l border-border bg-primary/5">
-                <Button 
-                  className="rounded-full gradient-primary text-primary-foreground shadow-lg shadow-primary/25 w-full max-w-[160px]"
-                  onClick={() => navigate("/auth")}
-                >
-                  Activar Pro
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </div>
-            </div>
+            <Button 
+              className="w-full rounded-full h-12 gradient-primary text-primary-foreground shadow-lg shadow-primary/25"
+              onClick={() => navigate("/auth")}
+            >
+              Activar Pro
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
           </div>
         </div>
 
