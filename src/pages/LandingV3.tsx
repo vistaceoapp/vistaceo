@@ -3,6 +3,7 @@ import { HeaderV3 } from "@/components/landing/HeaderV3";
 import { HeroSection } from "@/components/landing/sections/HeroSection";
 
 // Lazy load all below-the-fold sections for better initial load
+const HowItWorksSection = lazy(() => import("@/components/landing/sections/HowItWorksSection"));
 const FeaturesSection = lazy(() => import("@/components/landing/sections/FeaturesSection"));
 const TestimonialsSection = lazy(() => import("@/components/landing/sections/TestimonialsSection"));
 const PricingSection = lazy(() => import("@/components/landing/sections/PricingSection"));
@@ -17,7 +18,7 @@ const SectionSkeleton = memo(() => (
 ));
 SectionSkeleton.displayName = "SectionSkeleton";
 
-// Footer - static, no animations (restored original)
+// Footer - static, no animations
 const Footer = memo(() => (
   <footer className="py-12 border-t border-border bg-card/50 relative z-10">
     <div className="container mx-auto px-4">
@@ -59,6 +60,11 @@ const LandingV3 = () => {
       <main>
         {/* Hero - loaded immediately (above the fold) */}
         <HeroSection />
+        
+        {/* How It Works - with real mockups */}
+        <Suspense fallback={<SectionSkeleton />}>
+          <HowItWorksSection />
+        </Suspense>
         
         {/* Below-the-fold sections - lazy loaded */}
         <Suspense fallback={<SectionSkeleton />}>
