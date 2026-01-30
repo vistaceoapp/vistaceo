@@ -1,23 +1,30 @@
 import { Helmet } from 'react-helmet-async';
 import type { BlogPost } from '@/lib/blog/types';
 
+const CANONICAL_DOMAIN = "https://www.vistaceo.com";
+
 interface BlogSchemaProps {
   post: BlogPost;
   url: string;
 }
 
 export function BlogSchema({ post, url }: BlogSchemaProps) {
+  // Ensure URL uses canonical domain
+  const canonicalUrl = url.startsWith(CANONICAL_DOMAIN) 
+    ? url 
+    : `${CANONICAL_DOMAIN}/blog/${post.slug}`;
+
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: post.meta_title || post.title,
     description: post.meta_description || post.excerpt,
-    image: post.hero_image_url || 'https://vistaceo.lovable.app/og-image.png',
+    image: post.hero_image_url || `${CANONICAL_DOMAIN}/og-image.png`,
     datePublished: post.publish_at,
     dateModified: post.updated_at,
     author: {
       '@type': 'Person',
-      name: post.author_name,
+      name: post.author_name || 'VistaCEO',
       ...(post.author_url && { url: post.author_url }),
     },
     publisher: {
@@ -25,12 +32,12 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
       name: 'VistaCEO',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://vistaceo.lovable.app/logo.png',
+        url: `${CANONICAL_DOMAIN}/favicon.png`,
       },
     },
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': url,
+      '@id': canonicalUrl,
     },
   };
 
@@ -42,19 +49,19 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
         '@type': 'ListItem',
         position: 1,
         name: 'Inicio',
-        item: 'https://vistaceo.lovable.app/',
+        item: CANONICAL_DOMAIN,
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Blog',
-        item: 'https://vistaceo.lovable.app/blog',
+        item: `${CANONICAL_DOMAIN}/blog`,
       },
       {
         '@type': 'ListItem',
         position: 3,
         name: post.title,
-        item: url,
+        item: canonicalUrl,
       },
     ],
   };
@@ -64,20 +71,23 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
       {/* Basic meta */}
       <title>{post.meta_title || post.title} | VistaCEO Blog</title>
       <meta name="description" content={post.meta_description || post.excerpt || ''} />
-      <link rel="canonical" href={post.canonical_url || url} />
+      <link rel="canonical" href={post.canonical_url || canonicalUrl} />
 
       {/* Open Graph */}
       <meta property="og:type" content="article" />
+      <meta property="og:site_name" content="VistaCEO" />
       <meta property="og:title" content={post.meta_title || post.title} />
       <meta property="og:description" content={post.meta_description || post.excerpt || ''} />
-      <meta property="og:url" content={url} />
+      <meta property="og:url" content={canonicalUrl} />
       {post.hero_image_url && <meta property="og:image" content={post.hero_image_url} />}
+      <meta property="og:locale" content="es_LA" />
       <meta property="article:published_time" content={post.publish_at || ''} />
       <meta property="article:modified_time" content={post.updated_at} />
-      <meta property="article:author" content={post.author_name} />
+      <meta property="article:author" content={post.author_name || 'VistaCEO'} />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@vistaceo" />
       <meta name="twitter:title" content={post.meta_title || post.title} />
       <meta name="twitter:description" content={post.meta_description || post.excerpt || ''} />
       {post.hero_image_url && <meta name="twitter:image" content={post.hero_image_url} />}

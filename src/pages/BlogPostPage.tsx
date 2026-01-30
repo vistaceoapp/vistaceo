@@ -59,7 +59,7 @@ export default function BlogPostPage() {
   }
 
   const pillar = post.pillar as PillarKey | null;
-  const url = `https://vistaceo.lovable.app/blog/${post.slug}`;
+  const url = `https://www.vistaceo.com/blog/${post.slug}`;
   
   // Parse external sources if available
   const externalSources = Array.isArray(post.external_sources) 

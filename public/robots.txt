@@ -1,8 +1,13 @@
+# VistaCEO Robots.txt
+# Canonical domain: https://www.vistaceo.com
+
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +15,15 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
 User-agent: *
 Allow: /
+Disallow: /app/
+Disallow: /setup
+Disallow: /checkout
+Disallow: /admin/
+
+# Sitemap location (served via edge function)
+Sitemap: https://nlewrgmcawzcdazhfiyy.supabase.co/functions/v1/sitemap
