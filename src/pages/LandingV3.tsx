@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense, memo } from "react";
 import { HeaderV3 } from "@/components/landing/HeaderV3";
 import { HeroSection } from "@/components/landing/sections/HeroSection";
 import { LoadingScreen } from "@/components/landing/LoadingScreen";
+import { SiteHead } from "@/components/seo/SiteHead";
 
 // Lazy load below-the-fold sections
 const HowItWorksSection = lazy(() => import("@/components/landing/sections/HowItWorksSection"));
@@ -64,14 +65,16 @@ const LandingV3 = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
-      {/* Background orbs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-[500px] h-[500px] bg-primary/8 top-0 -left-48 rounded-full blur-[120px]" />
-        <div className="absolute w-[400px] h-[400px] bg-accent/6 top-1/3 -right-32 rounded-full blur-[120px]" />
-      </div>
-      
-      <HeaderV3 />
+    <>
+      <SiteHead path="/" />
+      <div className="min-h-screen bg-background overflow-x-hidden">
+        {/* Background orbs */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute w-[500px] h-[500px] bg-primary/8 top-0 -left-48 rounded-full blur-[120px]" />
+          <div className="absolute w-[400px] h-[400px] bg-accent/6 top-1/3 -right-32 rounded-full blur-[120px]" />
+        </div>
+        
+        <HeaderV3 />
 
       <main className="relative z-10">
         <HeroSection />
@@ -103,6 +106,7 @@ const LandingV3 = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

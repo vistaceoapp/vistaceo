@@ -216,37 +216,43 @@ export const HeroSection = memo(() => {
             <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
             <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
             
-            {/* CSS-only scrolling */}
+            {/* CSS-only scrolling - optimized loading */}
             <div className="flex gap-2.5 animate-scroll-left" style={{ width: 'max-content' }}>
-              {[...businessTypes, ...businessTypes].map((b, i) => (
-                <div
-                  key={`${b.type}-${i}`}
-                  className="relative flex-shrink-0 w-[100px] md:w-[115px] rounded-xl overflow-hidden shadow-lg border border-border/30"
-                >
-                  <div className="relative aspect-[3/4]">
-                    <img 
-                      src={b.image} 
-                      alt={b.type}
-                      width={115}
-                      height={153}
-                      loading="lazy"
-                      decoding="async"
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10" />
-                    <div className="absolute inset-0 p-2 flex flex-col justify-between">
-                      <div className="inline-flex self-start items-center px-1.5 py-0.5 rounded bg-background/95 text-[8px] font-bold text-foreground shadow-sm">
-                        {b.type}
-                      </div>
-                      <div>
-                        <div className="text-lg md:text-xl font-black leading-none text-white drop-shadow-lg">{b.growth}</div>
-                        <div className="text-[8px] text-white/70 font-medium mt-0.5">{b.months} meses</div>
-                        <div className="text-[9px] font-semibold truncate leading-tight mt-0.5 text-white/90">{b.business}</div>
+              {[...businessTypes, ...businessTypes].map((b, i) => {
+                // Only eager load first 6 visible images, lazy load rest
+                const isEagerLoad = i < 6;
+                
+                return (
+                  <div
+                    key={`${b.type}-${i}`}
+                    className="relative flex-shrink-0 w-[100px] md:w-[115px] rounded-xl overflow-hidden shadow-lg border border-border/30"
+                  >
+                    <div className="relative aspect-[3/4]">
+                      <img 
+                        src={b.image} 
+                        alt={`${b.type} - ${b.business}`}
+                        width={115}
+                        height={153}
+                        loading={isEagerLoad ? "eager" : "lazy"}
+                        decoding={isEagerLoad ? "sync" : "async"}
+                        fetchPriority={i === 0 ? "high" : undefined}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10" />
+                      <div className="absolute inset-0 p-2 flex flex-col justify-between">
+                        <div className="inline-flex self-start items-center px-1.5 py-0.5 rounded bg-background/95 text-[8px] font-bold text-foreground shadow-sm">
+                          {b.type}
+                        </div>
+                        <div>
+                          <div className="text-lg md:text-xl font-black leading-none text-white drop-shadow-lg">{b.growth}</div>
+                          <div className="text-[8px] text-white/70 font-medium mt-0.5">{b.months} meses</div>
+                          <div className="text-[9px] font-semibold truncate leading-tight mt-0.5 text-white/90">{b.business}</div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

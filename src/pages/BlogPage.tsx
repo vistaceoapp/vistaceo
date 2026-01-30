@@ -33,7 +33,10 @@ export default function BlogPage() {
       <Helmet>
         <title>Blog | VistaCEO - Recursos para gestionar mejor tu negocio</title>
         <meta name="description" content="Artículos, guías y recursos prácticos para dueños de negocios en LATAM. Liderazgo, IA aplicada, emprendimiento y más." />
-        <link rel="canonical" href="https://vistaceo.lovable.app/blog" />
+        <link rel="canonical" href="https://www.vistaceo.com/blog" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Blog | VistaCEO - Recursos para gestionar mejor tu negocio" />
+        <meta property="og:url" content="https://www.vistaceo.com/blog" />
       </Helmet>
 
       <div className="min-h-screen bg-background">
