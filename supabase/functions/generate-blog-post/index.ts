@@ -481,29 +481,9 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // 1.5) Automated runs: vary publish hour by day (deterministic), but keep <= 1/day.
-    // Manual/admin runs are not blocked by this.
-    if (automated && !forceRun) {
-      const todayKey = now.toISOString().slice(0, 10); // YYYY-MM-DD
-      const hourSlot = 8 + (hashStringToInt(todayKey) % 11); // 08..18 UTC
-      const nowHourUtc = now.getUTCHours();
-
-      if (nowHourUtc !== hourSlot) {
-        await supabase.from('blog_runs').insert({
-          result: 'skipped',
-          skip_reason: 'waiting_for_publish_slot',
-          notes: `Automated run: waiting for UTC hour slot ${hourSlot}:00 (now ${nowHourUtc}:00)`
-        });
-
-        return new Response(JSON.stringify({
-          success: false,
-          skipped: true,
-          reason: 'waiting_for_publish_slot',
-          target_hour_utc: hourSlot,
-          now_hour_utc: nowHourUtc
-        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      }
-    }
+    // 1.5) Automated runs: publish immediately if there are pending posts for today
+    // No longer waiting for specific hour slot - just ensure 1 post/day max
+    console.log('[generate-blog-post] Automated run, proceeding with generation (1/day limit already checked)');
 
     // 2. Select topic from blog_plan
     let selectedPlan: BlogPlan | null = null;
