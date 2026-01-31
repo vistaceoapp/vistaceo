@@ -34,6 +34,7 @@ import AnalyticsPage from "./pages/app/AnalyticsPage";
 import AuditPage from "./pages/app/AuditPage";
 import DiagnosticPage from "./pages/app/DiagnosticPage";
 import UpgradePage from "./pages/app/UpgradePage";
+import PredictionsPage from "./pages/app/PredictionsPage";
 
 const queryClient = new QueryClient();
 
@@ -146,6 +147,7 @@ const AppRoutes = () => {
         <Route path="missions" element={<MissionsPage />} />
         <Route path="radar" element={<RadarPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="predictions" element={<PredictionsPage />} />
         <Route path="audit" element={<AuditPage />} />
         <Route path="more" element={<MorePage />} />
         <Route path="diagnostic" element={<DiagnosticPage />} />

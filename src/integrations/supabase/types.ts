@@ -1059,6 +1059,60 @@ export type Database = {
           },
         ]
       }
+      causal_blueprints: {
+        Row: {
+          business_type: string
+          causal_graph: Json
+          controllable_levers: Json
+          created_at: string
+          display_name: string
+          id: string
+          is_active: boolean | null
+          leading_indicators: Json
+          native_metrics: Json
+          seasonality_pattern: Json
+          sector: string
+          signature_predictions: Json
+          structural_risks: Json
+          typical_shocks: Json
+          updated_at: string
+        }
+        Insert: {
+          business_type: string
+          causal_graph?: Json
+          controllable_levers?: Json
+          created_at?: string
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          leading_indicators?: Json
+          native_metrics?: Json
+          seasonality_pattern?: Json
+          sector: string
+          signature_predictions?: Json
+          structural_risks?: Json
+          typical_shocks?: Json
+          updated_at?: string
+        }
+        Update: {
+          business_type?: string
+          causal_graph?: Json
+          controllable_levers?: Json
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          leading_indicators?: Json
+          native_metrics?: Json
+          seasonality_pattern?: Json
+          sector?: string
+          signature_predictions?: Json
+          structural_risks?: Json
+          typical_shocks?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           business_id: string
@@ -1258,6 +1312,59 @@ export type Database = {
             foreignKeyName: "data_gaps_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      digital_twin_config: {
+        Row: {
+          active_assumptions: Json
+          baseline_metrics: Json
+          business_id: string
+          calibration_accuracy: Json
+          created_at: string
+          custom_driver_weights: Json
+          drift_status: string | null
+          id: string
+          known_constraints: Json
+          last_drift_check: string | null
+          risk_personality: string
+          updated_at: string
+        }
+        Insert: {
+          active_assumptions?: Json
+          baseline_metrics?: Json
+          business_id: string
+          calibration_accuracy?: Json
+          created_at?: string
+          custom_driver_weights?: Json
+          drift_status?: string | null
+          id?: string
+          known_constraints?: Json
+          last_drift_check?: string | null
+          risk_personality?: string
+          updated_at?: string
+        }
+        Update: {
+          active_assumptions?: Json
+          baseline_metrics?: Json
+          business_id?: string
+          calibration_accuracy?: Json
+          created_at?: string
+          custom_driver_weights?: Json
+          drift_status?: string | null
+          id?: string
+          known_constraints?: Json
+          last_drift_check?: string | null
+          risk_personality?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_twin_config_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
             referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
@@ -1864,6 +1971,252 @@ export type Database = {
             columns: ["converted_to_mission_id"]
             isOneToOne: false
             referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prediction_calibrations: {
+        Row: {
+          answer: Json | null
+          answered_at: string | null
+          business_id: string
+          created_at: string
+          default_value: number | null
+          delta_confidence: number | null
+          delta_uncertainty_reduction: number | null
+          id: string
+          improves: Json
+          input_type: string
+          max_value: number | null
+          min_value: number | null
+          options: Json | null
+          prediction_id: string | null
+          priority: number | null
+          question: string
+          reason: string
+          status: string
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          answer?: Json | null
+          answered_at?: string | null
+          business_id: string
+          created_at?: string
+          default_value?: number | null
+          delta_confidence?: number | null
+          delta_uncertainty_reduction?: number | null
+          id?: string
+          improves?: Json
+          input_type?: string
+          max_value?: number | null
+          min_value?: number | null
+          options?: Json | null
+          prediction_id?: string | null
+          priority?: number | null
+          question: string
+          reason: string
+          status?: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answer?: Json | null
+          answered_at?: string | null
+          business_id?: string
+          created_at?: string
+          default_value?: number | null
+          delta_confidence?: number | null
+          delta_uncertainty_reduction?: number | null
+          id?: string
+          improves?: Json
+          input_type?: string
+          max_value?: number | null
+          min_value?: number | null
+          options?: Json | null
+          prediction_id?: string | null
+          priority?: number | null
+          question?: string
+          reason?: string
+          status?: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_calibrations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_calibrations_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prediction_ledger: {
+        Row: {
+          accuracy_score: number | null
+          actual_outcome: Json | null
+          business_id: string
+          created_at: string
+          error_margin: number | null
+          id: string
+          learning_notes: string | null
+          outcome_recorded_at: string | null
+          prediction_id: string
+          prediction_snapshot: Json
+        }
+        Insert: {
+          accuracy_score?: number | null
+          actual_outcome?: Json | null
+          business_id: string
+          created_at?: string
+          error_margin?: number | null
+          id?: string
+          learning_notes?: string | null
+          outcome_recorded_at?: string | null
+          prediction_id: string
+          prediction_snapshot: Json
+        }
+        Update: {
+          accuracy_score?: number | null
+          actual_outcome?: Json | null
+          business_id?: string
+          created_at?: string
+          error_margin?: number | null
+          id?: string
+          learning_notes?: string | null
+          outcome_recorded_at?: string | null
+          prediction_id?: string
+          prediction_snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_ledger_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_ledger_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      predictions: {
+        Row: {
+          available_actions: Json
+          brain_id: string | null
+          breakpoint_thresholds: Json | null
+          business_id: string
+          causal_chain: Json
+          confidence: number
+          converted_to_mission_id: string | null
+          created_at: string
+          dismissed_at: string | null
+          domain: string
+          estimated_impact: Json
+          evidence: Json
+          horizon_ring: string
+          id: string
+          is_breakpoint: boolean | null
+          probability: number
+          publication_level: string
+          recommended_actions: Json
+          status: string
+          summary: string | null
+          time_window: Json
+          title: string
+          uncertainty_band: Json
+          updated_at: string
+          verification_notes: string | null
+          verification_result: string | null
+          verified_at: string | null
+          visual_payload: Json
+        }
+        Insert: {
+          available_actions?: Json
+          brain_id?: string | null
+          breakpoint_thresholds?: Json | null
+          business_id: string
+          causal_chain?: Json
+          confidence?: number
+          converted_to_mission_id?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          domain: string
+          estimated_impact?: Json
+          evidence?: Json
+          horizon_ring: string
+          id?: string
+          is_breakpoint?: boolean | null
+          probability?: number
+          publication_level?: string
+          recommended_actions?: Json
+          status?: string
+          summary?: string | null
+          time_window?: Json
+          title: string
+          uncertainty_band?: Json
+          updated_at?: string
+          verification_notes?: string | null
+          verification_result?: string | null
+          verified_at?: string | null
+          visual_payload?: Json
+        }
+        Update: {
+          available_actions?: Json
+          brain_id?: string | null
+          breakpoint_thresholds?: Json | null
+          business_id?: string
+          causal_chain?: Json
+          confidence?: number
+          converted_to_mission_id?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          domain?: string
+          estimated_impact?: Json
+          evidence?: Json
+          horizon_ring?: string
+          id?: string
+          is_breakpoint?: boolean | null
+          probability?: number
+          publication_level?: string
+          recommended_actions?: Json
+          status?: string
+          summary?: string | null
+          time_window?: Json
+          title?: string
+          uncertainty_band?: Json
+          updated_at?: string
+          verification_notes?: string | null
+          verification_result?: string | null
+          verified_at?: string | null
+          visual_payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predictions_brain_id_fkey"
+            columns: ["brain_id"]
+            isOneToOne: false
+            referencedRelation: "business_brains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "predictions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
