@@ -125,3 +125,9 @@ verify_jwt = false
 
 [functions.seed-blog-topics]
 verify_jwt = false
+
+[functions.sitemap]
+verify_jwt = false
+
+[functions.generate-predictions]
+verify_jwt = false
