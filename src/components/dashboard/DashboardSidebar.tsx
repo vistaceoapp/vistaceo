@@ -10,7 +10,8 @@ import {
   Zap,
   HelpCircle,
   BarChart3,
-  Crown
+  Crown,
+  Orbit
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
@@ -28,6 +29,7 @@ const navItems = [
   { path: "/app/missions", icon: Target, label: "Misiones", description: "Proyectos activos", badge: null, isPro: false },
   { path: "/app/radar", icon: Radar, label: "Radar", description: "Oportunidades", badge: null, isPro: false },
   { path: "/app/analytics", icon: BarChart3, label: "Analytics", description: "Métricas y tendencias", badge: "Pro", isPro: true },
+  { path: "/app/predictions", icon: Orbit, label: "Predicciones", description: "Futuro 10 años", badge: "Pro", isPro: true },
 ];
 
 const bottomNavItems = [
