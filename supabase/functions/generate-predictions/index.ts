@@ -2,19 +2,19 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // Horizon definitions
 const HORIZON_RINGS = {
-  H0: { label: '30 días', days: 30, type: 'tactical' },
-  H1: { label: '90 días', days: 90, type: 'tactical' },
-  H2: { label: '6 meses', days: 180, type: 'tactical' },
-  H3: { label: '12 meses', days: 365, type: 'strategic' },
-  H4: { label: '3 años', days: 1095, type: 'strategic' },
-  H5: { label: '5 años', days: 1825, type: 'long_term' },
-  H6: { label: '7 años', days: 2555, type: 'long_term' },
-  H7: { label: '10 años', days: 3650, type: 'long_term' },
+  H0: { label: '30 días', days: 30, type: 'tactical', certainty: 'high' },
+  H1: { label: '90 días', days: 90, type: 'tactical', certainty: 'high' },
+  H2: { label: '6 meses', days: 180, type: 'tactical', certainty: 'medium' },
+  H3: { label: '12 meses', days: 365, type: 'strategic', certainty: 'medium' },
+  H4: { label: '3 años', days: 1095, type: 'strategic', certainty: 'low' },
+  H5: { label: '5 años', days: 1825, type: 'long_term', certainty: 'speculative' },
+  H6: { label: '7 años', days: 2555, type: 'long_term', certainty: 'speculative' },
+  H7: { label: '10 años', days: 3650, type: 'long_term', certainty: 'speculative' },
 };
 
 const DOMAIN_LABELS: Record<string, string> = {
@@ -33,6 +33,225 @@ const DOMAIN_LABELS: Record<string, string> = {
   tech: 'Tecnología',
 };
 
+// Sector-specific prediction contexts for 180+ business types
+const SECTOR_PREDICTION_CONTEXTS: Record<string, {
+  key_drivers: string[];
+  leading_indicators: string[];
+  common_risks: string[];
+  seasonality_factors: string[];
+  typical_horizons: string[];
+  native_metrics: string[];
+}> = {
+  // GASTRONOMY
+  restaurant: {
+    key_drivers: ['ticket promedio', 'rotación de mesas', 'costo de alimentos', 'ocupación por turno'],
+    leading_indicators: ['reservas anticipadas', 'tendencia de reseñas', 'menciones en redes', 'tráfico peatonal'],
+    common_risks: ['inflación de insumos', 'rotación de personal', 'competencia delivery', 'estacionalidad'],
+    seasonality_factors: ['feriados', 'eventos deportivos', 'clima', 'temporada turística'],
+    typical_horizons: ['H0', 'H1', 'H2'],
+    native_metrics: ['covers/hora', 'food cost %', 'ticket promedio', 'rating promedio'],
+  },
+  cafeteria: {
+    key_drivers: ['transacciones/hora', 'ticket promedio', 'horario pico', 'mix bebidas/alimentos'],
+    leading_indicators: ['clima', 'tráfico oficinas cercanas', 'tendencias café especialidad'],
+    common_risks: ['precio del café', 'competencia cadenas', 'cambio hábitos trabajo remoto'],
+    seasonality_factors: ['invierno/verano', 'vuelta a clases', 'home office'],
+    typical_horizons: ['H0', 'H1'],
+    native_metrics: ['bebidas/día', 'ticket promedio', 'repeat customers'],
+  },
+  bar: {
+    key_drivers: ['consumo promedio', 'ocupación nocturna', 'eventos especiales', 'mix bebidas'],
+    leading_indicators: ['eventos ciudad', 'clima fin de semana', 'actividad redes'],
+    common_risks: ['regulaciones alcohol', 'ruido/vecinos', 'seguridad'],
+    seasonality_factors: ['fin de semana', 'verano', 'eventos deportivos', 'fiestas'],
+    typical_horizons: ['H0', 'H1', 'H2'],
+    native_metrics: ['consumo promedio', 'ocupación %', 'ticket promedio'],
+  },
+  pizzeria: {
+    key_drivers: ['delivery vs local', 'tiempo de preparación', 'costo harina/queso', 'rating apps'],
+    leading_indicators: ['rating delivery apps', 'tiempo respuesta', 'reseñas'],
+    common_risks: ['comisiones apps', 'competencia cadenas', 'inflación insumos'],
+    seasonality_factors: ['fines de semana', 'partidos', 'mal clima'],
+    typical_horizons: ['H0', 'H1'],
+    native_metrics: ['pizzas/día', 'tiempo preparación', '% delivery'],
+  },
+  // HEALTH
+  consultorio: {
+    key_drivers: ['pacientes/día', 'ticket consulta', 'tasa retorno', 'obras sociales'],
+    leading_indicators: ['agenda anticipada', 'cancelaciones', 'referencias'],
+    common_risks: ['cambios obras sociales', 'competencia', 'burnout'],
+    seasonality_factors: ['invierno (gripes)', 'vuelta vacaciones', 'fin de año'],
+    typical_horizons: ['H0', 'H1', 'H2', 'H3'],
+    native_metrics: ['pacientes/semana', 'tasa retorno', 'ticket promedio'],
+  },
+  odontologia: {
+    key_drivers: ['procedimientos/mes', 'mix tratamientos', 'materiales', 'financiación'],
+    leading_indicators: ['consultas agendadas', 'tratamientos en curso', 'referencias'],
+    common_risks: ['costo materiales importados', 'devaluación', 'competencia cadenas'],
+    seasonality_factors: ['pre-vacaciones', 'fin de año', 'vuelta clases'],
+    typical_horizons: ['H0', 'H1', 'H2', 'H3'],
+    native_metrics: ['procedimientos/mes', 'ticket promedio', 'tasa finalización tratamientos'],
+  },
+  gimnasio: {
+    key_drivers: ['membresías activas', 'retención', 'clases grupales', 'personal trainers'],
+    leading_indicators: ['visitas/semana', 'asistencia clases', 'renovaciones anticipadas'],
+    common_risks: ['estacionalidad', 'competencia apps', 'deserción post-verano'],
+    seasonality_factors: ['enero (propósitos)', 'pre-verano', 'post-vacaciones'],
+    typical_horizons: ['H0', 'H1', 'H2', 'H3'],
+    native_metrics: ['membresías activas', 'churn mensual', 'visitas/miembro'],
+  },
+  spa: {
+    key_drivers: ['servicios/día', 'ticket promedio', 'paquetes', 'productos retail'],
+    leading_indicators: ['reservas anticipadas', 'gift cards', 'eventos especiales'],
+    common_risks: ['estacionalidad', 'personal especializado', 'productos importados'],
+    seasonality_factors: ['día madre', 'san valentín', 'fiestas', 'pre-verano'],
+    typical_horizons: ['H0', 'H1', 'H2'],
+    native_metrics: ['servicios/día', 'ticket promedio', 'retail/servicio'],
+  },
+  // RETAIL
+  boutique: {
+    key_drivers: ['ticket promedio', 'conversión', 'rotación inventario', 'mix categorías'],
+    leading_indicators: ['tráfico tienda', 'engagement redes', 'devoluciones'],
+    common_risks: ['temporadas', 'tendencias', 'e-commerce', 'inventario obsoleto'],
+    seasonality_factors: ['temporadas moda', 'fiestas', 'vuelta clases', 'liquidaciones'],
+    typical_horizons: ['H0', 'H1', 'H2', 'H3'],
+    native_metrics: ['unidades/transacción', 'ticket promedio', 'rotación inventario'],
+  },
+  ecommerce: {
+    key_drivers: ['conversión', 'CAC', 'AOV', 'tasa abandono carrito'],
+    leading_indicators: ['tráfico web', 'carritos abandonados', 'wishlist adds'],
+    common_risks: ['competencia', 'costos envío', 'devoluciones', 'cambios algoritmos'],
+    seasonality_factors: ['cyber monday', 'hot sale', 'fiestas', 'día del niño'],
+    typical_horizons: ['H0', 'H1', 'H2', 'H3'],
+    native_metrics: ['conversión %', 'AOV', 'CAC', 'LTV'],
+  },
+  // SERVICES
+  peluqueria: {
+    key_drivers: ['servicios/día', 'ticket promedio', 'productos retail', 'fidelización'],
+    leading_indicators: ['agenda próxima semana', 'nuevos clientes', 'referencias'],
+    common_risks: ['rotación estilistas', 'tendencias', 'competencia low-cost'],
+    seasonality_factors: ['fiestas', 'casamientos', 'egresados', 'verano'],
+    typical_horizons: ['H0', 'H1', 'H2'],
+    native_metrics: ['servicios/día', 'ticket promedio', 'retención clientes'],
+  },
+  hotel: {
+    key_drivers: ['ocupación', 'ADR', 'RevPAR', 'canales distribución'],
+    leading_indicators: ['reservas futuras', 'cancelaciones', 'reviews OTAs'],
+    common_risks: ['estacionalidad', 'OTAs comisiones', 'eventos ciudad', 'tipo cambio'],
+    seasonality_factors: ['vacaciones', 'feriados largos', 'eventos', 'congresos'],
+    typical_horizons: ['H0', 'H1', 'H2', 'H3', 'H4'],
+    native_metrics: ['ocupación %', 'ADR', 'RevPAR', 'rating OTAs'],
+  },
+  // B2B
+  agencia_marketing: {
+    key_drivers: ['MRR', 'retención clientes', 'pipeline', 'utilización equipo'],
+    leading_indicators: ['propuestas enviadas', 'meetings agendados', 'NPS clientes'],
+    common_risks: ['concentración clientes', 'rotación talento', 'scope creep'],
+    seasonality_factors: ['presupuestos Q1', 'verano lento', 'fin año'],
+    typical_horizons: ['H0', 'H1', 'H2', 'H3', 'H4'],
+    native_metrics: ['MRR', 'churn', 'NPS', 'utilización %'],
+  },
+  consultoria: {
+    key_drivers: ['horas facturables', 'tarifa/hora', 'pipeline proyectos', 'retención'],
+    leading_indicators: ['propuestas activas', 'referencias', 'repeat business'],
+    common_risks: ['dependencia pocos clientes', 'commoditización', 'talento'],
+    seasonality_factors: ['presupuestos anuales', 'verano', 'cierres fiscales'],
+    typical_horizons: ['H1', 'H2', 'H3', 'H4'],
+    native_metrics: ['horas facturables', 'tarifa promedio', 'pipeline $'],
+  },
+  estudio_contable: {
+    key_drivers: ['clientes activos', 'fee mensual', 'servicios adicionales', 'retención'],
+    leading_indicators: ['nuevas consultas', 'deadlines fiscales', 'upsells'],
+    common_risks: ['regulaciones', 'automatización', 'competencia precio'],
+    seasonality_factors: ['vencimientos AFIP', 'balances anuales', 'ganancias'],
+    typical_horizons: ['H0', 'H1', 'H2', 'H3'],
+    native_metrics: ['clientes activos', 'fee promedio', 'servicios/cliente'],
+  },
+  estudio_juridico: {
+    key_drivers: ['casos activos', 'horas facturables', 'success fees', 'retainers'],
+    leading_indicators: ['consultas nuevas', 'referencias', 'casos ganados'],
+    common_risks: ['duración casos', 'cobro', 'reputación', 'especialización'],
+    seasonality_factors: ['feria judicial', 'cierres año', 'elecciones'],
+    typical_horizons: ['H1', 'H2', 'H3', 'H4'],
+    native_metrics: ['casos activos', 'horas facturadas', 'tasa cobro'],
+  },
+  software_dev: {
+    key_drivers: ['MRR/ARR', 'churn', 'velocidad desarrollo', 'NPS'],
+    leading_indicators: ['trials activos', 'feature requests', 'tickets soporte'],
+    common_risks: ['competencia', 'deuda técnica', 'talento', 'concentración'],
+    seasonality_factors: ['presupuestos Q1', 'conferencias tech', 'verano'],
+    typical_horizons: ['H1', 'H2', 'H3', 'H4', 'H5'],
+    native_metrics: ['MRR', 'churn %', 'NPS', 'CAC payback'],
+  },
+};
+
+// Get sector context with fallback
+function getSectorContext(businessType: string): typeof SECTOR_PREDICTION_CONTEXTS['restaurant'] {
+  const normalizedType = businessType.toLowerCase().replace(/[_\s-]/g, '');
+  
+  // Try exact match first
+  if (SECTOR_PREDICTION_CONTEXTS[businessType]) {
+    return SECTOR_PREDICTION_CONTEXTS[businessType];
+  }
+  
+  // Try normalized match
+  for (const [key, value] of Object.entries(SECTOR_PREDICTION_CONTEXTS)) {
+    if (key.replace(/[_\s-]/g, '') === normalizedType) {
+      return value;
+    }
+  }
+  
+  // Fallback based on keywords
+  if (normalizedType.includes('restaurant') || normalizedType.includes('gastro') || normalizedType.includes('comida')) {
+    return SECTOR_PREDICTION_CONTEXTS.restaurant;
+  }
+  if (normalizedType.includes('cafe') || normalizedType.includes('coffee')) {
+    return SECTOR_PREDICTION_CONTEXTS.cafeteria;
+  }
+  if (normalizedType.includes('dental') || normalizedType.includes('odonto')) {
+    return SECTOR_PREDICTION_CONTEXTS.odontologia;
+  }
+  if (normalizedType.includes('gym') || normalizedType.includes('fitness')) {
+    return SECTOR_PREDICTION_CONTEXTS.gimnasio;
+  }
+  if (normalizedType.includes('hotel') || normalizedType.includes('hostel')) {
+    return SECTOR_PREDICTION_CONTEXTS.hotel;
+  }
+  if (normalizedType.includes('ecommerce') || normalizedType.includes('tienda')) {
+    return SECTOR_PREDICTION_CONTEXTS.ecommerce;
+  }
+  if (normalizedType.includes('marketing') || normalizedType.includes('agencia')) {
+    return SECTOR_PREDICTION_CONTEXTS.agencia_marketing;
+  }
+  if (normalizedType.includes('software') || normalizedType.includes('tech') || normalizedType.includes('saas')) {
+    return SECTOR_PREDICTION_CONTEXTS.software_dev;
+  }
+  if (normalizedType.includes('contable') || normalizedType.includes('contador')) {
+    return SECTOR_PREDICTION_CONTEXTS.estudio_contable;
+  }
+  if (normalizedType.includes('juridico') || normalizedType.includes('abogado')) {
+    return SECTOR_PREDICTION_CONTEXTS.estudio_juridico;
+  }
+  
+  // Ultimate fallback
+  return SECTOR_PREDICTION_CONTEXTS.restaurant;
+}
+
+// Voice localization based on country
+function getLocaleVoice(country: string): { voice: string; examples: string[] } {
+  const voiceMap: Record<string, { voice: string; examples: string[] }> = {
+    AR: { voice: 'voseo', examples: ['vas a ver', 'tenés que', 'podés'] },
+    UY: { voice: 'voseo', examples: ['vas a ver', 'tenés que', 'podés'] },
+    CL: { voice: 'tuteo_cl', examples: ['vas a ver', 'tienes que', 'puedes'] },
+    CO: { voice: 'tuteo', examples: ['vas a ver', 'tienes que', 'puedes'] },
+    MX: { voice: 'tuteo', examples: ['vas a ver', 'tienes que', 'puedes'] },
+    ES: { voice: 'tuteo_es', examples: ['vas a ver', 'tienes que', 'puedes'] },
+    PE: { voice: 'tuteo', examples: ['vas a ver', 'tienes que', 'puedes'] },
+    EC: { voice: 'tuteo', examples: ['vas a ver', 'tienes que', 'puedes'] },
+  };
+  return voiceMap[country] || voiceMap.AR;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -47,45 +266,102 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { business_id, horizons = ['H0', 'H1', 'H2', 'H3'], domains = ['cashflow', 'demand', 'operations', 'customer', 'sales'] } = await req.json();
+    const { 
+      business_id, 
+      horizons = ['H0', 'H1', 'H2', 'H3'], 
+      domains = ['cashflow', 'demand', 'operations', 'customer', 'sales', 'risk'],
+      force_refresh = false
+    } = await req.json();
 
     if (!business_id) {
       throw new Error('business_id is required');
     }
 
-    // Fetch business context
-    const [businessRes, brainRes, blueprintRes, setupRes] = await Promise.all([
+    console.log(`[generate-predictions] Starting for business ${business_id}`);
+
+    // Fetch comprehensive business context
+    const [businessRes, brainRes, blueprintRes, setupRes, actionsRes, opportunitiesRes, checkinsRes, snapshotsRes] = await Promise.all([
       fetch(`${SUPABASE_URL}/rest/v1/businesses?id=eq.${business_id}&select=*`, {
         headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
       }),
       fetch(`${SUPABASE_URL}/rest/v1/business_brains?business_id=eq.${business_id}&select=*`, {
         headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
       }),
-      fetch(`${SUPABASE_URL}/rest/v1/causal_blueprints?is_active=eq.true&select=*&limit=1`, {
+      fetch(`${SUPABASE_URL}/rest/v1/causal_blueprints?is_active=eq.true&select=*&limit=5`, {
         headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
       }),
       fetch(`${SUPABASE_URL}/rest/v1/business_setup_progress?business_id=eq.${business_id}&select=*`, {
         headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
       }),
+      fetch(`${SUPABASE_URL}/rest/v1/daily_actions?business_id=eq.${business_id}&select=id,title,status,category,created_at&order=created_at.desc&limit=10`, {
+        headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+      }),
+      fetch(`${SUPABASE_URL}/rest/v1/opportunities?business_id=eq.${business_id}&select=id,title,source,impact_score,is_converted&order=created_at.desc&limit=10`, {
+        headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+      }),
+      fetch(`${SUPABASE_URL}/rest/v1/business_checkins?business_id=eq.${business_id}&select=*&order=created_at.desc&limit=5`, {
+        headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+      }),
+      fetch(`${SUPABASE_URL}/rest/v1/snapshots?business_id=eq.${business_id}&select=*&order=created_at.desc&limit=3`, {
+        headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+      }),
     ]);
 
-    const [businesses, brains, blueprints, setupProgress] = await Promise.all([
+    const [businesses, brains, blueprints, setupProgress, actions, opportunities, checkins, snapshots] = await Promise.all([
       businessRes.json(),
       brainRes.json(),
       blueprintRes.json(),
       setupRes.json(),
+      actionsRes.json(),
+      opportunitiesRes.json(),
+      checkinsRes.json(),
+      snapshotsRes.json(),
     ]);
 
     const business = businesses?.[0];
     const brain = brains?.[0];
-    const blueprint = blueprints?.[0];
     const setup = setupProgress?.[0];
+    const latestSnapshot = snapshots?.[0];
 
     if (!business) {
       throw new Error('Business not found');
     }
 
-    // Build context for AI
+    const businessType = brain?.primary_business_type || business.category || 'restaurant';
+    const sectorContext = getSectorContext(businessType);
+    const localeVoice = getLocaleVoice(business.country || 'AR');
+    
+    // Find matching blueprint
+    const matchingBlueprint = blueprints?.find((bp: any) => 
+      bp.business_type === businessType || bp.sector === business.category
+    ) || blueprints?.[0];
+
+    // Calculate data quality score
+    const dataQuality = {
+      hasRevenue: !!business.monthly_revenue_range,
+      hasTicket: !!business.avg_ticket_range,
+      hasChannelMix: !!business.channel_mix,
+      hasBrain: !!brain,
+      hasCheckins: (checkins?.length || 0) > 0,
+      hasSnapshots: (snapshots?.length || 0) > 0,
+      hasActions: (Array.isArray(actions) ? actions.length : 0) > 0,
+      factualMemorySize: Object.keys(brain?.factual_memory || {}).length,
+      brainConfidence: brain?.confidence_score || 0,
+      overallScore: 0,
+    };
+    dataQuality.overallScore = (
+      (dataQuality.hasRevenue ? 15 : 0) +
+      (dataQuality.hasTicket ? 10 : 0) +
+      (dataQuality.hasChannelMix ? 10 : 0) +
+      (dataQuality.hasBrain ? 15 : 0) +
+      (dataQuality.hasCheckins ? 10 : 0) +
+      (dataQuality.hasSnapshots ? 10 : 0) +
+      (dataQuality.hasActions ? 5 : 0) +
+      Math.min(dataQuality.factualMemorySize * 2, 15) +
+      (dataQuality.brainConfidence * 10)
+    );
+
+    // Build ultra-contextualized prompt
     const contextBundle = {
       business_profile: {
         name: business.name,
@@ -96,70 +372,117 @@ serve(async (req) => {
         monthly_revenue_range: business.monthly_revenue_range,
         channel_mix: business.channel_mix,
         service_model: business.service_model,
+        setup_completed: business.setup_completed,
+        precision_score: business.precision_score,
       },
       brain_state: brain ? {
         primary_business_type: brain.primary_business_type,
+        secondary_business_type: brain.secondary_business_type,
         current_focus: brain.current_focus,
         factual_memory: brain.factual_memory,
         dynamic_memory: brain.dynamic_memory,
         decisions_memory: brain.decisions_memory,
+        preferences_memory: brain.preferences_memory,
         confidence_score: brain.confidence_score,
         mvc_completion_pct: brain.mvc_completion_pct,
+        mvc_gaps: brain.mvc_gaps,
         locale_profile: brain.locale_profile,
+        user_style_model: brain.user_style_model,
+        success_patterns: brain.success_patterns,
       } : null,
-      blueprint: blueprint ? {
-        business_type: blueprint.business_type,
-        sector: blueprint.sector,
-        causal_graph: blueprint.causal_graph,
-        native_metrics: blueprint.native_metrics,
-        leading_indicators: blueprint.leading_indicators,
-        seasonality_pattern: blueprint.seasonality_pattern,
-        structural_risks: blueprint.structural_risks,
+      sector_context: sectorContext,
+      blueprint: matchingBlueprint ? {
+        business_type: matchingBlueprint.business_type,
+        sector: matchingBlueprint.sector,
+        causal_graph: matchingBlueprint.causal_graph,
+        native_metrics: matchingBlueprint.native_metrics,
+        leading_indicators: matchingBlueprint.leading_indicators,
+        seasonality_pattern: matchingBlueprint.seasonality_pattern,
+        structural_risks: matchingBlueprint.structural_risks,
+        controllable_levers: matchingBlueprint.controllable_levers,
+        typical_shocks: matchingBlueprint.typical_shocks,
       } : null,
       setup_data: setup?.setup_data || {},
+      latest_health: latestSnapshot ? {
+        total_score: latestSnapshot.total_score,
+        dimensions: latestSnapshot.dimensions_json,
+        strengths: latestSnapshot.strengths,
+        weaknesses: latestSnapshot.weaknesses,
+      } : null,
+      recent_activity: {
+        actions_active: Array.isArray(actions) ? actions.filter((a: any) => a.status === 'pending').length : 0,
+        actions_completed: Array.isArray(actions) ? actions.filter((a: any) => a.status === 'completed').length : 0,
+        opportunities_pending: Array.isArray(opportunities) ? opportunities.filter((o: any) => !o.is_converted).length : 0,
+        last_checkin: checkins?.[0]?.created_at || null,
+      },
+      data_quality: dataQuality,
+      locale: localeVoice,
       requested_horizons: horizons,
       requested_domains: domains,
       current_date: new Date().toISOString().split('T')[0],
     };
 
-    // System prompt for prediction generation
-    const systemPrompt = `Sos el "Motor de Predicciones Planetario" de VistaCEO. Tu misión es generar predicciones de negocio ultra-personalizadas, auditables y accionables.
+    // Ultra-personalized system prompt
+    const systemPrompt = `Sos el "Motor de Predicciones Planetario" de VistaCEO para ${business.name}, un/a ${businessType} en ${business.country}.
 
-PRINCIPIOS INNEGOCIABLES:
-1. CERO INVENTO: Nunca afirmes como "Confirmada" (Level A) lo que no tenga evidencia suficiente.
-2. Probabilidad ≠ Confianza: Probabilidad = chance de que ocurra. Confianza = calidad del modelo/evidencia.
-3. Hiper-personalización: Cada predicción debe estar explicada por el contexto del negocio.
-4. Acción y ventana: Toda predicción incluye ventana de acción o declara si no hay palanca controlable.
+## CONTEXTO ESPECÍFICO DEL SECTOR: ${businessType.toUpperCase()}
+- Drivers clave: ${sectorContext.key_drivers.join(', ')}
+- Indicadores adelantados: ${sectorContext.leading_indicators.join(', ')}
+- Riesgos comunes: ${sectorContext.common_risks.join(', ')}
+- Factores estacionales: ${sectorContext.seasonality_factors.join(', ')}
+- Métricas nativas: ${sectorContext.native_metrics.join(', ')}
 
-NIVELES DE PUBLICACIÓN (GATES ANTI-INVENTO):
-- Level A ("Confirmada"): Evidencia interna suficiente + cadena causal explicable + calibración histórica
-- Level B ("Probable"): Evidencia parcial + drivers fuertes + rango amplio
-- Level C ("En Bruma"): Evidencia baja, exploratoria, requiere calibración
+## ESTADO DEL BRAIN (Conocimiento del negocio)
+${brain ? `- Tipo primario: ${brain.primary_business_type}
+- Foco actual: ${brain.current_focus}
+- Confianza del modelo: ${Math.round((brain.confidence_score || 0) * 100)}%
+- Completitud MVC: ${brain.mvc_completion_pct || 0}%
+- Gaps detectados: ${JSON.stringify(brain.mvc_gaps || [])}
+- Memoria factual: ${Object.keys(brain.factual_memory || {}).length} datos
+- Patrones de éxito: ${JSON.stringify(brain.success_patterns || [])}` : '⚠️ Sin Brain configurado - usar Level C para todas las predicciones'}
 
-DOMINIOS DISPONIBLES: ${Object.entries(DOMAIN_LABELS).map(([k, v]) => `${k}=${v}`).join(', ')}
+## CALIDAD DE DATOS: ${dataQuality.overallScore}/100
+${dataQuality.overallScore < 30 ? '⚠️ DATOS INSUFICIENTES: Generar solo predicciones Level C y muchos CalibrationEvents' : 
+  dataQuality.overallScore < 60 ? '⚡ DATOS PARCIALES: Mezclar Level B y C, incluir CalibrationEvents específicos' :
+  '✅ DATOS SUFICIENTES: Permitir Level A para predicciones tácticas bien fundamentadas'}
 
-HORIZONTES DISPONIBLES: ${Object.entries(HORIZON_RINGS).map(([k, v]) => `${k}=${v.label}`).join(', ')}
+## SALUD ACTUAL DEL NEGOCIO
+${latestSnapshot ? `- Score total: ${latestSnapshot.total_score}/100
+- Fortalezas: ${JSON.stringify(latestSnapshot.strengths)}
+- Debilidades: ${JSON.stringify(latestSnapshot.weaknesses)}` : 'Sin snapshot reciente'}
 
-REGLAS POR HORIZONTE:
-- H0-H1 (30-90d): Predicción Táctica. Requiere señales operativas fuertes. Ventana de acción exacta.
-- H2-H3 (6-12m): Predicción Planificable. Rangos low/base/high + escenarios.
-- H4-H5 (3-5y): Predicción Estratégica. Rutas probables, no certezas. Drivers dominantes + checkpoints.
-- H6-H7 (7-10y): Escenarios de Largo Plazo. 2-4 futuros plausibles, NO predicción dura.
+## LOCALIZACIÓN
+- País: ${business.country}
+- Voz: ${localeVoice.voice} (ej: "${localeVoice.examples.join('", "')}")
+- Moneda: ${business.currency || 'USD'}
+- SIEMPRE usar segunda persona (${localeVoice.voice === 'voseo' ? 'vos' : 'tú'})
 
-RESPONDE SIEMPRE con un JSON array de predicciones siguiendo este schema exacto:
+## PRINCIPIOS INNEGOCIABLES
+1. CERO INVENTO: Level A solo con evidencia sólida del Brain/Setup
+2. Hiper-personalización: Cada predicción DEBE mencionar datos específicos de ESTE negocio
+3. Cadena causal: Explicar el "por qué" con lógica del sector
+4. Ventana de acción: Cuándo actuar y qué hacer específicamente
+5. Sorprendente: Revelar insights no obvios que el dueño no esperaría
+
+## NIVELES DE PUBLICACIÓN
+- Level A ("Confirmada"): Solo si tenés datos internos que lo respalden + calibración histórica
+- Level B ("Probable"): Evidencia parcial + patrones del sector + rangos amplios
+- Level C ("En Bruma"): Hipótesis basada en sector, requiere calibración
+
+## RESPUESTA JSON OBLIGATORIA
 {
   "predictions": [
     {
       "domain": "cashflow|demand|operations|customer|competition|risk|strategy|pricing|inventory|sales|marketing|team|tech",
       "horizon_ring": "H0|H1|H2|H3|H4|H5|H6|H7",
-      "title": "string (1 línea clara)",
-      "summary": "string (máx 2 líneas)",
+      "title": "Título claro y específico para ${business.name}",
+      "summary": "Máx 2 líneas explicando el insight único",
       "publication_level": "A|B|C",
       "probability": 0.0-1.0,
       "confidence": 0.0-1.0,
       "uncertainty_band": {
         "metric": "revenue|cash|margin|conversion|churn|capacity|sla|inventory|other",
-        "unit": "USD|PERCENT|COUNT|DAYS",
+        "unit": "USD|${business.currency || 'ARS'}|PERCENT|COUNT|DAYS",
         "low": number,
         "base": number,
         "high": number
@@ -170,63 +493,67 @@ RESPONDE SIEMPRE con un JSON array de predicciones siguiendo este schema exacto:
         "action_window": {"start":"YYYY-MM-DD","end":"YYYY-MM-DD"}
       },
       "estimated_impact": {
-        "primary_metric": {"name":"...", "unit":"USD|PERCENT|COUNT|DAYS", "value": number, "range":[low,high]}
+        "primary_metric": {"name":"...", "unit":"...", "value": number, "range":[low,high]}
       },
       "evidence": {
         "evidence_strength": "low|medium|high",
-        "signals_internal_top": [{"signal_id":"sig_...", "name":"...", "source":"internal|ops|external", "trend":"up|down|stable", "latest_value": "...", "unit":"...", "why_it_matters":"..."}],
-        "signals_external_top": [],
-        "assumptions": ["..."],
-        "data_gaps": ["..."]
+        "signals_internal_top": [{"signal_id":"sig_...", "name":"dato específico del Brain/Setup", "source":"internal", "trend":"up|down|stable", "latest_value":"...", "unit":"...", "why_it_matters":"..."}],
+        "signals_external_top": [{"signal_id":"sig_...", "name":"tendencia sector", "source":"external", "trend":"...", "why_it_matters":"..."}],
+        "assumptions": ["supuestos explícitos"],
+        "data_gaps": ["qué falta para subir nivel"]
       },
       "causal_chain": {
-        "nodes": ["driver1", "effect1", "outcome"],
-        "edges": [{"from":"driver1","to":"effect1","sign":"+","lag":"H0","strength":0.7}]
+        "nodes": ["driver específico del negocio", "efecto intermedio", "resultado"],
+        "edges": [{"from":"...", "to":"...", "sign":"+|-", "lag":"H0|H1", "strength":0.0-1.0}]
       },
       "is_breakpoint": false,
       "recommended_actions": [
-        {"tier":"48h|14d|90d", "action":"...", "why":"...", "kpi":"...", "expected_effect":"..."}
+        {"tier":"48h|14d|90d", "action":"acción concreta para ${business.name}", "why":"razón específica", "kpi":"métrica a medir", "expected_effect":"resultado esperado"}
       ],
       "available_actions": {
         "convert_to_mission": {
-          "mission_title":"...",
-          "objective":"...",
-          "steps":["paso 1", "paso 2"],
-          "kpi_targets":["..."],
-          "deadline":"YYYY-MM-DD"
+          "mission_title": "Misión clara",
+          "objective": "Objetivo SMART",
+          "steps": ["paso 1 específico", "paso 2"],
+          "kpi_targets": ["meta medible"],
+          "deadline": "YYYY-MM-DD"
         }
       },
       "visual_payload": {
-        "bubble": {"x_prob":0.0-1.0,"y_impact":0-100,"size":10-50,"urgency":0-1,"glow":0-1}
+        "bubble": {"x_prob":0.0-1.0, "y_impact":0-100, "size":10-50, "urgency":0-1, "glow":0-1}
       }
     }
   ],
   "calibration_events": [
     {
       "priority": 1-5,
-      "reason": "qué predicción mejora y por qué",
-      "improves": [{"prediction_id":"temp_1", "delta_confidence":0.1, "delta_uncertainty_reduction":0.15}],
-      "input_type": "tap|slider|minmax|quick_number|select",
-      "question": "pregunta corta",
-      "unit": "USD|PERCENT|COUNT",
-      "options": [{"label":"...", "value":"..."}],
-      "min": null,
-      "max": null,
-      "default_value": null
+      "reason": "Por qué este dato mejora las predicciones de ${business.name}",
+      "improves": [{"prediction_domain":"...", "delta_confidence":0.1-0.3}],
+      "input_type": "tap|slider|select|quick_number",
+      "question": "Pregunta en ${localeVoice.voice} sobre ${businessType}",
+      "unit": "...",
+      "options": [{"label":"opción relevante", "value":"..."}]
     }
   ]
 }
 
-Genera entre 3-8 predicciones relevantes según el contexto del negocio. Incluye 1-3 eventos de calibración si faltan datos críticos.`;
+Genera 4-8 predicciones ULTRA-PERSONALIZADAS. Incluye 2-4 CalibrationEvents si hay gaps críticos.`;
 
-    const userPrompt = `Contexto del negocio:
+    const userPrompt = `CONTEXTO COMPLETO:
 ${JSON.stringify(contextBundle, null, 2)}
 
-Genera predicciones para los horizontes ${horizons.join(', ')} en los dominios ${domains.join(', ')}.
-Personaliza según el tipo de negocio "${brain?.primary_business_type || business.category}" en "${business.country}".
-Si faltan datos críticos, usa Level C (En Bruma) y genera CalibrationEvents.`;
+INSTRUCCIONES:
+1. Analiza el contexto del negocio "${business.name}" (${businessType} en ${business.country})
+2. Genera predicciones para horizontes: ${horizons.join(', ')}
+3. Cubre dominios: ${domains.join(', ')}
+4. Personaliza según el Brain state y sector context
+5. Si faltan datos críticos, usa Level C y crea CalibrationEvents
+6. Sé SORPRENDENTE: revela insights que el dueño no esperaría
+7. Usa siempre ${localeVoice.voice} y moneda ${business.currency || 'USD'}`;
 
-    // Call Lovable AI
+    console.log(`[generate-predictions] Calling AI with ${dataQuality.overallScore}/100 data quality`);
+
+    // Call Lovable AI with optimized model
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -234,16 +561,29 @@ Si faltan datos críticos, usa Level C (En Bruma) y genera CalibrationEvents.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-pro',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        temperature: 0.3,
+        temperature: 0.25,
+        max_tokens: 8000,
       }),
     });
 
     if (!aiResponse.ok) {
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again later' }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ error: 'Payment required' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       const errorText = await aiResponse.text();
       console.error('[generate-predictions] AI error:', aiResponse.status, errorText);
       throw new Error(`AI gateway error: ${aiResponse.status}`);
@@ -255,21 +595,22 @@ Si faltan datos críticos, usa Level C (En Bruma) y genera CalibrationEvents.`;
     // Parse JSON from response
     let parsedContent;
     try {
-      // Extract JSON from markdown code blocks if present
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
       const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
       parsedContent = JSON.parse(jsonStr);
     } catch (parseError) {
-      console.error('[generate-predictions] Failed to parse AI response:', content);
+      console.error('[generate-predictions] Failed to parse AI response:', content.substring(0, 500));
       throw new Error('Failed to parse AI prediction response');
     }
 
     const predictions = parsedContent.predictions || [];
     const calibrationEvents = parsedContent.calibration_events || [];
 
+    console.log(`[generate-predictions] Generated ${predictions.length} predictions, ${calibrationEvents.length} calibrations`);
+
     // Insert predictions into database
     const now = new Date().toISOString();
-    const predictionsToInsert = predictions.map((pred: any, idx: number) => ({
+    const predictionsToInsert = predictions.map((pred: any) => ({
       business_id,
       brain_id: brain?.id || null,
       domain: pred.domain,
@@ -277,8 +618,8 @@ Si faltan datos críticos, usa Level C (En Bruma) y genera CalibrationEvents.`;
       title: pred.title,
       summary: pred.summary,
       publication_level: pred.publication_level || 'C',
-      probability: pred.probability || 0.5,
-      confidence: pred.confidence || 0.5,
+      probability: Math.max(0, Math.min(1, pred.probability || 0.5)),
+      confidence: Math.max(0, Math.min(1, pred.confidence || 0.5)),
       uncertainty_band: pred.uncertainty_band || { metric: 'other', unit: 'PERCENT', low: 0, base: 0, high: 0 },
       time_window: pred.time_window || {},
       estimated_impact: pred.estimated_impact || {},
@@ -309,6 +650,8 @@ Si faltan datos críticos, usa Level C (En Bruma) y genera CalibrationEvents.`;
       if (!insertRes.ok) {
         const errText = await insertRes.text();
         console.error('[generate-predictions] Insert error:', errText);
+      } else {
+        console.log(`[generate-predictions] Inserted ${predictionsToInsert.length} predictions`);
       }
     }
 
@@ -340,14 +683,16 @@ Si faltan datos críticos, usa Level C (En Bruma) y genera CalibrationEvents.`;
         },
         body: JSON.stringify(calibrationsToInsert),
       });
+      console.log(`[generate-predictions] Inserted ${calibrationsToInsert.length} calibrations`);
     }
-
-    console.log(`[generate-predictions] Generated ${predictions.length} predictions and ${calibrationEvents.length} calibrations for business ${business_id}`);
 
     return new Response(JSON.stringify({
       success: true,
       predictions_count: predictions.length,
       calibrations_count: calibrationEvents.length,
+      data_quality_score: dataQuality.overallScore,
+      business_type: businessType,
+      sector_context_used: true,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
