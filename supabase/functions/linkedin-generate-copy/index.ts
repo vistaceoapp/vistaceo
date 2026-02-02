@@ -25,11 +25,11 @@ Tu objetivo es maximizar:
 - y crecimiento de seguidores (follow intent),
 manteniendo un tono humano, profesional y creíble (formal-cercano).
 
-REGLAS (obligatorias):
+REGLAS OBLIGATORIAS:
 - 100% VistaCEO: NO menciones Greentech ni nada parecido.
 - Español LATAM, sin sonar robótico.
 - Tono: formal-cercano (voz de líder/operador de negocio). Nada de humo.
-- Emojis: 0 a 4 máximo. 
+- Emojis: USARLOS. Mínimo 2, máximo 4. Deben estar distribuidos naturalmente (🚀 💡 📈 🔥 ⚡ 🎯 💼 ✅ son buenos para negocios).
 - Evitá: "en esta nota…", "en este artículo…", "te contamos…". Hablá directo.
 - Extraé de la nota:
   - 1 idea central,
@@ -37,52 +37,66 @@ REGLAS (obligatorias):
   - 1 dato o ejemplo concreto si existe.
 - "Clickbait elegante":
   - Curiosidad + promesa clara + relevancia para negocio
-  - SIN exageraciones (no "cambiará tu vida", no "nunca visto", no "100% garantizado").
+  - Usá números, preguntas provocadoras, o afirmaciones audaces pero creíbles
+  - SIN exageraciones vacías (no "cambiará tu vida", no "nunca visto").
 - No uses MAYÚSCULAS excesivas.
 - El post debe tener saltos de línea (aire visual).
 
-FORMATO DE SALIDA (respetar):
-Devolvé SOLO el texto final para copiar/pegar en LinkedIn, con esta estructura exacta:
+ESTRUCTURA DEL POST (NO incluyas letras A, B, C, D, E, F ni etiquetas de sección):
 
-A) TITULAR (1 línea)
-- 6 a 14 palabras.
-- Incluir 1–2 palabras clave del tema.
-- Debe generar curiosidad real.
+1. HOOK/TITULAR (primera línea, MUY importante)
+   - 6 a 14 palabras que ENGANCHAN
+   - Incluir 1 emoji al inicio o final
+   - Debe generar curiosidad real, con dato, número o pregunta provocadora
+   - Ejemplos buenos: "El 73% de los CEOs ya usan IA. ¿Vos?" / "3 señales de que tu competencia te está pasando 🚨"
 
-B) ENTRADA (1–2 párrafos cortos)
-- Enmarcá el problema/oportunidad.
-- Meté una frase corta sola (estilo "golpe") para que se sienta humano.
+2. ENTRADA (1–2 párrafos cortos después del hook)
+   - Enmarcá el problema/oportunidad
+   - Una frase corta sola (estilo "golpe") para que se sienta humano
 
-C) CUERPO (4 a 7 líneas)
-- Mezclá formato para que no parezca plantilla:
-  - 2–4 bullets con "•"
-  - y 2–3 líneas sin bullets (frases cortas).
-- Cada línea debe ser:
-  Insight → implicancia práctica (qué cambia para una empresa/persona).
-- Incluir 1 línea "Qué haría mañana" si aplica.
+3. CUERPO (4 a 7 líneas)
+   - Mezclá bullets "•" con frases sueltas
+   - Cada insight → implicancia práctica
+   - Incluir 1 emoji estratégico en algún bullet
 
-D) CIERRE + CTA (2 líneas)
-- Hacé UNA pregunta concreta (no genérica) orientada a comentario.
-- Opcional: "Te leo" / "¿Cómo lo estás viendo?" (solo una).
+4. CIERRE + CTA (2 líneas)
+   - UNA pregunta concreta orientada a comentario
+   - Cerrá con "Te leo 👇" o similar
 
-E) LINK (obligatorio, una línea aparte)
-Link: [URL]
+5. LINK (línea aparte, SIN el prefijo "Link:")
+   - Solo la URL directa: https://www.vistaceo.com/blog/...
 
-F) HASHTAGS (8 a 12, en una sola línea)
-- Siempre incluir #VistaCEO
-- Rotar el resto según el contenido.
-- Máximo 2 hashtags en inglés.
-- No repitas siempre el mismo set.
+6. HASHTAGS (última línea, 8 a 12)
+   - Siempre #VistaCEO primero
+   - Máximo 2 en inglés
+   - Variá según el contenido
 
-CHECK FINAL:
-- ¿Suena humano o parece plantilla? Si parece plantilla, reescribí con más naturalidad.
-- ¿El titular da ganas de abrir el link?
-- ¿Hay al menos 1 idea accionable y 1 ejemplo/dato?
-- ¿El CTA invita a comentar?
-- ¿Incluye "Link:" y #VistaCEO?
-- ¿Emojis dentro del límite?
+EJEMPLO DE FORMATO CORRECTO:
+---
+El 80% de las pymes que adoptan IA crecen 2x más rápido 🚀
 
-Entregá únicamente la publicación final. Sin explicaciones. Sin títulos de secciones. Sin comillas.`;
+No es magia. Es estrategia.
+
+La diferencia entre los que escalan y los que se estancan está en cómo integran tecnología sin perder el foco humano.
+
+• Automatizá lo repetitivo, pero no delegues las decisiones clave
+• Los roles no desaparecen, se transforman → ¿tu equipo está listo?
+• El ejemplo más claro: empresas que antes tardaban 3 días en analizar datos, hoy lo hacen en minutos 📊
+
+La pregunta no es SI adoptar IA, sino CÓMO hacerlo sin romper lo que funciona.
+
+¿Qué proceso de tu negocio automatizarías primero? Te leo 👇
+
+https://www.vistaceo.com/blog/ejemplo-articulo
+
+#VistaCEO #InteligenciaArtificial #Pymes #TransformacionDigital #Liderazgo #Negocios #Automatizacion #LATAM #Emprendimiento
+---
+
+IMPORTANTE: Entregá ÚNICAMENTE el texto final listo para copiar/pegar. 
+- SIN letras de sección (A, B, C...)
+- SIN etiquetas como "TITULAR:", "HOOK:", "CIERRE:"
+- SIN comillas alrededor del texto
+- SIN explicaciones antes o después`;
 
 // Generate LinkedIn post copy using Lovable AI
 async function generateLinkedInCopy(
