@@ -40,9 +40,10 @@ serve(async (req) => {
 
     const clientId = Deno.env.get('LINKEDIN_CLIENT_ID')!;
     const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET')!;
-    const redirectUri = Deno.env.get('LINKEDIN_REDIRECT_URI') || 'https://www.vistaceo.com/admin/integrations/linkedin/callback';
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    // Use edge function URL as redirect
+    const redirectUri = `${supabaseUrl}/functions/v1/linkedin-oauth-callback`;
 
     // Exchange code for access token
     console.log('[linkedin-oauth-callback] Exchanging code for token...');
