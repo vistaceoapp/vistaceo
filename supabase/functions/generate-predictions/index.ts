@@ -533,27 +533,47 @@ ${latestSnapshot ? `- Score total: ${latestSnapshot.total_score}/100
       "question": "Pregunta en ${localeVoice.voice} sobre ${businessType}",
       "unit": "...",
       "options": [{"label":"opción relevante", "value":"..."}]
-    }
+}
   ]
 }
 
-Genera 4-8 predicciones ULTRA-PERSONALIZADAS. Incluye 2-4 CalibrationEvents si hay gaps críticos.`;
+IMPORTANTE: Genera exactamente 3-4 predicciones CONCISAS (no más). Incluye 1-2 CalibrationEvents si hay gaps críticos. Mantén respuestas CORTAS.`;
 
-    const userPrompt = `CONTEXTO COMPLETO:
-${JSON.stringify(contextBundle, null, 2)}
+    // Simplify context to reduce tokens
+    const simplifiedContext = {
+      business: {
+        name: business.name,
+        country: business.country,
+        category: business.category,
+        currency: business.currency || 'USD',
+        revenue_range: business.monthly_revenue_range,
+        avg_ticket: business.avg_ticket_range,
+      },
+      brain: brain ? {
+        type: brain.primary_business_type,
+        focus: brain.current_focus,
+        confidence: brain.confidence_score,
+        mvc_pct: brain.mvc_completion_pct,
+      } : null,
+      sector: {
+        drivers: sectorContext.key_drivers.slice(0, 3),
+        risks: sectorContext.common_risks.slice(0, 3),
+      },
+      data_quality: dataQuality.overallScore,
+      horizons,
+      domains: domains.slice(0, 4),
+    };
 
-INSTRUCCIONES:
-1. Analiza el contexto del negocio "${business.name}" (${businessType} en ${business.country})
-2. Genera predicciones para horizontes: ${horizons.join(', ')}
-3. Cubre dominios: ${domains.join(', ')}
-4. Personaliza según el Brain state y sector context
-5. Si faltan datos críticos, usa Level C y crea CalibrationEvents
-6. Sé SORPRENDENTE: revela insights que el dueño no esperaría
-7. Usa siempre ${localeVoice.voice} y moneda ${business.currency || 'USD'}`;
+    const userPrompt = `Negocio: "${business.name}" (${businessType} en ${business.country})
+Contexto: ${JSON.stringify(simplifiedContext)}
+
+Genera 3-4 predicciones para horizontes ${horizons.slice(0, 3).join(', ')} cubriendo ${domains.slice(0, 4).join(', ')}.
+Usa ${localeVoice.voice} y moneda ${business.currency || 'USD'}.
+RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
 
     console.log(`[generate-predictions] Calling AI with ${dataQuality.overallScore}/100 data quality`);
 
-    // Call Lovable AI with optimized model
+    // Call Lovable AI with flash model for faster, more reliable responses
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -561,13 +581,13 @@ INSTRUCCIONES:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        temperature: 0.25,
-        max_tokens: 8000,
+        temperature: 0.3,
+        max_tokens: 6000,
       }),
     });
 
@@ -591,16 +611,36 @@ INSTRUCCIONES:
 
     const aiData = await aiResponse.json();
     const content = aiData.choices?.[0]?.message?.content || '';
+    
+    console.log(`[generate-predictions] AI response length: ${content.length} chars`);
 
-    // Parse JSON from response
+    // Robust JSON parsing with multiple fallback strategies
     let parsedContent;
     try {
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-      const jsonStr = jsonMatch ? jsonMatch[1].trim() : content.trim();
-      parsedContent = JSON.parse(jsonStr);
-    } catch (parseError) {
-      console.error('[generate-predictions] Failed to parse AI response:', content.substring(0, 500));
-      throw new Error('Failed to parse AI prediction response');
+      // Strategy 1: Try direct parse
+      parsedContent = JSON.parse(content);
+    } catch {
+      try {
+        // Strategy 2: Extract from markdown code block
+        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (jsonMatch) {
+          parsedContent = JSON.parse(jsonMatch[1].trim());
+        } else {
+          // Strategy 3: Find JSON object boundaries
+          const startIdx = content.indexOf('{');
+          const endIdx = content.lastIndexOf('}');
+          if (startIdx !== -1 && endIdx > startIdx) {
+            parsedContent = JSON.parse(content.substring(startIdx, endIdx + 1));
+          } else {
+            throw new Error('No valid JSON found');
+          }
+        }
+      } catch (innerError) {
+        console.error('[generate-predictions] Parse error. Content preview:', content.substring(0, 800));
+        // Return empty predictions instead of failing completely
+        parsedContent = { predictions: [], calibration_events: [] };
+        console.log('[generate-predictions] Using fallback empty response');
+      }
     }
 
     const predictions = parsedContent.predictions || [];
