@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { 
   RefreshCw, Play, Calendar, FileText, BarChart3, 
   CheckCircle, XCircle, Clock, AlertTriangle, Loader2,
-  Newspaper, Settings, Database
+  Newspaper, Settings, Database, Linkedin, Copy, ExternalLink
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -22,6 +22,7 @@ export default function BlogAdminPage() {
   const [isSeeding, setIsSeeding] = useState(false);
   const [isBuildingCalendar, setIsBuildingCalendar] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingLinkedin, setGeneratingLinkedin] = useState<string | null>(null);
 
   // Fetch topics count
   const { data: topicsData } = useQuery({
@@ -105,6 +106,37 @@ export default function BlogAdminPage() {
     }
   });
 
+  // Fetch LinkedIn pending publications (posts published but not yet on LinkedIn)
+  const { data: linkedinQueue } = useQuery({
+    queryKey: ['admin-linkedin-queue'],
+    queryFn: async () => {
+      // Get published posts
+      const { data: posts, error: postsError } = await supabase
+        .from('blog_posts')
+        .select('id, title, slug, excerpt, publish_at')
+        .eq('status', 'published')
+        .order('publish_at', { ascending: false })
+        .limit(50);
+      if (postsError) throw postsError;
+
+      // Get existing social publications
+      const { data: publications, error: pubError } = await supabase
+        .from('social_publications')
+        .select('blog_post_id, status, generated_text, linkedin_post_urn, error_message')
+        .eq('channel', 'linkedin');
+      if (pubError) throw pubError;
+
+      // Map publications by post id
+      const pubMap = new Map(publications?.map(p => [p.blog_post_id, p]) || []);
+
+      // Combine
+      return (posts || []).map(post => ({
+        ...post,
+        linkedin: pubMap.get(post.id) || null
+      }));
+    }
+  });
+
   // Seed topics mutation
   const seedTopics = async () => {
     setIsSeeding(true);
@@ -166,15 +198,49 @@ export default function BlogAdminPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'published':
+      case 'posted':
         return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle className="w-3 h-3 mr-1" /> Publicado</Badge>;
       case 'skipped':
         return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"><AlertTriangle className="w-3 h-3 mr-1" /> Saltado</Badge>;
       case 'failed':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><XCircle className="w-3 h-3 mr-1" /> Fallido</Badge>;
+      case 'needs_reauth':
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><XCircle className="w-3 h-3 mr-1" /> {status === 'needs_reauth' ? 'Reauth' : 'Fallido'}</Badge>;
       case 'planned':
-        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30"><Clock className="w-3 h-3 mr-1" /> Planificado</Badge>;
+      case 'queued':
+        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30"><Clock className="w-3 h-3 mr-1" /> {status === 'queued' ? 'En cola' : 'Planificado'}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  // Generate LinkedIn copy for a post
+  const generateLinkedInCopy = async (postId: string) => {
+    setGeneratingLinkedin(postId);
+    try {
+      const { data, error } = await supabase.functions.invoke('linkedin-generate-copy', {
+        body: { post_id: postId }
+      });
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success('Copy de LinkedIn generado ✓');
+      } else {
+        toast.warning(data.error || 'No se pudo generar');
+      }
+      queryClient.invalidateQueries({ queryKey: ['admin-linkedin-queue'] });
+    } catch (err: any) {
+      toast.error(`Error: ${err.message}`);
+    } finally {
+      setGeneratingLinkedin(null);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success('¡Copiado al portapapeles!');
+    } catch {
+      toast.error('Error al copiar');
     }
   };
 
@@ -274,8 +340,12 @@ export default function BlogAdminPage() {
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="calendar" className="space-y-4">
+        <Tabs defaultValue="linkedin" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="linkedin">
+              <Linkedin className="w-4 h-4 mr-2" />
+              LinkedIn
+            </TabsTrigger>
             <TabsTrigger value="calendar">
               <Calendar className="w-4 h-4 mr-2" />
               Calendario
@@ -289,6 +359,97 @@ export default function BlogAdminPage() {
               Distribución
             </TabsTrigger>
           </TabsList>
+
+          {/* LinkedIn Tab */}
+          <TabsContent value="linkedin">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Linkedin className="w-5 h-5" />
+                  Cola de LinkedIn
+                </CardTitle>
+                <CardDescription>
+                  Posts publicados → genera el copy → copiá y pegá en LinkedIn
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Título</TableHead>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Estado LI</TableHead>
+                        <TableHead className="text-right">Acciones</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {linkedinQueue?.map((item: any) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="max-w-xs">
+                            <div className="font-medium truncate">{item.title}</div>
+                            <div className="text-xs text-muted-foreground truncate">{item.excerpt}</div>
+                          </TableCell>
+                          <TableCell className="font-mono text-sm">
+                            {item.publish_at ? format(new Date(item.publish_at), 'dd MMM', { locale: es }) : '—'}
+                          </TableCell>
+                          <TableCell>
+                            {item.linkedin ? getStatusBadge(item.linkedin.status) : (
+                              <Badge variant="outline"><Clock className="w-3 h-3 mr-1" /> Pendiente</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right space-x-2">
+                            {item.linkedin?.generated_text ? (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => copyToClipboard(item.linkedin.generated_text)}
+                                  className="bg-primary"
+                                >
+                                  <Copy className="w-4 h-4 mr-1" />
+                                  Copiar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => window.open('https://www.linkedin.com/company/vistaceo/admin/page-posts/published/', '_blank')}
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                </Button>
+                              </>
+                            ) : (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => generateLinkedInCopy(item.id)}
+                                disabled={generatingLinkedin === item.id}
+                              >
+                                {generatingLinkedin === item.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Play className="w-4 h-4 mr-1" />
+                                    Generar
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {(!linkedinQueue || linkedinQueue.length === 0) && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                            No hay posts publicados aún.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Calendar Tab */}
           <TabsContent value="calendar">
