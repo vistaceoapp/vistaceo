@@ -140,3 +140,9 @@ verify_jwt = false
 
 [functions.linkedin-oauth-callback]
 verify_jwt = false
+
+[functions.linkedin-generate-copy]
+verify_jwt = false
+
+[functions.og-meta]
+verify_jwt = false
