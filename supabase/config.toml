@@ -146,3 +146,6 @@ verify_jwt = false
 
 [functions.og-meta]
 verify_jwt = false
+
+[functions.blog-seo]
+verify_jwt = false
