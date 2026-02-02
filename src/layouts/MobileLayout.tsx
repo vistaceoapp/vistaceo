@@ -1,10 +1,8 @@
-import { Outlet, NavLink, useLocation } from "react-router-dom";
-import { Home, MessageCircle, Target, Radar, Orbit, MoreHorizontal, Crown } from "lucide-react";
+import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Home, MessageCircle, Target, Radar, BarChart3, Orbit, Settings, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { useBusiness } from "@/contexts/BusinessContext";
-import { useBrain } from "@/hooks/use-brain";
-import { PulsingDot } from "@/components/app/PulsingDot";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
 import { useAutoSync } from "@/hooks/use-auto-sync";
@@ -12,17 +10,17 @@ import { useSubscription } from "@/hooks/use-subscription";
 
 const navItems = [
   { path: "/app", icon: Home, label: "Inicio", isPro: false },
-  { path: "/app/chat", icon: MessageCircle, label: "Chat", hasNotification: true, isPro: true },
+  { path: "/app/chat", icon: MessageCircle, label: "Chat", isPro: true },
   { path: "/app/missions", icon: Target, label: "Misiones", isPro: false },
   { path: "/app/radar", icon: Radar, label: "Radar", isPro: false },
+  { path: "/app/analytics", icon: BarChart3, label: "Stats", isPro: true },
   { path: "/app/predictions", icon: Orbit, label: "Futuro", isPro: true },
-  { path: "/app/more", icon: MoreHorizontal, label: "Más", isPro: false },
 ];
 
 const MobileLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { currentBusiness } = useBusiness();
-  const { brain, confidenceLevel, focusLabel, loading: brainLoading } = useBrain();
   const { isPro } = useSubscription();
   
   // Auto-sync external data in background
@@ -54,9 +52,13 @@ const MobileLayout = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <ThemeToggle />
-            {/* Brain Status Mini */}
             <BrainStatusWidget variant="minimal" />
+            <button
+              onClick={() => navigate('/app/more')}
+              className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </header>
@@ -68,9 +70,9 @@ const MobileLayout = () => {
         </div>
       </main>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation - 6 buttons */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 dark:bg-card/80 backdrop-blur-xl border-t border-border safe-area-inset-bottom">
-        <div className="max-w-3xl mx-auto flex items-center justify-around h-16 px-1">
+        <div className="max-w-3xl mx-auto flex items-center justify-between h-14 px-2">
           {navItems.map((item) => {
             const isActive = item.path === "/app" 
               ? location.pathname === "/app"
@@ -81,45 +83,33 @@ const MobileLayout = () => {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-0.5 w-14 py-2 rounded-xl transition-all duration-300",
+                  "relative flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 rounded-lg transition-all duration-200",
                   isActive 
                     ? "text-primary" 
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground"
                 )}
               >
-                {isActive && (
-                  <div className="absolute inset-0 rounded-xl bg-primary/10 dark:blur-sm" />
-                )}
-                
                 <div className="relative">
                   <item.icon className={cn(
-                    "w-5 h-5 transition-all duration-300 relative z-10",
+                    "w-5 h-5 transition-all",
                     isActive && "scale-110"
                   )} />
                   
-                  {item.hasNotification && !isActive && (
-                    <span className="absolute -top-1 -right-1">
-                      <PulsingDot variant="primary" size="sm" />
-                    </span>
-                  )}
-                  
-                  {/* Pro badge indicator */}
+                  {/* Pro indicator */}
                   {item.isPro && !isPro && !isActive && (
-                    <span className="absolute -top-1 -right-1.5">
-                      <Crown className="w-2.5 h-2.5 text-warning" />
-                    </span>
+                    <Crown className="absolute -top-1 -right-1.5 w-2.5 h-2.5 text-warning" />
                   )}
                 </div>
                 
                 <span className={cn(
-                  "text-[9px] font-medium relative z-10 transition-colors",
+                  "text-[9px] font-medium",
                   isActive && "font-semibold"
                 )}>
                   {item.label}
                 </span>
                 
                 {isActive && (
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full gradient-primary" />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-primary" />
                 )}
               </NavLink>
             );

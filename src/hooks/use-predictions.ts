@@ -212,50 +212,58 @@ export const usePredictions = (): UsePredictionsReturn => {
     }
   }, []);
 
-  // Convert prediction to mission
+  // Convert prediction to mission (daily_action)
   const convertToMission = useCallback(async (predictionId: string): Promise<string | null> => {
     const prediction = predictions.find(p => p.id === predictionId);
     if (!prediction || !currentBusiness?.id) return null;
 
     try {
       const missionData = prediction.available_actions?.convert_to_mission;
-      if (!missionData) {
-        throw new Error('Esta predicción no tiene plan de misión disponible');
-      }
-
-      // Create mission via existing system
-      const { data: mission, error: missionError } = await supabase
-        .from('missions')
+      
+      // Build mission from prediction data
+      const missionTitle = missionData?.mission_title || `Actuar sobre: ${prediction.title}`;
+      const missionDescription = missionData?.objective || prediction.summary || prediction.title;
+      
+      // Create action as a mission-type daily_action
+      const { data: action, error: actionError } = await supabase
+        .from('daily_actions')
         .insert({
           business_id: currentBusiness.id,
-          title: missionData.mission_title,
-          description: missionData.objective,
-          status: 'active',
-          source: 'prediction',
-          source_id: predictionId,
-          steps: missionData.steps.map((step, i) => ({
+          title: missionTitle,
+          description: missionDescription,
+          category: prediction.domain,
+          priority: prediction.probability > 0.7 ? 'high' : prediction.probability > 0.4 ? 'medium' : 'low',
+          status: 'pending',
+          signals: [{ 
+            source: 'prediction', 
+            prediction_id: predictionId,
+            probability: prediction.probability,
+            confidence: prediction.confidence,
+            horizon: prediction.horizon_ring
+          }],
+          checklist: (missionData?.steps || prediction.recommended_actions || []).map((step: unknown, i: number) => ({
             id: `step_${i}`,
-            title: step,
-            completed: false,
+            text: typeof step === 'string' ? step : (step as { action?: string })?.action || 'Paso',
+            done: false
           })),
         })
         .select()
         .single();
 
-      if (missionError) throw missionError;
+      if (actionError) throw actionError;
 
       // Update prediction status
       await supabase
         .from('predictions')
         .update({ 
           status: 'converted', 
-          converted_to_mission_id: mission.id 
+          converted_to_mission_id: action.id 
         })
         .eq('id', predictionId);
 
       setPredictions(prev => prev.filter(p => p.id !== predictionId));
 
-      return mission.id;
+      return action.id;
     } catch (err) {
       console.error('Error converting to mission:', err);
       throw err;
