@@ -418,12 +418,9 @@ export default function PredictionsPage() {
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Orbit className="w-7 h-7 text-primary" />
             Predicciones
-            <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
-              PLANETARIO 10 AÑOS
-            </Badge>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Anticipá el futuro de tu negocio con inteligencia causal
+            Anticipá el futuro de tu negocio basado en datos reales
           </p>
         </div>
         <Button 
