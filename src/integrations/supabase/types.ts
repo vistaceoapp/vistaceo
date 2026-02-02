@@ -1726,32 +1726,38 @@ export type Database = {
       }
       linkedin_integration: {
         Row: {
+          access_token: string | null
           access_token_expires_at: string | null
           created_at: string
           id: string
           last_post_at: string | null
           organization_name: string | null
           organization_urn: string | null
+          refresh_token: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          access_token?: string | null
           access_token_expires_at?: string | null
           created_at?: string
           id?: string
           last_post_at?: string | null
           organization_name?: string | null
           organization_urn?: string | null
+          refresh_token?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          access_token?: string | null
           access_token_expires_at?: string | null
           created_at?: string
           id?: string
           last_post_at?: string | null
           organization_name?: string | null
           organization_urn?: string | null
+          refresh_token?: string | null
           status?: string
           updated_at?: string
         }
