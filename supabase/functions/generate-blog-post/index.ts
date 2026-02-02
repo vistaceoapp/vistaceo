@@ -1074,8 +1074,28 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
       notes: `PATCH V5: Published "${selectedTopic.title_base}" for LATAM (score: ${qualityGateReport.score}%)`
     });
 
-    // 13. Trigger LinkedIn auto-publish (async, non-blocking)
-    // Use setTimeout to make it non-blocking
+    // 13. Generate OG/SEO page for social sharing (async, non-blocking)
+    const triggerOGGeneration = async () => {
+      try {
+        console.log('[generate-blog-post] Generating OG page for post:', newPost.slug);
+        
+        const response = await fetch(`${supabaseUrl}/functions/v1/generate-blog-og`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ post_id: newPost.id }),
+        });
+        
+        const result = await response.json();
+        console.log('[generate-blog-post] OG generation result:', result);
+      } catch (error) {
+        console.error('[generate-blog-post] OG generation error:', error);
+      }
+    };
+    
+    // 14. Trigger LinkedIn auto-publish (async, non-blocking)
     const triggerLinkedInPublish = async () => {
       try {
         console.log('[generate-blog-post] Triggering LinkedIn publish for post:', newPost.id);
@@ -1093,14 +1113,14 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
         console.log('[generate-blog-post] LinkedIn publish result:', result);
       } catch (error) {
         console.error('[generate-blog-post] LinkedIn publish error:', error);
-        // Don't throw - this is a background task
       }
     };
     
-    // Fire the LinkedIn publish - don't await it
-    triggerLinkedInPublish().catch(err => {
-      console.error('[generate-blog-post] LinkedIn publish background error:', err);
-    });
+    // Fire both tasks in parallel - don't await
+    Promise.all([
+      triggerOGGeneration().catch(err => console.error('[generate-blog-post] OG background error:', err)),
+      triggerLinkedInPublish().catch(err => console.error('[generate-blog-post] LinkedIn background error:', err))
+    ]);
 
     return new Response(JSON.stringify({
       success: true,

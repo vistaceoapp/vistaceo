@@ -262,15 +262,15 @@ serve(async (req) => {
       });
     }
 
-    // Generate copy - use blog-seo edge function URL for LinkedIn sharing
-    // This ensures bots get proper meta tags when scraping
-    const supabaseProjectUrl = supabaseUrl.replace('/auth/v1', '');
-    const seoUrl = `${supabaseProjectUrl}/functions/v1/blog-seo?slug=${post.slug}`;
+    // Generate copy - use Storage URL for LinkedIn sharing
+    // This serves the static HTML with OG meta tags that bots can read
+    // The HTML page auto-redirects real users to the canonical URL
+    const storageUrl = `${supabaseUrl.replace('https://', 'https://').replace('.supabase.co', '.supabase.co')}/storage/v1/object/public/blog-seo-pages/${post.slug}.html`;
     const canonicalUrl = `https://www.vistaceo.com/blog/${post.slug}`;
     
-    // For LinkedIn post, use the SEO URL which serves proper meta tags to bots
-    // Real users clicking the link get redirected to the canonical URL
-    const generatedText = await generateLinkedInCopy(post as BlogPost, seoUrl, lovableApiKey);
+    // For LinkedIn post, use the storage URL which has proper OG meta tags
+    // Real users clicking the link get auto-redirected to the canonical URL
+    const generatedText = await generateLinkedInCopy(post as BlogPost, storageUrl, lovableApiKey);
 
     // Save to social_publications (status = 'queued' since not auto-published yet)
     console.log('[linkedin-generate-copy] Attempting to save to social_publications...');

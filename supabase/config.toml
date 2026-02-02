@@ -149,3 +149,9 @@ verify_jwt = false
 
 [functions.blog-seo]
 verify_jwt = false
+
+[functions.generate-blog-og]
+verify_jwt = false
+
+[functions.fix-blog-images]
+verify_jwt = false
