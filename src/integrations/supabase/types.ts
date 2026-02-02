@@ -1724,6 +1724,39 @@ export type Database = {
           },
         ]
       }
+      linkedin_integration: {
+        Row: {
+          access_token_expires_at: string | null
+          created_at: string
+          id: string
+          last_post_at: string | null
+          organization_name: string | null
+          organization_urn: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          access_token_expires_at?: string | null
+          created_at?: string
+          id?: string
+          last_post_at?: string | null
+          organization_name?: string | null
+          organization_urn?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          access_token_expires_at?: string | null
+          created_at?: string
+          id?: string
+          last_post_at?: string | null
+          organization_name?: string | null
+          organization_urn?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       metrics_timeseries: {
         Row: {
           business_id: string
@@ -2702,6 +2735,56 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_publications: {
+        Row: {
+          attempts: number
+          blog_post_id: string
+          canonical_url: string | null
+          channel: string
+          created_at: string
+          error_message: string | null
+          generated_text: string | null
+          id: string
+          linkedin_post_urn: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          blog_post_id: string
+          canonical_url?: string | null
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          generated_text?: string | null
+          id?: string
+          linkedin_post_urn?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          blog_post_id?: string
+          canonical_url?: string | null
+          channel?: string
+          created_at?: string
+          error_message?: string | null
+          generated_text?: string | null
+          id?: string
+          linkedin_post_urn?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_publications_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
             referencedColumns: ["id"]
           },
         ]

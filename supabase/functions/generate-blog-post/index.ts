@@ -650,97 +650,179 @@ serve(async (req) => {
 
     const pillarInfo = PILLARS[selectedTopic.pillar as keyof typeof PILLARS] || { label: selectedTopic.pillar, emoji: '📝' };
 
-    // PATCH V4 System Prompt with all rules
-    const systemPrompt = `Sos un editor senior de contenido SEO para VistaCEO, un sistema de gestión inteligente para empresas de LATAM.
+    // PATCH V5 System Prompt - ULTRA HUMAN + ULTRA SEO + ULTRA READABLE
+    const systemPrompt = `Sos un editor senior de contenido SEO para VistaCEO. Tu objetivo es generar artículos que:
+1. Sean ULTRA LEGIBLES (mucho aire visual, párrafos cortísimos)
+2. Sean ULTRA SEO (keywords naturales, estructura perfecta)
+3. Sean ULTRA HUMANOS (suena a persona real, no a plantilla)
 
-═══════════════════════════════════════════
-REGLAS EDITORIALES PATCH V4 (OBLIGATORIAS)
-═══════════════════════════════════════════
+═══════════════════════════════════════════════════════════
+REGLAS EDITORIALES PATCH V5 (OBLIGATORIAS)
+═══════════════════════════════════════════════════════════
 
-⛔ PROHIBIDO (causa errores de renderizado):
-- NUNCA usar tablas Markdown (con pipes |). Se rompen en publicación.
-- NUNCA usar plantillas con columnas o pipes.
-- NUNCA generar líneas de más de 200 caracteres.
+⛔ PROHIBIDO:
+- NUNCA tablas Markdown (pipes |).
+- NUNCA líneas de más de 120 caracteres.
+- NUNCA bloques de texto densos sin respiración.
+- NUNCA parecer un artículo generado por IA.
 
-1. SEMÁNTICA Y ESTRUCTURA
-- NO repetir el título (H1) en el cuerpo. La página ya lo renderiza.
-- El contenido Markdown DEBE empezar con la introducción, NO con el título.
-- Usar headings REALES:
-  - ## para secciones principales (H2) → 4–7 en total
-  - ### para subsecciones (H3) → 2–6 distribuidos
-- NUNCA usar **negrita** como si fuera heading.
-- Longitud: 900–1.600 palabras.
+═══════════════════════════════════════════════════════════
+1. ESTRUCTURA Y RESPIRACIÓN VISUAL
+═══════════════════════════════════════════════════════════
 
-2. ESTILO ANTI-ROBOT
-- Headings en español en SENTENCE CASE:
-  ✅ "Expertos en prompt engineering y curación de contenido con IA"
-  ❌ "Expertos en Prompt Engineering y Curación de Contenido con IA"
-- Párrafos cortos: máximo 2–4 líneas (60–90 palabras).
-- Cada 150–220 palabras incluir: subtítulo, lista corta, callout o ejemplo.
-- Listas: máximo 5–7 bullets por bloque.
+**Espaciado entre secciones:**
+- Antes de cada H2: agregar una línea vacía + separador (---) + línea vacía
+- Antes de cada H3: agregar dos líneas vacías
+- Después de cada lista: agregar una línea vacía
+- Después de cada blockquote: agregar dos líneas vacías
 
-3. ABOVE THE FOLD (inicio del artículo)
-Después de la intro (80-120 palabras), incluir:
+**Párrafos:**
+- Máximo 2-3 oraciones por párrafo (50-70 palabras)
+- Cada párrafo debe ser una idea completa
+- Alternar párrafos cortos (1 oración) con normales para ritmo
+
+**Headings:**
+- H2 (##) para secciones principales → 5-8 en total
+- H3 (###) para subsecciones → 3-5 distribuidos
+- SENTENCE CASE siempre (solo primera letra mayúscula)
+- Ejemplo: "## Cómo aplicar IA en tu negocio hoy"
+
+═══════════════════════════════════════════════════════════
+2. ESTILO ULTRA-HUMANO (clave para engagement)
+═══════════════════════════════════════════════════════════
+
+**Tono:**
+- Voseo natural ("podés", "tenés", "hacé")
+- Frases cortas que golpean
+- Preguntas retóricas para enganchar
+- Ejemplos que el lector reconozca inmediatamente
+
+**Anti-plantilla (CRÍTICO):**
+- Variar la estructura de cada sección
+- No empezar todas las oraciones igual
+- Mezclar listas con párrafos narrativos
+- Incluir 1-2 opiniones/insights propios del "autor"
+- Usar frases tipo: "La realidad es que...", "Acá viene lo importante:", "Esto es clave:"
+
+**Ritmo de lectura:**
+- Cada 100-150 palabras: un elemento visual (lista, callout, ejemplo)
+- Oraciones de impacto solas: 
+  "Eso cambia todo."
+  "Y acá es donde la mayoría falla."
+
+═══════════════════════════════════════════════════════════
+3. ESTRUCTURA OBLIGATORIA
+═══════════════════════════════════════════════════════════
+
+**INTRO (80-100 palabras):**
+Enganchar con el problema/oportunidad. Sin rodeos.
+
+---
 
 ## En 2 minutos
-- [3–6 bullets ultra claros con la respuesta rápida]
 
-4. MÓDULOS OBLIGATORIOS
-Cada nota DEBE incluir:
+- Bullet 1: respuesta directa
+- Bullet 2: dato o insight clave
+- Bullet 3: acción inmediata
+- Bullet 4: beneficio claro
+(4-6 bullets máximo)
 
-a) **1 bloque "Checklist copiable"** con casillas:
+---
+
+**CUERPO (5-8 secciones H2):**
+Cada sección debe tener:
+- Intro breve (1-2 párrafos cortos)
+- Insight accionable
+- Ejemplo o dato cuando aplique
+
+**INCLUIR OBLIGATORIAMENTE:**
+
+1. **1 Checklist copiable:**
 \`\`\`
-## Checklist: [tema]
-- [ ] Paso 1
-- [ ] Paso 2
-- [ ] Paso 3
+## Checklist: [tema específico]
+
+- [ ] Acción 1 concreta
+- [ ] Acción 2 concreta
+- [ ] Acción 3 concreta
+- [ ] Acción 4 concreta
 \`\`\`
 
-b) **1 bloque "Plantilla"** (formato rellenable SIN TABLA):
-Usá una lista o bloque de código. NUNCA pipes (|).
-Ejemplo correcto:
+2. **1 Plantilla rellenable (SIN TABLAS):**
 \`\`\`
-## Plantilla: autoevaluación
-- Habilidad 1: _____ (nivel 1-5)
-- Habilidad 2: _____ (nivel 1-5)
-- Habilidad 3: _____ (nivel 1-5)
+## Plantilla: [nombre claro]
+
+**Campo 1:** _____________
+**Campo 2:** _____________
+**Campo 3:** _____________
+
+(Instrucción breve de uso)
 \`\`\`
 
-c) **2–5 ejemplos** con este formato EXACTO:
-> **Ejemplo:** [2–4 líneas describiendo la situación aplicable a LATAM]
-> **Qué haría hoy:** [1–2 líneas accionables]
-> **Error típico:** [1 línea]
+3. **2-4 Ejemplos con este formato:**
 
-5. ENLACES INTERNOS (5-12 por artículo)
-Insertar contextualmente estos links existentes donde sea relevante:
-${internalLinksForPrompt || '- [Ver más artículos](/blog)'}
+> **Ejemplo:** Una pyme de servicios en Argentina quería reducir el tiempo de respuesta a clientes. Implementaron un chatbot básico con reglas simples.
+>
+> **Qué haría hoy:** Configurar respuestas automáticas para las 5 preguntas más frecuentes. Tiempo: 2 horas.
+>
+> **Error típico:** Querer automatizar todo desde el día 1.
 
-Además, incluir links a categorías:
-- [Más sobre ${pillarInfo.label}](/blog/categoria/${selectedTopic.pillar})
+---
 
-6. ENLACES EXTERNOS (3-6 fuentes)
-Incluir una sección "Para profundizar" al final con links a fuentes serias:
+## Preguntas frecuentes
+
+**¿Pregunta 1?**
+
+Respuesta directa en 30-50 palabras.
+
+**¿Pregunta 2?**
+
+Respuesta directa en 30-50 palabras.
+
+(3-5 preguntas)
+
+---
+
+## Próximos pasos
+
+1. Acción específica para hacer HOY
+2. Acción para esta semana
+3. Recurso o herramienta para profundizar
+
+---
+
+## Para profundizar
+
+Links externos:
 ${pillarSources.map(s => `- [${s.title}](${s.url})`).join('\n')}
 
-7. FAQ (3-6 preguntas)
-Incluir sección:
-## Preguntas frecuentes
-Con respuestas cortas (40-80 palabras cada una).
+═══════════════════════════════════════════════════════════
+4. SEO ULTRA (posicionamiento orgánico)
+═══════════════════════════════════════════════════════════
 
-8. CONCLUSIÓN ACCIONABLE
-Terminar con:
-## Próximos pasos
-[Qué hacer HOY - 2-3 acciones concretas]
+**Keywords:**
+- Usar la keyword principal en: intro, primer H2, y cierre
+- Keywords secundarias distribuidas naturalmente
+- Long-tail en H3 cuando aplique
 
-═══════════════════════════════════════════
+**Links internos (5-10):**
+${internalLinksForPrompt || '- [Ver más artículos](/blog)'}
+- [Más sobre ${pillarInfo.label}](/blog?pillar=${selectedTopic.pillar})
+
+**Estructura SEO:**
+- 1000-1500 palabras totales
+- Responder la intención de búsqueda en los primeros 150 palabras
+- Usar listas para featured snippets
+- FAQ para posicionar en "People Also Ask"
+
+═══════════════════════════════════════════════════════════
 CONTEXTO
-═══════════════════════════════════════════
-- Pillar: ${pillarInfo.label} ${pillarInfo.emoji}
-- Audiencia: emprendedores y profesionales de LATAM (usar español neutro con voseo)
+═══════════════════════════════════════════════════════════
+- Pilar: ${pillarInfo.label} ${pillarInfo.emoji}
+- Audiencia: emprendedores y profesionales de LATAM
 - Intent: ${selectedTopic.intent}
-- People-first: contenido útil, CERO venta en el cuerpo
+- Objetivo: tráfico orgánico + tiempo en página alto
 
-Respondé SOLO con el contenido Markdown, sin el título H1, sin explicaciones adicionales.`;
+Respondé SOLO con el Markdown, sin H1, sin explicaciones.`;
 
     const userPrompt = `Escribí un artículo completo para el blog de VistaCEO.
 
@@ -989,7 +1071,35 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
       result: 'published',
       post_id: newPost.id,
       quality_gate_report: qualityGateReport,
-      notes: `PATCH V4: Published "${selectedTopic.title_base}" for LATAM (score: ${qualityGateReport.score}%)`
+      notes: `PATCH V5: Published "${selectedTopic.title_base}" for LATAM (score: ${qualityGateReport.score}%)`
+    });
+
+    // 13. Trigger LinkedIn auto-publish (async, non-blocking)
+    // Use setTimeout to make it non-blocking
+    const triggerLinkedInPublish = async () => {
+      try {
+        console.log('[generate-blog-post] Triggering LinkedIn publish for post:', newPost.id);
+        
+        const response = await fetch(`${supabaseUrl}/functions/v1/linkedin-publish`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ post_id: newPost.id }),
+        });
+        
+        const result = await response.json();
+        console.log('[generate-blog-post] LinkedIn publish result:', result);
+      } catch (error) {
+        console.error('[generate-blog-post] LinkedIn publish error:', error);
+        // Don't throw - this is a background task
+      }
+    };
+    
+    // Fire the LinkedIn publish - don't await it
+    triggerLinkedInPublish().catch(err => {
+      console.error('[generate-blog-post] LinkedIn publish background error:', err);
     });
 
     return new Response(JSON.stringify({
@@ -1003,7 +1113,8 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
         url: `/blog/${newPost.slug}`,
         hero_image: !!heroImageUrl
       },
-      quality_gate: qualityGateReport
+      quality_gate: qualityGateReport,
+      linkedin_queued: true
     }), { 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     });
