@@ -52,7 +52,6 @@ const MobileLayout = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <BrainStatusWidget variant="minimal" />
             <button
               onClick={() => navigate('/app/more')}
               className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
