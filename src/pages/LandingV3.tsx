@@ -41,9 +41,9 @@ const Footer = memo(() => (
           <span className="text-sm text-muted-foreground">© 2025 VistaCEO. Todos los derechos reservados.</span>
         </div>
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
-          <a href="#" className="hover:text-foreground transition-colors">Términos</a>
-          <a href="#" className="hover:text-foreground transition-colors">Privacidad</a>
-          <a href="#" className="hover:text-foreground transition-colors">Contacto</a>
+          <a href="/condiciones" className="hover:text-foreground transition-colors">Condiciones</a>
+          <a href="/politicas" className="hover:text-foreground transition-colors">Privacidad</a>
+          <a href="mailto:info@vistaceo.com" className="hover:text-foreground transition-colors">Contacto</a>
         </div>
       </div>
     </div>
