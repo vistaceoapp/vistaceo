@@ -273,7 +273,6 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    const linkedinAccessToken = Deno.env.get('LINKEDIN_ACCESS_TOKEN');
     
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -327,15 +326,17 @@ serve(async (req) => {
       });
     }
 
-    // 3. Get LinkedIn integration status
+    // 3. Get LinkedIn integration status (token from database)
     const { data: integration } = await supabase
       .from('linkedin_integration')
       .select('*')
       .limit(1)
       .maybeSingle();
 
+    const linkedinAccessToken = integration?.access_token;
+
     if (!integration || integration.status !== 'connected' || !linkedinAccessToken) {
-      console.log('[linkedin-publish] LinkedIn not connected');
+      console.log('[linkedin-publish] LinkedIn not connected or token missing');
       
       // Create/update publication record with needs_reauth status
       await supabase.from('social_publications').upsert({
@@ -354,6 +355,25 @@ serve(async (req) => {
         error: 'LinkedIn not connected',
         status: 'needs_reauth'
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    
+    // Check token expiration
+    if (integration.access_token_expires_at) {
+      const expiresAt = new Date(integration.access_token_expires_at);
+      const now = new Date();
+      if (expiresAt < now) {
+        console.log('[linkedin-publish] Token expired');
+        await supabase
+          .from('linkedin_integration')
+          .update({ status: 'needs_reauth' })
+          .eq('id', integration.id);
+          
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'LinkedIn token expired',
+          status: 'needs_reauth'
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
     }
 
     // 4. Generate LinkedIn copy

@@ -134,18 +134,23 @@ serve(async (req) => {
     // Store in database
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Upsert integration record
-    await supabase.from('linkedin_integration').upsert({
+    // Upsert integration record WITH access token
+    const { error: upsertError } = await supabase.from('linkedin_integration').upsert({
       id: '00000000-0000-0000-0000-000000000001', // Singleton
       organization_urn: organizationUrn,
       organization_name: organizationName,
       status: organizationUrn ? 'connected' : 'pending',
       access_token_expires_at: expiresAt.toISOString(),
+      access_token: accessToken, // Store token directly in DB
+      refresh_token: tokenData.refresh_token || null,
     });
 
-    // Store access token as secret (this part would need manual setup in Supabase secrets)
-    // For now, log that it needs to be set
-    console.log('[linkedin-oauth-callback] ⚠️ IMPORTANT: Set LINKEDIN_ACCESS_TOKEN secret with value:', accessToken.slice(0, 20) + '...');
+    if (upsertError) {
+      console.error('[linkedin-oauth-callback] Error storing integration:', upsertError);
+      throw upsertError;
+    }
+
+    console.log('[linkedin-oauth-callback] ✅ Access token stored in database successfully');
 
     // Redirect to success page
     const successUrl = new URL('https://www.vistaceo.com/admin/integrations/linkedin');
