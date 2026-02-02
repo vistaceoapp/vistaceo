@@ -79,54 +79,26 @@ serve(async (req) => {
 
     console.log('[linkedin-oauth-callback] Token obtained, expires in:', expiresIn, 'seconds');
 
-    // Get organization info (need to fetch which orgs the user manages)
-    // First, get user's profile to find organization admin access
+    // Get user's profile (for personal posting)
     const profileResponse = await fetch('https://api.linkedin.com/v2/me', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
     });
 
-    let organizationUrn = '';
-    let organizationName = 'VistaCEO';
+    let memberUrn = '';
+    let memberName = 'Usuario VistaCEO';
 
-    // Get organizations the user administers
-    const orgsResponse = await fetch(
-      'https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee&role=ADMINISTRATOR&projection=(elements*(organizationalTarget))',
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'X-Restli-Protocol-Version': '2.0.0',
-        },
-      }
-    );
-
-    if (orgsResponse.ok) {
-      const orgsData = await orgsResponse.json();
-      console.log('[linkedin-oauth-callback] Organizations:', JSON.stringify(orgsData));
+    if (profileResponse.ok) {
+      const profile = await profileResponse.json();
+      console.log('[linkedin-oauth-callback] Profile:', JSON.stringify(profile));
       
-      if (orgsData.elements && orgsData.elements.length > 0) {
-        organizationUrn = orgsData.elements[0].organizationalTarget;
-        
-        // Get organization details
-        const orgId = organizationUrn.split(':').pop();
-        const orgDetailsResponse = await fetch(
-          `https://api.linkedin.com/v2/organizations/${orgId}`,
-          {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'X-Restli-Protocol-Version': '2.0.0',
-            },
-          }
-        );
-        
-        if (orgDetailsResponse.ok) {
-          const orgDetails = await orgDetailsResponse.json();
-          organizationName = orgDetails.localizedName || 'VistaCEO';
-        }
-      }
+      memberUrn = `urn:li:person:${profile.id}`;
+      memberName = profile.localizedFirstName 
+        ? `${profile.localizedFirstName} ${profile.localizedLastName || ''}`.trim()
+        : 'Usuario VistaCEO';
     } else {
-      console.log('[linkedin-oauth-callback] Could not fetch organizations, will need manual setup');
+      console.error('[linkedin-oauth-callback] Failed to get profile:', await profileResponse.text());
     }
 
     // Calculate token expiry
@@ -135,12 +107,12 @@ serve(async (req) => {
     // Store in database
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Upsert integration record WITH access token
+    // Upsert integration record WITH access token (using member URN for personal posting)
     const { error: upsertError } = await supabase.from('linkedin_integration').upsert({
       id: '00000000-0000-0000-0000-000000000001', // Singleton
-      organization_urn: organizationUrn,
-      organization_name: organizationName,
-      status: organizationUrn ? 'connected' : 'pending',
+      organization_urn: memberUrn, // Using member URN since org posting requires approval
+      organization_name: memberName,
+      status: memberUrn ? 'connected' : 'pending',
       access_token_expires_at: expiresAt.toISOString(),
       access_token: accessToken, // Store token directly in DB
       refresh_token: tokenData.refresh_token || null,
@@ -151,12 +123,12 @@ serve(async (req) => {
       throw upsertError;
     }
 
-    console.log('[linkedin-oauth-callback] ✅ Access token stored in database successfully');
+    console.log('[linkedin-oauth-callback] ✅ Access token stored in database successfully for:', memberName);
 
     // Redirect to success page
     const successUrl = new URL('https://www.vistaceo.com/admin/integrations/linkedin');
     successUrl.searchParams.set('success', 'true');
-    successUrl.searchParams.set('org', organizationName);
+    successUrl.searchParams.set('member', memberName);
 
     return new Response(null, {
       status: 302,
