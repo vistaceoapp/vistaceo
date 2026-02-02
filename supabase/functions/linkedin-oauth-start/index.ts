@@ -29,12 +29,12 @@ serve(async (req) => {
     // Generate state for CSRF protection
     const state = crypto.randomUUID();
 
-    // LinkedIn OAuth scopes for organization posting
-    // w_organization_social - allows posting as organization
-    // r_organization_social - read organization social data
+    // LinkedIn OAuth scopes for personal posting
+    // w_member_social - allows posting as the authenticated member
+    // Note: w_organization_social requires "Community Management API" product approval
     const scopes = [
-      'w_organization_social',
-      'r_organization_social',
+      'w_member_social',  // Post as member (works without special approval)
+      'r_liteprofile',     // Basic profile info
       'openid',
       'profile',
       'email'
