@@ -252,11 +252,13 @@ serve(async (req) => {
     const canonicalUrl = `https://www.vistaceo.com/blog/${post.slug}`;
     const generatedText = await generateLinkedInCopy(post as BlogPost, canonicalUrl, lovableApiKey);
 
-    // Save to social_publications (status = 'pending' since not auto-published)
-    await supabase.from('social_publications').upsert({
+    // Save to social_publications (status = 'queued' since not auto-published yet)
+    console.log('[linkedin-generate-copy] Attempting to save to social_publications...');
+    
+    const upsertResult = await supabase.from('social_publications').upsert({
       channel: 'linkedin',
       blog_post_id: post_id,
-      status: 'pending',
+      status: 'queued',
       generated_text: generatedText,
       canonical_url: canonicalUrl,
       error_message: null,
@@ -265,7 +267,14 @@ serve(async (req) => {
       onConflict: 'channel,blog_post_id'
     });
 
-    console.log('[linkedin-generate-copy] Copy generated successfully');
+    console.log('[linkedin-generate-copy] Upsert result:', JSON.stringify(upsertResult));
+
+    if (upsertResult.error) {
+      console.error('[linkedin-generate-copy] Upsert error:', upsertResult.error);
+      throw new Error(`Failed to save: ${upsertResult.error.message}`);
+    }
+
+    console.log('[linkedin-generate-copy] Copy saved and generated successfully');
 
     return new Response(JSON.stringify({
       success: true,
