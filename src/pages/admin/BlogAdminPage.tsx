@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +23,9 @@ export default function BlogAdminPage() {
   const [isBuildingCalendar, setIsBuildingCalendar] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingLinkedin, setGeneratingLinkedin] = useState<string | null>(null);
+  // Como `social_publications` es service-role only, el frontend no puede leerlo.
+  // Guardamos el texto generado localmente para habilitar el flujo Generar -> Copiar.
+  const [linkedinCopyByPostId, setLinkedinCopyByPostId] = useState<Record<string, string>>({});
 
   // Fetch topics count
   const { data: topicsData } = useQuery({
@@ -119,20 +122,11 @@ export default function BlogAdminPage() {
         .limit(50);
       if (postsError) throw postsError;
 
-      // Get existing social publications
-      const { data: publications, error: pubError } = await supabase
-        .from('social_publications')
-        .select('blog_post_id, status, generated_text, linkedin_post_urn, error_message')
-        .eq('channel', 'linkedin');
-      if (pubError) throw pubError;
-
-      // Map publications by post id
-      const pubMap = new Map(publications?.map(p => [p.blog_post_id, p]) || []);
-
-      // Combine
+      // Nota: no intentamos leer `social_publications` desde el frontend porque la RLS
+      // la bloquea (service role only). El flujo de copy usa el estado local.
       return (posts || []).map(post => ({
         ...post,
-        linkedin: pubMap.get(post.id) || null
+        linkedin: null
       }));
     }
   });
@@ -222,12 +216,27 @@ export default function BlogAdminPage() {
       });
       if (error) throw error;
       
-      if (data.success) {
-        toast.success('Copy de LinkedIn generado ✓');
-      } else {
-        toast.warning(data.error || 'No se pudo generar');
+      if (!data?.success) {
+        toast.warning(data?.error || 'No se pudo generar');
+        return;
       }
-      queryClient.invalidateQueries({ queryKey: ['admin-linkedin-queue'] });
+
+      const generatedText: string | undefined = data.generated_text;
+      if (!generatedText || generatedText.trim().length === 0) {
+        toast.error('Se generó una respuesta vacía. Reintentá.');
+        return;
+      }
+
+      setLinkedinCopyByPostId(prev => ({ ...prev, [postId]: generatedText }));
+      toast.success(data.already_generated ? 'Copy de LinkedIn listo (ya existía) ✓' : 'Copy de LinkedIn generado ✓');
+
+      // Intentar copiar inmediatamente (lo que el usuario espera al apretar "Generar").
+      const copied = await copyToClipboard(generatedText);
+      if (copied) {
+        toast.success('Copiado al portapapeles ✓');
+      } else {
+        toast.error('No pude copiar automáticamente. Usá el botón "Copiar".');
+      }
     } catch (err: any) {
       toast.error(`Error: ${err.message}`);
     } finally {
@@ -235,14 +244,46 @@ export default function BlogAdminPage() {
     }
   };
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async (text: string): Promise<boolean> => {
     try {
-      await navigator.clipboard.writeText(text);
-      toast.success('¡Copiado al portapapeles!');
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
     } catch {
-      toast.error('Error al copiar');
+      // fallback debajo
+    }
+
+    // Fallback para navegadores / permisos que bloquean Clipboard API
+    try {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.setAttribute('readonly', '');
+      el.style.position = 'fixed';
+      el.style.left = '-9999px';
+      el.style.top = '0';
+      document.body.appendChild(el);
+      el.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(el);
+      return ok;
+    } catch {
+      return false;
     }
   };
+
+  const mergedLinkedinQueue = useMemo(() => {
+    return (linkedinQueue || []).map((item: any) => {
+      const localText = linkedinCopyByPostId[item.id];
+      return {
+        ...item,
+        // “linkedin” fakeado solo para reutilizar el render existente (status + generated_text)
+        linkedin: localText
+          ? { status: 'queued', generated_text: localText, linkedin_post_urn: null, error_message: null }
+          : item.linkedin,
+      };
+    });
+  }, [linkedinQueue, linkedinCopyByPostId]);
 
   return (
     <div className="min-h-screen bg-background p-6">
@@ -384,7 +425,7 @@ export default function BlogAdminPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {linkedinQueue?.map((item: any) => (
+                      {mergedLinkedinQueue?.map((item: any) => (
                         <TableRow key={item.id}>
                           <TableCell className="max-w-xs">
                             <div className="font-medium truncate">{item.title}</div>
@@ -403,7 +444,10 @@ export default function BlogAdminPage() {
                               <>
                                 <Button 
                                   size="sm" 
-                                  onClick={() => copyToClipboard(item.linkedin.generated_text)}
+                                  onClick={async () => {
+                                    const ok = await copyToClipboard(item.linkedin.generated_text);
+                                    toast[ok ? 'success' : 'error'](ok ? 'Copiado al portapapeles ✓' : 'Error al copiar');
+                                  }}
                                   className="bg-primary"
                                 >
                                   <Copy className="w-4 h-4 mr-1" />
