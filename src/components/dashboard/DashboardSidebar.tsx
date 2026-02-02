@@ -24,11 +24,11 @@ import { PlanStatusCard } from "@/components/app/PlanStatusCard";
 import { useSubscription } from "@/hooks/use-subscription";
 
 const navItems = [
-  { path: "/app", icon: Home, label: "Inicio", description: "Tu centro de control", badge: null, isPro: false },
-  { path: "/app/chat", icon: MessageCircle, label: "Chat CEO", description: "Tu asistente estratégico", badge: "Pro", isPro: true },
+  { path: "/app", icon: Home, label: "Inicio", description: "Dashboard principal", badge: null, isPro: false },
+  { path: "/app/chat", icon: MessageCircle, label: "Chat CEO", description: "Hablá con tu CEO", badge: "Pro", isPro: true },
   { path: "/app/missions", icon: Target, label: "Misiones", description: "Planes de acción", badge: null, isPro: false },
-  { path: "/app/radar", icon: Radar, label: "Radar", description: "Oportunidades del mercado", badge: null, isPro: false },
-  { path: "/app/analytics", icon: BarChart3, label: "Analytics", description: "Métricas en tiempo real", badge: "Pro", isPro: true },
+  { path: "/app/radar", icon: Radar, label: "Radar", description: "Oportunidades", badge: null, isPro: false },
+  { path: "/app/analytics", icon: BarChart3, label: "Analytics", description: "Métricas y tendencias", badge: "Pro", isPro: true },
   { path: "/app/predictions", icon: Orbit, label: "Predicciones", description: "Anticipá el futuro", badge: "Pro", isPro: true },
 ];
 
