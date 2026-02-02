@@ -22,6 +22,8 @@ import CheckoutPage from "./pages/CheckoutPage";
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import BlogAdminPage from "./pages/admin/BlogAdminPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
 
 // App Pages
 import AppLayout from "./layouts/AppLayout";
@@ -90,6 +92,10 @@ const AppRoutes = () => {
       {/* Blog routes */}
       <Route path="/blog" element={<BlogPage />} />
       <Route path="/blog/:slug" element={<BlogPostPage />} />
+      
+      {/* Legal routes */}
+      <Route path="/politicas" element={<PrivacyPolicyPage />} />
+      <Route path="/condiciones" element={<TermsOfServicePage />} />
       <Route path="/admin/blog" element={<BlogAdminPage />} />
       
       {/* Checkout - standalone payment page (requires auth but not setup) */}

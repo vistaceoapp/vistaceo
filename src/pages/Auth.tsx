@@ -354,6 +354,19 @@ const Auth = () => {
               </button>
             </div>
 
+            {/* Terms acceptance */}
+            <p className="text-xs text-muted-foreground text-center">
+              Al crear una cuenta, aceptás las{" "}
+              <Link to="/condiciones" className="text-primary hover:underline">
+                Condiciones del Servicio
+              </Link>{" "}
+              y la{" "}
+              <Link to="/politicas" className="text-primary hover:underline">
+                Política de Privacidad
+              </Link>
+              .
+            </p>
+
             {/* Mobile social proof */}
             {isMobile && (
               <motion.div 

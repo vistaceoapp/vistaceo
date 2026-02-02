@@ -1,4 +1,5 @@
 import { Globe } from "lucide-react";
+import { Link } from "react-router-dom";
 import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 
 const footerLinks = {
@@ -6,23 +7,19 @@ const footerLinks = {
     { label: "Características", href: "#features" },
     { label: "Precios", href: "#pricing" },
     { label: "Integraciones", href: "#" },
-    { label: "API", href: "#" },
+    { label: "Blog", href: "/blog", isRoute: true },
   ],
   empresa: [
     { label: "Sobre nosotros", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Carreras", href: "#" },
-    { label: "Contacto", href: "#" },
+    { label: "Contacto", href: "mailto:info@vistaceo.com" },
   ],
   legal: [
-    { label: "Privacidad", href: "#" },
-    { label: "Términos", href: "#" },
-    { label: "Cookies", href: "#" },
+    { label: "Política de Privacidad", href: "/politicas", isRoute: true },
+    { label: "Condiciones del Servicio", href: "/condiciones", isRoute: true },
   ],
   soporte: [
-    { label: "Centro de ayuda", href: "#" },
-    { label: "Estado del sistema", href: "#" },
-    { label: "Comunidad", href: "#" },
+    { label: "Centro de ayuda", href: "mailto:info@vistaceo.com" },
+    { label: "info@vistaceo.com", href: "mailto:info@vistaceo.com" },
   ],
 };
 
@@ -77,12 +74,21 @@ export const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.producto.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {link.label}
-                  </a>
+                  {'isRoute' in link && link.isRoute ? (
+                    <Link
+                      to={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -93,12 +99,21 @@ export const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.empresa.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {link.label}
-                  </a>
+                  {'isRoute' in link && link.isRoute ? (
+                    <Link
+                      to={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -109,12 +124,21 @@ export const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {link.label}
-                  </a>
+                  {'isRoute' in link && link.isRoute ? (
+                    <Link
+                      to={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -125,12 +149,21 @@ export const Footer = () => {
             <ul className="space-y-3">
               {footerLinks.soporte.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {link.label}
-                  </a>
+                  {'isRoute' in link && link.isRoute ? (
+                    <Link
+                      to={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
