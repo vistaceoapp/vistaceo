@@ -24,7 +24,7 @@ const SectionSkeleton = memo(() => (
 ));
 SectionSkeleton.displayName = "SectionSkeleton";
 
-// Footer
+// Footer with absolute HTTPS URLs for Google verification
 const Footer = memo(() => (
   <footer className="py-12 border-t border-border bg-card/50">
     <div className="container mx-auto px-4">
@@ -41,8 +41,8 @@ const Footer = memo(() => (
           <span className="text-sm text-muted-foreground">© 2025 VistaCEO. Todos los derechos reservados.</span>
         </div>
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
-          <a href="/condiciones" className="hover:text-foreground transition-colors">Condiciones</a>
-          <a href="/politicas" className="hover:text-foreground transition-colors">Privacidad</a>
+          <a href="https://www.vistaceo.com/condiciones" className="hover:text-foreground transition-colors">Condiciones</a>
+          <a href="https://www.vistaceo.com/politicas" className="hover:text-foreground transition-colors">Política de Privacidad</a>
           <a href="mailto:info@vistaceo.com" className="hover:text-foreground transition-colors">Contacto</a>
         </div>
       </div>
