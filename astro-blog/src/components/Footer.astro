@@ -1,0 +1,169 @@
+---
+import { getAllClusters } from '../lib/clusters';
+
+const clusters = getAllClusters();
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="footer-logo">
+          <span>📊</span> VistaCEO Blog
+        </a>
+        <p class="footer-tagline">
+          Tu fuente de insights para tomar mejores decisiones de negocio en Latinoamérica.
+        </p>
+        <a href="https://www.vistaceo.com" class="footer-cta" target="_blank" rel="noopener">
+          Conocer VistaCEO →
+        </a>
+      </div>
+      
+      <div class="footer-links">
+        <h4>Temas</h4>
+        <ul>
+          {clusters.slice(0, 6).map((cluster) => (
+            <li>
+              <a href={`/tema/${cluster.slug}`}>
+                {cluster.emoji} {cluster.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      
+      <div class="footer-links">
+        <h4>Más Temas</h4>
+        <ul>
+          {clusters.slice(6).map((cluster) => (
+            <li>
+              <a href={`/tema/${cluster.slug}`}>
+                {cluster.emoji} {cluster.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      
+      <div class="footer-links">
+        <h4>VistaCEO</h4>
+        <ul>
+          <li><a href="https://www.vistaceo.com" target="_blank" rel="noopener">Aplicación</a></li>
+          <li><a href="https://www.vistaceo.com/politicas" target="_blank" rel="noopener">Políticas de Privacidad</a></li>
+          <li><a href="https://www.vistaceo.com/condiciones" target="_blank" rel="noopener">Términos de Servicio</a></li>
+          <li><a href="/rss.xml">RSS Feed</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p>© {currentYear} VistaCEO. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    padding: 4rem 0 2rem;
+    margin-top: 4rem;
+  }
+  
+  .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  @media (min-width: 768px) {
+    .footer-grid {
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+    }
+  }
+  
+  .footer-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: #111827;
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .footer-tagline {
+    color: #6b7280;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+  
+  .footer-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: #6366f1;
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+  }
+  
+  .footer-cta:hover {
+    background: #4f46e5;
+  }
+  
+  .footer-links h4 {
+    color: #111827;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .footer-links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .footer-links li {
+    margin-bottom: 0.5rem;
+  }
+  
+  .footer-links a {
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s;
+  }
+  
+  .footer-links a:hover {
+    color: #6366f1;
+  }
+  
+  .footer-bottom {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+  }
+  
+  .footer-bottom p {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin: 0;
+  }
+</style>

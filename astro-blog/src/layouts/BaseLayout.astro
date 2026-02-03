@@ -1,0 +1,85 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+  ogImage?: string;
+  ogType?: string;
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  schemas?: object[];
+}
+
+const { 
+  title, 
+  description, 
+  canonical, 
+  ogImage = '/og-default.jpg',
+  ogType = 'website',
+  publishedTime,
+  modifiedTime,
+  author,
+  schemas = []
+} = Astro.props;
+
+const siteUrl = 'https://blog.vistaceo.com';
+const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonical}>
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content={ogType}>
+  <meta property="og:site_name" content="VistaCEO Blog">
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  <meta property="og:url" content={canonical}>
+  <meta property="og:image" content={fullOgImage}>
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="es_LA">
+  
+  {ogType === 'article' && publishedTime && (
+    <meta property="article:published_time" content={publishedTime}>
+  )}
+  {ogType === 'article' && modifiedTime && (
+    <meta property="article:modified_time" content={modifiedTime}>
+  )}
+  {ogType === 'article' && author && (
+    <meta property="article:author" content={author}>
+  )}
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@vistaceo">
+  <meta name="twitter:title" content={title}>
+  <meta name="twitter:description" content={description}>
+  <meta name="twitter:image" content={fullOgImage}>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png">
+  
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="VistaCEO Blog RSS" href="/rss.xml">
+  
+  <!-- Structured Data -->
+  {schemas.map((schema) => (
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  ))}
+</head>
+<body>
+  <slot />
+</body>
+</html>

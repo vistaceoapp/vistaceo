@@ -1,0 +1,23 @@
+---
+import PostLayout from '../layouts/PostLayout.astro';
+import { getAllPublishedPosts, getPostBySlug, getRelatedPosts } from '../lib/supabase';
+
+export async function getStaticPaths() {
+  const posts = await getAllPublishedPosts();
+  
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+const post = await getPostBySlug(slug);
+
+if (!post) {
+  return Astro.redirect('/404');
+}
+
+const relatedPosts = await getRelatedPosts(post.slug, post.pillar, 3);
+---
+
+<PostLayout post={post} relatedPosts={relatedPosts} />

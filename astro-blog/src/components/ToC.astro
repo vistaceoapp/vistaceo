@@ -1,0 +1,72 @@
+---
+interface Heading {
+  level: number;
+  text: string;
+  id: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+---
+
+{headings.length > 0 && (
+  <nav class="toc" aria-label="Tabla de contenidos">
+    <h2 class="toc-title">📑 Contenido</h2>
+    <ul class="toc-list">
+      {headings.map((heading) => (
+        <li class={`toc-item toc-level-${heading.level}`}>
+          <a href={`#${heading.id}`} class="toc-link">
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<style>
+  .toc {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+  
+  .toc-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 1rem 0;
+  }
+  
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .toc-item {
+    margin-bottom: 0.5rem;
+  }
+  
+  .toc-level-3 {
+    padding-left: 1rem;
+  }
+  
+  .toc-link {
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    transition: color 0.2s;
+    display: block;
+  }
+  
+  .toc-link:hover {
+    color: #6366f1;
+  }
+</style>

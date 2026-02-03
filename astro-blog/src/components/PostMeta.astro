@@ -1,0 +1,98 @@
+---
+import type { BlogPost } from '../lib/supabase';
+import { formatDate } from '../lib/text';
+import { getCluster } from '../lib/clusters';
+
+interface Props {
+  post: BlogPost;
+}
+
+const { post } = Astro.props;
+const cluster = getCluster(post.pillar);
+---
+
+<div class="post-meta">
+  <div class="meta-row">
+    <span class="meta-author">
+      ✍️ {post.author_name || 'Equipo VistaCEO'}
+    </span>
+    {post.publish_at && (
+      <span class="meta-date">
+        📅 {formatDate(post.publish_at)}
+      </span>
+    )}
+    {post.reading_time_min && (
+      <span class="meta-reading">
+        ⏱️ {post.reading_time_min} min de lectura
+      </span>
+    )}
+  </div>
+  
+  {cluster && (
+    <div class="meta-cluster">
+      <a href={`/tema/${cluster.slug}`} class="cluster-tag">
+        {cluster.emoji} {cluster.name}
+      </a>
+    </div>
+  )}
+  
+  {post.tags && post.tags.length > 0 && (
+    <div class="meta-tags">
+      {post.tags.map((tag) => (
+        <span class="tag">{tag}</span>
+      ))}
+    </div>
+  )}
+</div>
+
+<style>
+  .post-meta {
+    margin-top: 1rem;
+  }
+  
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+  
+  .meta-cluster {
+    margin-top: 0.75rem;
+  }
+  
+  .cluster-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    background: #eef2ff;
+    color: #6366f1;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    transition: background-color 0.2s;
+  }
+  
+  .cluster-tag:hover {
+    background: #e0e7ff;
+  }
+  
+  .meta-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  
+  .tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 0.75rem;
+    border-radius: 0.25rem;
+  }
+</style>
