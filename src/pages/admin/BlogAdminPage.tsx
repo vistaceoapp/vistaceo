@@ -175,6 +175,19 @@ export default function BlogAdminPage() {
         toast.warning(`Publicación saltada: ${data.reason}`);
       } else if (data.published) {
         toast.success(`¡Post publicado! "${data.title}"`);
+        
+        // Trigger site deploy for SSG regeneration
+        try {
+          await supabase.functions.invoke('trigger-site-deploy', {
+            body: { 
+              post_id: data.post_id,
+              trigger_reason: 'blog_published'
+            }
+          });
+          toast.info('Deploy SSG programado ✓');
+        } catch (deployErr) {
+          console.warn('Deploy trigger failed (non-blocking):', deployErr);
+        }
       } else {
         toast.info(data.message || 'Operación completada');
       }
@@ -182,6 +195,7 @@ export default function BlogAdminPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-posts-stats'] });
       queryClient.invalidateQueries({ queryKey: ['admin-recent-runs'] });
       queryClient.invalidateQueries({ queryKey: ['admin-plan-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-linkedin-queue'] });
     } catch (err: any) {
       toast.error(`Error: ${err.message}`);
     } finally {
