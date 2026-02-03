@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getPostsByCluster } from '../../lib/supabase';
+import { getAllClusters, getCluster } from '../../lib/clusters';
+import { generateCollectionPageSchema, generateOrganizationSchema } from '../../lib/seo';
+import { formatDate, truncate } from '../../lib/text';
+
+export async function getStaticPaths() {
+  const clusters = getAllClusters();
+  
+  return clusters.map((cluster) => ({
+    params: { cluster: cluster.slug },
+  }));
+}
+
+const { cluster: clusterSlug } = Astro.params;
+const cluster = getCluster(clusterSlug);
+
+if (!cluster) {
+  return Astro.redirect('/404');
+}
+
+const posts = await getPostsByCluster(clusterSlug);
+
+const siteUrl = 'https://blog.vistaceo.com';
+const clusterUrl = `${siteUrl}/tema/${cluster.slug}`;
+
+const schemas = [
+  generateCollectionPageSchema(cluster.name, clusterUrl, posts),
+  generateOrganizationSchema()
+];
+---
+
+<BaseLayout 
+  title={`${cluster.emoji} ${cluster.name} | VistaCEO Blog`}
+  description={cluster.description}
+  canonical={clusterUrl}
+  schemas={schemas}
+>
+  <Header />
+  
+  <main class="cluster-hub">
+    <header class="cluster-header">
+      <div class="cluster-emoji">{cluster.emoji}</div>
+      <h1>{cluster.name}</h1>
+      <p class="cluster-intro">{cluster.intro}</p>
+    </header>
+    
+    {posts.length > 0 ? (
+      <section>
+        <h2 class="section-title">📚 Artículos ({posts.length})</h2>
+        <div class="posts-grid">
+          {posts.map((post) => (
+            <a href={`/${post.slug}`} class="post-card">
+              {post.hero_image_url && (
+                <div class="post-card-image">
+                  <img 
+                    src={post.hero_image_url} 
+                    alt={post.image_alt_text || post.title}
+                    loading="lazy"
+                  />
+                </div>
+              )}
+              <div class="post-card-content">
+                <h3 class="post-card-title">{post.title}</h3>
+                {post.excerpt && (
+                  <p class="post-card-excerpt">{truncate(post.excerpt, 100)}</p>
+                )}
+                <span class="post-card-meta">{formatDate(post.publish_at)}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    ) : (
+      <section style="text-align: center; padding: 4rem 0;">
+        <p style="color: #6b7280; font-size: 1.1rem;">
+          Próximamente publicaremos artículos sobre {cluster.name}.
+        </p>
+        <a href="/" style="color: #6366f1;">← Volver al inicio</a>
+      </section>
+    )}
+  </main>
+  
+  <Footer />
+</BaseLayout>

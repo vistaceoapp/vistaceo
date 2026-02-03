@@ -1,0 +1,19 @@
+{
+  "name": "vistaceo-blog",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "seo:check": "node scripts/seo-check.mjs"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.0",
+    "@supabase/supabase-js": "^2.89.0",
+    "astro": "^4.16.0"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0"
+  }
+}

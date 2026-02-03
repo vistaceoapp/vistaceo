@@ -1,0 +1,123 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { getLatestPosts } from '../lib/supabase';
+import { generateWebSiteSchema, generateOrganizationSchema } from '../lib/seo';
+import { getAllClusters, getCluster } from '../lib/clusters';
+import { formatDate, truncate } from '../lib/text';
+
+const posts = await getLatestPosts(20);
+const clusters = getAllClusters();
+
+const schemas = [
+  generateWebSiteSchema(),
+  generateOrganizationSchema()
+];
+
+// Group posts by cluster
+const postsByCluster = clusters.reduce((acc, cluster) => {
+  acc[cluster.slug] = posts.filter(p => p.pillar === cluster.slug).slice(0, 3);
+  return acc;
+}, {} as Record<string, typeof posts>);
+---
+
+<BaseLayout 
+  title="VistaCEO Blog | Insights para PyMEs Latinoamericanas"
+  description="Tu fuente de insights, guías y estrategias para tomar mejores decisiones de negocio en Latinoamérica. IA, marketing, finanzas y más."
+  canonical="https://blog.vistaceo.com"
+  schemas={schemas}
+>
+  <Header />
+  
+  <main class="home-container">
+    <section class="home-hero">
+      <h1>VistaCEO Blog</h1>
+      <p>Insights, guías y estrategias para tomar mejores decisiones de negocio en Latinoamérica</p>
+    </section>
+    
+    <section>
+      <h2 class="section-title">📰 Últimos Artículos</h2>
+      <div class="posts-grid">
+        {posts.slice(0, 6).map((post) => {
+          const cluster = getCluster(post.pillar);
+          return (
+            <a href={`/${post.slug}`} class="post-card">
+              {post.hero_image_url && (
+                <div class="post-card-image">
+                  <img 
+                    src={post.hero_image_url} 
+                    alt={post.image_alt_text || post.title}
+                    loading="lazy"
+                  />
+                </div>
+              )}
+              <div class="post-card-content">
+                {cluster && (
+                  <span class="post-card-cluster">{cluster.emoji} {cluster.name}</span>
+                )}
+                <h3 class="post-card-title">{post.title}</h3>
+                {post.excerpt && (
+                  <p class="post-card-excerpt">{truncate(post.excerpt, 100)}</p>
+                )}
+                <span class="post-card-meta">{formatDate(post.publish_at)}</span>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </section>
+    
+    <section>
+      <h2 class="section-title">🗂️ Explorar por Tema</h2>
+      <div class="clusters-grid">
+        {clusters.map((cluster) => (
+          <a href={`/tema/${cluster.slug}`} class="cluster-card">
+            <span class="cluster-card-emoji">{cluster.emoji}</span>
+            <span class="cluster-card-name">{cluster.name}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+    
+    {clusters.slice(0, 4).map((cluster) => {
+      const clusterPosts = postsByCluster[cluster.slug];
+      if (!clusterPosts || clusterPosts.length === 0) return null;
+      
+      return (
+        <section>
+          <h2 class="section-title">
+            {cluster.emoji} {cluster.name}
+            <a href={`/tema/${cluster.slug}`} style="float: right; font-size: 0.9rem; font-weight: 500;">
+              Ver todos →
+            </a>
+          </h2>
+          <div class="posts-grid">
+            {clusterPosts.map((post) => (
+              <a href={`/${post.slug}`} class="post-card">
+                {post.hero_image_url && (
+                  <div class="post-card-image">
+                    <img 
+                      src={post.hero_image_url} 
+                      alt={post.image_alt_text || post.title}
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                <div class="post-card-content">
+                  <h3 class="post-card-title">{post.title}</h3>
+                  {post.excerpt && (
+                    <p class="post-card-excerpt">{truncate(post.excerpt, 100)}</p>
+                  )}
+                  <span class="post-card-meta">{formatDate(post.publish_at)}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      );
+    })}
+  </main>
+  
+  <Footer />
+</BaseLayout>

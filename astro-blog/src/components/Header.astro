@@ -1,0 +1,138 @@
+---
+import { getAllClusters } from '../lib/clusters';
+
+const clusters = getAllClusters().slice(0, 6);
+---
+
+<header class="site-header">
+  <div class="header-container">
+    <a href="/" class="logo">
+      <span class="logo-icon">📊</span>
+      <span class="logo-text">VistaCEO <span class="logo-blog">Blog</span></span>
+    </a>
+    
+    <nav class="main-nav">
+      <ul class="nav-list">
+        {clusters.map((cluster) => (
+          <li>
+            <a href={`/tema/${cluster.slug}`} class="nav-link">
+              <span class="nav-emoji">{cluster.emoji}</span>
+              <span class="nav-text">{cluster.name}</span>
+            </a>
+          </li>
+        ))}
+        <li>
+          <a href="/tema/tendencias-ia-tech" class="nav-link nav-more">
+            Más temas →
+          </a>
+        </li>
+      </ul>
+    </nav>
+    
+    <a href="https://www.vistaceo.com" class="header-cta" target="_blank" rel="noopener">
+      Probar VistaCEO
+    </a>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: #111827;
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+  
+  .logo-icon {
+    font-size: 1.5rem;
+  }
+  
+  .logo-blog {
+    color: #6366f1;
+  }
+  
+  .main-nav {
+    flex: 1;
+    display: none;
+  }
+  
+  @media (min-width: 1024px) {
+    .main-nav {
+      display: block;
+    }
+  }
+  
+  .nav-list {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+  }
+  
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    color: #4b5563;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  
+  .nav-link:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+  }
+  
+  .nav-emoji {
+    font-size: 1rem;
+  }
+  
+  .nav-more {
+    color: #6366f1;
+  }
+  
+  .header-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: #6366f1;
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+  }
+  
+  .header-cta:hover {
+    background: #4f46e5;
+  }
+</style>
