@@ -1116,10 +1116,35 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
       }
     };
     
-    // Fire both tasks in parallel - don't await
+    // Trigger site deploy for SSG regeneration
+    const triggerSiteDeploy = async () => {
+      try {
+        console.log('[generate-blog-post] Triggering site deploy for SSG regeneration');
+        
+        const response = await fetch(`${supabaseUrl}/functions/v1/trigger-site-deploy`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            post_id: newPost.id,
+            trigger_reason: 'blog_published'
+          }),
+        });
+        
+        const result = await response.json();
+        console.log('[generate-blog-post] Site deploy trigger result:', result);
+      } catch (error) {
+        console.error('[generate-blog-post] Site deploy trigger error:', error);
+      }
+    };
+    
+    // Fire all tasks in parallel - don't await
     Promise.all([
       triggerOGGeneration().catch(err => console.error('[generate-blog-post] OG background error:', err)),
-      triggerLinkedInPublish().catch(err => console.error('[generate-blog-post] LinkedIn background error:', err))
+      triggerLinkedInPublish().catch(err => console.error('[generate-blog-post] LinkedIn background error:', err)),
+      triggerSiteDeploy().catch(err => console.error('[generate-blog-post] Deploy background error:', err))
     ]);
 
     return new Response(JSON.stringify({
