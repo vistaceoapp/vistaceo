@@ -170,22 +170,36 @@ async function main() {
     process.exit(1);
   }
   
-  // Check .htaccess exists and has blog rule
+  // Check .htaccess exists and has blog rules
   const htaccessPath = path.join(DIST_DIR, '.htaccess');
   if (!fs.existsSync(htaccessPath)) {
     errors.push('.htaccess not found in dist/');
   } else {
     const htaccessContent = fs.readFileSync(htaccessPath, 'utf-8');
-    if (!htaccessContent.includes('/blog/%1/index.html')) {
-      errors.push('.htaccess missing blog SSG routing rule');
+    
+    // Check for both slug.html and slug/index.html rules
+    const hasSlugHtmlRule = htaccessContent.includes('/blog/%1.html');
+    const hasIndexHtmlRule = htaccessContent.includes('/blog/%1/index.html');
+    
+    if (!hasSlugHtmlRule && !hasIndexHtmlRule) {
+      errors.push('.htaccess missing blog SSG routing rules');
     }
-    // Check that blog rule comes before SPA fallback
-    const blogRuleIndex = htaccessContent.indexOf('/blog/%1/index.html');
+    
+    // Check that blog rules come before SPA fallback
+    const blogRuleIndex = Math.min(
+      htaccessContent.indexOf('/blog/%1.html') >= 0 ? htaccessContent.indexOf('/blog/%1.html') : Infinity,
+      htaccessContent.indexOf('/blog/%1/index.html') >= 0 ? htaccessContent.indexOf('/blog/%1/index.html') : Infinity
+    );
     const spaFallbackIndex = htaccessContent.indexOf('RewriteRule ^ index.html');
-    if (blogRuleIndex > spaFallbackIndex) {
-      errors.push('.htaccess: blog SSG rule must come BEFORE SPA fallback');
+    
+    if (blogRuleIndex === Infinity) {
+      errors.push('.htaccess: no blog SSG rules found');
+    } else if (spaFallbackIndex >= 0 && blogRuleIndex > spaFallbackIndex) {
+      errors.push('.htaccess: blog SSG rules must come BEFORE SPA fallback');
     } else {
       console.log('✅ .htaccess has correct blog routing order');
+      if (hasSlugHtmlRule) console.log('   ✓ slug.html rule present');
+      if (hasIndexHtmlRule) console.log('   ✓ slug/index.html rule present');
     }
   }
   
