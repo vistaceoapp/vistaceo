@@ -3,14 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build && node scripts/generate-blog-og-pages.mjs",
-    "build:dev": "vite build --mode development && node scripts/generate-blog-og-pages.mjs",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "validate:blog": "node scripts/validate-blog-og.mjs"
-  },
+"scripts": {
+  "dev": "vite",
+  "build": "vite build && node scripts/generate-blog-pages.mjs && node scripts/generate-sitemap.mjs && node scripts/validate-blog-og.mjs",
+  "build:dev": "vite build --mode development && node scripts/generate-blog-pages.mjs && node scripts/generate-sitemap.mjs && node scripts/validate-blog-og.mjs",
+  "lint": "eslint .",
+  "preview": "vite preview",
+  "validate:blog": "node scripts/validate-blog-og.mjs",
+  "verify:prod": "node scripts/verify-prod-og.mjs"
+}
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.11",
