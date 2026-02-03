@@ -44,13 +44,15 @@ const schemas = [
   <main class="cluster-hub">
     <header class="cluster-header">
       <div class="cluster-emoji">{cluster.emoji}</div>
-      <h1>{cluster.name}</h1>
+      <h1><span class="text-gradient">{cluster.name}</span></h1>
       <p class="cluster-intro">{cluster.intro}</p>
     </header>
     
     {posts.length > 0 ? (
       <section>
-        <h2 class="section-title">📚 Artículos ({posts.length})</h2>
+        <h2 class="section-title">
+          <span>📚 Artículos ({posts.length})</span>
+        </h2>
         <div class="posts-grid">
           {posts.map((post) => (
             <a href={`/${post.slug}`} class="post-card">
@@ -75,14 +77,51 @@ const schemas = [
         </div>
       </section>
     ) : (
-      <section style="text-align: center; padding: 4rem 0;">
-        <p style="color: #6b7280; font-size: 1.1rem;">
+      <section class="empty-state">
+        <div class="empty-icon">📝</div>
+        <p class="empty-text">
           Próximamente publicaremos artículos sobre {cluster.name}.
         </p>
-        <a href="/" style="color: #6366f1;">← Volver al inicio</a>
+        <a href="/" class="empty-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Volver al inicio
+        </a>
       </section>
     )}
   </main>
   
   <Footer />
 </BaseLayout>
+
+<style>
+  .empty-state {
+    text-align: center;
+    padding: 5rem 0;
+  }
+  
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .empty-text {
+    color: var(--foreground-muted);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .empty-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    font-weight: 600;
+    transition: color var(--transition-fast);
+  }
+  
+  .empty-link:hover {
+    color: var(--accent);
+  }
+</style>

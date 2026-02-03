@@ -31,13 +31,19 @@ const postsByCluster = clusters.reduce((acc, cluster) => {
   <Header />
   
   <main class="home-container">
+    <!-- Hero Section -->
     <section class="home-hero">
-      <h1>VistaCEO Blog</h1>
+      <h1>
+        <span class="text-gradient">VistaCEO</span> Blog
+      </h1>
       <p>Insights, guías y estrategias para tomar mejores decisiones de negocio en Latinoamérica</p>
     </section>
     
+    <!-- Latest Posts -->
     <section>
-      <h2 class="section-title">📰 Últimos Artículos</h2>
+      <h2 class="section-title">
+        <span>📰 Últimos Artículos</span>
+      </h2>
       <div class="posts-grid">
         {posts.slice(0, 6).map((post) => {
           const cluster = getCluster(post.pillar);
@@ -68,8 +74,11 @@ const postsByCluster = clusters.reduce((acc, cluster) => {
       </div>
     </section>
     
+    <!-- Explore by Topic -->
     <section>
-      <h2 class="section-title">🗂️ Explorar por Tema</h2>
+      <h2 class="section-title">
+        <span>🗂️ Explorar por Tema</span>
+      </h2>
       <div class="clusters-grid">
         {clusters.map((cluster) => (
           <a href={`/tema/${cluster.slug}`} class="cluster-card">
@@ -80,6 +89,7 @@ const postsByCluster = clusters.reduce((acc, cluster) => {
       </div>
     </section>
     
+    <!-- Cluster Sections -->
     {clusters.slice(0, 4).map((cluster) => {
       const clusterPosts = postsByCluster[cluster.slug];
       if (!clusterPosts || clusterPosts.length === 0) return null;
@@ -87,10 +97,8 @@ const postsByCluster = clusters.reduce((acc, cluster) => {
       return (
         <section>
           <h2 class="section-title">
-            {cluster.emoji} {cluster.name}
-            <a href={`/tema/${cluster.slug}`} style="float: right; font-size: 0.9rem; font-weight: 500;">
-              Ver todos →
-            </a>
+            <span>{cluster.emoji} {cluster.name}</span>
+            <a href={`/tema/${cluster.slug}`}>Ver todos →</a>
           </h2>
           <div class="posts-grid">
             {clusterPosts.map((post) => (

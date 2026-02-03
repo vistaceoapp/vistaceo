@@ -13,14 +13,14 @@ const cluster = getCluster(currentCluster);
 ---
 
 {posts.length > 0 && (
-  <aside class="related-posts">
+  <aside class="related-section">
     <h2 class="related-title">📚 Artículos Relacionados</h2>
     
-    <div class="related-grid">
+    <div class="posts-grid">
       {posts.map((post) => (
-        <a href={`/${post.slug}`} class="related-card">
+        <a href={`/${post.slug}`} class="post-card">
           {post.hero_image_url && (
-            <div class="related-image">
+            <div class="post-card-image">
               <img 
                 src={post.hero_image_url} 
                 alt={post.image_alt_text || post.title}
@@ -28,21 +28,24 @@ const cluster = getCluster(currentCluster);
               />
             </div>
           )}
-          <div class="related-content">
-            <h3 class="related-card-title">{post.title}</h3>
+          <div class="post-card-content">
+            <h3 class="post-card-title">{post.title}</h3>
             {post.excerpt && (
-              <p class="related-excerpt">{truncate(post.excerpt, 100)}</p>
+              <p class="post-card-excerpt">{truncate(post.excerpt, 100)}</p>
             )}
-            <span class="related-date">{formatDate(post.publish_at)}</span>
+            <span class="post-card-meta">{formatDate(post.publish_at)}</span>
           </div>
         </a>
       ))}
     </div>
     
     {cluster && (
-      <div class="related-hub">
-        <a href={`/tema/${cluster.slug}`} class="hub-link">
-          Ver todos los artículos de {cluster.emoji} {cluster.name} →
+      <div class="related-cta">
+        <a href={`/tema/${cluster.slug}`} class="related-link">
+          Ver todos los artículos de {cluster.emoji} {cluster.name}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
         </a>
       </div>
     )}
@@ -50,96 +53,35 @@ const cluster = getCluster(currentCluster);
 )}
 
 <style>
-  .related-posts {
+  .related-section {
     margin-top: 4rem;
     padding-top: 3rem;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border);
   }
   
   .related-title {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 700;
-    color: #111827;
+    color: var(--foreground);
     margin-bottom: 1.5rem;
   }
   
-  .related-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  @media (min-width: 768px) {
-    .related-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  
-  .related-card {
-    display: block;
-    text-decoration: none;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
-    overflow: hidden;
-    transition: box-shadow 0.2s, transform 0.2s;
-  }
-  
-  .related-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
-  }
-  
-  .related-image {
-    aspect-ratio: 16/9;
-    overflow: hidden;
-  }
-  
-  .related-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .related-content {
-    padding: 1rem;
-  }
-  
-  .related-card-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #111827;
-    margin: 0 0 0.5rem 0;
-    line-height: 1.4;
-  }
-  
-  .related-excerpt {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin: 0 0 0.5rem 0;
-    line-height: 1.5;
-  }
-  
-  .related-date {
-    font-size: 0.75rem;
-    color: #9ca3af;
-  }
-  
-  .related-hub {
+  .related-cta {
     margin-top: 2rem;
     text-align: center;
   }
   
-  .hub-link {
+  .related-link {
     display: inline-flex;
     align-items: center;
-    color: #6366f1;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s;
+    gap: 0.5rem;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: color var(--transition-fast);
   }
   
-  .hub-link:hover {
-    color: #4f46e5;
+  .related-link:hover {
+    color: var(--accent);
   }
 </style>

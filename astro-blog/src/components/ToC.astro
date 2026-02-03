@@ -14,7 +14,17 @@ const { headings } = Astro.props;
 
 {headings.length > 0 && (
   <nav class="toc" aria-label="Tabla de contenidos">
-    <h2 class="toc-title">📑 Contenido</h2>
+    <div class="toc-header">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="8" y1="6" x2="21" y2="6"/>
+        <line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/>
+        <line x1="3" y1="12" x2="3.01" y2="12"/>
+        <line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      <span class="toc-title">Contenido</span>
+    </div>
     <ul class="toc-list">
       {headings.map((heading) => (
         <li class={`toc-item toc-level-${heading.level}`}>
@@ -29,18 +39,30 @@ const { headings } = Astro.props;
 
 <style>
   .toc {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.75rem;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
     padding: 1.5rem;
     margin: 2rem 0;
   }
   
+  .toc-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: var(--foreground);
+  }
+  
+  .toc-header svg {
+    opacity: 0.6;
+  }
+  
   .toc-title {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    color: #111827;
-    margin: 0 0 1rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
   
   .toc-list {
@@ -58,15 +80,16 @@ const { headings } = Astro.props;
   }
   
   .toc-link {
-    color: #6b7280;
+    color: var(--foreground-muted);
     text-decoration: none;
     font-size: 0.9rem;
     line-height: 1.5;
-    transition: color 0.2s;
     display: block;
+    padding: 0.25rem 0;
+    transition: color var(--transition-fast);
   }
   
   .toc-link:hover {
-    color: #6366f1;
+    color: var(--primary);
   }
 </style>
