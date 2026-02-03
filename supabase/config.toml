@@ -155,3 +155,6 @@ verify_jwt = false
 
 [functions.fix-blog-images]
 verify_jwt = false
+
+[functions.trigger-site-deploy]
+verify_jwt = false

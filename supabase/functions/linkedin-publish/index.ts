@@ -33,11 +33,11 @@ REGLAS (obligatorias):
 - 100% VistaCEO: NO menciones Greentech ni nada parecido.
 - Español LATAM, sin sonar robótico.
 - Tono: formal-cercano (voz de líder/operador de negocio). Nada de humo.
-- Emojis: 0 a 4 máximo. 
+- Emojis: 2 a 4 máximo, naturales y bien ubicados.
 - Evitá: "en esta nota…", "en este artículo…", "te contamos…". Hablá directo.
 - Extraé de la nota:
   - 1 idea central,
-  - 3–6 insights accionables,
+  - 3–5 insights accionables,
   - 1 dato o ejemplo concreto si existe.
 - "Clickbait elegante":
   - Curiosidad + promesa clara + relevancia para negocio
@@ -45,46 +45,67 @@ REGLAS (obligatorias):
 - No uses MAYÚSCULAS excesivas.
 - El post debe tener saltos de línea (aire visual).
 
-FORMATO DE SALIDA (respetar):
-Devolvé SOLO el texto final para copiar/pegar en LinkedIn, con esta estructura exacta:
+FORMATO DE SALIDA - MUY IMPORTANTE:
+Devolvé SOLO el texto final para copiar/pegar en LinkedIn.
+**NUNCA** uses etiquetas tipo "A)", "B)", "C)", "D)", "E)", "F)" ni títulos como "TITULAR:", "CUERPO:", etc.
+El texto debe fluir natural, sin estructura visible de plantilla.
 
-A) TITULAR (1 línea)
-- 6 a 14 palabras.
-- Incluir 1–2 palabras clave del tema.
-- Debe generar curiosidad real.
+ESTRUCTURA (invisible para el lector):
 
-B) ENTRADA (1–2 párrafos cortos)
-- Enmarcá el problema/oportunidad.
-- Meté una frase corta sola (estilo "golpe") para que se sienta humano.
+1. HOOK (1–2 líneas)
+Arrancá con una frase que enganche. Puede ser una pregunta provocadora, un dato sorprendente, o una afirmación que genere tensión.
+Ejemplo: "El 70% de los negocios que fracasan tienen algo en común..."
 
-C) CUERPO (4 a 7 líneas)
-- Mezclá formato para que no parezca plantilla:
-  - 2–4 bullets con "•"
-  - y 2–3 líneas sin bullets (frases cortas).
-- Cada línea debe ser:
-  Insight → implicancia práctica (qué cambia para una empresa/persona).
-- Incluir 1 línea "Qué haría mañana" si aplica.
+2. CONTEXTO BREVE (2–3 líneas)
+Planteá el problema u oportunidad en pocas palabras. Sin rodeos.
 
-D) CIERRE + CTA (2 líneas)
-- Hacé UNA pregunta concreta (no genérica) orientada a comentario.
-- Opcional: "Te leo" / "¿Cómo lo estás viendo?" (solo una).
+3. INSIGHTS (3–5 bullets)
+Usá el símbolo "•" para bullets (nunca "A)", "1.", "-").
+Cada bullet: insight concreto + implicancia práctica.
+Ejemplo:
+• La velocidad mata márgenes → si no automatizás, perdés plata cada día
+• El cliente decide en 3 segundos → tu propuesta tiene que ser obvia
 
-E) LINK (obligatorio, una línea aparte)
-Link: [URL]
+4. REFLEXIÓN/CTA (1–2 líneas)
+Una pregunta que invite a comentar. Natural, no genérica.
+Ejemplo: "¿Qué estás automatizando esta semana en tu negocio?"
 
-F) HASHTAGS (8 a 12, en una sola línea)
-- Siempre incluir #VistaCEO
-- Rotar el resto según el contenido.
-- Máximo 2 hashtags en inglés.
-- No repitas siempre el mismo set.
+5. LINK (línea aparte, sin "Link:" como prefijo)
+Solo la URL completa: https://www.vistaceo.com/blog/slug
+
+6. HASHTAGS (8 a 12, en una sola línea)
+Siempre incluir #VistaCEO. Rotar el resto según el contenido. Máximo 2 en inglés.
+
+EJEMPLO DE OUTPUT CORRECTO:
+---
+🔥 El 70% de los negocios que no escalan tienen el mismo problema
+
+No es falta de clientes. No es falta de producto.
+
+Es falta de sistema.
+
+• Sin procesos claros → cada día reinventás la rueda
+• Sin datos → tomás decisiones a ciegas
+• Sin automatización → pagás tiempo caro en tareas baratas
+
+La pregunta no es "¿tengo que cambiar?" Es "¿cuánto me está costando no hacerlo?"
+
+¿Qué proceso de tu negocio te gustaría automatizar primero?
+
+https://www.vistaceo.com/blog/escalar-negocio-2025
+
+#VistaCEO #Negocios #Emprendimiento #LATAM #Automatización #CEO #Pymes #Productividad #Estrategia
+---
 
 CHECK FINAL:
 - ¿Suena humano o parece plantilla? Si parece plantilla, reescribí con más naturalidad.
-- ¿El titular da ganas de abrir el link?
+- ¿Hay etiquetas tipo A), B), C) o títulos de sección visibles? → ELIMINALAS
+- ¿El hook da ganas de seguir leyendo?
 - ¿Hay al menos 1 idea accionable y 1 ejemplo/dato?
 - ¿El CTA invita a comentar?
-- ¿Incluye "Link:" y #VistaCEO?
-- ¿Emojis dentro del límite?
+- ¿El link usa el dominio canónico www.vistaceo.com/blog/slug?
+- ¿Incluye #VistaCEO?
+- ¿Emojis entre 2-4?
 
 Entregá únicamente la publicación final. Sin explicaciones. Sin títulos de secciones. Sin comillas.`;
 
@@ -143,6 +164,15 @@ OBJETIVO: engagement + clicks
 function validateLinkedInPost(text: string, canonicalUrl: string): string {
   let fixed = text.trim();
 
+  // Remove any section labels like A), B), C), D), E), F) that might have slipped through
+  fixed = fixed.replace(/^[A-F]\)\s*/gm, '');
+  
+  // Remove section titles like "TITULAR:", "CUERPO:", "CIERRE:", etc.
+  fixed = fixed.replace(/^(TITULAR|ENTRADA|CUERPO|CIERRE|LINK|HASHTAGS|CTA):\s*/gim, '');
+  
+  // Remove "Link:" prefix - we just want the URL on its own line
+  fixed = fixed.replace(/Link:\s*/gi, '');
+
   // Ensure #VistaCEO is included
   if (!fixed.includes('#VistaCEO')) {
     fixed = fixed.replace(/(#\w+)(\s|$)/, '$1 #VistaCEO$2');
@@ -151,32 +181,41 @@ function validateLinkedInPost(text: string, canonicalUrl: string): string {
     }
   }
 
-  // Ensure the link is included
+  // Ensure the canonical link is included (not storage URLs)
   if (!fixed.includes(canonicalUrl)) {
-    // Replace placeholder or add link
-    if (fixed.includes('Link:')) {
-      fixed = fixed.replace(/Link:\s*\[?URL\]?/i, `Link: ${canonicalUrl}`);
-    } else {
-      fixed = fixed.replace(/(\n\n#)/,  `\n\nLink: ${canonicalUrl}\n\n#`);
+    // Remove any storage.googleapis URLs or supabase function URLs
+    fixed = fixed.replace(/https:\/\/storage\.googleapis\.com[^\s]*/g, '');
+    fixed = fixed.replace(/https:\/\/[^\/]*supabase\.co\/functions[^\s]*/g, '');
+    
+    // Check if there's already a vistaceo.com URL
+    const hasVistaceoUrl = fixed.includes('https://www.vistaceo.com/blog/');
+    
+    if (!hasVistaceoUrl) {
+      // Find hashtags and add URL before them
+      const hashtagMatch = fixed.match(/(#\w+)/);
+      if (hashtagMatch) {
+        const hashtagIndex = fixed.indexOf(hashtagMatch[0]);
+        fixed = fixed.slice(0, hashtagIndex) + canonicalUrl + '\n\n' + fixed.slice(hashtagIndex);
+      } else {
+        fixed += '\n\n' + canonicalUrl;
+      }
     }
   }
 
-  // Count emojis and trim if too many
+  // Count emojis and trim if too many (max 4)
   const emojiRegex = /[\u{1F300}-\u{1F9FF}]/gu;
   const emojis = fixed.match(emojiRegex) || [];
   if (emojis.length > 4) {
-    // Remove excess emojis (keep first 3)
     let count = 0;
     fixed = fixed.replace(emojiRegex, (match) => {
       count++;
-      return count <= 3 ? match : '';
+      return count <= 4 ? match : '';
     });
   }
 
-  // Count hashtags and ensure reasonable amount
+  // Count hashtags and ensure reasonable amount (8-12)
   const hashtags = fixed.match(/#\w+/g) || [];
   if (hashtags.length < 8) {
-    // Add relevant hashtags
     const additionalTags = ['#Negocios', '#Emprendimiento', '#LATAM', '#Liderazgo', '#Productividad', '#Estrategia', '#CEO', '#Pymes'];
     const missingCount = 8 - hashtags.length;
     const tagsToAdd = additionalTags
@@ -188,7 +227,10 @@ function validateLinkedInPost(text: string, canonicalUrl: string): string {
     }
   }
 
-  return fixed;
+  // Clean up any double newlines that might have been created
+  fixed = fixed.replace(/\n{4,}/g, '\n\n\n');
+
+  return fixed.trim();
 }
 
 // Post to LinkedIn using Posts API
