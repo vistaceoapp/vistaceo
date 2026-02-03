@@ -6,11 +6,14 @@ const clusters = getAllClusters().slice(0, 6);
 
 <header class="site-header">
   <div class="header-container">
+    <!-- Logo -->
     <a href="/" class="logo">
-      <span class="logo-icon">📊</span>
-      <span class="logo-text">VistaCEO <span class="logo-blog">Blog</span></span>
+      <img src="/logo-light-full.png" alt="VistaCEO" class="logo-img logo-light" />
+      <img src="/logo-dark-full.png" alt="VistaCEO" class="logo-img logo-dark" style="display: none;" />
+      <span class="logo-badge">Blog</span>
     </a>
     
+    <!-- Desktop Navigation -->
     <nav class="main-nav">
       <ul class="nav-list">
         {clusters.map((cluster) => (
@@ -22,117 +25,80 @@ const clusters = getAllClusters().slice(0, 6);
           </li>
         ))}
         <li>
-          <a href="/tema/tendencias-ia-tech" class="nav-link nav-more">
+          <a href="/tema/tendencias-ia-tech" class="nav-link" style="color: var(--primary);">
             Más temas →
           </a>
         </li>
       </ul>
     </nav>
     
-    <a href="https://www.vistaceo.com" class="header-cta" target="_blank" rel="noopener">
-      Probar VistaCEO
-    </a>
+    <!-- Actions -->
+    <div class="header-actions">
+      <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">
+        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      
+      <a href="https://www.vistaceo.com" class="header-cta" target="_blank" rel="noopener">
+        <span>Probar VistaCEO</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+    
+    <!-- Mobile menu button -->
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
   </div>
 </header>
 
-<style>
-  .site-header {
-    background: #fff;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 1rem 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+<script>
+  // Theme toggle
+  const themeToggle = document.getElementById('theme-toggle');
+  const sunIcon = themeToggle?.querySelector('.sun-icon');
+  const moonIcon = themeToggle?.querySelector('.moon-icon');
+  const logoLight = document.querySelector('.logo-light') as HTMLElement;
+  const logoDark = document.querySelector('.logo-dark') as HTMLElement;
   
-  .header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 2rem;
-  }
-  
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    color: #111827;
-    font-weight: 700;
-    font-size: 1.25rem;
-  }
-  
-  .logo-icon {
-    font-size: 1.5rem;
-  }
-  
-  .logo-blog {
-    color: #6366f1;
-  }
-  
-  .main-nav {
-    flex: 1;
-    display: none;
-  }
-  
-  @media (min-width: 1024px) {
-    .main-nav {
-      display: block;
+  function updateTheme(isDark: boolean) {
+    document.documentElement.classList.toggle('dark', isDark);
+    if (sunIcon && moonIcon) {
+      (sunIcon as HTMLElement).style.display = isDark ? 'none' : 'block';
+      (moonIcon as HTMLElement).style.display = isDark ? 'block' : 'none';
     }
+    if (logoLight && logoDark) {
+      logoLight.style.display = isDark ? 'none' : 'block';
+      logoDark.style.display = isDark ? 'block' : 'none';
+    }
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }
   
-  .nav-list {
-    display: flex;
-    gap: 0.25rem;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    justify-content: center;
-  }
+  // Check for saved theme or system preference
+  const savedTheme = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+  updateTheme(isDark);
   
-  .nav-link {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.5rem 0.75rem;
-    text-decoration: none;
-    color: #4b5563;
-    font-size: 0.875rem;
-    border-radius: 0.5rem;
-    transition: background-color 0.2s, color 0.2s;
-  }
-  
-  .nav-link:hover {
-    background-color: #f3f4f6;
-    color: #111827;
-  }
-  
-  .nav-emoji {
-    font-size: 1rem;
-  }
-  
-  .nav-more {
-    color: #6366f1;
-  }
-  
-  .header-cta {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    background: #6366f1;
-    color: #fff;
-    text-decoration: none;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 0.5rem;
-    transition: background-color 0.2s;
-    white-space: nowrap;
-  }
-  
-  .header-cta:hover {
-    background: #4f46e5;
-  }
-</style>
+  themeToggle?.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.contains('dark');
+    updateTheme(!isDark);
+  });
+</script>
