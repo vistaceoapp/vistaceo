@@ -313,6 +313,42 @@ export type Database = {
           },
         ]
       }
+      blog_ssg_audits: {
+        Row: {
+          action: string
+          created_at: string
+          error_message: string | null
+          generation_time_ms: number | null
+          html_size_bytes: number | null
+          id: string
+          slug: string
+          success: boolean
+          triggered_by: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          error_message?: string | null
+          generation_time_ms?: number | null
+          html_size_bytes?: number | null
+          id?: string
+          slug: string
+          success?: boolean
+          triggered_by?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          error_message?: string | null
+          generation_time_ms?: number | null
+          html_size_bytes?: number | null
+          id?: string
+          slug?: string
+          success?: boolean
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       blog_topics: {
         Row: {
           category: string | null

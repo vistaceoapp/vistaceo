@@ -158,3 +158,9 @@ verify_jwt = false
 
 [functions.trigger-site-deploy]
 verify_jwt = false
+
+[functions.generate-blog-ssg]
+verify_jwt = false
+
+[functions.seo-test-suite]
+verify_jwt = false
