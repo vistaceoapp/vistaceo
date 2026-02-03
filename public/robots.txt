@@ -1,13 +1,24 @@
-# VistaCEO Robots.txt
+# VistaSEOOS - Robots.txt
 # Canonical domain: https://www.vistaceo.com
+
+# ===== MAIN CRAWLERS =====
 
 User-agent: Googlebot
 Allow: /
+Allow: /blog/
 Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Allow: /blog/
 Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Allow: /blog/
+Crawl-delay: 2
+
+# ===== SOCIAL MEDIA BOTS =====
 
 User-agent: Twitterbot
 Allow: /
@@ -18,12 +29,36 @@ Allow: /
 User-agent: LinkedInBot
 Allow: /
 
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Slackbot
+Allow: /
+
+User-agent: TelegramBot
+Allow: /
+
+User-agent: Discordbot
+Allow: /
+
+# ===== ALL OTHER BOTS =====
+
 User-agent: *
 Allow: /
+Allow: /blog/
+
+# Block private/internal routes
 Disallow: /app/
 Disallow: /setup
 Disallow: /checkout
 Disallow: /admin/
+Disallow: /api/
 
-# Sitemap location (served via edge function)
-Sitemap: https://nlewrgmcawzcdazhfiyy.supabase.co/functions/v1/sitemap
+# Block query parameters that create duplicate content
+Disallow: /*?utm_
+Disallow: /*?ref=
+Disallow: /*?source=
+
+# ===== SITEMAP =====
+
+Sitemap: https://www.vistaceo.com/sitemap.xml

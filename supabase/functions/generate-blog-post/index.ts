@@ -9,6 +9,9 @@ const corsHeaders = {
 // LATAM-wide content - no country-specific targeting
 const DEFAULT_REGION = 'LATAM';
 
+// CRITICAL: Use the CANONICAL domain, never .lovable.app
+const CANONICAL_DOMAIN = 'https://www.vistaceo.com';
+
 // Pillars mapping
 const PILLARS = {
   empleo: { label: 'Empleo y Carreras', emoji: '💼' },
@@ -163,11 +166,71 @@ interface BlogPlan {
   publish_attempts: number;
 }
 
+// Upload base64 image to Supabase Storage and return public URL
+async function uploadImageToStorage(
+  base64Data: string,
+  slug: string,
+  supabaseUrl: string,
+  supabaseKey: string
+): Promise<string | null> {
+  try {
+    // Extract the base64 content and mime type
+    const matches = base64Data.match(/^data:([^;]+);base64,(.+)$/);
+    if (!matches) {
+      console.log('[generate-blog-post] Invalid base64 format');
+      return null;
+    }
+    
+    const mimeType = matches[1];
+    const base64Content = matches[2];
+    const extension = mimeType.split('/')[1] || 'jpg';
+    const fileName = `hero-${slug}-${Date.now()}.${extension}`;
+    
+    // Decode base64 to binary
+    const binaryString = atob(base64Content);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Upload to Supabase Storage
+    const response = await fetch(
+      `${supabaseUrl}/storage/v1/object/blog-images/${fileName}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': mimeType,
+        },
+        body: bytes,
+      }
+    );
+    
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('[generate-blog-post] Storage upload failed:', error);
+      return null;
+    }
+    
+    // Return public URL
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${fileName}`;
+    console.log('[generate-blog-post] Image uploaded to Storage:', publicUrl);
+    return publicUrl;
+  } catch (error) {
+    console.error('[generate-blog-post] Storage upload error:', error);
+    return null;
+  }
+}
+
 // Generate hero image using Lovable AI image generation
+// Returns a PUBLIC HTTPS URL (never base64)
 async function generateHeroImage(
   title: string,
   pillar: string,
-  lovableApiKey: string
+  slug: string,
+  lovableApiKey: string,
+  supabaseUrl: string,
+  supabaseKey: string
 ): Promise<string | null> {
   try {
     const pillarInfo = PILLARS[pillar as keyof typeof PILLARS] || { label: pillar };
@@ -198,11 +261,30 @@ No text in the image. 16:9 aspect ratio. Ultra high resolution.`;
     const result = await response.json();
     const imageUrl = result.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
-    if (imageUrl) {
-      console.log('[generate-blog-post] Hero image generated successfully');
+    if (!imageUrl) {
+      return null;
+    }
+    
+    // CRITICAL: If the image is base64, upload to Storage
+    if (imageUrl.startsWith('data:')) {
+      console.log('[generate-blog-post] Detected base64 image, uploading to Storage...');
+      const storageUrl = await uploadImageToStorage(imageUrl, slug, supabaseUrl, supabaseKey);
+      if (storageUrl) {
+        console.log('[generate-blog-post] Base64 converted to Storage URL:', storageUrl);
+        return storageUrl;
+      }
+      // If upload fails, return null (don't use base64)
+      console.log('[generate-blog-post] Storage upload failed, using default image');
+      return null;
+    }
+    
+    // If it's already a valid HTTPS URL, use it
+    if (imageUrl.startsWith('https://')) {
+      console.log('[generate-blog-post] Hero image already HTTPS:', imageUrl);
       return imageUrl;
     }
     
+    console.log('[generate-blog-post] Invalid image URL format, skipping');
     return null;
   } catch (error) {
     console.error('[generate-blog-post] Image generation error:', error);
@@ -946,7 +1028,7 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
     console.log('[generate-blog-post] Content passed quality gate, generating images...');
 
     // 7. Generate hero image
-    const heroImageUrl = await generateHeroImage(selectedTopic.title_base, selectedTopic.pillar, lovableApiKey);
+    const heroImageUrl = await generateHeroImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
     qualityGateReport.checks.has_hero_image = !!heroImageUrl;
     
     // Note: For inline images, we'd need to upload to storage. For now, we use the hero.
@@ -979,31 +1061,31 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
       domain: s.domain
     }));
 
-    // Generate schema JSON-LD
+    // Generate schema JSON-LD - use CANONICAL_DOMAIN
     const schemaJsonld = {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
       "headline": selectedTopic.title_base,
       "description": metaDescription,
-      "image": heroImageUrl || undefined,
+      "image": heroImageUrl || `${CANONICAL_DOMAIN}/og-blog-default.jpg`,
       "datePublished": new Date().toISOString(),
       "dateModified": new Date().toISOString(),
       "author": {
         "@type": "Person",
         "name": "Equipo VistaCEO",
-        "url": "https://vistaceo.lovable.app/about"
+        "url": `${CANONICAL_DOMAIN}/about`
       },
       "publisher": {
         "@type": "Organization",
         "name": "VistaCEO",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://vistaceo.lovable.app/logo.png"
+          "url": `${CANONICAL_DOMAIN}/favicon.png`
         }
       },
       "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": `https://vistaceo.lovable.app/blog/${selectedTopic.slug}`
+        "@id": `${CANONICAL_DOMAIN}/blog/${selectedTopic.slug}`
       },
       "wordCount": wordCountTotal,
       "inLanguage": "es"
@@ -1033,10 +1115,10 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
         schema_jsonld: schemaJsonld,
         quality_gate_report: qualityGateReport,
         author_name: 'Equipo VistaCEO',
-        author_url: 'https://vistaceo.lovable.app/about',
+        author_url: `${CANONICAL_DOMAIN}/about`,
         hero_image_url: heroImageUrl,
         image_alt_text: `Imagen ilustrativa: ${selectedTopic.title_base}`,
-        canonical_url: `https://vistaceo.lovable.app/blog/${selectedTopic.slug}`,
+        canonical_url: `${CANONICAL_DOMAIN}/blog/${selectedTopic.slug}`,
       })
       .select()
       .single();
