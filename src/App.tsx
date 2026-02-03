@@ -18,9 +18,8 @@ import SetupPage from "./pages/SetupPage";
 import SetupCompletePage from "./pages/SetupCompletePage";
 import CheckoutPage from "./pages/CheckoutPage";
 
-// Blog Pages
-import BlogPage from "./pages/BlogPage";
-import BlogPostPage from "./pages/BlogPostPage";
+// Blog Pages - Now redirects to subdomain
+import BlogRedirect from "./components/blog/BlogRedirect";
 import BlogAdminPage from "./pages/admin/BlogAdminPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
@@ -89,9 +88,10 @@ const AppRoutes = () => {
       <Route path="/v3" element={<LandingV3 />} />
       <Route path="/auth" element={<Auth />} />
       
-      {/* Blog routes */}
-      <Route path="/blog" element={<BlogPage />} />
-      <Route path="/blog/:slug" element={<BlogPostPage />} />
+      {/* Blog routes - Redirect to subdomain */}
+      <Route path="/blog" element={<BlogRedirect />} />
+      <Route path="/blog/:slug" element={<BlogRedirect />} />
+      <Route path="/blog/tema/:cluster" element={<BlogRedirect />} />
       
       {/* Legal routes */}
       <Route path="/politicas" element={<PrivacyPolicyPage />} />

@@ -164,3 +164,6 @@ verify_jwt = false
 
 [functions.seo-test-suite]
 verify_jwt = false
+
+[functions.trigger-blog-revalidate]
+verify_jwt = false
