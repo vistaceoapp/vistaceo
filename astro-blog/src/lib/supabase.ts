@@ -60,37 +60,13 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 }
 
 export async function getPostsByCluster(cluster: string): Promise<BlogPost[]> {
-  // First try to match by category (12-cluster system)
-  let { data, error } = await supabase
+  // Use category field (12-cluster system)
+  const { data, error } = await supabase
     .from('blog_posts')
     .select('*')
     .eq('status', 'published')
     .eq('category', cluster)
     .order('publish_at', { ascending: false });
-
-  // If no results, fallback to pillar for backward compatibility
-  if ((!data || data.length === 0) && !error) {
-    // Map cluster to pillar for fallback
-    const clusterToPillar: Record<string, string> = {
-      'empleo-habilidades': 'empleo',
-      'ia-para-pymes': 'ia_aplicada',
-      'servicios-profesionales-rentabilidad': 'servicios',
-      'liderazgo-management': 'liderazgo',
-      'tendencias-ia-tech': 'tendencias',
-      'estrategia-latam': 'emprender',
-    };
-    const pillar = clusterToPillar[cluster];
-    if (pillar) {
-      const result = await supabase
-        .from('blog_posts')
-        .select('*')
-        .eq('status', 'published')
-        .eq('pillar', pillar)
-        .order('publish_at', { ascending: false });
-      data = result.data;
-      error = result.error;
-    }
-  }
 
   if (error) {
     console.error('Error fetching posts by cluster:', error);
@@ -100,31 +76,18 @@ export async function getPostsByCluster(cluster: string): Promise<BlogPost[]> {
   return data || [];
 }
 
-export async function getRelatedPosts(currentSlug: string, cluster: string | null, limit = 3): Promise<BlogPost[]> {
-  if (!cluster) return [];
+export async function getRelatedPosts(currentSlug: string, category: string | null, limit = 3): Promise<BlogPost[]> {
+  if (!category) return [];
 
-  // Try category first, then fallback to pillar
-  let { data, error } = await supabase
+  // Use category (12-cluster system) for related posts
+  const { data, error } = await supabase
     .from('blog_posts')
     .select('*')
     .eq('status', 'published')
-    .eq('category', cluster)
+    .eq('category', category)
     .neq('slug', currentSlug)
     .order('publish_at', { ascending: false })
     .limit(limit);
-
-  if ((!data || data.length === 0) && !error) {
-    const result = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('status', 'published')
-      .eq('pillar', cluster)
-      .neq('slug', currentSlug)
-      .order('publish_at', { ascending: false })
-      .limit(limit);
-    data = result.data;
-    error = result.error;
-  }
 
   if (error) {
     console.error('Error fetching related posts:', error);
