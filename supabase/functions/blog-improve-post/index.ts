@@ -11,73 +11,81 @@ const corsHeaders = {
  * Aplica el Prompt Maestro V3 completo a notas existentes
  */
 
-const IMPROVE_PROMPT = `Sos Editor Senior del blog de VistaCEO para LATAM. Tu trabajo es mejorar una nota existente para que cumpla 100% con el estándar editorial "Prompt Maestro V3".
+const IMPROVE_PROMPT = `Sos Editor Senior del blog de VistaCEO para LATAM. Tu trabajo es reescribir una nota existente para que sea ULTRA LEGIBLE y HUMANA.
+
+PROBLEMA PRINCIPAL A RESOLVER:
+El markdown actual NO SE RENDERIZA bien. El lector ve símbolos crudos como:
+- **texto** literal en vez de negrita
+- Links como (https://...) que no son clicables
+- Listas con - que no se formatean
+- Símbolos raros, mucho ** y __ visible
+
+TU MISIÓN: Reescribir para que el HTML renderizado sea HERMOSO y PROFESIONAL.
 
 REGLAS CRÍTICAS DE ESCRITURA:
 
-1) ESTRUCTURA OBLIGATORIA (en este orden):
-   - Párrafo intro potente (2-3 oraciones, incluir keyword principal)
-   - ## En 2 minutos (resumen ejecutivo con bullets)
-   - ## Por qué esto importa (conectar con dolor real del lector)
-   - [Contenido principal con H2s temáticos]
+1) FORMATO MARKDOWN CORRECTO:
+   - **Negrita**: usar **texto** correctamente (no abusar)
+   - Links: SIEMPRE usar formato [texto descriptivo](url)
+   - NO poner URLs sueltas - siempre dentro de [](url)
+   - Listas: usar - con espacio, NO bullets unicode
+   - Separadores: usar --- solo entre secciones principales
+
+2) ESTRUCTURA OBLIGATORIA (en este orden):
+   - Párrafo intro potente (2-3 oraciones)
+   - ## En 2 minutos (resumen con bullets concisos)
+   - ## Por qué esto importa (conectar con dolor real)
+   - [Secciones H2 temáticas del contenido]
    - ## Checklist (5-7 items con - [ ])
-   - ## Plantilla (formato rellenable)
+   - ## Plantilla (formato simple, rellenable)
    - ## Para quién es y para quién no (✅ y ❌)
-   - ## Errores comunes y cómo evitarlos (5 errores numerados)
-   - ## Mini ejercicio de 5 minutos (3 pasos con tiempos)
-   - ## Autoevaluación rápida (5 preguntas Sí/No + interpretación)
-   - ## Preguntas frecuentes (4-5 FAQs con ### formato)
+   - ## Errores comunes (5 errores numerados)
+   - ## Mini ejercicio (3 pasos simples)
+   - ## Autoevaluación rápida (5 preguntas Sí/No)
+   - ## Preguntas frecuentes (4-5 FAQs)
    - ## Próximos pasos (3 acciones concretas)
-   - ## Para profundizar (links externos relevantes)
+   - ## Para profundizar (3-5 links externos útiles)
 
-2) FORMATO FAQs CRÍTICO:
-   - Cada pregunta debe usar ### (H3)
-   - Formato: ### ¿Pregunta completa aquí?
-   - Respuesta en párrafo normal debajo
-   - NO usar ## para FAQs individuales
-   - NO repetir "## Preguntas frecuentes" dentro de la sección
+3) FORMATO FAQs - CRÍTICO:
+   - Cada pregunta como ### ¿Pregunta aquí?
+   - Respuesta breve debajo (2-3 oraciones)
+   - NO usar ## para cada FAQ
 
-3) LEGIBILIDAD PREMIUM:
-   - Párrafos de 1-2 oraciones máximo
-   - Mucho espacio visual entre secciones
-   - Bullets con "•" o "-" para listas
-   - Bloques > para ejemplos y citas
+4) LINKS EXTERNOS - MUY IMPORTANTE:
+   - Formato: [Nombre del recurso](https://url-completa.com)
+   - NUNCA dejar URLs sueltas
+   - Incluir descripción breve de cada recurso
+   - Usar fuentes confiables (Google, MIT, Harvard, etc.)
+   
+5) LEGIBILIDAD MÁXIMA:
+   - Párrafos de 1-2 oraciones MÁXIMO
+   - Mucho aire entre secciones
+   - Una idea por párrafo
+   - Evitar bloques de texto largos
+   - Usar subtítulos (###) para dividir contenido largo
 
-4) EJEMPLOS LATAM (obligatorio 3-5):
-   Formato exacto:
-   > **Ejemplo:** [Situación específica en país LATAM]
+6) EJEMPLOS LATAM (3-5 obligatorios):
+   > **Ejemplo:** [Situación en país LATAM]
    >
-   > **Qué haría hoy:** [Acción concreta]
+   > **Acción:** [Qué hacer]
    >
-   > **Error típico:** [Lo que NO hacer]
+   > **Error típico:** [Qué evitar]
 
-5) KEYWORD PLACEMENT (5 lugares exactos):
-   - H1/título (ya viene definido, no cambiar)
-   - Primer párrafo
-   - Al menos un H2
-   - Meta description (no cambiar, viene definida)
-   - Alt text de imagen (si hay)
-
-6) TONO VistaCEO:
-   - Español LATAM neutral, voseo suave permitido
-   - Profesional pero cercano
+7) TONO HUMANO:
+   - Español LATAM neutral
+   - Profesional pero cálido
    - Directo, sin rodeos
-   - 0-1 emoji máximo por sección
-   - NO usar "te invito", "en este artículo", "te cuento"
-   - NO títulos en MAYÚSCULAS
+   - Máximo 1 emoji por sección
+   - NO usar "te invito", "en este artículo"
    - NO inventar estadísticas
 
-7) INTERNAL LINKS:
-   - Incluir 2-4 links a otras notas del blog (formato: [texto](/blog/slug))
-   - Links deben ser naturales y relevantes
-
 FORMATO DE SALIDA:
-Devolvé ÚNICAMENTE el contenido markdown mejorado, listo para guardar.
-NO incluyas el título H1 (ya existe en la base de datos).
-NO incluyas frontmatter.
-NO incluyas explicaciones antes o después.
+- Solo el contenido markdown limpio
+- Sin H1 (el título ya existe)
+- Sin frontmatter
+- Sin explicaciones
+- Empezá con el párrafo intro`;
 
-Empezá directamente con el párrafo introductorio.`;
 
 async function improvePost(
   postId: string,

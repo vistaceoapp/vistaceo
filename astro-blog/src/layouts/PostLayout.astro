@@ -8,7 +8,8 @@ import RelatedPosts from '../components/RelatedPosts.astro';
 import ReadingToolbar from '../components/ReadingToolbar.astro';
 import type { BlogPost } from '../lib/supabase';
 import { getMetaTitle, getMetaDescription, getOgImage, getCanonicalUrl, generateBlogPostingSchema, generateBreadcrumbSchema, generateArticleSchema } from '../lib/seo';
-import { extractHeadings, addHeadingIds } from '../lib/text';
+import { extractHeadings } from '../lib/text';
+import { parseMarkdown } from '../lib/markdown';
 
 interface Props {
   post: BlogPost;
@@ -23,7 +24,8 @@ const description = getMetaDescription(post);
 const canonical = getCanonicalUrl(post.slug);
 const ogImage = getOgImage(post);
 const headings = extractHeadings(post.content_md);
-const processedContent = addHeadingIds(post.content_md);
+// Parse markdown to beautiful HTML
+const processedContent = parseMarkdown(post.content_md);
 
 const schemas = [
   generateBlogPostingSchema(post),
