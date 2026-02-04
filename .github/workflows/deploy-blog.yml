@@ -6,7 +6,14 @@ on:
       - main
     paths:
       - 'astro-blog/**'
+  # Scheduled: run every day at 6:00 AM UTC (for new posts)
+  schedule:
+    - cron: '0 6 * * *'
+  # Allow manual trigger
   workflow_dispatch:
+  # Triggered by Supabase edge function via repository_dispatch
+  repository_dispatch:
+    types: [blog-post-published]
 
 permissions:
   contents: read
