@@ -7,125 +7,677 @@ import { generateWebSiteSchema, generateOrganizationSchema } from '../lib/seo';
 import { getAllClusters, getCluster } from '../lib/clusters';
 import { formatDate, truncate } from '../lib/text';
 
-const posts = await getLatestPosts(20);
+const posts = await getLatestPosts(30);
 const clusters = getAllClusters();
+const MAIN_SITE = 'https://www.vistaceo.com';
 
 const schemas = [
   generateWebSiteSchema(),
   generateOrganizationSchema()
 ];
 
-// Group posts by cluster
+// Group posts by cluster for sections
 const postsByCluster = clusters.reduce((acc, cluster) => {
-  acc[cluster.slug] = posts.filter(p => p.pillar === cluster.slug).slice(0, 3);
+  acc[cluster.slug] = posts.filter(p => p.pillar === cluster.slug).slice(0, 4);
   return acc;
 }, {} as Record<string, typeof posts>);
+
+// Get clusters with posts for display
+const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 0).slice(0, 4);
 ---
 
 <BaseLayout 
   title="VistaCEO Blog | Insights para PyMEs Latinoamericanas"
-  description="Tu fuente de insights, guías y estrategias para tomar mejores decisiones de negocio en Latinoamérica. IA, marketing, finanzas y más."
+  description="Tu fuente de insights, guías y estrategias para tomar mejores decisiones de negocio en Latinoamérica. IA, marketing, finanzas, operaciones y más para dueños de PyMEs."
   canonical="https://blog.vistaceo.com"
   schemas={schemas}
 >
   <Header />
   
-  <main class="home-container">
+  <main class="home-main">
     <!-- Hero Section -->
-    <section class="home-hero">
-      <h1>
-        <span class="text-gradient">VistaCEO</span> Blog
-      </h1>
-      <p>Insights, guías y estrategias para tomar mejores decisiones de negocio en Latinoamérica</p>
-    </section>
-    
-    <!-- Latest Posts -->
-    <section>
-      <h2 class="section-title">
-        <span>📰 Últimos Artículos</span>
-      </h2>
-      <div class="posts-grid">
-        {posts.slice(0, 6).map((post) => {
-          const cluster = getCluster(post.pillar);
-          return (
-            <a href={`/${post.slug}`} class="post-card">
-              {post.hero_image_url && (
-                <div class="post-card-image">
-                  <img 
-                    src={post.hero_image_url} 
-                    alt={post.image_alt_text || post.title}
-                    loading="lazy"
-                  />
-                </div>
-              )}
-              <div class="post-card-content">
-                {cluster && (
-                  <span class="post-card-cluster">{cluster.emoji} {cluster.name}</span>
-                )}
-                <h3 class="post-card-title">{post.title}</h3>
-                {post.excerpt && (
-                  <p class="post-card-excerpt">{truncate(post.excerpt, 100)}</p>
-                )}
-                <span class="post-card-meta">{formatDate(post.publish_at)}</span>
-              </div>
-            </a>
-          );
-        })}
-      </div>
-    </section>
-    
-    <!-- Explore by Topic -->
-    <section>
-      <h2 class="section-title">
-        <span>🗂️ Explorar por Tema</span>
-      </h2>
-      <div class="clusters-grid">
-        {clusters.map((cluster) => (
-          <a href={`/tema/${cluster.slug}`} class="cluster-card">
-            <span class="cluster-card-emoji">{cluster.emoji}</span>
-            <span class="cluster-card-name">{cluster.name}</span>
+    <section class="hero">
+      <div class="hero-glow"></div>
+      <div class="hero-content">
+        <h1>
+          Insights para <span class="text-gradient">PyMEs Latinoamericanas</span>
+        </h1>
+        <p class="hero-subtitle">
+          Guías prácticas, estrategias probadas y las últimas tendencias para tomar mejores 
+          decisiones de negocio. Desde IA aplicada hasta finanzas, todo en español.
+        </p>
+        <div class="hero-actions">
+          <a href={`${MAIN_SITE}/auth`} class="btn-primary-lg">
+            Empezar gratis
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
           </a>
-        ))}
+          <a href="#explorar" class="btn-secondary-lg">
+            Explorar temas
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-number">{posts.length}+</span>
+            <span class="stat-label">Artículos</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-number">{clusters.length}</span>
+            <span class="stat-label">Categorías</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Gratis</span>
+          </div>
+        </div>
       </div>
     </section>
     
-    <!-- Cluster Sections -->
-    {clusters.slice(0, 4).map((cluster) => {
-      const clusterPosts = postsByCluster[cluster.slug];
-      if (!clusterPosts || clusterPosts.length === 0) return null;
-      
-      return (
-        <section>
+    <div class="home-container">
+      <!-- Latest Posts -->
+      <section class="section">
+        <div class="section-header">
           <h2 class="section-title">
-            <span>{cluster.emoji} {cluster.name}</span>
-            <a href={`/tema/${cluster.slug}`}>Ver todos →</a>
+            <span class="section-icon">📰</span>
+            Últimos Artículos
           </h2>
-          <div class="posts-grid">
-            {clusterPosts.map((post) => (
-              <a href={`/${post.slug}`} class="post-card">
+        </div>
+        <div class="posts-grid posts-grid-featured">
+          {posts.slice(0, 6).map((post, index) => {
+            const cluster = getCluster(post.pillar);
+            const isFeatured = index === 0;
+            return (
+              <a href={`/${post.slug}`} class={`post-card ${isFeatured ? 'post-card-featured' : ''}`}>
                 {post.hero_image_url && (
                   <div class="post-card-image">
                     <img 
                       src={post.hero_image_url} 
                       alt={post.image_alt_text || post.title}
-                      loading="lazy"
+                      loading={index < 3 ? 'eager' : 'lazy'}
+                      width="400"
+                      height="225"
                     />
                   </div>
                 )}
                 <div class="post-card-content">
+                  {cluster && (
+                    <span class="post-card-cluster">
+                      <span>{cluster.emoji}</span>
+                      {cluster.name}
+                    </span>
+                  )}
                   <h3 class="post-card-title">{post.title}</h3>
                   {post.excerpt && (
-                    <p class="post-card-excerpt">{truncate(post.excerpt, 100)}</p>
+                    <p class="post-card-excerpt">{truncate(post.excerpt, isFeatured ? 150 : 100)}</p>
                   )}
-                  <span class="post-card-meta">{formatDate(post.publish_at)}</span>
+                  <div class="post-card-footer">
+                    <span class="post-card-date">{formatDate(post.publish_at)}</span>
+                    {post.reading_time_min && (
+                      <span class="post-card-reading">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                        {post.reading_time_min} min
+                      </span>
+                    )}
+                  </div>
                 </div>
               </a>
-            ))}
-          </div>
-        </section>
-      );
-    })}
+            );
+          })}
+        </div>
+      </section>
+      
+      <!-- Explore by Topic -->
+      <section class="section" id="explorar">
+        <div class="section-header">
+          <h2 class="section-title">
+            <span class="section-icon">🗂️</span>
+            Explorar por Tema
+          </h2>
+          <p class="section-subtitle">
+            12 categorías especializadas para PyMEs latinoamericanas
+          </p>
+        </div>
+        <div class="clusters-grid">
+          {clusters.map((cluster) => {
+            const postCount = postsByCluster[cluster.slug]?.length || 0;
+            return (
+              <a href={`/tema/${cluster.slug}`} class="cluster-card">
+                <span class="cluster-emoji">{cluster.emoji}</span>
+                <span class="cluster-name">{cluster.name}</span>
+                <span class="cluster-count">{postCount} artículos</span>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+      
+      <!-- Cluster Sections -->
+      {clustersWithPosts.map((cluster) => {
+        const clusterPosts = postsByCluster[cluster.slug];
+        return (
+          <section class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <span class="section-icon">{cluster.emoji}</span>
+                {cluster.name}
+              </h2>
+              <a href={`/tema/${cluster.slug}`} class="section-link">
+                Ver todos →
+              </a>
+            </div>
+            <div class="posts-grid">
+              {clusterPosts.map((post, index) => (
+                <a href={`/${post.slug}`} class="post-card">
+                  {post.hero_image_url && (
+                    <div class="post-card-image">
+                      <img 
+                        src={post.hero_image_url} 
+                        alt={post.image_alt_text || post.title}
+                        loading="lazy"
+                        width="400"
+                        height="225"
+                      />
+                    </div>
+                  )}
+                  <div class="post-card-content">
+                    <h3 class="post-card-title">{post.title}</h3>
+                    {post.excerpt && (
+                      <p class="post-card-excerpt">{truncate(post.excerpt, 100)}</p>
+                    )}
+                    <span class="post-card-date">{formatDate(post.publish_at)}</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+      
+      <!-- CTA Section -->
+      <section class="cta-section">
+        <div class="cta-content">
+          <div class="cta-icon">🚀</div>
+          <h2>¿Listo para ordenar tu negocio?</h2>
+          <p>
+            VistaCEO es tu copiloto de IA para PyMEs latinoamericanas. 
+            Recibí diagnósticos, detectá problemas y ejecutá con un sistema inteligente.
+          </p>
+          <a href={`${MAIN_SITE}/auth`} class="btn-primary-lg">
+            Empezar gratis
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+      </section>
+    </div>
   </main>
   
   <Footer />
 </BaseLayout>
+
+<style>
+  .home-main {
+    padding-top: 64px;
+  }
+  
+  @media (min-width: 768px) {
+    .home-main {
+      padding-top: 72px;
+    }
+  }
+  
+  /* Hero */
+  .hero {
+    position: relative;
+    padding: 5rem 1.5rem 4rem;
+    text-align: center;
+    overflow: hidden;
+    background: var(--gradient-hero);
+  }
+  
+  @media (min-width: 768px) {
+    .hero {
+      padding: 7rem 1.5rem 5rem;
+    }
+  }
+  
+  .hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 800px;
+    height: 400px;
+    background: var(--gradient-glow);
+    filter: blur(80px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  
+  .hero-content {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    z-index: 1;
+  }
+  
+  .hero h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.25rem;
+  }
+  
+  @media (min-width: 640px) {
+    .hero h1 {
+      font-size: 3.25rem;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .hero h1 {
+      font-size: 3.75rem;
+    }
+  }
+  
+  .hero-subtitle {
+    font-size: 1.125rem;
+    color: var(--foreground-muted);
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+  }
+  
+  .hero-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  
+  @media (min-width: 480px) {
+    .hero-actions {
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+  
+  .btn-primary-lg {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.75rem;
+    background: linear-gradient(135deg, #2692DC, #746CE6);
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(38, 146, 220, 0.3);
+    transition: all 0.2s;
+  }
+  
+  .btn-primary-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(38, 146, 220, 0.4);
+    color: white;
+  }
+  
+  .btn-secondary-lg {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.75rem;
+    background: var(--card);
+    color: var(--foreground);
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    transition: all 0.2s;
+  }
+  
+  .btn-secondary-lg:hover {
+    background: var(--muted);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  
+  .hero-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+  
+  .stat {
+    text-align: center;
+  }
+  
+  .stat-number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--foreground-muted);
+  }
+  
+  .stat-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--border);
+  }
+  
+  /* Container */
+  .home-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  
+  /* Sections */
+  .section {
+    margin-bottom: 4rem;
+  }
+  
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  
+  .section-icon {
+    font-size: 1.25rem;
+  }
+  
+  .section-subtitle {
+    width: 100%;
+    font-size: 0.95rem;
+    color: var(--foreground-muted);
+  }
+  
+  .section-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  
+  .section-link:hover {
+    color: var(--accent);
+  }
+  
+  /* Posts Grid */
+  .posts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  @media (min-width: 640px) {
+    .posts-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .posts-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  .posts-grid-featured {
+    grid-template-columns: 1fr;
+  }
+  
+  @media (min-width: 640px) {
+    .posts-grid-featured {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .posts-grid-featured {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .posts-grid-featured .post-card-featured {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+    
+    .posts-grid-featured .post-card-featured .post-card-image {
+      aspect-ratio: 16/10;
+    }
+    
+    .posts-grid-featured .post-card-featured .post-card-title {
+      font-size: 1.5rem;
+    }
+  }
+  
+  .post-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  
+  .post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+  }
+  
+  .post-card-image {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: var(--muted);
+  }
+  
+  .post-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  
+  .post-card:hover .post-card-image img {
+    transform: scale(1.05);
+  }
+  
+  .post-card-content {
+    padding: 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .post-card-cluster {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: 0.5rem;
+  }
+  
+  .post-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+  
+  .post-card-excerpt {
+    font-size: 0.9rem;
+    color: var(--foreground-muted);
+    line-height: 1.6;
+    flex: 1;
+    margin-bottom: 0.75rem;
+  }
+  
+  .post-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .post-card-date {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+  }
+  
+  .post-card-reading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+  }
+  
+  /* Clusters Grid */
+  .clusters-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .clusters-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .clusters-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .clusters-grid {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+  
+  .cluster-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+  }
+  
+  .cluster-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+    background: var(--gradient-hero);
+  }
+  
+  .cluster-emoji {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .cluster-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.25rem;
+  }
+  
+  .cluster-count {
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+  }
+  
+  /* CTA Section */
+  .cta-section {
+    margin-top: 4rem;
+    margin-bottom: 0;
+  }
+  
+  .cta-content {
+    background: var(--gradient-primary);
+    padding: 3rem 2rem;
+    border-radius: 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .cta-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  
+  .cta-content h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.75rem;
+  }
+  
+  .cta-content p {
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 500px;
+    margin: 0 auto 1.5rem;
+    line-height: 1.6;
+  }
+  
+  .cta-content .btn-primary-lg {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  .cta-content .btn-primary-lg:hover {
+    color: var(--primary);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+  }
+</style>

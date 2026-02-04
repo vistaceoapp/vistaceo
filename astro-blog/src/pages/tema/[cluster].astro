@@ -4,7 +4,7 @@ import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { getPostsByCluster } from '../../lib/supabase';
 import { getAllClusters, getCluster } from '../../lib/clusters';
-import { generateCollectionPageSchema, generateOrganizationSchema } from '../../lib/seo';
+import { generateCollectionPageSchema, generateOrganizationSchema, generateFAQSchema } from '../../lib/seo';
 import { formatDate, truncate } from '../../lib/text';
 
 export async function getStaticPaths() {
@@ -23,13 +23,33 @@ if (!cluster) {
 }
 
 const posts = await getPostsByCluster(clusterSlug);
+const clusters = getAllClusters();
+const relatedClusters = clusters.filter(c => c.slug !== clusterSlug).slice(0, 4);
 
+const MAIN_SITE = 'https://www.vistaceo.com';
 const siteUrl = 'https://blog.vistaceo.com';
 const clusterUrl = `${siteUrl}/tema/${cluster.slug}`;
 
+// Generate FAQs for the cluster (SEO boost)
+const clusterFAQs = [
+  {
+    question: `¿Qué es ${cluster.name} y por qué es importante para mi PyME?`,
+    answer: cluster.intro.split('.').slice(0, 2).join('.') + '.'
+  },
+  {
+    question: `¿Cómo puede VistaCEO ayudarme con ${cluster.name}?`,
+    answer: `VistaCEO es tu copiloto de IA que te ayuda a tomar mejores decisiones en ${cluster.name}. Nuestro sistema analiza tu negocio y te da recomendaciones personalizadas basadas en datos.`
+  },
+  {
+    question: `¿Cuántos artículos hay sobre ${cluster.name}?`,
+    answer: `Actualmente tenemos ${posts.length} artículos especializados en ${cluster.name}, cubriendo desde guías prácticas hasta casos de éxito en Latinoamérica.`
+  }
+];
+
 const schemas = [
   generateCollectionPageSchema(cluster.name, clusterUrl, posts),
-  generateOrganizationSchema()
+  generateOrganizationSchema(),
+  generateFAQSchema(clusterFAQs)
 ];
 ---
 
@@ -41,87 +61,553 @@ const schemas = [
 >
   <Header />
   
-  <main class="cluster-hub">
-    <header class="cluster-header">
-      <div class="cluster-emoji">{cluster.emoji}</div>
-      <h1><span class="text-gradient">{cluster.name}</span></h1>
-      <p class="cluster-intro">{cluster.intro}</p>
-    </header>
+  <main class="cluster-main">
+    <!-- Hero -->
+    <section class="cluster-hero">
+      <div class="hero-glow"></div>
+      <div class="hero-content">
+        <div class="cluster-emoji-large">{cluster.emoji}</div>
+        <h1><span class="text-gradient">{cluster.name}</span></h1>
+        <p class="cluster-description">{cluster.description}</p>
+        <div class="cluster-stats">
+          <span class="stat-badge">{posts.length} artículos</span>
+          <span class="stat-badge">📍 LATAM</span>
+          <span class="stat-badge">🆓 100% gratis</span>
+        </div>
+      </div>
+    </section>
     
-    {posts.length > 0 ? (
-      <section>
-        <h2 class="section-title">
-          <span>📚 Artículos ({posts.length})</span>
-        </h2>
-        <div class="posts-grid">
-          {posts.map((post) => (
-            <a href={`/${post.slug}`} class="post-card">
-              {post.hero_image_url && (
-                <div class="post-card-image">
-                  <img 
-                    src={post.hero_image_url} 
-                    alt={post.image_alt_text || post.title}
-                    loading="lazy"
-                  />
-                </div>
-              )}
-              <div class="post-card-content">
-                <h3 class="post-card-title">{post.title}</h3>
-                {post.excerpt && (
-                  <p class="post-card-excerpt">{truncate(post.excerpt, 100)}</p>
+    <div class="cluster-container">
+      <!-- Intro Section (SEO: 200-400 words) -->
+      <section class="intro-section">
+        <div class="intro-content">
+          <h2>📚 Sobre {cluster.name}</h2>
+          <p class="intro-text">{cluster.intro}</p>
+        </div>
+      </section>
+      
+      <!-- Articles -->
+      {posts.length > 0 ? (
+        <section class="posts-section">
+          <h2 class="section-title">
+            <span>📰 Artículos ({posts.length})</span>
+          </h2>
+          <div class="posts-grid">
+            {posts.map((post, index) => (
+              <a href={`/${post.slug}`} class="post-card">
+                {post.hero_image_url && (
+                  <div class="post-card-image">
+                    <img 
+                      src={post.hero_image_url} 
+                      alt={post.image_alt_text || post.title}
+                      loading={index < 4 ? 'eager' : 'lazy'}
+                      width="400"
+                      height="225"
+                    />
+                  </div>
                 )}
-                <span class="post-card-meta">{formatDate(post.publish_at)}</span>
-              </div>
+                <div class="post-card-content">
+                  <h3 class="post-card-title">{post.title}</h3>
+                  {post.excerpt && (
+                    <p class="post-card-excerpt">{truncate(post.excerpt, 120)}</p>
+                  )}
+                  <div class="post-card-footer">
+                    <span class="post-card-date">{formatDate(post.publish_at)}</span>
+                    {post.reading_time_min && (
+                      <span class="post-card-reading">{post.reading_time_min} min lectura</span>
+                    )}
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section class="empty-state">
+          <div class="empty-icon">📝</div>
+          <h2>Próximamente</h2>
+          <p>Estamos preparando artículos sobre {cluster.name}.</p>
+          <a href="/" class="btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Volver al inicio
+          </a>
+        </section>
+      )}
+      
+      <!-- FAQs Section (SEO boost) -->
+      <section class="faq-section">
+        <h2 class="section-title">
+          <span>❓ Preguntas Frecuentes</span>
+        </h2>
+        <div class="faq-list">
+          {clusterFAQs.map((faq) => (
+            <details class="faq-item">
+              <summary class="faq-question">{faq.question}</summary>
+              <p class="faq-answer">{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+      
+      <!-- Related Clusters -->
+      <section class="related-section">
+        <h2 class="section-title">
+          <span>🗂️ Otros Temas</span>
+        </h2>
+        <div class="clusters-grid">
+          {relatedClusters.map((c) => (
+            <a href={`/tema/${c.slug}`} class="cluster-card">
+              <span class="cluster-card-emoji">{c.emoji}</span>
+              <span class="cluster-card-name">{c.name}</span>
             </a>
           ))}
         </div>
       </section>
-    ) : (
-      <section class="empty-state">
-        <div class="empty-icon">📝</div>
-        <p class="empty-text">
-          Próximamente publicaremos artículos sobre {cluster.name}.
-        </p>
-        <a href="/" class="empty-link">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          Volver al inicio
-        </a>
+      
+      <!-- CTA -->
+      <section class="cta-section">
+        <div class="cta-content">
+          <div class="cta-icon">🚀</div>
+          <h2>¿Querés aplicar esto a tu negocio?</h2>
+          <p>
+            VistaCEO te ayuda a implementar estrategias de {cluster.name.toLowerCase()} 
+            con recomendaciones personalizadas basadas en IA.
+          </p>
+          <a href={`${MAIN_SITE}/auth`} class="btn-primary">
+            Probar VistaCEO gratis
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
       </section>
-    )}
+    </div>
   </main>
   
   <Footer />
 </BaseLayout>
 
 <style>
+  .cluster-main {
+    padding-top: 64px;
+  }
+  
+  @media (min-width: 768px) {
+    .cluster-main {
+      padding-top: 72px;
+    }
+  }
+  
+  /* Hero */
+  .cluster-hero {
+    position: relative;
+    padding: 4rem 1.5rem 3rem;
+    text-align: center;
+    overflow: hidden;
+    background: var(--gradient-hero);
+  }
+  
+  @media (min-width: 768px) {
+    .cluster-hero {
+      padding: 5rem 1.5rem 4rem;
+    }
+  }
+  
+  .hero-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 600px;
+    height: 300px;
+    background: var(--gradient-glow);
+    filter: blur(80px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  
+  .hero-content {
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+    z-index: 1;
+  }
+  
+  .cluster-emoji-large {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+  
+  .cluster-hero h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+  }
+  
+  @media (min-width: 768px) {
+    .cluster-hero h1 {
+      font-size: 3rem;
+    }
+  }
+  
+  .cluster-description {
+    font-size: 1.1rem;
+    color: var(--foreground-muted);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+  
+  .cluster-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  
+  .stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+  }
+  
+  /* Container */
+  .cluster-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+  
+  /* Intro Section */
+  .intro-section {
+    margin-bottom: 3rem;
+  }
+  
+  .intro-content {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 2rem;
+  }
+  
+  .intro-content h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  
+  .intro-text {
+    font-size: 1rem;
+    color: var(--foreground-muted);
+    line-height: 1.8;
+  }
+  
+  /* Section Title */
+  .section-title {
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  /* Posts Section */
+  .posts-section {
+    margin-bottom: 3rem;
+  }
+  
+  .posts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  @media (min-width: 640px) {
+    .posts-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  .post-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  
+  .post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+  }
+  
+  .post-card-image {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: var(--muted);
+  }
+  
+  .post-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  
+  .post-card:hover .post-card-image img {
+    transform: scale(1.05);
+  }
+  
+  .post-card-content {
+    padding: 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .post-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+  
+  .post-card-excerpt {
+    font-size: 0.9rem;
+    color: var(--foreground-muted);
+    line-height: 1.6;
+    flex: 1;
+    margin-bottom: 0.75rem;
+  }
+  
+  .post-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+  }
+  
+  .post-card-reading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  /* Empty State */
   .empty-state {
     text-align: center;
-    padding: 5rem 0;
+    padding: 4rem 2rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    margin-bottom: 3rem;
   }
   
   .empty-icon {
     font-size: 4rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
   
-  .empty-text {
+  .empty-state h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .empty-state p {
     color: var(--foreground-muted);
-    font-size: 1.1rem;
     margin-bottom: 1.5rem;
   }
   
-  .empty-link {
+  .btn-secondary {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--primary);
-    font-weight: 600;
-    transition: color var(--transition-fast);
+    padding: 0.75rem 1.5rem;
+    background: var(--muted);
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.15s;
   }
   
-  .empty-link:hover {
-    color: var(--accent);
+  .btn-secondary:hover {
+    background: var(--border);
+  }
+  
+  /* FAQ Section */
+  .faq-section {
+    margin-bottom: 3rem;
+  }
+  
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .faq-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  
+  .faq-item[open] {
+    border-color: var(--primary);
+  }
+  
+  .faq-question {
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: color 0.15s;
+  }
+  
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+  
+  .faq-question::after {
+    content: '+';
+    font-size: 1.25rem;
+    color: var(--primary);
+    transition: transform 0.2s;
+  }
+  
+  .faq-item[open] .faq-question::after {
+    transform: rotate(45deg);
+  }
+  
+  .faq-question:hover {
+    color: var(--primary);
+  }
+  
+  .faq-answer {
+    padding: 0 1.25rem 1rem;
+    color: var(--foreground-muted);
+    line-height: 1.7;
+  }
+  
+  /* Related Clusters */
+  .related-section {
+    margin-bottom: 3rem;
+  }
+  
+  .clusters-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .clusters-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  .cluster-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  
+  .cluster-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+  }
+  
+  .cluster-card-emoji {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .cluster-card-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    text-align: center;
+  }
+  
+  /* CTA */
+  .cta-section {
+    margin-top: 2rem;
+  }
+  
+  .cta-content {
+    background: var(--gradient-primary);
+    padding: 2.5rem 2rem;
+    border-radius: 1.25rem;
+    text-align: center;
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .cta-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .cta-content h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.5rem;
+  }
+  
+  .cta-content p {
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 450px;
+    margin: 0 auto 1.25rem;
+    line-height: 1.6;
+  }
+  
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: white;
+    color: var(--primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    color: var(--primary);
   }
 </style>

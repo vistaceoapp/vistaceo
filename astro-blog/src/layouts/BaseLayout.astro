@@ -36,11 +36,18 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   
+  <!-- Primary Meta Tags -->
   <title>{title}</title>
+  <meta name="title" content={title}>
   <meta name="description" content={description}>
   <link rel="canonical" href={canonical}>
   
-  <!-- Open Graph -->
+  <!-- Language -->
+  <meta http-equiv="content-language" content="es-419">
+  <link rel="alternate" hreflang="es-419" href={canonical}>
+  <link rel="alternate" hreflang="x-default" href={canonical}>
+  
+  <!-- Open Graph / Facebook -->
   <meta property="og:type" content={ogType}>
   <meta property="og:site_name" content="VistaCEO Blog">
   <meta property="og:title" content={title}>
@@ -49,7 +56,8 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
   <meta property="og:image" content={fullOgImage}>
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:locale" content="es_LA">
+  <meta property="og:image:alt" content={title}>
+  <meta property="og:locale" content="es_419">
   
   {ogType === 'article' && publishedTime && (
     <meta property="article:published_time" content={publishedTime}>
@@ -64,6 +72,7 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@vistaceo">
+  <meta name="twitter:creator" content="@vistaceo">
   <meta name="twitter:title" content={title}>
   <meta name="twitter:description" content={description}>
   <meta name="twitter:image" content={fullOgImage}>
@@ -72,9 +81,10 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="apple-touch-icon" href="/favicon.png">
   
-  <!-- Preconnect for fonts -->
+  <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.vistaceo.com">
   
   <!-- RSS -->
   <link rel="alternate" type="application/rss+xml" title="VistaCEO Blog RSS" href="/rss.xml">
@@ -95,6 +105,11 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
   {schemas.map((schema) => (
     <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   ))}
+  
+  <!-- Additional SEO -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow">
+  <meta name="bingbot" content="index, follow">
 </head>
 <body>
   <slot />
