@@ -13,50 +13,68 @@ const cluster = getCluster(currentCluster);
 ---
 
 {posts.length > 0 && (
-  <aside class="related-section">
-    <h2 class="related-title">📚 Artículos Relacionados</h2>
-    
-    <div class="posts-grid">
-      {posts.map((post) => (
-        <a href={`/${post.slug}`} class="post-card">
-          {post.hero_image_url && (
-            <div class="post-card-image">
-              <img 
-                src={post.hero_image_url} 
-                alt={post.image_alt_text || post.title}
-                loading="lazy"
-              />
+  <section class="related-section" aria-labelledby="related-title">
+    <div class="related-container">
+      <h2 id="related-title" class="related-title">📚 Artículos Relacionados</h2>
+      
+      <div class="related-grid">
+        {posts.map((post) => (
+          <a href={`/${post.slug}`} class="related-card">
+            <div class="related-card-media">
+              {post.hero_image_url ? (
+                <img 
+                  src={post.hero_image_url} 
+                  alt={post.image_alt_text || post.title}
+                  loading="lazy"
+                  decoding="async"
+                  width="400"
+                  height="225"
+                />
+              ) : (
+                <div class="related-card-placeholder">
+                  <span>📝</span>
+                </div>
+              )}
             </div>
-          )}
-          <div class="post-card-content">
-            <h3 class="post-card-title">{post.title}</h3>
-            {post.excerpt && (
-              <p class="post-card-excerpt">{truncate(post.excerpt, 100)}</p>
-            )}
-            <span class="post-card-meta">{formatDate(post.publish_at)}</span>
-          </div>
-        </a>
-      ))}
-    </div>
-    
-    {cluster && (
-      <div class="related-cta">
-        <a href={`/tema/${cluster.slug}`} class="related-link">
-          Ver todos los artículos de {cluster.emoji} {cluster.name}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </a>
+            <div class="related-card-content">
+              <h3 class="related-card-title">{post.title}</h3>
+              {post.excerpt && (
+                <p class="related-card-excerpt">{truncate(post.excerpt, 100)}</p>
+              )}
+              <span class="related-card-date">{formatDate(post.publish_at)}</span>
+            </div>
+          </a>
+        ))}
       </div>
-    )}
-  </aside>
+      
+      {cluster && (
+        <div class="related-footer">
+          <a href={`/tema/${cluster.slug}`} class="related-link">
+            Ver todos los artículos de {cluster.emoji} {cluster.name}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+      )}
+    </div>
+  </section>
 )}
 
 <style>
+  /* ===== RELATED POSTS - Anti-CLS, Responsive, Consistent ===== */
   .related-section {
     margin-top: 4rem;
     padding-top: 3rem;
     border-top: 1px solid var(--border);
+  }
+  
+  /* Container with max-width and consistent padding */
+  .related-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-inline: clamp(16px, 4vw, 28px);
+    width: 100%;
   }
   
   .related-title {
@@ -66,7 +84,103 @@ const cluster = getCluster(currentCluster);
     margin-bottom: 1.5rem;
   }
   
-  .related-cta {
+  /* Responsive grid - NO "bailes" */
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+    gap: clamp(14px, 2vw, 22px);
+  }
+  
+  /* Cards - stable height, flex column */
+  .related-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    text-decoration: none;
+    transition: all var(--transition-base);
+  }
+  
+  .related-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+  }
+  
+  /* Media with fixed aspect-ratio - Anti CLS */
+  .related-card-media {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  
+  .related-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-base);
+  }
+  
+  .related-card:hover .related-card-media img {
+    transform: scale(1.05);
+  }
+  
+  .related-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-hero);
+    font-size: 2.5rem;
+  }
+  
+  /* Content area - flex grow to equalize */
+  .related-card-content {
+    padding: 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .related-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground);
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+    /* Clamp title to 2 lines for visual consistency */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .related-card-excerpt {
+    font-size: 0.875rem;
+    color: var(--foreground-muted);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    flex: 1;
+    /* Clamp to 2-3 lines */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .related-card-date {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    margin-top: auto;
+  }
+  
+  /* Footer CTA */
+  .related-footer {
     margin-top: 2rem;
     text-align: center;
   }
@@ -83,5 +197,13 @@ const cluster = getCluster(currentCluster);
   
   .related-link:hover {
     color: var(--accent);
+  }
+  
+  .related-link svg {
+    transition: transform var(--transition-fast);
+  }
+  
+  .related-link:hover svg {
+    transform: translateX(4px);
   }
 </style>
