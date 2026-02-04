@@ -6,6 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// PayPal API URLs
+const PAYPAL_API_URL = Deno.env.get("PAYPAL_MODE") === "live" 
+  ? "https://api-m.paypal.com"
+  : "https://api-m.sandbox.paypal.com";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,13 +24,19 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const provider = url.searchParams.get("provider") || "mercadopago";
+    const action = url.searchParams.get("action");
+
+    // Handle PayPal capture (when user returns from PayPal)
+    if (action === "capture" && provider === "paypal") {
+      return await handlePayPalCapture(req, supabase);
+    }
 
     if (provider === "mercadopago") {
       // =====================
       // MERCADO PAGO WEBHOOK (Argentina - ARS)
       // =====================
       const body = await req.json();
-      console.log("MercadoPago webhook received:", body.type, body.data?.id);
+      console.log("[Webhook] MercadoPago notification:", body.type, body.data?.id);
 
       if (body.type === "payment") {
         const paymentId = body.data.id;
@@ -39,12 +50,12 @@ serve(async (req) => {
         );
 
         if (!paymentResponse.ok) {
-          console.error("Failed to get MP payment details");
+          console.error("[Webhook] Failed to get MP payment details");
           return new Response("OK", { status: 200 });
         }
 
         const payment = await paymentResponse.json();
-        console.log("Payment status:", payment.status);
+        console.log("[Webhook] Payment status:", payment.status);
 
         if (payment.status === "approved") {
           const refData = JSON.parse(payment.external_reference || "{}");
@@ -70,18 +81,30 @@ serve(async (req) => {
       // PAYPAL WEBHOOK (International - USD)
       // =====================
       const body = await req.json();
-      console.log("PayPal webhook received:", body.event_type);
+      console.log("[Webhook] PayPal notification:", body.event_type);
 
-      if (body.event_type === "PAYMENT.CAPTURE.COMPLETED") {
+      // Verify webhook signature (optional but recommended for production)
+      // const isValid = await verifyPayPalWebhook(req, body);
+
+      if (body.event_type === "PAYMENT.CAPTURE.COMPLETED" || 
+          body.event_type === "CHECKOUT.ORDER.APPROVED") {
         const resource = body.resource;
-        const customData = JSON.parse(resource.custom_id || "{}");
-        const { businessId, userId, planId, localAmount, localCurrency, country } = customData;
+        const customId = resource.custom_id || resource.purchase_units?.[0]?.custom_id || "{}";
+        const customData = JSON.parse(customId);
+        const { businessId, userId, planId, localAmount, localCurrency } = customData;
+
+        const amount = resource.amount?.value 
+          || resource.purchase_units?.[0]?.amount?.value 
+          || "0";
+        const currency = resource.amount?.currency_code 
+          || resource.purchase_units?.[0]?.amount?.currency_code 
+          || "USD";
 
         const paymentInfo = {
           provider: "paypal" as const,
           paymentId: resource.id,
-          amount: parseFloat(resource.amount?.value || "0"),
-          currency: resource.amount?.currency_code || "USD",
+          amount: parseFloat(amount),
+          currency: currency,
           localAmount: localAmount || null,
           localCurrency: localCurrency || null,
         };
@@ -95,10 +118,109 @@ serve(async (req) => {
     return new Response("Unknown provider", { status: 400 });
 
   } catch (error) {
-    console.error("Webhook error:", error);
+    console.error("[Webhook] Error:", error);
     return new Response("OK", { status: 200 });
   }
 });
+
+// Handle PayPal payment capture when user returns from PayPal
+async function handlePayPalCapture(req: Request, supabase: any) {
+  try {
+    const body = await req.json();
+    const { orderId, userId, businessId, planId, localAmount, localCurrency, country } = body;
+
+    console.log("[Webhook] Capturing PayPal order:", orderId);
+
+    if (!orderId) {
+      return new Response(
+        JSON.stringify({ error: "orderId is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const PAYPAL_CLIENT_ID = Deno.env.get("PAYPAL_CLIENT_ID");
+    const PAYPAL_CLIENT_SECRET = Deno.env.get("PAYPAL_CLIENT_SECRET");
+
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+      return new Response(
+        JSON.stringify({ error: "PayPal not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Get access token
+    const authResponse = await fetch(`${PAYPAL_API_URL}/v1/oauth2/token`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`)}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: "grant_type=client_credentials",
+    });
+
+    if (!authResponse.ok) {
+      console.error("[Webhook] PayPal auth failed");
+      return new Response(
+        JSON.stringify({ error: "PayPal authentication failed" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const authData = await authResponse.json();
+    const accessToken = authData.access_token;
+
+    // Capture the payment
+    const captureResponse = await fetch(`${PAYPAL_API_URL}/v2/checkout/orders/${orderId}/capture`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const captureResult = await captureResponse.json();
+    console.log("[Webhook] PayPal capture result:", captureResult.status);
+
+    if (captureResult.status === "COMPLETED") {
+      const captureInfo = captureResult.purchase_units?.[0]?.payments?.captures?.[0];
+      
+      const paymentInfo = {
+        provider: "paypal" as const,
+        paymentId: captureInfo?.id || orderId,
+        amount: parseFloat(captureInfo?.amount?.value || "29"),
+        currency: captureInfo?.amount?.currency_code || "USD",
+        localAmount: localAmount || null,
+        localCurrency: localCurrency || null,
+      };
+
+      await createSubscription(supabase, businessId, userId, planId, paymentInfo);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          status: "COMPLETED",
+          message: "Payment captured successfully"
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } else {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          status: captureResult.status,
+          message: captureResult.message || "Payment not completed"
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+  } catch (error) {
+    console.error("[Webhook] Capture error:", error);
+    return new Response(
+      JSON.stringify({ error: "Failed to capture payment" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+}
 
 interface PaymentInfo {
   provider: "mercadopago" | "paypal";
@@ -116,7 +238,7 @@ async function createSubscription(
   planId: string,
   paymentInfo: PaymentInfo
 ) {
-  console.log(`Creating subscription for user ${userId}, plan ${planId}`);
+  console.log(`[Webhook] Creating subscription for user ${userId}, plan ${planId}`);
 
   const now = new Date();
   const expiresAt = new Date(now);
@@ -161,28 +283,42 @@ async function createSubscription(
       });
 
     if (subError) {
-      console.error("Failed to create subscription:", subError);
+      console.error("[Webhook] Failed to create subscription:", subError);
+    } else {
+      console.log("[Webhook] Subscription created successfully");
     }
 
-    // Update business settings
+    // Update business settings with JSONB merge
+    const { data: currentBusiness } = await supabase
+      .from("businesses")
+      .select("settings")
+      .eq("id", targetBusinessId)
+      .single();
+
+    const currentSettings = currentBusiness?.settings || {};
+    const newSettings = {
+      ...currentSettings,
+      plan: "pro",
+      plan_id: planId,
+      plan_expires_at: expiresAt.toISOString(),
+      payment_provider: paymentInfo.provider,
+      last_payment_at: now.toISOString(),
+      last_payment_amount: paymentInfo.amount,
+      last_payment_currency: paymentInfo.currency,
+    };
+
     const { error: updateError } = await supabase
       .from("businesses")
       .update({
-        settings: {
-          plan: "pro",
-          plan_id: planId,
-          plan_expires_at: expiresAt.toISOString(),
-          payment_provider: paymentInfo.provider,
-          last_payment_at: now.toISOString(),
-          last_payment_amount: paymentInfo.amount,
-          last_payment_currency: paymentInfo.currency,
-        },
+        settings: newSettings,
         updated_at: now.toISOString(),
       })
       .eq("id", targetBusinessId);
 
     if (updateError) {
-      console.error("Failed to update business:", updateError);
+      console.error("[Webhook] Failed to update business:", updateError);
+    } else {
+      console.log("[Webhook] Business settings updated with Pro status");
     }
 
     // Create audit record
@@ -203,12 +339,23 @@ async function createSubscription(
       metadata: { type: "payment_confirmation" },
     });
 
-    console.log(`Subscription created for business ${targetBusinessId} until ${expiresAt.toISOString()}`);
+    console.log(`[Webhook] Subscription complete for business ${targetBusinessId} until ${expiresAt.toISOString()}`);
   } else {
-    // No business yet - store pending upgrade in profile metadata
-    console.log(`User ${userId} paid for Pro but has no business yet. Will apply on setup.`);
+    // No business yet - store pending upgrade for when they complete setup
+    console.log(`[Webhook] User ${userId} paid for Pro but has no business yet.`);
     
-    // We could store this in a pending_upgrades table if needed
-    // For now, the user's pro status will be applied when they complete setup
+    // Store in profiles or a pending_payments table
+    await supabase.from("profiles").update({
+      metadata: {
+        pending_pro: true,
+        pending_plan_id: planId,
+        pending_payment_provider: paymentInfo.provider,
+        pending_payment_id: paymentInfo.paymentId,
+        pending_payment_at: now.toISOString(),
+        pending_expires_at: expiresAt.toISOString(),
+      }
+    }).eq("id", userId);
+
+    console.log(`[Webhook] Stored pending Pro upgrade for user ${userId}`);
   }
 }

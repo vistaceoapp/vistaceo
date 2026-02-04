@@ -28,6 +28,11 @@ const ARS_PRICES = {
   pro_yearly: 299900,
 };
 
+// PayPal API URLs - Use sandbox for testing, live for production
+const PAYPAL_API_URL = Deno.env.get("PAYPAL_MODE") === "live" 
+  ? "https://api-m.paypal.com"
+  : "https://api-m.sandbox.paypal.com";
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -35,6 +40,8 @@ serve(async (req) => {
 
   try {
     const { businessId, userId, planId, country, email, localAmount, localCurrency } = await req.json() as CheckoutRequest;
+
+    console.log(`[Checkout] Starting for user: ${userId}, plan: ${planId}, country: ${country}`);
 
     if (!userId || !planId) {
       return new Response(
@@ -48,6 +55,8 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    const APP_URL = Deno.env.get("APP_URL") || "https://vistaceo.lovable.app";
+
     // ARGENTINA = MercadoPago in ARS
     // ALL OTHER COUNTRIES = PayPal in USD
     const isArgentina = country === "AR";
@@ -59,6 +68,7 @@ serve(async (req) => {
       const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
       
       if (!MERCADOPAGO_ACCESS_TOKEN) {
+        console.error("[Checkout] MercadoPago access token not configured");
         return new Response(
           JSON.stringify({ error: "MercadoPago not configured" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -81,9 +91,9 @@ serve(async (req) => {
           email: email || "",
         },
         back_urls: {
-          success: `${Deno.env.get("APP_URL") || "https://vistaceo.lovable.app"}/checkout?status=success`,
-          failure: `${Deno.env.get("APP_URL") || "https://vistaceo.lovable.app"}/checkout?status=failure`,
-          pending: `${Deno.env.get("APP_URL") || "https://vistaceo.lovable.app"}/checkout?status=pending`,
+          success: `${APP_URL}/checkout?status=success`,
+          failure: `${APP_URL}/checkout?status=failure`,
+          pending: `${APP_URL}/checkout?status=pending`,
         },
         auto_return: "approved",
         external_reference: JSON.stringify({ 
@@ -96,6 +106,8 @@ serve(async (req) => {
         notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook?provider=mercadopago`,
       };
 
+      console.log("[Checkout] Creating MercadoPago preference...");
+
       const mpResponse = await fetch("https://api.mercadopago.com/checkout/preferences", {
         method: "POST",
         headers: {
@@ -107,7 +119,7 @@ serve(async (req) => {
 
       if (!mpResponse.ok) {
         const errorText = await mpResponse.text();
-        console.error("MercadoPago error:", errorText);
+        console.error("[Checkout] MercadoPago error:", errorText);
         return new Response(
           JSON.stringify({ error: "Failed to create MercadoPago checkout" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -115,7 +127,7 @@ serve(async (req) => {
       }
 
       const mpData = await mpResponse.json();
-      console.log("MercadoPago preference created:", mpData.id);
+      console.log("[Checkout] MercadoPago preference created:", mpData.id);
 
       return new Response(
         JSON.stringify({
@@ -138,6 +150,7 @@ serve(async (req) => {
       const PAYPAL_CLIENT_SECRET = Deno.env.get("PAYPAL_CLIENT_SECRET");
       
       if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+        console.error("[Checkout] PayPal credentials not configured");
         return new Response(
           JSON.stringify({ error: "PayPal not configured" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -150,8 +163,10 @@ serve(async (req) => {
         ? "VistaCEO Pro - Yearly (2 months free)" 
         : "VistaCEO Pro - Monthly";
 
+      console.log(`[Checkout] Getting PayPal access token from ${PAYPAL_API_URL}...`);
+
       // Get PayPal access token
-      const authResponse = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
+      const authResponse = await fetch(`${PAYPAL_API_URL}/v1/oauth2/token`, {
         method: "POST",
         headers: {
           "Authorization": `Basic ${btoa(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`)}`,
@@ -161,21 +176,26 @@ serve(async (req) => {
       });
 
       if (!authResponse.ok) {
-        console.error("PayPal auth error:", await authResponse.text());
+        const errorText = await authResponse.text();
+        console.error("[Checkout] PayPal auth error:", errorText);
         return new Response(
-          JSON.stringify({ error: "Failed to authenticate with PayPal" }),
+          JSON.stringify({ 
+            error: "Failed to authenticate with PayPal",
+            details: "Please verify PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET are correct and match the environment (sandbox vs live)"
+          }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       const authData = await authResponse.json();
       const accessToken = authData.access_token;
+      console.log("[Checkout] PayPal authenticated successfully");
 
       // Create PayPal order in USD
       const orderData = {
         intent: "CAPTURE",
         purchase_units: [{
-          reference_id: `${userId}_${planId}`,
+          reference_id: `${userId}_${planId}_${Date.now()}`,
           description: description,
           custom_id: JSON.stringify({ 
             businessId: businessId || null, 
@@ -190,16 +210,22 @@ serve(async (req) => {
             value: usdAmount.toFixed(2),
           },
         }],
-        application_context: {
-          brand_name: "VistaCEO",
-          landing_page: "BILLING",
-          user_action: "PAY_NOW",
-          return_url: `${Deno.env.get("APP_URL") || "https://vistaceo.lovable.app"}/checkout?status=success`,
-          cancel_url: `${Deno.env.get("APP_URL") || "https://vistaceo.lovable.app"}/checkout?status=cancelled`,
+        payment_source: {
+          paypal: {
+            experience_context: {
+              brand_name: "VistaCEO",
+              landing_page: "LOGIN",
+              user_action: "PAY_NOW",
+              return_url: `${APP_URL}/checkout?status=success&provider=paypal`,
+              cancel_url: `${APP_URL}/checkout?status=cancelled`,
+            },
+          },
         },
       };
 
-      const orderResponse = await fetch("https://api-m.paypal.com/v2/checkout/orders", {
+      console.log("[Checkout] Creating PayPal order...");
+
+      const orderResponse = await fetch(`${PAYPAL_API_URL}/v2/checkout/orders`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${accessToken}`,
@@ -210,17 +236,37 @@ serve(async (req) => {
 
       if (!orderResponse.ok) {
         const errorText = await orderResponse.text();
-        console.error("PayPal order error:", errorText);
+        console.error("[Checkout] PayPal order error:", errorText);
         return new Response(
-          JSON.stringify({ error: "Failed to create PayPal order" }),
+          JSON.stringify({ error: "Failed to create PayPal order", details: errorText }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       const orderResult = await orderResponse.json();
-      const approveLink = orderResult.links.find((l: any) => l.rel === "approve");
+      const approveLink = orderResult.links.find((l: any) => l.rel === "payer-action") 
+        || orderResult.links.find((l: any) => l.rel === "approve");
       
-      console.log("PayPal order created:", orderResult.id);
+      console.log("[Checkout] PayPal order created:", orderResult.id, "Status:", orderResult.status);
+
+      // Store the order ID for capture later (non-blocking)
+      try {
+        await supabase.from("business_insights").insert({
+          business_id: businessId || "00000000-0000-0000-0000-000000000000",
+          category: "payment",
+          question: "PayPal Order Created",
+          answer: JSON.stringify({
+            orderId: orderResult.id,
+            userId,
+            planId,
+            amount: usdAmount,
+            status: orderResult.status,
+          }),
+          metadata: { type: "paypal_order_pending" },
+        });
+      } catch (logErr) {
+        console.warn("[Checkout] Could not log order:", logErr);
+      }
 
       return new Response(
         JSON.stringify({
@@ -237,7 +283,7 @@ serve(async (req) => {
     }
 
   } catch (error) {
-    console.error("Checkout error:", error);
+    console.error("[Checkout] Error:", error);
     return new Response(
       JSON.stringify({ error: "Failed to create checkout session" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
