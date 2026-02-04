@@ -18,10 +18,8 @@ import SetupPage from "./pages/SetupPage";
 import SetupCompletePage from "./pages/SetupCompletePage";
 import CheckoutPage from "./pages/CheckoutPage";
 
-// Blog Pages - Direct rendering in Lovable
-import BlogPage from "./pages/BlogPage";
-import BlogPostPage from "./pages/BlogPostPage";
-import BlogCategoryPage from "./pages/BlogCategoryPage";
+// Blog Pages - Redirects to subdomain (blog.vistaceo.com)
+import BlogRedirect from "./components/blog/BlogRedirect";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 
@@ -95,10 +93,10 @@ const AppRoutes = () => {
       <Route path="/v3" element={<LandingV3 />} />
       <Route path="/auth" element={<Auth />} />
       
-      {/* Blog routes - Direct rendering */}
-      <Route path="/blog" element={<BlogPage />} />
-      <Route path="/blog/:slug" element={<BlogPostPage />} />
-      <Route path="/blog/tema/:cluster" element={<BlogCategoryPage />} />
+      {/* Blog routes - Redirect to subdomain blog.vistaceo.com */}
+      <Route path="/blog" element={<BlogRedirect />} />
+      <Route path="/blog/:slug" element={<BlogRedirect />} />
+      <Route path="/blog/tema/:cluster" element={<BlogRedirect />} />
       
       {/* Legal routes */}
       <Route path="/politicas" element={<PrivacyPolicyPage />} />
