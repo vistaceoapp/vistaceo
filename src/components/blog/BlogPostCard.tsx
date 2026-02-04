@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PILLARS, type PillarKey } from '@/lib/blog/types';
+import { BLOG_CLUSTERS, type BlogClusterKey } from '@/lib/blog/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -14,13 +14,16 @@ interface BlogPostCardProps {
     hero_image_url: string | null;
     publish_at: string | null;
     reading_time_min: number;
-    pillar: string | null;
+    pillar?: string | null;
+    category?: string | null;
     tags?: string[];
   };
 }
 
 export function BlogPostCard({ post }: BlogPostCardProps) {
-  const pillar = post.pillar as PillarKey | null;
+  // Use category (12 clusters) as primary, fallback to pillar
+  const categoryKey = post.category as BlogClusterKey | null;
+  const clusterInfo = categoryKey ? BLOG_CLUSTERS[categoryKey] : null;
   
   return (
     <Link to={`/blog/${post.slug}`}>
@@ -38,10 +41,10 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 via-primary/10 to-background">
               <div className="text-center">
                 <span className="text-5xl block mb-2">
-                  {pillar ? PILLARS[pillar]?.emoji : '📝'}
+                  {clusterInfo?.emoji || '📝'}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {pillar ? PILLARS[pillar]?.label : 'Blog'}
+                  {clusterInfo?.label || 'Blog'}
                 </span>
               </div>
             </div>
@@ -50,11 +53,11 @@ export function BlogPostCard({ post }: BlogPostCardProps) {
         </div>
 
         <CardContent className="p-5 space-y-3">
-          {/* Pillar badge */}
-          {pillar && PILLARS[pillar] && (
-            <Badge variant="outline" className="gap-1 text-xs">
-              <span>{PILLARS[pillar].emoji}</span>
-              <span>{PILLARS[pillar].label}</span>
+          {/* Category badge - using 12-cluster system */}
+          {clusterInfo && (
+            <Badge variant="outline" className="gap-1.5 text-xs">
+              <span>{clusterInfo.emoji}</span>
+              <span>{clusterInfo.label}</span>
             </Badge>
           )}
 
