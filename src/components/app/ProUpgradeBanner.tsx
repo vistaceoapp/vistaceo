@@ -18,7 +18,7 @@ export const ProUpgradeBanner = ({
   if (variant === "minimal") {
     return (
       <button
-        onClick={() => navigate("/app/upgrade")}
+        onClick={() => navigate("/checkout")}
         className={cn(
           "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all",
           "bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30",
@@ -62,7 +62,7 @@ export const ProUpgradeBanner = ({
           <Button 
             size="sm"
             className="flex-shrink-0 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-            onClick={() => navigate("/app/upgrade")}
+            onClick={() => navigate("/checkout")}
           >
             Ver Pro
             <ArrowRight className="w-4 h-4 ml-1" />
@@ -124,7 +124,7 @@ export const ProUpgradeBanner = ({
 
         <Button 
           className="w-full group bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-          onClick={() => navigate("/app/upgrade")}
+          onClick={() => navigate("/checkout")}
         >
           <Zap className="w-4 h-4 mr-2" />
           Desbloquear Pro — 7 días de garantía

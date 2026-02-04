@@ -33,7 +33,7 @@ export const PlanStatusCard = ({
   } = useSubscription();
 
   const handleClick = () => {
-    navigate("/app/upgrade");
+    navigate("/checkout");
   };
 
   // Pro user - show status

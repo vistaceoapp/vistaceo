@@ -161,7 +161,7 @@ export const SubscriptionStatusSection = () => {
           )}
 
           <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => navigate("/app/upgrade")}>
+            <Button variant="outline" className="flex-1" onClick={() => navigate("/checkout")}>
               Gestionar suscripción
             </Button>
           </div>
@@ -233,7 +233,7 @@ export const SubscriptionStatusSection = () => {
             </div>
             <Button 
               className="gradient-primary text-white"
-              onClick={() => navigate("/app/upgrade")}
+              onClick={() => navigate("/checkout")}
             >
               <Crown className="w-4 h-4 mr-2" />
               Ver planes

@@ -53,7 +53,7 @@ export const ProFeatureGate = ({
           
           <Button 
             className="group bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-            onClick={() => navigate("/app/upgrade")}
+            onClick={() => navigate("/checkout")}
           >
             <Crown className="w-4 h-4 mr-2" />
             Desbloquear con Pro
