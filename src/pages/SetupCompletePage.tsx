@@ -69,7 +69,7 @@ const SetupCompletePage = () => {
         setCountdown(prev => {
           if (prev && prev <= 1) {
             clearInterval(countdownInterval);
-            navigate("/app/upgrade", { replace: true });
+            navigate("/checkout", { replace: true });
             return null;
           }
           return prev ? prev - 1 : null;
@@ -86,7 +86,7 @@ const SetupCompletePage = () => {
 
   const handleStart = () => {
     if (hasPendingPlan) {
-      navigate("/app/upgrade", { replace: true });
+      navigate("/checkout", { replace: true });
     } else {
       navigate("/app", { replace: true });
     }

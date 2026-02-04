@@ -148,7 +148,7 @@ export const FreeLimitsIndicator = ({
           <Button
             size="sm"
             className="w-full bg-primary text-primary-foreground"
-            onClick={() => navigate("/app/upgrade")}
+            onClick={() => navigate("/checkout")}
           >
             <Crown className="w-4 h-4 mr-2" />
             Desbloquear ilimitado con Pro
@@ -175,7 +175,7 @@ export const LimitReachedBanner = ({ type, onUpgrade }: LimitReachedBannerProps)
     if (onUpgrade) {
       onUpgrade();
     } else {
-      navigate("/app/upgrade");
+      navigate("/checkout");
     }
   };
 

@@ -182,7 +182,7 @@ const MorePage = () => {
     {
       title: "Suscripción",
       items: [
-        { icon: Crown, label: "Upgrade a Pro", description: "Desbloquea todas las funciones", action: () => navigate("/app/upgrade") },
+        { icon: Crown, label: "Upgrade a Pro", description: "Desbloquea todas las funciones", action: () => navigate("/checkout") },
         { icon: CreditCard, label: "Facturación", description: "Historial de pagos", action: () => toast({ title: "Próximamente" }) },
       ],
     },

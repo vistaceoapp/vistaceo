@@ -1,5 +1,5 @@
 import { memo, useState } from "react";
-import { Check, ArrowRight, Brain, Radar, Target, Zap, TrendingUp, BarChart3, Lightbulb, Search, Heart, MessageCircle } from "lucide-react";
+import { Check, ArrowRight, Brain, Radar, Target, Zap, TrendingUp, BarChart3, Lightbulb, Search, Heart, MessageCircle, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +11,7 @@ import { MockupProMissions } from "@/components/landing/mockups/MockupProMission
 import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
 import { MockupProChat } from "@/components/landing/mockups/MockupProChat";
 import { MockupProAnalytics } from "@/components/landing/mockups/MockupProAnalytics";
+import { MockupProPredictions } from "@/components/landing/mockups/MockupProPredictions";
 
 // Import business photos
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
@@ -30,13 +31,14 @@ const improvementAreas = [
   { icon: Zap, label: "Eficiencia" },
 ];
 
-// Interactive tabs with real mockups - 5 tabs
+// Interactive tabs with real mockups - 6 tabs including Predicciones
 const mockupTabs = [
-  { key: "salud", label: "Salud", sub: "Diagnóstico", icon: Heart },
-  { key: "misiones", label: "Misiones", sub: "Paso a paso", icon: Target },
-  { key: "radar", label: "Radar", sub: "Oportunidades", icon: Radar },
-  { key: "chat", label: "Chat CEO", sub: "Mentor 24/7", icon: MessageCircle },
-  { key: "analytics", label: "Métricas", sub: "Evolución", icon: BarChart3 },
+  { key: "salud", label: "Salud", icon: Heart },
+  { key: "misiones", label: "Misiones", icon: Target },
+  { key: "radar", label: "Radar", icon: Radar },
+  { key: "chat", label: "Chat CEO", icon: MessageCircle },
+  { key: "analytics", label: "Métricas", icon: BarChart3 },
+  { key: "predictions", label: "Futuro", icon: Eye },
 ] as const;
 
 type TabKey = typeof mockupTabs[number]["key"];
@@ -155,14 +157,14 @@ export const HowItWorksSection = memo(() => {
           </div>
         </motion.div>
 
-        {/* Interactive tabs - Card style like reference image */}
+        {/* Interactive tabs - Card style - 6 tabs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8"
+          className="max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl mx-auto mb-6 sm:mb-8"
         >
-          <div className="grid grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2 md:gap-3">
             {mockupTabs.map((tab) => {
               const isActive = tab.key === activeTab;
               const Icon = tab.icon;
@@ -172,18 +174,18 @@ export const HowItWorksSection = memo(() => {
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
                   className={cn(
-                    "flex flex-col items-center justify-center text-center rounded-xl sm:rounded-2xl border-2 px-2 py-3 sm:px-4 sm:py-4 md:py-5 transition-all",
+                    "flex flex-col items-center justify-center text-center rounded-xl sm:rounded-2xl border-2 px-1.5 py-2.5 sm:px-3 sm:py-4 transition-all",
                     isActive
                       ? "border-primary bg-primary/5 shadow-lg shadow-primary/15"
                       : "border-border bg-card hover:border-primary/30 hover:bg-secondary/30"
                   )}
                 >
                   <Icon className={cn(
-                    "w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 mb-1.5 sm:mb-2",
+                    "w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mb-1 sm:mb-1.5",
                     isActive ? "text-primary" : "text-muted-foreground"
                   )} />
                   <div className={cn(
-                    "text-[10px] sm:text-xs md:text-sm font-semibold",
+                    "text-[9px] sm:text-[10px] md:text-xs font-semibold leading-tight",
                     isActive ? "text-primary" : "text-foreground"
                   )}>
                     {tab.label}
@@ -224,6 +226,9 @@ export const HowItWorksSection = memo(() => {
               {activeTab === "analytics" && (
                 <MockupProAnalytics business={activeBusiness} />
               )}
+              {activeTab === "predictions" && (
+                <MockupProPredictions business={activeBusiness} />
+              )}
             </motion.div>
           </AnimatePresence>
           
@@ -234,6 +239,7 @@ export const HowItWorksSection = memo(() => {
               {activeTab === "radar" && "Radar de Oportunidades"}
               {activeTab === "chat" && "Chat CEO"}
               {activeTab === "analytics" && "Analíticas Avanzadas"}
+              {activeTab === "predictions" && "Predicciones IA"}
             </span>
             <span className="hidden sm:inline">
               {" — "}
@@ -242,6 +248,7 @@ export const HowItWorksSection = memo(() => {
               {activeTab === "radar" && "Detectando lo que vos no ves"}
               {activeTab === "chat" && "Tu mentor estratégico disponible 24/7"}
               {activeTab === "analytics" && "Métricas y evolución de tu negocio"}
+              {activeTab === "predictions" && "Anticipá el futuro de tu negocio"}
             </span>
           </p>
         </motion.div>

@@ -121,7 +121,7 @@ export const ProPageGate = ({
             <Button
               size="lg"
               className="w-full gradient-primary text-white group"
-              onClick={() => navigate("/app/upgrade")}
+              onClick={() => navigate("/checkout")}
             >
               <Crown className="w-5 h-5 mr-2" />
               Desbloquear con Pro
