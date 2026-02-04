@@ -48,3 +48,25 @@ export function extractHeadings(markdown: string): { level: number; text: string
 
   return headings;
 }
+
+/**
+ * Add IDs to headings in HTML/Markdown content for anchor navigation
+ */
+export function addHeadingIds(content: string): string {
+  // Handle both Markdown headings (## Title) and HTML headings (<h2>Title</h2>)
+  
+  // Markdown: ## Title -> <h2 id="title">Title</h2>
+  let processed = content.replace(/^(#{2,6})\s+(.+)$/gm, (_, hashes, text) => {
+    const level = hashes.length;
+    const id = slugify(text);
+    return `<h${level} id="${id}">${text}</h${level}>`;
+  });
+  
+  // HTML headings without ID: <h2>Title</h2> -> <h2 id="title">Title</h2>
+  processed = processed.replace(/<h([2-6])>([^<]+)<\/h\1>/gi, (_, level, text) => {
+    const id = slugify(text);
+    return `<h${level} id="${id}">${text}</h${level}>`;
+  });
+  
+  return processed;
+}

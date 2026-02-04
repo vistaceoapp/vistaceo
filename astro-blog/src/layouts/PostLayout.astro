@@ -5,9 +5,10 @@ import Footer from '../components/Footer.astro';
 import ToC from '../components/ToC.astro';
 import PostMeta from '../components/PostMeta.astro';
 import RelatedPosts from '../components/RelatedPosts.astro';
+import ReadingToolbar from '../components/ReadingToolbar.astro';
 import type { BlogPost } from '../lib/supabase';
 import { getMetaTitle, getMetaDescription, getOgImage, getCanonicalUrl, generateBlogPostingSchema, generateBreadcrumbSchema, generateArticleSchema } from '../lib/seo';
-import { extractHeadings } from '../lib/text';
+import { extractHeadings, addHeadingIds } from '../lib/text';
 
 interface Props {
   post: BlogPost;
@@ -22,6 +23,7 @@ const description = getMetaDescription(post);
 const canonical = getCanonicalUrl(post.slug);
 const ogImage = getOgImage(post);
 const headings = extractHeadings(post.content_md);
+const processedContent = addHeadingIds(post.content_md);
 
 const schemas = [
   generateBlogPostingSchema(post),
@@ -42,6 +44,9 @@ const schemas = [
   schemas={schemas}
 >
   <Header />
+  
+  <!-- Reading Toolbar -->
+  <ReadingToolbar postTitle={post.title} postUrl={canonical} headings={headings} />
   
   <main class="post-main">
     <article class="post-article" itemscope itemtype="https://schema.org/BlogPosting">
@@ -67,7 +72,7 @@ const schemas = [
         <ToC headings={headings} />
       )}
       
-      <div class="post-content" itemprop="articleBody" set:html={post.content_md} />
+      <div class="post-content" itemprop="articleBody" set:html={processedContent} />
       
       <footer class="post-footer">
         <!-- Author box -->
