@@ -22,17 +22,17 @@ import { PayPalSmartButtons } from "@/components/checkout/PayPalSmartButtons";
 import { StickyPaymentButton } from "@/components/checkout/StickyPaymentButton";
 import { StickyPayPalButton } from "@/components/checkout/StickyPayPalButton";
 
-// Pro features list - exact match with landing
+// Pro features list - exact match with landing + infinity symbols
 const proFeatures = [
-  { name: "Dashboard de Salud", detail: "Completo" },
-  { name: "Misiones", detail: "Ilimitadas" },
-  { name: "Chat IA", detail: "Ilimitado" },
-  { name: "Radar de Oportunidades", detail: "Ilimitado" },
-  { name: "Check-ins de Pulso", detail: "Diarios" },
-  { name: "Analytics avanzadas", detail: "Completas" },
-  { name: "Predicciones IA", detail: "Ilimitadas" },
-  { name: "Integraciones premium", detail: "Completas" },
-  { name: "Soporte prioritario", detail: "Ilimitado" },
+  { name: "Dashboard de Salud", detail: "Completo", hasInfinity: false },
+  { name: "Misiones", detail: "Ilimitadas", hasInfinity: true },
+  { name: "Chat IA", detail: "Ilimitado", hasInfinity: true },
+  { name: "Radar de Oportunidades", detail: "Ilimitado", hasInfinity: true },
+  { name: "Check-ins de Pulso", detail: "Diarios", hasInfinity: false },
+  { name: "Analytics avanzadas", detail: "Completas", hasInfinity: false },
+  { name: "Predicciones IA", detail: "Ilimitadas", hasInfinity: true },
+  { name: "Integraciones premium", detail: "Completas", hasInfinity: false },
+  { name: "Soporte prioritario", detail: "Ilimitado", hasInfinity: true },
 ];
 
 const CheckoutPage = () => {
@@ -392,11 +392,10 @@ const CheckoutPage = () => {
                       </div>
                       <span className="text-foreground">{feature.name}</span>
                     </div>
-                    {feature.detail && (
-                      <Badge variant="secondary" className="bg-primary/10 text-primary border-0 font-medium">
-                        {feature.detail}
-                      </Badge>
-                    )}
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary text-sm font-medium whitespace-nowrap">
+                      {feature.hasInfinity && <span className="text-base leading-none">∞</span>}
+                      {feature.detail}
+                    </span>
                   </motion.div>
                 ))}
               </div>
