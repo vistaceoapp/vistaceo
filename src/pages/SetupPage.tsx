@@ -240,6 +240,29 @@ const SetupPage = () => {
         await createFallbackSnapshot(business.id, data, precisionScore);
       }
       
+      setCreateProgress(80);
+
+      // Step 5: Auto-sync Google reviews if we have a Place ID
+      if (data.googlePlaceId) {
+        try {
+          console.log('Auto-syncing Google reviews for place:', data.googlePlaceId);
+          const { data: syncResult, error: syncError } = await supabase.functions.invoke('google-sync-public-reviews', {
+            body: {
+              businessId: business.id,
+              placeId: data.googlePlaceId,
+            },
+          });
+          
+          if (syncError) {
+            console.warn('Google reviews sync failed:', syncError);
+          } else {
+            console.log('Google reviews synced:', syncResult);
+          }
+        } catch (syncErr) {
+          console.warn('Error syncing Google reviews:', syncErr);
+        }
+      }
+      
       setCreateProgress(100);
 
       // Set as current business and navigate to celebration page
