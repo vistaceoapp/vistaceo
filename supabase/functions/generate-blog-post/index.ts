@@ -1096,19 +1096,19 @@ Instrucción: Completá esto en 5 min y tenés un plan inicial.
 
 ## Preguntas frecuentes
 
-**¿Pregunta 1 real que la gente busca?**
+### ¿Pregunta 1 real que la gente busca?
 
 Respuesta directa en 30-50 palabras. Sin rodeos.
 
-**¿Pregunta 2 real que la gente busca?**
+### ¿Pregunta 2 real que la gente busca?
 
 Respuesta directa en 30-50 palabras. Sin rodeos.
 
-**¿Pregunta 3 real que la gente busca?**
+### ¿Pregunta 3 real que la gente busca?
 
 Respuesta directa en 30-50 palabras. Sin rodeos.
 
-**¿Pregunta 4 real que la gente busca?**
+### ¿Pregunta 4 real que la gente busca?
 
 Respuesta directa en 30-50 palabras. Sin rodeos.
 
