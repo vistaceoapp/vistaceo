@@ -17,6 +17,7 @@ import type { CountryCode } from "@/lib/countryPacks";
 import mercadopagoLogo from "@/assets/payment/mercadopago-logo.png";
 import paypalLogo from "@/assets/payment/paypal-logo.png";
 import { cn } from "@/lib/utils";
+import { PayPalPaymentInfo } from "@/components/checkout/PayPalPaymentInfo";
 
 // Pro features list - exact match with landing
 const proFeatures = [
@@ -346,7 +347,11 @@ const CheckoutPage = () => {
                 {!isArgentina && (
                   <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
                     <p className="text-xs text-muted-foreground text-center">
-                      💵 El pago se procesará en <strong>USD ${isYearly ? 290 : 29}</strong> vía PayPal
+                      💵 El pago se procesará en <strong>USD ${isYearly ? 290 : 29}</strong> vía PayPal.
+                      <br />
+                      <span className="text-muted-foreground/80">
+                        Podés pagar con tarjeta de débito/crédito o con tu cuenta PayPal.
+                      </span>
                     </p>
                   </div>
                 )}
@@ -380,12 +385,12 @@ const CheckoutPage = () => {
               </div>
 
               {/* Payment Provider */}
-              <div className="rounded-xl border border-border/50 bg-secondary/30 p-4">
-                <p className="text-xs text-muted-foreground text-center mb-3">
-                  Procesado de forma segura por
-                </p>
-                <div className="flex items-center justify-center">
-                  {isArgentina ? (
+              {isArgentina ? (
+                <div className="rounded-xl border border-border/50 bg-secondary/30 p-4">
+                  <p className="text-xs text-muted-foreground text-center mb-3">
+                    Procesado de forma segura por
+                  </p>
+                  <div className="flex items-center justify-center">
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background">
                       <img 
                         src={mercadopagoLogo} 
@@ -395,19 +400,14 @@ const CheckoutPage = () => {
                       />
                       <span className="text-sm font-medium text-foreground">Pagás con MercadoPago</span>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background">
-                      <img 
-                        src={paypalLogo} 
-                        alt="PayPal"
-                        className="h-5 object-contain"
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                      />
-                      <span className="text-sm font-medium text-foreground">Pay with PayPal</span>
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <PayPalPaymentInfo 
+                  usdAmount={isYearly ? 290 : 29}
+                  planId={isYearly ? "pro_yearly" : "pro_monthly"}
+                />
+              )}
 
               {/* CTA Button */}
               <Button 

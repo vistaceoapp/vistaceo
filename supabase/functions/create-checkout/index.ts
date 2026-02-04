@@ -159,9 +159,10 @@ serve(async (req) => {
 
       // Always charge in USD for international
       const usdAmount = USD_PRICES[planId];
+      // Descripción en español
       const description = planId === "pro_yearly" 
-        ? "VistaCEO Pro - Yearly (2 months free)" 
-        : "VistaCEO Pro - Monthly";
+        ? "VistaCEO Pro - Suscripción Anual (2 meses gratis)" 
+        : "VistaCEO Pro - Suscripción Mensual";
 
       console.log(`[Checkout] Getting PayPal access token from ${PAYPAL_API_URL}...`);
 
@@ -214,8 +215,12 @@ serve(async (req) => {
           paypal: {
             experience_context: {
               brand_name: "VistaCEO",
-              landing_page: "LOGIN",
+              // NO_PREFERENCE permite pagar con tarjeta sin cuenta PayPal
+              landing_page: "NO_PREFERENCE",
               user_action: "PAY_NOW",
+              // Locale en español para LATAM
+              locale: "es-419",
+              shipping_preference: "NO_SHIPPING",
               return_url: `${APP_URL}/checkout?status=success&provider=paypal`,
               cancel_url: `${APP_URL}/checkout?status=cancelled`,
             },
