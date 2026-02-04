@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -428,103 +429,166 @@ export default function BlogAdminPage() {
             </Card>
           </TabsContent>
 
-          {/* LinkedIn Tab */}
+          {/* LinkedIn Tab - Improved */}
           <TabsContent value="linkedin">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Linkedin className="w-5 h-5" />
-                  Cola de LinkedIn
+                  Generador de Copy para LinkedIn
                 </CardTitle>
-                <CardDescription>Posts publicados → genera el copy → copiá y pegá en LinkedIn</CardDescription>
+                <CardDescription>
+                  Genera copy optimizado → copialo → publicalo en LinkedIn
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[500px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Título</TableHead>
-                        <TableHead>Categoría</TableHead>
-                        <TableHead>Fecha</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mergedLinkedinQueue?.map((item: any) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="max-w-xs">
-                            <div className="font-medium truncate">{item.title}</div>
-                          </TableCell>
-                          <TableCell>
-                            {item.category && BLOG_CLUSTERS[item.category as BlogClusterKey] ? (
-                              <Badge variant="outline" className="text-xs">
-                                {BLOG_CLUSTERS[item.category as BlogClusterKey].emoji} {BLOG_CLUSTERS[item.category as BlogClusterKey].label}
+                <div className="space-y-4">
+                  {mergedLinkedinQueue?.map((item: any) => {
+                    const blogUrl = `https://blog.vistaceo.com/${item.slug}`;
+                    const hasGenerated = !!item.linkedin?.generated_text;
+                    
+                    return (
+                      <div 
+                        key={item.id} 
+                        className={cn(
+                          "rounded-xl border p-4 transition-all",
+                          hasGenerated ? "bg-muted/30 border-primary/30" : "bg-card"
+                        )}
+                      >
+                        {/* Header */}
+                        <div className="flex items-start justify-between gap-4 mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold truncate">{item.title}</h3>
+                            <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                              {item.category && BLOG_CLUSTERS[item.category as BlogClusterKey] && (
+                                <Badge variant="outline" className="text-xs">
+                                  {BLOG_CLUSTERS[item.category as BlogClusterKey].emoji} {BLOG_CLUSTERS[item.category as BlogClusterKey].label}
+                                </Badge>
+                              )}
+                              {item.publish_at && (
+                                <span className="font-mono">
+                                  {format(new Date(item.publish_at), 'dd MMM yyyy', { locale: es })}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {hasGenerated ? (
+                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                <CheckCircle className="w-3 h-3 mr-1" /> Listo
                               </Badge>
                             ) : (
-                              <span className="text-muted-foreground text-xs">—</span>
+                              <Badge variant="outline">
+                                <Clock className="w-3 h-3 mr-1" /> Pendiente
+                              </Badge>
                             )}
-                          </TableCell>
-                          <TableCell className="font-mono text-sm">
-                            {item.publish_at ? format(new Date(item.publish_at), 'dd MMM', { locale: es }) : '—'}
-                          </TableCell>
-                          <TableCell>
-                            {item.linkedin ? getStatusBadge(item.linkedin.status) : (
-                              <Badge variant="outline"><Clock className="w-3 h-3 mr-1" /> Pendiente</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right space-x-2">
-                            {item.linkedin?.generated_text ? (
-                              <>
-                                <Button 
-                                  size="sm" 
-                                  onClick={async () => {
-                                    const ok = await copyToClipboard(item.linkedin.generated_text);
-                                    toast[ok ? 'success' : 'error'](ok ? 'Copiado ✓' : 'Error');
-                                  }}
-                                  className="bg-primary"
-                                >
-                                  <Copy className="w-4 h-4 mr-1" />
-                                  Copiar
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => window.open('https://www.linkedin.com/company/vistaceo/admin/page-posts/published/', '_blank')}
-                                >
-                                  <ExternalLink className="w-4 h-4" />
-                                </Button>
-                              </>
-                            ) : (
+                          </div>
+                        </div>
+
+                        {/* Link del blog */}
+                        <div className="flex items-center gap-2 mb-3 p-2 bg-muted/50 rounded-lg">
+                          <span className="text-xs text-muted-foreground">Link:</span>
+                          <a 
+                            href={blogUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-primary hover:underline truncate flex-1"
+                          >
+                            {blogUrl}
+                          </a>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 px-2"
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(blogUrl);
+                              toast.success('Link copiado');
+                            }}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+
+                        {/* Generated copy preview */}
+                        {hasGenerated && (
+                          <div className="mb-4">
+                            <div className="text-xs font-medium text-muted-foreground mb-2">Copy generado:</div>
+                            <div className="relative">
+                              <pre className="p-4 bg-background border rounded-xl text-sm whitespace-pre-wrap font-sans max-h-64 overflow-y-auto leading-relaxed">
+                                {item.linkedin.generated_text}
+                              </pre>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 pt-3 border-t border-border/50">
+                          {hasGenerated ? (
+                            <>
                               <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => generateLinkedInCopy(item.id)}
-                                disabled={generatingLinkedin === item.id}
+                                onClick={async () => {
+                                  const ok = await copyToClipboard(item.linkedin.generated_text);
+                                  toast[ok ? 'success' : 'error'](ok ? '¡Copiado! Pegalo en LinkedIn' : 'Error al copiar');
+                                }}
+                                className="flex-1"
                               >
-                                {generatingLinkedin === item.id ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <>
-                                    <Play className="w-4 h-4 mr-1" />
-                                    Generar
-                                  </>
-                                )}
+                                <Copy className="w-4 h-4 mr-2" />
+                                Copiar Copy
                               </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {(!linkedinQueue || linkedinQueue.length === 0) && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                            No hay posts publicados aún.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
+                              <Button
+                                variant="outline"
+                                onClick={() => window.open('https://www.linkedin.com/company/vistaceo/admin/page-posts/published/', '_blank')}
+                              >
+                                <ExternalLink className="w-4 h-4 mr-2" />
+                                Ir a LinkedIn
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  // Allow regeneration
+                                  setLinkedinCopyByPostId(prev => {
+                                    const copy = { ...prev };
+                                    delete copy[item.id];
+                                    return copy;
+                                  });
+                                }}
+                              >
+                                <RefreshCw className="w-4 h-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <Button 
+                              onClick={() => generateLinkedInCopy(item.id)}
+                              disabled={generatingLinkedin === item.id}
+                              className="flex-1"
+                            >
+                              {generatingLinkedin === item.id ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Generando...
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="w-4 h-4 mr-2" />
+                                  Generar Copy con IA
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {(!linkedinQueue || linkedinQueue.length === 0) && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Linkedin className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                      <p>No hay posts publicados aún.</p>
+                      <p className="text-sm">Generá tu primer post para empezar.</p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
