@@ -42,7 +42,8 @@ export function getCanonicalUrl(slug: string): string {
 }
 
 export function generateBlogPostingSchema(post: BlogPost) {
-  const cluster = getCluster(post.pillar);
+  // Use category (12-cluster system) first, fallback to pillar
+  const cluster = getCluster(post.category || post.pillar);
   
   return {
     "@context": "https://schema.org",
@@ -81,7 +82,8 @@ export function generateBlogPostingSchema(post: BlogPost) {
 }
 
 export function generateBreadcrumbSchema(post: BlogPost) {
-  const cluster = getCluster(post.pillar);
+  // Use category (12-cluster system) first, fallback to pillar
+  const cluster = getCluster(post.category || post.pillar);
   const items = [
     {
       "@type": "ListItem",
@@ -191,7 +193,8 @@ export function generateFAQSchema(faqs: { question: string; answer: string }[]) 
 
 // NEW: Article structured data for enhanced SEO
 export function generateArticleSchema(post: BlogPost) {
-  const cluster = getCluster(post.pillar);
+  // Use category (12-cluster system) first, fallback to pillar
+  const cluster = getCluster(post.category || post.pillar);
   
   return {
     "@context": "https://schema.org",

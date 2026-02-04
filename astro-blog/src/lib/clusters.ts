@@ -94,8 +94,8 @@ export const CLUSTERS: Record<string, Cluster> = {
 };
 
 export function getCluster(slug: string | null | undefined): Cluster | null {
-  if (!slug) return CLUSTERS["tendencias-ia-tech"];
-  return CLUSTERS[slug] || CLUSTERS["tendencias-ia-tech"];
+  if (!slug) return null;
+  return CLUSTERS[slug] || null;
 }
 
 export function getAllClusters(): Cluster[] {
