@@ -90,6 +90,50 @@ export function useRelatedPosts(currentSlug: string, pillar: string | null, limi
   });
 }
 
+// Fetch posts by category/cluster (12-cluster system)
+export function useBlogPostsByCluster(cluster: string) {
+  return useQuery({
+    queryKey: ['blog-posts-cluster', cluster],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('id, title, slug, excerpt, hero_image_url, publish_at, reading_time_min, category, pillar, tags')
+        .eq('status', 'published')
+        .eq('category', cluster)
+        .order('publish_at', { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!cluster,
+  });
+}
+
+// Fetch cluster stats (count by category)
+export function useBlogClusterStats() {
+  return useQuery({
+    queryKey: ['blog-cluster-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('category')
+        .eq('status', 'published');
+
+      if (error) throw error;
+
+      const byCluster: Record<string, number> = {};
+      
+      data.forEach(post => {
+        if (post.category) {
+          byCluster[post.category] = (byCluster[post.category] || 0) + 1;
+        }
+      });
+
+      return { total: data.length, byCluster };
+    },
+  });
+}
+
 // Fetch all unique tags
 export function useBlogTags() {
   return useQuery({
