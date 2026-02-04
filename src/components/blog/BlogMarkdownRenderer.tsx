@@ -97,11 +97,35 @@ export function BlogMarkdownRenderer({ content, className }: BlogMarkdownRendere
             </figure>
           ),
           table: ({ children, ...props }) => (
-            <div className="overflow-x-auto my-6 rounded-lg border border-border">
-              <table className="w-full" {...props}>
+            <div className="overflow-x-auto my-8 rounded-xl border border-border bg-card shadow-sm">
+              <table className="w-full border-collapse text-sm" {...props}>
                 {children}
               </table>
             </div>
+          ),
+          thead: ({ children, ...props }) => (
+            <thead className="bg-muted border-b-2 border-border" {...props}>
+              {children}
+            </thead>
+          ),
+          th: ({ children, ...props }) => (
+            <th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground" {...props}>
+              {children}
+            </th>
+          ),
+          td: ({ children, ...props }) => {
+            // Handle empty cells with placeholder
+            const isEmpty = !children || (Array.isArray(children) && children.length === 0) || children === '';
+            return (
+              <td className="px-4 py-3 border-t border-border align-top" {...props}>
+                {isEmpty ? <span className="text-muted-foreground/50">—</span> : children}
+              </td>
+            );
+          },
+          tr: ({ children, ...props }) => (
+            <tr className="hover:bg-muted/50 transition-colors" {...props}>
+              {children}
+            </tr>
           ),
           pre: ({ children, ...props }) => (
             <pre className="rounded-lg p-4 overflow-x-auto my-6" {...props}>

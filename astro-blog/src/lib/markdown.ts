@@ -21,27 +21,30 @@ export function parseMarkdown(content: string): string {
     return `__HTML_PROTECTED_${htmlProtected.length - 1}__`;
   });
   
+  // ===== TABLES - Process before other block elements =====
+  html = processTables(html);
+  
   // ===== BLOCK ELEMENTS =====
   
   // Headings with IDs for navigation (process before other rules)
   html = html.replace(/^######\s+(.+)$/gm, (_, text) => {
-    const id = slugify(text);
+    const id = slugify(text.replace(/\*\*/g, ''));
     return `<h6 id="${id}" class="content-h6">${parseInline(text)}</h6>`;
   });
   html = html.replace(/^#####\s+(.+)$/gm, (_, text) => {
-    const id = slugify(text);
+    const id = slugify(text.replace(/\*\*/g, ''));
     return `<h5 id="${id}" class="content-h5">${parseInline(text)}</h5>`;
   });
   html = html.replace(/^####\s+(.+)$/gm, (_, text) => {
-    const id = slugify(text);
+    const id = slugify(text.replace(/\*\*/g, ''));
     return `<h4 id="${id}" class="content-h4">${parseInline(text)}</h4>`;
   });
   html = html.replace(/^###\s+(.+)$/gm, (_, text) => {
-    const id = slugify(text);
+    const id = slugify(text.replace(/\*\*/g, ''));
     return `<h3 id="${id}" class="content-h3">${parseInline(text)}</h3>`;
   });
   html = html.replace(/^##\s+(.+)$/gm, (_, text) => {
-    const id = slugify(text);
+    const id = slugify(text.replace(/\*\*/g, ''));
     return `<h2 id="${id}" class="content-h2">${parseInline(text)}</h2>`;
   });
   
@@ -92,29 +95,29 @@ export function parseMarkdown(content: string): string {
 }
 
 /**
- * Parse inline markdown elements
+ * Parse inline markdown elements - IMPROVED to handle all cases
  */
 function parseInline(text: string): string {
   if (!text) return '';
   
   let result = text;
   
-  // Skip if already contains HTML elements
-  if (/<[a-z][\s\S]*>/i.test(result)) {
+  // Skip if already contains HTML anchor/div elements
+  if (/<(a|div)\s[^>]*>/i.test(result)) {
     return result;
   }
   
-  // Bold + Italic combined: ***text*** or ___text___
-  result = result.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
-  result = result.replace(/___([^_]+)___/g, '<strong><em>$1</em></strong>');
+  // Bold + Italic combined: ***text*** or ___text___ (process first)
+  result = result.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  result = result.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
   
-  // Bold: **text** or __text__
-  result = result.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  result = result.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+  // Bold: **text** - IMPROVED regex to handle multiword and special chars
+  result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  result = result.replace(/__(.+?)__/g, '<strong>$1</strong>');
   
   // Italic: *text* or _text_ (but not in URLs or already processed)
-  result = result.replace(/(?<![*_\w])\*([^*\n]+)\*(?![*_\w])/g, '<em>$1</em>');
-  result = result.replace(/(?<![*_\w])_([^_\n]+)_(?![*_\w])/g, '<em>$1</em>');
+  result = result.replace(/(?<![*_\w])\*([^*\n]+?)\*(?![*_\w])/g, '<em>$1</em>');
+  result = result.replace(/(?<![*_\w])_([^_\n]+?)_(?![*_\w])/g, '<em>$1</em>');
   
   // Inline code: `code`
   result = result.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
@@ -143,13 +146,136 @@ function parseInline(text: string): string {
   });
   
   // Strikethrough: ~~text~~
-  result = result.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+  result = result.replace(/~~(.+?)~~/g, '<del>$1</del>');
   
   // Emojis - keep as is but wrap for styling
   result = result.replace(/([\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|✅|❌|📌|💡|🎯|📋|⚠️|✍️|🔗|📊|🚀|💰|📈|⏱️|🛠️|❓)/gu, 
     '<span class="emoji">$1</span>');
   
   return result;
+}
+
+/**
+ * Process markdown tables into premium styled HTML tables
+ */
+function processTables(html: string): string {
+  const lines = html.split('\n');
+  const result: string[] = [];
+  let tableLines: string[] = [];
+  let inTable = false;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Check if line looks like a table row (starts and ends with |)
+    if (line.startsWith('|') && line.endsWith('|')) {
+      // Check if it's a separator row (|:---|:---:|---:|)
+      const isSeparator = /^\|[\s:-]+\|$/.test(line.replace(/\|/g, '|').replace(/[:\-\s]/g, ''));
+      
+      if (!inTable) {
+        inTable = true;
+        tableLines = [];
+      }
+      tableLines.push(line);
+    } else {
+      if (inTable && tableLines.length > 0) {
+        result.push(renderTable(tableLines));
+        tableLines = [];
+        inTable = false;
+      }
+      result.push(lines[i]); // Keep original line (with indentation)
+    }
+  }
+  
+  // Handle table at end of content
+  if (inTable && tableLines.length > 0) {
+    result.push(renderTable(tableLines));
+  }
+  
+  return result.join('\n');
+}
+
+/**
+ * Render a markdown table as premium styled HTML
+ */
+function renderTable(tableLines: string[]): string {
+  if (tableLines.length < 2) return tableLines.join('\n');
+  
+  // Parse header
+  const headerCells = parseTableRow(tableLines[0]);
+  
+  // Check for separator row (line 2)
+  let alignments: ('left' | 'center' | 'right')[] = [];
+  let bodyStartIndex = 1;
+  
+  if (tableLines[1] && /^[\s|:-]+$/.test(tableLines[1])) {
+    alignments = parseTableAlignments(tableLines[1]);
+    bodyStartIndex = 2;
+  }
+  
+  // Parse body rows
+  const bodyRows: string[][] = [];
+  for (let i = bodyStartIndex; i < tableLines.length; i++) {
+    if (tableLines[i].trim()) {
+      bodyRows.push(parseTableRow(tableLines[i]));
+    }
+  }
+  
+  // Build HTML table with premium styling
+  let html = '<div class="table-wrapper"><table class="premium-table">';
+  
+  // Header
+  if (headerCells.length > 0) {
+    html += '<thead><tr>';
+    headerCells.forEach((cell, idx) => {
+      const align = alignments[idx] || 'left';
+      html += `<th style="text-align: ${align}">${parseInline(cell.trim())}</th>`;
+    });
+    html += '</tr></thead>';
+  }
+  
+  // Body
+  if (bodyRows.length > 0) {
+    html += '<tbody>';
+    bodyRows.forEach(row => {
+      html += '<tr>';
+      row.forEach((cell, idx) => {
+        const align = alignments[idx] || 'left';
+        const content = cell.trim();
+        // Render empty cells with placeholder for visual consistency
+        html += `<td style="text-align: ${align}">${content ? parseInline(content) : '<span class="empty-cell">—</span>'}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody>';
+  }
+  
+  html += '</table></div>';
+  return html;
+}
+
+/**
+ * Parse a table row into cells
+ */
+function parseTableRow(row: string): string[] {
+  // Remove leading and trailing pipes, then split
+  const trimmed = row.trim();
+  const withoutPipes = trimmed.startsWith('|') ? trimmed.slice(1) : trimmed;
+  const final = withoutPipes.endsWith('|') ? withoutPipes.slice(0, -1) : withoutPipes;
+  return final.split('|');
+}
+
+/**
+ * Parse table alignment row
+ */
+function parseTableAlignments(row: string): ('left' | 'center' | 'right')[] {
+  const cells = parseTableRow(row);
+  return cells.map(cell => {
+    const trimmed = cell.trim();
+    if (trimmed.startsWith(':') && trimmed.endsWith(':')) return 'center';
+    if (trimmed.endsWith(':')) return 'right';
+    return 'left';
+  });
 }
 
 /**
@@ -281,6 +407,7 @@ function processParagraphs(html: string): string {
            trimmed.startsWith('<pre') ||
            trimmed.startsWith('<figure') ||
            trimmed.startsWith('<div') ||
+           trimmed.startsWith('<table') ||
            trimmed.startsWith('<hr') ||
            trimmed.startsWith('</') ||
            trimmed === '';
