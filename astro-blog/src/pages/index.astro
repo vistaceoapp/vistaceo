@@ -2,12 +2,13 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { getLatestPosts } from '../lib/supabase';
+import { getLatestPosts, getClusterStats } from '../lib/supabase';
 import { generateWebSiteSchema, generateOrganizationSchema } from '../lib/seo';
 import { getAllClusters, getCluster } from '../lib/clusters';
 import { formatDate, truncate } from '../lib/text';
 
 const posts = await getLatestPosts(30);
+const clusterStats = await getClusterStats();
 const clusters = getAllClusters();
 const MAIN_SITE = 'https://www.vistaceo.com';
 
@@ -16,9 +17,9 @@ const schemas = [
   generateOrganizationSchema()
 ];
 
-// Group posts by cluster for sections
+// Group posts by cluster (using category field from 12-cluster system)
 const postsByCluster = clusters.reduce((acc, cluster) => {
-  acc[cluster.slug] = posts.filter(p => p.pillar === cluster.slug).slice(0, 4);
+  acc[cluster.slug] = posts.filter(p => p.category === cluster.slug).slice(0, 4);
   return acc;
 }, {} as Record<string, typeof posts>);
 
@@ -150,7 +151,7 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
         </div>
         <div class="posts-grid featured-grid">
           {posts.slice(0, 6).map((post, index) => {
-            const cluster = getCluster(post.pillar);
+            const cluster = getCluster(post.category);
             const isFeatured = index === 0;
             return (
               <a href={`/${post.slug}`} class={`post-card ${isFeatured ? 'featured' : ''}`}>
@@ -208,7 +209,7 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
         </div>
         <div class="clusters-grid">
           {clusters.map((cluster) => {
-            const postCount = postsByCluster[cluster.slug]?.length || 0;
+            const postCount = clusterStats[cluster.slug] || 0;
             return (
               <a href={`/tema/${cluster.slug}`} class="cluster-card">
                 <span class="cluster-emoji">{cluster.emoji}</span>
