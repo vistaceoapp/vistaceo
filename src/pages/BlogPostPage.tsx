@@ -19,7 +19,7 @@ import { es } from 'date-fns/locale';
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: post, isLoading, error } = useBlogPost(slug || '');
-  const { data: relatedPosts } = useRelatedPosts(slug || '', post?.pillar || null);
+  const { data: relatedPosts } = useRelatedPosts(slug || '', post?.category || null);
 
   if (isLoading) {
     return (

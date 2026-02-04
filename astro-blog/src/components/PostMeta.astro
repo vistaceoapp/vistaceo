@@ -8,7 +8,8 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const cluster = getCluster(post.pillar);
+// Use category first (new 12-cluster system), fallback to pillar (legacy)
+const cluster = getCluster(post.category || post.pillar);
 ---
 
 <div class="post-meta">

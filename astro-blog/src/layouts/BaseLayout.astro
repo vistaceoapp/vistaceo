@@ -106,10 +106,19 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
     <script type="application/ld+json" set:html={JSON.stringify(schema)} />
   ))}
   
-  <!-- Additional SEO -->
+  <!-- Additional SEO for maximum indexation -->
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-  <meta name="googlebot" content="index, follow">
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="bingbot" content="index, follow">
+  <meta name="revisit-after" content="1 days">
+  <meta name="author" content="VistaCEO">
+  <meta name="generator" content="Astro">
+  
+  <!-- Google Site Verification placeholder - replace with actual code -->
+  <!-- <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE"> -->
+  
+  <!-- IndexNow for instant indexing (Bing, Yandex) -->
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
 </head>
 <body>
   <slot />
