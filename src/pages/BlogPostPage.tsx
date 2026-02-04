@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { ChevronRight, Calendar, Clock, User, ExternalLink } from 'lucide-react';
+import { ChevronRight, Calendar, Clock, User, ExternalLink, ArrowLeft } from 'lucide-react';
 import { Header } from '@/components/landing/Header';
 import { Footer } from '@/components/landing/Footer';
 import { BlogMarkdownRenderer } from '@/components/blog/BlogMarkdownRenderer';
@@ -10,8 +10,9 @@ import { BlogPostCard } from '@/components/blog/BlogPostCard';
 import { BlogSchema } from '@/components/blog/BlogSchema';
 import { useBlogPost, useRelatedPosts } from '@/hooks/use-blog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PILLARS, type PillarKey } from '@/lib/blog/types';
+import { BLOG_CLUSTERS, type BlogClusterKey } from '@/lib/blog/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -59,7 +60,9 @@ export default function BlogPostPage() {
     );
   }
 
-  const pillar = post.pillar as PillarKey | null;
+  // Use category (12 clusters) for proper categorization
+  const categoryKey = post.category as BlogClusterKey | null;
+  const clusterInfo = categoryKey ? BLOG_CLUSTERS[categoryKey] : null;
   const url = `https://www.vistaceo.com/blog/${post.slug}`;
   
   // Parse external sources if available
@@ -84,24 +87,34 @@ export default function BlogPostPage() {
         <main className="pt-24 pb-16">
           <article className="container mx-auto px-4">
             {/* Breadcrumbs */}
-            <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6 max-w-4xl mx-auto">
+            <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-4 max-w-4xl mx-auto">
               <Link to="/" className="hover:text-foreground transition-colors">Inicio</Link>
               <ChevronRight className="h-4 w-4" />
               <Link to="/blog" className="hover:text-foreground transition-colors">Blog</Link>
-              {pillar && PILLARS[pillar] && (
+              {clusterInfo && (
                 <>
                   <ChevronRight className="h-4 w-4" />
                   <Link 
-                    to={`/blog?pillar=${pillar}`} 
+                    to={`/blog/tema/${categoryKey}`} 
                     className="hover:text-foreground transition-colors"
                   >
-                    {PILLARS[pillar].label}
+                    {clusterInfo.label}
                   </Link>
                 </>
               )}
               <ChevronRight className="h-4 w-4" />
               <span className="text-foreground line-clamp-1">{post.title}</span>
             </nav>
+
+            {/* Back to blog button */}
+            <div className="max-w-4xl mx-auto mb-6">
+              <Link to="/blog">
+                <Button variant="ghost" size="sm" className="-ml-2 gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  Volver al blog
+                </Button>
+              </Link>
+            </div>
 
             {/* Main layout - TOC on LEFT for desktop (like the reference) */}
             <div className="grid lg:grid-cols-[260px_1fr] gap-8 xl:gap-12 max-w-7xl mx-auto">
@@ -118,13 +131,15 @@ export default function BlogPostPage() {
               <div className="min-w-0 max-w-3xl">
                 {/* Article header */}
                 <header className="mb-8">
-                  {/* Badges */}
+                  {/* Category badge - 12 cluster system */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {pillar && PILLARS[pillar] && (
-                      <Badge variant="default" className="gap-1">
-                        <span>{PILLARS[pillar].emoji}</span>
-                        <span>{PILLARS[pillar].label}</span>
-                      </Badge>
+                    {clusterInfo && (
+                      <Link to={`/blog/tema/${categoryKey}`}>
+                        <Badge variant="default" className="gap-1.5 hover:opacity-80 transition-opacity cursor-pointer">
+                          <span>{clusterInfo.emoji}</span>
+                          <span>{clusterInfo.label}</span>
+                        </Badge>
+                      </Link>
                     )}
                   </div>
 
