@@ -262,15 +262,12 @@ serve(async (req) => {
       });
     }
 
-    // Generate copy - use Storage URL for LinkedIn sharing
-    // This serves the static HTML with OG meta tags that bots can read
-    // The HTML page auto-redirects real users to the canonical URL
-    const storageUrl = `${supabaseUrl.replace('https://', 'https://').replace('.supabase.co', '.supabase.co')}/storage/v1/object/public/blog-seo-pages/${post.slug}.html`;
-    const canonicalUrl = `https://www.vistaceo.com/blog/${post.slug}`;
+    // Generate copy - use blog.vistaceo.com as canonical URL
+    // This is the professional Astro SSG blog with proper OG meta tags
+    const canonicalUrl = `https://blog.vistaceo.com/${post.slug}`;
     
-    // For LinkedIn post, use the storage URL which has proper OG meta tags
-    // Real users clicking the link get auto-redirected to the canonical URL
-    const generatedText = await generateLinkedInCopy(post as BlogPost, storageUrl, lovableApiKey);
+    // Generate LinkedIn copy with the canonical blog URL
+    const generatedText = await generateLinkedInCopy(post as BlogPost, canonicalUrl, lovableApiKey);
 
     // Save to social_publications (status = 'queued' since not auto-published yet)
     console.log('[linkedin-generate-copy] Attempting to save to social_publications...');

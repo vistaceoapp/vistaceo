@@ -4,6 +4,7 @@ import { Header } from '@/components/landing/Header';
 import { Footer } from '@/components/landing/Footer';
 import { BlogMarkdownRenderer } from '@/components/blog/BlogMarkdownRenderer';
 import { BlogTableOfContents } from '@/components/blog/BlogTableOfContents';
+import { BlogReadingToolbar } from '@/components/blog/BlogReadingToolbar';
 import { BlogCTA } from '@/components/blog/BlogCTA';
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
 import { BlogSchema } from '@/components/blog/BlogSchema';
@@ -72,6 +73,13 @@ export default function BlogPostPage() {
 
       <div className="min-h-screen bg-background">
         <Header />
+        
+        {/* Smart reading toolbar */}
+        <BlogReadingToolbar 
+          content={post.content_md} 
+          title={post.title} 
+          slug={post.slug} 
+        />
         
         <main className="pt-24 pb-16">
           <article className="container mx-auto px-4">
