@@ -128,3 +128,21 @@ export const PILLARS = {
 } as const;
 
 export type PillarKey = keyof typeof PILLARS;
+
+// Extended 12 clusters for blog categorization (maps to Astro blog)
+export const BLOG_CLUSTERS = {
+  'empleo-habilidades': { label: 'Empleo y Habilidades', emoji: '💼', pillar: 'empleo' },
+  'ia-para-pymes': { label: 'IA para PyMEs', emoji: '🤖', pillar: 'ia_aplicada' },
+  'servicios-profesionales-rentabilidad': { label: 'Servicios Profesionales', emoji: '📋', pillar: 'servicios' },
+  'marketing-crecimiento': { label: 'Marketing y Crecimiento', emoji: '📈', pillar: 'tendencias' },
+  'finanzas-cashflow': { label: 'Finanzas y Cashflow', emoji: '💰', pillar: 'servicios' },
+  'operaciones-procesos': { label: 'Operaciones y Procesos', emoji: '⚙️', pillar: 'ia_aplicada' },
+  'ventas-negociacion': { label: 'Ventas y Negociación', emoji: '🤝', pillar: 'servicios' },
+  'liderazgo-management': { label: 'Liderazgo y Management', emoji: '🎯', pillar: 'liderazgo' },
+  'estrategia-latam': { label: 'Estrategia LATAM', emoji: '🌎', pillar: 'emprender' },
+  'herramientas-productividad': { label: 'Herramientas y Productividad', emoji: '🛠️', pillar: 'ia_aplicada' },
+  'data-analytics': { label: 'Data y Analytics', emoji: '📊', pillar: 'ia_aplicada' },
+  'tendencias-ia-tech': { label: 'Tendencias IA y Tech', emoji: '🚀', pillar: 'tendencias' },
+} as const;
+
+export type BlogClusterKey = keyof typeof BLOG_CLUSTERS;

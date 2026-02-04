@@ -140,13 +140,13 @@ Aspect ratio: ${aspectRatio}. Ultra high resolution.
   return { base64: null, error: 'Max attempts reached' };
 }
 
-// Upload base64 image to Supabase Storage using the Supabase client
+// Upload base64 image to Supabase Storage using Supabase client with service role
 async function uploadToStorage(
   base64Data: string,
   slug: string,
   imageType: 'hero' | 'inline',
   supabaseUrl: string,
-  supabaseKey: string
+  supabaseServiceKey: string
 ): Promise<string | null> {
   try {
     const matches = base64Data.match(/^data:([^;]+);base64,(.+)$/);
@@ -167,28 +167,61 @@ async function uploadToStorage(
       bytes[i] = binaryString.charCodeAt(i);
     }
     
-    // Use Supabase client for upload (handles auth properly)
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use Supabase Storage REST API with proper headers
+    const uploadUrl = `${supabaseUrl}/storage/v1/object/blog-images/${fileName}`;
     
-    const { data, error } = await supabase.storage
-      .from('blog-images')
-      .upload(fileName, bytes, {
-        contentType: mimeType,
-        upsert: true,
-      });
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseServiceKey,
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Content-Type': mimeType,
+        'x-upsert': 'true',
+      },
+      body: bytes,
+    });
     
-    if (error) {
-      console.error('[generate-blog-images] Storage upload failed:', error);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[generate-blog-images] Storage upload failed:', response.status, errorText);
+      
+      // If 403, try alternative upload method via Supabase client
+      if (response.status === 403 || response.status === 400) {
+        console.log('[generate-blog-images] Trying alternative upload with Supabase client...');
+        const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          }
+        });
+        
+        const { data, error } = await supabase.storage
+          .from('blog-images')
+          .upload(fileName, bytes, {
+            contentType: mimeType,
+            upsert: true,
+          });
+        
+        if (error) {
+          console.error('[generate-blog-images] Supabase client upload also failed:', error);
+          return null;
+        }
+        
+        const { data: publicUrlData } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(fileName);
+        
+        console.log(`[generate-blog-images] ${imageType} uploaded via client:`, publicUrlData.publicUrl);
+        return publicUrlData.publicUrl;
+      }
+      
       return null;
     }
     
     // Return public URL
-    const { data: publicUrlData } = supabase.storage
-      .from('blog-images')
-      .getPublicUrl(fileName);
-    
-    console.log(`[generate-blog-images] ${imageType} uploaded:`, publicUrlData.publicUrl);
-    return publicUrlData.publicUrl;
+    const publicUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${fileName}`;
+    console.log(`[generate-blog-images] ${imageType} uploaded:`, publicUrl);
+    return publicUrl;
     
   } catch (error) {
     console.error('[generate-blog-images] Storage error:', error);
