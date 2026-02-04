@@ -18,6 +18,7 @@ import mercadopagoLogo from "@/assets/payment/mercadopago-logo.png";
 import paypalLogo from "@/assets/payment/paypal-logo.png";
 import { cn } from "@/lib/utils";
 import { PayPalPaymentInfo } from "@/components/checkout/PayPalPaymentInfo";
+import { PayPalSmartButtons } from "@/components/checkout/PayPalSmartButtons";
 
 // Pro features list - exact match with landing
 const proFeatures = [
@@ -421,25 +422,37 @@ const CheckoutPage = () => {
               )}
 
               {/* CTA Button */}
-              <Button 
-                size="xl" 
-                className="w-full h-14 text-lg font-semibold gradient-primary shadow-lg group"
-                onClick={handleCheckout}
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Procesando...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="w-5 h-5 mr-2" />
-                    {isYearly ? "Comenzar con 2 meses gratis" : "Comenzar con Pro"}
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </>
-                )}
-              </Button>
+              {isArgentina ? (
+                <Button 
+                  size="xl" 
+                  className="w-full h-14 text-lg font-semibold gradient-primary shadow-lg group"
+                  onClick={handleCheckout}
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      {isYearly ? "Comenzar con 2 meses gratis" : "Comenzar con Pro"}
+                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <PayPalSmartButtons
+                  userId={user?.id || ""}
+                  userEmail={user?.email}
+                  planId={isYearly ? "pro_yearly" : "pro_monthly"}
+                  country={country.code}
+                  localAmount={isYearly ? yearlyPrice : monthlyPrice}
+                  localCurrency={country.currency}
+                  onSuccessRedirectUrl={`${window.location.origin}/checkout?status=success&provider=paypal`}
+                />
+              )}
 
               {/* Guarantee Card */}
               <Card className="border-success/30 bg-success/5">
