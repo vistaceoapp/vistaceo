@@ -95,8 +95,17 @@ export default function BlogPostPage() {
               <span className="text-foreground line-clamp-1">{post.title}</span>
             </nav>
 
-            {/* Main layout */}
-            <div className="grid lg:grid-cols-[1fr_280px] gap-12 max-w-7xl mx-auto">
+            {/* Main layout - TOC on LEFT for desktop (like the reference) */}
+            <div className="grid lg:grid-cols-[260px_1fr] gap-8 xl:gap-12 max-w-7xl mx-auto">
+              {/* Desktop TOC - LEFT sidebar, sticky */}
+              <aside className="hidden lg:block">
+                <div className="sticky top-24">
+                  <div className="bg-muted/30 rounded-xl border border-border/50 p-5">
+                    <BlogTableOfContents content={post.content_md} variant="sidebar" />
+                  </div>
+                </div>
+              </aside>
+
               {/* Main content column */}
               <div className="min-w-0 max-w-3xl">
                 {/* Article header */}
@@ -143,12 +152,13 @@ export default function BlogPostPage() {
                 </header>
 
                 {/* Hero image */}
-                {post.hero_image_url && (
+                {post.hero_image_url && !post.hero_image_url.startsWith('data:') && (
                   <figure className="mb-10 -mx-4 md:mx-0">
                     <img
                       src={post.hero_image_url}
                       alt={post.image_alt_text || post.title}
                       className="w-full aspect-video object-cover rounded-none md:rounded-2xl shadow-lg"
+                      loading="eager"
                     />
                     {post.image_alt_text && (
                       <figcaption className="text-center text-sm text-muted-foreground mt-3 px-4">
@@ -158,9 +168,9 @@ export default function BlogPostPage() {
                   </figure>
                 )}
 
-                {/* Mobile TOC */}
-                <div className="lg:hidden mb-8 p-5 bg-muted/50 rounded-xl border border-border">
-                  <BlogTableOfContents content={post.content_md} />
+                {/* Mobile TOC - collapsible card */}
+                <div className="lg:hidden mb-8 p-5 bg-muted/30 rounded-xl border border-border/50">
+                  <BlogTableOfContents content={post.content_md} variant="mobile" />
                 </div>
 
                 {/* Article content */}
@@ -215,19 +225,6 @@ export default function BlogPostPage() {
                   <BlogCTA variant="footer" />
                 </div>
               </div>
-
-              {/* Sidebar */}
-              <aside className="hidden lg:block">
-                <div className="sticky top-24 space-y-6">
-                  {/* TOC */}
-                  <div className="p-5 bg-muted/30 rounded-xl border border-border">
-                    <BlogTableOfContents content={post.content_md} />
-                  </div>
-
-                  {/* Sidebar CTA */}
-                  <BlogCTA variant="sidebar" />
-                </div>
-              </aside>
             </div>
 
             {/* Related posts */}

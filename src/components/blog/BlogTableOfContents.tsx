@@ -1,6 +1,7 @@
 import { useEffect, useState, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
-import { List } from 'lucide-react';
+import { List, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface TOCItem {
   id: string;
@@ -11,12 +12,14 @@ interface TOCItem {
 interface BlogTableOfContentsProps {
   content: string;
   className?: string;
+  variant?: 'sidebar' | 'mobile';
 }
 
 export const BlogTableOfContents = forwardRef<HTMLElement, BlogTableOfContentsProps>(
-  function BlogTableOfContents({ content, className }, ref) {
+  function BlogTableOfContents({ content, className, variant = 'sidebar' }, ref) {
   const [headings, setHeadings] = useState<TOCItem[]>([]);
   const [activeId, setActiveId] = useState<string>('');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     // Parse headings from markdown content (only H2 and H3)
@@ -78,38 +81,104 @@ export const BlogTableOfContents = forwardRef<HTMLElement, BlogTableOfContentsPr
 
   if (headings.length < 3) return null;
 
+  // Mobile collapsed version
+  if (variant === 'mobile') {
+    const visibleHeadings = isExpanded ? headings : headings.slice(0, 5);
+    
+    return (
+      <nav className={cn("space-y-2", className)} aria-label="Tabla de contenidos">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center justify-between w-full text-left"
+        >
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <List className="h-4 w-4" />
+            <span>CONTENIDO</span>
+          </div>
+          {headings.length > 5 && (
+            isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+          )}
+        </button>
+        
+        <ul className="space-y-0.5 text-sm mt-3">
+          {visibleHeadings.map((heading) => (
+            <li key={heading.id}>
+              <a
+                href={`#${heading.id}`}
+                className={cn(
+                  "block py-1.5 text-muted-foreground hover:text-primary transition-colors leading-snug",
+                  heading.level === 3 && "pl-4 text-xs",
+                  activeId === heading.id && "text-primary font-medium"
+                )}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const el = document.getElementById(heading.id);
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    window.history.replaceState(null, '', `#${heading.id}`);
+                    setActiveId(heading.id);
+                  }
+                }}
+              >
+                {heading.text.length > 45 ? heading.text.slice(0, 42) + '...' : heading.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+        
+        {!isExpanded && headings.length > 5 && (
+          <button
+            onClick={() => setIsExpanded(true)}
+            className="text-xs text-primary hover:underline mt-2"
+          >
+            Ver todo ({headings.length} secciones)
+          </button>
+        )}
+      </nav>
+    );
+  }
+
+  // Desktop sidebar version - sticky with scroll
   return (
-    <nav className={cn("space-y-2", className)} aria-label="Tabla de contenidos">
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
+    <nav 
+      className={cn(
+        "space-y-2",
+        className
+      )} 
+      aria-label="Tabla de contenidos"
+    >
+      <div className="flex items-center gap-2 text-sm font-semibold text-foreground mb-4">
         <List className="h-4 w-4" />
-        <span>En este artículo</span>
+        <span>CONTENIDO</span>
       </div>
-      <ul className="space-y-1 text-sm border-l-2 border-border pl-3">
-        {headings.map((heading) => (
-          <li key={heading.id}>
-            <a
-              href={`#${heading.id}`}
-              className={cn(
-                "block py-1.5 text-muted-foreground hover:text-foreground transition-colors leading-snug",
-                heading.level === 3 && "pl-3 text-xs",
-                activeId === heading.id && "text-primary font-medium border-l-2 border-primary -ml-[calc(0.75rem+2px)] pl-[calc(0.75rem)]"
-              )}
-              onClick={(e) => {
-                e.preventDefault();
-                const el = document.getElementById(heading.id);
-                if (el) {
-                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  // Update URL hash without jumping
-                  window.history.replaceState(null, '', `#${heading.id}`);
-                  setActiveId(heading.id);
-                }
-              }}
-            >
-              {heading.text.length > 50 ? heading.text.slice(0, 47) + '...' : heading.text}
-            </a>
-          </li>
-        ))}
-      </ul>
+      
+      <div className="max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-2">
+        <ul className="space-y-0.5 text-sm border-l border-border/50">
+          {headings.map((heading) => (
+            <li key={heading.id}>
+              <a
+                href={`#${heading.id}`}
+                className={cn(
+                  "block py-1.5 pl-4 -ml-px border-l-2 border-transparent text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all leading-snug",
+                  heading.level === 3 && "pl-6 text-xs",
+                  activeId === heading.id && "text-primary font-medium border-primary bg-primary/5"
+                )}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const el = document.getElementById(heading.id);
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    window.history.replaceState(null, '', `#${heading.id}`);
+                    setActiveId(heading.id);
+                  }
+                }}
+              >
+                {heading.text.length > 40 ? heading.text.slice(0, 37) + '...' : heading.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </nav>
   );
 });
