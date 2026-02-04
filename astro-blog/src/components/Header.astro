@@ -1,39 +1,67 @@
 ---
-import { getAllClusters } from '../lib/clusters';
+// Header - Pixel-perfect clone of vistaceo.com HeaderV3
+const MAIN_SITE = 'https://www.vistaceo.com';
 
-const clusters = getAllClusters().slice(0, 6);
+const navItems = [
+  { label: 'Características', href: `${MAIN_SITE}/#características` },
+  { label: 'Precios', href: `${MAIN_SITE}/#precios` },
+  { label: 'FAQ', href: `${MAIN_SITE}/#faq` },
+  { label: 'Blog', href: '/', active: true },
+];
 ---
 
-<header class="site-header">
+<header class="site-header" id="site-header">
   <div class="header-container">
     <!-- Logo -->
-    <a href="/" class="logo">
-      <img src="/logo-light-full.png" alt="VistaCEO" class="logo-img logo-light" />
-      <img src="/logo-dark-full.png" alt="VistaCEO" class="logo-img logo-dark" style="display: none;" />
-      <span class="logo-badge">Blog</span>
+    <a href={MAIN_SITE} class="header-logo">
+      <img 
+        src="/icon-light.png" 
+        alt="VistaCEO" 
+        class="logo-icon logo-light" 
+        width="36" 
+        height="36"
+      />
+      <img 
+        src="/icon-dark.png" 
+        alt="VistaCEO" 
+        class="logo-icon logo-dark" 
+        width="36" 
+        height="36"
+        style="display: none;"
+      />
+      <img 
+        src="/logo-light-full.png" 
+        alt="VistaCEO" 
+        class="logo-full logo-light-full" 
+        width="140" 
+        height="36"
+      />
+      <img 
+        src="/logo-dark-full.png" 
+        alt="VistaCEO" 
+        class="logo-full logo-dark-full" 
+        width="140" 
+        height="36"
+        style="display: none;"
+      />
     </a>
     
     <!-- Desktop Navigation -->
-    <nav class="main-nav">
-      <ul class="nav-list">
-        {clusters.map((cluster) => (
-          <li>
-            <a href={`/tema/${cluster.slug}`} class="nav-link">
-              <span class="nav-emoji">{cluster.emoji}</span>
-              <span class="nav-text">{cluster.name}</span>
-            </a>
-          </li>
-        ))}
-        <li>
-          <a href="/tema/tendencias-ia-tech" class="nav-link" style="color: var(--primary);">
-            Más temas →
-          </a>
-        </li>
-      </ul>
+    <nav class="header-nav">
+      {navItems.map((item) => (
+        <a 
+          href={item.href} 
+          class={`nav-item ${item.active ? 'nav-item-active' : ''}`}
+          {...(!item.active ? { target: '_blank', rel: 'noopener' } : {})}
+        >
+          {item.label}
+        </a>
+      ))}
     </nav>
     
-    <!-- Actions -->
+    <!-- Right Actions -->
     <div class="header-actions">
+      <!-- Theme Toggle -->
       <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema">
         <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="5"/>
@@ -51,22 +79,51 @@ const clusters = getAllClusters().slice(0, 6);
         </svg>
       </button>
       
-      <a href="https://www.vistaceo.com" class="header-cta" target="_blank" rel="noopener">
-        <span>Probar VistaCEO</span>
+      <!-- Login (desktop only) -->
+      <a href={`${MAIN_SITE}/auth`} class="btn-ghost">
+        Iniciar sesión
+      </a>
+      
+      <!-- CTA Button -->
+      <a href={`${MAIN_SITE}/auth`} class="btn-primary">
+        <span class="btn-text-short">gratis</span>
+        <span class="btn-text-full">Empezar gratis</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
       </a>
+      
+      <!-- Mobile Menu Button -->
+      <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Abrir menú">
+        <svg class="menu-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+        <svg class="close-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
-    
-    <!-- Mobile menu button -->
-    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-    </button>
+  </div>
+  
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <nav class="mobile-nav">
+      {navItems.map((item) => (
+        <a 
+          href={item.href} 
+          class={`mobile-nav-item ${item.active ? 'mobile-nav-active' : ''}`}
+        >
+          {item.label}
+        </a>
+      ))}
+      <div class="mobile-divider"></div>
+      <a href={`${MAIN_SITE}/auth`} class="mobile-login-btn">
+        Iniciar sesión
+      </a>
+    </nav>
   </div>
 </header>
 
@@ -75,19 +132,24 @@ const clusters = getAllClusters().slice(0, 6);
   const themeToggle = document.getElementById('theme-toggle');
   const sunIcon = themeToggle?.querySelector('.sun-icon');
   const moonIcon = themeToggle?.querySelector('.moon-icon');
-  const logoLight = document.querySelector('.logo-light') as HTMLElement;
-  const logoDark = document.querySelector('.logo-dark') as HTMLElement;
   
   function updateTheme(isDark: boolean) {
     document.documentElement.classList.toggle('dark', isDark);
+    
+    // Update icons
     if (sunIcon && moonIcon) {
       (sunIcon as HTMLElement).style.display = isDark ? 'none' : 'block';
       (moonIcon as HTMLElement).style.display = isDark ? 'block' : 'none';
     }
-    if (logoLight && logoDark) {
-      logoLight.style.display = isDark ? 'none' : 'block';
-      logoDark.style.display = isDark ? 'block' : 'none';
-    }
+    
+    // Update all logos
+    document.querySelectorAll('.logo-light, .logo-light-full').forEach((el) => {
+      (el as HTMLElement).style.display = isDark ? 'none' : '';
+    });
+    document.querySelectorAll('.logo-dark, .logo-dark-full').forEach((el) => {
+      (el as HTMLElement).style.display = isDark ? '' : 'none';
+    });
+    
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }
   
@@ -101,4 +163,368 @@ const clusters = getAllClusters().slice(0, 6);
     const isDark = document.documentElement.classList.contains('dark');
     updateTheme(!isDark);
   });
+  
+  // Mobile menu
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const menuIcon = mobileMenuBtn?.querySelector('.menu-icon');
+  const closeIcon = mobileMenuBtn?.querySelector('.close-icon');
+  
+  mobileMenuBtn?.addEventListener('click', () => {
+    const isOpen = mobileMenu?.classList.contains('open');
+    mobileMenu?.classList.toggle('open', !isOpen);
+    if (menuIcon && closeIcon) {
+      (menuIcon as HTMLElement).style.display = isOpen ? 'block' : 'none';
+      (closeIcon as HTMLElement).style.display = isOpen ? 'none' : 'block';
+    }
+  });
+  
+  // Scroll effect
+  let lastScroll = 0;
+  window.addEventListener('scroll', () => {
+    const header = document.getElementById('site-header');
+    const scrolled = window.scrollY > 20;
+    header?.classList.toggle('scrolled', scrolled);
+  }, { passive: true });
 </script>
+
+<style>
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .site-header.scrolled {
+    background: rgba(255, 255, 255, 0.9);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  
+  :global(.dark) .site-header {
+    background: rgba(0, 0, 0, 0.6);
+  }
+  
+  :global(.dark) .site-header.scrolled {
+    background: rgba(0, 0, 0, 0.9);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+  
+  .header-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  
+  @media (min-width: 768px) {
+    .header-container {
+      height: 72px;
+      padding: 0 1.5rem;
+    }
+  }
+  
+  /* Logo */
+  .header-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+  }
+  
+  .logo-full {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+    display: none;
+  }
+  
+  @media (min-width: 1024px) {
+    .logo-icon {
+      display: none !important;
+    }
+    .logo-full {
+      display: block;
+    }
+    .logo-light-full {
+      display: block;
+    }
+    .logo-dark-full {
+      display: none;
+    }
+    :global(.dark) .logo-light-full {
+      display: none;
+    }
+    :global(.dark) .logo-dark-full {
+      display: block;
+    }
+  }
+  
+  @media (max-width: 1023px) {
+    .logo-full {
+      display: none !important;
+    }
+    .logo-icon.logo-light {
+      display: block;
+    }
+    .logo-icon.logo-dark {
+      display: none;
+    }
+    :global(.dark) .logo-icon.logo-light {
+      display: none;
+    }
+    :global(.dark) .logo-icon.logo-dark {
+      display: block;
+    }
+  }
+  
+  /* Desktop Nav */
+  .header-nav {
+    display: none;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  @media (min-width: 1024px) {
+    .header-nav {
+      display: flex;
+    }
+  }
+  
+  .nav-item {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground-muted);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: color 0.15s;
+  }
+  
+  .nav-item:hover {
+    color: var(--foreground);
+  }
+  
+  .nav-item-active {
+    color: var(--primary);
+  }
+  
+  /* Actions */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  @media (min-width: 640px) {
+    .header-actions {
+      gap: 0.75rem;
+    }
+  }
+  
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    color: var(--foreground-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  
+  .theme-toggle:hover {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+  
+  .btn-ghost {
+    display: none;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.15s;
+  }
+  
+  .btn-ghost:hover {
+    background: var(--muted);
+  }
+  
+  @media (min-width: 640px) {
+    .btn-ghost {
+      display: flex;
+    }
+  }
+  
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #2692DC, #746CE6);
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 9999px;
+    box-shadow: 0 4px 14px rgba(38, 146, 220, 0.25);
+    transition: all 0.15s;
+  }
+  
+  @media (min-width: 640px) {
+    .btn-primary {
+      padding: 0.5rem 1.25rem;
+    }
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(38, 146, 220, 0.35);
+    color: white;
+  }
+  
+  .btn-text-short {
+    display: inline;
+  }
+  
+  .btn-text-full {
+    display: none;
+  }
+  
+  @media (min-width: 480px) {
+    .btn-text-short {
+      display: none;
+    }
+    .btn-text-full {
+      display: inline;
+    }
+  }
+  
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    color: var(--foreground);
+    cursor: pointer;
+  }
+  
+  @media (min-width: 1024px) {
+    .mobile-menu-btn {
+      display: none;
+    }
+  }
+  
+  /* Mobile Menu */
+  .mobile-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    animation: slideDown 0.2s ease-out;
+  }
+  
+  :global(.dark) .mobile-menu {
+    background: rgba(0, 0, 0, 0.95);
+  }
+  
+  .mobile-menu.open {
+    display: block;
+  }
+  
+  @media (min-width: 1024px) {
+    .mobile-menu {
+      display: none !important;
+    }
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .mobile-nav {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .mobile-nav-item {
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--foreground);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.15s;
+  }
+  
+  .mobile-nav-item:hover {
+    background: var(--muted);
+    color: var(--primary);
+  }
+  
+  .mobile-nav-active {
+    color: var(--primary);
+  }
+  
+  .mobile-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0.75rem 0;
+  }
+  
+  .mobile-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    transition: all 0.15s;
+  }
+  
+  .mobile-login-btn:hover {
+    background: var(--muted);
+  }
+</style>

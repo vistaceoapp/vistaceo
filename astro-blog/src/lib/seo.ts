@@ -54,7 +54,8 @@ export function generateBlogPostingSchema(post: BlogPost) {
     "dateModified": post.updated_at,
     "author": {
       "@type": "Person",
-      "name": post.author_name || "Equipo VistaCEO"
+      "name": post.author_name || "Equipo VistaCEO",
+      "url": `${MAIN_SITE_URL}/equipo`
     },
     "publisher": {
       "@type": "Organization",
@@ -70,6 +71,7 @@ export function generateBlogPostingSchema(post: BlogPost) {
     },
     "wordCount": post.content_md?.split(/\s+/).length || 0,
     "articleSection": cluster?.name || "Blog",
+    "inLanguage": "es-419",
     "keywords": [
       post.primary_keyword,
       ...(post.secondary_keywords || []),
@@ -124,6 +126,7 @@ export function generateWebSiteSchema() {
     "@type": "WebSite",
     "name": "VistaCEO Blog",
     "url": SITE_URL,
+    "inLanguage": "es-419",
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
@@ -144,7 +147,8 @@ export function generateOrganizationSchema() {
     "logo": `${MAIN_SITE_URL}/favicon.png`,
     "sameAs": [
       "https://www.linkedin.com/company/vistaceo",
-      "https://twitter.com/vistaceo"
+      "https://twitter.com/vistaceo",
+      "https://instagram.com/vistaceo"
     ],
     "description": "VistaCEO es tu copiloto de IA para tomar decisiones de negocio más inteligentes en Latinoamérica."
   };
@@ -156,6 +160,7 @@ export function generateCollectionPageSchema(clusterName: string, clusterUrl: st
     "@type": "CollectionPage",
     "name": clusterName,
     "url": clusterUrl,
+    "inLanguage": "es-419",
     "mainEntity": {
       "@type": "ItemList",
       "itemListElement": posts.slice(0, 10).map((post, index) => ({
@@ -164,6 +169,65 @@ export function generateCollectionPageSchema(clusterName: string, clusterUrl: st
         "url": getCanonicalUrl(post.slug),
         "name": post.title
       }))
+    }
+  };
+}
+
+// NEW: FAQ Schema for cluster pages
+export function generateFAQSchema(faqs: { question: string; answer: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer
+      }
+    }))
+  };
+}
+
+// NEW: Article structured data for enhanced SEO
+export function generateArticleSchema(post: BlogPost) {
+  const cluster = getCluster(post.pillar);
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": getMetaTitle(post),
+    "description": getMetaDescription(post),
+    "image": {
+      "@type": "ImageObject",
+      "url": getOgImage(post),
+      "width": 1200,
+      "height": 630
+    },
+    "datePublished": post.publish_at || post.created_at,
+    "dateModified": post.updated_at,
+    "author": {
+      "@type": "Person",
+      "name": post.author_name || "Equipo VistaCEO"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "VistaCEO",
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${MAIN_SITE_URL}/favicon.png`,
+        "width": 512,
+        "height": 512
+      }
+    },
+    "mainEntityOfPage": getCanonicalUrl(post.slug),
+    "articleBody": post.content_md?.substring(0, 500),
+    "articleSection": cluster?.name || "Negocios",
+    "inLanguage": "es-419",
+    "isAccessibleForFree": true,
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": [".post-content h1", ".post-content h2", ".post-takeaways"]
     }
   };
 }
