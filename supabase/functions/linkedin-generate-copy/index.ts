@@ -16,87 +16,84 @@ interface BlogPost {
   tags: string[] | null;
 }
 
-// PROMPT MAESTRO para generar copy de LinkedIn
-const LINKEDIN_PROMPT = `Sos un/a redactor/a senior de LinkedIn para VistaCEO. Transformás una NOTA de blog en una publicación lista para LinkedIn.
+// PROMPT MAESTRO — COPYS LINKEDIN (VISTACEO) — PARA CADA NOTA DEL BLOG
+const LINKEDIN_PROMPT = `Sos Copywriter Senior + Editor/a Social (LinkedIn) de VistaCEO para LATAM. Tu trabajo es transformar cada nota del blog en copys de LinkedIn que se lean humanos, generen interacción (comentarios/guardados/clics) y lleven tráfico al link de la nota.
 
-Tu objetivo es maximizar:
-- clicks al link (CTR),
-- comentarios (engagement),
-- y crecimiento de seguidores (follow intent),
-manteniendo un tono humano, profesional y creíble (formal-cercano).
+REGLAS CRÍTICAS:
 
-REGLAS OBLIGATORIAS:
-- 100% VistaCEO: NO menciones Greentech ni nada parecido.
-- Español LATAM, sin sonar robótico.
-- Tono: formal-cercano (voz de líder/operador de negocio). Nada de humo.
-- Emojis: USARLOS. Mínimo 2, máximo 4. Deben estar distribuidos naturalmente (🚀 💡 📈 🔥 ⚡ 🎯 💼 ✅ son buenos para negocios).
-- Evitá: "en esta nota…", "en este artículo…", "te contamos…". Hablá directo.
-- Extraé de la nota:
-  - 1 idea central,
-  - 3–6 insights accionables,
-  - 1 dato o ejemplo concreto si existe.
-- "Clickbait elegante":
-  - Curiosidad + promesa clara + relevancia para negocio
-  - Usá números, preguntas provocadoras, o afirmaciones audaces pero creíbles
-  - SIN exageraciones vacías (no "cambiará tu vida", no "nunca visto").
-- No uses MAYÚSCULAS excesivas.
-- El post debe tener saltos de línea (aire visual).
+1) Hashtags:
+   - Total: 7 a 12 hashtags.
+   - Incluir SIEMPRE los 4 fijos: #VistaCEO #CEO #Latam #Latinoamérica
+   - Los restantes (3 a 8) deben ser relevantes a la nota (tema/industria/rol).
+   - No uses hashtags genéricos basura (tipo #Success #Motivation) salvo que sea MUY relevante.
 
-ESTRUCTURA DEL POST (NO incluyas letras A, B, C, D, E, F ni etiquetas de sección):
+2) Link:
+   - SIEMPRE incluir el link una sola vez, en una línea separada al final antes de hashtags:
+     "👉 Leé la nota completa: {URL}"
 
-1. HOOK/TITULAR (primera línea, MUY importante)
-   - 6 a 14 palabras que ENGANCHAN
-   - Incluir 1 emoji al inicio o final
-   - Debe generar curiosidad real, con dato, número o pregunta provocadora
-   - Ejemplos buenos: "El 73% de los CEOs ya usan IA. ¿Vos?" / "3 señales de que tu competencia te está pasando 🚨"
+3) Longitud: Generá UN SOLO copy por vez, de longitud media (600–900 caracteres).
 
-2. ENTRADA (1–2 párrafos cortos después del hook)
-   - Enmarcá el problema/oportunidad
-   - Una frase corta sola (estilo "golpe") para que se sienta humano
+4) Estructura:
+   - Siempre "hook" en la primera línea (pregunta o afirmación fuerte).
+   - 1 idea central por post.
+   - 1 micro-CTA (comentario/guardado) opcional, sin sonar vendedor.
+   - Párrafos cortos (1–2 líneas). Mucho aire visual.
+   - Formato limpio: bullets con "•" si usás lista.
 
-3. CUERPO (4 a 7 líneas)
-   - Mezclá bullets "•" con frases sueltas
-   - Cada insight → implicancia práctica
-   - Incluir 1 emoji estratégico en algún bullet
+5) Contenido:
+   - No inventes estadísticas. Si mencionás un dato numérico, debe venir de la nota.
+   - Nada de "Como IA…".
+   - No uses títulos en MAYÚSCULAS.
+   - Tono: profesional, directo, humano. 0–1 emoji máximo (preferible 0).
+   - Español LATAM neutral, voseo suave permitido.
 
-4. CIERRE + CTA (2 líneas)
-   - UNA pregunta concreta orientada a comentario
-   - Cerrá con "Te leo 👇" o similar
+6) Identidad:
+   - No spamear VistaCEO dentro del cuerpo: SOLO aparece en hashtags.
+   - No mencionar "te invito a leer", "en este artículo", "te cuento".
 
-5. LINK (línea aparte, SIN el prefijo "Link:")
-   - Solo la URL directa: https://www.vistaceo.com/blog/...
+Plantillas permitidas (rotar):
+- Pregunta + 3 claves + CTA
+- Dolor + "lo que cambia" + mini plan
+- Insight + ejemplo LATAM + acción
+- "Errores comunes" + alternativa
+- Checklist breve (3-5 bullets)
+- Mini historia + aprendizaje
+- "Si respondés sí a 2 de 3…" (micro-diagnóstico)
 
-6. HASHTAGS (última línea, 8 a 12)
-   - Siempre #VistaCEO primero
-   - Máximo 2 en inglés
-   - Variá según el contenido
+FORMATO DE SALIDA (OBLIGATORIO):
+Devolvé ÚNICAMENTE el texto del post listo para copiar/pegar:
+- Sin letras de sección (A, B, C...)
+- Sin etiquetas como "HOOK:", "CIERRE:"
+- Sin comillas alrededor
+- Sin explicaciones antes o después
+
+El post debe terminar con:
+1. Línea vacía
+2. 👉 Leé la nota completa: {URL_DE_LA_NOTA}
+3. Línea vacía
+4. Hashtags (7-12, incluyendo los 4 fijos)
 
 EJEMPLO DE FORMATO CORRECTO:
 ---
-El 80% de las pymes que adoptan IA crecen 2x más rápido 🚀
+¿Sabías que 7 de cada 10 pymes pierden rentabilidad por errores que ni ven?
 
-No es magia. Es estrategia.
+No es falta de esfuerzo. Es falta de visibilidad.
 
-La diferencia entre los que escalan y los que se estancan está en cómo integran tecnología sin perder el foco humano.
+Los "agujeros" más comunes:
+• Cobrar menos de lo que vale tu tiempo
+• No medir el costo real de cada servicio
+• Dejar plata en la mesa con clientes que no pagan a tiempo
 
-• Automatizá lo repetitivo, pero no delegues las decisiones clave
-• Los roles no desaparecen, se transforman → ¿tu equipo está listo?
-• El ejemplo más claro: empresas que antes tardaban 3 días en analizar datos, hoy lo hacen en minutos 📊
+El primer paso es identificarlos. El segundo, actuar.
 
-La pregunta no es SI adoptar IA, sino CÓMO hacerlo sin romper lo que funciona.
+¿Cuál de estos te suena familiar?
 
-¿Qué proceso de tu negocio automatizarías primero? Te leo 👇
+👉 Leé la nota completa: https://blog.vistaceo.com/agujeros-rentabilidad-servicios-profesionales
 
-https://www.vistaceo.com/blog/ejemplo-articulo
-
-#VistaCEO #InteligenciaArtificial #Pymes #TransformacionDigital #Liderazgo #Negocios #Automatizacion #LATAM #Emprendimiento
+#VistaCEO #CEO #Latam #Latinoamérica #Rentabilidad #Pymes #Finanzas #ServiciosProfesionales
 ---
 
-IMPORTANTE: Entregá ÚNICAMENTE el texto final listo para copiar/pegar. 
-- SIN letras de sección (A, B, C...)
-- SIN etiquetas como "TITULAR:", "HOOK:", "CIERRE:"
-- SIN comillas alrededor del texto
-- SIN explicaciones antes o después`;
+Ahora generá el copy para la nota indicada.`;
 
 // Generate LinkedIn post copy using Lovable AI
 async function generateLinkedInCopy(
@@ -104,15 +101,39 @@ async function generateLinkedInCopy(
   canonicalUrl: string,
   lovableApiKey: string
 ): Promise<string> {
-  const postContext = `
-TÍTULO: ${post.title}
-RESUMEN: ${post.excerpt || 'Sin resumen'}
-CONTENIDO:
-${post.content_md.slice(0, 4000)}...
+  // Extract key points from content for better context
+  const contentLines = post.content_md.split('\n');
+  const h2Titles = contentLines
+    .filter(line => line.startsWith('## '))
+    .map(line => line.replace('## ', '').trim())
+    .slice(0, 8);
+  
+  const bulletPoints = contentLines
+    .filter(line => line.trim().startsWith('- ') || line.trim().startsWith('• '))
+    .slice(0, 10)
+    .map(line => line.trim());
 
-LINK CANÓNICO: ${canonicalUrl}
-AUDIENCIA: CEOs, founders y dueños de pymes en LATAM
-OBJETIVO: engagement + clicks
+  const postContext = `
+NOTA DEL BLOG:
+- Título: ${post.title}
+- URL: ${canonicalUrl}
+- Resumen: ${post.excerpt || 'Sin resumen disponible'}
+- Categoría: ${post.pillar || 'General'}
+
+SECCIONES PRINCIPALES:
+${h2Titles.map(t => `• ${t}`).join('\n')}
+
+PUNTOS CLAVE DE LA NOTA:
+${bulletPoints.slice(0, 6).join('\n')}
+
+CONTENIDO (primeros 2500 chars):
+${post.content_md.slice(0, 2500)}
+
+INSTRUCCIONES:
+- Generá UN copy listo para LinkedIn
+- Usá la URL exacta: ${canonicalUrl}
+- Incluí los 4 hashtags fijos: #VistaCEO #CEO #Latam #Latinoamérica
+- Tono: profesional, directo, humano
 `;
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -127,8 +148,8 @@ OBJETIVO: engagement + clicks
         { role: 'system', content: LINKEDIN_PROMPT },
         { role: 'user', content: postContext }
       ],
-      max_tokens: 1500,
-      temperature: 0.8,
+      max_tokens: 1200,
+      temperature: 0.7,
     }),
   });
 
@@ -141,59 +162,72 @@ OBJETIVO: engagement + clicks
   const result = await response.json();
   let text = result.choices?.[0]?.message?.content || '';
 
-  // Validate and fix the generated text
+  // Clean and validate the generated text
   text = validateLinkedInPost(text, canonicalUrl);
 
   return text;
 }
 
-// Validate LinkedIn post requirements
+// Validate and fix LinkedIn post requirements
 function validateLinkedInPost(text: string, canonicalUrl: string): string {
   let fixed = text.trim();
-
-  // Ensure #VistaCEO is included
-  if (!fixed.includes('#VistaCEO')) {
-    fixed = fixed.replace(/(#\w+)(\s|$)/, '$1 #VistaCEO$2');
-    if (!fixed.includes('#VistaCEO')) {
-      fixed += '\n\n#VistaCEO';
+  
+  // Remove any markdown artifacts or explanations
+  fixed = fixed.replace(/^---\n?/gm, '');
+  fixed = fixed.replace(/\n?---$/gm, '');
+  fixed = fixed.replace(/^(COPY|POST|TEXTO).*:\s*/gim, '');
+  
+  // Ensure required hashtags are present
+  const requiredHashtags = ['#VistaCEO', '#CEO', '#Latam', '#Latinoamérica'];
+  for (const tag of requiredHashtags) {
+    if (!fixed.includes(tag)) {
+      // Add missing hashtag at the end
+      const hashtagSection = fixed.match(/(#\w+\s*)+$/);
+      if (hashtagSection) {
+        fixed = fixed.replace(hashtagSection[0], `${tag} ${hashtagSection[0]}`);
+      } else {
+        fixed += `\n\n${tag}`;
+      }
     }
   }
 
-  // Ensure the link is included
+  // Ensure the link is included with proper format
   if (!fixed.includes(canonicalUrl)) {
-    if (fixed.includes('Link:')) {
-      fixed = fixed.replace(/Link:\s*\[?URL\]?/i, `Link: ${canonicalUrl}`);
+    // Find where hashtags start
+    const hashtagMatch = fixed.match(/\n\n(#\w+)/);
+    if (hashtagMatch) {
+      fixed = fixed.replace(
+        /\n\n(#\w+)/,
+        `\n\n👉 Leé la nota completa: ${canonicalUrl}\n\n$1`
+      );
     } else {
-      fixed = fixed.replace(/(\n\n#)/, `\n\nLink: ${canonicalUrl}\n\n#`);
+      fixed += `\n\n👉 Leé la nota completa: ${canonicalUrl}`;
     }
   }
+  
+  // Fix link format if it doesn't have the proper prefix
+  if (fixed.includes(canonicalUrl) && !fixed.includes('👉')) {
+    fixed = fixed.replace(
+      new RegExp(`(^|\\n)${canonicalUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g'),
+      `$1👉 Leé la nota completa: ${canonicalUrl}`
+    );
+  }
 
-  // Count emojis and trim if too many
-  const emojiRegex = /[\u{1F300}-\u{1F9FF}]/gu;
+  // Limit emojis to max 2
+  const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu;
   const emojis = fixed.match(emojiRegex) || [];
-  if (emojis.length > 4) {
+  if (emojis.length > 2) {
     let count = 0;
     fixed = fixed.replace(emojiRegex, (match) => {
       count++;
-      return count <= 3 ? match : '';
+      return count <= 1 ? match : '';
     });
   }
 
-  // Count hashtags and ensure reasonable amount
-  const hashtags = fixed.match(/#\w+/g) || [];
-  if (hashtags.length < 8) {
-    const additionalTags = ['#Negocios', '#Emprendimiento', '#LATAM', '#Liderazgo', '#Productividad', '#Estrategia', '#CEO', '#Pymes'];
-    const missingCount = 8 - hashtags.length;
-    const tagsToAdd = additionalTags
-      .filter(t => !fixed.toLowerCase().includes(t.toLowerCase()))
-      .slice(0, missingCount);
-    
-    if (tagsToAdd.length > 0) {
-      fixed = fixed.trim() + ' ' + tagsToAdd.join(' ');
-    }
-  }
-
-  return fixed;
+  // Ensure proper spacing
+  fixed = fixed.replace(/\n{4,}/g, '\n\n\n');
+  
+  return fixed.trim();
 }
 
 serve(async (req) => {
