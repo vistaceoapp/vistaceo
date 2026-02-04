@@ -248,9 +248,18 @@ export const PricingSection = () => {
                 </div>
                 
                 {isYearly && (
-                  <p className="text-sm text-muted-foreground mb-4">
+                  <p className="text-sm text-muted-foreground mb-2">
                     Facturado anualmente ({formatCurrencyShort(yearlyPrice)})
                   </p>
+                )}
+
+                {/* USD conversion notice for non-Argentina countries */}
+                {country.paymentProvider === "paypal" && (
+                  <div className="mb-4 p-2 rounded-lg bg-primary/5 border border-primary/20">
+                    <p className="text-xs text-muted-foreground text-center">
+                      💵 El pago se procesa en <strong>USD ${isYearly ? 290 : 29}</strong> vía PayPal
+                    </p>
+                  </div>
                 )}
 
                 <Button 

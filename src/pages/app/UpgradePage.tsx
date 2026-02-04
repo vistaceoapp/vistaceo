@@ -31,20 +31,38 @@ const UpgradePage = () => {
   const [autoCheckoutTriggered, setAutoCheckoutTriggered] = useState(false);
 
   const isArgentina = currentBusiness?.country === "AR";
+  const countryCode = currentBusiness?.country || "AR";
 
   // Clean pricing display function
   const formatCleanPrice = (amount: number, currency: string) => {
     if (currency === "ARS") {
       return `$${amount.toLocaleString("es-AR")}`;
     }
-    return `$${amount}`;
+    return `$${amount.toLocaleString()}`;
   };
 
-  // Get prices based on country
-  const monthlyPrice = isArgentina ? 29999 : 29;
-  const yearlyPrice = isArgentina ? 299999 : 299;
-  const yearlySavings = isArgentina ? 59989 : 49;
-  const currency = isArgentina ? "ARS" : "USD";
+  // Local prices for display (based on country)
+  const localPrices: Record<string, { monthly: number; yearly: number; currency: string }> = {
+    AR: { monthly: 29990, yearly: 299900, currency: "ARS" },
+    CL: { monthly: 24990, yearly: 249900, currency: "CLP" },
+    CO: { monthly: 119900, yearly: 1199000, currency: "COP" },
+    CR: { monthly: 14990, yearly: 149900, currency: "CRC" },
+    EC: { monthly: 29, yearly: 290, currency: "USD" },
+    MX: { monthly: 499, yearly: 4990, currency: "MXN" },
+    PA: { monthly: 29, yearly: 290, currency: "USD" },
+    PY: { monthly: 219900, yearly: 2199000, currency: "PYG" },
+    UY: { monthly: 1190, yearly: 11900, currency: "UYU" },
+  };
+
+  const pricing = localPrices[countryCode] || localPrices.AR;
+  const monthlyPrice = pricing.monthly;
+  const yearlyPrice = pricing.yearly;
+  const currency = pricing.currency;
+  const yearlySavingsAmount = (monthlyPrice * 12) - yearlyPrice;
+
+  // USD prices (what PayPal actually charges)
+  const usdMonthly = 29;
+  const usdYearly = 290;
 
   const plans = [
     {
@@ -54,6 +72,7 @@ const UpgradePage = () => {
       currency,
       period: "/mes",
       popular: false,
+      usdPrice: !isArgentina ? `USD $${usdMonthly}` : null,
       features: [
         "Chat IA con voz y análisis de fotos/docs",
         "Integración Google Reviews completa",
@@ -70,7 +89,8 @@ const UpgradePage = () => {
       currency,
       period: "/año",
       popular: true,
-      savings: `Ahorrás ${formatCleanPrice(yearlySavings, currency)} (2 meses gratis)`,
+      usdPrice: !isArgentina ? `USD $${usdYearly}` : null,
+      savings: `Ahorrás ${formatCleanPrice(yearlySavingsAmount, currency)} (2 meses gratis)`,
       features: [
         "Todo lo del plan mensual",
         "2 meses gratis incluidos",
@@ -101,13 +121,14 @@ const UpgradePage = () => {
           userId: user?.id || currentBusiness.owner_id,
           planId,
           country: currentBusiness.country || "AR",
+          localAmount: planId === "pro_yearly" ? yearlyPrice : monthlyPrice,
+          localCurrency: currency,
         },
       });
 
       if (error) throw error;
 
       if (data?.checkoutUrl) {
-        // Redirect to checkout (same window for better UX)
         window.location.href = data.checkoutUrl;
       }
     } catch (error) {
@@ -339,6 +360,12 @@ const UpgradePage = () => {
                   <Badge variant="secondary" className="mt-2 bg-success/10 text-success border-success/30">
                     {plan.savings}
                   </Badge>
+                )}
+                {/* USD conversion notice for non-Argentina */}
+                {plan.usdPrice && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    💵 Se cobra en {plan.usdPrice} vía PayPal
+                  </p>
                 )}
               </div>
 

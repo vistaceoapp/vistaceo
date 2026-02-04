@@ -7,24 +7,25 @@ const corsHeaders = {
 };
 
 interface CheckoutRequest {
-  businessId?: string; // Optional - may not exist before setup
+  businessId?: string;
   userId: string;
   planId: "pro_monthly" | "pro_yearly";
   country: string;
   email?: string;
-  currency?: string;
+  localAmount?: number;
+  localCurrency?: string;
 }
 
-// Pricing configuration per plan - Clean prices ending in 99/999
-const PRICING = {
-  pro_monthly: {
-    AR: { amount: 29999, currency: "ARS", description: "VistaCEO Pro - Mensual" },
-    DEFAULT: { amount: 29, currency: "USD", description: "VistaCEO Pro - Monthly" },
-  },
-  pro_yearly: {
-    AR: { amount: 299999, currency: "ARS", description: "VistaCEO Pro - Anual (2 meses gratis)" },
-    DEFAULT: { amount: 299, currency: "USD", description: "VistaCEO Pro - Yearly (2 months free)" },
-  },
+// USD base prices (what we actually charge internationally)
+const USD_PRICES = {
+  pro_monthly: 29,
+  pro_yearly: 290,
+};
+
+// ARS prices for Argentina (MercadoPago)
+const ARS_PRICES = {
+  pro_monthly: 29990,
+  pro_yearly: 299900,
 };
 
 serve(async (req) => {
@@ -33,9 +34,8 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, userId, planId, country, email } = await req.json() as CheckoutRequest;
+    const { businessId, userId, planId, country, email, localAmount, localCurrency } = await req.json() as CheckoutRequest;
 
-    // Only userId and planId are required - businessId may not exist before setup
     if (!userId || !planId) {
       return new Response(
         JSON.stringify({ error: "userId and planId are required" }),
@@ -48,13 +48,13 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Determine if we should use MercadoPago (Argentina) or PayPal (International)
+    // ARGENTINA = MercadoPago in ARS
+    // ALL OTHER COUNTRIES = PayPal in USD
     const isArgentina = country === "AR";
-    const pricing = PRICING[planId][isArgentina ? "AR" : "DEFAULT"];
 
     if (isArgentina) {
       // =====================
-      // MERCADO PAGO CHECKOUT
+      // MERCADO PAGO (ARGENTINA ONLY - ARS)
       // =====================
       const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
       
@@ -65,24 +65,34 @@ serve(async (req) => {
         );
       }
 
-      // Create MercadoPago preference
+      const amount = ARS_PRICES[planId];
+      const description = planId === "pro_yearly" 
+        ? "VistaCEO Pro - Anual (2 meses gratis)" 
+        : "VistaCEO Pro - Mensual";
+
       const preferenceData = {
         items: [{
-          title: pricing.description,
+          title: description,
           quantity: 1,
-          unit_price: pricing.amount,
-          currency_id: pricing.currency,
+          unit_price: amount,
+          currency_id: "ARS",
         }],
         payer: {
-          email: email || "", // Use provided email or MP will fill
+          email: email || "",
         },
         back_urls: {
-          success: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/checkout?status=success`,
-          failure: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/checkout?status=failure`,
-          pending: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/checkout?status=pending`,
+          success: `${Deno.env.get("APP_URL") || "https://vistaceo.lovable.app"}/checkout?status=success`,
+          failure: `${Deno.env.get("APP_URL") || "https://vistaceo.lovable.app"}/checkout?status=failure`,
+          pending: `${Deno.env.get("APP_URL") || "https://vistaceo.lovable.app"}/checkout?status=pending`,
         },
         auto_return: "approved",
-        external_reference: JSON.stringify({ businessId: businessId || null, userId, planId }),
+        external_reference: JSON.stringify({ 
+          businessId: businessId || null, 
+          userId, 
+          planId,
+          localAmount: amount,
+          localCurrency: "ARS",
+        }),
         notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook?provider=mercadopago`,
       };
 
@@ -112,15 +122,17 @@ serve(async (req) => {
           provider: "mercadopago",
           checkoutUrl: mpData.init_point,
           preferenceId: mpData.id,
-          amount: pricing.amount,
-          currency: pricing.currency,
+          amount: amount,
+          currency: "ARS",
+          displayAmount: amount,
+          displayCurrency: "ARS",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
 
     } else {
       // =====================
-      // PAYPAL CHECKOUT
+      // PAYPAL (ALL OTHER COUNTRIES - USD)
       // =====================
       const PAYPAL_CLIENT_ID = Deno.env.get("PAYPAL_CLIENT_ID");
       const PAYPAL_CLIENT_SECRET = Deno.env.get("PAYPAL_CLIENT_SECRET");
@@ -131,6 +143,12 @@ serve(async (req) => {
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      // Always charge in USD for international
+      const usdAmount = USD_PRICES[planId];
+      const description = planId === "pro_yearly" 
+        ? "VistaCEO Pro - Yearly (2 months free)" 
+        : "VistaCEO Pro - Monthly";
 
       // Get PayPal access token
       const authResponse = await fetch("https://api-m.paypal.com/v1/oauth2/token", {
@@ -153,24 +171,31 @@ serve(async (req) => {
       const authData = await authResponse.json();
       const accessToken = authData.access_token;
 
-      // Create PayPal order
+      // Create PayPal order in USD
       const orderData = {
         intent: "CAPTURE",
         purchase_units: [{
           reference_id: `${userId}_${planId}`,
-          description: pricing.description,
-          custom_id: JSON.stringify({ businessId: businessId || null, userId, planId }),
+          description: description,
+          custom_id: JSON.stringify({ 
+            businessId: businessId || null, 
+            userId, 
+            planId,
+            localAmount: localAmount || null,
+            localCurrency: localCurrency || null,
+            country,
+          }),
           amount: {
-            currency_code: pricing.currency,
-            value: pricing.amount.toFixed(2),
+            currency_code: "USD",
+            value: usdAmount.toFixed(2),
           },
         }],
         application_context: {
           brand_name: "VistaCEO",
           landing_page: "BILLING",
           user_action: "PAY_NOW",
-          return_url: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/checkout?status=success`,
-          cancel_url: `${Deno.env.get("APP_URL") || "https://id-preview--1ff7ac2b-f14d-46a6-b810-8f2856f7779d.lovable.app"}/checkout?status=cancelled`,
+          return_url: `${Deno.env.get("APP_URL") || "https://vistaceo.lovable.app"}/checkout?status=success`,
+          cancel_url: `${Deno.env.get("APP_URL") || "https://vistaceo.lovable.app"}/checkout?status=cancelled`,
         },
       };
 
@@ -202,8 +227,10 @@ serve(async (req) => {
           provider: "paypal",
           checkoutUrl: approveLink?.href,
           orderId: orderResult.id,
-          amount: pricing.amount,
-          currency: pricing.currency,
+          amount: usdAmount,
+          currency: "USD",
+          displayAmount: localAmount || usdAmount,
+          displayCurrency: localCurrency || "USD",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

@@ -99,6 +99,9 @@ const CheckoutPage = () => {
           planId: currentPlanId,
           country: country?.code || "AR",
           email: user.email,
+          // Pass local pricing info for tracking
+          localAmount: isYearly ? yearlyPrice : monthlyPrice,
+          localCurrency: country.currency,
         },
       });
 
@@ -322,6 +325,15 @@ const CheckoutPage = () => {
                     <Badge variant="secondary" className="bg-success/10 text-success border-success/30">
                       2 meses gratis • {savings.percentage}% ahorro
                     </Badge>
+                  </div>
+                )}
+
+                {/* USD conversion notice for non-Argentina countries */}
+                {!isArgentina && (
+                  <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                    <p className="text-xs text-muted-foreground text-center">
+                      💵 El pago se procesará en <strong>USD ${isYearly ? 290 : 29}</strong> vía PayPal
+                    </p>
                   </div>
                 )}
               </div>
