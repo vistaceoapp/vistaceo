@@ -22,7 +22,9 @@ interface SetupStepQuestionnaireProps {
   businessTypeId: string;
   setupMode: 'quick' | 'complete';
   answers: Record<string, any>;
+  questionIndex?: number;
   onUpdate: (answers: Record<string, any>) => void;
+  onQuestionIndexChange?: (index: number) => void;
   onComplete: () => void;
   onBack?: () => void;
 }
@@ -33,11 +35,13 @@ export const SetupStepQuestionnaire = ({
   businessTypeId,
   setupMode,
   answers,
+  questionIndex = 0,
   onUpdate,
+  onQuestionIndexChange,
   onComplete,
   onBack,
 }: SetupStepQuestionnaireProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(questionIndex);
   const lang = COUNTRY_PACKS[countryCode]?.locale?.startsWith('pt') ? 'pt-BR' : 'es';
   const currency = COUNTRY_PACKS[countryCode]?.currencySymbol || '$';
   const currencyLabel = getCurrencyLabel(countryCode);
@@ -58,6 +62,11 @@ export const SetupStepQuestionnaire = ({
       setCurrentIndex(totalQuestions - 1);
     }
   }, [currentIndex, totalQuestions]);
+
+  // Notify parent of question index changes for persistence
+  useEffect(() => {
+    onQuestionIndexChange?.(currentIndex);
+  }, [currentIndex, onQuestionIndexChange]);
 
   const getCurrentValue = () => answers[currentQuestion?.id];
 
