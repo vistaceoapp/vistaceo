@@ -140,23 +140,23 @@ const Auth = () => {
   };
 
   const benefits = [
-    { icon: Brain, text: "IA que aprende de tu negocio cada día", highlight: "24/7" },
-    { icon: Target, text: "1 misión diaria enfocada en resultados", highlight: "Simple" },
-    { icon: TrendingUp, text: "Análisis predictivo de oportunidades", highlight: "Pro" },
-    { icon: Sparkles, text: "Recomendaciones hiper-personalizadas", highlight: "Único" },
+    { icon: Brain, text: "IA que aprende de tu negocio", highlight: "24/7" },
+    { icon: Target, text: "1 misión diaria con resultados", highlight: "Simple" },
+    { icon: TrendingUp, text: "Radar predictivo de oportunidades", highlight: "Pro" },
+    { icon: Sparkles, text: "Consejos personalizados para vos", highlight: "Único" },
   ];
 
   const stats = [
-    { value: "2,847", label: "negocios activos" },
-    { value: "+32%", label: "crecimiento promedio" },
-    { value: "4.9★", label: "satisfacción" },
+    { value: "2,847", label: "negocios" },
+    { value: "+32%", label: "crecimiento" },
+    { value: "4.9★", label: "rating" },
     { value: "9", label: "países" },
   ];
 
   const testimonial = {
-    quote: "En 3 meses duplicamos las reservas. VistaCEO nos dice exactamente qué hacer cada día.",
-    author: "María G.",
-    role: "Dueña de Restaurante",
+    quote: "Pasamos de 12 a 28 reservas diarias. Cada mañana sé exactamente qué hacer.",
+    author: "Luciana M.",
+    role: "Dueña de café en Buenos Aires",
     rating: 5,
   };
 
@@ -423,20 +423,20 @@ const Auth = () => {
               </motion.div>
 
               {/* Benefits */}
-              <div className="space-y-3 mb-8">
+              <div className="space-y-2.5 mb-8">
                 {benefits.map((benefit, idx) => (
                   <motion.div 
                     key={idx}
-                    className="flex items-center gap-4 p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50"
+                    className="flex items-center gap-3 p-3.5 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + idx * 0.1 }}
                   >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <benefit.icon className="w-5 h-5 text-primary" />
+                    <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <benefit.icon className="w-4 h-4 text-primary" />
                     </div>
-                    <p className="text-foreground font-medium flex-1">{benefit.text}</p>
-                    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-primary/10 text-primary">
+                    <p className="text-foreground font-medium flex-1 text-sm whitespace-nowrap">{benefit.text}</p>
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary flex-shrink-0">
                       {benefit.highlight}
                     </span>
                   </motion.div>
@@ -445,20 +445,20 @@ const Auth = () => {
 
               {/* Testimonial */}
               <motion.div 
-                className="p-5 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 mb-8"
+                className="p-4 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
               >
-                <div className="flex gap-0.5 mb-3">
+                <div className="flex gap-0.5 mb-2">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 text-warning fill-warning" />
                   ))}
                 </div>
-                <p className="text-foreground italic mb-3">"{testimonial.quote}"</p>
+                <p className="text-foreground italic text-sm mb-3 leading-relaxed">"{testimonial.quote}"</p>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Users className="w-4 h-4 text-primary" />
+                  <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Users className="w-3.5 h-3.5 text-primary" />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{testimonial.author}</p>
@@ -469,15 +469,15 @@ const Auth = () => {
 
               {/* Stats */}
               <motion.div 
-                className="grid grid-cols-4 gap-4"
+                className="grid grid-cols-4 gap-2"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9 }}
               >
                 {stats.map((stat, idx) => (
-                  <div key={idx} className="text-center">
-                    <p className="text-lg font-bold text-foreground">{stat.value}</p>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
+                  <div key={idx} className="text-center p-2 rounded-lg bg-card/30">
+                    <p className="text-base font-bold text-foreground">{stat.value}</p>
+                    <p className="text-[10px] text-muted-foreground leading-tight">{stat.label}</p>
                   </div>
                 ))}
               </motion.div>
