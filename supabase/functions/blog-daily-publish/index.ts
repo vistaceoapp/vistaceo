@@ -220,8 +220,11 @@ serve(async (req) => {
 
 async function triggerGitHubBuild(token: string) {
   try {
-    const owner = 'vistaceo'; // Replace with actual owner
-    const repo = 'vistaceo'; // Replace with actual repo
+    // Correct owner and repo for vistaceoapp organization
+    const owner = 'vistaceoapp';
+    const repo = 'vistaceo';
+    
+    console.log(`[blog-daily-publish] Triggering GitHub Actions for ${owner}/${repo}...`);
     
     const response = await fetch(
       `https://api.github.com/repos/${owner}/${repo}/dispatches`,
@@ -231,15 +234,21 @@ async function triggerGitHubBuild(token: string) {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
+          'User-Agent': 'VistaCEO-Blog-Publisher'
         },
         body: JSON.stringify({
-          event_type: 'blog-post-published'
+          event_type: 'blog-post-published',
+          client_payload: {
+            timestamp: new Date().toISOString(),
+            source: 'blog-daily-publish'
+          }
         })
       }
     );
 
     if (!response.ok) {
-      console.error('[blog-daily-publish] GitHub dispatch failed:', response.status);
+      const errorText = await response.text();
+      console.error('[blog-daily-publish] GitHub dispatch failed:', response.status, errorText);
     } else {
       console.log('[blog-daily-publish] GitHub Actions triggered successfully');
     }

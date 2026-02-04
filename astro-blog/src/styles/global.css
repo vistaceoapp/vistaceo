@@ -94,12 +94,16 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
+  /* Anti-CLS: prevent scrollbar layout shift */
+  scrollbar-gutter: stable;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   min-height: 100vh;
+  /* Prevent 100vw overflow issues */
+  overflow-x: hidden;
 }
 
 img {
