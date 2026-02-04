@@ -149,3 +149,26 @@ export async function getLatestPosts(limit = 20): Promise<BlogPost[]> {
 
   return data || [];
 }
+
+// Get cluster stats for displaying post counts
+export async function getClusterStats(): Promise<Record<string, number>> {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('category')
+    .eq('status', 'published')
+    .not('category', 'is', null);
+
+  if (error) {
+    console.error('Error fetching cluster stats:', error);
+    return {};
+  }
+
+  const counts: Record<string, number> = {};
+  (data || []).forEach(post => {
+    if (post.category) {
+      counts[post.category] = (counts[post.category] || 0) + 1;
+    }
+  });
+
+  return counts;
+}

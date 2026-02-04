@@ -9,13 +9,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { 
-  RefreshCw, Play, Calendar, FileText, BarChart3, 
+  RefreshCw, Play, Calendar, BarChart3, 
   CheckCircle, XCircle, Clock, AlertTriangle, Loader2,
-  Newspaper, Settings, Database, Linkedin, Copy, ExternalLink
+  Newspaper, Settings, Database, Linkedin, Copy, ExternalLink, Grid3X3
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { PILLARS, type PillarKey } from '@/lib/blog/types';
+import { BLOG_CLUSTERS, type BlogClusterKey } from '@/lib/blog/types';
 
 export default function BlogAdminPage() {
   const queryClient = useQueryClient();
@@ -23,8 +23,6 @@ export default function BlogAdminPage() {
   const [isBuildingCalendar, setIsBuildingCalendar] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingLinkedin, setGeneratingLinkedin] = useState<string | null>(null);
-  // Como `social_publications` es service-role only, el frontend no puede leerlo.
-  // Guardamos el texto generado localmente para habilitar el flujo Generar -> Copiar.
   const [linkedinCopyByPostId, setLinkedinCopyByPostId] = useState<Record<string, string>>({});
 
   // Fetch topics count
@@ -49,32 +47,35 @@ export default function BlogAdminPage() {
       if (error) throw error;
       
       const byStatus: Record<string, number> = {};
-      const byPillar: Record<string, number> = {};
       
-      (data || []).forEach(item => {
-        byStatus[item.status] = (byStatus[item.status] || 0) + 1;
-        byPillar[item.pillar] = (byPillar[item.pillar] || 0) + 1;
-      });
-      
-      return { total: data?.length || 0, byStatus, byPillar };
-    }
-  });
-
-  // Fetch published posts count
-  const { data: postsStats } = useQuery({
-    queryKey: ['admin-posts-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blog_posts')
-        .select('status, country_code, pillar');
-      if (error) throw error;
-      
-      const byStatus: Record<string, number> = {};
       (data || []).forEach(item => {
         byStatus[item.status] = (byStatus[item.status] || 0) + 1;
       });
       
       return { total: data?.length || 0, byStatus };
+    }
+  });
+
+  // Fetch published posts count by category (12-cluster system)
+  const { data: postsStats } = useQuery({
+    queryKey: ['admin-posts-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('status, category');
+      if (error) throw error;
+      
+      const byStatus: Record<string, number> = {};
+      const byCategory: Record<string, number> = {};
+      
+      (data || []).forEach(item => {
+        byStatus[item.status] = (byStatus[item.status] || 0) + 1;
+        if (item.category) {
+          byCategory[item.category] = (byCategory[item.category] || 0) + 1;
+        }
+      });
+      
+      return { total: data?.length || 0, byStatus, byCategory };
     }
   });
 
@@ -109,29 +110,22 @@ export default function BlogAdminPage() {
     }
   });
 
-  // Fetch LinkedIn pending publications (posts published but not yet on LinkedIn)
+  // Fetch LinkedIn queue
   const { data: linkedinQueue } = useQuery({
     queryKey: ['admin-linkedin-queue'],
     queryFn: async () => {
-      // Get published posts
       const { data: posts, error: postsError } = await supabase
         .from('blog_posts')
-        .select('id, title, slug, excerpt, publish_at')
+        .select('id, title, slug, excerpt, publish_at, category')
         .eq('status', 'published')
         .order('publish_at', { ascending: false })
         .limit(50);
       if (postsError) throw postsError;
-
-      // Nota: no intentamos leer `social_publications` desde el frontend porque la RLS
-      // la bloquea (service role only). El flujo de copy usa el estado local.
-      return (posts || []).map(post => ({
-        ...post,
-        linkedin: null
-      }));
+      return (posts || []).map(post => ({ ...post, linkedin: null }));
     }
   });
 
-  // Seed topics mutation
+  // Mutations
   const seedTopics = async () => {
     setIsSeeding(true);
     try {
@@ -146,7 +140,6 @@ export default function BlogAdminPage() {
     }
   };
 
-  // Build calendar mutation
   const buildCalendar = async () => {
     setIsBuildingCalendar(true);
     try {
@@ -164,7 +157,6 @@ export default function BlogAdminPage() {
     }
   };
 
-  // Generate post mutation
   const generatePost = async () => {
     setIsGenerating(true);
     try {
@@ -173,20 +165,16 @@ export default function BlogAdminPage() {
       
       if (data.skipped) {
         toast.warning(`Publicación saltada: ${data.reason}`);
-      } else if (data.published) {
-        toast.success(`¡Post publicado! "${data.title}"`);
+      } else if (data.success) {
+        toast.success(`¡Post publicado! "${data.post?.title}"`);
         
-        // Trigger site deploy for SSG regeneration
         try {
           await supabase.functions.invoke('trigger-site-deploy', {
-            body: { 
-              post_id: data.post_id,
-              trigger_reason: 'blog_published'
-            }
+            body: { post_id: data.post?.id, trigger_reason: 'blog_published' }
           });
           toast.info('Deploy SSG programado ✓');
         } catch (deployErr) {
-          console.warn('Deploy trigger failed (non-blocking):', deployErr);
+          console.warn('Deploy trigger failed:', deployErr);
         }
       } else {
         toast.info(data.message || 'Operación completada');
@@ -221,7 +209,6 @@ export default function BlogAdminPage() {
     }
   };
 
-  // Generate LinkedIn copy for a post
   const generateLinkedInCopy = async (postId: string) => {
     setGeneratingLinkedin(postId);
     try {
@@ -236,21 +223,16 @@ export default function BlogAdminPage() {
       }
 
       const generatedText: string | undefined = data.generated_text;
-      if (!generatedText || generatedText.trim().length === 0) {
+      if (!generatedText?.trim()) {
         toast.error('Se generó una respuesta vacía. Reintentá.');
         return;
       }
 
       setLinkedinCopyByPostId(prev => ({ ...prev, [postId]: generatedText }));
-      toast.success(data.already_generated ? 'Copy de LinkedIn listo (ya existía) ✓' : 'Copy de LinkedIn generado ✓');
-
-      // Intentar copiar inmediatamente (lo que el usuario espera al apretar "Generar").
+      toast.success('Copy de LinkedIn generado ✓');
+      
       const copied = await copyToClipboard(generatedText);
-      if (copied) {
-        toast.success('Copiado al portapapeles ✓');
-      } else {
-        toast.error('No pude copiar automáticamente. Usá el botón "Copiar".');
-      }
+      if (copied) toast.success('Copiado al portapapeles ✓');
     } catch (err: any) {
       toast.error(`Error: ${err.message}`);
     } finally {
@@ -260,22 +242,16 @@ export default function BlogAdminPage() {
 
   const copyToClipboard = async (text: string): Promise<boolean> => {
     try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
         return true;
       }
-    } catch {
-      // fallback debajo
-    }
-
-    // Fallback para navegadores / permisos que bloquean Clipboard API
+    } catch {}
     try {
       const el = document.createElement('textarea');
       el.value = text;
-      el.setAttribute('readonly', '');
       el.style.position = 'fixed';
       el.style.left = '-9999px';
-      el.style.top = '0';
       document.body.appendChild(el);
       el.select();
       const ok = document.execCommand('copy');
@@ -291,9 +267,8 @@ export default function BlogAdminPage() {
       const localText = linkedinCopyByPostId[item.id];
       return {
         ...item,
-        // “linkedin” fakeado solo para reutilizar el render existente (status + generated_text)
         linkedin: localText
-          ? { status: 'queued', generated_text: localText, linkedin_post_urn: null, error_message: null }
+          ? { status: 'queued', generated_text: localText, linkedin_post_urn: null }
           : item.linkedin,
       };
     });
@@ -306,14 +281,12 @@ export default function BlogAdminPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Blog Factory Admin</h1>
-            <p className="text-muted-foreground">Sistema de publicación automática SEO</p>
+            <p className="text-muted-foreground">Sistema de publicación automática SEO — 12 Clusters</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => queryClient.invalidateQueries()}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refrescar
-            </Button>
-          </div>
+          <Button variant="outline" onClick={() => queryClient.invalidateQueries()}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refrescar
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -334,9 +307,7 @@ export default function BlogAdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{planStats?.total || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                {planStats?.byStatus?.planned || 0} pendientes
-              </p>
+              <p className="text-xs text-muted-foreground">{planStats?.byStatus?.planned || 0} pendientes</p>
             </CardContent>
           </Card>
           
@@ -346,9 +317,7 @@ export default function BlogAdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{postsStats?.byStatus?.published || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                {postsStats?.byStatus?.draft || 0} borradores
-              </p>
+              <p className="text-xs text-muted-foreground">{postsStats?.byStatus?.draft || 0} borradores</p>
             </CardContent>
           </Card>
           
@@ -358,9 +327,7 @@ export default function BlogAdminPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {recentRuns?.filter(r => 
-                  new Date(r.run_at) > new Date(Date.now() - 24*60*60*1000)
-                ).length || 0}
+                {recentRuns?.filter(r => new Date(r.run_at) > new Date(Date.now() - 24*60*60*1000)).length || 0}
               </div>
               <p className="text-xs text-muted-foreground">ejecuciones</p>
             </CardContent>
@@ -395,8 +362,12 @@ export default function BlogAdminPage() {
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="linkedin" className="space-y-4">
+        <Tabs defaultValue="clusters" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="clusters">
+              <Grid3X3 className="w-4 h-4 mr-2" />
+              12 Clusters
+            </TabsTrigger>
             <TabsTrigger value="linkedin">
               <Linkedin className="w-4 h-4 mr-2" />
               LinkedIn
@@ -409,11 +380,53 @@ export default function BlogAdminPage() {
               <BarChart3 className="w-4 h-4 mr-2" />
               Ejecuciones
             </TabsTrigger>
-            <TabsTrigger value="distribution">
-              <Newspaper className="w-4 h-4 mr-2" />
-              Distribución
-            </TabsTrigger>
           </TabsList>
+
+          {/* Clusters Tab - 12 Categories */}
+          <TabsContent value="clusters">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Grid3X3 className="w-5 h-5" />
+                  Distribución por Categoría (12 Clusters)
+                </CardTitle>
+                <CardDescription>
+                  El sistema rota automáticamente entre categorías para balancear el contenido
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {Object.entries(BLOG_CLUSTERS).map(([key, info]) => {
+                    const count = postsStats?.byCategory?.[key] || 0;
+                    return (
+                      <div
+                        key={key}
+                        className="p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-2xl">{info.emoji}</span>
+                          <span className="font-medium text-sm">{info.label}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-2xl font-bold">{count}</span>
+                          <Badge variant="outline" className="text-xs">{info.pillar}</Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+                  <h4 className="font-medium mb-2">🔄 Rotación Automática</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Cada nuevo post se asigna automáticamente a la categoría con menos artículos, 
+                    evitando repetir las últimas 3 categorías usadas. Esto garantiza una distribución 
+                    equilibrada del contenido.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* LinkedIn Tab */}
           <TabsContent value="linkedin">
@@ -423,9 +436,7 @@ export default function BlogAdminPage() {
                   <Linkedin className="w-5 h-5" />
                   Cola de LinkedIn
                 </CardTitle>
-                <CardDescription>
-                  Posts publicados → genera el copy → copiá y pegá en LinkedIn
-                </CardDescription>
+                <CardDescription>Posts publicados → genera el copy → copiá y pegá en LinkedIn</CardDescription>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[500px]">
@@ -433,8 +444,9 @@ export default function BlogAdminPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Título</TableHead>
+                        <TableHead>Categoría</TableHead>
                         <TableHead>Fecha</TableHead>
-                        <TableHead>Estado LI</TableHead>
+                        <TableHead>Estado</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -443,7 +455,15 @@ export default function BlogAdminPage() {
                         <TableRow key={item.id}>
                           <TableCell className="max-w-xs">
                             <div className="font-medium truncate">{item.title}</div>
-                            <div className="text-xs text-muted-foreground truncate">{item.excerpt}</div>
+                          </TableCell>
+                          <TableCell>
+                            {item.category && BLOG_CLUSTERS[item.category as BlogClusterKey] ? (
+                              <Badge variant="outline" className="text-xs">
+                                {BLOG_CLUSTERS[item.category as BlogClusterKey].emoji} {BLOG_CLUSTERS[item.category as BlogClusterKey].label}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
                           </TableCell>
                           <TableCell className="font-mono text-sm">
                             {item.publish_at ? format(new Date(item.publish_at), 'dd MMM', { locale: es }) : '—'}
@@ -460,7 +480,7 @@ export default function BlogAdminPage() {
                                   size="sm" 
                                   onClick={async () => {
                                     const ok = await copyToClipboard(item.linkedin.generated_text);
-                                    toast[ok ? 'success' : 'error'](ok ? 'Copiado al portapapeles ✓' : 'Error al copiar');
+                                    toast[ok ? 'success' : 'error'](ok ? 'Copiado ✓' : 'Error');
                                   }}
                                   className="bg-primary"
                                 >
@@ -497,7 +517,7 @@ export default function BlogAdminPage() {
                       ))}
                       {(!linkedinQueue || linkedinQueue.length === 0) && (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                             No hay posts publicados aún.
                           </TableCell>
                         </TableRow>
@@ -522,7 +542,6 @@ export default function BlogAdminPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Fecha</TableHead>
-                        <TableHead>Pilar</TableHead>
                         <TableHead>Título</TableHead>
                         <TableHead>Estado</TableHead>
                       </TableRow>
@@ -533,11 +552,6 @@ export default function BlogAdminPage() {
                           <TableCell className="font-mono text-sm">
                             {format(new Date(item.planned_date), 'dd MMM', { locale: es })}
                           </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {PILLARS[item.pillar as PillarKey]?.emoji} {item.pillar}
-                            </Badge>
-                          </TableCell>
                           <TableCell className="max-w-xs truncate">
                             {item.topic?.title_base || '—'}
                           </TableCell>
@@ -546,7 +560,7 @@ export default function BlogAdminPage() {
                       ))}
                       {(!upcomingPlan || upcomingPlan.length === 0) && (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
                             No hay publicaciones planificadas. Ejecuta "Construir Calendario Anual".
                           </TableCell>
                         </TableRow>
@@ -562,8 +576,11 @@ export default function BlogAdminPage() {
           <TabsContent value="runs">
             <Card>
               <CardHeader>
-                <CardTitle>Historial de Ejecuciones</CardTitle>
-                <CardDescription>Últimas 20 corridas del sistema</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Historial de Ejecuciones
+                </CardTitle>
+                <CardDescription>Últimas 20 ejecuciones del Blog Factory</CardDescription>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[400px]">
@@ -572,7 +589,7 @@ export default function BlogAdminPage() {
                       <TableRow>
                         <TableHead>Fecha/Hora</TableHead>
                         <TableHead>Resultado</TableHead>
-                        <TableHead>Razón</TableHead>
+                        <TableHead>Score</TableHead>
                         <TableHead>Notas</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -580,21 +597,25 @@ export default function BlogAdminPage() {
                       {recentRuns?.map((run: any) => (
                         <TableRow key={run.id}>
                           <TableCell className="font-mono text-sm">
-                            {format(new Date(run.run_at), 'dd/MM HH:mm', { locale: es })}
+                            {format(new Date(run.run_at), 'dd MMM HH:mm', { locale: es })}
                           </TableCell>
                           <TableCell>{getStatusBadge(run.result)}</TableCell>
-                          <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
-                            {run.skip_reason || '—'}
+                          <TableCell>
+                            {run.quality_gate_report?.score ? (
+                              <Badge variant={run.quality_gate_report.score >= 75 ? 'default' : 'destructive'}>
+                                {run.quality_gate_report.score}%
+                              </Badge>
+                            ) : '—'}
                           </TableCell>
-                          <TableCell className="max-w-xs truncate text-sm">
-                            {run.notes || '—'}
+                          <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
+                            {run.notes || run.skip_reason || '—'}
                           </TableCell>
                         </TableRow>
                       ))}
                       {(!recentRuns || recentRuns.length === 0) && (
                         <TableRow>
                           <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                            No hay ejecuciones registradas aún.
+                            No hay ejecuciones registradas.
                           </TableCell>
                         </TableRow>
                       )}
@@ -603,31 +624,6 @@ export default function BlogAdminPage() {
                 </ScrollArea>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Distribution Tab */}
-          <TabsContent value="distribution">
-            <div className="grid md:grid-cols-1 gap-4">
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Por Pilar</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {Object.entries(planStats?.byPillar || {}).map(([pillar, count]) => (
-                      <div key={pillar} className="flex items-center justify-between">
-                        <span className="flex items-center gap-2">
-                          <span>{PILLARS[pillar as PillarKey]?.emoji}</span>
-                          {PILLARS[pillar as PillarKey]?.label || pillar}
-                        </span>
-                        <Badge variant="secondary">{count as number}</Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
         </Tabs>
       </div>

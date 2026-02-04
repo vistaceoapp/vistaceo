@@ -22,6 +22,84 @@ const PILLARS = {
   tendencias: { label: 'Tendencias y Oportunidades', emoji: '📈' },
 };
 
+// 12-Cluster system - maps pillar to specific category
+const BLOG_CLUSTERS: Record<string, { label: string; emoji: string; pillar: string }> = {
+  'empleo-habilidades': { label: 'Empleo y Habilidades', emoji: '💼', pillar: 'empleo' },
+  'ia-para-pymes': { label: 'IA para PyMEs', emoji: '🤖', pillar: 'ia_aplicada' },
+  'servicios-profesionales-rentabilidad': { label: 'Servicios Profesionales', emoji: '📋', pillar: 'servicios' },
+  'marketing-crecimiento': { label: 'Marketing y Crecimiento', emoji: '📈', pillar: 'tendencias' },
+  'finanzas-cashflow': { label: 'Finanzas y Cashflow', emoji: '💰', pillar: 'servicios' },
+  'operaciones-procesos': { label: 'Operaciones y Procesos', emoji: '⚙️', pillar: 'ia_aplicada' },
+  'ventas-negociacion': { label: 'Ventas y Negociación', emoji: '🤝', pillar: 'servicios' },
+  'liderazgo-management': { label: 'Liderazgo y Management', emoji: '🎯', pillar: 'liderazgo' },
+  'estrategia-latam': { label: 'Estrategia LATAM', emoji: '🌎', pillar: 'emprender' },
+  'herramientas-productividad': { label: 'Herramientas y Productividad', emoji: '🛠️', pillar: 'ia_aplicada' },
+  'data-analytics': { label: 'Data y Analytics', emoji: '📊', pillar: 'ia_aplicada' },
+  'tendencias-ia-tech': { label: 'Tendencias IA y Tech', emoji: '🚀', pillar: 'tendencias' },
+};
+
+// Get category clusters for a pillar
+function getClustersForPillar(pillar: string): string[] {
+  return Object.entries(BLOG_CLUSTERS)
+    .filter(([_, info]) => info.pillar === pillar)
+    .map(([key]) => key);
+}
+
+// Select next category with rotation
+async function selectNextCategory(supabase: any): Promise<string> {
+  // Get category counts
+  const { data: posts } = await supabase
+    .from('blog_posts')
+    .select('category')
+    .eq('status', 'published')
+    .not('category', 'is', null);
+
+  const categoryCounts: Record<string, number> = {};
+  Object.keys(BLOG_CLUSTERS).forEach(key => {
+    categoryCounts[key] = 0;
+  });
+  
+  (posts || []).forEach((post: any) => {
+    if (post.category && categoryCounts[post.category] !== undefined) {
+      categoryCounts[post.category]++;
+    }
+  });
+
+  // Get last 3 used categories to avoid repetition
+  const { data: recentPosts } = await supabase
+    .from('blog_posts')
+    .select('category')
+    .eq('status', 'published')
+    .order('publish_at', { ascending: false })
+    .limit(3);
+
+  const recentCategories = new Set((recentPosts || []).map((p: any) => p.category));
+
+  // Find category with lowest count that wasn't used recently
+  let selectedCategory = 'tendencias-ia-tech'; // default
+  let minCount = Infinity;
+
+  for (const [category, count] of Object.entries(categoryCounts)) {
+    if (!recentCategories.has(category) && count < minCount) {
+      minCount = count;
+      selectedCategory = category;
+    }
+  }
+
+  // If all categories were used recently, pick the one with lowest count
+  if (minCount === Infinity) {
+    for (const [category, count] of Object.entries(categoryCounts)) {
+      if (count < minCount) {
+        minCount = count;
+        selectedCategory = category;
+      }
+    }
+  }
+
+  console.log('[generate-blog-post] Selected category:', selectedCategory, 'count:', minCount);
+  return selectedCategory;
+}
+
 // External sources by pillar (for "Para profundizar" section)
 const EXTERNAL_SOURCES: Record<string, Array<{title: string, url: string, domain: string}>> = {
   empleo: [
@@ -1334,6 +1412,10 @@ RECORDÁ las 10 REGLAS SEO PREMIUM:
       domain: s.domain
     }));
 
+    // 8.5. Select category with rotation (12-cluster system)
+    const selectedCategory = await selectNextCategory(supabase);
+    console.log('[generate-blog-post] Assigned category:', selectedCategory);
+
     // Generate schema JSON-LD - use CANONICAL_DOMAIN
     const schemaJsonld = {
       "@context": "https://schema.org",
@@ -1361,7 +1443,8 @@ RECORDÁ las 10 REGLAS SEO PREMIUM:
         "@id": `${CANONICAL_DOMAIN}/blog/${selectedTopic.slug}`
       },
       "wordCount": wordCountTotal,
-      "inLanguage": "es"
+      "inLanguage": "es",
+      "articleSection": BLOG_CLUSTERS[selectedCategory]?.label || 'Tendencias'
     };
 
     // 9. Insert blog post
@@ -1374,6 +1457,7 @@ RECORDÁ las 10 REGLAS SEO PREMIUM:
         publish_at: new Date().toISOString(),
         country_code: 'AR', // Default for LATAM-wide content
         pillar: selectedTopic.pillar,
+        category: selectedCategory, // 12-cluster system
         intent: selectedTopic.intent,
         title: selectedTopic.title_base,
         slug: selectedTopic.slug,
