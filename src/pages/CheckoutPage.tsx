@@ -120,14 +120,25 @@ const CheckoutPage = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Make errors visible while keeping a friendly message.
+        console.error("Checkout invoke error:", error);
+        const details = (error as any)?.context?.response ? await (error as any).context.response.text().catch(() => "") : "";
+        throw new Error(details || (error as any)?.message || "Error desconocido");
+      }
 
       if (data?.checkoutUrl) {
         window.location.href = data.checkoutUrl;
+        return;
       }
+
+      // If we got a JSON payload but no redirect URL, surface backend error.
+      const backendMsg = data?.error || data?.message;
+      throw new Error(backendMsg || "No se recibió URL de pago.");
     } catch (error) {
       console.error("Checkout error:", error);
-      toast.error("No se pudo iniciar el pago. Intentá de nuevo.");
+      const msg = error instanceof Error ? error.message : "";
+      toast.error(msg ? `No se pudo iniciar el pago: ${msg}` : "No se pudo iniciar el pago. Intentá de nuevo.");
       setLoading(false);
     }
   };

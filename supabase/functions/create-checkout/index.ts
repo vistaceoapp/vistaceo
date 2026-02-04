@@ -33,6 +33,14 @@ const PAYPAL_API_URL = Deno.env.get("PAYPAL_MODE") === "live"
   ? "https://api-m.paypal.com"
   : "https://api-m.sandbox.paypal.com";
 
+// PayPal only accepts BCP-47 locales with a 2-letter region (e.g. es-ES, es-MX).
+// The previous value `es-419` (LATAM) is not accepted and causes INVALID_REQUEST.
+const getPayPalLocale = (country: string) => {
+  // Prefer a Spanish locale. PayPal supports es-ES and es-MX broadly.
+  if (country === "MX") return "es-MX";
+  return "es-ES";
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -218,8 +226,8 @@ serve(async (req) => {
               // NO_PREFERENCE permite pagar con tarjeta sin cuenta PayPal
               landing_page: "NO_PREFERENCE",
               user_action: "PAY_NOW",
-              // Locale en español para LATAM
-              locale: "es-419",
+              // Locale válido para PayPal (BCP-47 con región de 2 letras)
+              locale: getPayPalLocale(country),
               shipping_preference: "NO_SHIPPING",
               return_url: `${APP_URL}/checkout?status=success&provider=paypal`,
               cancel_url: `${APP_URL}/checkout?status=cancelled`,
