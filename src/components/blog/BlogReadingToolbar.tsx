@@ -141,103 +141,86 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
         />
       </div>
 
-      {/* Desktop floating toolbar - bottom center */}
+      {/* Desktop sidebar toolbar - RIGHT side, sticky */}
       <div 
         className={cn(
-          "fixed bottom-6 left-1/2 -translate-x-1/2 z-40",
-          "hidden lg:block",
+          "fixed right-6 top-1/2 -translate-y-1/2 z-40",
+          "hidden xl:block",
           "transition-all duration-300 ease-out",
-          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none",
+          isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none",
           className
         )}
       >
-        <div className="flex items-center gap-2 bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-full px-2 py-1.5">
-          {/* Quick nav chips */}
-          <div className="flex items-center gap-1.5 px-2">
-            {keySections.slice(0, 5).map((section) => (
+        <div className="bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-3 w-56">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-3 px-1">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Navegación
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {Math.round(readingProgress)}%
+            </span>
+          </div>
+          
+          {/* Mini progress bar */}
+          <div className="h-1 bg-muted rounded-full mb-4 overflow-hidden">
+            <div 
+              className="h-full bg-primary transition-all duration-150 ease-out rounded-full"
+              style={{ width: `${readingProgress}%` }}
+            />
+          </div>
+
+          {/* Section chips - vertical layout */}
+          <div className="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1 scrollbar-thin">
+            {keySections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all",
-                  "border hover:scale-105",
+                  "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all text-left",
+                  "border hover:scale-[1.02]",
                   typeColors[section.type],
-                  activeSection === section.id && "ring-2 ring-primary/30 scale-105"
+                  activeSection === section.id && "ring-2 ring-primary/30 scale-[1.02]"
                 )}
               >
                 {section.icon}
-                <span className="max-w-[100px] truncate">{section.text}</span>
+                <span className="truncate flex-1">{section.text}</span>
               </button>
             ))}
-            
-            {keySections.length > 5 && (
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="flex items-center gap-1 px-2 py-1.5 rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <List className="h-3.5 w-3.5" />
-                <span>+{keySections.length - 5}</span>
-              </button>
-            )}
           </div>
 
-          <div className="w-px h-6 bg-border" />
+          {/* Divider */}
+          <div className="h-px bg-border my-3" />
 
           {/* Actions */}
-          <div className="flex items-center gap-1 px-1">
+          <div className="flex items-center justify-center gap-2">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="rounded-full h-8 w-8 p-0"
+              className="rounded-full h-9 w-9 p-0"
               onClick={shareArticle}
+              title="Compartir"
             >
               <Share2 className="h-4 w-4" />
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="rounded-full h-8 w-8 p-0"
+              className="rounded-full h-9 w-9 p-0"
               onClick={scrollToTop}
+              title="Ir arriba"
             >
               <ArrowUp className="h-4 w-4" />
             </Button>
           </div>
         </div>
-
-        {/* Expanded panel */}
-        {isExpanded && keySections.length > 5 && (
-          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-80 bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold">Todas las secciones</span>
-              <button onClick={() => setIsExpanded(false)} className="text-muted-foreground hover:text-foreground">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="space-y-1.5 max-h-64 overflow-y-auto">
-              {keySections.map((section) => (
-                <button
-                  key={section.id}
-                  onClick={() => scrollToSection(section.id)}
-                  className={cn(
-                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors",
-                    "hover:bg-muted",
-                    activeSection === section.id && "bg-primary/10 text-primary"
-                  )}
-                >
-                  {section.icon}
-                  <span className="truncate">{section.text}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Mobile floating toolbar - bottom */}
+      {/* Mobile & tablet floating toolbar - bottom */}
       <div 
         className={cn(
           "fixed bottom-4 left-4 right-4 z-40",
-          "lg:hidden",
+          "xl:hidden",
           "transition-all duration-300 ease-out",
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
         )}
