@@ -18,8 +18,10 @@ import SetupPage from "./pages/SetupPage";
 import SetupCompletePage from "./pages/SetupCompletePage";
 import CheckoutPage from "./pages/CheckoutPage";
 
-// Blog Pages - Now redirects to subdomain
-import BlogRedirect from "./components/blog/BlogRedirect";
+// Blog Pages - Direct rendering in Lovable
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
+import BlogCategoryPage from "./pages/BlogCategoryPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 
@@ -93,10 +95,10 @@ const AppRoutes = () => {
       <Route path="/v3" element={<LandingV3 />} />
       <Route path="/auth" element={<Auth />} />
       
-      {/* Blog routes - Redirect to subdomain */}
-      <Route path="/blog" element={<BlogRedirect />} />
-      <Route path="/blog/:slug" element={<BlogRedirect />} />
-      <Route path="/blog/tema/:cluster" element={<BlogRedirect />} />
+      {/* Blog routes - Direct rendering */}
+      <Route path="/blog" element={<BlogPage />} />
+      <Route path="/blog/:slug" element={<BlogPostPage />} />
+      <Route path="/blog/tema/:cluster" element={<BlogCategoryPage />} />
       
       {/* Legal routes */}
       <Route path="/politicas" element={<PrivacyPolicyPage />} />
