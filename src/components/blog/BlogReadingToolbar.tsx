@@ -159,26 +159,26 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
       {/* Desktop sidebar toolbar - RIGHT side, sticky */}
       <div 
         className={cn(
-          "fixed right-6 top-1/2 -translate-y-1/2 z-40",
-          "hidden xl:block",
+          "fixed right-4 xl:right-6 top-1/2 -translate-y-1/2 z-40",
+          "hidden lg:block",
           "transition-all duration-300 ease-out",
           isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none",
           className
         )}
       >
-        <div className="bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-3 w-56">
+        <div className="bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-2.5 xl:p-3 w-48 xl:w-56">
           {/* Header */}
-          <div className="flex items-center justify-between mb-3 px-1">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="flex items-center justify-between mb-2.5 xl:mb-3 px-1">
+            <span className="text-[10px] xl:text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Navegación
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[10px] xl:text-xs text-muted-foreground">
               {Math.round(readingProgress)}%
             </span>
           </div>
           
           {/* Mini progress bar */}
-          <div className="h-1 bg-muted rounded-full mb-4 overflow-hidden">
+          <div className="h-1 bg-muted rounded-full mb-3 xl:mb-4 overflow-hidden">
             <div 
               className="h-full bg-primary transition-all duration-150 ease-out rounded-full"
               style={{ width: `${readingProgress}%` }}
@@ -186,13 +186,13 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
           </div>
 
           {/* Section chips - vertical layout */}
-          <div className="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1 scrollbar-thin">
+          <div className="space-y-1 xl:space-y-1.5 max-h-[45vh] xl:max-h-[50vh] overflow-y-auto pr-1 scrollbar-thin">
             {keySections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
                 className={cn(
-                  "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all text-left",
+                  "w-full flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-1.5 xl:py-2 rounded-lg xl:rounded-xl text-[11px] xl:text-xs font-medium transition-all text-left",
                   "border hover:scale-[1.02]",
                   typeColors[section.type],
                   activeSection === section.id && "ring-2 ring-primary/30 scale-[1.02]"
@@ -205,69 +205,73 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-border my-3" />
+          <div className="h-px bg-border my-2.5 xl:my-3" />
 
           {/* Actions */}
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1.5 xl:gap-2">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="rounded-full h-9 w-9 p-0"
+              className="rounded-full h-8 w-8 xl:h-9 xl:w-9 p-0"
               onClick={shareArticle}
               title="Compartir"
             >
-              <Share2 className="h-4 w-4" />
+              <Share2 className="h-3.5 w-3.5 xl:h-4 xl:w-4" />
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="rounded-full h-9 w-9 p-0"
+              className="rounded-full h-8 w-8 xl:h-9 xl:w-9 p-0"
               onClick={scrollToTop}
               title="Ir arriba"
             >
-              <ArrowUp className="h-4 w-4" />
+              <ArrowUp className="h-3.5 w-3.5 xl:h-4 xl:w-4" />
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Mobile & tablet floating toolbar - bottom */}
+      {/* Mobile & tablet floating toolbar - bottom - ULTRA RESPONSIVE */}
       <div 
         className={cn(
-          "fixed bottom-4 left-4 right-4 z-40",
-          "xl:hidden",
+          "fixed bottom-3 sm:bottom-4 left-2 right-2 sm:left-4 sm:right-4 z-40",
+          "lg:hidden",
           "transition-all duration-300 ease-out",
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
         )}
       >
-        <div className="bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl overflow-hidden">
+        <div className="bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden">
           {/* Collapsed state */}
           {!isExpanded && (
-            <div className="flex items-center justify-between p-3">
+            <div className="flex items-center justify-between p-2.5 sm:p-3">
               <button 
                 onClick={() => setIsExpanded(true)}
-                className="flex items-center gap-2 text-sm font-medium"
+                className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium"
               >
-                <List className="h-4 w-4 text-primary" />
-                <span>Navegar secciones</span>
-                <Badge variant="secondary" className="text-xs">{keySections.length}</Badge>
+                <List className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                <span className="hidden xs:inline">Navegar secciones</span>
+                <span className="xs:hidden">Secciones</span>
+                <Badge variant="secondary" className="text-[10px] sm:text-xs h-5 px-1.5">{keySections.length}</Badge>
               </button>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">
+                  {Math.round(readingProgress)}%
+                </span>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="h-8 w-8 p-0"
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                   onClick={shareArticle}
                 >
-                  <Share2 className="h-4 w-4" />
+                  <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="h-8 w-8 p-0"
+                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                   onClick={scrollToTop}
                 >
-                  <ArrowUp className="h-4 w-4" />
+                  <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Button>
               </div>
             </div>
@@ -275,27 +279,27 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
 
           {/* Expanded state */}
           {isExpanded && (
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold">Ir a sección</span>
-                <button onClick={() => setIsExpanded(false)} className="text-muted-foreground">
-                  <ChevronDown className="h-5 w-5" />
+            <div className="p-3 sm:p-4">
+              <div className="flex items-center justify-between mb-2.5 sm:mb-3">
+                <span className="text-xs sm:text-sm font-semibold">Ir a sección</span>
+                <button onClick={() => setIsExpanded(false)} className="text-muted-foreground p-1">
+                  <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-2 max-h-40 sm:max-h-48 overflow-y-auto">
                 {keySections.map((section) => (
                   <button
                     key={section.id}
                     onClick={() => scrollToSection(section.id)}
                     className={cn(
-                      "flex items-center gap-2 p-2.5 rounded-xl text-xs text-left transition-all",
+                      "flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs text-left transition-all",
                       "border",
                       typeColors[section.type],
                       activeSection === section.id && "ring-2 ring-primary/30"
                     )}
                   >
                     {section.icon}
-                    <span className="truncate flex-1">{section.text}</span>
+                    <span className="truncate flex-1 leading-tight">{section.text}</span>
                   </button>
                 ))}
               </div>
