@@ -1,0 +1,529 @@
+---
+/**
+ * ReadingToolbar - Smart Reading Experience
+ * Sticky toolbar with progress bar, section navigation, and quick actions
+ * Designed for ultra-premium UX on blog.vistaceo.com
+ */
+
+interface Props {
+  postTitle: string;
+  postUrl: string;
+  headings: { text: string; id: string; level: number }[];
+}
+
+const { postTitle, postUrl, headings } = Astro.props;
+
+// Special sections to highlight (Prompt Maestro style)
+const specialSections = [
+  { pattern: /en\s*\d+\s*minutos?/i, label: '⏱️ Resumen', color: 'blue' },
+  { pattern: /checklist|lista/i, label: '✅ Checklist', color: 'green' },
+  { pattern: /faq|preguntas/i, label: '❓ FAQ', color: 'purple' },
+  { pattern: /pasos|paso\s*a\s*paso/i, label: '📋 Pasos', color: 'orange' },
+  { pattern: /herramientas?|tools/i, label: '🛠️ Tools', color: 'cyan' },
+  { pattern: /conclusi[oó]n|resumen|cierre/i, label: '🎯 Conclusión', color: 'pink' },
+];
+
+// Find special sections in headings
+const sectionShortcuts = headings
+  .map(h => {
+    const special = specialSections.find(s => s.pattern.test(h.text));
+    if (special) {
+      return { ...h, ...special };
+    }
+    return null;
+  })
+  .filter(Boolean);
+---
+
+<!-- Progress Bar (Top) -->
+<div id="reading-progress-container" class="progress-container">
+  <div id="reading-progress-bar" class="progress-bar"></div>
+</div>
+
+<!-- Desktop Sidebar (Right) -->
+<aside id="reading-toolbar-desktop" class="toolbar-desktop">
+  <div class="toolbar-inner">
+    <!-- Progress indicator -->
+    <div class="progress-circle">
+      <svg viewBox="0 0 36 36" class="circular-progress">
+        <path class="bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+        <path id="progress-arc" class="progress" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+      </svg>
+      <span id="progress-percent" class="progress-text">0%</span>
+    </div>
+    
+    <!-- Section shortcuts -->
+    {sectionShortcuts.length > 0 && (
+      <div class="section-shortcuts">
+        <span class="shortcuts-label">Ir a</span>
+        {sectionShortcuts.map((section) => (
+          <button 
+            class={`shortcut-btn shortcut-${section.color}`}
+            data-target={section.id}
+            title={section.text}
+          >
+            {section.label}
+          </button>
+        ))}
+      </div>
+    )}
+    
+    <!-- Divider -->
+    <div class="toolbar-divider"></div>
+    
+    <!-- Quick actions -->
+    <div class="quick-actions">
+      <button id="share-btn-desktop" class="action-btn" title="Compartir">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"/>
+          <circle cx="6" cy="12" r="3"/>
+          <circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+      </button>
+      <button id="scroll-top-btn-desktop" class="action-btn" title="Ir arriba">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 15l-6-6-6 6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- Mobile Bottom Bar -->
+<div id="reading-toolbar-mobile" class="toolbar-mobile">
+  <div class="mobile-inner">
+    <!-- Progress mini -->
+    <div class="mobile-progress">
+      <span id="mobile-progress-text" class="mobile-progress-text">0%</span>
+    </div>
+    
+    <!-- Section chips (scrollable) -->
+    {sectionShortcuts.length > 0 && (
+      <div class="mobile-chips">
+        {sectionShortcuts.map((section) => (
+          <button 
+            class={`mobile-chip chip-${section.color}`}
+            data-target={section.id}
+          >
+            {section.label}
+          </button>
+        ))}
+      </div>
+    )}
+    
+    <!-- Actions -->
+    <div class="mobile-actions">
+      <button id="share-btn-mobile" class="mobile-action" title="Compartir">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="18" cy="5" r="3"/>
+          <circle cx="6" cy="12" r="3"/>
+          <circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+      </button>
+      <button id="scroll-top-btn-mobile" class="mobile-action" title="Ir arriba">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 15l-6-6-6 6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ===== PROGRESS BAR (TOP) ===== */
+  .progress-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--muted);
+    z-index: 1000;
+  }
+  
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #2692DC, #746CE6);
+    transition: width 0.1s ease-out;
+  }
+  
+  /* ===== DESKTOP SIDEBAR ===== */
+  .toolbar-desktop {
+    display: none;
+    position: fixed;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+  }
+  
+  @media (min-width: 1280px) {
+    .toolbar-desktop {
+      display: block;
+    }
+  }
+  
+  .toolbar-inner {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(8px);
+  }
+  
+  /* Progress circle */
+  .progress-circle {
+    position: relative;
+    width: 48px;
+    height: 48px;
+  }
+  
+  .circular-progress {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  
+  .circular-progress .bg {
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 3;
+  }
+  
+  .circular-progress .progress {
+    fill: none;
+    stroke: url(#gradient);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.3s ease;
+  }
+  
+  .progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--foreground);
+  }
+  
+  /* Section shortcuts */
+  .section-shortcuts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+  
+  .shortcuts-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--foreground-muted);
+    text-align: center;
+    margin-bottom: 2px;
+  }
+  
+  .shortcut-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  
+  .shortcut-blue { background: rgba(38, 146, 220, 0.15); color: #2692DC; }
+  .shortcut-green { background: rgba(34, 197, 94, 0.15); color: #22C55E; }
+  .shortcut-purple { background: rgba(116, 108, 230, 0.15); color: #746CE6; }
+  .shortcut-orange { background: rgba(249, 115, 22, 0.15); color: #F97316; }
+  .shortcut-cyan { background: rgba(6, 182, 212, 0.15); color: #06B6D4; }
+  .shortcut-pink { background: rgba(236, 72, 153, 0.15); color: #EC4899; }
+  
+  .shortcut-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .toolbar-divider {
+    width: 80%;
+    height: 1px;
+    background: var(--border);
+  }
+  
+  /* Quick actions */
+  .quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: var(--muted);
+    color: var(--foreground-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  
+  .action-btn:hover {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.1);
+  }
+  
+  /* ===== MOBILE BOTTOM BAR ===== */
+  .toolbar-mobile {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    padding: 8px 12px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(12px);
+    transform: translateY(100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+  
+  .toolbar-mobile.visible {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  
+  @media (min-width: 1280px) {
+    .toolbar-mobile {
+      display: none;
+    }
+  }
+  
+  .mobile-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .mobile-progress {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2692DC, #746CE6);
+    border-radius: 10px;
+  }
+  
+  .mobile-progress-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+  
+  .mobile-chips {
+    flex: 1;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 2px 0;
+  }
+  
+  .mobile-chips::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .mobile-chip {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  
+  .chip-blue { background: rgba(38, 146, 220, 0.15); color: #2692DC; }
+  .chip-green { background: rgba(34, 197, 94, 0.15); color: #22C55E; }
+  .chip-purple { background: rgba(116, 108, 230, 0.15); color: #746CE6; }
+  .chip-orange { background: rgba(249, 115, 22, 0.15); color: #F97316; }
+  .chip-cyan { background: rgba(6, 182, 212, 0.15); color: #06B6D4; }
+  .chip-pink { background: rgba(236, 72, 153, 0.15); color: #EC4899; }
+  
+  .mobile-chip:active {
+    transform: scale(0.95);
+  }
+  
+  .mobile-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  
+  .mobile-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    background: var(--muted);
+    color: var(--foreground-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  
+  .mobile-action:active {
+    background: var(--primary);
+    color: white;
+  }
+</style>
+
+<!-- SVG Gradient Definition -->
+<svg width="0" height="0" style="position: absolute;">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2692DC"/>
+      <stop offset="100%" style="stop-color:#746CE6"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<script define:vars={{ postTitle, postUrl }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const progressBar = document.getElementById('reading-progress-bar');
+    const progressArc = document.getElementById('progress-arc');
+    const progressPercent = document.getElementById('progress-percent');
+    const mobileProgressText = document.getElementById('mobile-progress-text');
+    const toolbarMobile = document.getElementById('reading-toolbar-mobile');
+    const article = document.querySelector('.post-article');
+    
+    // Update progress on scroll
+    function updateProgress() {
+      if (!article) return;
+      
+      const articleRect = article.getBoundingClientRect();
+      const articleTop = articleRect.top + window.scrollY;
+      const articleHeight = article.offsetHeight;
+      const windowHeight = window.innerHeight;
+      const scrollY = window.scrollY;
+      
+      // Calculate progress
+      const start = articleTop - windowHeight / 2;
+      const end = articleTop + articleHeight - windowHeight / 2;
+      const current = scrollY - start;
+      const total = end - start;
+      const progress = Math.min(Math.max(current / total * 100, 0), 100);
+      
+      // Update progress bar
+      if (progressBar) progressBar.style.width = progress + '%';
+      
+      // Update circle
+      if (progressArc) progressArc.setAttribute('stroke-dasharray', `${progress}, 100`);
+      if (progressPercent) progressPercent.textContent = Math.round(progress) + '%';
+      if (mobileProgressText) mobileProgressText.textContent = Math.round(progress) + '%';
+      
+      // Show/hide mobile toolbar
+      if (toolbarMobile) {
+        if (scrollY > 300) {
+          toolbarMobile.classList.add('visible');
+        } else {
+          toolbarMobile.classList.remove('visible');
+        }
+      }
+    }
+    
+    // Throttle scroll
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateProgress();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+    
+    // Initial update
+    updateProgress();
+    
+    // Section navigation
+    document.querySelectorAll('[data-target]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const target = document.getElementById(targetId);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+    
+    // Scroll to top
+    document.querySelectorAll('#scroll-top-btn-desktop, #scroll-top-btn-mobile').forEach(btn => {
+      btn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+    
+    // Share functionality
+    async function sharePost() {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: postTitle,
+            url: postUrl
+          });
+        } catch (err) {
+          // User cancelled
+        }
+      } else {
+        // Fallback: copy to clipboard
+        try {
+          await navigator.clipboard.writeText(postUrl);
+          alert('Link copiado al portapapeles');
+        } catch (err) {
+          // Fallback fallback
+          prompt('Copiá este link:', postUrl);
+        }
+      }
+    }
+    
+    document.querySelectorAll('#share-btn-desktop, #share-btn-mobile').forEach(btn => {
+      btn.addEventListener('click', sharePost);
+    });
+  });
+</script>
