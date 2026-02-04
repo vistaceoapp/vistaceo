@@ -13,6 +13,14 @@ export function parseMarkdown(content: string): string {
   
   let html = content;
   
+  // ===== PROTECT EXISTING HTML =====
+  // Extract and protect any existing HTML links/elements
+  const htmlProtected: string[] = [];
+  html = html.replace(/<a\s[^>]*>.*?<\/a>/gi, (match) => {
+    htmlProtected.push(match);
+    return `__HTML_PROTECTED_${htmlProtected.length - 1}__`;
+  });
+  
   // ===== BLOCK ELEMENTS =====
   
   // Headings with IDs for navigation (process before other rules)
@@ -75,6 +83,11 @@ export function parseMarkdown(content: string): string {
   // Paragraphs - wrap remaining text blocks
   html = processParagraphs(html);
   
+  // ===== RESTORE PROTECTED HTML =====
+  htmlProtected.forEach((original, index) => {
+    html = html.replace(`__HTML_PROTECTED_${index}__`, original);
+  });
+  
   return html;
 }
 
@@ -86,6 +99,11 @@ function parseInline(text: string): string {
   
   let result = text;
   
+  // Skip if already contains HTML elements
+  if (/<[a-z][\s\S]*>/i.test(result)) {
+    return result;
+  }
+  
   // Bold + Italic combined: ***text*** or ___text___
   result = result.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
   result = result.replace(/___([^_]+)___/g, '<strong><em>$1</em></strong>');
@@ -95,25 +113,33 @@ function parseInline(text: string): string {
   result = result.replace(/__([^_]+)__/g, '<strong>$1</strong>');
   
   // Italic: *text* or _text_ (but not in URLs or already processed)
-  result = result.replace(/(?<![*_])\*([^*\n]+)\*(?![*_])/g, '<em>$1</em>');
-  result = result.replace(/(?<![*_])_([^_n]+)_(?![*_])/g, '<em>$1</em>');
+  result = result.replace(/(?<![*_\w])\*([^*\n]+)\*(?![*_\w])/g, '<em>$1</em>');
+  result = result.replace(/(?<![*_\w])_([^_\n]+)_(?![*_\w])/g, '<em>$1</em>');
   
   // Inline code: `code`
   result = result.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
   
-  // Links: [text](url)
-  result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
+  // Links: [text](url) - Make sure to handle properly
+  result = result.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, (_, linkText, url) => {
     const isExternal = url.startsWith('http') && !url.includes('vistaceo.com');
-    const attrs = isExternal ? ' target="_blank" rel="noopener noreferrer" class="external-link"' : ' class="internal-link"';
-    return `<a href="${url}"${attrs}>${text}</a>`;
+    if (isExternal) {
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="external-link">${linkText}</a>`;
+    }
+    return `<a href="${url}" class="internal-link">${linkText}</a>`;
   });
   
-  // Auto-link bare URLs
-  result = result.replace(/(?<!\()(https?:\/\/[^\s<>"]+)/g, (url) => {
+  // Auto-link bare URLs (but not if already inside an anchor tag)
+  result = result.replace(/(?<!href=["'])(https?:\/\/[^\s<>"')\]]+)/g, (url) => {
+    // Don't process if it looks like it's already part of HTML
+    if (url.includes('class=') || url.includes('target=')) {
+      return url;
+    }
     const isExternal = !url.includes('vistaceo.com');
-    const displayUrl = url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40);
-    const attrs = isExternal ? ' target="_blank" rel="noopener noreferrer" class="external-link auto-link"' : ' class="internal-link auto-link"';
-    return `<a href="${url}"${attrs}>${displayUrl}${url.length > 40 ? '...' : ''}</a>`;
+    const displayUrl = url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 35);
+    if (isExternal) {
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="external-link auto-link">${displayUrl}${url.length > 45 ? '...' : ''}</a>`;
+    }
+    return `<a href="${url}" class="internal-link auto-link">${displayUrl}${url.length > 45 ? '...' : ''}</a>`;
   });
   
   // Strikethrough: ~~text~~
@@ -137,13 +163,14 @@ function processBlockquotes(html: string): string {
     const content = match
       .split('\n')
       .map(line => line.replace(/^>\s*/, ''))
-      .join('\n')
+      .join('<br>')
       .trim();
     
     // Detect example blocks
     if (content.includes('**Ejemplo:**') || content.startsWith('Ejemplo:')) {
       return `<div class="example-block">
-        <div class="example-content">${parseInline(content)}</div>
+        <div class="example-header">💡 Ejemplo</div>
+        <div class="example-content">${parseInline(content.replace(/\*\*Ejemplo:\*\*\s*/i, ''))}</div>
       </div>`;
     }
     
@@ -154,7 +181,7 @@ function processBlockquotes(html: string): string {
       </div>`;
     }
     
-    if (content.startsWith('⚠️') || content.includes('**Cuidado:**')) {
+    if (content.startsWith('⚠️') || content.includes('**Cuidado:**') || content.includes('**Advertencia:**')) {
       return `<div class="warning-block">
         <div class="warning-content">${parseInline(content)}</div>
       </div>`;

@@ -109,16 +109,31 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
   };
 
   const shareArticle = async () => {
-    const url = `https://blog.vistaceo.com/${slug}`;
+    const url = `https://www.vistaceo.com/blog/${slug}`;
+    
     try {
       if (navigator.share) {
-        await navigator.share({ title, url });
+        await navigator.share({ 
+          title, 
+          url,
+          text: `Leé este artículo: ${title}`
+        });
+        toast.success('¡Compartido!');
       } else {
         await navigator.clipboard.writeText(url);
         toast.success('Link copiado al portapapeles');
       }
-    } catch {
-      toast.error('No se pudo compartir');
+    } catch (error) {
+      // User cancelled share or error occurred
+      if ((error as Error).name !== 'AbortError') {
+        // Fallback to clipboard
+        try {
+          await navigator.clipboard.writeText(url);
+          toast.success('Link copiado al portapapeles');
+        } catch {
+          toast.error('No se pudo compartir');
+        }
+      }
     }
   };
 
