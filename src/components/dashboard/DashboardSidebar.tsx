@@ -7,8 +7,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Zap,
-  HelpCircle,
   BarChart3,
   Crown,
   Orbit
@@ -189,15 +187,27 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
         </nav>
 
 
-        {/* Plan Status Card (only when expanded) */}
-        {!collapsed && (
+        {/* Plan Status Card (only when expanded and FREE user) */}
+        {!collapsed && !isPro && (
           <div className="mx-3 mb-3">
             <PlanStatusCard variant="sidebar" />
           </div>
         )}
 
-        {/* Bottom Section */}
+        {/* Bottom Section - Theme Toggle + Settings */}
         <div className="border-t border-border p-3 space-y-1">
+          {/* Theme Toggle */}
+          <div className={cn(
+            "flex items-center gap-3 px-3 py-2",
+            collapsed ? "justify-center" : "justify-start"
+          )}>
+            <ThemeToggle />
+            {!collapsed && (
+              <span className="text-sm text-muted-foreground">Cambiar tema</span>
+            )}
+          </div>
+          
+          {/* Settings */}
           {bottomNavItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             
@@ -235,36 +245,6 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
 
             return BottomItem;
           })}
-
-          {/* Help */}
-          {collapsed ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="flex items-center justify-center px-3 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all w-full">
-                  <HelpCircle className="h-5 w-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="bg-popover border-border">
-                <p className="font-medium">Ayuda</p>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all w-full">
-              <HelpCircle className="h-5 w-5 flex-shrink-0" />
-              <span className="font-medium text-sm">Ayuda</span>
-            </button>
-          )}
-
-          {/* Theme Toggle */}
-          <div className={cn(
-            "flex items-center gap-3 px-3 py-2",
-            collapsed ? "justify-center" : "justify-start"
-          )}>
-            <ThemeToggle />
-            {!collapsed && (
-              <span className="text-sm text-muted-foreground">Cambiar tema</span>
-            )}
-          </div>
         </div>
       </aside>
     </TooltipProvider>

@@ -4,25 +4,24 @@ import {
   User, 
   Building2, 
   Bell, 
-  Globe, 
   CreditCard, 
-  HelpCircle, 
   LogOut,
   ChevronRight,
-  Link as LinkIcon,
   Shield,
   Check,
   Settings,
-  Sparkles,
   Crown,
-  Mail,
-  Phone,
-  MapPin,
   Calendar,
-  BarChart3,
-  Zap,
   Brain,
-  Target
+  Target,
+  Lock,
+  Globe,
+  FileText,
+  DollarSign,
+  AlertTriangle,
+  Sparkles,
+  Image as ImageIcon,
+  Zap
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -44,35 +43,40 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GlassCard } from "@/components/app/GlassCard";
 import { AutopilotModeSelector } from "@/components/app/AutopilotModeSelector";
-import { LanguageSelector } from "@/components/app/LanguageSelector";
-import { IntegrationsPanel } from "@/components/app/IntegrationsPanel";
 import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
 import { FocusSelector } from "@/components/app/FocusSelector";
 import { useSubscription } from "@/hooks/use-subscription";
-import { SubscriptionStatusSection } from "@/components/app/SubscriptionStatusSection";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 
 const MorePage = () => {
   const { user, signOut } = useAuth();
   const { currentBusiness, refreshBusinesses } = useBusiness();
-  const { isPro } = useSubscription();
+  const { isPro, planId, daysRemaining, expiresAt, isExpiringSoon, paymentProvider } = useSubscription();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [profileDialog, setProfileDialog] = useState(false);
   const [businessDialog, setBusinessDialog] = useState(false);
+  const [passwordDialog, setPasswordDialog] = useState(false);
+  const [autopilotDialog, setAutopilotDialog] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [fullName, setFullName] = useState("");
   const [businessName, setBusinessName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
-  const [autopilotDialog, setAutopilotDialog] = useState(false);
-  const [languageDialog, setLanguageDialog] = useState(false);
   const [userMode, setUserMode] = useState<"nano" | "standard" | "proactive" | "sos">("standard");
-  const [preferredLanguage, setPreferredLanguage] = useState("es");
+  const [businessTypeChanged, setBusinessTypeChanged] = useState(false);
 
   useEffect(() => {
     if (currentBusiness) {
       setBusinessName(currentBusiness.name);
+      // Check if business type was ever changed
+      const settings = currentBusiness.settings as Record<string, any> | null;
+      setBusinessTypeChanged(settings?.business_type_changed || false);
     }
   }, [currentBusiness]);
 
@@ -81,13 +85,12 @@ const MorePage = () => {
       if (!user) return;
       const { data } = await supabase
         .from("profiles")
-        .select("full_name, user_mode, preferred_language")
+        .select("full_name, user_mode")
         .eq("id", user.id)
         .single();
       if (data) {
         if (data.full_name) setFullName(data.full_name);
         if (data.user_mode) setUserMode(data.user_mode as typeof userMode);
-        if (data.preferred_language) setPreferredLanguage(data.preferred_language);
       }
     };
     fetchProfile();
@@ -136,6 +139,38 @@ const MorePage = () => {
     }
   };
 
+  const changePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Error", description: "Las contraseñas no coinciden", variant: "destructive" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({ title: "Error", description: "La contraseña debe tener al menos 6 caracteres", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast({ title: "Contraseña actualizada" });
+      setPasswordDialog(false);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch {
+      toast({ title: "Error", description: "No se pudo cambiar la contraseña", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleNotifications = async (enabled: boolean) => {
+    if (!user) return;
+    setNotificationsEnabled(enabled);
+    // Note: notifications_enabled would need to be added to profiles table
+    // For now, just update local state
+    toast({ title: enabled ? "Notificaciones activadas" : "Notificaciones desactivadas" });
+  };
+
   const getModeLabel = (mode: string) => {
     const labels: Record<string, string> = {
       nano: "Nano - Mínimo",
@@ -146,54 +181,7 @@ const MorePage = () => {
     return labels[mode] || "Estándar";
   };
 
-  const getLanguageLabel = (lang: string) => {
-    const labels: Record<string, string> = {
-      es: "Español 🇪🇸",
-      en: "English 🇺🇸",
-      pt: "Português 🇧🇷"
-    };
-    return labels[lang] || "Español";
-  };
-
-  const menuSections = [
-    {
-      title: "Herramientas",
-      items: [
-        { icon: BarChart3, label: "Analytics", description: "Métricas y tendencias", action: () => navigate("/app/analytics") },
-        { icon: Brain, label: "Auditoría Brain", description: "Trazas y feedback", action: () => navigate("/app/audit") },
-        { icon: Target, label: "Diagnóstico y precisión", description: "Completá tu perfil de negocio", action: () => navigate("/app/diagnostic") },
-      ],
-    },
-    {
-      title: "Cuenta",
-      items: [
-        { icon: User, label: "Perfil", description: "Información personal", action: () => setProfileDialog(true) },
-        { icon: Building2, label: "Mi negocio", description: "Datos del establecimiento", action: () => setBusinessDialog(true) },
-        { icon: Bell, label: "Notificaciones", description: "Preferencias de alertas", action: () => toast({ title: "Próximamente" }) },
-      ],
-    },
-    {
-      title: "Autopilot",
-      items: [
-        { icon: Brain, label: "Modo de operación", description: getModeLabel(userMode), action: () => setAutopilotDialog(true) },
-        { icon: Globe, label: "Idioma", description: getLanguageLabel(preferredLanguage), action: () => setLanguageDialog(true) },
-      ],
-    },
-    {
-      title: "Suscripción",
-      items: [
-        { icon: Crown, label: "Upgrade a Pro", description: "Desbloquea todas las funciones", action: () => navigate("/checkout") },
-        { icon: CreditCard, label: "Facturación", description: "Historial de pagos", action: () => toast({ title: "Próximamente" }) },
-      ],
-    },
-    {
-      title: "Ayuda",
-      items: [
-        { icon: HelpCircle, label: "Centro de ayuda", description: "Guías y tutoriales", action: () => toast({ title: "Próximamente" }) },
-        { icon: Shield, label: "Privacidad", description: "Términos y políticas", action: () => toast({ title: "Próximamente" }) },
-      ],
-    },
-  ];
+  const planLabel = planId === "pro_yearly" ? "Pro Anual" : planId === "pro_monthly" ? "Pro Mensual" : "Free";
 
   // Desktop Layout
   if (!isMobile) {
@@ -223,9 +211,15 @@ const MorePage = () => {
                       <h2 className="text-2xl font-bold text-foreground">
                         {fullName || "Sin nombre"}
                       </h2>
-                      <Badge variant="secondary" className="gap-1">
+                      <Badge 
+                        variant="secondary" 
+                        className={cn(
+                          "gap-1",
+                          isPro ? "bg-primary/20 text-primary" : "bg-secondary"
+                        )}
+                      >
                         <Crown className="w-3 h-3" />
-                        Plan Free
+                        {planLabel}
                       </Badge>
                     </div>
                     <p className="text-muted-foreground">{user?.email}</p>
@@ -233,27 +227,6 @@ const MorePage = () => {
                   <Button variant="outline" onClick={() => setProfileDialog(true)}>
                     Editar perfil
                   </Button>
-                </div>
-
-                <Separator className="my-6" />
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 rounded-xl bg-secondary/50">
-                    <div className="text-2xl font-bold text-foreground">28</div>
-                    <div className="text-sm text-muted-foreground">Días activo</div>
-                  </div>
-                  <div className="text-center p-4 rounded-xl bg-secondary/50">
-                    <div className="text-2xl font-bold text-foreground">156</div>
-                    <div className="text-sm text-muted-foreground">Acciones</div>
-                  </div>
-                  <div className="text-center p-4 rounded-xl bg-secondary/50">
-                    <div className="text-2xl font-bold text-foreground">12</div>
-                    <div className="text-sm text-muted-foreground">Misiones</div>
-                  </div>
-                  <div className="text-center p-4 rounded-xl bg-secondary/50">
-                    <div className="text-2xl font-bold text-foreground">89%</div>
-                    <div className="text-sm text-muted-foreground">Efectividad</div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -273,7 +246,7 @@ const MorePage = () => {
                 </Button>
               </CardHeader>
               <CardContent>
-                {currentBusiness ? (
+                {currentBusiness && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div className="flex items-center gap-3">
@@ -287,44 +260,22 @@ const MorePage = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <BarChart3 className="w-5 h-5 text-primary" />
+                          <Target className="w-5 h-5 text-primary" />
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Categoría</p>
                           <p className="font-medium text-foreground capitalize">{currentBusiness.category || "No especificada"}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <MapPin className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">País</p>
-                          <p className="font-medium text-foreground">{currentBusiness.country || "No especificado"}</p>
-                        </div>
-                      </div>
                     </div>
                     <div className="space-y-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <CreditCard className="w-5 h-5 text-primary" />
+                          <Globe className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Ticket promedio</p>
-                          <p className="font-medium text-foreground">
-                            {currentBusiness.avg_ticket ? `$${currentBusiness.avg_ticket}` : "No especificado"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Sparkles className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Rating</p>
-                          <p className="font-medium text-foreground">
-                            {currentBusiness.avg_rating ? `${currentBusiness.avg_rating} ⭐` : "Sin calificaciones"}
-                          </p>
+                          <p className="text-sm text-muted-foreground">País / Moneda</p>
+                          <p className="font-medium text-foreground">{currentBusiness.country || "—"} · {currentBusiness.currency || "USD"}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -342,54 +293,120 @@ const MorePage = () => {
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <p className="text-muted-foreground">No hay negocio configurado</p>
                 )}
               </CardContent>
             </Card>
 
-            {/* Integrations Panel - Full */}
-            <IntegrationsPanel />
-
-            {/* BusinessBrain Status */}
-            <BrainStatusWidget variant="full" />
-
             {/* Focus Selector */}
             <FocusSelector variant="card" />
 
-            {/* Settings Grid */}
+            {/* Brain Status */}
+            <BrainStatusWidget variant="full" />
+
+            {/* Settings Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {menuSections.map((section) => (
-                <Card key={section.title}>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">{section.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-1">
-                    {section.items.map((item) => (
-                      <button
-                        key={item.label}
-                        onClick={item.action}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
-                      >
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <item.icon className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground text-sm">{item.label}</p>
-                          <p className="text-xs text-muted-foreground truncate">{item.description}</p>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      </button>
-                    ))}
-                  </CardContent>
-                </Card>
-              ))}
+              {/* Account Settings */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Cuenta</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                  <button
+                    onClick={() => setProfileDialog(true)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <User className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground text-sm">Perfil</p>
+                      <p className="text-xs text-muted-foreground">Nombre y datos personales</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                  
+                  <button
+                    onClick={() => setPasswordDialog(true)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Lock className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground text-sm">Cambiar contraseña</p>
+                      <p className="text-xs text-muted-foreground">Actualizar credenciales</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+
+                  <div className="flex items-center gap-3 p-3 rounded-lg">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Bell className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground text-sm">Notificaciones</p>
+                      <p className="text-xs text-muted-foreground">Alertas y recordatorios</p>
+                    </div>
+                    <Switch checked={notificationsEnabled} onCheckedChange={toggleNotifications} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* System Settings */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Sistema</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                  <button
+                    onClick={() => setAutopilotDialog(true)}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Brain className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground text-sm">Modo de operación</p>
+                      <p className="text-xs text-muted-foreground">{getModeLabel(userMode)}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/app/diagnostic")}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Target className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground text-sm">Precisión del Brain</p>
+                      <p className="text-xs text-muted-foreground">Completá tu perfil de negocio</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+
+                  <button
+                    onClick={() => navigate("/app/audit")}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground text-sm">Auditoría Brain</p>
+                      <p className="text-xs text-muted-foreground">Trazas y feedback del sistema</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </CardContent>
+              </Card>
             </div>
           </div>
 
-          {/* Right Column - Quick Settings & Plan */}
+          {/* Right Column - Subscription & Quick Settings */}
           <div className="space-y-6">
-            {/* Theme Settings */}
+            {/* Theme */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -408,33 +425,134 @@ const MorePage = () => {
               </CardContent>
             </Card>
 
-            {/* Subscription Status Section */}
-            <SubscriptionStatusSection />
-
-            {/* Quick Stats */}
-            <Card>
+            {/* Subscription Status */}
+            <Card className="overflow-hidden">
+              <div className={cn(
+                "h-2",
+                isPro ? "bg-gradient-to-r from-primary via-accent to-primary" : "bg-secondary"
+              )} />
               <CardHeader>
-                <CardTitle className="text-base">Uso este mes</CardTitle>
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center shadow-lg",
+                    isPro ? "bg-gradient-to-br from-primary to-accent" : "bg-secondary"
+                  )}>
+                    {isPro ? <Crown className="w-6 h-6 text-white" /> : <Zap className="w-6 h-6 text-muted-foreground" />}
+                  </div>
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      {planLabel}
+                      {isPro && <Badge className="bg-success/20 text-success border-0">Activo</Badge>}
+                    </CardTitle>
+                    {isPro && expiresAt && (
+                      <p className="text-sm text-muted-foreground">
+                        Vence: {expiresAt.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                    )}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Consultas con VistaCEO</span>
-                    <span className="font-medium text-foreground">45/100</span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: '45%' }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Análisis de radar</span>
-                    <span className="font-medium text-foreground">8/20</span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full" style={{ width: '40%' }} />
-                  </div>
-                </div>
+                {isPro ? (
+                  <>
+                    {/* Days remaining */}
+                    {daysRemaining !== null && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Días restantes</span>
+                          <span className={cn("font-semibold", isExpiringSoon ? "text-warning" : "text-foreground")}>
+                            {daysRemaining} días
+                          </span>
+                        </div>
+                        <Progress value={Math.max(0, Math.min(100, (daysRemaining / (planId === "pro_yearly" ? 365 : 30)) * 100))} className="h-2" />
+                      </div>
+                    )}
+
+                    {/* Payment method */}
+                    <div className="p-3 rounded-lg bg-secondary/50">
+                      <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                        <CreditCard className="w-4 h-4" />
+                        <span className="text-xs">Método de pago</span>
+                      </div>
+                      <p className="font-medium text-foreground capitalize">
+                        {paymentProvider === "mercadopago" ? "MercadoPago" : paymentProvider === "paypal" ? "PayPal" : "—"}
+                      </p>
+                    </div>
+
+                    {isExpiringSoon && (
+                      <div className="p-3 rounded-lg bg-warning/10 border border-warning/30">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4 text-warning" />
+                          <p className="text-sm font-medium text-warning">Vence pronto</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Renová antes del {expiresAt?.toLocaleDateString('es-AR')}
+                        </p>
+                      </div>
+                    )}
+
+                    <Button variant="outline" className="w-full" onClick={() => navigate("/checkout")}>
+                      Gestionar suscripción
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-success" />
+                        <span>Dashboard de Salud - Completo</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-success" />
+                        <span>Misiones - 3/mes</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-success" />
+                        <span>Chat IA - 3/mes</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-success" />
+                        <span>Radar de Oportunidades - 3/mes</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-success" />
+                        <span>Check-ins de Pulso - Diarios</span>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <Button className="w-full gradient-primary text-white" onClick={() => navigate("/checkout")}>
+                      <Crown className="w-4 h-4 mr-2" />
+                      Upgrade a Pro
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Legal */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Legal</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                <button
+                  onClick={() => navigate("/privacy")}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                >
+                  <Shield className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Privacidad</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                </button>
+                <button
+                  onClick={() => navigate("/terms")}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                >
+                  <FileText className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Términos de servicio</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
+                </button>
               </CardContent>
             </Card>
 
@@ -487,6 +605,14 @@ const MorePage = () => {
                 <Label>Nombre del negocio</Label>
                 <Input value={businessName} onChange={(e) => setBusinessName(e.target.value)} className="mt-1" />
               </div>
+              {!businessTypeChanged && (
+                <div className="p-3 rounded-lg bg-warning/10 border border-warning/30">
+                  <p className="text-xs text-muted-foreground">
+                    <AlertTriangle className="w-3 h-3 inline mr-1" />
+                    Para cambiar el tipo de negocio, contactanos. Solo se permite 1 vez.
+                  </p>
+                </div>
+              )}
             </div>
             <div className="flex gap-3 mt-6">
               <Button variant="outline" className="flex-1" onClick={() => setBusinessDialog(false)}>Cancelar</Button>
@@ -495,13 +621,46 @@ const MorePage = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Autopilot Mode Dialog */}
+        <Dialog open={passwordDialog} onOpenChange={setPasswordDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Cambiar contraseña</DialogTitle>
+              <DialogDescription>Ingresa tu nueva contraseña</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label>Nueva contraseña</Label>
+                <Input 
+                  type="password" 
+                  value={newPassword} 
+                  onChange={(e) => setNewPassword(e.target.value)} 
+                  className="mt-1" 
+                  placeholder="Mínimo 6 caracteres"
+                />
+              </div>
+              <div>
+                <Label>Confirmar contraseña</Label>
+                <Input 
+                  type="password" 
+                  value={confirmPassword} 
+                  onChange={(e) => setConfirmPassword(e.target.value)} 
+                  className="mt-1" 
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <Button variant="outline" className="flex-1" onClick={() => setPasswordDialog(false)}>Cancelar</Button>
+              <Button className="flex-1" onClick={changePassword} disabled={saving}>{saving ? "Guardando..." : "Cambiar"}</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={autopilotDialog} onOpenChange={setAutopilotDialog}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Brain className="w-5 h-5 text-primary" />
-                Modo Autopilot
+                Modo de operación
               </DialogTitle>
               <DialogDescription>
                 Elige cómo quieres que el asistente interactúe contigo
@@ -519,45 +678,21 @@ const MorePage = () => {
             </div>
           </DialogContent>
         </Dialog>
-
-        {/* Language Dialog */}
-        <Dialog open={languageDialog} onOpenChange={setLanguageDialog}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Globe className="w-5 h-5 text-primary" />
-                Idioma del sistema
-              </DialogTitle>
-              <DialogDescription>
-                Selecciona en qué idioma quieres usar la aplicación
-              </DialogDescription>
-            </DialogHeader>
-            <div className="mt-4">
-              {user && (
-                <LanguageSelector
-                  currentLanguage={preferredLanguage}
-                  userId={user.id}
-                  onLanguageChange={(lang) => setPreferredLanguage(lang)}
-                />
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     );
   }
 
-  // Mobile Layout
+  // Mobile Layout - Simplified
   return (
     <div className="space-y-6 pb-6">
-      {/* User Card - Premium Mobile */}
+      {/* User Card */}
       <GlassCard className="p-5">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="w-18 h-18 rounded-2xl gradient-primary flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-lg">
+            <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center text-2xl font-bold text-primary-foreground shadow-lg">
               {fullName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
             </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-background flex items-center justify-center">
+            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full border-2 border-background flex items-center justify-center">
               <Check className="w-3 h-3 text-white" />
             </div>
           </div>
@@ -566,32 +701,15 @@ const MorePage = () => {
               {fullName || user?.email}
             </h2>
             {currentBusiness && (
-              <p className="text-sm text-muted-foreground truncate">
-                {currentBusiness.name}
-              </p>
+              <p className="text-sm text-muted-foreground truncate">{currentBusiness.name}</p>
             )}
-            <div className="flex items-center gap-2 mt-2">
-              <Badge variant="secondary" className="gap-1 text-xs">
-                <Crown className="w-3 h-3" />
-                Plan Free
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-border/50">
-          <div className="text-center">
-            <div className="text-xl font-bold text-foreground">28</div>
-            <div className="text-xs text-muted-foreground">Días</div>
-          </div>
-          <div className="text-center border-x border-border/50">
-            <div className="text-xl font-bold text-foreground">156</div>
-            <div className="text-xs text-muted-foreground">Acciones</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl font-bold text-foreground">89%</div>
-            <div className="text-xs text-muted-foreground">Efectividad</div>
+            <Badge 
+              variant="secondary" 
+              className={cn("gap-1 text-xs mt-1", isPro ? "bg-primary/20 text-primary" : "")}
+            >
+              <Crown className="w-3 h-3" />
+              {planLabel}
+            </Badge>
           </div>
         </div>
       </GlassCard>
@@ -612,50 +730,171 @@ const MorePage = () => {
         </div>
       </GlassCard>
 
-      {/* Menu Sections */}
-      {menuSections.map((section, sIdx) => (
-        <div key={section.title} className="animate-fade-in" style={{ animationDelay: `${sIdx * 50}ms` }}>
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-            {section.title}
-          </h3>
-          <GlassCard className="overflow-hidden">
-            {section.items.map((item, idx) => (
-              <button
-                key={item.label}
-                onClick={item.action}
-                className={`w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 active:bg-secondary transition-colors ${
-                  idx < section.items.length - 1 ? "border-b border-border/50" : ""
-                }`}
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <item.icon className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium text-foreground">{item.label}</p>
-                  <p className="text-xs text-muted-foreground">{item.description}</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground" />
-              </button>
-            ))}
-          </GlassCard>
-        </div>
-      ))}
+      {/* Upgrade Banner - Only for Free */}
+      {!isPro && (
+        <GlassCard className="p-5 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+              <Zap className="w-6 h-6 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-foreground">Actualiza a Pro</h3>
+              <p className="text-xs text-muted-foreground">Funciones ilimitadas</p>
+            </div>
+            <Button size="sm" onClick={() => navigate("/checkout")}>
+              Ver
+            </Button>
+          </div>
+        </GlassCard>
+      )}
 
-      {/* Upgrade Banner */}
-      <GlassCard className="p-5 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-            <Zap className="w-6 h-6 text-primary" />
+      {/* Account Section */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+          Cuenta
+        </h3>
+        <GlassCard className="overflow-hidden">
+          <button onClick={() => setProfileDialog(true)} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 border-b border-border/50">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <User className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Perfil</p>
+              <p className="text-xs text-muted-foreground">Información personal</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+          <button onClick={() => setBusinessDialog(true)} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 border-b border-border/50">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Mi negocio</p>
+              <p className="text-xs text-muted-foreground">Datos del establecimiento</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+          <button onClick={() => setPasswordDialog(true)} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 border-b border-border/50">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Cambiar contraseña</p>
+              <p className="text-xs text-muted-foreground">Actualizar credenciales</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+          <div className="flex items-center gap-4 px-4 py-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Bell className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Notificaciones</p>
+              <p className="text-xs text-muted-foreground">Alertas y recordatorios</p>
+            </div>
+            <Switch checked={notificationsEnabled} onCheckedChange={toggleNotifications} />
           </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-foreground">Actualiza a Pro</h3>
-            <p className="text-xs text-muted-foreground">Más análisis e integraciones</p>
-          </div>
-          <Button size="sm" onClick={() => toast({ title: "Próximamente" })}>
-            Ver
-          </Button>
-        </div>
-      </GlassCard>
+        </GlassCard>
+      </div>
+
+      {/* System Section */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+          Sistema
+        </h3>
+        <GlassCard className="overflow-hidden">
+          <button onClick={() => setAutopilotDialog(true)} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 border-b border-border/50">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Brain className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Modo de operación</p>
+              <p className="text-xs text-muted-foreground">{getModeLabel(userMode)}</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+          <button onClick={() => navigate("/app/diagnostic")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 border-b border-border/50">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Target className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Precisión del Brain</p>
+              <p className="text-xs text-muted-foreground">Completá tu perfil</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+          <button onClick={() => navigate("/app/audit")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Auditoría Brain</p>
+              <p className="text-xs text-muted-foreground">Trazas y feedback</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </GlassCard>
+      </div>
+
+      {/* Subscription Section */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+          Suscripción
+        </h3>
+        <GlassCard className="overflow-hidden">
+          <button onClick={() => navigate("/checkout")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 border-b border-border/50">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Crown className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Mi plan</p>
+              <p className="text-xs text-muted-foreground">
+                {isPro 
+                  ? `${planLabel} · ${daysRemaining} días restantes` 
+                  : "Plan Free"}
+              </p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+          <button onClick={() => toast({ title: "Próximamente", description: "Historial de pagos" })} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Historial de pagos</p>
+              <p className="text-xs text-muted-foreground">Facturas y recibos</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </GlassCard>
+      </div>
+
+      {/* Legal Section */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+          Legal
+        </h3>
+        <GlassCard className="overflow-hidden">
+          <button onClick={() => navigate("/privacy")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 border-b border-border/50">
+            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+              <Shield className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Privacidad</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+          <button onClick={() => navigate("/terms")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50">
+            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+              <FileText className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="font-medium text-foreground">Términos de servicio</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </GlassCard>
+      </div>
 
       {/* Sign Out */}
       <Button
@@ -669,7 +908,7 @@ const MorePage = () => {
 
       <p className="text-center text-xs text-muted-foreground">v1.0.0</p>
 
-      {/* Profile Dialog */}
+      {/* Dialogs */}
       <Dialog open={profileDialog} onOpenChange={setProfileDialog}>
         <DialogContent>
           <DialogHeader>
@@ -693,7 +932,6 @@ const MorePage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Business Dialog */}
       <Dialog open={businessDialog} onOpenChange={setBusinessDialog}>
         <DialogContent>
           <DialogHeader>
@@ -713,13 +951,46 @@ const MorePage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Autopilot Mode Dialog */}
+      <Dialog open={passwordDialog} onOpenChange={setPasswordDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cambiar contraseña</DialogTitle>
+            <DialogDescription>Ingresa tu nueva contraseña</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div>
+              <Label>Nueva contraseña</Label>
+              <Input 
+                type="password" 
+                value={newPassword} 
+                onChange={(e) => setNewPassword(e.target.value)} 
+                className="mt-1" 
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <div>
+              <Label>Confirmar contraseña</Label>
+              <Input 
+                type="password" 
+                value={confirmPassword} 
+                onChange={(e) => setConfirmPassword(e.target.value)} 
+                className="mt-1" 
+              />
+            </div>
+          </div>
+          <div className="flex gap-3 mt-6">
+            <Button variant="outline" className="flex-1" onClick={() => setPasswordDialog(false)}>Cancelar</Button>
+            <Button className="flex-1" onClick={changePassword} disabled={saving}>{saving ? "Guardando..." : "Cambiar"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={autopilotDialog} onOpenChange={setAutopilotDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Brain className="w-5 h-5 text-primary" />
-              Modo Autopilot
+              Modo de operación
             </DialogTitle>
             <DialogDescription>
               Elige cómo quieres que el asistente interactúe contigo
@@ -731,30 +1002,7 @@ const MorePage = () => {
                 currentMode={userMode}
                 userId={user.id}
                 onModeChange={(mode) => setUserMode(mode)}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Language Dialog */}
-      <Dialog open={languageDialog} onOpenChange={setLanguageDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Globe className="w-5 h-5 text-primary" />
-              Idioma del sistema
-            </DialogTitle>
-            <DialogDescription>
-              Selecciona en qué idioma quieres usar la aplicación
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4">
-            {user && (
-              <LanguageSelector
-                currentLanguage={preferredLanguage}
-                userId={user.id}
-                onLanguageChange={(lang) => setPreferredLanguage(lang)}
+                isPro={isPro}
               />
             )}
           </div>

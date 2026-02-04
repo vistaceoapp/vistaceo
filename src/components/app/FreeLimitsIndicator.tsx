@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Crown, Zap, Target, Lightbulb, TrendingUp } from "lucide-react";
+import { Crown, Zap, Target, Lightbulb, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -8,7 +8,7 @@ import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
 import { cn } from "@/lib/utils";
 
 interface FreeLimitsIndicatorProps {
-  type: "missions" | "radar" | "research";
+  type: "missions" | "chat" | "radar" | "research";
   variant?: "compact" | "detailed" | "inline";
   showUpgrade?: boolean;
   className?: string;
@@ -22,12 +22,19 @@ const typeConfig = {
     color: "text-primary",
     bgColor: "bg-primary/10",
   },
+  chat: {
+    label: "Chat IA",
+    limitKey: "chatMessages" as const,
+    icon: MessageCircle,
+    color: "text-accent",
+    bgColor: "bg-accent/10",
+  },
   radar: {
     label: "Radar Interno",
     limitKey: "radarOpportunities" as const,
     icon: Zap,
-    color: "text-accent",
-    bgColor: "bg-accent/10",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
   },
   research: {
     label: "I+D Externo",
@@ -163,7 +170,7 @@ export const FreeLimitsIndicator = ({
  * Banner shown when user hits a limit
  */
 interface LimitReachedBannerProps {
-  type: "missions" | "radar" | "research";
+  type: "missions" | "chat" | "radar" | "research";
   onUpgrade?: () => void;
 }
 
