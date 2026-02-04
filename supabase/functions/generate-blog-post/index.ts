@@ -222,7 +222,35 @@ async function uploadImageToStorage(
   }
 }
 
-// Generate hero image using Lovable AI image generation
+// Pillar-specific image contexts for ultra-realistic generation
+const PILLAR_IMAGE_CONTEXTS: Record<string, { scene: string; mood: string }> = {
+  empleo: {
+    scene: 'professional office setting, career development, job interview preparation, resume on desk',
+    mood: 'ambitious, hopeful, professional growth'
+  },
+  ia_aplicada: {
+    scene: 'modern tech workspace, laptop with data visualization, subtle AI elements, smart devices',
+    mood: 'innovative, cutting-edge, human-tech harmony'
+  },
+  liderazgo: {
+    scene: 'team meeting, strategic planning, leadership moment, mentoring session',
+    mood: 'confident, inspiring, decisive'
+  },
+  servicios: {
+    scene: 'client consultation, professional service delivery, business discussion',
+    mood: 'trustworthy, expert, solution-focused'
+  },
+  emprender: {
+    scene: 'startup environment, entrepreneur at work, business planning, growth metrics',
+    mood: 'energetic, determined, visionary'
+  },
+  tendencias: {
+    scene: 'market analysis, trend charts, business forecasting, strategic overview',
+    mood: 'forward-thinking, analytical, opportunity-focused'
+  }
+};
+
+// Generate hero image using Lovable AI - ULTRA REALISTIC, NO TEXT
 // Returns a PUBLIC HTTPS URL (never base64)
 async function generateHeroImage(
   title: string,
@@ -233,12 +261,27 @@ async function generateHeroImage(
   supabaseKey: string
 ): Promise<string | null> {
   try {
-    const pillarInfo = PILLARS[pillar as keyof typeof PILLARS] || { label: pillar };
+    const pillarContext = PILLAR_IMAGE_CONTEXTS[pillar] || PILLAR_IMAGE_CONTEXTS.tendencias;
     
-    const prompt = `Professional minimalist hero image for a business blog article about "${title}". 
-Theme: ${pillarInfo.label}. 
-Style: Clean, modern, corporate, light background, subtle geometric shapes or abstract icons.
-No text in the image. 16:9 aspect ratio. Ultra high resolution.`;
+    // Ultra-realistic prompt - NO TEXT, NO LOGOS
+    const prompt = `
+Professional editorial photograph for a business blog article titled "${title}".
+
+STYLE: Ultra photorealistic, professional editorial photography, cinematic natural lighting, shallow depth of field, 8K resolution, Hasselblad quality.
+
+CONTEXT: ${pillarContext.scene}
+MOOD: ${pillarContext.mood}, premium business editorial, authentic, human warmth.
+
+SETTING: Modern Latin American office or workspace (Argentina, Mexico, Colombia style), clean and minimal, subtle blue/violet accent tones, natural daylight through windows.
+
+CRITICAL - FORBIDDEN ELEMENTS: No text, no letters, no numbers, no logos, no watermarks, no UI elements, no screenshots, no captions, no subtitles.
+
+PEOPLE: If people appear, show them from behind, silhouettes, hands only, or tastefully blurred. Never show identifiable faces directly.
+
+Aspect ratio: 16:9. Ultra high resolution.
+`.trim();
+
+    console.log('[generate-blog-post] Generating ultra-realistic hero image for:', slug);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -262,6 +305,7 @@ No text in the image. 16:9 aspect ratio. Ultra high resolution.`;
     const imageUrl = result.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
     if (!imageUrl) {
+      console.log('[generate-blog-post] No image in response');
       return null;
     }
     
@@ -270,10 +314,9 @@ No text in the image. 16:9 aspect ratio. Ultra high resolution.`;
       console.log('[generate-blog-post] Detected base64 image, uploading to Storage...');
       const storageUrl = await uploadImageToStorage(imageUrl, slug, supabaseUrl, supabaseKey);
       if (storageUrl) {
-        console.log('[generate-blog-post] Base64 converted to Storage URL:', storageUrl);
+        console.log('[generate-blog-post] Hero image uploaded:', storageUrl);
         return storageUrl;
       }
-      // If upload fails, return null (don't use base64)
       console.log('[generate-blog-post] Storage upload failed, using default image');
       return null;
     }
@@ -288,6 +331,97 @@ No text in the image. 16:9 aspect ratio. Ultra high resolution.`;
     return null;
   } catch (error) {
     console.error('[generate-blog-post] Image generation error:', error);
+    return null;
+  }
+}
+
+// Generate inline image for content body
+async function generateInlineImage(
+  title: string,
+  pillar: string,
+  slug: string,
+  lovableApiKey: string,
+  supabaseUrl: string,
+  supabaseKey: string
+): Promise<string | null> {
+  try {
+    const pillarContext = PILLAR_IMAGE_CONTEXTS[pillar] || PILLAR_IMAGE_CONTEXTS.tendencias;
+    
+    const prompt = `
+Detailed professional photograph showing a practical concept related to "${title}".
+
+SCENE: ${pillarContext.scene}, focus on hands, documents, screen (without readable text), or workspace details.
+MOOD: ${pillarContext.mood}, human and authentic.
+
+COMPOSITION: Close-up or medium shot. Shallow depth of field. Natural lighting.
+
+CRITICAL - ABSOLUTELY FORBIDDEN: No text, no letters, no numbers, no logos, no watermarks, no UI elements, no visible words.
+
+Latin American office context. Premium editorial quality.
+
+Aspect ratio: 3:2. Ultra high resolution.
+`.trim();
+
+    console.log('[generate-blog-post] Generating inline image for:', slug);
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image',
+        messages: [{ role: 'user', content: prompt }],
+        modalities: ['image', 'text'],
+      }),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const result = await response.json();
+    const imageUrl = result.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (!imageUrl) return null;
+    
+    if (imageUrl.startsWith('data:')) {
+      // Upload with inline prefix
+      const matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (!matches) return null;
+      
+      const mimeType = matches[1];
+      const base64Content = matches[2];
+      const extension = mimeType.split('/')[1] || 'jpg';
+      const fileName = `inline-${slug}-${Date.now()}.${extension}`;
+      
+      const binaryString = atob(base64Content);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      const uploadResponse = await fetch(
+        `${supabaseUrl}/storage/v1/object/blog-images/${fileName}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': mimeType,
+          },
+          body: bytes,
+        }
+      );
+      
+      if (!uploadResponse.ok) return null;
+      
+      return `${supabaseUrl}/storage/v1/object/public/blog-images/${fileName}`;
+    }
+    
+    return imageUrl.startsWith('https://') ? imageUrl : null;
+  } catch (error) {
+    console.error('[generate-blog-post] Inline image generation error:', error);
     return null;
   }
 }
@@ -1137,12 +1271,41 @@ RECORDÁ las 10 REGLAS SEO PREMIUM:
 
     console.log('[generate-blog-post] Content passed quality gate, generating images...');
 
-    // 7. Generate hero image
+    // 7. Generate HERO image (ultra-realistic, no text)
     const heroImageUrl = await generateHeroImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
     qualityGateReport.checks.has_hero_image = !!heroImageUrl;
     
-    // Note: For inline images, we'd need to upload to storage. For now, we use the hero.
-    qualityGateReport.checks.has_inline_images = !!heroImageUrl; // Simplified for now
+    // 7b. Generate INLINE image (for content body)
+    let inlineImageUrl: string | null = null;
+    if (heroImageUrl) {
+      // Only generate inline if hero succeeded (to save API calls)
+      inlineImageUrl = await generateInlineImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
+      qualityGateReport.checks.has_inline_images = !!inlineImageUrl;
+      
+      // Insert inline image into content after "En 2 minutos" or first H2
+      if (inlineImageUrl) {
+        const inlineAlt = `${selectedTopic.title_base} - concepto visual`;
+        const imageMarkdown = `\n![${inlineAlt}](${inlineImageUrl})\n`;
+        
+        // Try to insert after "En 2 minutos" section
+        const en2MinMatch = contentMd.match(/^## En 2 minutos.*?\n\n(?:[-*].*\n)+/m);
+        if (en2MinMatch && en2MinMatch.index !== undefined) {
+          const insertPos = en2MinMatch.index + en2MinMatch[0].length;
+          contentMd = contentMd.slice(0, insertPos) + imageMarkdown + contentMd.slice(insertPos);
+          console.log('[generate-blog-post] Inline image inserted after "En 2 minutos"');
+        } else {
+          // Fallback: insert after first H2
+          const firstH2Match = contentMd.match(/^## .*?\n\n/m);
+          if (firstH2Match && firstH2Match.index !== undefined) {
+            const insertPos = firstH2Match.index + firstH2Match[0].length;
+            contentMd = contentMd.slice(0, insertPos) + imageMarkdown + contentMd.slice(insertPos);
+            console.log('[generate-blog-post] Inline image inserted after first H2');
+          }
+        }
+      }
+    } else {
+      qualityGateReport.checks.has_inline_images = false;
+    }
 
     // 8. Generate metadata
     const excerpt = contentMd
