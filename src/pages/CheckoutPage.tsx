@@ -29,10 +29,10 @@ const proFeatures = [
   { name: "Chat IA", detail: "Ilimitado" },
   { name: "Radar de Oportunidades", detail: "Ilimitado" },
   { name: "Check-ins de Pulso", detail: "Diarios" },
-  { name: "Analytics avanzadas", detail: null },
-  { name: "Predicciones IA", detail: null },
-  { name: "Integraciones premium", detail: null },
-  { name: "Soporte prioritario", detail: null },
+  { name: "Analytics avanzadas", detail: "Completas" },
+  { name: "Predicciones IA", detail: "Ilimitadas" },
+  { name: "Integraciones premium", detail: "Completas" },
+  { name: "Soporte prioritario", detail: "Ilimitado" },
 ];
 
 const CheckoutPage = () => {

@@ -34,10 +34,10 @@ export const PricingSection = memo(() => {
     { name: "Chat IA", free: "3/mes", pro: "Ilimitado" },
     { name: "Radar de Oportunidades", free: "3/mes", pro: "Ilimitado" },
     { name: "Check-ins de Pulso", free: "Diarios", pro: "Diarios" },
-    { name: "Analytics avanzadas", free: false, pro: true },
-    { name: "Predicciones IA", free: false, pro: true },
-    { name: "Integraciones premium", free: false, pro: true },
-    { name: "Soporte prioritario", free: false, pro: true },
+    { name: "Analytics avanzadas", free: false, pro: "Completas" },
+    { name: "Predicciones IA", free: false, pro: "Ilimitadas" },
+    { name: "Integraciones premium", free: false, pro: "Completas" },
+    { name: "Soporte prioritario", free: false, pro: "Ilimitado" },
   ];
 
   useEffect(() => {
@@ -195,6 +195,7 @@ export const PricingSection = memo(() => {
             <ul className="space-y-3 mb-6">
               {comparisonFeatures.map((feature, i) => {
                 const value = feature.pro;
+                const isUnlimited = typeof value === "string" && (value === "Ilimitadas" || value === "Ilimitado");
                 return (
                   <li key={i} className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2">
@@ -202,17 +203,18 @@ export const PricingSection = memo(() => {
                       {feature.name}
                     </span>
                     {typeof value === "string" && (
-                      <span className={cn(
-                        "text-xs font-medium",
-                        value === "Ilimitadas" || value === "Ilimitado" 
-                          ? "text-primary flex items-center gap-1" 
-                          : "text-foreground"
-                      )}>
-                        {(value === "Ilimitadas" || value === "Ilimitado") && (
-                          <Infinity className="w-3 h-3" />
+                      <Badge 
+                        variant="secondary" 
+                        className={cn(
+                          "text-xs font-medium py-0.5 px-2",
+                          isUnlimited 
+                            ? "bg-primary/10 text-primary border-primary/20" 
+                            : "bg-primary/10 text-primary border-primary/20"
                         )}
+                      >
+                        {isUnlimited && <Infinity className="w-3 h-3 mr-1" />}
                         {value}
-                      </span>
+                      </Badge>
                     )}
                   </li>
                 );
