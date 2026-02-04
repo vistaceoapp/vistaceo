@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useCountryDetection } from "@/hooks/use-country-detection";
+import type { CountryCode } from "@/lib/countryPacks";
 import mercadopagoLogo from "@/assets/payment/mercadopago-logo.png";
 import paypalLogo from "@/assets/payment/paypal-logo.png";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,10 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+  
+  // Get country override from URL (from setup) or localStorage
+  const urlCountry = searchParams.get("country") as CountryCode | null;
+  
   const { 
     country, 
     isDetecting, 
@@ -41,11 +46,20 @@ const CheckoutPage = () => {
     formatCurrencyShort, 
     monthlyPrice, 
     yearlyPrice,
-    yearlySavings 
-  } = useCountryDetection();
+    yearlySavings,
+    setCountryOverride,
+  } = useCountryDetection(urlCountry);
+  
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "failure" | "pending">("idle");
   const [isYearly, setIsYearly] = useState(true);
+
+  // If URL has country param, save it to localStorage for consistency
+  useEffect(() => {
+    if (urlCountry && urlCountry !== country.code) {
+      setCountryOverride(urlCountry);
+    }
+  }, [urlCountry, country.code, setCountryOverride]);
 
   // Get plan from URL or localStorage
   const urlPlan = searchParams.get("plan");

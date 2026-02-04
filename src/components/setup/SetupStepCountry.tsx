@@ -26,7 +26,7 @@ const COUNTRY_FLAGS: Record<string, string> = {
 
 export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => {
   const countries = getCountries();
-  const { detectedCountryCode, isDetecting, isSupportedCountry } = useCountryDetection();
+  const { detectedCountryCode, isDetecting, isSupportedCountry, setCountryOverride } = useCountryDetection();
   const [hasAutoSelected, setHasAutoSelected] = useState(false);
 
   // Auto-select detected country on first load
@@ -34,10 +34,17 @@ export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => 
     if (!isDetecting && detectedCountryCode && !hasAutoSelected && !value) {
       if (isSupportedCountry(detectedCountryCode)) {
         onChange(detectedCountryCode as CountryCode);
+        setCountryOverride(detectedCountryCode as CountryCode);
         setHasAutoSelected(true);
       }
     }
-  }, [isDetecting, detectedCountryCode, hasAutoSelected, value, onChange, isSupportedCountry]);
+  }, [isDetecting, detectedCountryCode, hasAutoSelected, value, onChange, isSupportedCountry, setCountryOverride]);
+
+  // Handle manual country selection - save to localStorage for pricing
+  const handleCountryChange = (code: CountryCode) => {
+    onChange(code);
+    setCountryOverride(code);
+  };
 
   if (isDetecting) {
     return (
@@ -75,7 +82,7 @@ export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              onClick={() => onChange(country.code as CountryCode)}
+              onClick={() => handleCountryChange(country.code as CountryCode)}
               className={cn(
                 'relative p-4 rounded-xl border-2 transition-all duration-200',
                 'flex flex-col items-center gap-2',

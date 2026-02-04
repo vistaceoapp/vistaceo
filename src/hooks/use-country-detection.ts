@@ -136,12 +136,38 @@ const SUPPORTED_COUNTRY_CODES: CountryCode[] = ['AR', 'CL', 'CO', 'CR', 'EC', 'M
 // Free IP Geolocation API
 const GEOLOCATION_API = "https://ipapi.co/json/";
 
-export const useCountryDetection = () => {
+export const useCountryDetection = (overrideCountryCode?: CountryCode | null) => {
   const [country, setCountry] = useState<CountryInfo>(COUNTRY_CONFIG.DEFAULT);
   const [isDetecting, setIsDetecting] = useState(true);
   const [detectedCountryCode, setDetectedCountryCode] = useState<CountryCode | null>(null);
 
+  // Check for manual override from localStorage (set during setup)
+  const getStoredCountry = (): CountryCode | null => {
+    const stored = localStorage.getItem('selectedCountryCode');
+    if (stored && SUPPORTED_COUNTRY_CODES.includes(stored as CountryCode)) {
+      return stored as CountryCode;
+    }
+    return null;
+  };
+
   useEffect(() => {
+    // If override is provided (e.g., from setup), use it immediately
+    if (overrideCountryCode && COUNTRY_CONFIG[overrideCountryCode]) {
+      setCountry(COUNTRY_CONFIG[overrideCountryCode]);
+      setDetectedCountryCode(overrideCountryCode);
+      setIsDetecting(false);
+      return;
+    }
+
+    // Check localStorage for manual selection first
+    const storedCountry = getStoredCountry();
+    if (storedCountry) {
+      setCountry(COUNTRY_CONFIG[storedCountry]);
+      setDetectedCountryCode(storedCountry);
+      setIsDetecting(false);
+      return;
+    }
+
     const detectCountry = async () => {
       try {
         // Try IP-based geolocation first
@@ -192,7 +218,21 @@ export const useCountryDetection = () => {
     };
 
     detectCountry();
-  }, []);
+  }, [overrideCountryCode]);
+
+  // Function to manually set/override the country (saves to localStorage)
+  const setCountryOverride = (code: CountryCode) => {
+    if (COUNTRY_CONFIG[code]) {
+      localStorage.setItem('selectedCountryCode', code);
+      setCountry(COUNTRY_CONFIG[code]);
+      setDetectedCountryCode(code);
+    }
+  };
+
+  // Clear the manual override
+  const clearCountryOverride = () => {
+    localStorage.removeItem('selectedCountryCode');
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat(country.locale, {
@@ -247,6 +287,8 @@ export const useCountryDetection = () => {
     yearlyPrice: country.prices.yearly,
     getCountryByCode,
     isSupportedCountry,
+    setCountryOverride,
+    clearCountryOverride,
     SUPPORTED_COUNTRY_CODES,
   };
 };
