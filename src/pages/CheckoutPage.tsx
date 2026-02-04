@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -19,6 +19,8 @@ import paypalLogo from "@/assets/payment/paypal-logo.png";
 import { cn } from "@/lib/utils";
 import { PayPalPaymentInfo } from "@/components/checkout/PayPalPaymentInfo";
 import { PayPalSmartButtons } from "@/components/checkout/PayPalSmartButtons";
+import { StickyPaymentButton } from "@/components/checkout/StickyPaymentButton";
+import { StickyPayPalButton } from "@/components/checkout/StickyPayPalButton";
 
 // Pro features list - exact match with landing
 const proFeatures = [
@@ -55,6 +57,9 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "failure" | "pending">("idle");
   const [isYearly, setIsYearly] = useState(true);
+  
+  // Ref for observing when main payment button leaves viewport
+  const mainPaymentRef = useRef<HTMLDivElement>(null);
 
   // If URL has country param, save it to localStorage for consistency
   useEffect(() => {
@@ -421,38 +426,40 @@ const CheckoutPage = () => {
                 />
               )}
 
-              {/* CTA Button */}
-              {isArgentina ? (
-                <Button 
-                  size="xl" 
-                  className="w-full h-14 text-lg font-semibold gradient-primary shadow-lg group"
-                  onClick={handleCheckout}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Procesando...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      {isYearly ? "Comenzar con 2 meses gratis" : "Comenzar con Pro"}
-                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <PayPalSmartButtons
-                  userId={user?.id || ""}
-                  userEmail={user?.email}
-                  planId={isYearly ? "pro_yearly" : "pro_monthly"}
-                  country={country.code}
-                  localAmount={isYearly ? yearlyPrice : monthlyPrice}
-                  localCurrency={country.currency}
-                  onSuccessRedirectUrl={`${window.location.origin}/checkout?status=success&provider=paypal`}
-                />
-              )}
+              {/* CTA Button - wrapped in ref for sticky observation */}
+              <div ref={mainPaymentRef}>
+                {isArgentina ? (
+                  <Button 
+                    size="xl" 
+                    className="w-full h-14 text-lg font-semibold gradient-primary shadow-lg group"
+                    onClick={handleCheckout}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-5 h-5 mr-2" />
+                        {isYearly ? "Comenzar con 2 meses gratis" : "Comenzar con Pro"}
+                        <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <PayPalSmartButtons
+                    userId={user?.id || ""}
+                    userEmail={user?.email}
+                    planId={isYearly ? "pro_yearly" : "pro_monthly"}
+                    country={country.code}
+                    localAmount={isYearly ? yearlyPrice : monthlyPrice}
+                    localCurrency={country.currency}
+                    onSuccessRedirectUrl={`${window.location.origin}/checkout?status=success&provider=paypal`}
+                  />
+                )}
+              </div>
 
               {/* Guarantee Card */}
               <Card className="border-success/30 bg-success/5">
@@ -494,12 +501,39 @@ const CheckoutPage = () => {
         </motion.div>
 
         {/* Skip to free */}
-        <div className="text-center mt-8">
+        <div className="text-center mt-8 pb-24">
           <Button variant="ghost" onClick={() => navigate("/setup")} className="text-muted-foreground">
             Continuar con plan Free →
           </Button>
         </div>
       </main>
+
+      {/* Sticky Payment Button - appears when main button scrolls out of view */}
+      {status === "idle" && isArgentina && (
+        <StickyPaymentButton
+          mainButtonRef={mainPaymentRef}
+          isLoading={loading}
+          onClick={handleCheckout}
+          buttonText={isYearly ? "Comenzar con 2 meses gratis" : "Comenzar con Pro"}
+          priceText={formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}
+          currency={country.currency}
+          isYearly={isYearly}
+          provider="mercadopago"
+        />
+      )}
+
+      {/* Sticky PayPal Button - for non-Argentina countries */}
+      {status === "idle" && !isArgentina && (
+        <StickyPayPalButton
+          mainButtonRef={mainPaymentRef}
+          priceText={isYearly ? "290" : "29"}
+          currency="USD"
+          isYearly={isYearly}
+          onScrollToPayment={() => {
+            mainPaymentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }}
+        />
+      )}
     </div>
   );
 };
