@@ -22,7 +22,7 @@ serve(async (req) => {
 
     if (provider === "mercadopago") {
       // =====================
-      // MERCADO PAGO WEBHOOK
+      // MERCADO PAGO WEBHOOK (Argentina - ARS)
       // =====================
       const body = await req.json();
       console.log("MercadoPago webhook received:", body.type, body.data?.id);
@@ -30,7 +30,6 @@ serve(async (req) => {
       if (body.type === "payment") {
         const paymentId = body.data.id;
         
-        // Get payment details from MercadoPago
         const MERCADOPAGO_ACCESS_TOKEN = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN");
         const paymentResponse = await fetch(
           `https://api.mercadopago.com/v1/payments/${paymentId}`,
@@ -48,24 +47,19 @@ serve(async (req) => {
         console.log("Payment status:", payment.status);
 
         if (payment.status === "approved") {
-          // Parse external reference
           const refData = JSON.parse(payment.external_reference || "{}");
-          const { businessId, userId, planId } = refData;
+          const { businessId, userId, planId, localAmount, localCurrency } = refData;
 
           const paymentInfo = {
-            provider: "mercadopago",
-            paymentId: payment.id,
+            provider: "mercadopago" as const,
+            paymentId: String(payment.id),
             amount: payment.transaction_amount,
-            currency: payment.currency_id,
+            currency: payment.currency_id || "ARS",
+            localAmount: localAmount || payment.transaction_amount,
+            localCurrency: localCurrency || "ARS",
           };
 
-          if (businessId) {
-            // Upgrade existing business to Pro
-            await upgradeToPro(supabase, businessId, userId, planId, paymentInfo);
-          } else if (userId) {
-            // No business yet - store Pro status in user profile for later
-            await storeProPurchase(supabase, userId, planId, paymentInfo);
-          }
+          await createSubscription(supabase, businessId, userId, planId, paymentInfo);
         }
       }
 
@@ -73,30 +67,26 @@ serve(async (req) => {
 
     } else if (provider === "paypal") {
       // =====================
-      // PAYPAL WEBHOOK (IPN)
+      // PAYPAL WEBHOOK (International - USD)
       // =====================
       const body = await req.json();
       console.log("PayPal webhook received:", body.event_type);
 
-      if (body.event_type === "CHECKOUT.ORDER.APPROVED" || body.event_type === "PAYMENT.CAPTURE.COMPLETED") {
+      if (body.event_type === "PAYMENT.CAPTURE.COMPLETED") {
         const resource = body.resource;
-        const customData = JSON.parse(resource.purchase_units?.[0]?.custom_id || "{}");
-        const { businessId, userId, planId } = customData;
+        const customData = JSON.parse(resource.custom_id || "{}");
+        const { businessId, userId, planId, localAmount, localCurrency, country } = customData;
 
         const paymentInfo = {
-          provider: "paypal",
-          orderId: resource.id,
+          provider: "paypal" as const,
+          paymentId: resource.id,
           amount: parseFloat(resource.amount?.value || "0"),
-          currency: resource.amount?.currency_code,
+          currency: resource.amount?.currency_code || "USD",
+          localAmount: localAmount || null,
+          localCurrency: localCurrency || null,
         };
 
-        if (body.event_type === "PAYMENT.CAPTURE.COMPLETED") {
-          if (businessId) {
-            await upgradeToPro(supabase, businessId, userId, planId, paymentInfo);
-          } else if (userId) {
-            await storeProPurchase(supabase, userId, planId, paymentInfo);
-          }
-        }
+        await createSubscription(supabase, businessId, userId, planId, paymentInfo);
       }
 
       return new Response("OK", { status: 200 });
@@ -106,131 +96,119 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Webhook error:", error);
-    // Always return 200 to prevent retry loops
     return new Response("OK", { status: 200 });
   }
 });
 
-async function upgradeToPro(
-  supabase: any,
-  businessId: string,
-  userId: string,
-  planId: string,
-  paymentInfo: {
-    provider: string;
-    paymentId?: string;
-    orderId?: string;
-    amount: number;
-    currency: string;
-  }
-) {
-  console.log(`Upgrading business ${businessId} to Pro (${planId})`);
-
-  // Calculate expiration date
-  const now = new Date();
-  const expiresAt = new Date(now);
-  if (planId === "pro_yearly") {
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-  } else {
-    expiresAt.setMonth(expiresAt.getMonth() + 1);
-  }
-
-  // Update business settings
-  const { error: updateError } = await supabase
-    .from("businesses")
-    .update({
-      settings: {
-        plan: "pro",
-        plan_id: planId,
-        plan_expires_at: expiresAt.toISOString(),
-        payment_provider: paymentInfo.provider,
-        last_payment_at: now.toISOString(),
-        last_payment_amount: paymentInfo.amount,
-        last_payment_currency: paymentInfo.currency,
-      },
-      updated_at: now.toISOString(),
-    })
-    .eq("id", businessId);
-
-  if (updateError) {
-    console.error("Failed to upgrade business:", updateError);
-    throw updateError;
-  }
-
-  // Create payment record for audit
-  await supabase.from("business_insights").insert({
-    business_id: businessId,
-    category: "payment",
-    question: "Upgrade a Pro",
-    answer: JSON.stringify({
-      plan: planId,
-      provider: paymentInfo.provider,
-      amount: paymentInfo.amount,
-      currency: paymentInfo.currency,
-      payment_id: paymentInfo.paymentId || paymentInfo.orderId,
-      expires_at: expiresAt.toISOString(),
-    }),
-    metadata: { type: "payment_confirmation" },
-  });
-
-  console.log(`Business ${businessId} upgraded to Pro until ${expiresAt.toISOString()}`);
+interface PaymentInfo {
+  provider: "mercadopago" | "paypal";
+  paymentId: string;
+  amount: number;
+  currency: string;
+  localAmount?: number | null;
+  localCurrency?: string | null;
 }
 
-// Store Pro purchase for users without a business yet
-async function storeProPurchase(
+async function createSubscription(
   supabase: any,
+  businessId: string | null,
   userId: string,
   planId: string,
-  paymentInfo: {
-    provider: string;
-    paymentId?: string;
-    orderId?: string;
-    amount: number;
-    currency: string;
-  }
+  paymentInfo: PaymentInfo
 ) {
-  console.log(`Storing Pro purchase for user ${userId} (${planId})`);
+  console.log(`Creating subscription for user ${userId}, plan ${planId}`);
 
-  // Calculate expiration date
   const now = new Date();
   const expiresAt = new Date(now);
+  
   if (planId === "pro_yearly") {
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
   } else {
     expiresAt.setMonth(expiresAt.getMonth() + 1);
   }
 
-  // Store the Pro purchase in the user's profile
-  // This will be applied to their business when they complete setup
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({
-      updated_at: now.toISOString(),
-    })
-    .eq("id", userId);
-
-  if (profileError) {
-    console.error("Failed to update profile:", profileError);
-  }
-
-  // Also check if user has any business and upgrade it
-  const { data: businesses } = await supabase
-    .from("businesses")
-    .select("id")
-    .eq("owner_id", userId)
-    .limit(1);
-
-  if (businesses && businesses.length > 0) {
-    // User has a business, upgrade it directly
-    await upgradeToPro(supabase, businesses[0].id, userId, planId, paymentInfo);
-  } else {
-    // No business yet - store payment info in localStorage will be handled client-side
-    // For now, we store it as a pending upgrade that SetupPage will pick up
-    console.log(`User ${userId} paid for Pro but has no business yet. Will apply on setup completion.`);
+  // If no business yet, find user's business
+  let targetBusinessId = businessId;
+  if (!targetBusinessId) {
+    const { data: businesses } = await supabase
+      .from("businesses")
+      .select("id")
+      .eq("owner_id", userId)
+      .limit(1);
     
-    // We can create a temporary record to track this
-    // The SetupPage will check for this and apply the Pro status
+    if (businesses && businesses.length > 0) {
+      targetBusinessId = businesses[0].id;
+    }
   }
 
-  console.log(`Pro purchase stored for user ${userId} until ${expiresAt.toISOString()}`);
+  if (targetBusinessId) {
+    // Create subscription record
+    const { error: subError } = await supabase
+      .from("subscriptions")
+      .insert({
+        business_id: targetBusinessId,
+        user_id: userId,
+        plan_id: planId,
+        status: "active",
+        payment_provider: paymentInfo.provider,
+        payment_id: paymentInfo.paymentId,
+        payment_amount: paymentInfo.amount,
+        payment_currency: paymentInfo.currency,
+        local_amount: paymentInfo.localAmount,
+        local_currency: paymentInfo.localCurrency,
+        starts_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
+      });
+
+    if (subError) {
+      console.error("Failed to create subscription:", subError);
+    }
+
+    // Update business settings
+    const { error: updateError } = await supabase
+      .from("businesses")
+      .update({
+        settings: {
+          plan: "pro",
+          plan_id: planId,
+          plan_expires_at: expiresAt.toISOString(),
+          payment_provider: paymentInfo.provider,
+          last_payment_at: now.toISOString(),
+          last_payment_amount: paymentInfo.amount,
+          last_payment_currency: paymentInfo.currency,
+        },
+        updated_at: now.toISOString(),
+      })
+      .eq("id", targetBusinessId);
+
+    if (updateError) {
+      console.error("Failed to update business:", updateError);
+    }
+
+    // Create audit record
+    await supabase.from("business_insights").insert({
+      business_id: targetBusinessId,
+      category: "payment",
+      question: "Upgrade a Pro",
+      answer: JSON.stringify({
+        plan: planId,
+        provider: paymentInfo.provider,
+        amount: paymentInfo.amount,
+        currency: paymentInfo.currency,
+        local_amount: paymentInfo.localAmount,
+        local_currency: paymentInfo.localCurrency,
+        payment_id: paymentInfo.paymentId,
+        expires_at: expiresAt.toISOString(),
+      }),
+      metadata: { type: "payment_confirmation" },
+    });
+
+    console.log(`Subscription created for business ${targetBusinessId} until ${expiresAt.toISOString()}`);
+  } else {
+    // No business yet - store pending upgrade in profile metadata
+    console.log(`User ${userId} paid for Pro but has no business yet. Will apply on setup.`);
+    
+    // We could store this in a pending_upgrades table if needed
+    // For now, the user's pro status will be applied when they complete setup
+  }
 }

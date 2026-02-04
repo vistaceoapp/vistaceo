@@ -2831,6 +2831,77 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          business_id: string
+          cancelled_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          local_amount: number | null
+          local_currency: string | null
+          metadata: Json | null
+          payment_amount: number
+          payment_currency: string
+          payment_id: string | null
+          payment_provider: string
+          plan_id: string
+          starts_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          business_id: string
+          cancelled_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          local_amount?: number | null
+          local_currency?: string | null
+          metadata?: Json | null
+          payment_amount: number
+          payment_currency: string
+          payment_id?: string | null
+          payment_provider: string
+          plan_id: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_renew?: boolean | null
+          business_id?: string
+          cancelled_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          local_amount?: number | null
+          local_currency?: string | null
+          metadata?: Json | null
+          payment_amount?: number
+          payment_currency?: string
+          payment_id?: string | null
+          payment_provider?: string
+          plan_id?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       weekly_priorities: {
         Row: {
           business_id: string
@@ -2886,7 +2957,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_subscription_status: {
+        Args: { p_business_id: string }
+        Returns: {
+          expires_at: string
+          is_pro: boolean
+          plan_id: string
+        }[]
+      }
     }
     Enums: {
       action_status: "pending" | "completed" | "skipped" | "snoozed"
