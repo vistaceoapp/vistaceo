@@ -117,20 +117,23 @@ export function useBlogClusterStats() {
       const { data, error } = await supabase
         .from('blog_posts')
         .select('category')
-        .eq('status', 'published');
+        .eq('status', 'published')
+        .not('category', 'is', null);
 
       if (error) throw error;
 
       const byCluster: Record<string, number> = {};
       
-      data.forEach(post => {
+      (data || []).forEach(post => {
         if (post.category) {
           byCluster[post.category] = (byCluster[post.category] || 0) + 1;
         }
       });
 
-      return { total: data.length, byCluster };
+      return { total: data?.length || 0, byCluster };
     },
+    staleTime: 1000 * 60, // 1 minute
+    refetchOnWindowFocus: true,
   });
 }
 
