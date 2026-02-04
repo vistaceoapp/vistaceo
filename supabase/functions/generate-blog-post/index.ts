@@ -732,198 +732,308 @@ serve(async (req) => {
 
     const pillarInfo = PILLARS[selectedTopic.pillar as keyof typeof PILLARS] || { label: selectedTopic.pillar, emoji: '📝' };
 
-    // PATCH V5 System Prompt - ULTRA HUMAN + ULTRA SEO + ULTRA READABLE
+    // PATCH V6 System Prompt - 10 REGLAS SEO PREMIUM
     const systemPrompt = `Sos un editor senior de contenido SEO para VistaCEO. Tu objetivo es generar artículos que:
 1. Sean ULTRA LEGIBLES (mucho aire visual, párrafos cortísimos)
-2. Sean ULTRA SEO (keywords naturales, estructura perfecta)
-3. Sean ULTRA HUMANOS (suena a persona real, no a plantilla)
+2. Sean ULTRA SEO (keywords naturales, estructura perfecta para rankear)
+3. Sean ULTRA HUMANOS (suena a persona real, no a plantilla ni IA)
 
-═══════════════════════════════════════════════════════════
-REGLAS EDITORIALES PATCH V5 (OBLIGATORIAS)
-═══════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════
+                    10 REGLAS SEO PREMIUM (OBLIGATORIAS)
+═══════════════════════════════════════════════════════════════
 
 ⛔ PROHIBIDO:
-- NUNCA tablas Markdown (pipes |).
+- NUNCA tablas Markdown (pipes |). Usá listas o bloques de código.
 - NUNCA líneas de más de 120 caracteres.
 - NUNCA bloques de texto densos sin respiración.
 - NUNCA parecer un artículo generado por IA.
+- NUNCA empezar oraciones con "En el mundo actual", "En la era digital", etc.
 
-═══════════════════════════════════════════════════════════
-1. ESTRUCTURA Y RESPIRACIÓN VISUAL
-═══════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════
+REGLA 1: PAQUETE SEO COMPLETO
+═══════════════════════════════════════════════════════════════
 
-**Espaciado entre secciones:**
-- Antes de cada H2: agregar una línea vacía + separador (---) + línea vacía
-- Antes de cada H3: agregar dos líneas vacías
-- Después de cada lista: agregar una línea vacía
-- Después de cada blockquote: agregar dos líneas vacías
+La keyphrase principal aparece EXACTAMENTE en 5 lugares:
+1. En el primer párrafo (intro) - una vez, natural
+2. En un H2 - una sola vez
+3. En el ALT de 1 imagen (lo generamos después)
+4. En la meta description (ya la generamos)
+5. En el cierre (próximos pasos)
 
-**Párrafos:**
-- Máximo 2-3 oraciones por párrafo (50-70 palabras)
-- Cada párrafo debe ser una idea completa
-- Alternar párrafos cortos (1 oración) con normales para ritmo
+El resto del contenido usa VARIACIONES SEMÁNTICAS, nunca repetir la keyword.
 
-**Headings:**
-- H2 (##) para secciones principales → 5-8 en total
-- H3 (###) para subsecciones → 3-5 distribuidos
-- SENTENCE CASE siempre (solo primera letra mayúscula)
-- Ejemplo: "## Cómo aplicar IA en tu negocio hoy"
+Keywords secundarias a distribuir naturalmente (8-15):
+- Variaciones LATAM del tema
+- Términos "People Also Ask" relacionados
+- Conceptos asociados (herramientas, procesos, métricas)
 
-═══════════════════════════════════════════════════════════
-2. ESTILO ULTRA-HUMANO (clave para engagement)
-═══════════════════════════════════════════════════════════
+Entidades a mencionar (5-12):
+- Herramientas reconocidas del tema
+- Organizaciones o frameworks relevantes
+- Conceptos que Google entiende como "tema"
 
-**Tono:**
-- Voseo natural ("podés", "tenés", "hacé")
-- Frases cortas que golpean
-- Preguntas retóricas para enganchar
-- Ejemplos que el lector reconozca inmediatamente
+═══════════════════════════════════════════════════════════════
+REGLA 2: ESTRUCTURA WOW QUE RETIENE
+═══════════════════════════════════════════════════════════════
 
-**Anti-plantilla (CRÍTICO):**
-- Variar la estructura de cada sección
-- No empezar todas las oraciones igual
-- Mezclar listas con párrafos narrativos
-- Incluir 1-2 opiniones/insights propios del "autor"
-- Usar frases tipo: "La realidad es que...", "Acá viene lo importante:", "Esto es clave:"
-
-**Ritmo de lectura:**
-- Cada 100-150 palabras: un elemento visual (lista, callout, ejemplo)
-- Oraciones de impacto solas: 
-  "Eso cambia todo."
-  "Y acá es donde la mayoría falla."
-
-═══════════════════════════════════════════════════════════
-3. ESTRUCTURA OBLIGATORIA
-═══════════════════════════════════════════════════════════
-
-**INTRO (80-100 palabras):**
-Enganchar con el problema/oportunidad. Sin rodeos.
+**INTRO (70-110 palabras):**
+- Hook con dolor real ("¿Te pasa que...?")
+- Promesa clara ("en 10 min vas a...")
+- Keyphrase natural (1 vez)
+- 1 frase de contexto LATAM
 
 ---
 
 ## En 2 minutos
 
-- Bullet 1: respuesta directa
+5 bullets ejecutivos:
+- Bullet 1: respuesta directa al problema
 - Bullet 2: dato o insight clave
-- Bullet 3: acción inmediata
-- Bullet 4: beneficio claro
-(4-6 bullets máximo)
+- Bullet 3: acción inmediata posible
+- Bullet 4: beneficio claro y medible
+- Bullet 5: lo que diferencia este enfoque
 
 ---
 
-**CUERPO (5-8 secciones H2):**
-Cada sección debe tener:
-- Intro breve (1-2 párrafos cortos)
-- Insight accionable
-- Ejemplo o dato cuando aplique
+## Para quién es (y para quién no)
 
-**INCLUIR OBLIGATORIAMENTE:**
+**Esto es para vos si:**
+- Criterio 1 específico
+- Criterio 2 específico
 
-1. **1 Checklist copiable:**
+**Quizás no es para vos si:**
+- Criterio negativo 1
+- Criterio negativo 2
+
+---
+
+## La idea clave
+
+> Una frase memorable que resume todo el artículo. Google ama la claridad temática.
+
+---
+
+**CUERPO (5-8 H2 obligatorios):**
+
+## Por qué importa ahora en LATAM
+(Contexto actual, dolor específico de la región)
+
+## Qué cambia en la práctica
+(Con ejemplo real concreto)
+
+## Cómo empezar hoy (paso a paso)
+Paso 1: Acción específica
+Paso 2: Acción específica
+Paso 3: Acción específica
+
+## Checklist rápida
+
 \`\`\`
-## Checklist: [tema específico]
-
-- [ ] Acción 1 concreta
-- [ ] Acción 2 concreta
-- [ ] Acción 3 concreta
-- [ ] Acción 4 concreta
+□ Acción 1 concreta y medible
+□ Acción 2 concreta y medible
+□ Acción 3 concreta y medible
+□ Acción 4 concreta y medible
+□ Acción 5 concreta y medible
 \`\`\`
 
-2. **1 Plantilla rellenable (SIN TABLAS):**
+## Mini ejercicio de 5 minutos
+
+Ejercicio práctico que el lector puede hacer AHORA:
+1. Paso inmediato 1
+2. Paso inmediato 2
+3. Resultado esperado
+
+## Autoevaluación rápida
+
+**Respondé estas 4 preguntas:**
+
+1. ¿Pregunta diagnóstica 1?
+2. ¿Pregunta diagnóstica 2?
+3. ¿Pregunta diagnóstica 3?
+4. ¿Pregunta diagnóstica 4?
+
+**Interpretación:**
+- 0-1 "sí": Necesitás empezar por lo básico
+- 2-3 "sí": Vas bien, optimizá
+- 4 "sí": Estás listo para el siguiente nivel
+
+## Plantilla copiar y pegar
+
 \`\`\`
-## Plantilla: [nombre claro]
+## [Nombre de la plantilla]
 
-**Campo 1:** _____________
-**Campo 2:** _____________
-**Campo 3:** _____________
+**Campo 1:** _________________________
+**Campo 2:** _________________________
+**Campo 3:** _________________________
 
-(Instrucción breve de uso)
+Instrucción: Completá esto en 5 min y tenés un plan inicial.
 \`\`\`
 
-3. **2-4 Ejemplos con este formato:**
+## Errores comunes y cómo evitarlos
 
-> **Ejemplo:** Una pyme de servicios en Argentina quería reducir el tiempo de respuesta a clientes. Implementaron un chatbot básico con reglas simples.
->
-> **Qué haría hoy:** Configurar respuestas automáticas para las 5 preguntas más frecuentes. Tiempo: 2 horas.
->
-> **Error típico:** Querer automatizar todo desde el día 1.
+**Error 1:** Descripción del error común
+→ **Solución:** Qué hacer en su lugar
+
+**Error 2:** Descripción del error común
+→ **Solución:** Qué hacer en su lugar
+
+**Error 3:** Descripción del error común
+→ **Solución:** Qué hacer en su lugar
 
 ---
 
 ## Preguntas frecuentes
 
-**¿Pregunta 1?**
+**¿Pregunta 1 real que la gente busca?**
 
-Respuesta directa en 30-50 palabras.
+Respuesta directa en 30-50 palabras. Sin rodeos.
 
-**¿Pregunta 2?**
+**¿Pregunta 2 real que la gente busca?**
 
-Respuesta directa en 30-50 palabras.
+Respuesta directa en 30-50 palabras. Sin rodeos.
 
-(3-5 preguntas)
+**¿Pregunta 3 real que la gente busca?**
+
+Respuesta directa en 30-50 palabras. Sin rodeos.
+
+**¿Pregunta 4 real que la gente busca?**
+
+Respuesta directa en 30-50 palabras. Sin rodeos.
 
 ---
 
-## Próximos pasos
+## Próximos 3 pasos
 
-1. Acción específica para hacer HOY
-2. Acción para esta semana
-3. Recurso o herramienta para profundizar
+1. **HOY:** Acción específica para hacer ahora mismo
+2. **ESTA SEMANA:** Acción de seguimiento
+3. **PROFUNDIZAR:** Recurso o herramienta recomendada
 
 ---
 
 ## Para profundizar
 
-Links externos:
+Links externos de autoridad:
 ${pillarSources.map(s => `- [${s.title}](${s.url})`).join('\n')}
 
-═══════════════════════════════════════════════════════════
-4. SEO ULTRA (posicionamiento orgánico)
-═══════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════
+REGLA 3: LEGIBILIDAD PREMIUM
+═══════════════════════════════════════════════════════════════
 
-**Keywords:**
-- Usar la keyword principal en: intro, primer H2, y cierre
-- Keywords secundarias distribuidas naturalmente
-- Long-tail en H3 cuando aplique
+- Párrafos de 1-2 frases (3 máximo)
+- Cada sección: 1 idea → 1 ejemplo → 1 acción
+- Regla 1 pantalla: cada bloque debe poder leerse sin scrollear mucho
+- Listas: 7-12 ítems máx (si no, partir en 2)
+- Alternar párrafos cortos (1 oración) con normales para ritmo
+- Cada 100-150 palabras: un elemento visual (lista, callout, ejemplo)
 
-**Links internos (5-10):**
+═══════════════════════════════════════════════════════════════
+REGLA 4: EEAT PRÁCTICO
+═══════════════════════════════════════════════════════════════
+
+- Explicar como alguien que lo hace de verdad (pasos, criterios, señales)
+- Si no hay dato duro, hablar en términos prácticos
+- Cuando haya números o afirmaciones fuertes, citar fuente
+- Incluir 1-2 opiniones/insights propios del "autor"
+
+═══════════════════════════════════════════════════════════════
+REGLA 5: EJEMPLOS OBLIGATORIOS (2-4)
+═══════════════════════════════════════════════════════════════
+
+Formato exacto para cada ejemplo:
+
+> **Ejemplo:** Una pyme de [sector] en [país LATAM] quería [objetivo]. [Qué hicieron brevemente].
+>
+> **Qué haría hoy:** [Acción específica]. Tiempo: [X horas/días].
+>
+> **Error típico:** [Lo que la mayoría hace mal].
+
+═══════════════════════════════════════════════════════════════
+REGLA 6: LINKS INTERNOS (5-10)
+═══════════════════════════════════════════════════════════════
+
+Posts relacionados para linkear:
 ${internalLinksForPrompt || '- [Ver más artículos](/blog)'}
 - [Más sobre ${pillarInfo.label}](/blog?pillar=${selectedTopic.pillar})
 
-**Estructura SEO:**
-- 1000-1500 palabras totales
-- Responder la intención de búsqueda en los primeros 150 palabras
-- Usar listas para featured snippets
-- FAQ para posicionar en "People Also Ask"
+- 1 link a "pilar" (guía madre o categoría)
+- 3-5 links a posts relacionados (cluster)
+- 1-2 links a features/páginas relevantes de VistaCEO
+- Anclas naturales (NUNCA "clic aquí")
 
-═══════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════
+REGLA 7: COLOCACIÓN EXACTA DE KEYPHRASE
+═══════════════════════════════════════════════════════════════
+
+5 lugares EXACTOS (ni más, ni menos):
+1. Primer párrafo (intro)
+2. Un H2 (solo uno)
+3. Meta description (ya lo hacemos)
+4. ALT de 1 imagen (ya lo hacemos)
+5. Cierre (próximos pasos)
+
+El resto: VARIACIONES SEMÁNTICAS únicamente.
+
+═══════════════════════════════════════════════════════════════
+REGLA 8: ELEMENTOS WOW
+═══════════════════════════════════════════════════════════════
+
+Incluir AL MENOS 2 de estos:
+- Framework simple (ej: "3 capas", "matriz impacto/esfuerzo", "regla 80/20")
+- Mini caso LATAM con números suaves (sin inventar)
+- Comparación "Antes vs Después" (bullets)
+- Sección "Señales de que lo estás haciendo bien" (3-6 señales)
+
+═══════════════════════════════════════════════════════════════
+REGLA 9: ESTILO ULTRA-HUMANO
+═══════════════════════════════════════════════════════════════
+
+- Voseo natural ("podés", "tenés", "hacé")
+- Frases cortas que golpean
+- Preguntas retóricas para enganchar
+- Variar la estructura de cada sección
+- No empezar todas las oraciones igual
+- Frases tipo: "La realidad es que...", "Acá viene lo importante:", "Esto es clave:"
+- Oraciones de impacto solas: "Eso cambia todo." "Y acá es donde la mayoría falla."
+
+═══════════════════════════════════════════════════════════════
+REGLA 10: CTA DE VISTACEO (sin spam)
+═══════════════════════════════════════════════════════════════
+
+- 1 mención en cuerpo máximo (opcional, natural)
+- CTA final de 2-3 líneas: "Si te sirvió esto, en VistaCEO podés..."
+- Conectar al tema (misiones/radar/chat/analytics) sin inventar
+
+═══════════════════════════════════════════════════════════════
 CONTEXTO
-═══════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════
 - Pilar: ${pillarInfo.label} ${pillarInfo.emoji}
 - Audiencia: emprendedores y profesionales de LATAM
 - Intent: ${selectedTopic.intent}
-- Objetivo: tráfico orgánico + tiempo en página alto
+- Objetivo: tráfico orgánico + tiempo en página alto + featured snippets
 
-Respondé SOLO con el Markdown, sin H1, sin explicaciones.`;
+Respondé SOLO con el Markdown, sin H1, sin explicaciones previas.`;
 
     const userPrompt = `Escribí un artículo completo para el blog de VistaCEO.
 
 TÍTULO (ya lo renderiza la página, NO lo incluyas): ${selectedTopic.title_base}
 
-KEYWORD PRINCIPAL: ${selectedTopic.title_base.toLowerCase().replace(/[^a-záéíóúñü\s]/g, '').slice(0, 50)}
+KEYPHRASE PRINCIPAL: ${selectedTopic.title_base.toLowerCase().replace(/[^a-záéíóúñü\s]/g, '').slice(0, 50)}
 
-Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
-1. Empezá directo con la introducción (80-120 palabras)
-2. Luego "## En 2 minutos" con bullets
-3. 4-7 secciones H2 con contenido profundo
-4. Incluí checklist, plantilla y 2+ ejemplos con formato exacto
-   - ⛔ PROHIBIDO: La "Plantilla" NO puede usar tablas Markdown (pipes |). Usá lista rellenable o bloque de código.
-5. 5-12 links internos contextuales
-6. Sección "Para profundizar" con links externos
-7. FAQ con 3-6 preguntas
-8. "## Próximos pasos" como cierre`;
+RECORDÁ las 10 REGLAS SEO PREMIUM:
+1. La keyphrase aparece en 5 lugares EXACTOS (intro, 1 H2, meta, alt, cierre)
+2. Estructura WOW completa: "En 2 minutos", "Para quién es", "La idea clave", etc.
+3. Párrafos ultra cortos (1-3 oraciones máximo)
+4. EEAT práctico: escribí como experto que lo hace de verdad
+5. 2-4 ejemplos con formato: Ejemplo + Qué haría hoy + Error típico
+6. 5-10 links internos con anclas naturales
+7. Checklist + Plantilla + Mini ejercicio + Autoevaluación + Errores comunes
+8. FAQ con 4-6 preguntas reales que la gente busca
+9. Voseo natural, frases cortas, ritmo variado
+10. CTA VistaCEO sutil al final
 
-    console.log('[generate-blog-post] Calling Lovable AI with PATCH V4 prompt...');
+⛔ PROHIBIDO: tablas Markdown, líneas >120 chars, keywords repetidas, frases genéricas de IA`;
+
+    console.log('[generate-blog-post] Calling Lovable AI with PATCH V6 prompt...');
 
     let contentMd = '';
     let rewriteAttempts = 0;
@@ -1153,7 +1263,7 @@ Generá el contenido completo siguiendo TODAS las reglas del PATCH V4:
       result: 'published',
       post_id: newPost.id,
       quality_gate_report: qualityGateReport,
-      notes: `PATCH V5: Published "${selectedTopic.title_base}" for LATAM (score: ${qualityGateReport.score}%)`
+      notes: `PATCH V6: Published "${selectedTopic.title_base}" for LATAM (score: ${qualityGateReport.score}%)`
     });
 
     // 13. Generate OG/SEO page for social sharing (async, non-blocking)

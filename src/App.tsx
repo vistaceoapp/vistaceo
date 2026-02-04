@@ -20,9 +20,14 @@ import CheckoutPage from "./pages/CheckoutPage";
 
 // Blog Pages - Now redirects to subdomain
 import BlogRedirect from "./components/blog/BlogRedirect";
-import BlogAdminPage from "./pages/admin/BlogAdminPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
+
+// Admin Pages
+import AdminLayout from "./layouts/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import BlogAdminPage from "./pages/admin/BlogAdminPage";
+import AdminCalendarPage from "./pages/admin/AdminCalendarPage";
 
 // App Pages
 import AppLayout from "./layouts/AppLayout";
@@ -96,7 +101,16 @@ const AppRoutes = () => {
       {/* Legal routes */}
       <Route path="/politicas" element={<PrivacyPolicyPage />} />
       <Route path="/condiciones" element={<TermsOfServicePage />} />
-      <Route path="/admin/blog" element={<BlogAdminPage />} />
+      
+      {/* Admin routes - Protected by AdminAuthGuard inside AdminLayout */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="blog" element={<BlogAdminPage />} />
+        <Route path="calendario" element={<AdminCalendarPage />} />
+        <Route path="usuarios" element={<div className="p-6"><h1 className="text-2xl font-bold">Usuarios - Próximamente</h1></div>} />
+        <Route path="analytics" element={<div className="p-6"><h1 className="text-2xl font-bold">Analytics - Próximamente</h1></div>} />
+        <Route path="config" element={<div className="p-6"><h1 className="text-2xl font-bold">Configuración - Próximamente</h1></div>} />
+      </Route>
       
       {/* Checkout - standalone payment page (requires auth but not setup) */}
       <Route
