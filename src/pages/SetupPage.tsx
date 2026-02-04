@@ -56,7 +56,6 @@ const SetupPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { refreshBusinesses, setCurrentBusiness, businesses } = useBusiness();
-  const [currentStep, setCurrentStep] = useState(0);
   const [creatingBusiness, setCreatingBusiness] = useState(false);
   const [createProgress, setCreateProgress] = useState(0);
   
@@ -64,28 +63,72 @@ const SetupPage = () => {
   const hasPendingProPurchase = localStorage.getItem('proPurchaseCompleted') === 'true';
   const showUpgradeButton = !hasPendingProPurchase;
 
-  const [data, setData] = useState<SetupData>({
-    countryCode: 'AR',
-    areaId: '',
-    businessTypeId: '',
-    businessTypeLabel: '',
-    businessName: '',
-    setupMode: 'complete',
-    answers: {},
-    integrationsProfiled: {
-      payments: [],
-      reviews: [],
-      social: [],
-      other: [],
-    },
+  // Restore setup progress from localStorage if returning from checkout
+  const getSavedSetupState = () => {
+    try {
+      const saved = localStorage.getItem('setupProgress');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Check if saved less than 24 hours ago
+        if (parsed.timestamp && Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.log('Could not restore setup progress');
+    }
+    return null;
+  };
+
+  const savedState = getSavedSetupState();
+
+  const [currentStep, setCurrentStep] = useState(savedState?.step || 0);
+  
+  const [data, setData] = useState<SetupData>(() => {
+    if (savedState?.data) {
+      return savedState.data;
+    }
+    // Check for saved country from selection
+    const savedCountry = localStorage.getItem('selectedCountryCode') as CountryCode | null;
+    return {
+      countryCode: savedCountry || 'AR',
+      areaId: '',
+      businessTypeId: '',
+      businessTypeLabel: '',
+      businessName: '',
+      setupMode: 'complete',
+      answers: {},
+      integrationsProfiled: {
+        payments: [],
+        reviews: [],
+        social: [],
+        other: [],
+      },
+    };
   });
 
+  // Save setup progress whenever it changes (for returning from checkout)
+  useEffect(() => {
+    if (currentStep > 0 || data.areaId) {
+      localStorage.setItem('setupProgress', JSON.stringify({
+        step: currentStep,
+        data: data,
+        timestamp: Date.now(),
+      }));
+    }
+  }, [currentStep, data]);
+
+  // Clear saved progress on component unmount if setup is complete
+  const clearSavedProgress = () => {
+    localStorage.removeItem('setupProgress');
+  };
 
   // Redirect if user already has a completed business
   useEffect(() => {
     if (businesses && businesses.length > 0) {
       const completed = businesses.find(b => b.setup_completed);
       if (completed) {
+        clearSavedProgress();
         navigate('/app', { replace: true });
       }
     }
@@ -268,6 +311,10 @@ const SetupPage = () => {
       // Set as current business and navigate to celebration page
       setCurrentBusiness(business);
       await refreshBusinesses();
+      
+      // Clear saved progress since setup is complete
+      clearSavedProgress();
+      localStorage.removeItem('selectedCountryCode');
       
       toast.success(lang === 'pt' ? 'Negócio criado com sucesso!' : '¡Tu negocio está listo!');
       navigate('/setup-complete', { replace: true });
@@ -475,7 +522,7 @@ const SetupPage = () => {
             {showUpgradeButton && (
               <Button
                 size="sm"
-                onClick={() => navigate('/checkout?plan=pro_yearly')}
+                onClick={() => navigate(`/checkout?plan=pro_yearly&country=${data.countryCode}`)}
                 className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
               >
                 <Crown className="w-4 h-4" />
