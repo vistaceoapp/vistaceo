@@ -44,6 +44,7 @@ interface SetupData {
   googleLat?: number;
   googleLng?: number;
   answers: Record<string, any>;
+  questionIndex: number;
   integrationsProfiled: {
     payments: string[];
     reviews: string[];
@@ -98,6 +99,7 @@ const SetupPage = () => {
       businessName: '',
       setupMode: 'complete',
       answers: {},
+      questionIndex: 0,
       integrationsProfiled: {
         payments: [],
         reviews: [],
@@ -385,7 +387,9 @@ const SetupPage = () => {
             businessTypeId={data.businessTypeId}
             setupMode={data.setupMode}
             answers={data.answers}
+            questionIndex={data.questionIndex}
             onUpdate={(answers) => setData(d => ({ ...d, answers }))}
+            onQuestionIndexChange={(questionIndex) => setData(d => ({ ...d, questionIndex }))}
             onComplete={handleNext}
             onBack={handleBack}
           />
