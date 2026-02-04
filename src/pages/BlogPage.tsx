@@ -6,8 +6,8 @@ import { HeaderV3 } from '@/components/landing/HeaderV3';
 import { Footer } from '@/components/landing/Footer';
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
 import { BlogFilters } from '@/components/blog/BlogFilters';
-import { useBlogPosts, useBlogStats } from '@/hooks/use-blog';
-import { PILLARS } from '@/lib/blog/types';
+import { useBlogPosts, useBlogStats, useBlogClusterStats } from '@/hooks/use-blog';
+import { PILLARS, BLOG_CLUSTERS } from '@/lib/blog/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function BlogPage() {
@@ -22,6 +22,7 @@ export default function BlogPage() {
 
   const { data: posts, isLoading } = useBlogPosts(filters);
   const { data: stats } = useBlogStats();
+  const { data: clusterStats } = useBlogClusterStats();
 
   const handleReset = () => {
     setSearch('');
@@ -80,6 +81,34 @@ export default function BlogPage() {
                 )}
               </div>
             </div>
+
+            {/* Cluster Categories - 12 themes */}
+            <section className="mb-12">
+              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                🗂️ Explorar por Tema
+              </h2>
+              <p className="text-muted-foreground text-sm mb-6">
+                12 categorías especializadas para PyMEs latinoamericanas
+              </p>
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                {Object.entries(BLOG_CLUSTERS).map(([key, info]) => {
+                  const count = clusterStats?.byCluster?.[key] || 0;
+                  return (
+                    <Link
+                      key={key}
+                      to={`/blog/tema/${key}`}
+                      className="group p-4 rounded-xl border border-border/50 bg-muted/30 hover:bg-muted/50 hover:border-primary/30 hover:shadow-md transition-all text-center"
+                    >
+                      <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">{info.emoji}</span>
+                      <h3 className="font-medium text-xs leading-tight mb-1">{info.label}</h3>
+                      <span className="text-xs text-muted-foreground">
+                        {count} {count === 1 ? 'artículo' : 'artículos'}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
 
             {/* Filters */}
             <div className="mb-8">
