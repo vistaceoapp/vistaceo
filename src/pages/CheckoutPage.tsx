@@ -254,17 +254,18 @@ const CheckoutPage = () => {
           {/* Glow effect */}
           <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-primary rounded-3xl opacity-20 blur-lg" />
           
-          <Card className="relative border-2 border-primary/30 rounded-3xl overflow-hidden">
+          <Card className="relative border-2 border-primary/30 rounded-3xl overflow-visible">
             {/* Header with badge */}
-            <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 lg:p-8 border-b border-border/50">
-              <div className="absolute -top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-primary to-accent text-white text-sm font-semibold shadow-lg">
+            <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 lg:p-8 pt-10 lg:pt-12 border-b border-border/50 rounded-t-3xl">
+              {/* Floating badge - positioned above the card */}
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-primary to-accent text-white text-sm font-semibold shadow-lg whitespace-nowrap">
                   <Crown className="w-4 h-4" />
                   Todo el poder del sistema
                 </div>
               </div>
 
-              <div className="pt-4 text-center">
+              <div className="text-center">
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
                     <Crown className="w-6 h-6 text-white" />
