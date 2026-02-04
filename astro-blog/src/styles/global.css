@@ -1097,6 +1097,76 @@ h1, h2, h3, h4, h5, h6 {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+/* ===== PREMIUM TABLES ===== */
+.table-wrapper {
+  width: 100%;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+@media (min-width: 768px) {
+  .table-wrapper {
+    margin: 2rem 0;
+  }
+}
+
+.premium-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.premium-table th {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--foreground-muted);
+  background: var(--muted);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+.premium-table td {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.premium-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.premium-table tbody tr:hover {
+  background: var(--muted);
+}
+
+.premium-table .empty-cell {
+  color: var(--foreground-muted);
+  opacity: 0.5;
+}
+
+/* Legacy table support */
+.post-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+  /* Make tables scrollable on mobile */
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
 
 @media (min-width: 768px) {
   .post-content table {
@@ -1116,11 +1186,18 @@ h1, h2, h3, h4, h5, h6 {
 .post-content th {
   background: var(--muted);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--foreground-muted);
 }
 
 .post-content tr:last-child td {
   border-bottom: none;
+}
+
+.post-content tbody tr:hover {
+  background: var(--muted);
 }
 
 /* Emoji styling */
@@ -1128,7 +1205,7 @@ h1, h2, h3, h4, h5, h6 {
   font-style: normal;
 }
 
-/* Strong text enhancement */
+/* Strong text enhancement - CRITICAL */
 .post-content strong {
   font-weight: 700;
   color: var(--foreground);
