@@ -1,14 +1,15 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, TrendingUp, Lightbulb, Target, Zap } from 'lucide-react';
 import { HeaderV3 } from '@/components/landing/HeaderV3';
 import { Footer } from '@/components/landing/Footer';
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
 import { BlogFilters } from '@/components/blog/BlogFilters';
-import { useBlogPosts, useBlogStats, useBlogClusterStats } from '@/hooks/use-blog';
-import { PILLARS, BLOG_CLUSTERS } from '@/lib/blog/types';
+import { useBlogPosts, useBlogStats } from '@/hooks/use-blog';
+import { PILLARS } from '@/lib/blog/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { motion } from 'framer-motion';
 
 export default function BlogPage() {
   const [search, setSearch] = useState('');
@@ -22,7 +23,14 @@ export default function BlogPage() {
 
   const { data: posts, isLoading } = useBlogPosts(filters);
   const { data: stats } = useBlogStats();
-  const { data: clusterStats } = useBlogClusterStats();
+
+  // Value propositions for the hero
+  const valueProps = [
+    { icon: TrendingUp, text: "Estrategias probadas" },
+    { icon: Lightbulb, text: "Ideas accionables" },
+    { icon: Target, text: "Resultados medibles" },
+    { icon: Zap, text: "Implementación rápida" },
+  ];
 
   const handleReset = () => {
     setSearch('');
@@ -52,63 +60,100 @@ export default function BlogPage() {
               <span className="text-foreground">Blog</span>
             </nav>
 
-            {/* Header - Ultra Premium */}
-            <div className="mb-12 relative">
-              {/* Subtle gradient background */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-[#2692DC]/5 via-[#746CE6]/5 to-transparent rounded-3xl blur-xl" />
+            {/* Hero Section - Ultra Premium */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-16 relative"
+            >
+              {/* Background effects */}
+              <div className="absolute -inset-8 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-3xl blur-2xl pointer-events-none" />
               
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-1 w-12 bg-gradient-to-r from-[#2692DC] to-[#746CE6] rounded-full" />
-                  <span className="text-sm font-medium text-[#746CE6]">Blog VistaCEO</span>
-                </div>
-                
-                <h1 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[#2692DC] via-[#5A7FE1] to-[#746CE6] bg-clip-text text-transparent">
-                  Notas, noticias y tendencias
-                </h1>
-                
-                <p className="text-lg md:text-xl text-muted-foreground max-w-3xl leading-relaxed">
-                  Análisis · Guías prácticas · Casos reales · Herramientas · Lo último en IA y tecnología · Estrategia · Liderazgo · Finanzas · Operaciones · Marketing · Crecimiento
-                </p>
-                
-                {stats && (
-                  <div className="flex items-center gap-2 mt-5">
-                    <div className="h-2 w-2 rounded-full bg-gradient-to-r from-[#2692DC] to-[#746CE6] animate-pulse" />
-                    <p className="text-sm font-medium bg-gradient-to-r from-[#2692DC] to-[#746CE6] bg-clip-text text-transparent">
-                      {stats.total} artículos disponibles
-                    </p>
+              <div className="relative grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                {/* Left: Content */}
+                <div className="space-y-6">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    <span className="text-xs font-medium text-primary">Blog VistaCEO</span>
+                    {stats && (
+                      <span className="text-xs text-muted-foreground">· {stats.total} artículos</span>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
+                  
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+                    Tu CEO Ultra <span className="text-primary">inteligente</span> para escalar tu negocio
+                  </h1>
+                  
+                  <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
+                    Contenido estratégico diseñado para dueños de PyMEs que quieren 
+                    <span className="text-foreground font-medium"> tomar mejores decisiones</span>, 
+                    optimizar operaciones y acelerar su crecimiento.
+                  </p>
 
-            {/* Cluster Categories - 12 themes */}
-            <section className="mb-12">
-              <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                🗂️ Explorar por Tema
-              </h2>
-              <p className="text-muted-foreground text-sm mb-6">
-                12 categorías especializadas para PyMEs latinoamericanas
-              </p>
-              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                {Object.entries(BLOG_CLUSTERS).map(([key, info]) => {
-                  const count = clusterStats?.byCluster?.[key] || 0;
-                  return (
-                    <Link
-                      key={key}
-                      to={`/blog/tema/${key}`}
-                      className="group p-4 rounded-xl border border-border/50 bg-muted/30 hover:bg-muted/50 hover:border-primary/30 hover:shadow-md transition-all text-center"
-                    >
-                      <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform">{info.emoji}</span>
-                      <h3 className="font-medium text-xs leading-tight mb-1">{info.label}</h3>
-                      <span className="text-xs text-muted-foreground">
-                        {count} {count === 1 ? 'artículo' : 'artículos'}
-                      </span>
-                    </Link>
-                  );
-                })}
+                  {/* Value props grid */}
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    {valueProps.map((prop, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 + i * 0.1 }}
+                        className="flex items-center gap-2 text-sm text-muted-foreground"
+                      >
+                        <div className="p-1.5 rounded-lg bg-primary/10">
+                          <prop.icon className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        <span>{prop.text}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right: Featured visual card */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="relative hidden lg:block"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl blur-xl" />
+                  <div className="relative bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-6 shadow-xl">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+                          <Lightbulb className="h-5 w-5 text-primary-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">Insights semanales</p>
+                          <p className="text-xs text-muted-foreground">Tendencias y análisis</p>
+                        </div>
+                      </div>
+                      
+                      <div className="h-px bg-border/50" />
+                      
+                      <div className="space-y-2">
+                        {['IA aplicada a negocios', 'Estrategia y liderazgo', 'Finanzas y operaciones'].map((topic, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm">
+                            <div className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                            <span className="text-muted-foreground">{topic}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 pt-2">
+                        <div className="flex -space-x-2">
+                          {[...Array(3)].map((_, i) => (
+                            <div key={i} className="h-6 w-6 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 border-2 border-card" />
+                          ))}
+                        </div>
+                        <span className="text-xs text-muted-foreground">+2.5K lectores mensuales</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
-            </section>
+            </motion.div>
 
             {/* Filters */}
             <div className="mb-8">
