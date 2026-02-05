@@ -203,10 +203,7 @@ export const HeroSection = memo(() => {
           {/* Subtitle */}
           <div className="mb-6 max-w-2xl mx-auto animate-fade-in-up-delay-3">
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center">
-              Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu negocio, servicio o profesión como un <span className="text-foreground font-semibold">cerebro estratégico</span> en tiempo real.
-            </p>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
-              Oportunidades, foco y <span className="text-foreground font-semibold">próximo paso exacto</span>.
+              Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu negocio como un <span className="text-foreground font-semibold">cerebro estratégico</span> en tiempo real.
             </p>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
               Un <span className="text-foreground font-semibold">CEO inteligente</span>, a bajo costo y <span className="text-foreground font-semibold">24/7</span>.
