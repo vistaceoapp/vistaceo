@@ -70,6 +70,27 @@ const schemas = [
         <h1 itemprop="name">{post.title}</h1>
         <PostMeta post={post} />
       </header>
+
+      <!-- Hero image (always rendered when available) -->
+      {post.hero_image_url ? (
+        <figure class="post-hero" itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+          <img
+            src={post.hero_image_url}
+            alt={post.image_alt_text || post.title}
+            loading="eager"
+            width="1280"
+            height="720"
+          />
+          {post.image_alt_text && (
+            <figcaption class="post-hero-caption">{post.image_alt_text}</figcaption>
+          )}
+          <meta itemprop="url" content={post.hero_image_url} />
+        </figure>
+      ) : (
+        <div class="post-hero post-hero--placeholder" aria-label="Imagen destacada no disponible">
+          <span>📝</span>
+        </div>
+      )}
       
       {post.excerpt && (
         <div class="post-takeaways">
@@ -257,16 +278,51 @@ const schemas = [
     border-bottom: 1px solid var(--border);
   }
 
+  /* Hero image */
+  .post-hero {
+    margin: 0 0 1.25rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: var(--muted);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+  }
+
   @media (min-width: 640px) {
-    .post-header {
-      margin-bottom: 2rem;
-      padding-bottom: 1.5rem;
+    .post-hero {
+      margin-bottom: 1.5rem;
+      border-radius: 1rem;
     }
   }
 
+  .post-hero img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+  }
+
+  .post-hero--placeholder {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 16 / 9;
+    font-size: 3rem;
+    color: var(--foreground-muted);
+    background: var(--gradient-hero);
+  }
+
+  .post-hero-caption {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.85rem;
+    color: var(--foreground-muted);
+    border-top: 1px solid var(--border);
+    background: color-mix(in oklab, var(--background) 92%, var(--muted));
+  }
+
   @media (min-width: 768px) {
-    .post-header {
-      padding-bottom: 2rem;
+    .post-hero-caption {
+      padding: 0.75rem 1.1rem;
+      font-size: 0.9rem;
     }
   }
   
