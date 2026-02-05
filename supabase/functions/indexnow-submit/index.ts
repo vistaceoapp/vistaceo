@@ -1,5 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -9,7 +7,7 @@ const corsHeaders = {
 const INDEXNOW_KEY = "8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d";
 const BLOG_HOST = "blog.vistaceo.com";
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
