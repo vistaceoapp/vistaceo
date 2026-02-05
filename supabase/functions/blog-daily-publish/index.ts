@@ -256,3 +256,22 @@ async function triggerGitHubBuild(token: string) {
     console.error('[blog-daily-publish] GitHub trigger error:', error);
   }
 }
+
+// Submit new URLs to IndexNow for instant indexing
+async function submitToIndexNow(supabase: ReturnType<typeof createClient>, slugs: string[]) {
+  try {
+    console.log('[blog-daily-publish] Submitting to IndexNow:', slugs);
+    
+    const { data, error } = await supabase.functions.invoke('indexnow-submit', {
+      body: { urls: slugs },
+    });
+    
+    if (error) {
+      console.error('[blog-daily-publish] IndexNow error:', error);
+    } else {
+      console.log('[blog-daily-publish] IndexNow submitted:', data);
+    }
+  } catch (error) {
+    console.error('[blog-daily-publish] IndexNow submit failed:', error);
+  }
+}
