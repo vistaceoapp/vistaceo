@@ -167,3 +167,27 @@ verify_jwt = false
 
 [functions.trigger-blog-revalidate]
 verify_jwt = false
+
+[functions.indexnow-submit]
+verify_jwt = false
+
+[functions.admin-get-users]
+verify_jwt = false
+
+[functions.admin-get-analytics]
+verify_jwt = false
+
+[functions.blog-daily-publish]
+verify_jwt = false
+
+[functions.generate-blog-images]
+verify_jwt = false
+
+[functions.blog-improve-post]
+verify_jwt = false
+
+[functions.track-user-activity]
+verify_jwt = false
+
+[functions.track-analytics]
+verify_jwt = false
