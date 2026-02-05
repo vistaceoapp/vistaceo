@@ -205,7 +205,7 @@ export const HeroSection = memo(() => {
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center">
               Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu negocio.
             </p>
-            <p className="hidden sm:block text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
               Un <span className="text-foreground font-semibold">cerebro estratégico</span> e inteligente en tiempo real.
             </p>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
