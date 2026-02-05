@@ -202,7 +202,7 @@ export const HeroSection = memo(() => {
           
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed animate-fade-in-up-delay-3">
-            Inteligencia artificial que <span className="text-foreground font-semibold">analiza tu negocio</span>, <span className="text-foreground font-semibold">detecta oportunidades</span> y te guía con <span className="text-foreground font-semibold">acciones concretas</span> cada día.
+            Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu negocio, servicio o profesión como un <span className="text-foreground font-semibold">cerebro estratégico</span> en tiempo real. Oportunidades, foco y <span className="text-foreground font-semibold">próximo paso exacto</span>. Un <span className="text-foreground font-semibold">CEO inteligente</span>, a bajo costo y <span className="text-foreground font-semibold">24/7</span>.
           </p>
           
           {/* CTA Button + Microcopy */}
