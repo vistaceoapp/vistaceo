@@ -1,8 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, Users, Target, TrendingUp, ChevronDown } from "lucide-react";
+import { ArrowRight, Sparkles, Users, TrendingUp, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState, useRef, useEffect, memo } from "react";
 import { cn } from "@/lib/utils";
+import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Business photos - ALL original images
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
@@ -115,6 +122,30 @@ const AnimatedCounter = memo(({ value, suffix = "" }: { value: number; suffix?: 
 });
 AnimatedCounter.displayName = "AnimatedCounter";
 
+// Active users indicator with tooltip
+const ActiveUsersIndicator = memo(({ count }: { count: number }) => (
+  <TooltipProvider delayDuration={300}>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex items-center gap-1.5 cursor-help">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+          </span>
+          <span>{count} activos ahora</span>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent 
+        side="bottom" 
+        className="text-xs"
+      >
+        Estimación basada en actividad reciente.
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+));
+ActiveUsersIndicator.displayName = "ActiveUsersIndicator";
+
 // ALL 12 business types for carousel (original)
 const businessTypes = [
   { type: "Parrilla", business: "Don Martín", image: parrillaImg, growth: "+28%", months: 3, health: 78 },
@@ -131,14 +162,9 @@ const businessTypes = [
   { type: "Spa", business: "Zen Relax", image: spaImg, growth: "+55%", months: 4, health: 89 },
 ];
 
-const stats = [
-  { icon: Users, value: 500, suffix: "+", label: "negocios" },
-  { icon: Target, value: 12000, suffix: "+", label: "misiones" },
-  { icon: TrendingUp, value: 35, suffix: "%", label: "crecimiento" },
-];
-
 export const HeroSection = memo(() => {
   const navigate = useNavigate();
+  const activeUsers = useRealtimeCounter();
 
   return (
     <section className="relative min-h-[100svh] flex flex-col justify-center pt-20 pb-6 overflow-hidden">
@@ -151,14 +177,16 @@ export const HeroSection = memo(() => {
       {/* Main Hero Content - CSS animations instead of Framer Motion */}
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Badge */}
+          {/* Badge with realtime counter */}
           <div className="mb-5 animate-fade-in-up">
             <Badge 
               variant="outline" 
               className="px-4 py-1.5 border-primary/40 bg-primary/10 backdrop-blur-sm"
             >
               <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" aria-hidden="true" />
-              <span className="text-xs font-medium">+500 negocios creciendo</span>
+              <span className="text-xs font-medium">
+                +5.000 negocios en LATAM · <span className="inline-flex items-center gap-1"><span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" /></span>{activeUsers} activos ahora</span>
+              </span>
             </Badge>
           </div>
           
@@ -177,8 +205,8 @@ export const HeroSection = memo(() => {
             Inteligencia artificial que <span className="text-foreground font-semibold">analiza tu negocio</span>, <span className="text-foreground font-semibold">detecta oportunidades</span> y te guía con <span className="text-foreground font-semibold">acciones concretas</span> cada día.
           </p>
           
-          {/* CTA Button */}
-          <div className="flex justify-center mb-8 animate-fade-in-up-delay-4">
+          {/* CTA Button + Microcopy */}
+          <div className="flex flex-col items-center gap-2 mb-8 animate-fade-in-up-delay-4">
             <ShimmerButton
               className="px-10 py-4 text-base md:text-lg"
               onClick={() => navigate("/auth")}
@@ -187,20 +215,36 @@ export const HeroSection = memo(() => {
               Empezar gratis
               <ArrowRight className="w-5 h-5" aria-hidden="true" />
             </ShimmerButton>
+            <span className="text-xs text-muted-foreground/70">
+              Gratis · Sin tarjeta · En 2 minutos
+            </span>
           </div>
 
-          {/* Stats Row */}
-          <div className="flex flex-wrap justify-center gap-6 md:gap-10 mb-10 animate-fade-in-up-delay-5">
-            {stats.map((stat, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <stat.icon className="w-4 h-4 text-primary/70" aria-hidden="true" />
-                <span className="text-xl md:text-2xl font-bold text-foreground">
-                  <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-                </span>
-                <span className="text-xs md:text-sm text-muted-foreground">{stat.label}</span>
-              </div>
-            ))}
+          {/* Stats Row - Updated values */}
+          <div className="flex flex-wrap justify-center gap-6 md:gap-10 mb-2 animate-fade-in-up-delay-5">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary/70" aria-hidden="true" />
+              <span className="text-xl md:text-2xl font-bold text-foreground">
+                <AnimatedCounter value={5000} suffix="+" />
+              </span>
+              <span className="text-xs md:text-sm text-muted-foreground">negocios</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-primary/70" aria-hidden="true" />
+              <span className="text-xl md:text-2xl font-bold text-foreground">
+                +43%
+              </span>
+              <span className="text-xs md:text-sm text-muted-foreground">crecimiento promedio</span>
+            </div>
+            <div className="flex items-center gap-2 text-xl md:text-2xl font-bold text-foreground">
+              <ActiveUsersIndicator count={activeUsers} />
+            </div>
           </div>
+          
+          {/* Legal disclaimer */}
+          <p className="text-[10px] text-muted-foreground/50 mb-8 animate-fade-in-up-delay-5">
+            Promedios reportados por usuarios activos. Resultados pueden variar.
+          </p>
         </div>
 
         {/* Business Types Carousel - CSS animation only */}
