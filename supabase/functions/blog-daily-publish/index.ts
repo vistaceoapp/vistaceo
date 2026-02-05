@@ -132,11 +132,29 @@ serve(async (req) => {
         } catch (imgErr) {
           console.error('[blog-daily-publish] Image generation failed:', imgErr);
         }
-      }
 
-      // Trigger GitHub Actions rebuild if token is available
-      if (githubToken) {
-        await triggerGitHubBuild(githubToken);
+        // HARD REQUIREMENT: never allow a published post without hero image
+        const { data: savedPost } = await supabase
+          .from('blog_posts')
+          .select('id, slug, hero_image_url')
+          .eq('slug', generateResult.post.slug)
+          .maybeSingle();
+
+        if (!savedPost?.hero_image_url) {
+          console.error('[blog-daily-publish] Missing hero_image_url after generation. Reverting post to draft.');
+          await supabase
+            .from('blog_posts')
+            .update({ status: 'draft' })
+            .eq('slug', generateResult.post.slug);
+
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Post blocked: hero image missing (auto-reverted to draft)'
+            }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
       }
 
       // Submit to IndexNow for instant indexing
@@ -232,6 +250,38 @@ serve(async (req) => {
         }
       } catch (imgErr) {
         console.error('[blog-daily-publish] Image generation failed:', imgErr);
+      }
+
+      // HARD REQUIREMENT: never allow a published plan/post without hero image
+      const { data: savedPost } = await supabase
+        .from('blog_posts')
+        .select('id, slug, hero_image_url')
+        .eq('slug', generateResult.post.slug)
+        .maybeSingle();
+
+      if (!savedPost?.hero_image_url) {
+        console.error('[blog-daily-publish] Missing hero_image_url after generation. Marking plan failed and reverting post to draft.');
+
+        await supabase
+          .from('blog_posts')
+          .update({ status: 'draft' })
+          .eq('slug', generateResult.post.slug);
+
+        await supabase
+          .from('blog_plan')
+          .update({
+            status: 'failed',
+            skip_reason: 'Blocked: hero image missing after generation (auto-reverted to draft)'
+          })
+          .eq('id', plan.id);
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Post blocked: hero image missing (plan marked failed)'
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
     }
 
