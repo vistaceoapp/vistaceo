@@ -111,6 +111,29 @@ serve(async (req) => {
 
       console.log('[blog-daily-publish] Post generated:', generateResult);
 
+      // Generate images for the new post
+      if (generateResult?.post?.slug) {
+        console.log('[blog-daily-publish] Generating images for:', generateResult.post.slug);
+        try {
+          const { data: imageResult, error: imageError } = await supabase.functions.invoke(
+            'generate-blog-images',
+            {
+              body: {
+                slug: generateResult.post.slug,
+                mode: 'single'
+              }
+            }
+          );
+          if (imageError) {
+            console.error('[blog-daily-publish] Image generation error:', imageError);
+          } else {
+            console.log('[blog-daily-publish] Images generated:', imageResult);
+          }
+        } catch (imgErr) {
+          console.error('[blog-daily-publish] Image generation failed:', imgErr);
+        }
+      }
+
       // Trigger GitHub Actions rebuild if token is available
       if (githubToken) {
         await triggerGitHubBuild(githubToken);
@@ -177,6 +200,29 @@ serve(async (req) => {
       .eq('id', plan.id);
 
     console.log('[blog-daily-publish] Post published successfully:', generateResult);
+
+    // Generate images for the new post
+    if (generateResult?.post?.slug) {
+      console.log('[blog-daily-publish] Generating images for:', generateResult.post.slug);
+      try {
+        const { data: imageResult, error: imageError } = await supabase.functions.invoke(
+          'generate-blog-images',
+          {
+            body: {
+              slug: generateResult.post.slug,
+              mode: 'single'
+            }
+          }
+        );
+        if (imageError) {
+          console.error('[blog-daily-publish] Image generation error:', imageError);
+        } else {
+          console.log('[blog-daily-publish] Images generated:', imageResult);
+        }
+      } catch (imgErr) {
+        console.error('[blog-daily-publish] Image generation failed:', imgErr);
+      }
+    }
 
     // Trigger GitHub Actions rebuild
     if (githubToken) {
