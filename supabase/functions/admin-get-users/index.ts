@@ -110,30 +110,42 @@ serve(async (req) => {
       });
     }
 
-    // List users with comprehensive data
-    let query = supabase
+    // List users with comprehensive data - separate queries to avoid FK issues
+    let profilesQuery = supabase
       .from("profiles")
-      .select(`
-        *,
-        businesses:businesses(id, name, category, country, setup_completed, created_at),
-        subscriptions:subscriptions(id, plan_id, status, expires_at, payment_provider)
-      `)
+      .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
       .range((page - 1) * limit, page * limit - 1);
 
     if (search) {
-      query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
+      profilesQuery = profilesQuery.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`);
     }
 
-    const { data: users, error, count } = await query;
+    const { data: profiles, error, count } = await profilesQuery;
 
     if (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching profiles:", error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Fetch businesses and subscriptions for each user
+    const userIds = profiles?.map(p => p.id) || [];
+    
+    const [businessesRes, subscriptionsRes] = await Promise.all([
+      supabase.from("businesses").select("*").in("owner_id", userIds),
+      supabase.from("subscriptions").select("*").in("user_id", userIds),
+    ]);
+
+    // Map data to users
+    const users = profiles?.map(profile => ({
+      ...profile,
+      businesses: businessesRes.data?.filter(b => b.owner_id === profile.id) || [],
+      subscriptions: subscriptionsRes.data?.filter(s => s.user_id === profile.id) || [],
+    })) || [];
+
 
     // Get aggregate stats
     const [totalUsersRes, proUsersRes, activeUsersRes] = await Promise.all([
