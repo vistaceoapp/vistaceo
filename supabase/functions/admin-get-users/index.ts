@@ -38,12 +38,20 @@ serve(async (req) => {
       });
     }
 
+    // Support both GET params and POST body
+    let params: Record<string, any> = {};
+    if (req.method === "POST") {
+      try {
+        params = await req.json();
+      } catch { /* empty body ok */ }
+    }
+    
     const url = new URL(req.url);
-    const page = parseInt(url.searchParams.get("page") || "1");
-    const limit = parseInt(url.searchParams.get("limit") || "50");
-    const search = url.searchParams.get("search") || "";
-    const filter = url.searchParams.get("filter") || "all"; // all, pro, free, active
-    const userId = url.searchParams.get("userId"); // For single user detail
+    const page = parseInt(params.page || url.searchParams.get("page") || "1");
+    const limit = parseInt(params.limit || url.searchParams.get("limit") || "50");
+    const search = params.search || url.searchParams.get("search") || "";
+    const filter = params.filter || url.searchParams.get("filter") || "all"; // all, pro, free, active
+    const userId = params.userId || url.searchParams.get("userId"); // For single user detail
 
     // If requesting single user detail
     if (userId) {
@@ -55,17 +63,27 @@ serve(async (req) => {
         supabase.from("user_daily_metrics").select("*").eq("user_id", userId).order("metric_date", { ascending: false }).limit(30),
       ]);
 
-      // Get business health if exists
+      // Get business-related data if business exists
       let businessBrain = null;
       let businessSnapshots = null;
+      let missions = null;
+      let opportunities = null;
+      let chatMessages = null;
+      
       if (businessRes.data && businessRes.data.length > 0) {
         const businessId = businessRes.data[0].id;
-        const [brainRes, snapshotsRes] = await Promise.all([
+        const [brainRes, snapshotsRes, missionsRes, opportunitiesRes, chatRes] = await Promise.all([
           supabase.from("business_brains").select("*").eq("business_id", businessId).single(),
           supabase.from("snapshots").select("*").eq("business_id", businessId).order("created_at", { ascending: false }).limit(10),
+          supabase.from("missions").select("*").eq("business_id", businessId).order("created_at", { ascending: false }).limit(20),
+          supabase.from("opportunities").select("*").eq("business_id", businessId).order("created_at", { ascending: false }).limit(20),
+          supabase.from("chat_messages").select("*").eq("business_id", businessId).order("created_at", { ascending: false }).limit(50),
         ]);
         businessBrain = brainRes.data;
         businessSnapshots = snapshotsRes.data;
+        missions = missionsRes.data;
+        opportunities = opportunitiesRes.data;
+        chatMessages = chatRes.data;
       }
 
       // Log admin action
@@ -84,6 +102,9 @@ serve(async (req) => {
         metrics: metricsRes.data,
         businessBrain,
         businessSnapshots,
+        missions,
+        opportunities,
+        chatMessages,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

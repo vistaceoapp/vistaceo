@@ -91,9 +91,11 @@ export default function AdminUsersPage() {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList>
+          <TabsList className="flex-wrap">
             <TabsTrigger value="overview">Resumen</TabsTrigger>
             <TabsTrigger value="business">Negocio</TabsTrigger>
+            <TabsTrigger value="missions">Misiones</TabsTrigger>
+            <TabsTrigger value="chat">Chat IA</TabsTrigger>
             <TabsTrigger value="activity">Actividad</TabsTrigger>
             <TabsTrigger value="payments">Pagos</TabsTrigger>
           </TabsList>
@@ -224,6 +226,99 @@ export default function AdminUsersPage() {
                 </CardContent>
               </Card>
             ))}
+          </TabsContent>
+
+          <TabsContent value="missions" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Misiones ({userDetail.missions?.length || 0})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[400px]">
+                  {!userDetail.missions?.length && (
+                    <p className="text-muted-foreground text-center py-4">Sin misiones</p>
+                  )}
+                  <div className="space-y-2">
+                    {userDetail.missions?.map((mission: { id: string; title: string; status: string; created_at: string; completed_at?: string }) => (
+                      <div key={mission.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{mission.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(mission.created_at), 'dd MMM yyyy', { locale: es })}
+                          </p>
+                        </div>
+                        <Badge variant={mission.status === 'completed' ? 'default' : mission.status === 'in_progress' ? 'secondary' : 'outline'}>
+                          {mission.status === 'completed' ? 'Completada' : mission.status === 'in_progress' ? 'En progreso' : mission.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Oportunidades detectadas ({userDetail.opportunities?.length || 0})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[300px]">
+                  {!userDetail.opportunities?.length && (
+                    <p className="text-muted-foreground text-center py-4">Sin oportunidades</p>
+                  )}
+                  <div className="space-y-2">
+                    {userDetail.opportunities?.map((opp: { id: string; title: string; impact_score: number; is_converted: boolean }) => (
+                      <div key={opp.id} className="flex items-center justify-between p-2 bg-muted/30 rounded">
+                        <p className="text-sm">{opp.title}</p>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">Impacto: {opp.impact_score}/10</Badge>
+                          {opp.is_converted && <CheckCircle className="w-4 h-4 text-primary" />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="chat">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  Conversaciones con IA ({userDetail.chatMessages?.length || 0} mensajes)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px]">
+                  {!userDetail.chatMessages?.length && (
+                    <p className="text-muted-foreground text-center py-4">Sin conversaciones</p>
+                  )}
+                  <div className="space-y-3">
+                    {userDetail.chatMessages?.map((msg: { id: string; role: string; content: string; created_at: string }) => (
+                      <div 
+                        key={msg.id} 
+                        className={`p-3 rounded-lg ${msg.role === 'user' ? 'bg-primary/10 ml-8' : 'bg-muted/50 mr-8'}`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <Badge variant="outline" className="text-xs">
+                            {msg.role === 'user' ? 'Usuario' : 'VistaCEO'}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(msg.created_at), 'dd MMM HH:mm', { locale: es })}
+                          </span>
+                        </div>
+                        <p className="text-sm whitespace-pre-wrap">{msg.content.slice(0, 500)}{msg.content.length > 500 ? '...' : ''}</p>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="activity">
