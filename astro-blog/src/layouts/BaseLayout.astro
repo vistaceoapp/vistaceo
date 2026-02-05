@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import Analytics from '../components/Analytics.astro';
 
 interface Props {
   title: string;
@@ -119,8 +120,14 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
   
   <!-- IndexNow for instant indexing (Bing, Yandex) -->
   <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  
+  <!-- IndexNow key -->
+  <link rel="indexnow-key" href="/indexnow-key.txt">
 </head>
 <body>
   <slot />
+  
+  <!-- Analytics tracking -->
+  <Analytics />
 </body>
 </html>

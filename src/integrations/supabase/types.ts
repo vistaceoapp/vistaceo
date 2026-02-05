@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action_data: Json | null
+          action_type: string
+          admin_user_id: string | null
+          created_at: string
+          id: string
+          target_business_id: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action_data?: Json | null
+          action_type: string
+          admin_user_id?: string | null
+          created_at?: string
+          id?: string
+          target_business_id?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action_data?: Json | null
+          action_type?: string
+          admin_user_id?: string | null
+          created_at?: string
+          id?: string
+          target_business_id?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       alerts: {
         Row: {
           ai_summary_json: Json | null
@@ -54,6 +84,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      blog_analytics_daily: {
+        Row: {
+          avg_time_on_page: number | null
+          bounce_rate: number | null
+          country_breakdown: Json | null
+          created_at: string
+          device_breakdown: Json | null
+          id: string
+          metric_date: string
+          pageviews: number | null
+          post_slug: string
+          referrer_breakdown: Json | null
+          scroll_depth_avg: number | null
+          unique_visitors: number | null
+        }
+        Insert: {
+          avg_time_on_page?: number | null
+          bounce_rate?: number | null
+          country_breakdown?: Json | null
+          created_at?: string
+          device_breakdown?: Json | null
+          id?: string
+          metric_date: string
+          pageviews?: number | null
+          post_slug: string
+          referrer_breakdown?: Json | null
+          scroll_depth_avg?: number | null
+          unique_visitors?: number | null
+        }
+        Update: {
+          avg_time_on_page?: number | null
+          bounce_rate?: number | null
+          country_breakdown?: Json | null
+          created_at?: string
+          device_breakdown?: Json | null
+          id?: string
+          metric_date?: string
+          pageviews?: number | null
+          post_slug?: string
+          referrer_breakdown?: Json | null
+          scroll_depth_avg?: number | null
+          unique_visitors?: number | null
+        }
+        Relationships: []
       }
       blog_config: {
         Row: {
@@ -2303,6 +2378,9 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          last_active_at: string | null
+          last_login_at: string | null
+          login_count: number | null
           onboarding_completed: boolean | null
           preferred_language: string | null
           updated_at: string | null
@@ -2314,6 +2392,9 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          last_active_at?: string | null
+          last_login_at?: string | null
+          login_count?: number | null
           onboarding_completed?: boolean | null
           preferred_language?: string | null
           updated_at?: string | null
@@ -2325,6 +2406,9 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          last_active_at?: string | null
+          last_login_at?: string | null
+          login_count?: number | null
           onboarding_completed?: boolean | null
           preferred_language?: string | null
           updated_at?: string | null
@@ -2901,6 +2985,181 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_activity_logs: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          page_path: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          page_path?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          page_path?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_logs_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_daily_metrics: {
+        Row: {
+          actions_count: number | null
+          business_id: string | null
+          chat_messages_sent: number | null
+          checkins_completed: number | null
+          created_at: string
+          id: string
+          logins_count: number | null
+          metric_date: string
+          missions_completed: number | null
+          missions_started: number | null
+          pages_viewed: number | null
+          radar_views: number | null
+          time_spent_seconds: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actions_count?: number | null
+          business_id?: string | null
+          chat_messages_sent?: number | null
+          checkins_completed?: number | null
+          created_at?: string
+          id?: string
+          logins_count?: number | null
+          metric_date: string
+          missions_completed?: number | null
+          missions_started?: number | null
+          pages_viewed?: number | null
+          radar_views?: number | null
+          time_spent_seconds?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actions_count?: number | null
+          business_id?: string | null
+          chat_messages_sent?: number | null
+          checkins_completed?: number | null
+          created_at?: string
+          id?: string
+          logins_count?: number | null
+          metric_date?: string
+          missions_completed?: number | null
+          missions_started?: number | null
+          pages_viewed?: number | null
+          radar_views?: number | null
+          time_spent_seconds?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_daily_metrics_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      web_analytics: {
+        Row: {
+          blog_post_slug: string | null
+          browser: string | null
+          country: string | null
+          created_at: string
+          device_type: string | null
+          duration_seconds: number | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          page_path: string
+          page_url: string
+          referrer: string | null
+          region: string | null
+          scroll_depth: number | null
+          session_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          visitor_id: string
+        }
+        Insert: {
+          blog_post_slug?: string | null
+          browser?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          duration_seconds?: number | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          page_path: string
+          page_url: string
+          referrer?: string | null
+          region?: string | null
+          scroll_depth?: number | null
+          session_id: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_id: string
+        }
+        Update: {
+          blog_post_slug?: string | null
+          browser?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          duration_seconds?: number | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          page_path?: string
+          page_url?: string
+          referrer?: string | null
+          region?: string | null
+          scroll_depth?: number | null
+          session_id?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          visitor_id?: string
+        }
+        Relationships: []
       }
       weekly_priorities: {
         Row: {

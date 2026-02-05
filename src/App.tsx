@@ -28,6 +28,8 @@ import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import BlogAdminPage from "./pages/admin/BlogAdminPage";
 import AdminCalendarPage from "./pages/admin/AdminCalendarPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 
 // App Pages
 import AppLayout from "./layouts/AppLayout";
@@ -107,8 +109,8 @@ const AppRoutes = () => {
         <Route index element={<AdminDashboard />} />
         <Route path="blog" element={<BlogAdminPage />} />
         <Route path="calendario" element={<AdminCalendarPage />} />
-        <Route path="usuarios" element={<div className="p-6"><h1 className="text-2xl font-bold">Usuarios - Próximamente</h1></div>} />
-        <Route path="analytics" element={<div className="p-6"><h1 className="text-2xl font-bold">Analytics - Próximamente</h1></div>} />
+        <Route path="usuarios" element={<AdminUsersPage />} />
+        <Route path="analytics" element={<AdminAnalyticsPage />} />
         <Route path="config" element={<div className="p-6"><h1 className="text-2xl font-bold">Configuración - Próximamente</h1></div>} />
       </Route>
       

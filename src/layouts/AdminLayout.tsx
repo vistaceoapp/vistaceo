@@ -15,8 +15,8 @@ const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Blog Factory', href: '/admin/blog', icon: Newspaper },
   { label: 'Calendario', href: '/admin/calendario', icon: Calendar },
-  { label: 'Usuarios', href: '/admin/usuarios', icon: Users, disabled: true },
-  { label: 'Analytics', href: '/admin/analytics', icon: BarChart3, disabled: true },
+  { label: 'Usuarios', href: '/admin/usuarios', icon: Users },
+  { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { label: 'Config', href: '/admin/config', icon: Settings, disabled: true },
 ];
 

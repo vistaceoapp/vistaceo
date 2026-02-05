@@ -1,0 +1,163 @@
+---
+// Analytics script for blog.vistaceo.com
+// This gets included on all pages to track analytics
+---
+<script is:inline define:vars={{ SUPABASE_URL: import.meta.env.PUBLIC_SUPABASE_URL || 'https://nlewrgmcawzcdazhfiyy.supabase.co' }}>
+(function() {
+  // Generate or retrieve visitor ID
+  const getVisitorId = () => {
+    let visitorId = localStorage.getItem('va_visitor');
+    if (!visitorId) {
+      visitorId = 'v_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+      localStorage.setItem('va_visitor', visitorId);
+    }
+    return visitorId;
+  };
+
+  // Generate session ID
+  const getSessionId = () => {
+    let sessionId = sessionStorage.getItem('va_session');
+    if (!sessionId) {
+      sessionId = 's_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+      sessionStorage.setItem('va_session', sessionId);
+    }
+    return sessionId;
+  };
+
+  // Detect device type
+  const getDeviceType = () => {
+    const ua = navigator.userAgent;
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'tablet';
+    if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) return 'mobile';
+    return 'desktop';
+  };
+
+  // Get browser name
+  const getBrowser = () => {
+    const ua = navigator.userAgent;
+    if (ua.includes('Chrome')) return 'Chrome';
+    if (ua.includes('Safari')) return 'Safari';
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Edge')) return 'Edge';
+    return 'Other';
+  };
+
+  // Parse UTM params
+  const getUTMParams = () => {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      utm_source: params.get('utm_source'),
+      utm_medium: params.get('utm_medium'),
+      utm_campaign: params.get('utm_campaign'),
+    };
+  };
+
+  // Get blog post slug from path
+  const getBlogPostSlug = () => {
+    const path = window.location.pathname;
+    // Skip home, tema pages, etc
+    if (path === '/' || path.startsWith('/tema/') || path.includes('.')) return null;
+    return path.replace(/^\//, '').replace(/\/$/, '');
+  };
+
+  // Track pageview
+  const trackPageview = () => {
+    const utm = getUTMParams();
+    const payload = {
+      visitor_id: getVisitorId(),
+      session_id: getSessionId(),
+      page_url: window.location.href,
+      page_path: window.location.pathname,
+      referrer: document.referrer,
+      utm_source: utm.utm_source,
+      utm_medium: utm.utm_medium,
+      utm_campaign: utm.utm_campaign,
+      device_type: getDeviceType(),
+      browser: getBrowser(),
+      event_type: 'pageview',
+      blog_post_slug: getBlogPostSlug(),
+    };
+
+    fetch(SUPABASE_URL + '/functions/v1/track-analytics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => {});
+  };
+
+  // Track scroll depth
+  let maxScroll = 0;
+  const trackScroll = () => {
+    const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+    if (scrollPercent > maxScroll && scrollPercent % 25 === 0) {
+      maxScroll = scrollPercent;
+      const payload = {
+        visitor_id: getVisitorId(),
+        session_id: getSessionId(),
+        page_url: window.location.href,
+        page_path: window.location.pathname,
+        device_type: getDeviceType(),
+        browser: getBrowser(),
+        event_type: 'scroll',
+        scroll_depth: scrollPercent,
+        blog_post_slug: getBlogPostSlug(),
+      };
+      
+      fetch(SUPABASE_URL + '/functions/v1/track-analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      }).catch(() => {});
+    }
+  };
+
+  // Track time on page
+  const pageStartTime = Date.now();
+  const trackTimeOnPage = () => {
+    const duration = Math.round((Date.now() - pageStartTime) / 1000);
+    if (duration > 5) { // Only track if more than 5 seconds
+      const payload = {
+        visitor_id: getVisitorId(),
+        session_id: getSessionId(),
+        page_url: window.location.href,
+        page_path: window.location.pathname,
+        device_type: getDeviceType(),
+        browser: getBrowser(),
+        event_type: 'time_on_page',
+        duration_seconds: duration,
+        scroll_depth: maxScroll,
+        blog_post_slug: getBlogPostSlug(),
+      };
+      
+      navigator.sendBeacon 
+        ? navigator.sendBeacon(SUPABASE_URL + '/functions/v1/track-analytics', JSON.stringify(payload))
+        : fetch(SUPABASE_URL + '/functions/v1/track-analytics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            keepalive: true,
+          }).catch(() => {});
+    }
+  };
+
+  // Initialize tracking
+  trackPageview();
+  
+  // Scroll tracking (debounced)
+  let scrollTimeout;
+  window.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(trackScroll, 100);
+  });
+
+  // Time on page tracking
+  window.addEventListener('beforeunload', trackTimeOnPage);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') trackTimeOnPage();
+  });
+
+  console.log('[VistaCEO Analytics] Initialized');
+})();
+</script>
