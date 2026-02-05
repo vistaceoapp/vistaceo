@@ -240,11 +240,6 @@ export const HeroSection = memo(() => {
               <ActiveUsersIndicator count={activeUsers} />
             </div>
           </div>
-          
-          {/* Legal disclaimer */}
-          <p className="text-[10px] text-muted-foreground/50 mb-8 animate-fade-in-up-delay-5">
-            Promedios reportados por usuarios activos. Resultados pueden variar.
-          </p>
         </div>
 
         {/* Business Types Carousel - CSS animation only */}
