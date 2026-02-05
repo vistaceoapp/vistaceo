@@ -139,12 +139,23 @@ serve(async (req) => {
         await triggerGitHubBuild(githubToken);
       }
 
+      // Submit to IndexNow for instant indexing
+      if (generateResult?.post?.slug) {
+        await submitToIndexNow(supabase, [generateResult.post.slug]);
+        // Also submit sitemap and homepage for re-crawl
+        await submitToIndexNow(supabase, [
+          'https://blog.vistaceo.com',
+          'https://blog.vistaceo.com/sitemap.xml'
+        ]);
+      }
+
       return new Response(
         JSON.stringify({ 
           success: true, 
           message: 'Post generated from pending topic',
           published: 1,
-          post: generateResult 
+          post: generateResult,
+          indexNow: true
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -229,13 +240,26 @@ serve(async (req) => {
       await triggerGitHubBuild(githubToken);
     }
 
+    // Submit to IndexNow for instant indexing across all search engines
+    if (generateResult?.post?.slug) {
+      await submitToIndexNow(supabase, [generateResult.post.slug]);
+      // Also submit sitemap and homepage for re-crawl
+      await submitToIndexNow(supabase, [
+        'https://blog.vistaceo.com',
+        'https://blog.vistaceo.com/sitemap.xml'
+      ]);
+    }
+    
+    // Ping Google & Bing sitemaps
+    await pingSitemaps();
+
     // Log the run
     await supabase.from('blog_runs').insert({
       result: 'success',
       chosen_plan_id: plan.id,
       chosen_topic_id: plan.topic_id,
       post_id: generateResult?.post?.id,
-      notes: `Auto-published on ${today}`
+      notes: `Auto-published on ${today} - IndexNow submitted`
     });
 
     return new Response(
@@ -243,7 +267,8 @@ serve(async (req) => {
         success: true, 
         message: 'Post published successfully',
         published: 1,
-        post: generateResult 
+        post: generateResult,
+        indexNow: true
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -319,5 +344,21 @@ async function submitToIndexNow(supabase: ReturnType<typeof createClient>, slugs
     }
   } catch (error) {
     console.error('[blog-daily-publish] IndexNow submit failed:', error);
+  }
+}
+
+// Ping Google and Bing sitemaps for faster crawling
+async function pingSitemaps() {
+  const sitemapUrl = 'https://blog.vistaceo.com/sitemap.xml';
+  const pingUrls = [
+    `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`,
+    `https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`,
+  ];
+  
+  try {
+    await Promise.allSettled(pingUrls.map(url => fetch(url)));
+    console.log('[blog-daily-publish] Sitemap ping sent to Google & Bing');
+  } catch (e) {
+    console.error('[blog-daily-publish] Sitemap ping failed:', e);
   }
 }
