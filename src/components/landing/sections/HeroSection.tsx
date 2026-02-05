@@ -201,9 +201,17 @@ export const HeroSection = memo(() => {
           </div>
           
           {/* Subtitle */}
-          <p className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed animate-fade-in-up-delay-3">
-            Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu negocio, servicio o profesión como un <span className="text-foreground font-semibold">cerebro estratégico</span> en tiempo real. Oportunidades, foco y <span className="text-foreground font-semibold">próximo paso exacto</span>. Un <span className="text-foreground font-semibold">CEO inteligente</span>, a bajo costo y <span className="text-foreground font-semibold">24/7</span>.
-          </p>
+          <div className="mb-6 max-w-2xl mx-auto animate-fade-in-up-delay-3">
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center">
+              Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu negocio, servicio o profesión como un <span className="text-foreground font-semibold">cerebro estratégico</span> en tiempo real.
+            </p>
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
+              Oportunidades, foco y <span className="text-foreground font-semibold">próximo paso exacto</span>.
+            </p>
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
+              Un <span className="text-foreground font-semibold">CEO inteligente</span>, a bajo costo y <span className="text-foreground font-semibold">24/7</span>.
+            </p>
+          </div>
           
           {/* CTA Button + Microcopy */}
           <div className="flex flex-col items-center gap-2 mb-8 animate-fade-in-up-delay-4">
