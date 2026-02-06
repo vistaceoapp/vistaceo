@@ -46,8 +46,18 @@ serve(async (req) => {
 
     // Trigger the GitHub Pages build for the Astro blog
     // Prefer GH_PAT (per project convention) and fall back to GITHUB_TOKEN if present.
-    const githubToken = Deno.env.get('GH_PAT') || Deno.env.get('GITHUB_TOKEN');
+    const ghPat = Deno.env.get('GH_PAT');
+    const githubTokenEnv = Deno.env.get('GITHUB_TOKEN');
+    const githubToken = ghPat || githubTokenEnv;
     const githubRepo = Deno.env.get('GITHUB_REPO') || 'vistaceoapp/vistaceo'; // owner/repo
+
+    const diagnostics = {
+      has_gh_pat: Boolean(ghPat && ghPat.length > 0),
+      has_github_token: Boolean(githubTokenEnv && githubTokenEnv.length > 0),
+      github_repo: githubRepo,
+    };
+
+    console.log('[trigger-site-deploy] Diagnostics:', diagnostics);
 
     if (githubToken && githubRepo) {
       console.log('[trigger-site-deploy] Triggering GitHub repository_dispatch...');
@@ -78,7 +88,7 @@ serve(async (req) => {
           success: true,
           message: 'Deploy triggered via repository_dispatch',
           deploy_log: deployLog,
-          github_repo: githubRepo,
+          diagnostics,
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
@@ -86,18 +96,29 @@ serve(async (req) => {
 
       const errorText = await workflowResponse.text();
       console.error('[trigger-site-deploy] GitHub API error:', workflowResponse.status, errorText);
+
+      return new Response(JSON.stringify({
+        success: false,
+        message: 'GitHub API call failed',
+        deploy_log: deployLog,
+        diagnostics,
+        github_status: workflowResponse.status,
+        github_error: errorText,
+      }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     // Fallback: Just log that deploy was requested
-    // In Lovable, deploys happen automatically when code is pushed
-    // So the SSG script running in postbuild will handle everything
     console.log('[trigger-site-deploy] No GitHub token configured - relying on auto-deploy');
-    
+
     return new Response(JSON.stringify({
       success: true,
       message: 'Deploy trigger logged. SSG will run on next deploy.',
       deploy_log: deployLog,
-      note: 'Configure GITHUB_TOKEN and GITHUB_REPO secrets to enable automatic GitHub Actions triggers'
+      diagnostics,
+      note: 'Configure GH_PAT or GITHUB_TOKEN (and optionally GITHUB_REPO) to enable automatic GitHub Actions triggers'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
