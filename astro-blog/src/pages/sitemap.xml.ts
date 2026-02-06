@@ -22,7 +22,8 @@ export const GET: APIRoute = async () => {
   // Cluster/Category hubs - high priority, change weekly
   for (const cluster of clusters) {
     urls.push({
-      loc: `${SITE_URL}/tema/${cluster.slug}`,
+      // Trailing slash is important for consistency with crawlers/Search Console
+      loc: `${SITE_URL}/tema/${cluster.slug}/`,
       lastmod: new Date().toISOString().split('T')[0],
       changefreq: 'weekly',
       priority: '0.9'
@@ -33,7 +34,8 @@ export const GET: APIRoute = async () => {
   for (const post of posts) {
     const lastmod = post.updated_at || post.publish_at || new Date().toISOString();
     const urlEntry: typeof urls[0] = {
-      loc: `${SITE_URL}/${post.slug}`,
+      // Trailing slash is important for consistency with crawlers/Search Console
+      loc: `${SITE_URL}/${post.slug}/`,
       lastmod: lastmod.split('T')[0],
       changefreq: 'monthly',
       priority: '0.8'
