@@ -22,9 +22,11 @@ const useReviewCount = () => {
   }, []);
 };
 
+// Dashboard route constant
+const DASHBOARD_ROUTE = "/app";
+
 const Auth = () => {
   const [searchParams] = useSearchParams();
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -35,6 +37,33 @@ const Auth = () => {
   const navigate = useNavigate();
   const reviewCount = useReviewCount();
   const isMobile = useIsMobile();
+
+  // Capture mode intent from URL (login or signup)
+  const modeParam = searchParams.get("mode");
+  
+  // Determine if returning user based on signals (no flicker - check sync)
+  const hasLoggedInBefore = useMemo(() => {
+    return localStorage.getItem("has_logged_in") === "true";
+  }, []);
+
+  // isLogin based on mode param or returning user signal
+  const isLogin = useMemo(() => {
+    if (modeParam === "signup") return false;
+    if (modeParam === "login") return true;
+    // Default: if returning user show login, else signup
+    return hasLoggedInBefore;
+  }, [modeParam, hasLoggedInBefore]);
+
+  // Welcome message: intelligent detection without flicker
+  const welcomeMessage = useMemo(() => {
+    // Priority 1: URL mode param
+    if (modeParam === "login") return "Bienvenido de vuelta";
+    if (modeParam === "signup") return "Bienvenido";
+    // Priority 2: localStorage signal
+    if (hasLoggedInBefore) return "Bienvenido de vuelta";
+    // Default for new users
+    return "Bienvenido";
+  }, [modeParam, hasLoggedInBefore]);
 
   // Capture plan intent from URL
   const planParam = searchParams.get("plan"); // pro_monthly or pro_yearly
@@ -63,6 +92,9 @@ const Auth = () => {
   const checkUserAndRedirect = async () => {
     if (!user) return;
     
+    // Mark that user has logged in for "Bienvenido de vuelta" logic
+    localStorage.setItem("has_logged_in", "true");
+    
     // Check if user has a business
     const { data: businesses } = await supabase
       .from("businesses")
@@ -71,7 +103,7 @@ const Auth = () => {
       .limit(1);
 
     if (businesses && businesses.length > 0 && businesses[0].setup_completed) {
-      navigate("/app", { replace: true });
+      navigate(DASHBOARD_ROUTE, { replace: true });
     } else {
       navigate("/setup", { replace: true });
     }
@@ -198,13 +230,10 @@ const Auth = () => {
               </Link>
               
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                {isLogin ? "Bienvenido de vuelta" : "Empezá gratis hoy"}
+                {welcomeMessage}
               </h1>
               <p className="text-muted-foreground mt-2 text-base sm:text-lg">
-                {isLogin 
-                  ? "Tu CEO digital te está esperando" 
-                  : "Tu CEO digital personal en 2 minutos"
-                }
+                Tu CEO digital te está esperando
               </p>
               
               {/* Plan badge if coming from pricing */}
@@ -352,7 +381,7 @@ const Auth = () => {
             <div className="text-center">
               <button
                 type="button"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => navigate(isLogin ? "/auth?mode=signup" : "/auth?mode=login", { replace: true })}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 {isLogin 
