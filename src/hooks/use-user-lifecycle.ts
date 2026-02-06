@@ -4,10 +4,10 @@
  * Provides the current user state, handles transitions, and triggers auto-repair.
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useBusiness } from '@/contexts/BusinessContext';
+import { BusinessContext } from '@/contexts/BusinessContext';
 import { useSubscription } from '@/hooks/use-subscription';
 import {
   UserState,
@@ -52,9 +52,17 @@ export interface UserLifecycleState {
 // HOOK
 // ============================================
 
+// Safe hook that doesn't throw if BusinessProvider is missing
+function useOptionalBusiness() {
+  const context = useContext(BusinessContext);
+  return context ?? { currentBusiness: null, businesses: [], loading: true, setCurrentBusiness: () => {}, refreshBusinesses: async () => {} };
+}
+
 export function useUserLifecycle(): UserLifecycleState {
   const { user, loading: authLoading } = useAuth();
-  const { currentBusiness, loading: businessLoading } = useBusiness();
+  const businessContext = useOptionalBusiness();
+  const currentBusiness = businessContext.currentBusiness;
+  const businessLoading = businessContext.loading;
   const { isPro, expiresAt, planId } = useSubscription();
 
   const [state, setState] = useState<UserState>('new_user');
