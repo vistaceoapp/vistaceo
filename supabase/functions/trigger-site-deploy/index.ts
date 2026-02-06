@@ -44,46 +44,48 @@ serve(async (req) => {
 
     console.log('[trigger-site-deploy] Deploy log:', deployLog);
 
-    // Check if we have GitHub token configured
-    const githubToken = Deno.env.get('GITHUB_TOKEN');
-    const githubRepo = Deno.env.get('GITHUB_REPO'); // format: owner/repo
-    
+    // Trigger the GitHub Pages build for the Astro blog
+    // Prefer GH_PAT (per project convention) and fall back to GITHUB_TOKEN if present.
+    const githubToken = Deno.env.get('GH_PAT') || Deno.env.get('GITHUB_TOKEN');
+    const githubRepo = Deno.env.get('GITHUB_REPO') || 'vistaceoapp/vistaceo'; // owner/repo
+
     if (githubToken && githubRepo) {
-      // Trigger GitHub Actions workflow dispatch
-      console.log('[trigger-site-deploy] Triggering GitHub Actions workflow...');
-      
+      console.log('[trigger-site-deploy] Triggering GitHub repository_dispatch...');
+
+      // This repo workflow listens to: repository_dispatch: types: [blog-post-published]
       const workflowResponse = await fetch(
-        `https://api.github.com/repos/${githubRepo}/actions/workflows/deploy.yml/dispatches`,
+        `https://api.github.com/repos/${githubRepo}/dispatches`,
         {
           method: 'POST',
           headers: {
-            'Accept': 'application/vnd.github.v3+json',
+            'Accept': 'application/vnd.github+json',
             'Authorization': `token ${githubToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            ref: 'main',
-            inputs: {
-              post_id: post_id || '',
-              trigger_reason: trigger_reason || 'blog_update'
-            }
-          })
+            event_type: 'blog-post-published',
+            client_payload: {
+              post_id: post_id || null,
+              trigger_reason: trigger_reason || 'manual',
+            },
+          }),
         }
       );
 
       if (workflowResponse.ok || workflowResponse.status === 204) {
-        console.log('[trigger-site-deploy] GitHub workflow triggered successfully');
+        console.log('[trigger-site-deploy] repository_dispatch sent successfully');
         return new Response(JSON.stringify({
           success: true,
-          message: 'Deploy triggered via GitHub Actions',
-          deploy_log: deployLog
+          message: 'Deploy triggered via repository_dispatch',
+          deploy_log: deployLog,
+          github_repo: githubRepo,
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
-      } else {
-        const errorText = await workflowResponse.text();
-        console.error('[trigger-site-deploy] GitHub API error:', workflowResponse.status, errorText);
       }
+
+      const errorText = await workflowResponse.text();
+      console.error('[trigger-site-deploy] GitHub API error:', workflowResponse.status, errorText);
     }
 
     // Fallback: Just log that deploy was requested
