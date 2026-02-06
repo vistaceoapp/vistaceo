@@ -1,15 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, Users, TrendingUp, ChevronDown } from "lucide-react";
+import { ArrowRight, Sparkles, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, useRef, useEffect, memo, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 // Business photos - ALL original images
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
@@ -24,6 +18,11 @@ import gimnasioImg from "@/assets/business-types/gimnasio.jpg";
 import peluqueriaImg from "@/assets/business-types/peluqueria.jpg";
 import hamburgueseriaImg from "@/assets/business-types/hamburgueseria.jpg";
 import spaImg from "@/assets/business-types/spa.jpg";
+
+// Reviewer photos
+import reviewer1 from "@/assets/reviewers/reviewer-1.jpg";
+import reviewer2 from "@/assets/reviewers/reviewer-2.jpg";
+import reviewer3 from "@/assets/reviewers/reviewer-3.jpg";
 
 // Shimmer button - pure CSS, no Framer Motion
 const ShimmerButton = memo(({ children, className, onClick, ariaLabel }: { 
@@ -85,66 +84,85 @@ const TypewriterText = memo(({ texts }: { texts: string[] }) => {
 });
 TypewriterText.displayName = "TypewriterText";
 
-// Animated counter - optimized
-const AnimatedCounter = memo(({ value, suffix = "" }: { value: number; suffix?: string }) => {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
-
-  useEffect(() => {
-    if (hasAnimated) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasAnimated(true);
-          const duration = 1500;
-          const steps = 40;
-          const increment = value / steps;
-          let current = 0;
-          const timer = setInterval(() => {
-            current += increment;
-            if (current >= value) {
-              setCount(value);
-              clearInterval(timer);
-            } else {
-              setCount(Math.floor(current));
-            }
-          }, duration / steps);
+// Google-style star rating component
+const GoogleStarRating = memo(({ rating, fillPercentage = 91 }: { rating: number; fillPercentage?: number }) => {
+  const fullStars = Math.floor(rating);
+  
+  return (
+    <div className="flex items-center gap-0.5">
+      {[...Array(5)].map((_, i) => {
+        if (i < fullStars) {
+          // Full star
+          return (
+            <svg key={i} className="w-5 h-5 text-[#FBBC04]" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+            </svg>
+          );
+        } else if (i === fullStars) {
+          // Partial star (last one ~90% filled)
+          return (
+            <div key={i} className="relative w-5 h-5">
+              <svg className="absolute inset-0 text-muted-foreground/30" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+              </svg>
+              <div className="absolute inset-0 overflow-hidden" style={{ width: `${fillPercentage}%` }}>
+                <svg className="w-5 h-5 text-[#FBBC04]" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                </svg>
+              </div>
+            </div>
+          );
+        } else {
+          // Empty star
+          return (
+            <svg key={i} className="w-5 h-5 text-muted-foreground/30" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+            </svg>
+          );
         }
-      },
-      { threshold: 0.5 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [value, hasAnimated]);
-
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+      })}
+    </div>
+  );
 });
-AnimatedCounter.displayName = "AnimatedCounter";
+GoogleStarRating.displayName = "GoogleStarRating";
 
-// Active users indicator with tooltip
-const ActiveUsersIndicator = memo(({ count }: { count: number }) => (
-  <TooltipProvider delayDuration={300}>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="inline-flex items-center gap-1.5 cursor-help">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
-          </span>
-          <span>{count} activos ahora</span>
-        </span>
-      </TooltipTrigger>
-      <TooltipContent 
-        side="bottom" 
-        className="text-xs"
-      >
-        Estimación basada en actividad reciente.
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
-));
-ActiveUsersIndicator.displayName = "ActiveUsersIndicator";
+// Verified reviews component
+const VerifiedReviews = memo(() => {
+  // Calculate reviews: starts at 2961 on 2026-02-06, +3 per week
+  const reviewCount = useMemo(() => {
+    const startDate = new Date('2026-02-06');
+    const now = new Date();
+    const weeksDiff = Math.floor((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    return 2961 + Math.max(0, weeksDiff * 3);
+  }, []);
+
+  const reviewers = [reviewer1, reviewer2, reviewer3];
+
+  return (
+    <div className="flex items-center justify-center gap-3 flex-wrap">
+      <GoogleStarRating rating={4.91} fillPercentage={91} />
+      <span className="text-lg font-bold text-foreground">4.91/5</span>
+      <div className="flex -space-x-2">
+        {reviewers.map((img, i) => (
+          <img
+            key={i}
+            src={img}
+            alt="Reviewer"
+            className="w-8 h-8 rounded-full border-2 border-background object-cover"
+            loading="lazy"
+          />
+        ))}
+        <div className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
+          +
+        </div>
+      </div>
+      <span className="text-sm text-muted-foreground">
+        ({reviewCount.toLocaleString()} Reseñas)
+      </span>
+    </div>
+  );
+});
+VerifiedReviews.displayName = "VerifiedReviews";
 
 // ALL 12 business types for carousel (original)
 const businessTypes = [
@@ -200,7 +218,7 @@ export const HeroSection = memo(() => {
             </div>
           </div>
           
-          {/* Subtitle */}
+          {/* Subtitle - Only 2 lines, removed "Tu CEO digital..." */}
           <div className="mb-6 max-w-2xl mx-auto animate-fade-in-up-delay-3">
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center">
               Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu negocio.
@@ -208,13 +226,10 @@ export const HeroSection = memo(() => {
             <p className="hidden sm:block text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
               Un <span className="text-foreground font-semibold">cerebro estratégico</span> e inteligente en tiempo real.
             </p>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
-              Tu <span className="text-foreground font-semibold">CEO digital</span>, a bajo costo y <span className="text-foreground font-semibold">24/7</span>.
-            </p>
           </div>
           
           {/* CTA Button + Microcopy */}
-          <div className="flex flex-col items-center gap-2 mb-8 animate-fade-in-up-delay-4">
+          <div className="flex flex-col items-center gap-3 mb-6 animate-fade-in-up-delay-4">
             <ShimmerButton
               className="px-10 py-4 text-base md:text-lg"
               onClick={() => navigate("/auth")}
@@ -228,25 +243,9 @@ export const HeroSection = memo(() => {
             </span>
           </div>
 
-          {/* Stats Row - Updated values */}
-          <div className="flex flex-wrap justify-center gap-6 md:gap-10 mb-2 animate-fade-in-up-delay-5">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-primary/70" aria-hidden="true" />
-              <span className="text-xl md:text-2xl font-bold text-foreground">
-                <AnimatedCounter value={5000} suffix="+" />
-              </span>
-              <span className="text-xs md:text-sm text-muted-foreground">negocios</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-primary/70" aria-hidden="true" />
-              <span className="text-xl md:text-2xl font-bold text-foreground">
-                +43%
-              </span>
-              <span className="text-xs md:text-sm text-muted-foreground">crecimiento promedio</span>
-            </div>
-            <div className="flex items-center gap-2 text-xl md:text-2xl font-bold text-foreground">
-              <ActiveUsersIndicator count={activeUsers} />
-            </div>
+          {/* Verified Reviews - Google-style stars */}
+          <div className="mb-6 animate-fade-in-up-delay-5">
+            <VerifiedReviews />
           </div>
         </div>
 
