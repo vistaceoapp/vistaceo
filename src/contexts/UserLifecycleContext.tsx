@@ -8,9 +8,15 @@
 import { createContext, useContext, ReactNode, useEffect, useCallback, useRef } from 'react';
 import { useUserLifecycle, UserLifecycleState } from '@/hooks/use-user-lifecycle';
 import { useAuth } from '@/contexts/AuthContext';
-import { useBusiness } from '@/contexts/BusinessContext';
+import { BusinessContext } from '@/contexts/BusinessContext';
 import { logger, eventBus } from '@/lib/user-lifecycle/observability';
 import { supabase } from '@/integrations/supabase/client';
+
+// Safe hook that doesn't throw if BusinessProvider is missing
+function useOptionalBusiness() {
+  const context = useContext(BusinessContext);
+  return context ?? { currentBusiness: null, businesses: [], loading: true, setCurrentBusiness: () => {}, refreshBusinesses: async () => {} };
+}
 
 // ============================================
 // CONTEXT
@@ -28,7 +34,7 @@ interface UserLifecycleProviderProps {
 
 export function UserLifecycleProvider({ children }: UserLifecycleProviderProps) {
   const { user } = useAuth();
-  const { currentBusiness } = useBusiness();
+  const { currentBusiness } = useOptionalBusiness();
   const lifecycle = useUserLifecycle();
   const lastStateRef = useRef<string | null>(null);
   const sessionStartRef = useRef<Date>(new Date());
@@ -179,7 +185,7 @@ export function useUserState() {
 export function useTrackAction() {
   const { state, canUsePro } = useUserLifecycleContext();
   const { user } = useAuth();
-  const { currentBusiness } = useBusiness();
+  const { currentBusiness } = useOptionalBusiness();
 
   return useCallback((actionType: string, data?: Record<string, any>) => {
     eventBus.emit({
