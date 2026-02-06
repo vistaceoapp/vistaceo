@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useBusiness } from "@/contexts/BusinessContext";
+import { useMemo, useContext } from "react";
+import { BusinessContext } from "@/contexts/BusinessContext";
 
 interface SubscriptionState {
   isPro: boolean;
@@ -11,8 +11,14 @@ interface SubscriptionState {
   lastPaymentAt: Date | null;
 }
 
+// Safe hook that doesn't throw if BusinessProvider is missing
+function useOptionalBusiness() {
+  const context = useContext(BusinessContext);
+  return context ?? { currentBusiness: null, businesses: [], loading: true, setCurrentBusiness: () => {}, refreshBusinesses: async () => {} };
+}
+
 export const useSubscription = (): SubscriptionState => {
-  const { currentBusiness } = useBusiness();
+  const { currentBusiness } = useOptionalBusiness();
 
   return useMemo(() => {
     if (!currentBusiness) {
