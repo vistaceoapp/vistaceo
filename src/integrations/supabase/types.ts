@@ -1481,6 +1481,53 @@ export type Database = {
           },
         ]
       }
+      email_events: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          provider_message_id: string | null
+          sent_at: string | null
+          status: string
+          template_key: string
+          user_id: string
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          template_key: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          template_key?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_events_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entity_mentions: {
         Row: {
           business_id: string

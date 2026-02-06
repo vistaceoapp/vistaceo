@@ -191,3 +191,27 @@ verify_jwt = false
 
 [functions.track-analytics]
 verify_jwt = false
+
+[functions.send-email-activated]
+verify_jwt = false
+
+[functions.send-email-setup-reminder]
+verify_jwt = false
+
+[functions.send-email-pro-activated]
+verify_jwt = false
+
+[functions.backfill-blog-images]
+verify_jwt = false
+
+[functions.backfill-content-structure]
+verify_jwt = false
+
+[functions.backfill-seo-posts]
+verify_jwt = false
+
+[functions.google-sync-public-reviews]
+verify_jwt = false
+
+[functions.audit-user-state]
+verify_jwt = false

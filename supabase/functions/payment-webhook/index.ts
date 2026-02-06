@@ -340,6 +340,47 @@ async function createSubscription(
     });
 
     console.log(`[Webhook] Subscription complete for business ${targetBusinessId} until ${expiresAt.toISOString()}`);
+
+    // Send Pro Activated email
+    try {
+      // Get user profile for email details
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", userId)
+        .single();
+
+      // Get business setup status
+      const { data: businessData } = await supabase
+        .from("businesses")
+        .select("setup_completed")
+        .eq("id", targetBusinessId)
+        .single();
+
+      if (profile?.email) {
+        const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+        const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
+
+        await fetch(`${SUPABASE_URL}/functions/v1/send-email-pro-activated`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            userId,
+            email: profile.email,
+            fullName: profile.full_name || "",
+            businessId: targetBusinessId,
+            planId,
+            setupCompleted: businessData?.setup_completed || false,
+          }),
+        });
+        console.log("[Webhook] Pro activated email triggered");
+      }
+    } catch (emailError) {
+      console.error("[Webhook] Failed to send Pro email (non-blocking):", emailError);
+    }
   } else {
     // No business yet - store pending upgrade for when they complete setup
     console.log(`[Webhook] User ${userId} paid for Pro but has no business yet.`);
