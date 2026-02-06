@@ -15,6 +15,12 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
+function withTrailingSlash(url: string): string {
+  // Keep query/hash intact if ever present.
+  const [base, rest] = url.split(/(?=[?#])/);
+  return base.endsWith('/') ? url : `${base}/${rest ?? ''}`;
+}
+
 async function generateSitemapXml(): Promise<string> {
   const posts = await getAllPublishedPosts();
   const clusters = getAllClusters();
@@ -30,7 +36,7 @@ async function generateSitemapXml(): Promise<string> {
   const today = new Date().toISOString().split('T')[0];
 
   urls.push({
-    loc: `${SITE_URL}/`,
+    loc: withTrailingSlash(`${SITE_URL}/`),
     lastmod: today,
     changefreq: 'daily',
     priority: '1.0',
@@ -38,7 +44,7 @@ async function generateSitemapXml(): Promise<string> {
 
   for (const cluster of clusters) {
     urls.push({
-      loc: `${SITE_URL}/tema/${cluster.slug}/`,
+      loc: withTrailingSlash(`${SITE_URL}/tema/${cluster.slug}/`),
       lastmod: today,
       changefreq: 'weekly',
       priority: '0.9',
@@ -49,7 +55,7 @@ async function generateSitemapXml(): Promise<string> {
     const lastmod = (post.updated_at || post.publish_at || new Date().toISOString()).split('T')[0];
 
     const entry: typeof urls[number] = {
-      loc: `${SITE_URL}/${post.slug}/`,
+      loc: withTrailingSlash(`${SITE_URL}/${post.slug}/`),
       lastmod,
       changefreq: 'monthly',
       priority: '0.8',
@@ -65,7 +71,8 @@ async function generateSitemapXml(): Promise<string> {
     urls.push(entry);
   }
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n` +
+  return (
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n` +
     `        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"\n` +
     `        xmlns:xhtml="http://www.w3.org/1999/xhtml"\n` +
@@ -76,28 +83,48 @@ async function generateSitemapXml(): Promise<string> {
           ? `\n    <image:image>\n      <image:loc>${escapeXml(url.image.loc)}</image:loc>\n      <image:title>${escapeXml(url.image.title)}</image:title>\n    </image:image>`
           : '';
 
-        return `  <url>\n` +
+        return (
+          `  <url>\n` +
           `    <loc>${escapeXml(url.loc)}</loc>\n` +
           `    <lastmod>${escapeXml(url.lastmod)}</lastmod>\n` +
           `    <changefreq>${escapeXml(url.changefreq)}</changefreq>\n` +
           `    <priority>${escapeXml(url.priority)}</priority>` +
           `${imageBlock}\n` +
-          `  </url>`;
+          `  </url>`
+        );
       })
       .join('\n') +
-    `\n</urlset>`;
+    `\n</urlset>`
+  );
 }
 
 function generateRobotsTxt(): string {
   const today = new Date().toISOString().split('T')[0];
-  return `# VistaCEO Blog - robots.txt\n` +
+  return (
+    `# VistaCEO Blog - robots.txt\n` +
     `# ${SITE_URL}\n` +
     `# Last updated: ${today}\n\n` +
     `User-agent: *\n` +
     `Allow: /\n` +
     `Disallow: /api/\n` +
     `Disallow: /admin/\n\n` +
-    `Sitemap: ${SITE_URL}/sitemap.xml\n`;
+    `Sitemap: ${SITE_URL}/sitemap.xml\n`
+  );
+}
+
+async function ensureFileNotDirectory(outDir: string, fileName: string) {
+  // GitHub Pages + Astro directory format can leave a directory like:
+  // dist/sitemap.xml/index.html (served as HTML). If that directory exists,
+  // it will shadow dist/sitemap.xml (the file). So we remove the dir first.
+  const asDir = path.join(outDir, fileName);
+  try {
+    const stat = await fs.stat(asDir);
+    if (stat.isDirectory()) {
+      await fs.rm(asDir, { recursive: true, force: true });
+    }
+  } catch {
+    // does not exist → ok
+  }
 }
 
 export default function seoFiles(): AstroIntegration {
@@ -111,6 +138,11 @@ export default function seoFiles(): AstroIntegration {
           const [sitemapXml, robotsTxt] = await Promise.all([
             generateSitemapXml(),
             Promise.resolve(generateRobotsTxt()),
+          ]);
+
+          await Promise.all([
+            ensureFileNotDirectory(outDir, 'sitemap.xml'),
+            ensureFileNotDirectory(outDir, 'robots.txt'),
           ]);
 
           await fs.writeFile(path.join(outDir, 'sitemap.xml'), sitemapXml, 'utf8');
