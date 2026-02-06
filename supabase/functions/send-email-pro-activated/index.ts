@@ -34,7 +34,7 @@ const BRAND = {
   textSecondary: "rgba(255,255,255,0.82)",
   textMuted: "rgba(255,255,255,0.62)",
   // Email-safe hosted assets (absolute URLs required for email clients)
-  logoUrl: "https://nlewrgmcawzcdazhfiyy.supabase.co/storage/v1/object/public/email-assets/vistaceo-logo-white.png?v=2",
+  logoUrl: "https://nlewrgmcawzcdazhfiyy.supabase.co/storage/v1/object/public/email-assets/vistaceo-logo-white.png?v=3",
 };
 
 function generateProActivatedEmail(
@@ -100,21 +100,16 @@ function generateProActivatedEmail(
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: ${BRAND.backgroundDark};">
     <tr>
-      <td align="center" style="padding: 40px 16px;">
-        <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: ${BRAND.cardDark}; border-radius: 20px; border: 1px solid ${BRAND.borderGold}; overflow: hidden; box-shadow: 0 0 60px rgba(245,158,11,0.15);">
+      <td align="center" style="padding: 40px 0;">
+        <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" align="center"><tr><td><![endif]-->
+        <table role="presentation" class="container" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: ${BRAND.cardDark}; border-radius: 20px; border: 1px solid ${BRAND.borderGold}; overflow: hidden; box-shadow: 0 0 60px rgba(245,158,11,0.15);">
           
           <!-- Header with Logo + Pro Badge -->
           <tr>
-            <td align="center" style="padding: 32px 40px 24px; border-bottom: 1px solid ${BRAND.borderColor}; background: linear-gradient(180deg, rgba(245,158,11,0.08), transparent);">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 0 auto;">
-                <tr>
-                  <td align="center">
-                    <a href="https://vistaceo.com" target="_blank" style="text-decoration: none; display: block;">
-                      <img src="${BRAND.logoUrl}" alt="VistaCEO® Latinoamérica" width="180" style="width: 180px; max-width: 180px; height: auto; display: block; margin: 0 auto;" />
-                    </a>
-                  </td>
-                </tr>
-              </table>
+            <td align="center" style="padding: 32px 20px 24px; border-bottom: 1px solid ${BRAND.borderColor}; background: linear-gradient(180deg, rgba(245,158,11,0.08), transparent);">
+              <a href="https://vistaceo.com" target="_blank" style="text-decoration: none; display: inline-block;">
+                <img src="${BRAND.logoUrl}" alt="VistaCEO® Latinoamérica" width="180" style="width: 180px; max-width: 180px; height: auto; display: block;" />
+              </a>
               <div class="pro-badge" style="display: inline-block; margin-top: 16px; background: linear-gradient(135deg, ${BRAND.goldAccent}, ${BRAND.goldLight}); color: #000; font-size: 12px; font-weight: 700; padding: 6px 16px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px;">
                 👑 PRO ACTIVADO
               </div>
@@ -270,7 +265,7 @@ function generateProActivatedEmail(
 
           <!-- Footer -->
           <tr>
-            <td style="padding: 24px 40px; background: linear-gradient(180deg, transparent, rgba(245,158,11,0.05)); border-top: 1px solid ${BRAND.borderColor};">
+            <td style="padding: 24px 20px; background: linear-gradient(180deg, transparent, rgba(245,158,11,0.05)); border-top: 1px solid ${BRAND.borderColor};">
               <p style="margin: 0 0 8px; font-size: 14px; color: ${BRAND.textSecondary}; text-align: center;">
                 ¿Tenés dudas sobre tu plan Pro? Respondé este email.
               </p>
@@ -284,6 +279,7 @@ function generateProActivatedEmail(
           </tr>
 
         </table>
+        <!--[if mso]></td></tr></table><![endif]-->
       </td>
     </tr>
   </table>
