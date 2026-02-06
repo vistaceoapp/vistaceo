@@ -232,7 +232,7 @@ export const HeroSection = memo(() => {
           <div className="flex flex-col items-center gap-3 mb-6 animate-fade-in-up-delay-4">
             <ShimmerButton
               className="px-10 py-4 text-base md:text-lg"
-              onClick={() => navigate("/auth?mode=signup")}
+              onClick={() => navigate("/auth")}
               ariaLabel="Empezar gratis con VistaCEO"
             >
               Empezar gratis
