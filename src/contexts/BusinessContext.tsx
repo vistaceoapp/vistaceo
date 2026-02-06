@@ -41,7 +41,7 @@ interface BusinessContextType {
   refreshBusinesses: () => Promise<void>;
 }
 
-const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
+export const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
 
 export const BusinessProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
