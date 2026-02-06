@@ -10,9 +10,12 @@ import { slugify } from './text';
  */
 export function parseMarkdown(content: string): string {
   if (!content) return '';
-  
-  let html = content;
-  
+
+  // ===== SANITIZE BROKEN GENERATOR ARTIFACTS =====
+  // Fix rare cases where an inline image line gets polluted with encoded HTML like "%3Ca href="
+  // and the real image URL appears after the closing ")".
+  let html = sanitizeBrokenImageMarkdown(content);
+
   // ===== PROTECT EXISTING HTML =====
   // Extract and protect any existing HTML links/elements
   const htmlProtected: string[] = [];
@@ -487,4 +490,43 @@ function escapeHtml(text: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function extractFirstLikelyImageUrl(text: string): string | null {
+  const candidates = text.match(/https?:\/\/[^\s"')>]+/g) || [];
+  for (const url of candidates) {
+    // Prefer our storage images
+    if (url.includes('/storage/v1/object/public/blog-images/')) return url;
+  }
+  for (const url of candidates) {
+    if (/\.(png|jpe?g|webp)(\?.*)?$/i.test(url)) return url;
+  }
+  return null;
+}
+
+function sanitizeBrokenImageMarkdown(md: string): string {
+  // Handles lines like:
+  // ![](https://blog.../%3Ca%20href=)https://.../storage/...png" alt="..." ...
+  return md.replace(/^!\[([^\]]*)\]\(([^)]*)\)(.*)$/gm, (full, altRaw, srcRaw, tail) => {
+    const altFromAttr = (tail.match(/alt="([^"]+)"/) || [])[1];
+    const alt = (altFromAttr || altRaw || '').trim();
+
+    const src = String(srcRaw || '').trim();
+    const tailImg = extractFirstLikelyImageUrl(tail);
+
+    const srcLooksBroken = /%3c/i.test(src) || /<\s*a\b/i.test(src) || src.includes('%3Ca%20href=');
+
+    // If we detect pollution, but we can recover a real URL from the tail, rebuild the image markdown cleanly.
+    if (srcLooksBroken && tailImg) {
+      return `![${alt}](${tailImg})`;
+    }
+
+    // If the src itself is fine, keep it (but strip any polluted tail that would render as text)
+    if (!srcLooksBroken && /^https?:\/\//i.test(src)) {
+      return `![${alt}](${src})`;
+    }
+
+    // If we can't safely recover, drop the line to avoid rendering broken HTML/text.
+    return '';
+  });
 }

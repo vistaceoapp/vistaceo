@@ -258,7 +258,7 @@ async function generateAndPublishPost(
       // Verify hero image exists
       const { data: savedPost } = await supabase
         .from('blog_posts')
-        .select('id, slug, hero_image_url')
+        .select('id, slug, hero_image_url, content_md, title')
         .eq('slug', generateResult.post.slug)
         .maybeSingle();
 
@@ -269,6 +269,17 @@ async function generateAndPublishPost(
           .update({ status: 'draft' })
           .eq('slug', generateResult.post.slug);
         return { success: false, error: 'Hero image missing' };
+      }
+
+      // ===== QUALITY AUDIT (BLOCK PUBLISH IF BROKEN) =====
+      const qualityIssues = auditPostMarkdown(savedPost?.content_md || '');
+      if (qualityIssues.length > 0) {
+        console.error('[blog-daily-publish] Quality audit failed:', qualityIssues);
+        await supabase
+          .from('blog_posts')
+          .update({ status: 'draft', quality_gate_report: { blocked: true, issues: qualityIssues } })
+          .eq('slug', generateResult.post.slug);
+        return { success: false, error: `Quality audit failed: ${qualityIssues.join(' | ')}` };
       }
 
       // Submit to IndexNow
@@ -355,4 +366,37 @@ async function pingSitemaps() {
   } catch (e) {
     console.error('[blog-daily-publish] Sitemap ping failed:', e);
   }
+}
+
+function auditPostMarkdown(contentMd: string): string[] {
+  const issues: string[] = [];
+  const md = contentMd || '';
+
+  // 1) Encoded/inline HTML pollution that breaks images into visible garbage
+  if (/%3c\s*a/i.test(md) || md.includes('%3Ca%20href=')) {
+    issues.push('encoded_html_in_markdown');
+  }
+  if (/nlewrgmcawzcdazhfiyy\.supabase\.co\/st\.\.\./i.test(md)) {
+    issues.push('truncated_storage_url');
+  }
+  if (/loading\s*=\s*"lazy"\s+class\s*=\s*"content-image"/i.test(md)) {
+    issues.push('raw_img_attributes_leaked');
+  }
+  if (/<img\s+[^>]*class\s*=\s*"content-image"/i.test(md)) {
+    issues.push('raw_img_tag_in_markdown');
+  }
+
+  // 2) Unbalanced markdown fences often cause rendering cascade failures
+  const fenceCount = (md.match(/```/g) || []).length;
+  if (fenceCount % 2 !== 0) {
+    issues.push('unbalanced_code_fences');
+  }
+
+  // 3) Basic checklist presence when the template expects it (soft check)
+  const hasChecklist = /\n-\s*\[\s*[xX]?\s*\]\s+/m.test(md) || /\n(□|☐|☑|✓)\s+/m.test(md);
+  if (!hasChecklist) {
+    issues.push('missing_checklist_syntax');
+  }
+
+  return issues;
 }
