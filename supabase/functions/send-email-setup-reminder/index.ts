@@ -19,7 +19,7 @@ interface SetupReminderRequest {
 // VistaCEO Premium Design System
 const BRAND = {
   gradientStart: "#298FDA",
-  gradientMid: "#3B79D9", 
+  gradientMid: "#3B79D9",
   gradientEnd: "#5D73E1",
   backgroundDark: "#0B0F17",
   cardDark: "#0F1624",
@@ -28,7 +28,8 @@ const BRAND = {
   textSecondary: "rgba(255,255,255,0.82)",
   textMuted: "rgba(255,255,255,0.62)",
   warningAccent: "#F59E0B",
-  logoUrl: "https://nlewrgmcawzcdazhfiyy.supabase.co/storage/v1/object/public/email-assets/vistaceo-logo.png?v=1",
+  // Email-safe hosted assets (absolute URLs required for email clients)
+  logoUrl: "https://nlewrgmcawzcdazhfiyy.supabase.co/storage/v1/object/public/email-assets/vistaceo-logo-white.png?v=2",
 };
 
 function generateSetupReminderEmail(
@@ -60,12 +61,12 @@ function generateSetupReminderEmail(
   <![endif]-->
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    
+
     body { margin: 0; padding: 0; background-color: ${BRAND.backgroundDark}; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     table { border-spacing: 0; }
     td { padding: 0; }
-    img { border: 0; display: block; }
-    
+    img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; display: block; }
+
     @media only screen and (max-width: 600px) {
       .container { width: 100% !important; padding: 16px !important; }
       .content { padding: 24px 20px !important; }
@@ -89,9 +90,15 @@ function generateSetupReminderEmail(
           <!-- Header with Logo -->
           <tr>
             <td align="center" style="padding: 32px 40px 24px; border-bottom: 1px solid ${BRAND.borderColor};">
-              <a href="https://vistaceo.com" target="_blank" style="text-decoration: none;">
-                <img src="${BRAND.logoUrl}" alt="VistaCEO® Latinoamérica" width="180" height="auto" style="display: block; max-width: 180px; height: auto;" />
-              </a>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 0 auto;">
+                <tr>
+                  <td align="center">
+                    <a href="https://vistaceo.com" target="_blank" style="text-decoration: none; display: block;">
+                      <img src="${BRAND.logoUrl}" alt="VistaCEO® Latinoamérica" width="180" style="width: 180px; max-width: 180px; height: auto; display: block; margin: 0 auto;" />
+                    </a>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
@@ -281,7 +288,7 @@ async function sendReminderToUser(
     from: "VistaCEO® Latinoamérica <info@vistaceo.com>",
     replyTo: "info@vistaceo.com",
     to: [email],
-    subject: "Tu cuenta en VistaCEO® está casi lista...falta calibrar tu contexto.",
+    subject: "Tu cuenta está casi lista ⚠️ …falta calibrar tu contexto.",
     html,
     text,
   });
