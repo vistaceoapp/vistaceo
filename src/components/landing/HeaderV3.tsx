@@ -107,7 +107,7 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/auth?mode=login")}
               className="hidden sm:flex text-sm"
             >
               Iniciar sesión
@@ -116,7 +116,7 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
             <Button
               size="sm"
               className="gradient-primary text-primary-foreground rounded-full px-4 sm:px-5 font-medium shadow-lg shadow-primary/20 text-sm"
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/auth?mode=signup")}
             >
               <span className="hidden xs:inline">Empezar</span> gratis
               <ArrowRight className="w-4 h-4 ml-1" />
@@ -154,7 +154,7 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
                 className="w-full justify-center"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  navigate("/auth");
+                  navigate("/auth?mode=login");
                 }}
               >
                 Iniciar sesión
