@@ -173,7 +173,7 @@ export const Footer = () => {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} vistaceo. Todos los derechos reservados.
+            © 2026 vistaceo. Todos los derechos reservados.
           </p>
           <div className="flex items-center gap-6">
             <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">

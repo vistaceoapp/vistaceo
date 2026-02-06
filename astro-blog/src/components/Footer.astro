@@ -2,168 +2,75 @@
 import { getAllClusters } from '../lib/clusters';
 
 const clusters = getAllClusters();
-const currentYear = new Date().getFullYear();
 const MAIN_SITE = 'https://www.vistaceo.com';
-
-const countries = [
-  { code: 'AR', name: 'Argentina' },
-  { code: 'CL', name: 'Chile' },
-  { code: 'CO', name: 'Colombia' },
-  { code: 'CR', name: 'Costa Rica' },
-  { code: 'EC', name: 'Ecuador' },
-  { code: 'MX', name: 'México' },
-  { code: 'PA', name: 'Panamá' },
-  { code: 'PY', name: 'Paraguay' },
-  { code: 'UY', name: 'Uruguay' },
-];
 
 const footerLinks = {
   producto: [
     { label: 'Características', href: `${MAIN_SITE}/#características` },
     { label: 'Precios', href: `${MAIN_SITE}/#precios` },
-    { label: 'FAQ', href: `${MAIN_SITE}/#faq` },
     { label: 'Blog', href: '/' },
   ],
-  empresa: [
-    { label: 'Sobre nosotros', href: MAIN_SITE },
-    { label: 'Contacto', href: 'mailto:info@vistaceo.com' },
-  ],
+  temas: clusters.slice(0, 5).map(c => ({ label: c.name, href: `/tema/${c.slug}` })),
   legal: [
-    { label: 'Política de Privacidad', href: `${MAIN_SITE}/politicas` },
-    { label: 'Condiciones del Servicio', href: `${MAIN_SITE}/condiciones` },
-  ],
-  recursos: [
-    { label: 'RSS Feed', href: '/rss.xml' },
-    { label: 'Sitemap', href: '/sitemap.xml' },
+    { label: 'Privacidad', href: `${MAIN_SITE}/politicas` },
+    { label: 'Términos', href: `${MAIN_SITE}/condiciones` },
   ],
 };
 ---
 
 <footer class="site-footer">
   <div class="footer-container">
-    <div class="footer-grid">
-      <!-- Brand Column -->
+    <div class="footer-main">
+      <!-- Brand -->
       <div class="footer-brand">
         <a href={MAIN_SITE} class="footer-logo">
           <img src="/logo-light-full.png" alt="VistaCEO" class="logo-light" />
           <img src="/logo-dark-full.png" alt="VistaCEO" class="logo-dark" style="display: none;" />
         </a>
         <p class="footer-tagline">
-          Tu CEO digital con IA. Una acción por día, resultados que importan.
+          Inteligencia artificial para escalar tu negocio.
         </p>
-        
-        <!-- Countries -->
-        <div class="footer-countries">
-          <div class="countries-label">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="2" y1="12" x2="22" y2="12"/>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-            <span>Disponible en:</span>
-          </div>
-          <div class="countries-list">
-            {countries.map((country) => (
-              <span class="country-tag">{country.code}</span>
+      </div>
+      
+      <!-- Links -->
+      <div class="footer-links-row">
+        <div class="footer-links">
+          <h4>Producto</h4>
+          <ul>
+            {footerLinks.producto.map((link) => (
+              <li><a href={link.href}>{link.label}</a></li>
             ))}
-          </div>
+          </ul>
         </div>
         
-        <a href={`${MAIN_SITE}/auth`} class="footer-cta">
-          Empezar gratis
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </a>
-      </div>
-      
-      <!-- Producto -->
-      <div class="footer-links">
-        <h4>Producto</h4>
-        <ul>
-          {footerLinks.producto.map((link) => (
-            <li>
-              <a href={link.href}>{link.label}</a>
-            </li>
-          ))}
-        </ul>
-      </div>
-      
-      <!-- Temas (first 6 clusters) -->
-      <div class="footer-links">
-        <h4>Temas</h4>
-        <ul>
-          {clusters.slice(0, 6).map((cluster) => (
-            <li>
-              <a href={`/tema/${cluster.slug}`}>
-                {cluster.emoji} {cluster.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-      
-      <!-- Más Temas -->
-      <div class="footer-links">
-        <h4>Más Temas</h4>
-        <ul>
-          {clusters.slice(6).map((cluster) => (
-            <li>
-              <a href={`/tema/${cluster.slug}`}>
-                {cluster.emoji} {cluster.name}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-      
-      <!-- Legal & Recursos -->
-      <div class="footer-links">
-        <h4>Legal</h4>
-        <ul>
-          {footerLinks.legal.map((link) => (
-            <li>
-              <a href={link.href}>{link.label}</a>
-            </li>
-          ))}
-        </ul>
-        <h4 style="margin-top: 1.5rem;">Recursos</h4>
-        <ul>
-          {footerLinks.recursos.map((link) => (
-            <li>
-              <a href={link.href}>{link.label}</a>
-            </li>
-          ))}
-        </ul>
+        <div class="footer-links">
+          <h4>Temas</h4>
+          <ul>
+            {footerLinks.temas.map((link) => (
+              <li><a href={link.href}>{link.label}</a></li>
+            ))}
+          </ul>
+        </div>
+        
+        <div class="footer-links">
+          <h4>Legal</h4>
+          <ul>
+            {footerLinks.legal.map((link) => (
+              <li><a href={link.href}>{link.label}</a></li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
     
     <!-- Bottom Bar -->
     <div class="footer-bottom">
-      <p>© {currentYear} VistaCEO. Todos los derechos reservados.</p>
-      <div class="footer-social">
-        <a href="https://twitter.com/vistaceo" target="_blank" rel="noopener" aria-label="Twitter">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-          </svg>
-        </a>
-        <a href="https://linkedin.com/company/vistaceo" target="_blank" rel="noopener" aria-label="LinkedIn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-          </svg>
-        </a>
-        <a href="https://instagram.com/vistaceo" target="_blank" rel="noopener" aria-label="Instagram">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-          </svg>
-        </a>
-      </div>
+      <p>© 2026 VistaCEO. Todos los derechos reservados.</p>
     </div>
   </div>
 </footer>
 
 <script>
-  // Update footer logos based on theme
   function updateFooterLogos() {
     const isDark = document.documentElement.classList.contains('dark');
     const lightLogos = document.querySelectorAll('.site-footer .logo-light') as NodeListOf<HTMLElement>;
@@ -173,10 +80,8 @@ const footerLinks = {
     darkLogos.forEach(logo => logo.style.display = isDark ? 'block' : 'none');
   }
   
-  // Initial update
   updateFooterLogos();
   
-  // Watch for theme changes
   const observer = new MutationObserver(updateFooterLogos);
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 </script>
@@ -185,108 +90,63 @@ const footerLinks = {
   .site-footer {
     background: var(--card);
     border-top: 1px solid var(--border);
-    padding: 4rem 0 2rem;
-    margin-top: 4rem;
+    padding: 2rem 0 1.5rem;
+    margin-top: 3rem;
   }
   
   .footer-container {
-    max-width: 1280px;
+    max-width: 1100px;
     margin: 0 auto;
     padding: 0 1.5rem;
   }
   
-  .footer-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
+  .footer-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
   }
   
   @media (min-width: 768px) {
-    .footer-grid {
-      grid-template-columns: 2fr repeat(4, 1fr);
+    .footer-main {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
     }
   }
   
-  /* Brand */
   .footer-brand {
-    max-width: 320px;
+    max-width: 280px;
   }
   
   .footer-logo {
     display: inline-flex;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     text-decoration: none;
   }
   
   .footer-logo img {
-    height: 28px;
+    height: 24px;
     width: auto;
   }
   
   .footer-tagline {
     color: var(--foreground-muted);
-    font-size: 0.9rem;
-    line-height: 1.6;
-    margin-bottom: 1.25rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin: 0;
   }
   
-  .footer-countries {
-    margin-bottom: 1.5rem;
-  }
-  
-  .countries-label {
+  .footer-links-row {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    color: var(--foreground-muted);
-    margin-bottom: 0.5rem;
+    gap: 3rem;
   }
   
-  .countries-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  
-  .country-tag {
-    font-size: 0.75rem;
-    color: var(--foreground-muted);
-    transition: color 0.15s;
-    cursor: default;
-  }
-  
-  .country-tag:hover {
-    color: var(--primary);
-  }
-  
-  .footer-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1.25rem;
-    background: linear-gradient(135deg, #2692DC, #746CE6);
-    color: white;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-decoration: none;
-    border-radius: 0.75rem;
-    transition: all 0.15s;
-  }
-  
-  .footer-cta:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(38, 146, 220, 0.3);
-    color: white;
-  }
-  
-  /* Links */
   .footer-links h4 {
-    font-size: 0.8rem;
-    font-weight: 700;
+    font-size: 0.75rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     color: var(--foreground);
   }
   
@@ -297,12 +157,12 @@ const footerLinks = {
   }
   
   .footer-links li {
-    margin-bottom: 0.625rem;
+    margin-bottom: 0.5rem;
   }
   
   .footer-links a {
     color: var(--foreground-muted);
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     text-decoration: none;
     transition: color 0.15s;
   }
@@ -311,43 +171,16 @@ const footerLinks = {
     color: var(--primary);
   }
   
-  /* Bottom */
   .footer-bottom {
-    margin-top: 3rem;
-    padding-top: 2rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
     border-top: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
     text-align: center;
-  }
-  
-  @media (min-width: 640px) {
-    .footer-bottom {
-      flex-direction: row;
-      justify-content: space-between;
-      text-align: left;
-    }
   }
   
   .footer-bottom p {
     color: var(--muted-foreground);
-    font-size: 0.875rem;
-  }
-  
-  .footer-social {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  
-  .footer-social a {
-    color: var(--foreground-muted);
-    transition: color 0.15s;
-  }
-  
-  .footer-social a:hover {
-    color: var(--primary);
+    font-size: 0.8rem;
+    margin: 0;
   }
 </style>
