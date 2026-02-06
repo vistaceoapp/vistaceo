@@ -624,7 +624,7 @@ function getSectorTerms(sector: string): string[] {
   return terms[sector] || [];
 }
 
-function generateConceptHash(title: string, description: string): string {
+export function generateConceptHash(title: string, description: string): string {
   const normalize = (s: string) => s.toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -643,13 +643,14 @@ function generateConceptHash(title: string, description: string): string {
   return `ch_${keywords.slice(0, 64)}`;
 }
 
-function generateIntentSignature(title: string, description: string): string {
+export function generateIntentSignature(title: string, description: string, category?: string): string {
   const text = `${title} ${description}`.toLowerCase();
   
   let domain = 'operations';
   if (text.includes('venta') || text.includes('revenue')) domain = 'sales';
   if (text.includes('market') || text.includes('instagram')) domain = 'marketing';
   if (text.includes('reseña') || text.includes('review')) domain = 'reputation';
+  if (category) domain = category;
   
   let action = 'improve';
   if (text.includes('crear') || text.includes('lanzar')) action = 'create';

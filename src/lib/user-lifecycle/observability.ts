@@ -118,6 +118,31 @@ class EventBus {
 
 export const eventBus = new EventBus();
 
+// Convenience wrapper for simple event emission
+export function emitEvent(event: {
+  type: string;
+  contentType?: string;
+  contentId?: string;
+  reason?: string;
+  details?: unknown;
+  stats?: unknown;
+  error?: string;
+}): void {
+  eventBus.emit({
+    category: 'audit',
+    severity: event.error ? 'error' : 'info',
+    action: event.type,
+    payload: {
+      contentType: event.contentType,
+      contentId: event.contentId,
+      reason: event.reason,
+      details: event.details,
+      stats: event.stats,
+    },
+    error: event.error ? { code: 'AUDIT_ERROR', message: event.error } : undefined,
+  });
+}
+
 // ============================================
 // CONVENIENCE LOGGERS
 // ============================================

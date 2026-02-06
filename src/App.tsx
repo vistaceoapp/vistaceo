@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BusinessProvider, useBusiness } from "@/contexts/BusinessContext";
+import { UserLifecycleProvider } from "@/contexts/UserLifecycleContext";
 
 // Pages
 import Index from "./pages/Index";
@@ -190,7 +191,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <AppRoutes />
+            <UserLifecycleProvider>
+              <AppRoutes />
+            </UserLifecycleProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
