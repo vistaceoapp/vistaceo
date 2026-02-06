@@ -17,7 +17,7 @@ En **Settings** → **Variables**:
 ```
 SUPABASE_URL = https://nlewrgmcawzcdazhfiyy.supabase.co
 STORAGE_BUCKET = blog-ssg-pages
-ORIGIN_URL = https://vistaceo.lovable.app
+ORIGIN_URL = https://www.vistaceo.com
 ```
 
 ### 3. Configurar Routes
