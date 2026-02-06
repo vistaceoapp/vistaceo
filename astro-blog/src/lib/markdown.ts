@@ -55,19 +55,57 @@ export function parseMarkdown(content: string): string {
   // Blockquotes with example detection
   html = processBlockquotes(html);
   
-  // Code blocks (fenced)
+  // Code blocks (fenced) - detect if it's a checklist-style code block
   html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    const cleanCode = code.trim();
+    
+    // Check if this is actually a checklist masquerading as code
+    const checklistLines = cleanCode.split('\n');
+    const isChecklistCodeBlock = checklistLines.every(line => {
+      const trimmed = line.trim();
+      return trimmed === '' || trimmed.startsWith('□') || trimmed.startsWith('☐') || 
+             trimmed.startsWith('[') || trimmed.startsWith('-') || trimmed.startsWith('✓') ||
+             trimmed.startsWith('☑') || trimmed.match(/^[-*]\s*\[/);
+    }) && checklistLines.some(line => line.match(/□|☐|-\s*\[|\[[\sx]\]/i));
+    
+    if (isChecklistCodeBlock) {
+      // Convert to proper checklist
+      const items = checklistLines.filter(l => l.trim()).map(line => {
+        const text = line.trim()
+          .replace(/^□\s*/, '')
+          .replace(/^☐\s*/, '')
+          .replace(/^-\s*\[\s*\]\s*/, '')
+          .replace(/^-\s*\[x\]\s*/i, '')
+          .replace(/^☑\s*/, '')
+          .replace(/^✓\s*/, '');
+        const isChecked = line.includes('☑') || line.includes('✓') || line.toLowerCase().includes('[x]');
+        return `<div class="checklist-item${isChecked ? ' checked' : ''}"><span class="checkbox">${isChecked ? '✓' : '☐'}</span><span class="checklist-text">${parseInline(text)}</span></div>`;
+      }).join('\n');
+      return `<div class="checklist-container">\n${items}\n</div>`;
+    }
+    
+    // Regular code block - wrap for better display
     const langClass = lang ? ` language-${lang}` : '';
-    return `<pre class="content-pre${langClass}"><code>${escapeHtml(code.trim())}</code></pre>`;
+    return `<div class="code-block-wrapper"><pre class="content-pre${langClass}"><code>${escapeHtml(cleanCode)}</code></pre></div>`;
   });
   
-  // Checkboxes/Task lists - interactive style
-  html = html.replace(/^-\s*\[\s*\]\s+(.+)$/gm, (_, text) => {
-    return `<div class="checklist-item unchecked"><span class="checkbox">☐</span><span class="checklist-text">${parseInline(text)}</span></div>`;
+  // Checklist blocks - group consecutive items in a container for styling
+  const checklistPattern = /(?:^-\s*\[\s*[xX]?\s*\]\s+.+$\n?)+/gm;
+  html = html.replace(checklistPattern, (match) => {
+    const items = match.trim().split('\n').map(line => {
+      const uncheckedMatch = line.match(/^-\s*\[\s*\]\s+(.+)$/);
+      const checkedMatch = line.match(/^-\s*\[[xX]\]\s+(.+)$/);
+      if (checkedMatch) {
+        return `<div class="checklist-item checked"><span class="checkbox">✓</span><span class="checklist-text">${parseInline(checkedMatch[1])}</span></div>`;
+      } else if (uncheckedMatch) {
+        return `<div class="checklist-item"><span class="checkbox">☐</span><span class="checklist-text">${parseInline(uncheckedMatch[1])}</span></div>`;
+      }
+      return '';
+    }).filter(Boolean).join('\n');
+    return `<div class="checklist-container">\n${items}\n</div>`;
   });
-  html = html.replace(/^-\s*\[x\]\s+(.+)$/gmi, (_, text) => {
-    return `<div class="checklist-item checked"><span class="checkbox">☑</span><span class="checklist-text">${parseInline(text)}</span></div>`;
-  });
+  
+  // Legacy individual checkbox handling (fallback)
   
   // Unordered lists (handle nested)
   html = processLists(html);
