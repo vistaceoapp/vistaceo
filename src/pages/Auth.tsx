@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,16 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 
+// Dynamic review count: starts at 2961 on 2026-02-06, +3 per week
+const useReviewCount = () => {
+  return useMemo(() => {
+    const startDate = new Date('2026-02-06');
+    const now = new Date();
+    const weeksDiff = Math.floor((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    return 2961 + Math.max(0, weeksDiff * 3);
+  }, []);
+};
+
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
@@ -23,6 +33,7 @@ const Auth = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
+  const reviewCount = useReviewCount();
   const isMobile = useIsMobile();
 
   // Capture plan intent from URL
@@ -164,7 +175,7 @@ const Auth = () => {
     <>
       <SiteHead 
         title={isLogin ? "Iniciar Sesión | VISTACEO" : "Crear Cuenta Gratis | VISTACEO"}
-        description="Accede a tu CEO digital con IA. Analiza tu negocio, detecta oportunidades y recibe acciones personalizadas cada día. Usado por +2,800 negocios en LATAM."
+        description={`Accede a tu CEO digital con IA. Analiza tu negocio, detecta oportunidades y recibe acciones personalizadas cada día. Usado por +${reviewCount.toLocaleString()} negocios en LATAM.`}
         path="/auth"
         noindex={true}
       />
@@ -381,7 +392,7 @@ const Auth = () => {
                   ))}
                 </div>
                 <p className="text-center text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">+2,800 negocios</span> confían en VistaCEO
+                  <span className="font-semibold text-foreground">+{reviewCount.toLocaleString()} negocios</span> confían en VistaCEO
                 </p>
               </motion.div>
             )}
