@@ -19,6 +19,7 @@ import { PulseCheckinCard } from "@/components/app/PulseCheckinCard";
 import { MissionsWidget } from "@/components/app/MissionsWidget";
 import { WeeklyMetricsWidget } from "@/components/app/WeeklyMetricsWidget";
 import { DashboardEditor } from "@/components/app/DashboardEditor";
+import { IntelligentQuestionPrompt } from "@/components/app/IntelligentQuestionPrompt";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useHealthSync } from "@/hooks/use-health-sync";
@@ -199,6 +200,9 @@ const TodayPage = () => {
           />
         </div>
 
+        {/* Intelligent Question Prompt - shows when Brain needs clarification */}
+        <IntelligentQuestionPrompt variant="compact" />
+
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="col-span-2 space-y-6">
@@ -252,6 +256,9 @@ const TodayPage = () => {
           onReset={resetToDefaults}
         />
       </div>
+
+      {/* Intelligent Question Prompt - shows when Brain needs clarification (mobile) */}
+      <IntelligentQuestionPrompt variant="compact" />
 
       {/* Render all visible widgets in order */}
       {[...mainWidgets, ...sidebarWidgets]
