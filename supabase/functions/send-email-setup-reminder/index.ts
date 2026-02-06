@@ -28,7 +28,7 @@ const BRAND = {
   textSecondary: "rgba(255,255,255,0.82)",
   textMuted: "rgba(255,255,255,0.62)",
   warningAccent: "#F59E0B",
-  logoUrl: "https://vistaceo.com/assets/email/vistaceo-logo.png",
+  logoUrl: "https://nlewrgmcawzcdazhfiyy.supabase.co/storage/v1/object/public/email-assets/vistaceo-logo.png?v=1",
 };
 
 function generateSetupReminderEmail(
