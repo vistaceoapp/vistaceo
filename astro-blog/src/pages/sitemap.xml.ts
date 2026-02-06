@@ -13,7 +13,7 @@ export const GET: APIRoute = async () => {
 
   // Home page - highest priority, changes daily
   urls.push({
-    loc: SITE_URL,
+    loc: `${SITE_URL}/`,
     lastmod: new Date().toISOString().split('T')[0],
     changefreq: 'daily',
     priority: '1.0'
@@ -71,8 +71,7 @@ ${urls.map(url => `  <url>
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600',
-      'X-Robots-Tag': 'noindex' // Sitemap itself shouldn't be indexed
+      'Cache-Control': 'public, max-age=3600'
     }
   });
 };
