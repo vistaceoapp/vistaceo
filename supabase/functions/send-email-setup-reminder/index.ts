@@ -60,99 +60,91 @@ function generateSetupReminderEmail(
   </noscript>
   <![endif]-->
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-    body { margin: 0; padding: 0; background-color: ${BRAND.backgroundDark}; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    table { border-spacing: 0; }
+    body { margin: 0; padding: 0; background-color: ${BRAND.backgroundDark}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    table { border-spacing: 0; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     td { padding: 0; }
     img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; display: block; }
-
-    @media only screen and (max-width: 600px) {
-      .container { width: 100% !important; padding: 16px !important; }
-      .content { padding: 24px 20px !important; }
-      .cta-btn { width: 100% !important; display: block !important; }
-      .hero-title { font-size: 28px !important; }
-    }
+    a { color: ${BRAND.gradientStart}; }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: ${BRAND.backgroundDark};">
-  <!-- Preview Text -->
+<body style="margin: 0; padding: 0; background-color: ${BRAND.backgroundDark}; width: 100%; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
   <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
-    Sin la configuración de tu negocio o servicio, la IA no puede personalizar tu cuenta. Completalo y activá la inteligencia suprema de tu CEO digital.
-    ‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;
+    Sin la configuración de tu negocio, la IA no puede personalizar tu cuenta. Completalo y activá tu CEO digital.
   </div>
 
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: ${BRAND.backgroundDark};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: ${BRAND.backgroundDark};">
     <tr>
-      <td align="center" style="padding: 40px 0;">
-        <!--[if mso]><table role="presentation" width="600" cellpadding="0" cellspacing="0" align="center"><tr><td><![endif]-->
-        <table role="presentation" class="container" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; margin: 0 auto; background-color: ${BRAND.cardDark}; border-radius: 20px; border: 1px solid ${BRAND.borderColor}; overflow: hidden;">
+      <td align="center" style="padding: 24px 16px;">
+        <!--[if mso]><table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" align="center"><tr><td><![endif]-->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 560px; margin: 0 auto; background-color: ${BRAND.cardDark}; border-radius: 16px; border: 1px solid ${BRAND.borderColor};">
           
-          <!-- Header with Logo -->
+          <!-- HEADER -->
           <tr>
-            <td align="center" style="padding: 32px 20px 24px; border-bottom: 1px solid ${BRAND.borderColor};">
-              <a href="https://vistaceo.com" target="_blank" style="text-decoration: none; display: inline-block;">
-                <img src="${BRAND.logoUrl}" alt="VistaCEO® Latinoamérica" width="180" style="width: 180px; max-width: 180px; height: auto; display: block;" />
-              </a>
+            <td style="padding: 32px 24px; text-align: center; border-bottom: 1px solid ${BRAND.borderColor};">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td align="center">
+                    <img src="${BRAND.logoUrl}" alt="VistaCEO" width="160" height="40" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto;" />
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
-          <!-- Hero Section -->
+          <!-- CONTENT -->
           <tr>
-            <td class="content" style="padding: 40px 40px 32px;">
-              <!-- Warning Accent Line -->
-              <div style="width: 60px; height: 4px; background: linear-gradient(135deg, ${BRAND.warningAccent}, ${BRAND.gradientEnd}); border-radius: 2px; margin-bottom: 24px;"></div>
-              
-              <h1 class="hero-title" style="margin: 0 0 16px; font-size: 32px; font-weight: 700; color: ${BRAND.textPrimary}; line-height: 1.2;">
-                Falta calibrar tu contexto
-              </h1>
-
-              <p style="margin: 0 0 20px; font-size: 16px; color: ${BRAND.textSecondary}; line-height: 1.7;">
-                <strong style="color: ${BRAND.textPrimary};">${firstName}</strong>, creaste tu cuenta pero aún no completaste la configuración inicial. Sin esta información, nuestra IA queda genérica y pierde la capacidad de darte recomendaciones personalizadas.
-              </p>
-
-              <p style="margin: 0 0 32px; font-size: 16px; color: ${BRAND.textSecondary}; line-height: 1.7;">
-                Tomá 3 minutos para calibrar VistaCEO® a tu negocio y desbloqueá todo el potencial de tu CEO digital.
-              </p>
-
-              <!-- Benefits Card -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(93,115,225,0.08)); border-radius: 16px; border: 1px solid ${BRAND.borderColor};">
+            <td style="padding: 32px 24px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
-                  <td style="padding: 24px;">
-                    <p style="margin: 0 0 16px; font-size: 14px; font-weight: 600; color: ${BRAND.warningAccent}; text-transform: uppercase; letter-spacing: 0.5px;">
-                      Lo que desbloqueás con la configuración
-                    </p>
-                    <table role="presentation" cellpadding="0" cellspacing="0">
+                  <td style="padding-bottom: 20px;">
+                    <div style="width: 50px; height: 3px; background: linear-gradient(135deg, ${BRAND.warningAccent}, ${BRAND.gradientEnd}); border-radius: 2px;"></div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size: 26px; font-weight: 700; color: ${BRAND.textPrimary}; padding-bottom: 16px; line-height: 1.2;">
+                    Falta calibrar tu contexto
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size: 15px; color: ${BRAND.textSecondary}; line-height: 1.7; padding-bottom: 16px;">
+                    <strong style="color: ${BRAND.textPrimary};">${firstName}</strong>, creaste tu cuenta pero aún no completaste la configuración inicial. Sin esta información, nuestra IA queda genérica y pierde la capacidad de darte recomendaciones personalizadas.
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size: 15px; color: ${BRAND.textSecondary}; line-height: 1.7; padding-bottom: 28px;">
+                    Tomá 3 minutos para calibrar VistaCEO® a tu negocio y desbloqueá todo el potencial de tu CEO digital.
+                  </td>
+                </tr>
+              </table>
+
+              <!-- BENEFITS CARD -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(93,115,225,0.06)); border-radius: 12px; border: 1px solid ${BRAND.borderColor};">
+                <tr>
+                  <td style="padding: 20px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                       <tr>
-                        <td style="padding: 8px 0; vertical-align: top;">
-                          <span style="color: ${BRAND.gradientStart}; font-size: 16px; margin-right: 12px;">🎯</span>
-                        </td>
-                        <td style="padding: 8px 0;">
-                          <span style="color: ${BRAND.textPrimary}; font-size: 15px;">Plan de acción personalizado para tu tipo de negocio</span>
+                        <td style="font-size: 12px; font-weight: 600; color: ${BRAND.warningAccent}; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 16px;">
+                          LO QUE DESBLOQUEÁS CON LA CONFIGURACIÓN
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding: 8px 0; vertical-align: top;">
-                          <span style="color: ${BRAND.gradientStart}; font-size: 16px; margin-right: 12px;">📊</span>
-                        </td>
-                        <td style="padding: 8px 0;">
-                          <span style="color: ${BRAND.textPrimary}; font-size: 15px;">Métricas relevantes calibradas a tu industria</span>
+                        <td style="font-size: 14px; color: ${BRAND.textPrimary}; padding: 6px 0;">
+                          🎯 &nbsp;Plan de acción personalizado para tu tipo de negocio
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding: 8px 0; vertical-align: top;">
-                          <span style="color: ${BRAND.gradientStart}; font-size: 16px; margin-right: 12px;">🔮</span>
-                        </td>
-                        <td style="padding: 8px 0;">
-                          <span style="color: ${BRAND.textPrimary}; font-size: 15px;">Radar de prioridades inteligente</span>
+                        <td style="font-size: 14px; color: ${BRAND.textPrimary}; padding: 6px 0;">
+                          📊 &nbsp;Métricas relevantes calibradas a tu industria
                         </td>
                       </tr>
                       <tr>
-                        <td style="padding: 8px 0; vertical-align: top;">
-                          <span style="color: ${BRAND.gradientStart}; font-size: 16px; margin-right: 12px;">⚡</span>
+                        <td style="font-size: 14px; color: ${BRAND.textPrimary}; padding: 6px 0;">
+                          🔮 &nbsp;Radar de prioridades inteligente
                         </td>
-                        <td style="padding: 8px 0;">
-                          <span style="color: ${BRAND.textPrimary}; font-size: 15px;">Misiones guiadas adaptadas a tus objetivos</span>
+                      </tr>
+                      <tr>
+                        <td style="font-size: 14px; color: ${BRAND.textPrimary}; padding: 6px 0;">
+                          ⚡ &nbsp;Misiones guiadas adaptadas a tus objetivos
                         </td>
                       </tr>
                     </table>
@@ -162,47 +154,66 @@ function generateSetupReminderEmail(
             </td>
           </tr>
 
-          <!-- CTA Section -->
+          <!-- CTA SECTION -->
           <tr>
-            <td style="padding: 0 40px 40px;">
-              <!-- Primary CTA -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <td style="padding: 0 24px 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
-                  <td align="center" style="padding-bottom: 16px;">
-                    <a href="${setupUrlWithUtm}" target="_blank" class="cta-btn" style="display: inline-block; background: linear-gradient(135deg, ${BRAND.gradientStart}, ${BRAND.gradientEnd}); color: ${BRAND.textPrimary}; text-decoration: none; padding: 18px 48px; border-radius: 14px; font-size: 16px; font-weight: 600; min-width: 200px; text-align: center; box-shadow: 0 8px 24px rgba(41,143,218,0.3);">
-                      Completar configuración →
-                    </a>
+                  <td align="center" style="padding-bottom: 12px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="background: linear-gradient(135deg, ${BRAND.gradientStart}, ${BRAND.gradientEnd}); border-radius: 12px;">
+                          <a href="${setupUrlWithUtm}" target="_blank" style="display: block; padding: 16px 24px; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; text-align: center;">
+                            Completar configuración →
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
                 <tr>
                   <td align="center" style="padding-bottom: 16px;">
-                    <a href="${dashboardUrlWithUtm}" target="_blank" class="cta-btn" style="display: inline-block; background: transparent; color: ${BRAND.textSecondary}; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 500; border: 1px solid ${BRAND.borderColor};">
-                      Entrar al dashboard
-                    </a>
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="border: 1px solid ${BRAND.borderColor}; border-radius: 10px;">
+                          <a href="${dashboardUrlWithUtm}" target="_blank" style="display: block; padding: 14px 24px; color: ${BRAND.textSecondary}; font-size: 14px; font-weight: 500; text-decoration: none; text-align: center;">
+                            Entrar al dashboard
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size: 11px; color: ${BRAND.textMuted}; text-align: center; line-height: 1.6; padding-top: 8px;">
+                    Si el botón no funciona, copiá este enlace:<br>
+                    <a href="${setupUrlWithUtm}" style="color: ${BRAND.gradientStart}; word-break: break-all;">${setupUrlWithUtm}</a>
                   </td>
                 </tr>
               </table>
-
-              <!-- Fallback Link -->
-              <p style="margin: 16px 0 0; font-size: 12px; color: ${BRAND.textMuted}; text-align: center; line-height: 1.6;">
-                Si el botón no funciona, abrí este enlace:<br>
-                <a href="${setupUrlWithUtm}" style="color: ${BRAND.gradientStart}; text-decoration: underline; word-break: break-all;">${setupUrlWithUtm}</a>
-              </p>
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- FOOTER -->
           <tr>
-            <td style="padding: 24px 40px; background-color: rgba(0,0,0,0.3); border-top: 1px solid ${BRAND.borderColor};">
-              <p style="margin: 0 0 8px; font-size: 14px; color: ${BRAND.textSecondary}; text-align: center;">
-                Respondé este email y te ayudamos a configurar tu cuenta.
-              </p>
-              <p style="margin: 0; font-size: 12px; color: ${BRAND.textMuted}; text-align: center;">
-                <a href="mailto:info@vistaceo.com" style="color: ${BRAND.gradientStart}; text-decoration: none;">info@vistaceo.com</a>
-              </p>
-              <p style="margin: 16px 0 0; font-size: 11px; color: ${BRAND.textMuted}; text-align: center;">
-                © ${new Date().getFullYear()} VistaCEO® Latinoamérica. Todos los derechos reservados.
-              </p>
+            <td style="padding: 24px; background-color: rgba(0,0,0,0.25); border-top: 1px solid ${BRAND.borderColor}; text-align: center;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="font-size: 13px; color: ${BRAND.textSecondary}; padding-bottom: 8px;">
+                    Respondé este email y te ayudamos a configurar tu cuenta.
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size: 12px; color: ${BRAND.textMuted};">
+                    <a href="mailto:info@vistaceo.com" style="color: ${BRAND.gradientStart}; text-decoration: none;">info@vistaceo.com</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-size: 11px; color: ${BRAND.textMuted}; padding-top: 16px;">
+                    © ${new Date().getFullYear()} VistaCEO® Latinoamérica
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
@@ -214,7 +225,6 @@ function generateSetupReminderEmail(
 </body>
 </html>
 `;
-
   const text = `
 Tu cuenta en VistaCEO® está casi lista...falta calibrar tu contexto.
 
