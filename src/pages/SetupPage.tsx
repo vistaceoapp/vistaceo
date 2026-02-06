@@ -317,6 +317,21 @@ const SetupPage = () => {
       // Clear saved progress since setup is complete
       clearSavedProgress();
       localStorage.removeItem('selectedCountryCode');
+
+      // Step 6: Send "Activated" email (fire and forget - don't block navigation)
+      supabase.functions.invoke('send-email-activated', {
+        body: {
+          userId: user.id,
+          email: user.email,
+          fullName: user.user_metadata?.full_name || user.email?.split('@')[0],
+          businessId: business.id,
+          businessName: data.businessName,
+        },
+      }).then(res => {
+        console.log('[Setup] Activated email sent:', res.data);
+      }).catch(err => {
+        console.warn('[Setup] Activated email failed (non-blocking):', err);
+      });
       
       toast.success(lang === 'pt' ? 'Negócio criado com sucesso!' : '¡Tu negocio está listo!');
       navigate('/setup-complete', { replace: true });
