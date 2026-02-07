@@ -88,11 +88,21 @@ export function useUserLifecycle(): UserLifecycleState {
         .eq('id', user.id)
         .maybeSingle();
 
-      // Check if admin via business settings or email domain
-      // Note: In production, you should create a user_roles table for this
-      const isAdmin = user.email?.endsWith('@vistaceo.com') ?? false;
+      // Admin: server-side source of truth (user_roles)
+      const { data: adminRole, error: adminErr } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
 
-      // Get subscription data
+      if (adminErr) {
+        console.warn('[UserLifecycle] Could not read user role:', adminErr.message);
+      }
+
+      const isAdmin = !!adminRole;
+
+      // Get subscription data (latest)
       const { data: subscriptions } = await supabase
         .from('subscriptions')
         .select('status, expires_at, plan_id')

@@ -48,8 +48,18 @@ export const SidebarProvider = ({ children }: { children: ReactNode }) => {
 
 export const useSidebar = () => {
   const context = useContext(SidebarContext);
+
+  // On mobile we may not mount a SidebarProvider (desktop-only UI).
+  // Returning safe no-ops prevents blank screens caused by missing provider.
   if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider");
+    return {
+      collapsed: false,
+      setCollapsed: () => {},
+      toggleCollapsed: () => {},
+      forceCollapse: () => {},
+      restorePrevious: () => {},
+    } as SidebarContextType;
   }
+
   return context;
 };
