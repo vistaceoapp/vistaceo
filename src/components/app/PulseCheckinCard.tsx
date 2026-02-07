@@ -164,6 +164,80 @@ export const PulseCheckinCard = ({
     );
   }
 
+  // Submit handler for compact mode with direct score value
+  const handleQuickSubmit = async (directScore: number) => {
+    if (!currentBusiness) return;
+    
+    setSaving(true);
+    try {
+      const checkinData = {
+        business_id: currentBusiness.id,
+        applies_to_date: format(appliesTo, "yyyy-MM-dd"),
+        granularity: "daily" as const,
+        shift_tag: selectedShift,
+        source: "manual_qualitative" as const,
+        pulse_score_1_5: directScore,
+        pulse_label: labels[String(directScore)] || "",
+        revenue_local: null,
+        currency_local: currentBusiness.currency || "ARS",
+        volume_proxy_type: null,
+        volume_proxy_value: null,
+        notes_good: null,
+        notes_bad: null,
+        metadata: {
+          blueprint_type: blueprint?.business_type,
+          has_specific_blueprint: hasSpecificBlueprint,
+          quick_submit: true,
+        },
+      };
+
+      const { error } = await supabase
+        .from("pulse_checkins")
+        .insert(checkinData);
+
+      if (error) throw error;
+
+      // Record signal to Brain for learning
+      try {
+        await supabase.functions.invoke("brain-record-signal", {
+          body: {
+            businessId: currentBusiness.id,
+            signalType: "pulse_checkin",
+            source: "pulse_widget_quick",
+            content: {
+              applies_to_date: format(appliesTo, "yyyy-MM-dd"),
+              shift_tag: selectedShift,
+              pulse_score: directScore,
+              pulse_label: labels[String(directScore)] || "",
+              business_type: blueprint?.business_type,
+            },
+            importance: directScore <= 2 || directScore >= 4 ? 8 : 5,
+            confidence: "medium",
+          },
+        });
+      } catch (signalError) {
+        console.error("Error recording pulse signal:", signalError);
+      }
+
+      toast({
+        title: "✅ Pulso registrado",
+        description: `${getPulseScoreEmoji(directScore)} ${labels[String(directScore)]}. ¡El cerebro está aprendiendo!`,
+      });
+
+      setPulseScore(null);
+      onComplete?.();
+    } catch (error) {
+      console.error("Error saving pulse checkin:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo guardar el pulso. Intenta de nuevo.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Compact widget variant
   if (variant === "compact" || variant === "widget") {
     const autoShift = getAutoShiftTag();
@@ -187,18 +261,12 @@ export const PulseCheckinCard = ({
           {[1, 2, 3, 4, 5].map((score) => (
             <button
               key={score}
-              onClick={() => {
-                setPulseScore(score);
-                // Auto-submit after small delay for compact mode
-                setTimeout(() => {
-                  if (!noteGood && !noteBad && !revenueInput) {
-                    handleSubmit();
-                  }
-                }, 300);
-              }}
+              disabled={saving}
+              onClick={() => handleQuickSubmit(score)}
               className={cn(
                 "flex-1 min-w-[60px] py-3 px-2 rounded-xl text-center transition-all",
                 "border hover:border-primary/30",
+                saving && "opacity-50 cursor-not-allowed",
                 pulseScore === score
                   ? "bg-primary/10 border-primary text-primary"
                   : "bg-card border-border text-muted-foreground hover:text-foreground"

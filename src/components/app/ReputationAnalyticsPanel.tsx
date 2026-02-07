@@ -17,9 +17,6 @@ import {
   PieChart,
   Brain,
   Globe,
-  Eye,
-  Users,
-  Play
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +31,6 @@ import { PlatformReputationCard, PlatformType } from "./PlatformReputationCard";
 import { PlatformConnectModal } from "./PlatformConnectModal";
 import { GoogleReviewsCard } from "./GoogleReviewsCard";
 import { GoogleLocationSelector } from "./GoogleLocationSelector";
-import { SocialProfileInput } from "./SocialProfileInput";
 
 interface ReputationAnalysis {
   overall_score: number;
@@ -58,7 +54,7 @@ interface ReputationAnalysis {
 }
 
 interface PlatformIntegration {
-  platform: "google" | "instagram" | "facebook";
+  platform: "google";
   connected: boolean;
   status?: string; // "connected", "error", "pending"
   metadata?: Record<string, any>;
@@ -67,9 +63,8 @@ interface PlatformIntegration {
   avgRating?: number;
 }
 
-// Plataformas principales: Google Reviews + Meta (Instagram/Facebook)
-// Web Analytics removido temporalmente
-const MAIN_PLATFORMS: Array<PlatformIntegration["platform"]> = ["google", "instagram", "facebook"];
+// Solo Google Reviews - Instagram/Facebook eliminados
+const MAIN_PLATFORMS: Array<PlatformIntegration["platform"]> = ["google"];
 
 // Helper para verificar si está conectado (puede ser "connected", "active" o "scraped")
 const isConnectedStatus = (status: string) => status === "connected" || status === "active" || status === "scraped";
@@ -127,10 +122,16 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
         avgRating = Math.round((totalRating / reviewCount) * 10) / 10;
       }
       
+      // Solo Google - si tiene google_place_id del setup, está conectado automáticamente
+      const hasGoogleFromSetup = !!currentBusiness.google_place_id;
+      
       const platformMap: Record<string, PlatformIntegration> = {
-        google: { platform: "google", connected: false },
-        instagram: { platform: "instagram", connected: false },
-        facebook: { platform: "facebook", connected: false },
+        google: { 
+          platform: "google", 
+          connected: hasGoogleFromSetup,
+          status: hasGoogleFromSetup ? "connected" : undefined,
+          avgRating: currentBusiness.avg_rating || 0,
+        },
       };
 
       if (integrations) {
@@ -140,31 +141,15 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
           if (integration.integration_type === "google_business" || integration.integration_type === "google_reviews") {
             platformMap.google = {
               platform: "google",
-              connected: isConnectedStatus(integration.status),
-              status: integration.status,
+              connected: hasGoogleFromSetup || isConnectedStatus(integration.status),
+              status: hasGoogleFromSetup ? "connected" : integration.status,
               metadata: meta,
               lastSync: integration.last_sync_at,
               reviewCount,
               avgRating: avgRating || meta?.rating || currentBusiness?.avg_rating || 0,
             };
-          } else if (integration.integration_type === "instagram") {
-            platformMap.instagram = {
-              platform: "instagram",
-              connected: isConnectedStatus(integration.status),
-              status: integration.status,
-              metadata: meta,
-              lastSync: integration.last_sync_at,
-            };
-          } else if (integration.integration_type === "facebook") {
-            platformMap.facebook = {
-              platform: "facebook",
-              connected: isConnectedStatus(integration.status),
-              status: integration.status,
-              metadata: meta,
-              lastSync: integration.last_sync_at,
-            };
           }
-          // Web Analytics removido temporalmente
+          // Instagram y Facebook eliminados - solo Google Reviews
         }
       }
       
@@ -289,13 +274,13 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
     );
   }
 
-  // Build platform data for cards
+  // Build platform data for cards - Solo Google Reviews
   const getPlatformData = (platform: PlatformIntegration) => {
     const data: any = {
       platform: platform.platform,
       connected: platform.connected,
       status: platform.status,
-      errorMessage: platform.status === "error" ? getErrorMessage(platform) : undefined,
+      errorMessage: platform.status === "error" ? "Error de conexión" : undefined,
       metrics: {
         mainScore: 0,
         mainLabel: "",
@@ -305,37 +290,14 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
       }
     };
 
-    if (platform.platform === "google") {
-      // Use real data from external_data reviews
-      data.metrics.mainScore = platform.avgRating || currentBusiness?.avg_rating || 0;
-      data.metrics.secondary = [
-        { label: "Cuenta", value: platform.metadata?.account_email || "-", icon: <Users className="w-3 h-3" /> },
-        { label: "Reseñas", value: platform.reviewCount || 0, icon: <MessageSquare className="w-3 h-3" /> },
-        { label: "Respondidas", value: `${analysis?.response_rate || 0}%`, icon: <ThumbsUp className="w-3 h-3" /> },
-      ];
-    } else if (platform.platform === "instagram" && platform.metadata) {
-      data.metrics.mainScore = platform.metadata.followers_count || 0;
-      data.metrics.secondary = [
-        { label: "Posts", value: platform.metadata.media_count || 0, icon: <BarChart3 className="w-3 h-3" /> },
-        { label: "Engagement", value: `${platform.metadata.engagement_rate || 0}%`, icon: <TrendingUp className="w-3 h-3" /> },
-      ];
-    } else if (platform.platform === "facebook" && platform.metadata) {
-      data.metrics.mainScore = platform.metadata.rating || 0;
-      data.metrics.secondary = [
-        { label: "Seguidores", value: formatNumber(platform.metadata.followers_count || 0), icon: <Users className="w-3 h-3" /> },
-        { label: "Reseñas", value: platform.metadata.review_count || 0, icon: <MessageSquare className="w-3 h-3" /> },
-      ];
-    }
-    // Web Analytics removido temporalmente
+    // Solo datos de Google Reviews
+    data.metrics.mainScore = platform.avgRating || currentBusiness?.avg_rating || 0;
+    data.metrics.secondary = [
+      { label: "Reseñas", value: platform.reviewCount || 0, icon: <MessageSquare className="w-3 h-3" /> },
+      { label: "Respondidas", value: `${analysis?.response_rate || 0}%`, icon: <ThumbsUp className="w-3 h-3" /> },
+    ];
+    
     return data;
-  };
-
-  const getErrorMessage = (platform: PlatformIntegration): string => {
-    const meta = platform.metadata;
-    if (meta?.error === "no_pages_found") {
-      return "No se encontraron Páginas de Facebook vinculadas";
-    }
-    return "Error de conexión";
   };
 
   const formatNumber = (num: number): string => {
@@ -344,8 +306,8 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
     return num.toString();
   };
 
-  // Filter platforms by category (solo plataformas principales)
-  const mainPlatforms = platforms.filter(p => MAIN_PLATFORMS.includes(p.platform));
+  // Solo Google Reviews
+  const mainPlatforms = platforms;
 
   // No analysis yet - show platforms + CTA
   if (!analysis) {
@@ -356,56 +318,26 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Star className="w-4 h-4 text-primary" />
-              Plataformas
+              Google Reviews
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mainPlatforms.map((platform) => {
-                // Use specialized card for Google
-                if (platform.platform === "google") {
-                  return (
-                    <GoogleReviewsCard
-                      key="google"
-                      connected={platform.connected}
-                      metadata={platform.metadata}
-                      reviewCount={platform.reviewCount || 0}
-                      avgRating={platform.avgRating || 0}
-                      responseRate={analysis?.response_rate || 0}
-                      lastSync={platform.lastSync}
-                      onConnect={() => handleConnectPlatform("google")}
-                      onChangeLocation={() => setLocationSelectorOpen(true)}
-                      onSyncComplete={fetchPlatforms}
-                      businessId={currentBusiness?.id || ""}
-                    />
-                  );
-                }
-                // For Instagram/Facebook - use SocialProfileInput when not connected
-                if ((platform.platform === "instagram" || platform.platform === "facebook") && !platform.connected) {
-                  return (
-                    <SocialProfileInput
-                      key={platform.platform}
-                      platform={platform.platform}
-                      businessId={currentBusiness?.id || ""}
-                      onSuccess={() => fetchPlatforms()}
-                      existingData={platform.metadata ? {
-                        profile_url: platform.metadata.profile_url,
-                        followers: platform.metadata.followers || platform.metadata.followers_count,
-                        posts: platform.metadata.posts || platform.metadata.media_count,
-                        username: platform.metadata.username,
-                      } : undefined}
-                    />
-                  );
-                }
-                return (
-                  <PlatformReputationCard
-                    key={platform.platform}
-                    data={getPlatformData(platform)}
-                    onConnect={() => handleConnectPlatform(platform.platform)}
-                  />
-                );
-              })}
-            </div>
+            {/* Solo Google Reviews Card */}
+            {mainPlatforms.map((platform) => (
+              <GoogleReviewsCard
+                key="google"
+                connected={platform.connected}
+                metadata={platform.metadata}
+                reviewCount={platform.reviewCount || 0}
+                avgRating={platform.avgRating || 0}
+                responseRate={analysis?.response_rate || 0}
+                lastSync={platform.lastSync}
+                onConnect={() => handleConnectPlatform("google")}
+                onChangeLocation={() => setLocationSelectorOpen(true)}
+                onSyncComplete={fetchPlatforms}
+                businessId={currentBusiness?.id || ""}
+              />
+            ))}
 
             {/* Connect Modal */}
             <PlatformConnectModal
