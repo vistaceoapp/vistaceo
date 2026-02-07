@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   AlertTriangle, 
@@ -12,7 +12,8 @@ import {
   Sparkles,
   PartyPopper,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  X
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -27,6 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+
+const DISMISS_STORAGE_KEY = "alertfab_dismissed";
 
 const ALERT_TYPES = [
   { 
@@ -62,6 +65,13 @@ const CATEGORIES = [
 export const AlertFAB = () => {
   const { currentBusiness } = useBusiness();
   const [open, setOpen] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(() => {
+    // Check if dismissed in this session
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem(DISMISS_STORAGE_KEY) === 'true';
+    }
+    return false;
+  });
   const [step, setStep] = useState<"type" | "details" | "result">("type");
   const [alertType, setAlertType] = useState<string>("");
   const [category, setCategory] = useState<string>("");
@@ -73,6 +83,14 @@ export const AlertFAB = () => {
     plan: string[];
     lesson: string;
   } | null>(null);
+
+  const handleDismiss = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDismissed(true);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(DISMISS_STORAGE_KEY, 'true');
+    }
+  };
 
   const handleSelectType = (type: string) => {
     setAlertType(type);
@@ -172,25 +190,37 @@ export const AlertFAB = () => {
 
   const isPositiveType = alertType === "positive";
 
+  // Don't render if dismissed
+  if (isDismissed) {
+    return null;
+  }
+
   return (
     <>
-      {/* FAB Button - Highly visible */}
-      <Button
-        onClick={() => setOpen(true)}
-        className={cn(
-          "fixed z-[9999] w-14 h-14 rounded-full shadow-2xl",
-          "bg-warning hover:bg-warning/90 border-2 border-warning-foreground/20",
-          "animate-pulse hover:animate-none",
-          // Mobile: above nav bar
-          "bottom-24 right-4",
-          // Desktop: bottom right
-          "md:bottom-8 md:right-8"
-        )}
-        size="icon"
-        aria-label="Contale algo al sistema"
-      >
-        <AlertTriangle className="w-6 h-6 text-warning-foreground" />
-      </Button>
+      {/* FAB Button - Highly visible with dismiss option */}
+      <div className="fixed z-[9999] bottom-24 right-4 md:bottom-8 md:right-8">
+        {/* Close/Dismiss button */}
+        <button
+          onClick={handleDismiss}
+          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:bg-secondary transition-colors z-10"
+          aria-label="Ocultar"
+        >
+          <X className="w-3.5 h-3.5 text-muted-foreground" />
+        </button>
+        
+        <Button
+          onClick={() => setOpen(true)}
+          className={cn(
+            "w-14 h-14 rounded-full shadow-2xl",
+            "bg-warning hover:bg-warning/90 border-2 border-warning-foreground/20",
+            "animate-pulse hover:animate-none"
+          )}
+          size="icon"
+          aria-label="Contale algo al sistema"
+        >
+          <AlertTriangle className="w-6 h-6 text-warning-foreground" />
+        </Button>
+      </div>
 
       {/* Alert Dialog */}
       <Dialog open={open} onOpenChange={handleClose}>

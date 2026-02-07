@@ -1,10 +1,11 @@
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 import { BusinessHealthAnalytics } from "@/components/analytics/BusinessHealthAnalytics";
+import { SmartInsightsPanel } from "@/components/analytics/SmartInsightsPanel";
 import { EvolutionPanel } from "@/components/app/EvolutionPanel";
 import { ReputationAnalyticsPanel } from "@/components/app/ReputationAnalyticsPanel";
 import { ProPageGate } from "@/components/app/ProPageGate";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star } from "lucide-react";
+import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star, Brain } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 
@@ -39,14 +40,18 @@ const AnalyticsPage = () => {
                   Pro
                 </Badge>
               </div>
-              <p className="text-muted-foreground">Reputación, diagnóstico, evolución y métricas</p>
+              <p className="text-muted-foreground">Inteligencia de negocio en tiempo real</p>
             </div>
           </div>
         </div>
 
-        {/* Tabs - Reputación first */}
-        <Tabs defaultValue="reputacion" className="w-full">
-          <TabsList className={`grid w-full ${isMobile ? 'grid-cols-4' : 'grid-cols-4'} mb-6`}>
+        {/* Tabs - Insights first */}
+        <Tabs defaultValue="insights" className="w-full">
+          <TabsList className={`grid w-full ${isMobile ? 'grid-cols-5' : 'grid-cols-5'} mb-6`}>
+            <TabsTrigger value="insights" className={isMobile ? "text-xs px-1" : ""}>
+              <Brain className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
+              {isMobile ? "Insights" : "Insights"}
+            </TabsTrigger>
             <TabsTrigger value="reputacion" className={isMobile ? "text-xs px-1" : ""}>
               <Star className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
               {isMobile ? "Reputación" : "Reputación"}
@@ -65,7 +70,12 @@ const AnalyticsPage = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab: Reputación - AI Analysis (NOW FIRST) */}
+          {/* Tab: Insights - AI Smart Analysis (NOW FIRST) */}
+          <TabsContent value="insights" className="space-y-6">
+            <SmartInsightsPanel />
+          </TabsContent>
+
+          {/* Tab: Reputación - AI Analysis */}
           <TabsContent value="reputacion" className="space-y-6">
             <ReputationAnalyticsPanel />
           </TabsContent>
