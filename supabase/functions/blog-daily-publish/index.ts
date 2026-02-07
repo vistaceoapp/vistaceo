@@ -244,31 +244,76 @@ async function generateAndPublishPost(
 
     console.log('[blog-daily-publish] Post generated:', generateResult?.post?.slug);
 
-    // Generate images
+    // Generate images with retry and strict validation
     if (generateResult?.post?.slug) {
       console.log('[blog-daily-publish] Generating images for:', generateResult.post.slug);
-      try {
-        await supabase.functions.invoke('generate-blog-images', {
-          body: { slug: generateResult.post.slug, mode: 'single' }
-        });
-      } catch (imgErr) {
-        console.error('[blog-daily-publish] Image generation failed:', imgErr);
+      
+      let imageGenSuccess = false;
+      
+      // Attempt image generation with retries
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const { data: imgResult, error: imgError } = await supabase.functions.invoke('generate-blog-images', {
+            body: { slug: generateResult.post.slug, mode: 'single' }
+          });
+          
+          if (imgError) {
+            console.error(`[blog-daily-publish] Image generation attempt ${attempt} error:`, imgError);
+          } else if (imgResult?.result?.hero_url) {
+            console.log(`[blog-daily-publish] Image generated on attempt ${attempt}:`, imgResult.result.hero_url);
+            imageGenSuccess = true;
+            break;
+          } else {
+            console.error(`[blog-daily-publish] Image generation attempt ${attempt} returned no hero_url`);
+          }
+          
+          // Wait before retry
+          if (attempt < 3) {
+            await new Promise(r => setTimeout(r, 5000 * attempt));
+          }
+        } catch (imgErr) {
+          console.error(`[blog-daily-publish] Image generation attempt ${attempt} failed:`, imgErr);
+          if (attempt < 3) {
+            await new Promise(r => setTimeout(r, 5000 * attempt));
+          }
+        }
       }
 
-      // Verify hero image exists
+      // Wait a moment for DB to sync
+      await new Promise(r => setTimeout(r, 2000));
+
+      // STRICT VERIFICATION: Re-query the post to verify hero_image_url exists
       const { data: savedPost } = await supabase
         .from('blog_posts')
         .select('id, slug, hero_image_url, content_md, title')
         .eq('slug', generateResult.post.slug)
         .maybeSingle();
 
-      if (!savedPost?.hero_image_url) {
-        console.error('[blog-daily-publish] Missing hero image, reverting to draft');
+      // CRITICAL: Block if no valid hero image (must be HTTPS URL, not null/empty/base64)
+      const heroUrl = savedPost?.hero_image_url || '';
+      const hasValidHeroImage = heroUrl.startsWith('https://') && heroUrl.includes('supabase.co');
+      
+      if (!hasValidHeroImage) {
+        console.error('[blog-daily-publish] QUALITY GATE FAILED: Missing valid hero image, reverting to draft');
+        console.error('[blog-daily-publish] hero_image_url value:', heroUrl || '(empty)');
+        
         await supabase
           .from('blog_posts')
-          .update({ status: 'draft' })
+          .update({ 
+            status: 'draft',
+            quality_gate_report: { blocked: true, reason: 'missing_hero_image', hero_value: heroUrl }
+          })
           .eq('slug', generateResult.post.slug);
-        return { success: false, error: 'Hero image missing' };
+        
+        await supabase.from('blog_runs').insert({
+          result: 'failed',
+          chosen_plan_id: planId,
+          chosen_topic_id: topicId,
+          notes: `Blocked: missing hero image after ${3} attempts`,
+          quality_gate_report: { blocked: true, reason: 'missing_hero_image' }
+        });
+        
+        return { success: false, error: 'Hero image missing after retries' };
       }
 
       // ===== QUALITY AUDIT (BLOCK PUBLISH IF BROKEN) =====
@@ -281,6 +326,8 @@ async function generateAndPublishPost(
           .eq('slug', generateResult.post.slug);
         return { success: false, error: `Quality audit failed: ${qualityIssues.join(' | ')}` };
       }
+      
+      console.log('[blog-daily-publish] QUALITY GATE PASSED: Post has valid hero image and content');
 
       // Submit to IndexNow
       await submitToIndexNow(supabase, [generateResult.post.slug]);
