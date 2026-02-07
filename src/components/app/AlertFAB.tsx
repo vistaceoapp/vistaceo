@@ -199,21 +199,25 @@ export const AlertFAB = () => {
     <>
       {/* FAB Button - Highly visible with dismiss option */}
       <div className="fixed z-[9999] bottom-24 right-4 md:bottom-8 md:right-8">
-        {/* Close/Dismiss button */}
+        {/* Close/Dismiss button (kept fully inside the FAB on small screens) */}
         <button
           onClick={handleDismiss}
-          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:bg-secondary transition-colors z-10"
+          className={cn(
+            "absolute top-1 right-1 w-7 h-7 rounded-full",
+            "bg-background border border-border shadow-lg",
+            "flex items-center justify-center",
+            "hover:bg-secondary transition-colors z-10"
+          )}
           aria-label="Ocultar"
         >
-          <X className="w-3.5 h-3.5 text-muted-foreground" />
+          <X className="w-4 h-4 text-muted-foreground" />
         </button>
-        
+
         <Button
           onClick={() => setOpen(true)}
           className={cn(
             "w-14 h-14 rounded-full shadow-2xl",
-            "bg-warning hover:bg-warning/90 border-2 border-warning-foreground/20",
-            "animate-pulse hover:animate-none"
+            "bg-warning hover:bg-warning/90 border-2 border-warning-foreground/20"
           )}
           size="icon"
           aria-label="Contale algo al sistema"
