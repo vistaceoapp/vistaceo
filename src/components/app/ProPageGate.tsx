@@ -35,11 +35,12 @@ export const ProPageGate = ({
   icon
 }: ProPageGateProps) => {
   const navigate = useNavigate();
-  const { isPro } = useSubscription();
+  const { isPro, isLoading } = useSubscription();
   const { formatCurrencyShort, monthlyPrice, yearlyPrice } = useCountryDetection();
 
-  // Pro users see the actual content
-  if (isPro) {
+  // CRITICAL: While loading subscription state, show the content to avoid flash
+  // Pro users and loading state should show actual content immediately
+  if (isLoading || isPro) {
     return <>{children}</>;
   }
 

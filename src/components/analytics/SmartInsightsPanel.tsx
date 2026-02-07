@@ -113,9 +113,13 @@ export const SmartInsightsPanel = () => {
         : 50;
 
       // Calculate engagement score based on Brain signals
+      // CRITICAL: Score can NEVER be 100% - max is 95% for established businesses
       const brainSignals = brain?.total_signals || 0;
       const mvcCompletion = brain?.mvc_completion_pct || 0;
-      const engagement = Math.min(100, Math.round((brainSignals / 50) * 40 + mvcCompletion * 0.6));
+      // Base calculation with natural ceiling at 95
+      let rawEngagement = Math.round((brainSignals / 100) * 35 + mvcCompletion * 0.55);
+      // Apply logarithmic dampening to prevent reaching 100%
+      const engagement = Math.min(95, Math.max(0, rawEngagement));
       setEngagementScore(engagement);
 
       // Generate KPIs
@@ -371,10 +375,10 @@ export const SmartInsightsPanel = () => {
           </div>
           <Progress value={engagementScore} className="h-2" />
           <p className="text-xs text-muted-foreground mt-2">
-            {engagementScore < 30 && "Estoy aprendiendo sobre tu negocio. Seguí interactuando para mejorar."}
-            {engagementScore >= 30 && engagementScore < 60 && "Tengo una base sólida. Las recomendaciones van a mejorar."}
-            {engagementScore >= 60 && engagementScore < 80 && "Conozco bien tu negocio. Las predicciones son confiables."}
-            {engagementScore >= 80 && "Nivel experto alcanzado. Máxima precisión en recomendaciones."}
+            {engagementScore < 25 && "Estoy aprendiendo sobre tu negocio. Seguí interactuando para mejorar."}
+            {engagementScore >= 25 && engagementScore < 50 && "Tengo una base sólida. Las recomendaciones van a mejorar."}
+            {engagementScore >= 50 && engagementScore < 75 && "Conozco bien tu negocio. Las predicciones son confiables."}
+            {engagementScore >= 75 && "Nivel experto alcanzado. Máxima precisión en recomendaciones."}
           </p>
         </CardContent>
       </Card>
