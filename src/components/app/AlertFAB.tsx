@@ -199,18 +199,19 @@ export const AlertFAB = () => {
     <>
       {/* FAB Button - Highly visible with dismiss option */}
       <div className="fixed z-[9999] bottom-24 right-4 md:bottom-8 md:right-8">
-        {/* Close/Dismiss button (kept fully inside the FAB on small screens) */}
+        {/* Small dismiss button positioned at top-left corner */}
         <button
           onClick={handleDismiss}
           className={cn(
-            "absolute top-1 right-1 w-7 h-7 rounded-full",
-            "bg-background border border-border shadow-lg",
+            "absolute -top-1 -left-1 w-5 h-5 rounded-full",
+            "bg-muted/90 border border-border/50",
             "flex items-center justify-center",
-            "hover:bg-secondary transition-colors z-10"
+            "hover:bg-secondary transition-colors z-10",
+            "opacity-60 hover:opacity-100"
           )}
           aria-label="Ocultar"
         >
-          <X className="w-4 h-4 text-muted-foreground" />
+          <X className="w-3 h-3 text-muted-foreground" />
         </button>
 
         <Button

@@ -63,6 +63,9 @@ const MorePage = () => {
   const [passwordDialog, setPasswordDialog] = useState(false);
   const [autopilotDialog, setAutopilotDialog] = useState(false);
   const [subscriptionInfoDialog, setSubscriptionInfoDialog] = useState(false);
+  const [paymentHistoryDialog, setPaymentHistoryDialog] = useState(false);
+  const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [fullName, setFullName] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -838,7 +841,26 @@ const MorePage = () => {
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
-          <button onClick={() => toast({ title: "Próximamente", description: "Historial de pagos" })} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50">
+          <button 
+            onClick={async () => {
+              setPaymentHistoryDialog(true);
+              setLoadingHistory(true);
+              try {
+                const { data } = await supabase
+                  .from("subscriptions")
+                  .select("*")
+                  .eq("business_id", currentBusiness?.id || "")
+                  .order("created_at", { ascending: false })
+                  .limit(10);
+                setPaymentHistory(data || []);
+              } catch (e) {
+                console.error("Error loading payment history:", e);
+              } finally {
+                setLoadingHistory(false);
+              }
+            }} 
+            className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50"
+          >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <CreditCard className="w-5 h-5 text-primary" />
             </div>
@@ -1053,6 +1075,85 @@ const MorePage = () => {
           </div>
           <div className="flex justify-end mt-4">
             <Button variant="outline" onClick={() => setSubscriptionInfoDialog(false)}>
+              Cerrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Payment History Dialog */}
+      <Dialog open={paymentHistoryDialog} onOpenChange={setPaymentHistoryDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-primary" />
+              Historial de pagos
+            </DialogTitle>
+            <DialogDescription>
+              Tus transacciones y suscripciones
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4 max-h-[400px] overflow-y-auto">
+            {loadingHistory ? (
+              <div className="text-center py-8">
+                <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Cargando historial...</p>
+              </div>
+            ) : paymentHistory.length === 0 ? (
+              <div className="text-center py-8">
+                <CreditCard className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No hay pagos registrados</p>
+                {!isPro && (
+                  <Button size="sm" className="mt-3" onClick={() => navigate("/checkout")}>
+                    Actualizar a Pro
+                  </Button>
+                )}
+              </div>
+            ) : (
+              paymentHistory.map((payment, idx) => {
+                const date = new Date(payment.created_at);
+                const planName = payment.plan_id === "pro_yearly" ? "Pro Anual" : 
+                                 payment.plan_id === "pro_monthly" ? "Pro Mensual" : "Plan";
+                const provider = payment.payment_provider === "mercadopago" ? "MercadoPago" : 
+                                 payment.payment_provider === "paypal" ? "PayPal" : "-";
+                
+                return (
+                  <div key={payment.id || idx} className="p-4 rounded-xl bg-secondary/30 border border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-foreground">{planName}</span>
+                      <Badge variant={payment.status === "active" ? "default" : "secondary"} className="text-xs">
+                        {payment.status === "active" ? "Activo" : 
+                         payment.status === "expired" ? "Expirado" : 
+                         payment.status === "cancelled" ? "Cancelado" : payment.status}
+                      </Badge>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Fecha</span>
+                        <span className="text-foreground">
+                          {date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Método</span>
+                        <span className="text-foreground">{provider}</span>
+                      </div>
+                      {payment.expires_at && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Válido hasta</span>
+                          <span className="text-foreground">
+                            {new Date(payment.expires_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button variant="outline" onClick={() => setPaymentHistoryDialog(false)}>
               Cerrar
             </Button>
           </div>
