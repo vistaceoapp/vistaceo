@@ -3142,6 +3142,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       web_analytics: {
         Row: {
           blog_post_slug: string | null
@@ -3271,9 +3292,17 @@ export type Database = {
           plan_id: string
         }[]
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       action_status: "pending" | "completed" | "skipped" | "snoozed"
+      app_role: "admin" | "moderator" | "user"
       business_category:
         | "cafeteria"
         | "bar"
@@ -3425,6 +3454,7 @@ export const Constants = {
   public: {
     Enums: {
       action_status: ["pending", "completed", "skipped", "snoozed"],
+      app_role: ["admin", "moderator", "user"],
       business_category: [
         "cafeteria",
         "bar",
