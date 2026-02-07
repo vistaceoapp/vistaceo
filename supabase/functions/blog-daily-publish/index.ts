@@ -310,26 +310,65 @@ async function generateAndPublishPost(
         }
       }
       
-      // PHASE 3: Direct call to Lovable AI with ultra-simple prompt
+      // PHASE 3: Direct call to Lovable AI with PERSONALIZED prompt based on post content
       if (!imageGenSuccess) {
-        console.log('[blog-daily-publish] PHASE 3: Direct ultra-simple image generation (3 attempts)');
+        console.log('[blog-daily-publish] PHASE 3: Direct PERSONALIZED image generation (3 attempts)');
         const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         
         if (lovableApiKey) {
-          const ultraSimplePrompt = `
-Professional business blog photograph. 
-Modern minimalist office desk with laptop, coffee cup, and notebook.
-Soft natural window lighting, shallow depth of field.
-No people, no text, no logos, no watermarks.
-Ultra high resolution, editorial quality.
-Aspect ratio: 16:9
+          // Get post details for personalized prompt
+          const { data: postDetails } = await supabase
+            .from('blog_posts')
+            .select('title, pillar, excerpt, primary_keyword')
+            .eq('slug', postSlug)
+            .maybeSingle();
+          
+          const postTitle = postDetails?.title || generateResult.post.title || postSlug;
+          const postPillar = postDetails?.pillar || 'tendencias';
+          const postExcerpt = postDetails?.excerpt || '';
+          const postKeyword = postDetails?.primary_keyword || '';
+          
+          // Pillar-specific visual contexts
+          const pillarVisuals: Record<string, string> = {
+            empleo: 'professional job interview setting, resume documents, career growth symbols, confident professional atmosphere',
+            ia_aplicada: 'modern tech workspace, AI visualization on screen, smart devices, futuristic but human-centered environment',
+            liderazgo: 'executive meeting room, strategic planning, team leadership moment, mentoring scene',
+            servicios: 'client consultation, professional service delivery, business handshake, trust-building moment',
+            emprender: 'startup workspace, entrepreneur brainstorming, business planning boards, growth charts',
+            tendencias: 'market analysis dashboard, trend visualization, strategic business overview, innovation symbols'
+          };
+          
+          const visualContext = pillarVisuals[postPillar] || pillarVisuals.tendencias;
+          
+          // Build personalized prompt based on post content
+          const personalizedPrompt = `
+Professional editorial photograph for a business article titled: "${postTitle}"
+
+SCENE: ${visualContext}
+
+TOPIC FOCUS: ${postKeyword || postExcerpt.slice(0, 100) || postTitle}
+
+STYLE: Ultra photorealistic, professional editorial photography, cinematic natural lighting, shallow depth of field, 8K resolution, Hasselblad quality.
+
+MOOD: Premium business editorial, authentic, professional warmth, Latin American business context (modern offices in Argentina, Mexico, Colombia style).
+
+COMPOSITION: Hero banner format (16:9 aspect ratio). Clean composition suitable for blog header.
+
+CRITICAL RULES:
+- NO text, NO logos, NO watermarks, NO UI elements
+- If people appear: show from behind, silhouettes, hands only, or tastefully blurred. Never show identifiable faces.
+- Focus on the business/professional concept, not generic stock imagery
+
+Ultra high resolution.
           `.trim();
+          
+          console.log('[blog-daily-publish] Using personalized prompt for:', postTitle);
           
           for (let attempt = 1; attempt <= 3; attempt++) {
             try {
-              console.log(`[blog-daily-publish] Direct API attempt ${attempt}/3`);
+              console.log(`[blog-daily-publish] Direct API attempt ${attempt}/3 with personalized prompt`);
               
               const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
                 method: 'POST',
@@ -339,7 +378,7 @@ Aspect ratio: 16:9
                 },
                 body: JSON.stringify({
                   model: 'google/gemini-2.5-flash-image',
-                  messages: [{ role: 'user', content: ultraSimplePrompt }],
+                  messages: [{ role: 'user', content: personalizedPrompt }],
                   modalities: ['image', 'text'],
                 }),
               });
