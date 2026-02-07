@@ -244,93 +244,238 @@ async function generateAndPublishPost(
 
     console.log('[blog-daily-publish] Post generated:', generateResult?.post?.slug);
 
-    // Generate images with retry and strict validation
+    // ========== AGGRESSIVE IMAGE GENERATION ==========
+    // Strategy: Try everything possible before giving up
     if (generateResult?.post?.slug) {
-      console.log('[blog-daily-publish] Generating images for:', generateResult.post.slug);
+      console.log('[blog-daily-publish] Starting AGGRESSIVE image generation for:', generateResult.post.slug);
       
+      const postSlug = generateResult.post.slug;
+      const postId = generateResult?.post?.id;
       let imageGenSuccess = false;
       
-      // Attempt image generation with retries
-      for (let attempt = 1; attempt <= 3; attempt++) {
+      // PHASE 1: Standard generation with 5 attempts
+      console.log('[blog-daily-publish] PHASE 1: Standard generation (5 attempts)');
+      for (let attempt = 1; attempt <= 5; attempt++) {
         try {
+          console.log(`[blog-daily-publish] Standard attempt ${attempt}/5`);
           const { data: imgResult, error: imgError } = await supabase.functions.invoke('generate-blog-images', {
-            body: { slug: generateResult.post.slug, mode: 'single' }
+            body: { slug: postSlug, mode: 'single' }
           });
           
-          if (imgError) {
-            console.error(`[blog-daily-publish] Image generation attempt ${attempt} error:`, imgError);
-          } else if (imgResult?.result?.hero_url) {
-            console.log(`[blog-daily-publish] Image generated on attempt ${attempt}:`, imgResult.result.hero_url);
+          if (!imgError && imgResult?.result?.hero_url?.startsWith('https://')) {
+            console.log(`[blog-daily-publish] SUCCESS on standard attempt ${attempt}:`, imgResult.result.hero_url);
             imageGenSuccess = true;
             break;
-          } else {
-            console.error(`[blog-daily-publish] Image generation attempt ${attempt} returned no hero_url`);
           }
           
-          // Wait before retry
-          if (attempt < 3) {
+          console.log(`[blog-daily-publish] Standard attempt ${attempt} failed:`, imgError || 'No valid URL');
+          
+          // Progressive backoff: 5s, 10s, 15s, 20s
+          if (attempt < 5) {
             await new Promise(r => setTimeout(r, 5000 * attempt));
           }
-        } catch (imgErr) {
-          console.error(`[blog-daily-publish] Image generation attempt ${attempt} failed:`, imgErr);
-          if (attempt < 3) {
+        } catch (err) {
+          console.error(`[blog-daily-publish] Standard attempt ${attempt} exception:`, err);
+          if (attempt < 5) {
             await new Promise(r => setTimeout(r, 5000 * attempt));
           }
         }
       }
+      
+      // PHASE 2: If Phase 1 failed, try with post_id instead of slug
+      if (!imageGenSuccess && postId) {
+        console.log('[blog-daily-publish] PHASE 2: Trying with post_id (3 attempts)');
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            console.log(`[blog-daily-publish] post_id attempt ${attempt}/3`);
+            const { data: imgResult, error: imgError } = await supabase.functions.invoke('generate-blog-images', {
+              body: { post_id: postId, mode: 'single' }
+            });
+            
+            if (!imgError && imgResult?.result?.hero_url?.startsWith('https://')) {
+              console.log(`[blog-daily-publish] SUCCESS on post_id attempt ${attempt}:`, imgResult.result.hero_url);
+              imageGenSuccess = true;
+              break;
+            }
+            
+            if (attempt < 3) {
+              await new Promise(r => setTimeout(r, 8000));
+            }
+          } catch (err) {
+            console.error(`[blog-daily-publish] post_id attempt ${attempt} exception:`, err);
+            if (attempt < 3) {
+              await new Promise(r => setTimeout(r, 8000));
+            }
+          }
+        }
+      }
+      
+      // PHASE 3: Direct call to Lovable AI with ultra-simple prompt
+      if (!imageGenSuccess) {
+        console.log('[blog-daily-publish] PHASE 3: Direct ultra-simple image generation (3 attempts)');
+        const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        
+        if (lovableApiKey) {
+          const ultraSimplePrompt = `
+Professional business blog photograph. 
+Modern minimalist office desk with laptop, coffee cup, and notebook.
+Soft natural window lighting, shallow depth of field.
+No people, no text, no logos, no watermarks.
+Ultra high resolution, editorial quality.
+Aspect ratio: 16:9
+          `.trim();
+          
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              console.log(`[blog-daily-publish] Direct API attempt ${attempt}/3`);
+              
+              const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${lovableApiKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  model: 'google/gemini-2.5-flash-image',
+                  messages: [{ role: 'user', content: ultraSimplePrompt }],
+                  modalities: ['image', 'text'],
+                }),
+              });
+              
+              if (response.ok) {
+                const result = await response.json();
+                const imageUrl = result.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+                
+                if (imageUrl) {
+                  console.log('[blog-daily-publish] Got image from direct API, uploading...');
+                  
+                  // Upload to storage
+                  let base64Data = imageUrl;
+                  if (imageUrl.startsWith('https://')) {
+                    const imgResp = await fetch(imageUrl);
+                    const blob = await imgResp.arrayBuffer();
+                    const base64 = btoa(String.fromCharCode(...new Uint8Array(blob)));
+                    base64Data = `data:image/jpeg;base64,${base64}`;
+                  }
+                  
+                  if (base64Data.startsWith('data:')) {
+                    const matches = base64Data.match(/^data:([^;]+);base64,(.+)$/);
+                    if (matches) {
+                      const mimeType = matches[1];
+                      const base64Content = matches[2];
+                      const binaryString = atob(base64Content);
+                      const bytes = new Uint8Array(binaryString.length);
+                      for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                      }
+                      
+                      const fileName = `${postSlug}-hero-emergency-${Date.now()}.jpg`;
+                      
+                      const uploadResp = await fetch(`${supabaseUrl}/storage/v1/object/blog-images/${fileName}`, {
+                        method: 'POST',
+                        headers: {
+                          'apikey': supabaseKey,
+                          'Authorization': `Bearer ${supabaseKey}`,
+                          'Content-Type': mimeType,
+                          'x-upsert': 'true',
+                        },
+                        body: bytes,
+                      });
+                      
+                      if (uploadResp.ok) {
+                        const publicUrl = `${supabaseUrl}/storage/v1/object/public/blog-images/${fileName}`;
+                        
+                        // Update post with emergency image
+                        await supabase
+                          .from('blog_posts')
+                          .update({ 
+                            hero_image_url: publicUrl,
+                            image_alt_text: `Imagen ilustrativa: ${generateResult.post.title || postSlug}`
+                          })
+                          .eq('slug', postSlug);
+                        
+                        console.log(`[blog-daily-publish] EMERGENCY IMAGE SUCCESS:`, publicUrl);
+                        imageGenSuccess = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+              }
+              
+              if (attempt < 3) {
+                await new Promise(r => setTimeout(r, 10000));
+              }
+            } catch (err) {
+              console.error(`[blog-daily-publish] Direct API attempt ${attempt} failed:`, err);
+              if (attempt < 3) {
+                await new Promise(r => setTimeout(r, 10000));
+              }
+            }
+          }
+        }
+      }
+      
+      // Wait for DB sync
+      await new Promise(r => setTimeout(r, 3000));
 
-      // Wait a moment for DB to sync
-      await new Promise(r => setTimeout(r, 2000));
-
-      // STRICT VERIFICATION: Re-query the post to verify hero_image_url exists
+      // FINAL VERIFICATION
       const { data: savedPost } = await supabase
         .from('blog_posts')
         .select('id, slug, hero_image_url, content_md, title')
-        .eq('slug', generateResult.post.slug)
+        .eq('slug', postSlug)
         .maybeSingle();
 
-      // CRITICAL: Block if no valid hero image (must be HTTPS URL, not null/empty/base64)
       const heroUrl = savedPost?.hero_image_url || '';
       const hasValidHeroImage = heroUrl.startsWith('https://') && heroUrl.includes('supabase.co');
       
+      console.log(`[blog-daily-publish] Final hero_image_url check: "${heroUrl.substring(0, 100)}..."`);
+      console.log(`[blog-daily-publish] Valid hero image: ${hasValidHeroImage}`);
+      
       if (!hasValidHeroImage) {
-        console.error('[blog-daily-publish] QUALITY GATE FAILED: Missing valid hero image, reverting to draft');
-        console.error('[blog-daily-publish] hero_image_url value:', heroUrl || '(empty)');
+        console.error('[blog-daily-publish] QUALITY GATE FAILED after ALL attempts - reverting to draft');
         
         await supabase
           .from('blog_posts')
           .update({ 
             status: 'draft',
-            quality_gate_report: { blocked: true, reason: 'missing_hero_image', hero_value: heroUrl }
+            quality_gate_report: { 
+              blocked: true, 
+              reason: 'missing_hero_image_after_all_phases',
+              phases_attempted: ['standard_5x', 'post_id_3x', 'direct_api_3x'],
+              hero_value: heroUrl 
+            }
           })
-          .eq('slug', generateResult.post.slug);
+          .eq('slug', postSlug);
         
         await supabase.from('blog_runs').insert({
           result: 'failed',
           chosen_plan_id: planId,
           chosen_topic_id: topicId,
-          notes: `Blocked: missing hero image after ${3} attempts`,
-          quality_gate_report: { blocked: true, reason: 'missing_hero_image' }
+          notes: `Blocked: missing hero image after 11 total attempts (5 standard + 3 post_id + 3 direct)`,
+          quality_gate_report: { blocked: true, reason: 'missing_hero_image_exhausted' }
         });
         
-        return { success: false, error: 'Hero image missing after retries' };
+        return { success: false, error: 'Hero image missing after exhaustive retries' };
       }
 
       // ===== QUALITY AUDIT (BLOCK PUBLISH IF BROKEN) =====
-      const qualityIssues = auditPostMarkdown(savedPost?.content_md || '');
+      const qualityIssues = auditPostMarkdown(savedPost.content_md);
       if (qualityIssues.length > 0) {
-        console.error('[blog-daily-publish] Quality audit failed:', qualityIssues);
+        console.error('[blog-daily-publish] Quality issues found:', qualityIssues);
         await supabase
           .from('blog_posts')
           .update({ status: 'draft', quality_gate_report: { blocked: true, issues: qualityIssues } })
-          .eq('slug', generateResult.post.slug);
+          .eq('slug', postSlug);
         return { success: false, error: `Quality audit failed: ${qualityIssues.join(' | ')}` };
       }
       
       console.log('[blog-daily-publish] QUALITY GATE PASSED: Post has valid hero image and content');
 
       // Submit to IndexNow
-      await submitToIndexNow(supabase, [generateResult.post.slug]);
+      await submitToIndexNow(supabase, [postSlug]);
     }
 
     // Log success
