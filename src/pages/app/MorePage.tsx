@@ -62,6 +62,7 @@ const MorePage = () => {
   const [businessDialog, setBusinessDialog] = useState(false);
   const [passwordDialog, setPasswordDialog] = useState(false);
   const [autopilotDialog, setAutopilotDialog] = useState(false);
+  const [subscriptionInfoDialog, setSubscriptionInfoDialog] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [fullName, setFullName] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -69,14 +70,10 @@ const MorePage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
   const [userMode, setUserMode] = useState<"nano" | "standard" | "proactive" | "sos">("standard");
-  const [businessTypeChanged, setBusinessTypeChanged] = useState(false);
 
   useEffect(() => {
     if (currentBusiness) {
       setBusinessName(currentBusiness.name);
-      // Check if business type was ever changed
-      const settings = currentBusiness.settings as Record<string, any> | null;
-      setBusinessTypeChanged(settings?.business_type_changed || false);
     }
   }, [currentBusiness]);
 
@@ -605,14 +602,6 @@ const MorePage = () => {
                 <Label>Nombre del negocio</Label>
                 <Input value={businessName} onChange={(e) => setBusinessName(e.target.value)} className="mt-1" />
               </div>
-              {!businessTypeChanged && (
-                <div className="p-3 rounded-lg bg-warning/10 border border-warning/30">
-                  <p className="text-xs text-muted-foreground">
-                    <AlertTriangle className="w-3 h-3 inline mr-1" />
-                    Para cambiar el tipo de negocio, contactanos. Solo se permite 1 vez.
-                  </p>
-                </div>
-              )}
             </div>
             <div className="flex gap-3 mt-6">
               <Button variant="outline" className="flex-1" onClick={() => setBusinessDialog(false)}>Cancelar</Button>
@@ -813,23 +802,13 @@ const MorePage = () => {
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
-          <button onClick={() => navigate("/app/diagnostic")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 border-b border-border/50">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Target className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="font-medium text-foreground">Precisión del Brain</p>
-              <p className="text-xs text-muted-foreground">Completá tu perfil</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </button>
-          <button onClick={() => navigate("/app/audit")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50">
+          <button onClick={() => navigate("/app/analytics")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1 text-left">
-              <p className="font-medium text-foreground">Auditoría Brain</p>
-              <p className="text-xs text-muted-foreground">Trazas y feedback</p>
+              <p className="font-medium text-foreground">Analíticas y métricas</p>
+              <p className="text-xs text-muted-foreground">Estadísticas del negocio</p>
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
@@ -842,7 +821,10 @@ const MorePage = () => {
           Suscripción
         </h3>
         <GlassCard className="overflow-hidden">
-          <button onClick={() => navigate("/checkout")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 border-b border-border/50">
+          <button 
+            onClick={() => isPro ? setSubscriptionInfoDialog(true) : navigate("/checkout")} 
+            className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50 border-b border-border/50"
+          >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Crown className="w-5 h-5 text-primary" />
             </div>
@@ -986,14 +968,14 @@ const MorePage = () => {
       </Dialog>
 
       <Dialog open={autopilotDialog} onOpenChange={setAutopilotDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Brain className="w-5 h-5 text-primary" />
               Modo de operación
             </DialogTitle>
             <DialogDescription>
-              Elige cómo quieres que el asistente interactúe contigo
+              Elegí cómo querés que el asistente interactúe con vos
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
@@ -1001,10 +983,78 @@ const MorePage = () => {
               <AutopilotModeSelector
                 currentMode={userMode}
                 userId={user.id}
-                onModeChange={(mode) => setUserMode(mode)}
+                onModeChange={(mode) => {
+                  setUserMode(mode);
+                  setAutopilotDialog(false);
+                }}
                 isPro={isPro}
               />
             )}
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button variant="outline" onClick={() => setAutopilotDialog(false)}>
+              Cerrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Subscription Info Dialog for Pro users */}
+      <Dialog open={subscriptionInfoDialog} onOpenChange={setSubscriptionInfoDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-primary" />
+              Tu suscripción Pro
+            </DialogTitle>
+            <DialogDescription>
+              Información sobre tu plan actual
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                  <Crown className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground text-lg">{planLabel}</p>
+                  <p className="text-sm text-muted-foreground">Plan activo</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Días restantes</span>
+                  <span className="font-semibold text-foreground">{daysRemaining} días</span>
+                </div>
+                {expiresAt && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Próxima renovación</span>
+                    <span className="font-medium text-foreground">
+                      {expiresAt.toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+                )}
+                {paymentProvider && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Método de pago</span>
+                    <span className="font-medium text-foreground capitalize">
+                      {paymentProvider === "mercadopago" ? "MercadoPago" : "PayPal"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">
+                ¡Gracias por ser parte de VistaCEO Pro! 🚀
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button variant="outline" onClick={() => setSubscriptionInfoDialog(false)}>
+              Cerrar
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

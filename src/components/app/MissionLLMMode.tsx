@@ -388,13 +388,15 @@ export const MissionLLMMode = ({
           />
         ) : (
           <>
-            {/* Tabs */}
-            <Tabs value={mobileTab} onValueChange={setMobileTab} className="flex-1 flex flex-col min-h-0">
-              <TabsList className="grid w-full grid-cols-3 p-1 mx-4 mt-3 bg-secondary">
-                <TabsTrigger value="guide" className="text-xs">Guía</TabsTrigger>
-                <TabsTrigger value="steps" className="text-xs">Pasos</TabsTrigger>
-                <TabsTrigger value="resources" className="text-xs">Recursos</TabsTrigger>
-              </TabsList>
+            {/* Tabs - Fixed width to prevent overflow */}
+            <Tabs value={mobileTab} onValueChange={setMobileTab} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className="px-4 pt-3">
+                <TabsList className="grid w-full grid-cols-3 p-1 bg-secondary">
+                  <TabsTrigger value="guide" className="text-xs">Guía</TabsTrigger>
+                  <TabsTrigger value="steps" className="text-xs">Pasos</TabsTrigger>
+                  <TabsTrigger value="resources" className="text-xs">Recursos</TabsTrigger>
+                </TabsList>
+              </div>
 
               <div className="flex-1 overflow-y-auto px-4 py-4">
                 <TabsContent value="guide" className="m-0 space-y-4">

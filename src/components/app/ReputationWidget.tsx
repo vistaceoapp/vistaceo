@@ -1,17 +1,10 @@
 import { useState, useEffect } from "react";
 import { 
   Star, 
-  Instagram, 
   TrendingUp,
-  TrendingDown,
-  Minus,
   ChevronRight,
   Lock,
-  Sparkles,
-  ExternalLink,
-  Youtube,
-  Users,
-  Eye
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,22 +24,10 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
   const { currentBusiness } = useBusiness();
   const navigate = useNavigate();
   const [googleConnected, setGoogleConnected] = useState(false);
-  const [instagramConnected, setInstagramConnected] = useState(false);
-  const [youtubeConnected, setYoutubeConnected] = useState(false);
   const [googleData, setGoogleData] = useState<{
     rating: number;
     reviewCount: number;
     change: number;
-  } | null>(null);
-  const [instagramData, setInstagramData] = useState<{
-    followers: string;
-    engagement: string;
-  } | null>(null);
-  const [youtubeData, setYoutubeData] = useState<{
-    subscribers: string;
-    views: string;
-    engagement: string;
-    channelTitle: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -61,44 +42,29 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
     }
 
     try {
+      // Only fetch Google integration (Instagram/Facebook removed)
       const { data, error } = await supabase
         .from("business_integrations")
         .select("*")
-        .eq("business_id", currentBusiness.id);
+        .eq("business_id", currentBusiness.id)
+        .in("integration_type", ["google_reviews", "google_business"]);
 
       if (error) throw error;
 
-      const googleIntegration = data?.find(d => d.integration_type === "google_reviews");
-      const instagramIntegration = data?.find(d => d.integration_type === "instagram");
-      const youtubeIntegration = data?.find(d => d.integration_type === "youtube");
+      const googleIntegration = data?.find(d => 
+        d.integration_type === "google_reviews" || d.integration_type === "google_business"
+      );
 
-      if (googleIntegration?.status === "connected") {
+      // Also check if business has google_place_id from setup
+      const hasGoogleFromSetup = !!currentBusiness.google_place_id;
+
+      if (googleIntegration?.status === "connected" || hasGoogleFromSetup) {
         setGoogleConnected(true);
-        const metadata = googleIntegration.metadata as Record<string, any> | null;
+        const metadata = googleIntegration?.metadata as Record<string, any> | null;
         setGoogleData({
-          rating: currentBusiness.avg_rating || 4.2,
-          reviewCount: metadata?.review_count || 48,
-          change: 0.1,
-        });
-      }
-
-      if (instagramIntegration?.status === "connected") {
-        setInstagramConnected(true);
-        const metadata = instagramIntegration.metadata as Record<string, any> | null;
-        setInstagramData({
-          followers: metadata?.followers || "2.4K",
-          engagement: metadata?.engagement || "4.2%",
-        });
-      }
-
-      if (youtubeIntegration?.status === "connected") {
-        setYoutubeConnected(true);
-        const metadata = youtubeIntegration.metadata as Record<string, any> | null;
-        setYoutubeData({
-          subscribers: formatNumber(metadata?.subscriber_count || 0),
-          views: formatNumber(metadata?.view_count || 0),
-          engagement: metadata?.engagement_rate || "0.00",
-          channelTitle: metadata?.channel_title || "Tu canal",
+          rating: currentBusiness.avg_rating || metadata?.rating || 0,
+          reviewCount: metadata?.review_count || 0,
+          change: metadata?.rating_change || 0,
         });
       }
     } catch (error) {
@@ -108,28 +74,10 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
     }
   };
 
-  const isConnected = googleConnected || instagramConnected || youtubeConnected;
+  const isConnected = googleConnected;
 
-  // Demo data for free users
+  // Demo data for free users - only Google
   const demoGoogleData = { rating: 4.3, reviewCount: 127, change: 0.2 };
-  const demoInstagramData = { followers: "3.2K", engagement: "5.1%" };
-  const demoYoutubeData = { subscribers: "1.2K", views: "45K", engagement: "4.8%" };
-
-  // Helper to format numbers
-  function formatNumber(num: number): string {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
-  }
-
-  if (loading) {
-    return (
-      <GlassCard className={cn("p-4 animate-pulse", className)}>
-        <div className="h-6 bg-muted rounded w-1/2 mb-4" />
-        <div className="h-20 bg-muted rounded" />
-      </GlassCard>
-    );
-  }
 
   // Free version - Demo/Preview mode
   if (!isPro && !isConnected) {
@@ -148,7 +96,7 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
           </Badge>
         </div>
 
-        {/* Demo content (blurred) */}
+        {/* Demo content (blurred) - Only Google */}
         <div className="space-y-3 opacity-60">
           <div className="flex items-center gap-3 p-2 rounded-lg bg-warning/5">
             <Star className="w-5 h-5 text-warning" />
@@ -158,13 +106,6 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
                 <span className="text-lg font-bold">{demoGoogleData.rating}</span>
                 <Progress value={(demoGoogleData.rating / 5) * 100} className="h-1.5 flex-1" />
               </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-pink-500/5">
-            <Instagram className="w-5 h-5 text-pink-500" />
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground">Instagram</p>
-              <span className="text-sm font-medium">{demoInstagramData.followers} seguidores</span>
             </div>
           </div>
         </div>
@@ -177,7 +118,7 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-foreground text-sm">Conectá tu negocio</p>
-              <p className="text-xs text-muted-foreground line-clamp-1">Datos reales de tus redes</p>
+              <p className="text-xs text-muted-foreground line-clamp-1">Datos reales de Google</p>
             </div>
           </div>
           <Button 
@@ -193,7 +134,7 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
     );
   }
 
-  // Connected/Pro version - Real data
+  // Connected/Pro version - Real data (ONLY Google)
   return (
     <GlassCard className={cn("p-4", className)}>
       <div className="flex items-center justify-between mb-4">
@@ -207,95 +148,35 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
       </div>
 
       <div className="space-y-3">
-        {/* Google Reviews */}
-        {(googleConnected || isPro) && (
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-warning/5 border border-warning/10">
-            <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
-              <Star className="w-5 h-5 text-warning" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs text-muted-foreground">Google Reviews</span>
-                {(googleData?.change || demoGoogleData.change) > 0 && (
-                  <span className="text-[10px] text-success flex items-center gap-0.5">
-                    <TrendingUp className="w-3 h-3" />
-                    +{googleData?.change || demoGoogleData.change}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xl font-bold text-foreground">
-                  {googleData?.rating || demoGoogleData.rating}
+        {/* Google Reviews - Only platform shown */}
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-warning/5 border border-warning/10">
+          <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
+            <Star className="w-5 h-5 text-warning" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs text-muted-foreground">Google Reviews</span>
+              {(googleData?.change || 0) > 0 && (
+                <span className="text-[10px] text-success flex items-center gap-0.5">
+                  <TrendingUp className="w-3 h-3" />
+                  +{googleData?.change || 0}
                 </span>
-                <Progress 
-                  value={((googleData?.rating || demoGoogleData.rating) / 5) * 100} 
-                  className="h-2 flex-1" 
-                />
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                {googleData?.reviewCount || demoGoogleData.reviewCount} reseñas
-              </p>
+              )}
             </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xl font-bold text-foreground">
+                {googleData?.rating || currentBusiness?.avg_rating || 0}
+              </span>
+              <Progress 
+                value={((googleData?.rating || currentBusiness?.avg_rating || 0) / 5) * 100} 
+                className="h-2 flex-1" 
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {googleData?.reviewCount || 0} reseñas
+            </p>
           </div>
-        )}
-
-        {/* YouTube */}
-        {(youtubeConnected || isPro) && (
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-destructive/5 border border-destructive/10">
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-              <Youtube className="w-5 h-5 text-destructive" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground mb-1">YouTube</p>
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-1">
-                  <Users className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-sm font-bold text-foreground">
-                    {youtubeData?.subscribers || demoYoutubeData.subscribers}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Eye className="w-3 h-3 text-muted-foreground" />
-                  <span className="text-sm font-medium text-foreground">
-                    {youtubeData?.views || demoYoutubeData.views}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-medium text-foreground">
-                    {youtubeData?.engagement || demoYoutubeData.engagement}%
-                  </span>
-                  <span className="text-[10px] text-muted-foreground ml-1">eng</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Instagram */}
-        {(instagramConnected || isPro) && (
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-pink-500/5 border border-pink-500/10">
-            <div className="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center">
-              <Instagram className="w-5 h-5 text-pink-500" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs text-muted-foreground mb-1">Instagram</p>
-              <div className="flex items-center gap-4">
-                <div>
-                  <span className="text-lg font-bold text-foreground">
-                    {instagramData?.followers || demoInstagramData.followers}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1">seguidores</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-sm font-medium text-foreground">
-                    {instagramData?.engagement || demoInstagramData.engagement}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1">engagement</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
       <Button 
