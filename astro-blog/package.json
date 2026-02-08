@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "seo:check": "node scripts/seo-check.mjs"
+    "seo:check": "node scripts/seo-check.mjs",
+    "seo:verify": "node scripts/verify-seo.js"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.0",
