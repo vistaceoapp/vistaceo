@@ -1,31 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
-  AlertTriangle, 
-  ThumbsUp, 
-  ThumbsDown,
-  ShieldAlert,
+  PartyPopper,
+  AlertCircle,
+  HelpCircle,
+  X,
   Mic,
   MicOff,
   Loader2,
   CheckCircle2,
   Sparkles,
-  PartyPopper,
-  AlertCircle,
-  HelpCircle,
-  X
+  ChevronLeft,
+  MessageCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
@@ -66,7 +64,6 @@ export const AlertFAB = () => {
   const { currentBusiness } = useBusiness();
   const [open, setOpen] = useState(false);
   const [isDismissed, setIsDismissed] = useState(() => {
-    // Check if dismissed in this session
     if (typeof window !== 'undefined') {
       return sessionStorage.getItem(DISMISS_STORAGE_KEY) === 'true';
     }
@@ -110,7 +107,6 @@ export const AlertFAB = () => {
     setLoading(true);
 
     try {
-      // Generate contextual AI response based on type
       const isPositive = alertType === "positive";
       const aiSummary = {
         summary: isPositive 
@@ -190,59 +186,63 @@ export const AlertFAB = () => {
 
   const isPositiveType = alertType === "positive";
 
-  // Don't render if dismissed
   if (isDismissed) {
     return null;
   }
 
   return (
     <>
-      {/* FAB Button - Highly visible with dismiss option */}
+      {/* FAB Button - Clean, minimal design */}
       <div className="fixed z-[9999] bottom-24 right-4 md:bottom-8 md:right-8">
-        {/* Small dismiss button positioned at top-left corner */}
-        <button
-          onClick={handleDismiss}
-          className={cn(
-            "absolute -top-1 -left-1 w-5 h-5 rounded-full",
-            "bg-muted/90 border border-border/50",
-            "flex items-center justify-center",
-            "hover:bg-secondary transition-colors z-10",
-            "opacity-60 hover:opacity-100"
-          )}
-          aria-label="Ocultar"
-        >
-          <X className="w-3 h-3 text-muted-foreground" />
-        </button>
+        <div className="relative group">
+          {/* Main FAB */}
+          <Button
+            onClick={() => setOpen(true)}
+            className={cn(
+              "w-14 h-14 rounded-full shadow-lg",
+              "bg-primary hover:bg-primary/90",
+              "transition-all duration-200 hover:scale-105"
+            )}
+            size="icon"
+            aria-label="Contale algo al sistema"
+          >
+            <MessageCircle className="w-6 h-6" />
+          </Button>
 
-        <Button
-          onClick={() => setOpen(true)}
-          className={cn(
-            "w-14 h-14 rounded-full shadow-2xl",
-            "bg-warning hover:bg-warning/90 border-2 border-warning-foreground/20"
-          )}
-          size="icon"
-          aria-label="Contale algo al sistema"
-        >
-          <AlertTriangle className="w-6 h-6 text-warning-foreground" />
-        </Button>
+          {/* Dismiss on long press or swipe - show on hover */}
+          <button
+            onClick={handleDismiss}
+            className={cn(
+              "absolute -top-2 -right-2",
+              "w-6 h-6 rounded-full",
+              "bg-muted border border-border",
+              "flex items-center justify-center",
+              "opacity-0 group-hover:opacity-100 transition-opacity",
+              "hover:bg-secondary"
+            )}
+            aria-label="Ocultar"
+          >
+            <X className="w-3 h-3 text-muted-foreground" />
+          </button>
+        </div>
       </div>
 
-      {/* Alert Dialog */}
-      <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      {/* Sheet instead of Dialog for better mobile UX */}
+      <Sheet open={open} onOpenChange={handleClose}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] overflow-y-auto">
           {step === "type" && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-xl">
+            <div className="pb-6">
+              <SheetHeader className="mb-6">
+                <SheetTitle className="flex items-center gap-2 text-xl">
                   <HelpCircle className="w-6 h-6 text-primary" />
                   ¿Qué te pasó?
-                </DialogTitle>
-                <DialogDescription className="text-base">
-                  Contale al sistema algo importante que ocurrió en tu negocio
-                </DialogDescription>
-              </DialogHeader>
+                </SheetTitle>
+                <SheetDescription className="text-base">
+                  Contale al sistema algo importante que ocurrió
+                </SheetDescription>
+              </SheetHeader>
 
-              <div className="space-y-4 mt-6">
+              <div className="space-y-3">
                 {ALERT_TYPES.map((type) => {
                   const Icon = type.icon;
                   return (
@@ -250,8 +250,8 @@ export const AlertFAB = () => {
                       key={type.value}
                       onClick={() => handleSelectType(type.value)}
                       className={cn(
-                        "w-full p-5 rounded-xl border-2 transition-all text-left",
-                        "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
+                        "w-full p-4 rounded-xl border-2 transition-all text-left",
+                        "hover:shadow-md active:scale-[0.98]",
                         type.bg,
                         type.borderColor
                       )}
@@ -263,8 +263,8 @@ export const AlertFAB = () => {
                         )}>
                           <Icon className={cn("w-6 h-6", type.color)} />
                         </div>
-                        <div>
-                          <p className="font-semibold text-foreground text-lg">{type.label}</p>
+                        <div className="flex-1">
+                          <p className="font-semibold text-foreground">{type.label}</p>
                           <p className="text-sm text-muted-foreground">{type.sublabel}</p>
                         </div>
                       </div>
@@ -273,48 +273,55 @@ export const AlertFAB = () => {
                 })}
 
                 <p className="text-xs text-muted-foreground text-center pt-4">
-                  💡 Esta información alimenta el sistema para darte mejores recomendaciones
+                  💡 Esta información mejora las recomendaciones del sistema
                 </p>
               </div>
-            </>
+            </div>
           )}
 
           {step === "details" && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  {isPositiveType ? (
-                    <PartyPopper className="w-5 h-5 text-success" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 text-destructive" />
-                  )}
-                  {isPositiveType ? "Contanos lo bueno" : "¿Qué pasó?"}
-                </DialogTitle>
-                <DialogDescription>
+            <div className="pb-6">
+              <SheetHeader className="mb-4">
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setStep("type")}
+                    className="p-1 rounded-lg hover:bg-secondary transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+                  </button>
+                  <SheetTitle className="flex items-center gap-2">
+                    {isPositiveType ? (
+                      <PartyPopper className="w-5 h-5 text-success" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-destructive" />
+                    )}
+                    {isPositiveType ? "Contanos lo bueno" : "¿Qué pasó?"}
+                  </SheetTitle>
+                </div>
+                <SheetDescription>
                   {isPositiveType 
-                    ? "Describe el evento positivo para que el sistema aprenda" 
-                    : "Describe la situación para generar un plan de respuesta"}
-                </DialogDescription>
-              </DialogHeader>
+                    ? "Describe el evento positivo" 
+                    : "Describe la situación brevemente"}
+                </SheetDescription>
+              </SheetHeader>
 
-              <div className="space-y-6 mt-4">
+              <div className="space-y-5">
                 {/* Category */}
                 <div>
-                  <Label className="text-sm font-medium mb-3 block">¿En qué área ocurrió?</Label>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  <Label className="text-sm font-medium mb-2 block">Área</Label>
+                  <div className="flex flex-wrap gap-2">
                     {CATEGORIES.map((cat) => (
                       <button
                         key={cat.value}
                         onClick={() => setCategory(cat.value)}
                         className={cn(
-                          "p-2 rounded-lg border transition-all text-center text-sm",
+                          "px-3 py-2 rounded-full border text-sm transition-all",
                           category === cat.value
-                            ? "border-primary bg-primary/10 text-primary"
+                            ? "border-primary bg-primary/10 text-primary font-medium"
                             : "border-border hover:border-muted-foreground"
                         )}
                       >
-                        <span className="text-lg block mb-0.5">{cat.emoji}</span>
-                        <span className="text-xs">{cat.label}</span>
+                        {cat.emoji} {cat.label}
                       </button>
                     ))}
                   </div>
@@ -322,18 +329,16 @@ export const AlertFAB = () => {
 
                 {/* Content */}
                 <div>
-                  <Label className="text-sm font-medium mb-2 block">
-                    {isPositiveType ? "¿Qué pasó?" : "Describe la situación"}
-                  </Label>
+                  <Label className="text-sm font-medium mb-2 block">Descripción</Label>
                   <div className="relative">
                     <Textarea
                       placeholder={isPositiveType 
-                        ? "Ej: Un cliente dejó una reseña increíble, logramos un récord de ventas..."
-                        : "Ej: Un cliente se fue enojado, hubo un problema con un proveedor..."
+                        ? "Ej: Un cliente dejó una reseña increíble..."
+                        : "Ej: Un cliente se fue enojado porque..."
                       }
                       value={textContent}
                       onChange={(e) => setTextContent(e.target.value)}
-                      className="min-h-[120px] pr-12"
+                      className="min-h-[100px] pr-12 resize-none"
                     />
                     <Button
                       variant="ghost"
@@ -349,74 +354,60 @@ export const AlertFAB = () => {
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-3">
-                  <Button 
-                    variant="outline"
-                    onClick={() => setStep("type")}
-                    className="flex-1"
-                  >
-                    Atrás
-                  </Button>
-                  <Button 
-                    onClick={handleSubmit} 
-                    disabled={loading || !textContent.trim() || !category}
-                    className={cn("flex-1", isPositiveType ? "bg-success hover:bg-success/90" : "")}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Procesando...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Registrar
-                      </>
-                    )}
-                  </Button>
-                </div>
+                {/* Submit */}
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={loading || !textContent.trim() || !category}
+                  className={cn("w-full", isPositiveType && "bg-success hover:bg-success/90")}
+                  size="lg"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Registrar
+                    </>
+                  )}
+                </Button>
               </div>
-            </>
+            </div>
           )}
 
           {step === "result" && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+            <div className="pb-6">
+              <SheetHeader className="mb-4">
+                <SheetTitle className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-success" />
-                  {isPositiveType ? "¡Evento registrado!" : "Alerta registrada"}
-                </DialogTitle>
-              </DialogHeader>
+                  {isPositiveType ? "¡Registrado!" : "Alerta guardada"}
+                </SheetTitle>
+              </SheetHeader>
 
-              <div className="space-y-4 mt-4">
+              <div className="space-y-4">
                 {/* Summary */}
                 <div className={cn(
                   "p-4 rounded-xl",
-                  isPositiveType ? "bg-success/10 border border-success/20" : "bg-secondary/50"
+                  isPositiveType ? "bg-success/10 border border-success/20" : "bg-secondary"
                 )}>
-                  <h4 className="font-semibold text-foreground mb-2">Resumen</h4>
-                  <p className="text-sm text-muted-foreground">{resultData?.summary}</p>
+                  <p className="text-sm text-foreground">{resultData?.summary}</p>
                 </div>
 
                 {/* Plan */}
                 <div>
-                  <h4 className="font-semibold text-foreground mb-3">
-                    {isPositiveType ? "Cómo capitalizar esto" : "Plan de respuesta"}
+                  <h4 className="font-medium text-foreground mb-2">
+                    {isPositiveType ? "Próximos pasos" : "Plan de acción"}
                   </h4>
                   <div className="space-y-2">
                     {resultData?.plan.map((planStep, idx) => (
-                      <div key={idx} className={cn(
-                        "flex items-center gap-3 p-3 rounded-lg border",
-                        isPositiveType 
-                          ? "bg-success/5 border-success/10" 
-                          : "bg-primary/5 border-primary/10"
-                      )}>
+                      <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
                         <div className={cn(
-                          "w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium",
+                          "w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5",
                           isPositiveType 
-                            ? "bg-success/10 text-success" 
-                            : "bg-primary/10 text-primary"
+                            ? "bg-success/20 text-success" 
+                            : "bg-primary/20 text-primary"
                         )}>
                           {idx + 1}
                         </div>
@@ -430,26 +421,20 @@ export const AlertFAB = () => {
                 <div className={cn(
                   "p-4 rounded-xl border",
                   isPositiveType 
-                    ? "bg-success/10 border-success/20" 
-                    : "bg-warning/10 border-warning/20"
+                    ? "bg-success/5 border-success/20" 
+                    : "bg-warning/5 border-warning/20"
                 )}>
-                  <h4 className={cn(
-                    "font-semibold mb-2 flex items-center gap-2",
-                    isPositiveType ? "text-success" : "text-warning"
-                  )}>
-                    💡 {isPositiveType ? "Aprendizaje" : "Lección aprendida"}
-                  </h4>
-                  <p className="text-sm text-foreground">{resultData?.lesson}</p>
+                  <p className="text-sm text-foreground">💡 {resultData?.lesson}</p>
                 </div>
 
-                <Button onClick={handleClose} className="w-full">
+                <Button onClick={handleClose} className="w-full" variant="outline" size="lg">
                   Cerrar
                 </Button>
               </div>
-            </>
+            </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </>
   );
 };
