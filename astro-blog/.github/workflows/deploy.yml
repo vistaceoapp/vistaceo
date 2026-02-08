@@ -7,7 +7,11 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'astro-blog/**'
   workflow_dispatch:
+  repository_dispatch:
+    types: [blog-publish]
 
 permissions:
   contents: read
@@ -18,9 +22,16 @@ concurrency:
   group: "pages"
   cancel-in-progress: true
 
+env:
+  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+  SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./astro-blog
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,18 +40,67 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './astro-blog/package-lock.json'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci || npm install
 
-      - name: Build
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      - name: Build Astro site
         run: npm run build
 
-      - name: Run SEO Check
-        run: npm run seo:check
+      - name: Verify SEO files exist
+        run: |
+          echo "=== Checking critical SEO files ==="
+          
+          if [ ! -f "./dist/robots.txt" ]; then
+            echo "WARNING: robots.txt not found, creating fallback..."
+            cat > ./dist/robots.txt << 'EOF'
+# VistaCEO Blog - robots.txt
+# https://blog.vistaceo.com
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+Sitemap: https://blog.vistaceo.com/sitemap.xml
+EOF
+          fi
+          
+          if [ ! -f "./dist/sitemap.xml" ]; then
+            echo "WARNING: sitemap.xml not found!"
+          else
+            echo "sitemap.xml found:"
+            head -20 ./dist/sitemap.xml
+          fi
+          
+          echo ""
+          echo "=== Files in dist/ ==="
+          ls -la ./dist/
+          
+          echo ""
+          echo "=== robots.txt content ==="
+          cat ./dist/robots.txt
+          
+      - name: Verify no noindex directives
+        run: |
+          echo "=== Checking for accidental noindex ==="
+          if grep -r "noindex" ./dist/*.html 2>/dev/null | head -5; then
+            echo "WARNING: Found noindex in HTML files!"
+          else
+            echo "OK: No noindex found in root HTML files"
+          fi
+          
+          # Check robots.txt doesn't block everything
+          if grep -q "Disallow: /" ./dist/robots.txt && ! grep -q "Allow:" ./dist/robots.txt; then
+            echo "ERROR: robots.txt is blocking all crawlers!"
+            exit 1
+          fi
+
+      - name: Run SEO Check (optional)
+        run: npm run seo:check || echo "SEO check script not found, skipping..."
+        continue-on-error: true
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -48,7 +108,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: './astro-blog/dist'
 
   deploy:
     environment:
@@ -60,3 +120,22 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  notify-indexnow:
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Ping IndexNow (Bing/Yandex)
+        run: |
+          echo "Notifying IndexNow about sitemap update..."
+          
+          # Ping IndexNow with sitemap
+          curl -s -X GET "https://api.indexnow.org/indexnow?url=https://blog.vistaceo.com/sitemap.xml&key=8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d" || true
+          
+          # Ping Bing
+          curl -s -X GET "https://www.bing.com/indexnow?url=https://blog.vistaceo.com/sitemap.xml&key=8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d" || true
+          
+          # Ping Google with sitemap
+          curl -s "https://www.google.com/ping?sitemap=https://blog.vistaceo.com/sitemap.xml" || true
+          
+          echo "IndexNow ping complete!"

@@ -1,0 +1,27 @@
+# VistaCEO Blog - robots.txt
+# https://blog.vistaceo.com
+# Static fallback - dynamic version generated at build time
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+# Specific bot instructions for better crawling
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Yandex
+Allow: /
+Crawl-delay: 2
+
+# Sitemap location
+Sitemap: https://blog.vistaceo.com/sitemap.xml
+
+# IndexNow key for instant indexing
+# Key file: https://blog.vistaceo.com/indexnow-key.txt
