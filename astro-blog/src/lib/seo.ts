@@ -38,7 +38,8 @@ function isValidPublicUrl(url: string | null): boolean {
 }
 
 export function getCanonicalUrl(slug: string): string {
-  return `${SITE_URL}/${slug}`;
+  // Always use trailing slash for consistency with Astro directory format
+  return `${SITE_URL}/${slug}/`;
 }
 
 export function generateBlogPostingSchema(post: BlogPost) {

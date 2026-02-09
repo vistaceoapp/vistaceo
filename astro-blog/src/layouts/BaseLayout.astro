@@ -122,21 +122,15 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
   <meta name="author" content="VistaCEO">
   <meta name="generator" content="Astro">
   
-  <!-- Google Search Console verification -->
-  <!-- IMPORTANTE: Reemplaza "PASTE_YOUR_CODE_HERE" con tu código de verificación de Google -->
-  <!-- Obtenerlo en: https://search.google.com/search-console → Agregar propiedad → Prefijo URL → blog.vistaceo.com -->
-  <meta name="google-site-verification" content="PASTE_YOUR_CODE_HERE">
-  
-  <!-- Bing Webmaster Tools verification -->
-  <!-- Obtenerlo en: https://www.bing.com/webmasters → Agregar sitio → Meta tag -->
-  <meta name="msvalidate.01" content="PASTE_YOUR_BING_CODE_HERE">
+  <!-- Google Search Console verification (already verified via DNS TXT record) -->
+  <meta name="google-site-verification" content="I5Hmzn-As62Y1lOMpRR91ZofMP4dWeyzYALugxCYrZM">
   
   <!-- IndexNow for instant indexing (Bing, Yandex) -->
   <link rel="sitemap" type="application/xml" href="/sitemap.xml">
   <link rel="indexnow-key" href="/indexnow-key.txt">
   
-  <!-- Preload critical hero image for LCP -->
-  <link rel="preload" as="image" href="/og-default.jpg" type="image/jpeg">
+  <!-- HSTS - gradual rollout -->
+  <meta http-equiv="Strict-Transport-Security" content="max-age=86400; includeSubDomains">
 </head>
 <body>
   <!-- Google Tag Manager (noscript) -->

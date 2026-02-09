@@ -108,6 +108,11 @@ function generateRobotsTxt(): string {
     `Allow: /\n` +
     `Disallow: /api/\n` +
     `Disallow: /admin/\n\n` +
+    `# Crawl delay suggestions\n` +
+    `User-agent: Googlebot\n` +
+    `Allow: /\n\n` +
+    `User-agent: Bingbot\n` +
+    `Allow: /\n\n` +
     `Sitemap: ${SITE_URL}/sitemap.xml\n`
   );
 }
