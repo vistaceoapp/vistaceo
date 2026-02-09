@@ -215,3 +215,12 @@ verify_jwt = false
 
 [functions.audit-user-state]
 verify_jwt = false
+
+[functions.seo-auto-indexer]
+verify_jwt = false
+
+[functions.paypal-create-order]
+verify_jwt = false
+
+[functions.paypal-client-config]
+verify_jwt = false
