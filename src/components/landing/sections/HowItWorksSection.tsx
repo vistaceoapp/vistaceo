@@ -13,11 +13,11 @@ import { MockupProChat } from "@/components/landing/mockups/MockupProChat";
 import { MockupProAnalytics } from "@/components/landing/mockups/MockupProAnalytics";
 import { MockupProPredictions } from "@/components/landing/mockups/MockupProPredictions";
 
-// Import business photos
-import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
-import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
-import marketingImg from "@/assets/business-types/marketing-digital.jpg";
-import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg";
+// Import business photos - optimized WebP at 400px for selector cards
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=400&format=webp";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=400&format=webp";
+import marketingImg from "@/assets/business-types/marketing-digital.jpg?w=400&format=webp";
+import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg?w=400&format=webp";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 

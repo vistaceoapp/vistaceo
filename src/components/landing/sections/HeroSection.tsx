@@ -5,24 +5,24 @@ import { useState, useRef, useEffect, memo, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
 
-// Business photos - ALL original images
-import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
-import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
-import dentalImg from "@/assets/testimonials/clinica-dental.jpg";
-import hotelBoutiqueImg from "@/assets/business-types/hotel-boutique.jpg";
-import cafeImg from "@/assets/testimonials/cafeteria.jpg";
-import bodegaVinosImg from "@/assets/business-types/bodega-vinos.jpg";
-import marketingDigitalImg from "@/assets/business-types/marketing-digital.jpg";
-import pizzeriaImg from "@/assets/business-types/pizzeria.jpg";
-import gimnasioImg from "@/assets/business-types/gimnasio.jpg";
-import peluqueriaImg from "@/assets/business-types/peluqueria.jpg";
-import hamburgueseriaImg from "@/assets/business-types/hamburgueseria.jpg";
-import spaImg from "@/assets/business-types/spa.jpg";
+// Business photos - optimized WebP at 2x carousel display size (230px)
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=230&format=webp";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=230&format=webp";
+import dentalImg from "@/assets/testimonials/clinica-dental.jpg?w=230&format=webp";
+import hotelBoutiqueImg from "@/assets/business-types/hotel-boutique.jpg?w=230&format=webp";
+import cafeImg from "@/assets/testimonials/cafeteria.jpg?w=230&format=webp";
+import bodegaVinosImg from "@/assets/business-types/bodega-vinos.jpg?w=230&format=webp";
+import marketingDigitalImg from "@/assets/business-types/marketing-digital.jpg?w=230&format=webp";
+import pizzeriaImg from "@/assets/business-types/pizzeria.jpg?w=230&format=webp";
+import gimnasioImg from "@/assets/business-types/gimnasio.jpg?w=230&format=webp";
+import peluqueriaImg from "@/assets/business-types/peluqueria.jpg?w=230&format=webp";
+import hamburgueseriaImg from "@/assets/business-types/hamburgueseria.jpg?w=230&format=webp";
+import spaImg from "@/assets/business-types/spa.jpg?w=230&format=webp";
 
-// Reviewer photos
-import reviewer1 from "@/assets/reviewers/reviewer-1.jpg";
-import reviewer2 from "@/assets/reviewers/reviewer-2.jpg";
-import reviewer3 from "@/assets/reviewers/reviewer-3.jpg";
+// Reviewer photos - optimized at 2x (64px)
+import reviewer1 from "@/assets/reviewers/reviewer-1.jpg?w=64&format=webp";
+import reviewer2 from "@/assets/reviewers/reviewer-2.jpg?w=64&format=webp";
+import reviewer3 from "@/assets/reviewers/reviewer-3.jpg?w=64&format=webp";
 
 // Shimmer button - pure CSS, no Framer Motion
 const ShimmerButton = memo(({ children, className, onClick, ariaLabel }: { 

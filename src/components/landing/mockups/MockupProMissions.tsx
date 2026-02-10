@@ -3,11 +3,11 @@ import { Target, CheckCircle2, Clock, TrendingUp, Sparkles, ChevronRight, Play }
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 
-// Import real business photos
-import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
-import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
-import marketingImg from "@/assets/business-types/marketing-digital.jpg";
-import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg";
+// Import real business photos - optimized WebP
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=200&format=webp";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=200&format=webp";
+import marketingImg from "@/assets/business-types/marketing-digital.jpg?w=200&format=webp";
+import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg?w=200&format=webp";
 
 export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia";
 
