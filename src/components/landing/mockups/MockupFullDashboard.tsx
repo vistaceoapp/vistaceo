@@ -7,9 +7,9 @@ import {
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 
-// Real business photos
-import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
-import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
+// Real business photos - optimized WebP
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=200&format=webp";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=200&format=webp";
 
 // Owl logo
 import owlLogo from "@/assets/brand/icon-light.png";

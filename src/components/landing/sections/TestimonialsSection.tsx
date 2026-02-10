@@ -3,13 +3,13 @@ import { Star, TrendingUp, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-// Import testimonial images
-import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg";
-import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg";
-import dentalImg from "@/assets/testimonials/clinica-dental.jpg";
-import hotelImg from "@/assets/testimonials/hotel-boutique.jpg";
-import cafeImg from "@/assets/testimonials/cafeteria.jpg";
-import legalImg from "@/assets/testimonials/estudio-juridico.jpg";
+// Import testimonial images - optimized WebP at 700px (card display ~400px, 2x retina)
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=700&format=webp";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=700&format=webp";
+import dentalImg from "@/assets/testimonials/clinica-dental.jpg?w=700&format=webp";
+import hotelImg from "@/assets/testimonials/hotel-boutique.jpg?w=700&format=webp";
+import cafeImg from "@/assets/testimonials/cafeteria.jpg?w=700&format=webp";
+import legalImg from "@/assets/testimonials/estudio-juridico.jpg?w=700&format=webp";
 
 const testimonials = [
   {
