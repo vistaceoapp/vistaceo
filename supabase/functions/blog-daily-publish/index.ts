@@ -14,7 +14,7 @@ const corsHeaders = {
  * - Each post includes image generation & indexing
  */
 
-const DAILY_POST_TARGET = 3; // Maximum posts per day
+const DAILY_POST_TARGET = 2; // Maximum posts per day (1-2 high quality posts)
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
