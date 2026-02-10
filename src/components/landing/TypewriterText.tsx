@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface TypewriterTextProps {
   texts: string[];
@@ -6,42 +6,34 @@ interface TypewriterTextProps {
 }
 
 export const TypewriterText = ({ texts, className }: TypewriterTextProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentText, setCurrentText] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const stateRef = useRef({ idx: 0, pos: 0, deleting: false, paused: false });
 
   useEffect(() => {
-    if (isPaused) return;
-    
-    const text = texts[currentIndex];
-    // Much slower typing speeds
-    const typingSpeed = isDeleting ? 80 : 120;
+    const s = stateRef.current;
+    let raf: number;
+    let last = 0;
 
-    if (!isDeleting && currentText === text) {
-      // Long pause before deleting (5 seconds)
-      setIsPaused(true);
-      const pauseTimeout = setTimeout(() => {
-        setIsPaused(false);
-        setIsDeleting(true);
-      }, 5000);
-      return () => clearTimeout(pauseTimeout);
-    }
+    const step = (ts: number) => {
+      const speed = s.paused ? 5000 : s.deleting ? 80 : 120;
+      if (ts - last < speed) { raf = requestAnimationFrame(step); return; }
+      last = ts;
 
-    if (isDeleting && currentText === "") {
-      setIsDeleting(false);
-      setCurrentIndex((prev) => (prev + 1) % texts.length);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setCurrentText((prev) =>
-        isDeleting ? prev.slice(0, -1) : text.slice(0, prev.length + 1)
-      );
-    }, typingSpeed);
-
-    return () => clearTimeout(timer);
-  }, [currentText, isDeleting, currentIndex, texts, isPaused]);
+      const text = texts[s.idx];
+      if (s.paused) { s.paused = false; s.deleting = true; }
+      else if (!s.deleting) {
+        if (s.pos < text.length) { s.pos++; }
+        else { s.paused = true; }
+      } else {
+        if (s.pos > 0) { s.pos--; }
+        else { s.deleting = false; s.idx = (s.idx + 1) % texts.length; }
+      }
+      if (textRef.current) textRef.current.textContent = texts[s.idx].slice(0, s.pos);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [texts]);
 
   return (
     <span
@@ -55,7 +47,7 @@ export const TypewriterText = ({ texts, className }: TypewriterTextProps) => {
         overflow: "visible",
       }}
     >
-      <span className="inline-block overflow-visible pr-[0.6ch]">{currentText}</span>
+      <span ref={textRef} className="inline-block overflow-visible pr-[0.6ch]" />
       <span className="pointer-events-none absolute right-0 bottom-[0.14em] animate-pulse text-primary">|</span>
     </span>
   );

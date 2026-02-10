@@ -314,6 +314,9 @@
   /* Infinite scroll for carousel - CSS only */
   .animate-scroll-left {
     animation: scrollLeft 60s linear infinite;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   /* Intersection observer based animation */
