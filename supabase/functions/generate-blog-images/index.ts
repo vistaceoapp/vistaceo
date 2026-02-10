@@ -47,6 +47,52 @@ interface ImageGenerationResult {
   errors: string[];
 }
 
+/**
+ * Checks if a base64 image is blank/white/corrupt by analyzing byte content.
+ * Returns true if the image appears to be blank.
+ */
+function isImageBlank(base64Data: string): boolean {
+  try {
+    const matches = base64Data.match(/^data:([^;]+);base64,(.+)$/);
+    if (!matches) return true; // Can't parse = reject
+    
+    const base64Content = matches[2];
+    const binaryString = atob(base64Content);
+    const sizeKB = binaryString.length / 1024;
+    
+    // Too small for a real photo
+    if (sizeKB < 8) {
+      console.log(`[generate-blog-images] Image too small: ${sizeKB.toFixed(1)}KB`);
+      return true;
+    }
+    
+    // PNG that's suspiciously small
+    if (matches[1].includes('png') && sizeKB < 30) {
+      console.log(`[generate-blog-images] PNG too small: ${sizeKB.toFixed(1)}KB`);
+      return true;
+    }
+    
+    // Sample bytes for uniform white color
+    const sampleSize = Math.min(binaryString.length, 10000);
+    const startOffset = Math.min(200, binaryString.length - sampleSize);
+    let nearWhiteCount = 0;
+    
+    for (let i = startOffset; i < startOffset + sampleSize && i < binaryString.length; i++) {
+      if (binaryString.charCodeAt(i) >= 0xF8) nearWhiteCount++;
+    }
+    
+    const nearWhiteRatio = nearWhiteCount / sampleSize;
+    if (nearWhiteRatio > 0.85) {
+      console.log(`[generate-blog-images] Image is ${(nearWhiteRatio * 100).toFixed(1)}% near-white - BLANK`);
+      return true;
+    }
+    
+    return false;
+  } catch {
+    return true; // Fail closed
+  }
+}
+
 // Generate a single premium image
 async function generatePremiumImage(
   prompt: string,
@@ -116,17 +162,27 @@ Aspect ratio: ${aspectRatio}. Ultra high resolution.
         continue;
       }
 
-      // Return base64 or URL
+      // Validate image is not blank/white before accepting
+      let base64Data: string;
       if (imageUrl.startsWith('data:image')) {
-        return { base64: imageUrl };
+        base64Data = imageUrl;
       } else if (imageUrl.startsWith('https://')) {
-        // Fetch and convert to base64 for consistent handling
         const imgResponse = await fetch(imageUrl);
         const blob = await imgResponse.arrayBuffer();
         const base64 = btoa(String.fromCharCode(...new Uint8Array(blob)));
         const mimeType = imgResponse.headers.get('content-type') || 'image/jpeg';
-        return { base64: `data:${mimeType};base64,${base64}` };
+        base64Data = `data:${mimeType};base64,${base64}`;
+      } else {
+        continue;
       }
+      
+      // CHECK: Is the image blank/white?
+      if (isImageBlank(base64Data)) {
+        console.log(`[generate-blog-images] Attempt ${attempt}: Image is BLANK/WHITE - rejecting`);
+        continue; // Try again
+      }
+      
+      return { base64: base64Data };
       
     } catch (error) {
       console.error(`[generate-blog-images] Attempt ${attempt} error:`, error);
