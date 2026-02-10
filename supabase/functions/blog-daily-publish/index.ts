@@ -460,7 +460,7 @@ Ultra high resolution.
       // Wait for DB sync
       await new Promise(r => setTimeout(r, 3000));
 
-      // FINAL VERIFICATION
+      // FINAL VERIFICATION - URL check + CONTENT validation (detect blank/white images)
       const { data: savedPost } = await supabase
         .from('blog_posts')
         .select('id, slug, hero_image_url, content_md, title')
@@ -468,10 +468,34 @@ Ultra high resolution.
         .maybeSingle();
 
       const heroUrl = savedPost?.hero_image_url || '';
-      const hasValidHeroImage = heroUrl.startsWith('https://') && heroUrl.includes('supabase.co');
+      const hasValidHeroUrl = heroUrl.startsWith('https://') && heroUrl.includes('supabase.co');
       
       console.log(`[blog-daily-publish] Final hero_image_url check: "${heroUrl.substring(0, 100)}..."`);
-      console.log(`[blog-daily-publish] Valid hero image: ${hasValidHeroImage}`);
+      console.log(`[blog-daily-publish] Valid hero URL: ${hasValidHeroUrl}`);
+      
+      // NEW GATE: Validate image is NOT blank/white/corrupt
+      let hasValidHeroImage = hasValidHeroUrl;
+      if (hasValidHeroUrl) {
+        const isValid = await validateImageNotBlank(heroUrl);
+        if (!isValid) {
+          console.error('[blog-daily-publish] IMAGE CONTENT GATE FAILED: Image is blank/white/corrupt!');
+          hasValidHeroImage = false;
+          
+          // Delete the bad image from storage
+          const fileName = heroUrl.split('/blog-images/').pop();
+          if (fileName) {
+            const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+            const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+            await fetch(`${supabaseUrl}/storage/v1/object/blog-images/${fileName}`, {
+              method: 'DELETE',
+              headers: {
+                'apikey': supabaseKey,
+                'Authorization': `Bearer ${supabaseKey}`,
+              },
+            }).catch(() => {});
+          }
+        }
+      }
       
       if (!hasValidHeroImage) {
         console.error('[blog-daily-publish] QUALITY GATE FAILED after ALL attempts - reverting to draft');
@@ -480,9 +504,10 @@ Ultra high resolution.
           .from('blog_posts')
           .update({ 
             status: 'draft',
+            hero_image_url: null,
             quality_gate_report: { 
               blocked: true, 
-              reason: 'missing_hero_image_after_all_phases',
+              reason: hasValidHeroUrl ? 'blank_white_hero_image_detected' : 'missing_hero_image_after_all_phases',
               phases_attempted: ['standard_5x', 'post_id_3x', 'direct_api_3x'],
               hero_value: heroUrl 
             }
@@ -493,11 +518,11 @@ Ultra high resolution.
           result: 'failed',
           chosen_plan_id: planId,
           chosen_topic_id: topicId,
-          notes: `Blocked: missing hero image after 11 total attempts (5 standard + 3 post_id + 3 direct)`,
-          quality_gate_report: { blocked: true, reason: 'missing_hero_image_exhausted' }
+          notes: `Blocked: ${hasValidHeroUrl ? 'hero image is blank/white/corrupt' : 'missing hero image'} after 11 total attempts`,
+          quality_gate_report: { blocked: true, reason: hasValidHeroUrl ? 'blank_image_content' : 'missing_hero_image_exhausted' }
         });
         
-        return { success: false, error: 'Hero image missing after exhaustive retries' };
+        return { success: false, error: hasValidHeroUrl ? 'Hero image is blank/white (content validation failed)' : 'Hero image missing after exhaustive retries' };
       }
 
       // ===== QUALITY AUDIT (BLOCK PUBLISH IF BROKEN) =====
@@ -532,6 +557,76 @@ Ultra high resolution.
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('[blog-daily-publish] Post generation failed:', message);
     return { success: false, error: message };
+  }
+}
+
+/**
+ * Validates that an image URL points to a real image (not blank/white/corrupt).
+ * Fetches the image, checks file size and basic pixel sampling.
+ * A blank/white PNG is typically very small (<5KB for a 1920x1080 image).
+ */
+async function validateImageNotBlank(imageUrl: string): Promise<boolean> {
+  try {
+    console.log('[blog-daily-publish] Validating image content:', imageUrl.substring(0, 80));
+    
+    const response = await fetch(imageUrl, { method: 'GET' });
+    if (!response.ok) {
+      console.error('[blog-daily-publish] Image fetch failed:', response.status);
+      return false;
+    }
+    
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.startsWith('image/')) {
+      console.error('[blog-daily-publish] Not an image:', contentType);
+      return false;
+    }
+    
+    const blob = await response.arrayBuffer();
+    const sizeKB = blob.byteLength / 1024;
+    
+    console.log(`[blog-daily-publish] Image size: ${sizeKB.toFixed(1)}KB, type: ${contentType}`);
+    
+    // Gate 1: Too small = likely blank/corrupt (real photos are >10KB minimum)
+    if (sizeKB < 8) {
+      console.error(`[blog-daily-publish] Image too small (${sizeKB.toFixed(1)}KB) - likely blank/corrupt`);
+      return false;
+    }
+    
+    // Gate 2: For PNG images, check if the file is suspiciously small for its expected dimensions
+    // A 1920x1080 blank white PNG compresses to ~5-15KB, while a real photo is 200KB+
+    if (contentType.includes('png') && sizeKB < 30) {
+      console.error(`[blog-daily-publish] PNG too small (${sizeKB.toFixed(1)}KB) - likely blank/white`);
+      return false;
+    }
+    
+    // Gate 3: Sample bytes for uniform color (all white = 0xFF bytes dominate)
+    const bytes = new Uint8Array(blob);
+    const sampleSize = Math.min(bytes.length, 10000);
+    const startOffset = Math.min(200, bytes.length - sampleSize); // Skip headers
+    let whiteByteCount = 0;
+    let nearWhiteByteCount = 0;
+    
+    for (let i = startOffset; i < startOffset + sampleSize && i < bytes.length; i++) {
+      if (bytes[i] === 0xFF) whiteByteCount++;
+      if (bytes[i] >= 0xF8) nearWhiteByteCount++;
+    }
+    
+    const whiteRatio = whiteByteCount / sampleSize;
+    const nearWhiteRatio = nearWhiteByteCount / sampleSize;
+    
+    console.log(`[blog-daily-publish] Byte analysis: white=${(whiteRatio * 100).toFixed(1)}%, near-white=${(nearWhiteRatio * 100).toFixed(1)}%`);
+    
+    if (nearWhiteRatio > 0.85) {
+      console.error(`[blog-daily-publish] Image appears blank/white (${(nearWhiteRatio * 100).toFixed(1)}% near-white bytes)`);
+      return false;
+    }
+    
+    console.log('[blog-daily-publish] Image content validation PASSED');
+    return true;
+    
+  } catch (error) {
+    console.error('[blog-daily-publish] Image validation error:', error);
+    return false; // Fail closed - if we can't validate, reject
   }
 }
 
