@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // Import optimized logo assets
-import logoFullText from "@/assets/brand/logo-full-text.png";
-import logoIcon from "@/assets/brand/logo-icon.png";
+import logoFullText from "@/assets/brand/logo-full-text.webp";
+import logoIcon from "@/assets/brand/icon-vistaceo.webp";
 
 interface HeaderV3Props {
   variant?: "landing" | "blog" | "app";
