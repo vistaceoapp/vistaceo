@@ -527,13 +527,49 @@ Ultra high resolution.
 
       // ===== QUALITY AUDIT (BLOCK PUBLISH IF BROKEN) =====
       const qualityIssues = auditPostMarkdown(savedPost.content_md);
+      
+      // Validate all external links in content (broken links = inaceptable)
+      const brokenLinks = await validateExternalLinks(savedPost.content_md);
+      if (brokenLinks.length > 0) {
+        qualityIssues.push(...brokenLinks.map(l => `broken_link:${l}`));
+      }
+      
       if (qualityIssues.length > 0) {
         console.error('[blog-daily-publish] Quality issues found:', qualityIssues);
-        await supabase
-          .from('blog_posts')
-          .update({ status: 'draft', quality_gate_report: { blocked: true, issues: qualityIssues } })
-          .eq('slug', postSlug);
-        return { success: false, error: `Quality audit failed: ${qualityIssues.join(' | ')}` };
+        
+        // Auto-repair: strip broken links from content, keep the anchor text
+        let repairedContent = savedPost.content_md;
+        let repaired = false;
+        for (const issue of qualityIssues) {
+          if (issue.startsWith('broken_link:')) {
+            const brokenUrl = issue.replace('broken_link:', '');
+            // Replace [text](broken_url) with just text
+            const linkRegex = new RegExp(`\\[([^\\]]+)\\]\\(${brokenUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'g');
+            repairedContent = repairedContent.replace(linkRegex, '$1');
+            repaired = true;
+          }
+        }
+        
+        // If we only had broken links and could repair them, fix and continue
+        const nonLinkIssues = qualityIssues.filter(i => !i.startsWith('broken_link:'));
+        if (nonLinkIssues.length === 0 && repaired) {
+          console.log('[blog-daily-publish] Auto-repaired broken links, continuing publish');
+          await supabase
+            .from('blog_posts')
+            .update({ content_md: repairedContent, quality_gate_report: { auto_repaired: true, repaired_links: brokenLinks } })
+            .eq('slug', postSlug);
+        } else {
+          // Non-repairable issues: block publish
+          await supabase
+            .from('blog_posts')
+            .update({ 
+              status: 'draft', 
+              content_md: repaired ? repairedContent : savedPost.content_md,
+              quality_gate_report: { blocked: true, issues: qualityIssues } 
+            })
+            .eq('slug', postSlug);
+          return { success: false, error: `Quality audit failed: ${qualityIssues.join(' | ')}` };
+        }
       }
       
       console.log('[blog-daily-publish] QUALITY GATE PASSED: Post has valid hero image and content');
@@ -550,6 +586,15 @@ Ultra high resolution.
       post_id: generateResult?.post?.id,
       notes: `Auto-published - IndexNow submitted`
     });
+
+    // MANDATORY: Trigger deploy immediately for EVERY successfully published post
+    // This ensures the blog is always up-to-date online
+    if (githubToken) {
+      console.log('[blog-daily-publish] Triggering IMMEDIATE deploy for post:', generateResult?.post?.slug);
+      await triggerGitHubBuild(githubToken);
+    } else {
+      console.warn('[blog-daily-publish] WARNING: No GH_PAT - cannot auto-deploy! Post will not be visible online.');
+    }
 
     return { success: true, post: generateResult?.post };
 
@@ -698,31 +743,159 @@ function auditPostMarkdown(contentMd: string): string[] {
   const issues: string[] = [];
   const md = contentMd || '';
 
-  // 1) Encoded/inline HTML pollution that breaks images into visible garbage
+  // ===== 1) RAW HTML / CODE ARTIFACTS LEAKED INTO CONTENT =====
+  // These are INACEPTABLE - raw HTML showing as visible text to the reader
+  
+  // Raw <img> tags with attributes visible as text
+  if (/<img\s+[^>]*(?:src|class|loading|alt)\s*=\s*"/i.test(md)) {
+    issues.push('raw_img_tag_in_content');
+  }
+  // Raw <a> tags visible
+  if (/<a\s+[^>]*href\s*=\s*"/i.test(md)) {
+    issues.push('raw_anchor_tag_in_content');
+  }
+  // Any raw HTML tags that shouldn't be in markdown (except allowed ones)
+  if (/<(?:div|span|section|article|header|footer|nav|table|tr|td|th|iframe|script|style|link|meta)\s/i.test(md)) {
+    issues.push('raw_html_tags_in_content');
+  }
+  // Raw HTML attributes leaked as visible text
+  if (/(?:loading\s*=\s*"lazy"|decoding\s*=\s*"async"|class\s*=\s*"content-image")/i.test(md)) {
+    issues.push('raw_html_attributes_leaked');
+  }
+  
+  // ===== 2) ENCODED / TRUNCATED URLs =====
   if (/%3c\s*a/i.test(md) || md.includes('%3Ca%20href=')) {
     issues.push('encoded_html_in_markdown');
   }
-  if (/nlewrgmcawzcdazhfiyy\.supabase\.co\/st\.\.\./i.test(md)) {
+  // Truncated supabase URLs showing as text
+  if (/supabase\.co\/st\.\.\./i.test(md)) {
     issues.push('truncated_storage_url');
   }
-  if (/loading\s*=\s*"lazy"\s+class\s*=\s*"content-image"/i.test(md)) {
-    issues.push('raw_img_attributes_leaked');
+  // Raw supabase URLs visible as text (not inside markdown image/link syntax)
+  const rawSupabaseUrls = md.match(/(?<!\(|!)nlewrgmcawzcdazhfiyy\.supabase\.co\S+/g);
+  if (rawSupabaseUrls && rawSupabaseUrls.length > 0) {
+    issues.push('raw_supabase_url_as_text');
   }
-  if (/<img\s+[^>]*class\s*=\s*"content-image"/i.test(md)) {
-    issues.push('raw_img_tag_in_markdown');
-  }
-
-  // 2) Unbalanced markdown fences often cause rendering cascade failures
+  
+  // ===== 3) BROKEN MARKDOWN SYNTAX =====
+  // Unbalanced code fences
   const fenceCount = (md.match(/```/g) || []).length;
   if (fenceCount % 2 !== 0) {
     issues.push('unbalanced_code_fences');
   }
+  // Broken image syntax (image alt showing but no image)
+  if (/!\[([^\]]*)\]\(\s*\)/.test(md)) {
+    issues.push('empty_image_url');
+  }
+  // Broken link syntax (link text but no URL)
+  if (/\[([^\]]+)\]\(\s*\)/.test(md)) {
+    issues.push('empty_link_url');
+  }
+  // Markdown image with raw attributes after URL
+  if (/!\[[^\]]*\]\([^)]+\)\s*\{[^}]*\}/.test(md)) {
+    issues.push('markdown_image_with_raw_attributes');
+  }
+  
+  // ===== 4) AI GENERATION ARTIFACTS =====
+  // Common AI artifacts that leak through
+  if (/\*\*Nota del editor\*\*/i.test(md) || /\[insertar\s/i.test(md) || /\[PLACEHOLDER/i.test(md)) {
+    issues.push('ai_placeholder_text');
+  }
+  if (/```(json|html|xml)\s*\n.*?\n```/s.test(md) && md.length < 3000) {
+    // Code blocks in short articles are likely AI artifacts
+    issues.push('suspicious_code_block_in_article');
+  }
 
-  // 3) Basic checklist presence when the template expects it (soft check)
-  const hasChecklist = /\n-\s*\[\s*[xX]?\s*\]\s+/m.test(md) || /\n(□|☐|☑|✓)\s+/m.test(md);
-  if (!hasChecklist) {
-    issues.push('missing_checklist_syntax');
+  // ===== 5) CONTENT QUALITY MINIMUMS =====
+  // Article too short (less than 500 chars of actual content)
+  const strippedContent = md.replace(/#{1,6}\s+.*\n/g, '').replace(/!\[.*?\]\(.*?\)/g, '').replace(/\[.*?\]\(.*?\)/g, '').trim();
+  if (strippedContent.length < 500) {
+    issues.push('article_too_short');
   }
 
   return issues;
+}
+
+/**
+ * Validates all external links in the markdown content.
+ * Returns array of broken URLs that return 404 or fail to load.
+ * INACEPTABLE: No link should point to a dead page.
+ */
+async function validateExternalLinks(contentMd: string): Promise<string[]> {
+  const brokenLinks: string[] = [];
+  const md = contentMd || '';
+  
+  // Extract all markdown links [text](url)
+  const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+  const links: string[] = [];
+  let match;
+  while ((match = linkRegex.exec(md)) !== null) {
+    const url = match[2];
+    // Skip our own blog links (they may not exist yet during generation)
+    if (url.includes('blog.vistaceo.com') || url.includes('vistaceo.com')) continue;
+    // Skip anchor-only links
+    if (url.startsWith('#')) continue;
+    links.push(url);
+  }
+  
+  if (links.length === 0) return brokenLinks;
+  
+  // Deduplicate
+  const uniqueLinks = [...new Set(links)];
+  console.log(`[blog-daily-publish] Validating ${uniqueLinks.length} external links...`);
+  
+  // Check each link (with timeout and concurrency limit)
+  const checkLink = async (url: string): Promise<boolean> => {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      
+      const response = await fetch(url, {
+        method: 'HEAD',
+        headers: { 'User-Agent': 'VistaCEO-Blog-QualityGate/1.0' },
+        signal: controller.signal,
+        redirect: 'follow',
+      });
+      clearTimeout(timeout);
+      
+      // If HEAD fails, try GET (some servers block HEAD)
+      if (response.status === 405 || response.status === 403) {
+        const getResp = await fetch(url, {
+          method: 'GET',
+          headers: { 'User-Agent': 'VistaCEO-Blog-QualityGate/1.0' },
+          signal: AbortSignal.timeout(8000),
+          redirect: 'follow',
+        });
+        return getResp.status < 400;
+      }
+      
+      return response.status < 400;
+    } catch {
+      // Network error or timeout - could be temporary, don't block
+      console.log(`[blog-daily-publish] Link check failed (network): ${url}`);
+      return true; // Give benefit of the doubt for network issues
+    }
+  };
+  
+  // Check links in batches of 5
+  for (let i = 0; i < uniqueLinks.length; i += 5) {
+    const batch = uniqueLinks.slice(i, i + 5);
+    const results = await Promise.all(batch.map(async (url) => {
+      const ok = await checkLink(url);
+      if (!ok) {
+        console.error(`[blog-daily-publish] BROKEN LINK DETECTED: ${url}`);
+        return url;
+      }
+      return null;
+    }));
+    brokenLinks.push(...results.filter(Boolean) as string[]);
+  }
+  
+  if (brokenLinks.length > 0) {
+    console.error(`[blog-daily-publish] Found ${brokenLinks.length} broken links:`, brokenLinks);
+  } else {
+    console.log('[blog-daily-publish] All external links validated OK');
+  }
+  
+  return brokenLinks;
 }
