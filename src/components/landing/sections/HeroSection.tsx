@@ -45,39 +45,43 @@ const ShimmerButton = memo(({ children, className, onClick, ariaLabel }: {
 ));
 ShimmerButton.displayName = "ShimmerButton";
 
-// Typewriter - optimized with less re-renders
+// Typewriter - zero re-render: direct DOM manipulation via refs
 const TypewriterText = memo(({ texts }: { texts: string[] }) => {
-  const [currentText, setCurrentText] = useState(0);
-  const [displayText, setDisplayText] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const stateRef = useRef({ idx: 0, pos: 0, deleting: false, paused: false });
 
   useEffect(() => {
-    const text = texts[currentText];
-    const timeout = setTimeout(() => {
-      if (!isDeleting) {
-        if (displayText.length < text.length) {
-          setDisplayText(text.slice(0, displayText.length + 1));
-        } else {
-          setTimeout(() => setIsDeleting(true), 2000);
-        }
+    const s = stateRef.current;
+    let raf: number;
+    let last = 0;
+
+    const step = (ts: number) => {
+      const speed = s.paused ? 2000 : s.deleting ? 30 : 80;
+      if (ts - last < speed) { raf = requestAnimationFrame(step); return; }
+      last = ts;
+
+      const text = texts[s.idx];
+      if (s.paused) { s.paused = false; s.deleting = true; }
+      else if (!s.deleting) {
+        if (s.pos < text.length) { s.pos++; }
+        else { s.paused = true; }
       } else {
-        if (displayText.length > 0) {
-          setDisplayText(text.slice(0, displayText.length - 1));
-        } else {
-          setIsDeleting(false);
-          setCurrentText((prev) => (prev + 1) % texts.length);
-        }
+        if (s.pos > 0) { s.pos--; }
+        else { s.deleting = false; s.idx = (s.idx + 1) % texts.length; }
       }
-    }, isDeleting ? 30 : 80);
-    return () => clearTimeout(timeout);
-  }, [displayText, isDeleting, currentText, texts]);
+      if (textRef.current) textRef.current.textContent = texts[s.idx].slice(0, s.pos);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [texts]);
 
   return (
     <span
       className="text-gradient-primary relative inline-block whitespace-pre align-baseline"
       style={{ lineHeight: 1.15, paddingBottom: "0.14em", minHeight: "1.15em", overflow: "visible" }}
     >
-      <span className="inline-block overflow-visible pr-[0.6ch]">{displayText}</span>
+      <span ref={textRef} className="inline-block overflow-visible pr-[0.6ch]" />
       <span className="absolute right-0 bottom-[0.14em] w-0.5 h-[0.9em] bg-primary animate-pulse" />
     </span>
   );
