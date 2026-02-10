@@ -66,12 +66,17 @@ export const VistaceoLogo = React.forwardRef<HTMLImageElement, VistaceoLogoProps
       );
     }
 
+    // Calculate approximate width based on aspect ratio (logo is ~2:1)
+    const estimatedWidth = Math.round(size * 2);
+
     return (
       <img
         ref={ref}
         src={logoSrc}
         alt="vistaceo"
+        width={estimatedWidth}
         height={size}
+        fetchPriority="high"
         className={className}
         style={{ height: size, width: "auto", objectFit: "contain" }}
       />
