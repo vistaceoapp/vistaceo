@@ -21,11 +21,12 @@ import {
   AlertTriangle,
   Sparkles,
   Image as ImageIcon,
-  Zap
+  Zap,
+  Star
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBusiness } from "@/contexts/BusinessContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
@@ -48,6 +49,7 @@ import { GlassCard } from "@/components/app/GlassCard";
 import { AutopilotModeSelector } from "@/components/app/AutopilotModeSelector";
 import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
 import { FocusSelector } from "@/components/app/FocusSelector";
+import { GoogleBusinessProfileSection } from "@/components/app/GoogleBusinessProfileSection";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -57,6 +59,7 @@ const MorePage = () => {
   const { currentBusiness, refreshBusinesses } = useBusiness();
   const { isPro, planId, daysRemaining, expiresAt, isExpiringSoon, paymentProvider } = useSubscription();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const [profileDialog, setProfileDialog] = useState(false);
   const [businessDialog, setBusinessDialog] = useState(false);
@@ -95,6 +98,34 @@ const MorePage = () => {
     };
     fetchProfile();
   }, [user]);
+
+  // Handle Google OAuth callback
+  useEffect(() => {
+    const oauthStatus = searchParams.get("oauth");
+    const provider = searchParams.get("provider");
+    if (oauthStatus && provider === "google") {
+      if (oauthStatus === "success_gbp") {
+        toast({
+          title: "✅ Google Business Profile conectado",
+          description: searchParams.get("select_location") === "true" 
+            ? "Ahora seleccioná tu negocio de Google."
+            : "Las reseñas se están sincronizando.",
+        });
+      } else if (oauthStatus === "error") {
+        toast({
+          title: "Error de conexión",
+          description: "No se pudo conectar Google Business Profile. Intentá de nuevo.",
+          variant: "destructive",
+        });
+      }
+      searchParams.delete("oauth");
+      searchParams.delete("provider");
+      searchParams.delete("select_location");
+      searchParams.delete("error");
+      searchParams.delete("reason");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -303,7 +334,20 @@ const MorePage = () => {
             {/* Brain Status */}
             <BrainStatusWidget variant="full" />
 
-            {/* Settings Cards */}
+            {/* Google Business Profile */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Star className="w-4 h-4 text-warning" />
+                  Google Business Profile
+                </CardTitle>
+                <CardDescription>Conectá tu perfil para leer reseñas y alimentar el Cerebro</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GoogleBusinessProfileSection />
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Account Settings */}
               <Card>
@@ -787,6 +831,14 @@ const MorePage = () => {
             <Switch checked={notificationsEnabled} onCheckedChange={toggleNotifications} />
           </div>
         </GlassCard>
+      </div>
+
+      {/* Google Business Profile */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+          Google Business Profile
+        </h3>
+        <GoogleBusinessProfileSection />
       </div>
 
       {/* System Section */}
