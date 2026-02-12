@@ -1,25 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { 
-  Brain, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle,
-  Target,
-  Lightbulb,
-  Zap,
-  Star,
-  Users,
-  DollarSign,
-  Clock,
-  ArrowUpRight,
-  ArrowDownRight,
-  Sparkles,
-  RefreshCw,
-  ChevronRight
+  Brain, TrendingUp, TrendingDown, AlertTriangle, Target, Lightbulb,
+  Zap, Star, Users, DollarSign, Clock, ArrowUpRight, ArrowDownRight,
+  Sparkles, RefreshCw, ChevronRight, BarChart3, Flame, ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,13 +16,15 @@ import { useBrain } from "@/hooks/use-brain";
 
 interface Insight {
   id: string;
-  type: "opportunity" | "warning" | "achievement" | "trend";
+  type: "opportunity" | "warning" | "achievement" | "trend" | "action";
   title: string;
   description: string;
   impact: "high" | "medium" | "low";
   metric?: string;
   change?: number;
   actionable?: boolean;
+  actionRoute?: string;
+  actionLabel?: string;
 }
 
 interface KPI {
@@ -42,267 +32,404 @@ interface KPI {
   value: string | number;
   change: number;
   trend: "up" | "down" | "neutral";
-  icon: any;
+  icon: React.ElementType;
   color: string;
 }
 
 export const SmartInsightsPanel = () => {
   const { currentBusiness } = useBusiness();
   const { brain } = useBrain();
+  const navigate = useNavigate();
   const [insights, setInsights] = useState<Insight[]>([]);
   const [kpis, setKpis] = useState<KPI[]>([]);
   const [loading, setLoading] = useState(true);
   const [engagementScore, setEngagementScore] = useState(0);
 
-  useEffect(() => {
-    if (currentBusiness && brain) {
-      generateSmartInsights();
-    }
-  }, [currentBusiness, brain]);
-
-  const generateSmartInsights = async () => {
+  const generateSmartInsights = useCallback(async () => {
     if (!currentBusiness) return;
     setLoading(true);
 
     try {
-      // Fetch all relevant data in parallel
-      const [missionsRes, checkinsRes, alertsRes, insightsRes] = await Promise.all([
-        supabase
-          .from("missions")
-          .select("*")
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      // Fetch all relevant data in parallel - using REAL tables
+      const [actionsRes, pulseRes, opportunitiesRes, predictionsRes, insightsRes, snapshotsRes] = await Promise.all([
+        supabase.from("daily_actions").select("*")
           .eq("business_id", currentBusiness.id)
-          .order("created_at", { ascending: false })
-          .limit(50),
-        supabase
-          .from("checkins")
-          .select("*")
+          .order("created_at", { ascending: false }).limit(50),
+        supabase.from("pulse_checkins").select("*")
           .eq("business_id", currentBusiness.id)
-          .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("alerts")
-          .select("*")
+          .gte("created_at", thirtyDaysAgo)
+          .order("applies_to_date", { ascending: false }),
+        supabase.from("opportunities").select("*")
           .eq("business_id", currentBusiness.id)
-          .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
-        supabase
-          .from("business_insights")
-          .select("*")
+          .is("dismissed_at", null)
+          .order("created_at", { ascending: false }).limit(20),
+        supabase.from("predictions").select("*")
+          .eq("business_id", currentBusiness.id)
+          .eq("status", "active")
+          .order("created_at", { ascending: false }).limit(10),
+        supabase.from("business_insights").select("*")
           .eq("business_id", currentBusiness.id),
+        supabase.from("snapshots").select("*")
+          .eq("business_id", currentBusiness.id)
+          .order("created_at", { ascending: false }).limit(5),
       ]);
 
-      const missions = missionsRes.data || [];
-      const checkins = checkinsRes.data || [];
-      const alerts = alertsRes.data || [];
+      const actions = actionsRes.data || [];
+      const pulseCheckins = pulseRes.data || [];
+      const opportunities = opportunitiesRes.data || [];
+      const predictions = predictionsRes.data || [];
       const businessInsights = insightsRes.data || [];
+      const snapshots = snapshotsRes.data || [];
 
-      // Calculate KPIs
-      const completedMissions = missions.filter(m => m.status === "completed").length;
-      const activeMissions = missions.filter(m => m.status === "active").length;
-      const missionCompletionRate = missions.length > 0 
-        ? Math.round((completedMissions / missions.length) * 100) 
+      // ========== REAL KPI CALCULATIONS ==========
+      const completedActions = actions.filter(a => a.status === "completed").length;
+      const activeActions = actions.filter(a => a.status === "pending").length;
+      const totalActions = actions.length;
+      const completionRate = totalActions > 0 ? Math.round((completedActions / totalActions) * 100) : 0;
+
+      // Pulse score trend (real data from pulse_checkins)
+      const recentPulse = pulseCheckins.filter(p => p.created_at >= sevenDaysAgo);
+      const olderPulse = pulseCheckins.filter(p => p.created_at < sevenDaysAgo && p.created_at >= thirtyDaysAgo);
+      const avgRecentPulse = recentPulse.length > 0
+        ? recentPulse.reduce((sum, p) => sum + (p.pulse_score_1_5 || 3), 0) / recentPulse.length
         : 0;
+      const avgOlderPulse = olderPulse.length > 0
+        ? olderPulse.reduce((sum, p) => sum + (p.pulse_score_1_5 || 3), 0) / olderPulse.length
+        : avgRecentPulse;
+      const pulseChange = avgOlderPulse > 0 ? Math.round(((avgRecentPulse - avgOlderPulse) / avgOlderPulse) * 100) : 0;
+      const pulseDisplay = recentPulse.length > 0 ? `${(avgRecentPulse * 20).toFixed(0)}%` : "—";
 
-      const avgTraffic = checkins.length > 0
-        ? Math.round(checkins.reduce((sum, c) => sum + (c.traffic_level || 0), 0) / checkins.length * 20)
-        : 0;
+      // Health score from latest snapshot
+      const latestSnapshot = snapshots[0];
+      const healthScore = latestSnapshot?.total_score || 0;
+      const previousSnapshot = snapshots[1];
+      const healthChange = previousSnapshot ? healthScore - (previousSnapshot.total_score || 0) : 0;
 
-      const positiveAlerts = alerts.filter(a => a.alert_type === "positive").length;
-      const negativeAlerts = alerts.filter(a => a.alert_type === "negative").length;
-      const alertSentiment = alerts.length > 0 
-        ? Math.round((positiveAlerts / alerts.length) * 100) 
-        : 50;
+      // Opportunities count
+      const activeOpportunities = opportunities.filter(o => !o.is_converted).length;
+      const convertedOpportunities = opportunities.filter(o => o.is_converted).length;
 
-      // Calculate engagement score based on Brain signals
-      // CRITICAL: Score can NEVER be 100% - max is 95% for established businesses
+      // Brain engagement score (capped at 95)
       const brainSignals = brain?.total_signals || 0;
       const mvcCompletion = brain?.mvc_completion_pct || 0;
-      // Base calculation with natural ceiling at 95
-      let rawEngagement = Math.round((brainSignals / 100) * 35 + mvcCompletion * 0.55);
-      // Apply logarithmic dampening to prevent reaching 100%
+      const rawEngagement = Math.round((brainSignals / 100) * 35 + mvcCompletion * 0.55);
       const engagement = Math.min(95, Math.max(0, rawEngagement));
       setEngagementScore(engagement);
 
-      // Generate KPIs
+      // Parse brain factual memory for business-specific context
+      const factual = (brain as any)?.factual_memory as Record<string, unknown> || {};
+      const businessName = currentBusiness.name;
+      const businessType = brain?.primary_business_type || String(currentBusiness.category || 'negocio');
+
+      // ========== GENERATE KPIs ==========
       const generatedKpis: KPI[] = [
         {
           label: "Tasa de Ejecución",
-          value: `${missionCompletionRate}%`,
-          change: missionCompletionRate > 50 ? 12 : -5,
-          trend: missionCompletionRate > 50 ? "up" : "down",
+          value: totalActions > 0 ? `${completionRate}%` : "—",
+          change: completionRate > 50 ? Math.min(completionRate - 50, 30) : completionRate > 0 ? completionRate - 50 : 0,
+          trend: completionRate > 50 ? "up" : completionRate > 0 ? "down" : "neutral",
           icon: Target,
           color: "primary"
         },
         {
-          label: "Tráfico Promedio",
-          value: `${avgTraffic}%`,
-          change: avgTraffic > 60 ? 8 : -3,
-          trend: avgTraffic > 60 ? "up" : "neutral",
-          icon: Users,
-          color: "accent"
+          label: "Pulso del Negocio",
+          value: pulseDisplay,
+          change: pulseChange,
+          trend: pulseChange > 5 ? "up" : pulseChange < -5 ? "down" : "neutral",
+          icon: Flame,
+          color: avgRecentPulse >= 3.5 ? "success" : avgRecentPulse >= 2.5 ? "accent" : "warning"
         },
         {
-          label: "Sentimiento General",
-          value: `${alertSentiment}%`,
-          change: alertSentiment - 50,
-          trend: alertSentiment > 60 ? "up" : alertSentiment < 40 ? "down" : "neutral",
-          icon: Star,
-          color: alertSentiment > 60 ? "success" : "warning"
+          label: "Salud General",
+          value: healthScore > 0 ? `${healthScore}` : "—",
+          change: healthChange,
+          trend: healthChange > 0 ? "up" : healthChange < 0 ? "down" : "neutral",
+          icon: ShieldCheck,
+          color: healthScore >= 70 ? "success" : healthScore >= 50 ? "accent" : "warning"
         },
         {
-          label: "Score de Compromiso",
-          value: `${engagement}`,
-          change: 15,
-          trend: "up",
-          icon: Zap,
-          color: "success"
+          label: "Oportunidades",
+          value: `${activeOpportunities}`,
+          change: convertedOpportunities,
+          trend: activeOpportunities > 0 ? "up" : "neutral",
+          icon: Lightbulb,
+          color: "primary"
         }
       ];
       setKpis(generatedKpis);
 
-      // Generate Smart Insights
+      // ========== GENERATE SMART INSIGHTS (personalized) ==========
       const generatedInsights: Insight[] = [];
 
-      // Mission-based insights
-      if (activeMissions > 3) {
+      // 1. Mission overload
+      if (activeActions > 5) {
         generatedInsights.push({
-          id: "too-many-missions",
+          id: "action-overload",
           type: "warning",
-          title: "Muchas misiones activas",
-          description: `Tenés ${activeMissions} misiones en paralelo. Enfocarse en 2-3 aumenta la probabilidad de completarlas.`,
-          impact: "medium",
-          actionable: true
-        });
-      }
-
-      if (completedMissions >= 5) {
-        generatedInsights.push({
-          id: "mission-champion",
-          type: "achievement",
-          title: "Ejecutor consistente",
-          description: `Completaste ${completedMissions} misiones. Tu tasa de ejecución está en el top 20% de negocios similares.`,
+          title: `${activeActions} misiones activas en ${businessName}`,
+          description: `Tener tantas tareas abiertas reduce la efectividad. Priorizá 2-3 misiones clave y completalas antes de sumar nuevas.`,
           impact: "high",
-          metric: `${missionCompletionRate}%`
+          actionable: true,
+          actionRoute: "/app/missions",
+          actionLabel: "Ver misiones"
+        });
+      } else if (activeActions === 0 && totalActions > 0) {
+        generatedInsights.push({
+          id: "no-active-actions",
+          type: "opportunity",
+          title: "Sin misiones activas",
+          description: `Completaste todas tus tareas pendientes. Revisá el Radar para detectar nuevas oportunidades para ${businessName}.`,
+          impact: "medium",
+          actionable: true,
+          actionRoute: "/app/radar",
+          actionLabel: "Ir al Radar"
         });
       }
 
-      // Traffic insights
-      if (checkins.length >= 7) {
-        const recentTraffic = checkins.slice(0, 7);
-        const avgRecent = recentTraffic.reduce((sum, c) => sum + (c.traffic_level || 0), 0) / recentTraffic.length;
-        const previousTraffic = checkins.slice(7, 14);
-        const avgPrevious = previousTraffic.length > 0 
-          ? previousTraffic.reduce((sum, c) => sum + (c.traffic_level || 0), 0) / previousTraffic.length 
-          : avgRecent;
-        
-        const trafficChange = avgPrevious > 0 ? ((avgRecent - avgPrevious) / avgPrevious) * 100 : 0;
+      // 2. Execution rate insight
+      if (completionRate > 70 && completedActions >= 5) {
+        generatedInsights.push({
+          id: "execution-star",
+          type: "achievement",
+          title: "Ejecutor de alto rendimiento",
+          description: `Tu tasa de ejecución del ${completionRate}% en ${businessName} está por encima del promedio. Seguí así.`,
+          impact: "high",
+          metric: `${completedActions} completadas`
+        });
+      } else if (completionRate < 30 && totalActions >= 3) {
+        generatedInsights.push({
+          id: "execution-low",
+          type: "warning",
+          title: "Ejecución por debajo del objetivo",
+          description: `Solo completaste el ${completionRate}% de tus misiones. Enfocate en terminar las más importantes primero.`,
+          impact: "high",
+          actionable: true,
+          actionRoute: "/app/missions",
+          actionLabel: "Revisar misiones"
+        });
+      }
 
-        if (trafficChange > 15) {
+      // 3. Pulse-based insights (REAL revenue/traffic data)
+      if (recentPulse.length >= 3) {
+        const goodDays = recentPulse.filter(p => (p.pulse_score_1_5 || 0) >= 4).length;
+        const badDays = recentPulse.filter(p => (p.pulse_score_1_5 || 0) <= 2).length;
+        
+        if (goodDays > recentPulse.length * 0.6) {
           generatedInsights.push({
-            id: "traffic-up",
-            type: "trend",
-            title: "Tráfico en aumento",
-            description: "El flujo de clientes aumentó significativamente esta semana. Asegurate de tener stock y personal suficiente.",
+            id: "pulse-strong",
+            type: "achievement",
+            title: "Semana fuerte para " + businessName,
+            description: `${goodDays} de ${recentPulse.length} días recientes fueron buenos o excelentes. Identificá qué está funcionando y replicalo.`,
             impact: "high",
-            change: Math.round(trafficChange)
+            change: pulseChange
           });
-        } else if (trafficChange < -15) {
+        } else if (badDays > recentPulse.length * 0.5) {
           generatedInsights.push({
-            id: "traffic-down",
+            id: "pulse-weak",
             type: "warning",
-            title: "Caída de tráfico detectada",
-            description: "El flujo de clientes bajó esta semana. Revisá si hay factores externos (clima, competencia) o internos afectando.",
+            title: "Período débil detectado",
+            description: `${badDays} de ${recentPulse.length} días recientes fueron flojos. Revisá si hay factores externos o internos afectando.`,
             impact: "high",
-            change: Math.round(trafficChange),
-            actionable: true
+            change: pulseChange,
+            actionable: true,
+            actionRoute: "/app",
+            actionLabel: "Analizar"
           });
         }
-      }
 
-      // Alert-based insights
-      if (negativeAlerts >= 3) {
+        // Revenue trend if available
+        const recentWithRevenue = recentPulse.filter(p => p.revenue_local && p.revenue_local > 0);
+        if (recentWithRevenue.length >= 3) {
+          const avgRevenue = recentWithRevenue.reduce((sum, p) => sum + (p.revenue_local || 0), 0) / recentWithRevenue.length;
+          const currency = recentWithRevenue[0]?.currency_local || currentBusiness.currency || 'ARS';
+          generatedInsights.push({
+            id: "revenue-avg",
+            type: "trend",
+            title: `Facturación promedio: ${currency} ${Math.round(avgRevenue).toLocaleString()}`,
+            description: `Basado en ${recentWithRevenue.length} registros recientes de ${businessName}. Usá esta referencia para evaluar días buenos vs malos.`,
+            impact: "medium",
+            metric: `${recentWithRevenue.length} registros`
+          });
+        }
+      } else if (pulseCheckins.length === 0) {
         generatedInsights.push({
-          id: "negative-pattern",
-          type: "warning",
-          title: "Patrón de alertas negativas",
-          description: `Registraste ${negativeAlerts} situaciones problemáticas este mes. Revisá si hay un problema sistémico.`,
+          id: "no-pulse",
+          type: "action",
+          title: "Empezá a registrar tu pulso diario",
+          description: `Hacé check-ins diarios de ${businessName} para desbloquear análisis de tendencias, predicciones y alertas personalizadas.`,
           impact: "high",
-          actionable: true
+          actionable: true,
+          actionRoute: "/app",
+          actionLabel: "Hacer check-in"
         });
       }
 
-      if (positiveAlerts >= 3) {
+      // 4. Opportunities insights
+      if (activeOpportunities > 5) {
+        const highImpact = opportunities.filter(o => !o.is_converted && (o.impact_score || 0) >= 7);
         generatedInsights.push({
-          id: "positive-pattern",
-          type: "achievement",
-          title: "Racha positiva",
-          description: `${positiveAlerts} eventos positivos este mes. Identificá qué estás haciendo bien y replicalo.`,
-          impact: "medium"
-        });
-      }
-
-      // Brain-based insights
-      if (mvcCompletion < 40) {
-        generatedInsights.push({
-          id: "brain-incomplete",
+          id: "opp-many",
           type: "opportunity",
-          title: "Potenciá tu CEO virtual",
-          description: "Mientras más información me des, mejores serán mis recomendaciones. Respondé más preguntas en el chat.",
-          impact: "high",
-          metric: `${Math.round(mvcCompletion)}% completado`,
-          actionable: true
+          title: `${activeOpportunities} oportunidades sin explorar`,
+          description: highImpact.length > 0
+            ? `Tenés ${highImpact.length} de alto impacto. Convertí al menos una en misión esta semana.`
+            : `Revisá tu Radar y priorizá las de mayor impacto para ${businessName}.`,
+          impact: "medium",
+          actionable: true,
+          actionRoute: "/app/radar",
+          actionLabel: "Ver Radar"
         });
       }
 
-      // Business type specific insights
-      const businessType = brain?.primary_business_type || currentBusiness.category;
-      if (businessType?.includes("restaurant") || businessType?.includes("cafe") || businessType?.includes("bar")) {
-        if (checkins.length > 0) {
-          const weekendCheckins = checkins.filter(c => {
-            const day = new Date(c.created_at).getDay();
-            return day === 0 || day === 6;
+      // 5. Predictions insights (Pro feature)
+      if (predictions.length > 0) {
+        const breakpoints = predictions.filter(p => p.is_breakpoint);
+        if (breakpoints.length > 0) {
+          generatedInsights.push({
+            id: "pred-breakpoint",
+            type: "warning",
+            title: `${breakpoints.length} punto${breakpoints.length > 1 ? 's' : ''} crítico${breakpoints.length > 1 ? 's' : ''} detectado${breakpoints.length > 1 ? 's' : ''}`,
+            description: `El motor de predicciones identificó ${breakpoints.length > 1 ? 'situaciones' : 'una situación'} que requiere${breakpoints.length > 1 ? 'n' : ''} atención inmediata en ${businessName}.`,
+            impact: "high",
+            actionable: true,
+            actionRoute: "/app/predictions",
+            actionLabel: "Ver predicciones"
           });
-          const weekdayCheckins = checkins.filter(c => {
-            const day = new Date(c.created_at).getDay();
-            return day !== 0 && day !== 6;
-          });
-
-          if (weekendCheckins.length > 0 && weekdayCheckins.length > 0) {
-            const avgWeekend = weekendCheckins.reduce((sum, c) => sum + (c.traffic_level || 0), 0) / weekendCheckins.length;
-            const avgWeekday = weekdayCheckins.reduce((sum, c) => sum + (c.traffic_level || 0), 0) / weekdayCheckins.length;
-
-            if (avgWeekend > avgWeekday * 1.5) {
-              generatedInsights.push({
-                id: "weekend-peak",
-                type: "trend",
-                title: "Pico en fines de semana",
-                description: "Tu negocio tiene 50% más tráfico los fines de semana. Considerá promociones entre semana para equilibrar.",
-                impact: "medium",
-                actionable: true
-              });
-            }
+        } else {
+          const highConfidence = predictions.filter(p => p.probability >= 0.7);
+          if (highConfidence.length > 0) {
+            generatedInsights.push({
+              id: "pred-high-conf",
+              type: "trend",
+              title: `${highConfidence.length} predicción${highConfidence.length > 1 ? 'es' : ''} de alta confianza`,
+              description: `"${highConfidence[0].title}" tiene ${Math.round(highConfidence[0].probability * 100)}% de probabilidad. Revisá las acciones recomendadas.`,
+              impact: "medium",
+              actionable: true,
+              actionRoute: "/app/predictions",
+              actionLabel: "Explorar"
+            });
           }
         }
       }
 
-      // Ensure we have at least some insights
+      // 6. Brain completeness insight
+      if (mvcCompletion < 40) {
+        const answeredCategories = Object.keys(factual).length;
+        generatedInsights.push({
+          id: "brain-incomplete",
+          type: "opportunity",
+          title: "Potenciá tu CEO virtual",
+          description: `Tengo ${Math.round(mvcCompletion)}% de datos sobre ${businessName}. Mientras más info me des (${answeredCategories > 0 ? `ya respondiste ${answeredCategories} categorías` : 'empezá por el chat'}), mejores serán mis predicciones y recomendaciones.`,
+          impact: "high",
+          metric: `${Math.round(mvcCompletion)}% completado`,
+          actionable: true,
+          actionRoute: "/app/chat",
+          actionLabel: "Ir al chat"
+        });
+      } else if (mvcCompletion >= 70) {
+        generatedInsights.push({
+          id: "brain-strong",
+          type: "achievement",
+          title: "Perfil de negocio robusto",
+          description: `Conozco bien ${businessName} (${Math.round(mvcCompletion)}%). Tus recomendaciones y predicciones tienen máxima precisión.`,
+          impact: "medium",
+          metric: `${Math.round(mvcCompletion)}% completado`
+        });
+      }
+
+      // 7. Health dimensions insight (from latest snapshot)
+      if (latestSnapshot?.dimensions_json) {
+        const dims = latestSnapshot.dimensions_json as Record<string, number>;
+        const weakDims = Object.entries(dims)
+          .filter(([_, score]) => typeof score === 'number' && score < 50)
+          .sort(([, a], [, b]) => (a as number) - (b as number));
+        
+        if (weakDims.length > 0) {
+          const weakestName = weakDims[0][0];
+          const weakestScore = weakDims[0][1] as number;
+          generatedInsights.push({
+            id: "health-weak-dim",
+            type: "warning",
+            title: `${weakestName} necesita atención`,
+            description: `Tu dimensión "${weakestName}" tiene un score de ${weakestScore}/100. Es el área más débil de ${businessName} y vale la pena trabajarla.`,
+            impact: "high",
+            metric: `${weakestScore}/100`,
+            actionable: true,
+            actionRoute: "/app/analytics",
+            actionLabel: "Ver diagnóstico"
+          });
+        }
+      }
+
+      // 8. Consistency insight
+      if (pulseCheckins.length > 0) {
+        const daysWithCheckins = new Set(pulseCheckins.map(p => p.applies_to_date)).size;
+        const daysSinceFirst = Math.ceil((now.getTime() - new Date(pulseCheckins[pulseCheckins.length - 1].created_at).getTime()) / (24 * 60 * 60 * 1000));
+        const consistency = daysSinceFirst > 0 ? Math.round((daysWithCheckins / Math.min(daysSinceFirst, 30)) * 100) : 0;
+        
+        if (consistency > 70) {
+          generatedInsights.push({
+            id: "consistency-high",
+            type: "achievement",
+            title: "Consistencia ejemplar",
+            description: `Registraste datos ${daysWithCheckins} de ${Math.min(daysSinceFirst, 30)} días. La constancia es clave para que el sistema aprenda de ${businessName}.`,
+            impact: "medium",
+            metric: `${consistency}% consistencia`
+          });
+        } else if (consistency < 30 && daysWithCheckins >= 2) {
+          generatedInsights.push({
+            id: "consistency-low",
+            type: "action",
+            title: "Más datos = mejores insights",
+            description: `Solo registraste ${daysWithCheckins} días del último mes. Hacé check-ins más frecuentes para insights realmente precisos.`,
+            impact: "medium",
+            actionable: true,
+            actionRoute: "/app",
+            actionLabel: "Hacer check-in"
+          });
+        }
+      }
+
+      // Fallback
       if (generatedInsights.length === 0) {
         generatedInsights.push({
           id: "getting-started",
           type: "opportunity",
           title: "Empezá a alimentar el sistema",
-          description: "Hacé check-ins diarios, completá misiones y usá el chat para desbloquear insights personalizados.",
+          description: `Hacé check-ins diarios de ${businessName}, completá misiones y usá el chat para desbloquear insights personalizados.`,
           impact: "high",
-          actionable: true
+          actionable: true,
+          actionRoute: "/app",
+          actionLabel: "Ir al Dashboard"
         });
       }
 
-      setInsights(generatedInsights.slice(0, 6));
+      // Sort: high impact first, then warnings, then opportunities
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      const typeOrder = { warning: 0, action: 1, opportunity: 2, trend: 3, achievement: 4 };
+      generatedInsights.sort((a, b) => {
+        const pDiff = priorityOrder[a.impact] - priorityOrder[b.impact];
+        if (pDiff !== 0) return pDiff;
+        return typeOrder[a.type] - typeOrder[b.type];
+      });
+
+      setInsights(generatedInsights.slice(0, 8));
     } catch (error) {
       console.error("Error generating insights:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentBusiness, brain]);
+
+  useEffect(() => {
+    if (currentBusiness && brain) {
+      generateSmartInsights();
+    }
+  }, [currentBusiness, brain, generateSmartInsights]);
 
   const getInsightIcon = (type: Insight["type"]) => {
     switch (type) {
@@ -310,6 +437,7 @@ export const SmartInsightsPanel = () => {
       case "warning": return AlertTriangle;
       case "achievement": return Star;
       case "trend": return TrendingUp;
+      case "action": return Zap;
     }
   };
 
@@ -319,6 +447,7 @@ export const SmartInsightsPanel = () => {
       case "warning": return "text-warning bg-warning/10 border-warning/20";
       case "achievement": return "text-success bg-success/10 border-success/20";
       case "trend": return "text-accent bg-accent/10 border-accent/20";
+      case "action": return "text-primary bg-primary/10 border-primary/20";
     }
   };
 
@@ -336,16 +465,12 @@ export const SmartInsightsPanel = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map(i => (
             <Card key={i} className="animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-16 bg-muted rounded" />
-              </CardContent>
+              <CardContent className="p-4"><div className="h-16 bg-muted rounded" /></CardContent>
             </Card>
           ))}
         </div>
         <Card className="animate-pulse">
-          <CardContent className="p-6">
-            <div className="h-48 bg-muted rounded" />
-          </CardContent>
+          <CardContent className="p-6"><div className="h-48 bg-muted rounded" /></CardContent>
         </Card>
       </div>
     );
@@ -363,7 +488,7 @@ export const SmartInsightsPanel = () => {
               </div>
               <div>
                 <h3 className="font-bold text-foreground">Score de Inteligencia</h3>
-                <p className="text-sm text-muted-foreground">Qué tan bien te conozco</p>
+                <p className="text-sm text-muted-foreground">Qué tan bien conozco {currentBusiness?.name}</p>
               </div>
             </div>
             <div className="text-right">
@@ -375,10 +500,10 @@ export const SmartInsightsPanel = () => {
           </div>
           <Progress value={engagementScore} className="h-2" />
           <p className="text-xs text-muted-foreground mt-2">
-            {engagementScore < 25 && "Estoy aprendiendo sobre tu negocio. Seguí interactuando para mejorar."}
-            {engagementScore >= 25 && engagementScore < 50 && "Tengo una base sólida. Las recomendaciones van a mejorar."}
-            {engagementScore >= 50 && engagementScore < 75 && "Conozco bien tu negocio. Las predicciones son confiables."}
-            {engagementScore >= 75 && "Nivel experto alcanzado. Máxima precisión en recomendaciones."}
+            {engagementScore < 25 && "Estoy aprendiendo sobre tu negocio. Seguí interactuando para mejorar mis recomendaciones."}
+            {engagementScore >= 25 && engagementScore < 50 && "Tengo una base sólida. Las recomendaciones ya son útiles y van a seguir mejorando."}
+            {engagementScore >= 50 && engagementScore < 75 && "Conozco bien tu negocio. Predicciones y análisis son confiables."}
+            {engagementScore >= 75 && "Nivel experto alcanzado. Máxima precisión en recomendaciones y predicciones."}
           </p>
         </CardContent>
       </Card>
@@ -406,21 +531,24 @@ export const SmartInsightsPanel = () => {
                       kpi.color === "warning" && "text-warning"
                     )} />
                   </div>
-                  <div className="flex items-center gap-1">
-                    {kpi.trend === "up" ? (
-                      <ArrowUpRight className="w-4 h-4 text-success" />
-                    ) : kpi.trend === "down" ? (
-                      <ArrowDownRight className="w-4 h-4 text-destructive" />
-                    ) : null}
-                    <span className={cn(
-                      "text-xs font-medium",
-                      kpi.trend === "up" && "text-success",
-                      kpi.trend === "down" && "text-destructive",
-                      kpi.trend === "neutral" && "text-muted-foreground"
-                    )}>
-                      {kpi.change > 0 ? "+" : ""}{kpi.change}%
-                    </span>
-                  </div>
+                  {kpi.change !== 0 && (
+                    <div className="flex items-center gap-1">
+                      {kpi.trend === "up" ? (
+                        <ArrowUpRight className="w-4 h-4 text-success" />
+                      ) : kpi.trend === "down" ? (
+                        <ArrowDownRight className="w-4 h-4 text-destructive" />
+                      ) : null}
+                      {kpi.trend !== "neutral" && (
+                        <span className={cn(
+                          "text-xs font-medium",
+                          kpi.trend === "up" && "text-success",
+                          kpi.trend === "down" && "text-destructive",
+                        )}>
+                          {kpi.change > 0 ? "+" : ""}{kpi.change}%
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="text-2xl font-bold text-foreground">{kpi.value}</div>
                 <div className="text-xs text-muted-foreground">{kpi.label}</div>
@@ -463,7 +591,8 @@ export const SmartInsightsPanel = () => {
                       insight.type === "opportunity" && "bg-primary/20",
                       insight.type === "warning" && "bg-warning/20",
                       insight.type === "achievement" && "bg-success/20",
-                      insight.type === "trend" && "bg-accent/20"
+                      insight.type === "trend" && "bg-accent/20",
+                      insight.type === "action" && "bg-primary/20"
                     )}>
                       <Icon className="w-5 h-5" />
                     </div>
@@ -478,11 +607,9 @@ export const SmartInsightsPanel = () => {
                       {(insight.metric || insight.change !== undefined) && (
                         <div className="flex items-center gap-2 mt-2">
                           {insight.metric && (
-                            <Badge variant="outline" className="text-[10px]">
-                              {insight.metric}
-                            </Badge>
+                            <Badge variant="outline" className="text-[10px]">{insight.metric}</Badge>
                           )}
-                          {insight.change !== undefined && (
+                          {insight.change !== undefined && insight.change !== 0 && (
                             <span className={cn(
                               "text-xs font-medium flex items-center gap-1",
                               insight.change > 0 ? "text-success" : "text-destructive"
@@ -494,8 +621,13 @@ export const SmartInsightsPanel = () => {
                         </div>
                       )}
                       {insight.actionable && (
-                        <Button variant="ghost" size="sm" className="mt-2 h-7 text-xs px-2">
-                          Ver acción <ChevronRight className="w-3 h-3 ml-1" />
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="mt-2 h-7 text-xs px-2"
+                          onClick={() => insight.actionRoute && navigate(insight.actionRoute)}
+                        >
+                          {insight.actionLabel || "Ver acción"} <ChevronRight className="w-3 h-3 ml-1" />
                         </Button>
                       )}
                     </div>
