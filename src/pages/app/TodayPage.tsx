@@ -17,6 +17,7 @@ import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
 import { RadarWidget } from "@/components/app/RadarWidget";
 import { PulseCheckinCard } from "@/components/app/PulseCheckinCard";
 import { MissionsWidget } from "@/components/app/MissionsWidget";
+import PredictionsWidget from "@/components/app/PredictionsWidget";
 import { WeeklyMetricsWidget } from "@/components/app/WeeklyMetricsWidget";
 import { DashboardEditor } from "@/components/app/DashboardEditor";
 import { IntelligentQuestionPrompt } from "@/components/app/IntelligentQuestionPrompt";
@@ -108,6 +109,8 @@ const TodayPage = () => {
         return <BrainKnowledgeWidget key="brain" />;
       case "weeklyMetrics":
         return <WeeklyMetricsWidget key="weeklyMetrics" />;
+      case "predictions":
+        return isPro ? <PredictionsWidget key="predictions" /> : null;
       case "focus":
         return <FocusWidget key="focus" />;
       case "reputation":
