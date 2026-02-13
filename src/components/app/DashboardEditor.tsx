@@ -43,6 +43,9 @@ const ICON_MAP: Record<string, typeof Heart> = {
   Crosshair,
   Star,
   Radar,
+  Orbit: Target, // Predictions icon fallback
+  TrendingUp: Zap, // Pulse icon fallback
+  BarChart3,
 };
 
 export const DashboardEditor = ({ 
