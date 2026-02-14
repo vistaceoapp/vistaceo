@@ -75,7 +75,7 @@ export default function AdminUsersPage() {
 
   if (selectedUserId && userDetail) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => setSelectedUserId(null)}>
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -385,7 +385,7 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Usuarios</h1>
         <p className="text-muted-foreground">Gestiona y monitorea todos los usuarios de VistaCEO</p>

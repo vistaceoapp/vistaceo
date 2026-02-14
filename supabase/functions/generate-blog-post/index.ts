@@ -757,27 +757,27 @@ serve(async (req) => {
       forceRun 
     });
 
-    // Only skip if we already published today (unless forced)
-    if (!forceRun && (publishedToday || 0) >= 1) {
-      console.log('[generate-blog-post] Already published today, skipping...');
+    // Only skip if we already published 2 today (unless forced) - target: 2 posts/day
+    const DAILY_POST_LIMIT = 2;
+    if (!forceRun && (publishedToday || 0) >= DAILY_POST_LIMIT) {
+      console.log(`[generate-blog-post] Already published ${publishedToday} today (limit: ${DAILY_POST_LIMIT}), skipping...`);
       
       await supabase.from('blog_runs').insert({
         result: 'skipped',
         skip_reason: 'already_published_today',
-        notes: `Published today: ${publishedToday}`,
+        notes: `Published today: ${publishedToday}/${DAILY_POST_LIMIT}`,
         quality_gate_report: { pacing: 'daily_limit_reached' }
       });
 
       return new Response(JSON.stringify({
         success: false,
         reason: 'already_published_today',
-        message: `Already published ${publishedToday} post(s) today`
+        message: `Already published ${publishedToday}/${DAILY_POST_LIMIT} post(s) today`
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // 1.5) Automated runs: publish immediately if there are pending posts for today
-    // No longer waiting for specific hour slot - just ensure 1 post/day max
-    console.log('[generate-blog-post] Automated run, proceeding with generation (1/day limit already checked)');
+    // Proceed with generation - up to 2 posts per day
+    console.log(`[generate-blog-post] Proceeding with generation (${publishedToday || 0}/${DAILY_POST_LIMIT} today)`);
 
     // 2. Select topic from blog_plan
     let selectedPlan: BlogPlan | null = null;
