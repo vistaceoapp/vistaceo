@@ -271,14 +271,16 @@ async function uploadImageToStorage(
       bytes[i] = binaryString.charCodeAt(i);
     }
     
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage (use apikey header, not Bearer)
     const response = await fetch(
       `${supabaseUrl}/storage/v1/object/blog-images/${fileName}`,
       {
         method: 'POST',
         headers: {
+          'apikey': supabaseKey,
           'Authorization': `Bearer ${supabaseKey}`,
           'Content-Type': mimeType,
+          'x-upsert': 'true',
         },
         body: bytes,
       }
@@ -485,8 +487,10 @@ Aspect ratio: 3:2. Ultra high resolution.
         {
           method: 'POST',
           headers: {
+            'apikey': supabaseKey,
             'Authorization': `Bearer ${supabaseKey}`,
             'Content-Type': mimeType,
+            'x-upsert': 'true',
           },
           body: bytes,
         }
@@ -630,9 +634,9 @@ function runQualityGates(content: string, title: string): QualityGateReport {
 
   // Word count
   const wordCount = content.split(/\s+/).length;
-  report.checks.min_word_count = wordCount >= 900;
+  report.checks.min_word_count = wordCount >= 1200;
   if (!report.checks.min_word_count) {
-    report.issues.push(`Only ${wordCount} words (need 900+)`);
+    report.issues.push(`Only ${wordCount} words (need 1200+)`);
   }
 
   // Keyword stuffing check
@@ -708,12 +712,14 @@ serve(async (req) => {
     let forceRun = false;
     let specificTopicId: string | null = null;
     let automated = false;
+    let calledFromDailyPublish = false;
     
     try {
       const body = await req.json();
       forceRun = body.force || false;
       specificTopicId = body.topic_id || null;
       automated = body.automated || false;
+      calledFromDailyPublish = body.mode === 'auto' || false;
     } catch {
       // No body, use defaults
     }
@@ -757,9 +763,10 @@ serve(async (req) => {
       forceRun 
     });
 
-    // Only skip if we already published 2 today (unless forced) - target: 2 posts/day
+    // Only skip if we already published 2 today (unless forced or called from blog-daily-publish)
+    // When called from blog-daily-publish, pacing is already handled by the caller
     const DAILY_POST_LIMIT = 2;
-    if (!forceRun && (publishedToday || 0) >= DAILY_POST_LIMIT) {
+    if (!forceRun && !calledFromDailyPublish && (publishedToday || 0) >= DAILY_POST_LIMIT) {
       console.log(`[generate-blog-post] Already published ${publishedToday} today (limit: ${DAILY_POST_LIMIT}), skipping...`);
       
       await supabase.from('blog_runs').insert({
@@ -944,11 +951,28 @@ serve(async (req) => {
 
     const pillarInfo = PILLARS[selectedTopic.pillar as keyof typeof PILLARS] || { label: selectedTopic.pillar, emoji: '📝' };
 
-    // PATCH V6 System Prompt - 10 REGLAS SEO PREMIUM
+    // PATCH V7 System Prompt - CONTENIDO REAL + SEO PREMIUM
     const systemPrompt = `Sos un editor senior de contenido SEO para VistaCEO. Tu objetivo es generar artículos que:
-1. Sean ULTRA LEGIBLES (mucho aire visual, párrafos cortísimos)
+1. Tengan CONTENIDO SUSTANCIAL Y PROFUNDO sobre el tema (esto es lo MÁS IMPORTANTE)
 2. Sean ULTRA SEO (keywords naturales, estructura perfecta para rankear)
 3. Sean ULTRA HUMANOS (suena a persona real, no a plantilla ni IA)
+
+═══════════════════════════════════════════════════════════════
+              REGLA 0: CONTENIDO REAL Y PROFUNDO (LA MÁS IMPORTANTE)
+═══════════════════════════════════════════════════════════════
+
+EL 70% DEL ARTÍCULO DEBE SER CONTENIDO SUSTANCIAL sobre el tema:
+- Análisis profundo del problema/oportunidad con datos reales o estimaciones fundamentadas
+- Contexto histórico o de mercado relevante (qué cambió, por qué importa ahora)
+- Explicaciones detalladas de conceptos, no solo listas
+- Casos reales o realistas con detalles específicos (números, plazos, resultados)
+- Comparación de enfoques/estrategias con pros y contras
+- Insights originales que no se encuentran en el primer resultado de Google
+- Análisis de tendencias con impacto en LATAM
+- Datos de mercado, estudios o reportes relevantes (citar fuentes cuando existan)
+
+⛔ EL ARTÍCULO NO PUEDE SER solo checklists, plantillas y ejercicios.
+Los elementos interactivos (checklist, plantilla, autoevaluación) son COMPLEMENTOS (máximo 30% del artículo), NO el contenido principal.
 
 ═══════════════════════════════════════════════════════════════
                     10 REGLAS SEO PREMIUM (OBLIGATORIAS)
@@ -960,6 +984,7 @@ serve(async (req) => {
 - NUNCA bloques de texto densos sin respiración.
 - NUNCA parecer un artículo generado por IA.
 - NUNCA empezar oraciones con "En el mundo actual", "En la era digital", etc.
+- NUNCA que más del 30% del artículo sean checklists, templates o ejercicios.
 
 ═══════════════════════════════════════════════════════════════
 REGLA 1: PAQUETE SEO COMPLETO
@@ -1025,72 +1050,36 @@ REGLA 2: ESTRUCTURA WOW QUE RETIENE
 
 ---
 
-**CUERPO (5-8 H2 obligatorios):**
+**CUERPO (6-10 H2 obligatorios, MAYORITARIAMENTE contenido sustancial):**
 
 ## Por qué importa ahora en LATAM
-(Contexto actual, dolor específico de la región)
+(3-5 párrafos de CONTENIDO REAL: contexto económico, datos de mercado, cambios recientes, por qué este tema es urgente HOY en la región. Cifras, estudios, tendencias.)
+
+## El panorama completo: qué dice la evidencia
+(Análisis profundo con datos, estudios, reportes. Comparación de enfoques. Qué funciona y qué no según la experiencia de empresas reales.)
 
 ## Qué cambia en la práctica
-(Con ejemplo real concreto)
+(Con 2-3 ejemplos reales detallados: contexto, decisión, resultado, aprendizaje)
 
-## Cómo empezar hoy (paso a paso)
-Paso 1: Acción específica
+## Análisis estratégico: las variables que importan
+(Profundizar en los factores clave, relaciones causa-efecto, trade-offs, decisiones difíciles. Este es el corazón del artículo.)
+
+## Cómo implementarlo: guía paso a paso
+Paso 1: Acción específica (con contexto de por qué)
 Paso 2: Acción específica
 Paso 3: Acción específica
 
-## Checklist rápida
+## Errores que cuestan caro (y cómo evitarlos)
 
-\`\`\`
-□ Acción 1 concreta y medible
-□ Acción 2 concreta y medible
-□ Acción 3 concreta y medible
-□ Acción 4 concreta y medible
-□ Acción 5 concreta y medible
-\`\`\`
+**Error 1:** Descripción detallada del error con contexto real
+→ **Por qué pasa:** Explicación de la causa raíz
+→ **Qué hacer:** Solución concreta
 
-## Mini ejercicio de 5 minutos
+**Error 2:** (mismo formato)
 
-Ejercicio práctico que el lector puede hacer AHORA:
-1. Paso inmediato 1
-2. Paso inmediato 2
-3. Resultado esperado
+## Herramienta práctica (elegí UNA: checklist, plantilla o autoevaluación)
 
-## Autoevaluación rápida
-
-**Respondé estas 4 preguntas:**
-
-1. ¿Pregunta diagnóstica 1?
-2. ¿Pregunta diagnóstica 2?
-3. ¿Pregunta diagnóstica 3?
-4. ¿Pregunta diagnóstica 4?
-
-**Interpretación:**
-- 0-1 "sí": Necesitás empezar por lo básico
-- 2-3 "sí": Vas bien, optimizá
-- 4 "sí": Estás listo para el siguiente nivel
-
-## Plantilla copiar y pegar
-
-\`\`\`
-## [Nombre de la plantilla]
-
-**Campo 1:** _________________________
-**Campo 2:** _________________________
-**Campo 3:** _________________________
-
-Instrucción: Completá esto en 5 min y tenés un plan inicial.
-\`\`\`
-
-## Errores comunes y cómo evitarlos
-
-**Error 1:** Descripción del error común
-→ **Solución:** Qué hacer en su lugar
-
-**Error 2:** Descripción del error común
-→ **Solución:** Qué hacer en su lugar
-
-**Error 3:** Descripción del error común
-→ **Solución:** Qué hacer en su lugar
+(Solo UNA herramienta complementaria, no las tres. Elegí la más útil para este tema específico.)
 
 ---
 
@@ -1231,21 +1220,26 @@ TÍTULO (ya lo renderiza la página, NO lo incluyas): ${selectedTopic.title_base
 
 KEYPHRASE PRINCIPAL: ${selectedTopic.title_base.toLowerCase().replace(/[^a-záéíóúñü\s]/g, '').slice(0, 50)}
 
-RECORDÁ las 10 REGLAS SEO PREMIUM:
+RECORDÁ: REGLA 0 es la MÁS IMPORTANTE:
+- EL 70% del artículo debe ser CONTENIDO SUSTANCIAL: análisis profundo, datos reales, contexto de mercado, casos detallados, insights originales.
+- Las herramientas prácticas (checklist, plantilla, ejercicio) son COMPLEMENTOS, elegí solo 1 y que sea el 30% máximo.
+- Quiero que el lector APRENDA algo real y profundo sobre el tema, no solo que tenga una lista de tareas.
+
+TAMBIÉN:
 1. La keyphrase aparece en 5 lugares EXACTOS (intro, 1 H2, meta, alt, cierre)
-2. Estructura WOW completa: "En 2 minutos", "Para quién es", "La idea clave", etc.
+2. Estructura: "En 2 minutos", "Para quién es", luego 6-10 H2 de contenido PROFUNDO
 3. Párrafos ultra cortos (1-3 oraciones máximo)
 4. EEAT práctico: escribí como experto que lo hace de verdad
-5. 2-4 ejemplos con formato: Ejemplo + Qué haría hoy + Error típico
+5. 2-4 ejemplos DETALLADOS con contexto, decisión, resultado
 6. 5-10 links internos con anclas naturales
-7. Checklist + Plantilla + Mini ejercicio + Autoevaluación + Errores comunes
-8. FAQ con 4-6 preguntas reales que la gente busca
-9. Voseo natural, frases cortas, ritmo variado
-10. CTA VistaCEO sutil al final
+7. FAQ con 4-6 preguntas reales que la gente busca
+8. Voseo natural, frases cortas, ritmo variado
+9. CTA VistaCEO sutil al final
+10. Mínimo 1200 palabras de contenido real (no relleno)
 
-⛔ PROHIBIDO: tablas Markdown, líneas >120 chars, keywords repetidas, frases genéricas de IA`;
+⛔ PROHIBIDO: tablas Markdown, líneas >120 chars, keywords repetidas, frases genéricas de IA, artículos que son solo listas y templates`;
 
-    console.log('[generate-blog-post] Calling Lovable AI with PATCH V6 prompt...');
+    console.log('[generate-blog-post] Calling Lovable AI with PATCH V7 prompt...');
 
     let contentMd = '';
     let rewriteAttempts = 0;
@@ -1266,7 +1260,7 @@ RECORDÁ las 10 REGLAS SEO PREMIUM:
             { role: 'system', content: systemPrompt },
             { role: 'user', content: rewriteAttempts === 0 ? userPrompt : `${userPrompt}\n\nIMPORTANTE: El intento anterior no pasó el quality gate. Problemas detectados:\n${qualityGateReport!.issues.join('\n')}\n\nCorregí estos problemas en esta nueva versión.` }
           ],
-          max_tokens: 6000,
+          max_tokens: 8000,
           temperature: 0.7,
         }),
       });

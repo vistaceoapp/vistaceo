@@ -23,6 +23,9 @@ interface PlanItem {
   topic?: {
     title_base: string;
   } | null;
+  // For published posts without plan
+  title?: string;
+  source?: 'plan' | 'post';
 }
 
 export default function AdminCalendarPage() {
@@ -37,15 +40,44 @@ export default function AdminCalendarPage() {
       const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
       const end = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
       
-      const { data, error } = await supabase
-        .from('blog_plan')
-        .select('id, planned_date, pillar, status, topic:blog_topics(title_base)')
-        .gte('planned_date', start)
-        .lte('planned_date', end)
-        .order('planned_date', { ascending: true });
+      // Fetch both plan items AND published posts
+      const [planRes, postsRes] = await Promise.all([
+        supabase
+          .from('blog_plan')
+          .select('id, planned_date, pillar, status, topic:blog_topics(title_base)')
+          .gte('planned_date', start)
+          .lte('planned_date', end)
+          .order('planned_date', { ascending: true }),
+        supabase
+          .from('blog_posts')
+          .select('id, title, pillar, status, publish_at')
+          .eq('status', 'published')
+          .gte('publish_at', `${start}T00:00:00`)
+          .lte('publish_at', `${end}T23:59:59`)
+          .order('publish_at', { ascending: true })
+      ]);
       
-      if (error) throw error;
-      return data as PlanItem[];
+      if (planRes.error) throw planRes.error;
+      if (postsRes.error) throw postsRes.error;
+      
+      // Merge: plan items + published posts (avoiding duplicates)
+      const planData = (planRes.data || []).map(p => ({ ...p, source: 'plan' as const }));
+      const postData = (postsRes.data || []).map(p => ({
+        id: p.id,
+        planned_date: (p.publish_at || '').split('T')[0],
+        pillar: p.pillar || 'tendencias',
+        status: 'published',
+        title: p.title,
+        source: 'post' as const,
+      }));
+      
+      // Remove plan items that have been published (avoid double-showing)
+      const publishedDates = new Set(postData.map(p => p.planned_date));
+      const filteredPlan = planData.filter(p => 
+        p.status !== 'published' || !publishedDates.has(p.planned_date)
+      );
+      
+      return [...filteredPlan, ...postData] as PlanItem[];
     }
   });
 
@@ -273,10 +305,10 @@ export default function AdminCalendarPage() {
                           <span className="text-lg">{getPillarEmoji(item.pillar)}</span>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">
-                              {item.topic?.title_base || 'Sin título'}
+                              {item.title || item.topic?.title_base || 'Sin título'}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {PILLARS[item.pillar as PillarKey]?.label || item.pillar}
+                              {item.source === 'post' ? '📝 Publicado' : PILLARS[item.pillar as PillarKey]?.label || item.pillar}
                             </p>
                           </div>
                         </div>
