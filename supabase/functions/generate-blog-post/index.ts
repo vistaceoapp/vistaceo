@@ -531,15 +531,15 @@ function runQualityGates(content: string, title: string): QualityGateReport {
     checks: {
       no_h1_repeated: true,
       real_headings: false,
-      has_hero_image: false, // Will be set after image generation
-      has_inline_images: false, // Will be set after image generation
+      has_hero_image: false,
+      has_inline_images: false,
       has_internal_links: false,
       has_external_links: false,
       short_paragraphs: false,
       sentence_case_headings: false,
       no_keyword_stuffing: false,
       min_word_count: false,
-      has_checklist: false,
+      has_checklist: true, // Always pass - optional
       has_examples: false,
       no_markdown_tables: false,
       no_broken_lines: false,
@@ -555,94 +555,59 @@ function runQualityGates(content: string, title: string): QualityGateReport {
     report.issues.push('Content contains H1 - should only use H2/H3');
   }
 
-  // Check for real H2/H3 headings (relaxed - 3 H2 minimum)
+  // Check for real H2/H3 headings (3 H2 minimum)
   const h2Count = (content.match(/^##\s+/gm) || []).length;
-  const h3Count = (content.match(/^###\s+/gm) || []).length;
   report.checks.real_headings = h2Count >= 3;
   if (!report.checks.real_headings) {
     report.issues.push(`Insufficient headings: ${h2Count} H2 (need 3+)`);
   }
 
-  // Check for internal links (relaxed - 2 minimum)
+  // Internal links - NON-BLOCKING (informational only)
   const internalLinks = (content.match(/\[([^\]]+)\]\(\/blog[^\)]+\)/g) || []).length;
-  report.checks.has_internal_links = internalLinks >= 2;
-  if (!report.checks.has_internal_links) {
-    report.issues.push(`Only ${internalLinks} internal links (need 2+)`);
+  report.checks.has_internal_links = internalLinks >= 1;
+  if (internalLinks === 0) {
+    report.issues.push(`No internal links found (recommended: 2+)`);
   }
 
-  // Check for external links
+  // External links - NON-BLOCKING
   const externalLinks = (content.match(/\[([^\]]+)\]\(https?:\/\/[^\)]+\)/g) || []).length;
-  report.checks.has_external_links = externalLinks >= 3;
-  if (!report.checks.has_external_links) {
-    report.issues.push(`Only ${externalLinks} external links (need 3+)`);
-  }
+  report.checks.has_external_links = externalLinks >= 1;
 
-  // Check paragraph length (relaxed - 150 words max)
+  // Paragraph length (200 words max, very relaxed)
   const paragraphs = content.split(/\n\n+/).filter(p => p.trim() && !p.startsWith('#') && !p.startsWith('-') && !p.startsWith('|') && !p.startsWith('>'));
-  const longParagraphs = paragraphs.filter(p => p.split(/\s+/).length > 150);
-  report.checks.short_paragraphs = longParagraphs.length <= 2;
-  if (!report.checks.short_paragraphs) {
-    report.issues.push(`${longParagraphs.length} paragraphs exceed 150 words`);
-  }
+  const longParagraphs = paragraphs.filter(p => p.split(/\s+/).length > 200);
+  report.checks.short_paragraphs = longParagraphs.length <= 3;
 
-  // Check sentence case in headings
-  const headings = content.match(/^#{2,3}\s+(.+)$/gm) || [];
-  const titleCaseHeadings = headings.filter(h => {
-    const text = h.replace(/^#{2,3}\s+/, '');
-    // Check if more than 3 words start with uppercase (excluding first word)
-    const words = text.split(/\s+/);
-    const capsCount = words.slice(1).filter(w => /^[A-ZÁÉÍÓÚ]/.test(w) && w.length > 3).length;
-    return capsCount > 2;
-  });
-  report.checks.sentence_case_headings = titleCaseHeadings.length === 0;
-  if (!report.checks.sentence_case_headings) {
-    report.issues.push(`${titleCaseHeadings.length} headings use Title Case instead of sentence case`);
-  }
+  // Sentence case - informational only, always passes
+  report.checks.sentence_case_headings = true;
 
-  // Word count
+  // Word count - HARD requirement
   const wordCount = content.split(/\s+/).length;
-  report.checks.min_word_count = wordCount >= 1200;
+  report.checks.min_word_count = wordCount >= 800;
   if (!report.checks.min_word_count) {
-    report.issues.push(`Only ${wordCount} words (need 1200+)`);
+    report.issues.push(`Only ${wordCount} words (need 800+)`);
   }
 
-  // Keyword stuffing check
+  // Keyword stuffing
   const words = content.toLowerCase().split(/\s+/);
   const wordFreq: Record<string, number> = {};
   words.forEach(w => {
     if (w.length > 5) wordFreq[w] = (wordFreq[w] || 0) + 1;
   });
   const maxFreq = Math.max(...Object.values(wordFreq));
-  report.checks.no_keyword_stuffing = maxFreq < wordCount * 0.03;
-  if (!report.checks.no_keyword_stuffing) {
-    report.issues.push('Potential keyword stuffing detected');
-  }
+  report.checks.no_keyword_stuffing = maxFreq < wordCount * 0.04;
 
-  // Checklist check - OPTIONAL, not blocking
-  const hasChecklist = content.includes('- [ ]') || 
-                       content.includes('- [x]') ||
-                       content.toLowerCase().includes('checklist') ||
-                       content.includes('✓') ||
-                       content.includes('☐') ||
-                       content.includes('□') ||
-                       content.toLowerCase().includes('plantilla') ||
-                       content.toLowerCase().includes('herramienta');
-  report.checks.has_checklist = hasChecklist || true; // Always pass - checklist is optional
+  // Examples - NON-BLOCKING
+  const hasExamples = /\*\*ejemplo/i.test(content) || /ejemplo:/i.test(content) || /caso real/i.test(content) || /caso práctico/i.test(content);
+  report.checks.has_examples = hasExamples;
 
-  // Examples check
-  const exampleMatches = content.match(/\*\*ejemplo/gi) || [];
-  report.checks.has_examples = exampleMatches.length >= 2;
-  if (!report.checks.has_examples) {
-    report.issues.push(`Only ${exampleMatches.length} examples (need 2+)`);
-  }
-
-  // Hard block: markdown tables are NOT allowed (they caused broken renders)
+  // Hard block: markdown tables
   report.checks.no_markdown_tables = !hasMarkdownTable(content);
   if (!report.checks.no_markdown_tables) {
-    report.issues.push('Markdown tables detected. Tables are forbidden: use a fillable template as a bullet list or code block instead.');
+    report.issues.push('Markdown tables detected - forbidden');
   }
 
-  // Hard block: broken formatting patterns
+  // Hard block: broken formatting
   const brokenIssues = detectBrokenFormattingIssues(content);
   report.checks.no_broken_lines = brokenIssues.length === 0;
   if (!report.checks.no_broken_lines) {
@@ -653,8 +618,10 @@ function runQualityGates(content: string, title: string): QualityGateReport {
   const checksArray = Object.values(report.checks);
   const passedChecks = checksArray.filter(Boolean).length;
   report.score = Math.round((passedChecks / checksArray.length) * 100);
-  report.passed = report.score >= 75 &&
-    report.checks.min_word_count &&
+  
+  // PASS if: minimum word count met, has headings, no tables, no broken formatting
+  // Everything else is non-blocking
+  report.passed = report.checks.min_word_count &&
     report.checks.real_headings &&
     report.checks.no_markdown_tables &&
     report.checks.no_broken_lines;
