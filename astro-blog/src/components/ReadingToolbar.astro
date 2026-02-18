@@ -27,17 +27,20 @@ const specialSections = [
   { pattern: /conclusi[oó]n|resumen|cierre|pr[oó]ximos?\s*pasos?/i, label: '🚀 Conclusión', color: 'violet' },
 ];
 
-// Encontrar secciones especiales en los headings
-const sectionShortcuts = headings
-  .map(h => {
+// Encontrar secciones especiales en los headings - DEDUPLICAR por label
+const sectionShortcuts = (() => {
+  const seenLabels = new Set<string>();
+  const results: Array<typeof headings[0] & { label: string; color: string; pattern: RegExp }> = [];
+  for (const h of headings) {
     const special = specialSections.find(s => s.pattern.test(h.text));
-    if (special) {
-      return { ...h, ...special };
+    if (special && !seenLabels.has(special.label)) {
+      seenLabels.add(special.label);
+      results.push({ ...h, ...special });
     }
-    return null;
-  })
-  .filter(Boolean)
-  .slice(0, 6); // Máximo 6 para no saturar
+    if (results.length >= 6) break; // Máximo 6 para no saturar
+  }
+  return results;
+})();
 ---
 
 <!-- Barra de Progreso Superior -->

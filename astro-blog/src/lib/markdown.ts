@@ -11,10 +11,9 @@ import { slugify } from './text';
 export function parseMarkdown(content: string): string {
   if (!content) return '';
 
-  // ===== SANITIZE BROKEN GENERATOR ARTIFACTS =====
-  // Fix rare cases where an inline image line gets polluted with encoded HTML like "%3Ca href="
-  // and the real image URL appears after the closing ")".
-  let html = sanitizeBrokenImageMarkdown(content);
+  // ===== DEEP SANITIZE BROKEN GENERATOR ARTIFACTS =====
+  let html = sanitizeGeneratorArtifacts(content);
+  html = sanitizeBrokenImageMarkdown(html);
 
   // ===== PROTECT EXISTING HTML =====
   // Extract and protect any existing HTML links/elements
@@ -502,6 +501,43 @@ function extractFirstLikelyImageUrl(text: string): string | null {
     if (/\.(png|jpe?g|webp)(\?.*)?$/i.test(url)) return url;
   }
   return null;
+}
+
+function sanitizeGeneratorArtifacts(md: string): string {
+  let clean = md;
+  
+  // Remove raw HTML img tags that leak from AI generators, preserving src/alt
+  clean = clean.replace(/<img\s+[^>]*src="([^"]+)"[^>]*alt="([^"]*)"[^>]*\/?>/gi, '![$2]($1)');
+  clean = clean.replace(/<img\s+[^>]*alt="([^"]*)"[^>]*src="([^"]+)"[^>]*\/?>/gi, '![$1]($2)');
+  // Catch remaining img tags with just src
+  clean = clean.replace(/<img\s+[^>]*src="([^"]+)"[^>]*\/?>/gi, '![]($1)');
+  
+  // Remove raw HTML anchor tags, keep text and href
+  clean = clean.replace(/<a\s+[^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, '[$2]($1)');
+  
+  // Strip stray HTML attributes that appear as plain text (loading="lazy", class="...", decoding="async")
+  clean = clean.replace(/\s*(?:loading|decoding|class|style|width|height|srcset|sizes)\s*=\s*"[^"]*"/gi, '');
+  
+  // Remove encoded HTML entities like %3Ca href= that pollute markdown
+  clean = clean.replace(/%3C\/?a(?:\s[^%]*)?\s*%3E/gi, '');
+  clean = clean.replace(/%3C\/?(?:div|span|p|img|br)\s*(?:[^%]*)%3E/gi, '');
+  
+  // Remove raw HTML block tags (div, span, section etc) - keep inner text
+  clean = clean.replace(/<(?:div|span|section|article|header|footer|nav)[^>]*>/gi, '');
+  clean = clean.replace(/<\/(?:div|span|section|article|header|footer|nav)>/gi, '');
+  
+  // Clean empty image URLs
+  clean = clean.replace(/!\[([^\]]*)\]\(\s*\)/g, '');
+  
+  // Clean empty link URLs - keep the text
+  clean = clean.replace(/\[([^\]]+)\]\(\s*\)/g, '$1');
+  
+  // Remove AI placeholders
+  clean = clean.replace(/\[insertar\s[^\]]*\]/gi, '');
+  clean = clean.replace(/\[PLACEHOLDER[^\]]*\]/gi, '');
+  clean = clean.replace(/\*\*Nota del editor\*\*[^\n]*/gi, '');
+  
+  return clean;
 }
 
 function sanitizeBrokenImageMarkdown(md: string): string {
