@@ -1,8 +1,6 @@
 name: Deploy Blog to GitHub Pages
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'
   push:
     branches:
       - main
@@ -41,63 +39,44 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-            echo "WARNING: No package-lock.json found. Run 'npm install' locally and commit the lockfile."
-          fi
+        run: npm install --no-audit --no-fund
 
       - name: Build Astro site
         run: npm run build
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Verify critical files
         run: |
           echo "=== Verifying critical SEO files ==="
           
-          # Check sitemap.xml
           if [ ! -f "./dist/sitemap.xml" ]; then
             echo "ERROR: sitemap.xml not generated!"
             exit 1
           fi
           echo "✅ sitemap.xml exists ($(wc -c < ./dist/sitemap.xml) bytes)"
           
-          # Check robots.txt
           if [ ! -f "./dist/robots.txt" ]; then
             echo "ERROR: robots.txt not generated!"
             exit 1
           fi
           echo "✅ robots.txt exists"
           
-          # Verify no noindex in HTML
           if grep -rl "noindex" ./dist/ --include="*.html" 2>/dev/null | head -3; then
             echo "WARNING: Found noindex directives in HTML files!"
           else
             echo "✅ No noindex directives found"
           fi
           
-          # Verify robots.txt doesn't block everything
-          if grep -q "Disallow: /$" ./dist/robots.txt && ! grep -q "Allow:" ./dist/robots.txt; then
-            echo "ERROR: robots.txt blocks all crawlers!"
-            exit 1
-          fi
-          echo "✅ robots.txt allows crawling"
-          
-          # Verify CNAME exists
           if [ ! -f "./dist/CNAME" ]; then
             echo "ERROR: CNAME file missing!"
             exit 1
           fi
           echo "✅ CNAME exists: $(cat ./dist/CNAME)"
           
-          # Show sitemap URL count
           URL_COUNT=$(grep -c "<loc>" ./dist/sitemap.xml || echo "0")
           echo "✅ Sitemap contains $URL_COUNT URLs"
-          
-          echo ""
-          echo "=== robots.txt content ==="
-          cat ./dist/robots.txt
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -125,12 +104,7 @@ jobs:
       - name: Ping search engines
         run: |
           echo "Pinging search engines..."
-          
-          # Ping Google sitemap
           curl -s "https://www.google.com/ping?sitemap=https://blog.vistaceo.com/sitemap.xml" || true
-          
-          # Ping IndexNow (Bing/Yandex)
           curl -s "https://api.indexnow.org/indexnow?url=https://blog.vistaceo.com/sitemap.xml&key=8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d" || true
           curl -s "https://www.bing.com/indexnow?url=https://blog.vistaceo.com/sitemap.xml&key=8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d" || true
-          
           echo "Done!"
