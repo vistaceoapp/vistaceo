@@ -252,35 +252,42 @@ async function generateAndPublishPost(
         }
       }
 
-      // Quality audit on content
-      const qualityIssues = auditPostMarkdown(savedPost?.content_md || '');
-      const brokenLinks = await validateExternalLinks(savedPost?.content_md || '');
+      // ===== AUTO-REPAIR HTML ARTIFACTS FIRST (proactive) =====
+      const { content: repairedMd, repaired: wasRepaired, repairs } = autoRepairMarkdown(savedPost?.content_md || '');
+      if (wasRepaired) {
+        console.log('[blog-daily-publish] Auto-repaired HTML artifacts:', repairs);
+        await supabase.from('blog_posts').update({ 
+          content_md: repairedMd, 
+          quality_gate_report: { auto_repaired: true, repairs, timestamp: new Date().toISOString() } 
+        }).eq('slug', postSlug);
+      }
+
+      // Quality audit on (already repaired) content
+      const qualityIssues = auditPostMarkdown(repairedMd);
+      const brokenLinks = await validateExternalLinks(repairedMd);
       if (brokenLinks.length > 0) qualityIssues.push(...brokenLinks.map(l => `broken_link:${l}`));
       
       if (qualityIssues.length > 0) {
         console.error('[blog-daily-publish] Quality issues:', qualityIssues);
         
         // Auto-repair broken links
-        let repairedContent = savedPost?.content_md || '';
-        let repaired = false;
+        let finalContent = repairedMd;
+        let linksRepaired = false;
         for (const issue of qualityIssues) {
           if (issue.startsWith('broken_link:')) {
             const brokenUrl = issue.replace('broken_link:', '');
             const linkRegex = new RegExp(`\\[([^\\]]+)\\]\\(${brokenUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'g');
-            repairedContent = repairedContent.replace(linkRegex, '$1');
-            repaired = true;
+            finalContent = finalContent.replace(linkRegex, '$1');
+            linksRepaired = true;
           }
         }
         
         const nonLinkIssues = qualityIssues.filter(i => !i.startsWith('broken_link:'));
-        if (nonLinkIssues.length === 0 && repaired) {
-          await supabase.from('blog_posts').update({ content_md: repairedContent, quality_gate_report: { auto_repaired: true, repaired_links: brokenLinks } }).eq('slug', postSlug);
-        } else if (nonLinkIssues.length > 0) {
-          // Serious issues - still publish but notify
-          await sendFailureEmail(supabase, `Post published with quality issues: ${postSlug}`, { issues: nonLinkIssues });
-          if (repaired) {
-            await supabase.from('blog_posts').update({ content_md: repairedContent }).eq('slug', postSlug);
-          }
+        if (linksRepaired || wasRepaired) {
+          await supabase.from('blog_posts').update({ content_md: finalContent, quality_gate_report: { auto_repaired: true, repairs: [...repairs, ...brokenLinks.map(l => `fixed_link:${l}`)], remaining_issues: nonLinkIssues } }).eq('slug', postSlug);
+        }
+        if (nonLinkIssues.length > 0) {
+          await sendFailureEmail(supabase, `Post published with quality issues: ${postSlug}`, { issues: nonLinkIssues, auto_repairs: repairs });
         }
       }
 
@@ -467,6 +474,62 @@ function auditPostMarkdown(contentMd: string): string[] {
   if (stripped.length < 500) issues.push('article_too_short');
 
   return issues;
+}
+
+// Auto-repair ALL HTML artifacts in markdown content
+function autoRepairMarkdown(contentMd: string): { content: string; repaired: boolean; repairs: string[] } {
+  let content = contentMd;
+  const repairs: string[] = [];
+  
+  // Fix raw img tags → markdown
+  const imgFixed = content.replace(/<img\s+[^>]*src="([^"]+)"[^>]*alt="([^"]*)"[^>]*\/?>/gi, '![$2]($1)');
+  if (imgFixed !== content) { repairs.push('converted_raw_img_tags'); content = imgFixed; }
+  
+  const imgFixed2 = content.replace(/<img\s+[^>]*alt="([^"]*)"[^>]*src="([^"]+)"[^>]*\/?>/gi, '![$1]($2)');
+  if (imgFixed2 !== content) { repairs.push('converted_raw_img_tags_alt_first'); content = imgFixed2; }
+  
+  const imgFixed3 = content.replace(/<img\s+[^>]*src="([^"]+)"[^>]*\/?>/gi, '![]($1)');
+  if (imgFixed3 !== content) { repairs.push('converted_raw_img_no_alt'); content = imgFixed3; }
+  
+  // Fix raw anchor tags → markdown
+  const aFixed = content.replace(/<a\s+[^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, '[$2]($1)');
+  if (aFixed !== content) { repairs.push('converted_raw_anchor_tags'); content = aFixed; }
+  
+  // Strip stray HTML attributes
+  const attrFixed = content.replace(/\s*(?:loading|decoding|class|style|width|height|srcset|sizes)\s*=\s*"[^"]*"/gi, '');
+  if (attrFixed !== content) { repairs.push('stripped_html_attributes'); content = attrFixed; }
+  
+  // Remove encoded HTML
+  content = content.replace(/%3C\/?a(?:\s[^%]*)?\s*%3E/gi, '');
+  content = content.replace(/%3C\/?(?:div|span|p|img|br)\s*(?:[^%]*)%3E/gi, '');
+  
+  // Remove raw HTML block tags
+  const blockFixed = content.replace(/<(?:div|span|section|article|header|footer|nav|p|br)\s*[^>]*>/gi, '');
+  if (blockFixed !== content) { repairs.push('removed_raw_html_blocks'); content = blockFixed; }
+  content = content.replace(/<\/(?:div|span|section|article|header|footer|nav|p|br)>/gi, '');
+  
+  // Fix empty image/link URLs
+  content = content.replace(/!\[([^\]]*)\]\(\s*\)/g, '');
+  content = content.replace(/\[([^\]]+)\]\(\s*\)/g, '$1');
+  
+  // Remove AI placeholders
+  content = content.replace(/\[insertar\s[^\]]*\]/gi, '');
+  content = content.replace(/\[PLACEHOLDER[^\]]*\]/gi, '');
+  content = content.replace(/\*\*Nota del editor\*\*[^\n]*/gi, '');
+  
+  // Fix broken image markdown with encoded URLs
+  content = content.replace(/^!\[([^\]]*)\]\(([^)]*%3[Cc][^)]*)\)(.*)$/gm, (full, alt, src, tail) => {
+    const realUrl = tail.match(/https?:\/\/[^\s"'>]+\.(png|jpe?g|webp)(\?[^\s"'>]*)?/i);
+    if (realUrl) { repairs.push('fixed_encoded_image_url'); return `![${alt}](${realUrl[0]})`; }
+    if (/^https?:\/\//i.test(src) && !/%3[Cc]/i.test(src)) return `![${alt}](${src})`;
+    repairs.push('removed_broken_image'); return '';
+  });
+  
+  // Remove raw Supabase URLs appearing as plain text
+  const rawUrlFixed = content.replace(/(?<!\(|!)nlewrgmcawzcdazhfiyy\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s"')>]+/g, '');
+  if (rawUrlFixed !== content) { repairs.push('removed_raw_supabase_urls'); content = rawUrlFixed; }
+  
+  return { content, repaired: repairs.length > 0, repairs };
 }
 
 async function validateExternalLinks(contentMd: string): Promise<string[]> {

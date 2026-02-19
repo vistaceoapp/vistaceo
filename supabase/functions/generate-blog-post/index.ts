@@ -45,59 +45,170 @@ function getClustersForPillar(pillar: string): string[] {
     .map(([key]) => key);
 }
 
-// Select next category with rotation
-async function selectNextCategory(supabase: any): Promise<string> {
-  // Get category counts
-  const { data: posts } = await supabase
-    .from('blog_posts')
-    .select('category')
-    .eq('status', 'published')
-    .not('category', 'is', null);
+// CATEGORY-TOPIC MATCHING RULES
+// Maps topic keywords/intent to the most appropriate category
+const CATEGORY_KEYWORD_MAP: Record<string, string[]> = {
+  'empleo-habilidades': ['empleo', 'trabajo', 'cv', 'curriculum', 'entrevista', 'carrera', 'habilidades', 'talento', 'sueldo', 'salario', 'freelance', 'remoto', 'contratación', 'recruiter', 'linkedin', 'portfolio', 'industria', 'cambiar de carrera', 'perfil profesional', 'mercado laboral', 'búsqueda de empleo'],
+  'ia-para-pymes': ['ia', 'inteligencia artificial', 'automatización', 'chatbot', 'machine learning', 'gpt', 'prompt', 'ai', 'automatizar', 'robot', 'algoritmo', 'datos', 'modelo', 'neural'],
+  'servicios-profesionales-rentabilidad': ['servicios', 'consultoría', 'agencia', 'freelancer', 'rentabilidad', 'honorarios', 'propuesta', 'cliente', 'consultor', 'servicio profesional', 'cotizar', 'pricing'],
+  'marketing-crecimiento': ['marketing', 'contenido', 'redes sociales', 'marca', 'branding', 'crecimiento', 'clientes', 'embudo', 'funnel', 'seo', 'publicidad', 'ads', 'campaña', 'engagement', 'comunidad'],
+  'finanzas-cashflow': ['finanzas', 'cash', 'flujo de caja', 'dinero', 'costos', 'precio', 'margen', 'inversión', 'presupuesto', 'deuda', 'crédito', 'impuestos', 'facturación', 'fugas de dinero', 'ahorro'],
+  'operaciones-procesos': ['operaciones', 'procesos', 'sistemas', 'eficiencia', 'productividad', 'workflow', 'automatizar procesos', 'orden', 'logística', 'inventario', 'cadena', 'supply'],
+  'ventas-negociacion': ['ventas', 'vender', 'negociar', 'cerrar', 'prospecto', 'pipeline', 'cotización', 'propuesta comercial', 'deal', 'playbook', 'objeciones', 'cierre'],
+  'liderazgo-management': ['liderazgo', 'líder', 'equipo', 'management', 'gestión', 'cultura', 'onboarding', 'motivación', 'delegación', 'feedback', 'reuniones', 'hábitos', 'decisiones', 'management'],
+  'estrategia-latam': ['estrategia', 'latam', 'latinoamérica', 'región', 'mercado', 'expansión', 'escalar', 'modelo de negocio', 'competencia', 'oportunidad', 'tendencia regional'],
+  'herramientas-productividad': ['herramientas', 'productividad', 'apps', 'software', 'plataforma', 'tiempo', 'organización', 'notion', 'trello', 'calendario', 'hábitos productivos', 'eficiencia personal'],
+  'data-analytics': ['data', 'analytics', 'métricas', 'kpi', 'dashboard', 'reporte', 'indicadores', 'medir', 'análisis de datos', 'bi', 'tableau', 'excel'],
+  'tendencias-ia-tech': ['tendencias', 'futuro', 'innovación', 'tecnología', 'disrupción', 'startup', 'blockchain', 'web3', 'cloud', 'saas', 'digital', 'transformación digital', 'nuevo perfil'],
+};
 
-  const categoryCounts: Record<string, number> = {};
-  Object.keys(BLOG_CLUSTERS).forEach(key => {
-    categoryCounts[key] = 0;
-  });
+// Select category based on topic content (not rotation)
+function selectCategoryForTopic(topic: { title_base: string; pillar: string; intent?: string | null; primary_keyword?: string | null }): string {
+  const text = `${topic.title_base} ${topic.intent || ''} ${topic.primary_keyword || ''}`.toLowerCase();
   
-  (posts || []).forEach((post: any) => {
-    if (post.category && categoryCounts[post.category] !== undefined) {
-      categoryCounts[post.category]++;
-    }
-  });
-
-  // Get last 3 used categories to avoid repetition
-  const { data: recentPosts } = await supabase
-    .from('blog_posts')
-    .select('category')
-    .eq('status', 'published')
-    .order('publish_at', { ascending: false })
-    .limit(3);
-
-  const recentCategories = new Set((recentPosts || []).map((p: any) => p.category));
-
-  // Find category with lowest count that wasn't used recently
-  let selectedCategory = 'tendencias-ia-tech'; // default
-  let minCount = Infinity;
-
-  for (const [category, count] of Object.entries(categoryCounts)) {
-    if (!recentCategories.has(category) && count < minCount) {
-      minCount = count;
-      selectedCategory = category;
-    }
-  }
-
-  // If all categories were used recently, pick the one with lowest count
-  if (minCount === Infinity) {
-    for (const [category, count] of Object.entries(categoryCounts)) {
-      if (count < minCount) {
-        minCount = count;
-        selectedCategory = category;
+  let bestCategory = '';
+  let bestScore = 0;
+  
+  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORD_MAP)) {
+    let score = 0;
+    for (const kw of keywords) {
+      if (text.includes(kw)) {
+        score += kw.split(' ').length; // Multi-word keywords score higher
       }
     }
+    if (score > bestScore) {
+      bestScore = score;
+      bestCategory = category;
+    }
   }
+  
+  // Fallback: use pillar-based default
+  if (!bestCategory) {
+    const pillarDefaults: Record<string, string> = {
+      empleo: 'empleo-habilidades',
+      ia_aplicada: 'ia-para-pymes',
+      liderazgo: 'liderazgo-management',
+      servicios: 'servicios-profesionales-rentabilidad',
+      emprender: 'estrategia-latam',
+      tendencias: 'tendencias-ia-tech',
+    };
+    bestCategory = pillarDefaults[topic.pillar] || 'tendencias-ia-tech';
+  }
+  
+  return bestCategory;
+}
 
-  console.log('[generate-blog-post] Selected category:', selectedCategory, 'count:', minCount);
-  return selectedCategory;
+// ═══════════════════════════════════════════
+// FORMAT ENGINE: 10 article formats
+// ═══════════════════════════════════════════
+
+interface ArticleFormat {
+  id: string;
+  name: string;
+  when: string;
+  sections: string[];
+  contentTypes: string[];
+}
+
+const ARTICLE_FORMATS: ArticleFormat[] = [
+  {
+    id: 'manual-operacion',
+    name: 'Manual de Operación',
+    when: 'proceso, implementación, paso a paso, cómo hacer',
+    sections: ['La meta en una frase', 'Resumen rápido', 'Lo mínimo antes de arrancar', 'Paso a paso numerado', 'La traba típica y cómo evitarla', 'Indicador de éxito', 'Plantilla lista para usar', 'Preguntas frecuentes', 'Próximos pasos'],
+    contentTypes: ['proceso', 'implementación'],
+  },
+  {
+    id: 'escaner-negocio',
+    name: 'Escáner de Negocio',
+    when: 'diagnóstico, problema, síntoma, evaluar, medir',
+    sections: ['Señales de alerta', 'La pregunta clave', 'Dónde se va la plata o el tiempo', 'Test rápido Sí/No', 'Interpretación por niveles', 'Acción en 24 horas', 'Plan de 30 días', 'Qué mirar cada semana', 'Preguntas frecuentes'],
+    contentTypes: ['diagnóstico', 'evaluación'],
+  },
+  {
+    id: 'filtro-anti-humo',
+    name: 'Filtro Anti-Humo',
+    when: 'herramienta, tendencia, moda, promesa, tecnología nueva, evaluar herramienta',
+    sections: ['Veredicto en 20 segundos', 'Para quién sí y para quién no', 'Qué problema real resuelve', 'Lo que prometen vs lo que pasa', 'Dificultad real de implementación', '3 usos reales en una PyME', 'Costos visibles e invisibles', 'Prueba mínima de 60 minutos', 'Alternativas si no te cierra', 'Próximos pasos'],
+    contentTypes: ['tendencia', 'herramienta', 'evaluación'],
+  },
+  {
+    id: 'cambio-de-lente',
+    name: 'Cambio de Lente',
+    when: 'liderazgo, cultura, mentalidad, hábito, creencia, mito, paradigma',
+    sections: ['La frase que nos frena', 'El costo de seguir igual', 'La idea nueva', 'Antes vs Después', 'Cómo bajarlo a una regla de equipo', 'Resistencia que vas a escuchar', 'Reto práctico de una semana', 'Preguntas frecuentes'],
+    contentTypes: ['mentalidad', 'liderazgo', 'cultura'],
+  },
+  {
+    id: 'anatomia-resultado',
+    name: 'Anatomía de un Resultado',
+    when: 'caso real, éxito, error, experiencia, historia, resultado',
+    sections: ['La foto final con números', 'Qué detonó el cambio', 'Las 3 decisiones que movieron la aguja', 'Lo que salió mal', 'Qué se puede copiar', 'Qué no conviene copiar', 'Indicadores que miraron', 'Tu auditoría rápida', 'Tu primer movimiento'],
+    contentTypes: ['caso real', 'experiencia'],
+  },
+  {
+    id: 'comparativa-clara',
+    name: 'Comparativa Clara',
+    when: 'comparar, elegir, vs, alternativas, opciones, mejor',
+    sections: ['Las dos opciones en una frase', 'Contexto: por qué esta decisión importa', 'Opción A a fondo', 'Opción B a fondo', 'Comparativa punto por punto', 'Recomendación por escenario', 'Errores comunes al elegir', 'Próximos pasos'],
+    contentTypes: ['comparativa', 'decisión'],
+  },
+  {
+    id: 'guia-decision',
+    name: 'Guía de Decisión',
+    when: 'decidir, priorizar, elegir, recursos limitados, presupuesto',
+    sections: ['El dilema real', 'Los factores que importan', 'Matriz simple de decisión', 'Regla de desempate', 'Qué pasa si elegís mal', 'El camino más seguro', 'Preguntas frecuentes', 'Próximos pasos'],
+    contentTypes: ['decisión', 'estrategia'],
+  },
+  {
+    id: 'plan-7-dias',
+    name: 'Plan de 7 Días',
+    when: 'rápido, sprint, arrancar, motivación, primera semana, empezar',
+    sections: ['El objetivo del sprint', 'Lo que necesitás antes de arrancar', 'Día 1', 'Día 2', 'Día 3', 'Día 4', 'Día 5', 'Día 6', 'Día 7', 'Qué medir al final', 'Siguiente sprint'],
+    contentTypes: ['plan', 'acción rápida'],
+  },
+  {
+    id: 'biblioteca-plantillas',
+    name: 'Biblioteca de Plantillas',
+    when: 'plantilla, template, modelo, recurso, herramienta práctica, descargar',
+    sections: ['Para qué sirven estas plantillas', 'Plantilla 1 con ejemplo completado', 'Plantilla 2 con ejemplo completado', 'Plantilla 3 con ejemplo completado', 'Cómo adaptarlas a tu negocio', 'Errores al usar plantillas', 'Próximos pasos'],
+    contentTypes: ['recurso', 'plantilla'],
+  },
+  {
+    id: 'preguntas-incomodas',
+    name: 'Preguntas Incómodas',
+    when: 'estrategia, claridad, reflexión, autoengaño, rumbo, foco',
+    sections: ['Por qué hacerte estas preguntas', 'Las 7-10 preguntas duras', 'Señales de autoengaño', 'Cómo responder con honestidad', 'Plan de enfoque con las respuestas', 'Preguntas frecuentes', 'Próximos pasos'],
+    contentTypes: ['estrategia', 'reflexión'],
+  },
+];
+
+// Select format based on topic content + variety
+function selectFormatForTopic(
+  topic: { title_base: string; intent?: string | null; pillar: string },
+  recentFormats: string[]
+): ArticleFormat {
+  const text = `${topic.title_base} ${topic.intent || ''}`.toLowerCase();
+  
+  // Score each format
+  const scored = ARTICLE_FORMATS.map(fmt => {
+    let score = 0;
+    const keywords = fmt.when.split(', ');
+    for (const kw of keywords) {
+      if (text.includes(kw)) score += 2;
+    }
+    // Penalize recently used formats
+    const recentIndex = recentFormats.indexOf(fmt.id);
+    if (recentIndex !== -1) score -= (5 - recentIndex); // More recent = bigger penalty
+    return { format: fmt, score };
+  });
+  
+  scored.sort((a, b) => b.score - a.score);
+  
+  // Pick top scorer, or random from top 3 if tied
+  const topScore = scored[0].score;
+  const topFormats = scored.filter(s => s.score >= topScore - 1);
+  return topFormats[Math.floor(Math.random() * Math.min(3, topFormats.length))].format;
 }
 
 // External sources by pillar (for "Para profundizar" section)
@@ -388,6 +499,57 @@ Aspect ratio: 16:9. Ultra high resolution.
     console.error('[generate-blog-post] Image generation error:', error);
     return null;
   }
+}
+
+// ═══════════════════════════════════════════
+// SANITIZE AI-GENERATED MARKDOWN
+// Removes ALL raw HTML artifacts before saving
+// ═══════════════════════════════════════════
+function sanitizeAIGeneratedMarkdown(md: string): string {
+  let clean = md;
+  
+  // Remove raw HTML img tags → convert to markdown
+  clean = clean.replace(/<img\s+[^>]*src="([^"]+)"[^>]*alt="([^"]*)"[^>]*\/?>/gi, '![$2]($1)');
+  clean = clean.replace(/<img\s+[^>]*alt="([^"]*)"[^>]*src="([^"]+)"[^>]*\/?>/gi, '![$1]($2)');
+  clean = clean.replace(/<img\s+[^>]*src="([^"]+)"[^>]*\/?>/gi, '![]($1)');
+  
+  // Remove raw HTML anchor tags → convert to markdown
+  clean = clean.replace(/<a\s+[^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, '[$2]($1)');
+  
+  // Strip stray HTML attributes that pollute text
+  clean = clean.replace(/\s*(?:loading|decoding|class|style|width|height|srcset|sizes)\s*=\s*"[^"]*"/gi, '');
+  
+  // Remove encoded HTML entities
+  clean = clean.replace(/%3C\/?a(?:\s[^%]*)?\s*%3E/gi, '');
+  clean = clean.replace(/%3C\/?(?:div|span|p|img|br)\s*(?:[^%]*)%3E/gi, '');
+  
+  // Remove raw HTML block tags (keep inner text)
+  clean = clean.replace(/<(?:div|span|section|article|header|footer|nav|p|br)\s*[^>]*>/gi, '');
+  clean = clean.replace(/<\/(?:div|span|section|article|header|footer|nav|p|br)>/gi, '');
+  
+  // Remove empty image/link URLs
+  clean = clean.replace(/!\[([^\]]*)\]\(\s*\)/g, '');
+  clean = clean.replace(/\[([^\]]+)\]\(\s*\)/g, '$1');
+  
+  // Remove AI placeholders
+  clean = clean.replace(/\[insertar\s[^\]]*\]/gi, '');
+  clean = clean.replace(/\[PLACEHOLDER[^\]]*\]/gi, '');
+  clean = clean.replace(/\*\*Nota del editor\*\*[^\n]*/gi, '');
+  
+  // Fix broken image markdown: ![alt](broken-url)rest-of-url
+  clean = clean.replace(/^!\[([^\]]*)\]\(([^)]*%3[Cc][^)]*)\)(.*)$/gm, (full, alt, src, tail) => {
+    // If src contains encoded HTML, try to find real URL in tail
+    const realUrl = tail.match(/https?:\/\/[^\s"'>]+\.(png|jpe?g|webp)(\?[^\s"'>]*)?/i);
+    if (realUrl) return `![${alt}](${realUrl[0]})`;
+    // If src itself is clean, keep it
+    if (/^https?:\/\//i.test(src) && !/%3[Cc]/i.test(src)) return `![${alt}](${src})`;
+    return ''; // Drop broken image
+  });
+  
+  // Remove any remaining raw Supabase URLs that appear as plain text (not in markdown links)
+  clean = clean.replace(/(?<!\(|!)nlewrgmcawzcdazhfiyy\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s"')>]+/g, '');
+  
+  return clean;
 }
 
 // Generate inline image for content body
@@ -885,6 +1047,21 @@ serve(async (req) => {
     // Get external sources for this pillar
     const pillarSources = EXTERNAL_SOURCES[selectedTopic.pillar as keyof typeof EXTERNAL_SOURCES] || EXTERNAL_SOURCES.liderazgo;
 
+    // 5.5. SELECT FORMAT for this article (variety engine)
+    const { data: recentPosts3 } = await supabase
+      .from('blog_posts')
+      .select('quality_gate_report')
+      .eq('status', 'published')
+      .order('publish_at', { ascending: false })
+      .limit(5);
+    
+    const recentFormats = (recentPosts3 || [])
+      .map((p: any) => p.quality_gate_report?.format_id)
+      .filter(Boolean) as string[];
+    
+    const selectedFormat = selectFormatForTopic(selectedTopic, recentFormats);
+    console.log('[generate-blog-post] Selected format:', selectedFormat.id, selectedFormat.name);
+
     // 6. Generate content with Lovable AI
     if (!lovableApiKey) {
       throw new Error('LOVABLE_API_KEY not configured');
@@ -1153,6 +1330,17 @@ CONTEXTO
 - Intent: ${selectedTopic.intent}
 - Objetivo: tráfico orgánico + tiempo en página alto + featured snippets
 
+═══════════════════════════════════════════════════════════════
+FORMATO DEL ARTÍCULO: "${selectedFormat.name}" (${selectedFormat.id})
+═══════════════════════════════════════════════════════════════
+
+IMPORTANTE: Este artículo DEBE seguir el formato "${selectedFormat.name}".
+Las secciones obligatorias son (usá H2 para cada una):
+${selectedFormat.sections.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+NO uses la estructura genérica de siempre. Seguí ESTE formato específico.
+Cada artículo debe sentirse DIFERENTE a los anteriores.
+
 Respondé SOLO con el Markdown, sin H1, sin explicaciones previas.`;
 
     const userPrompt = `Escribí un artículo completo para el blog de VistaCEO.
@@ -1161,6 +1349,9 @@ TÍTULO (ya lo renderiza la página, NO lo incluyas): ${selectedTopic.title_base
 
 KEYPHRASE PRINCIPAL: ${selectedTopic.title_base.toLowerCase().replace(/[^a-záéíóúñü\s]/g, '').slice(0, 50)}
 
+FORMATO ASIGNADO: "${selectedFormat.name}"
+Secciones obligatorias: ${selectedFormat.sections.join(' → ')}
+
 RECORDÁ: REGLA 0 es la MÁS IMPORTANTE:
 - EL 70% del artículo debe ser CONTENIDO SUSTANCIAL: análisis profundo, datos reales, contexto de mercado, casos detallados, insights originales.
 - Las herramientas prácticas (checklist, plantilla, ejercicio) son COMPLEMENTOS, elegí solo 1 y que sea el 30% máximo.
@@ -1168,7 +1359,7 @@ RECORDÁ: REGLA 0 es la MÁS IMPORTANTE:
 
 TAMBIÉN:
 1. La keyphrase aparece en 5 lugares EXACTOS (intro, 1 H2, meta, alt, cierre)
-2. Estructura: "En 2 minutos", "Para quién es", luego 6-10 H2 de contenido PROFUNDO
+2. Seguí la estructura del formato "${selectedFormat.name}" - NO la estructura genérica
 3. Párrafos ultra cortos (1-3 oraciones máximo)
 4. EEAT práctico: escribí como experto que lo hace de verdad
 5. 2-4 ejemplos DETALLADOS con contexto, decisión, resultado
@@ -1178,7 +1369,8 @@ TAMBIÉN:
 9. CTA VistaCEO sutil al final
 10. Mínimo 1200 palabras de contenido real (no relleno)
 
-⛔ PROHIBIDO: tablas Markdown, líneas >120 chars, keywords repetidas, frases genéricas de IA, artículos que son solo listas y templates`;
+⛔ PROHIBIDO: tablas Markdown, líneas >120 chars, keywords repetidas, frases genéricas de IA, artículos que son solo listas y templates, HTML crudo (<img>, <a>, atributos como loading="lazy" class="...")
+⛔ NUNCA incluir atributos HTML crudos en el markdown. Solo markdown puro.`;
 
     console.log('[generate-blog-post] Calling Lovable AI with PATCH V7 prompt...');
 
@@ -1235,10 +1427,15 @@ TAMBIÉN:
       const { content: fixedContent, issues: fixIssues } = validateAndFixContent(contentMd, selectedTopic.title_base);
       contentMd = fixedContent;
       
+      // CRITICAL: Sanitize any raw HTML artifacts from AI output
+      contentMd = sanitizeAIGeneratedMarkdown(contentMd);
+      
       // Run quality gates
       qualityGateReport = runQualityGates(contentMd, selectedTopic.title_base);
       qualityGateReport.issues = [...qualityGateReport.issues, ...fixIssues];
       qualityGateReport.rewrite_attempts = rewriteAttempts;
+      (qualityGateReport as any).format_id = selectedFormat.id;
+      (qualityGateReport as any).format_name = selectedFormat.name;
 
       console.log(`[generate-blog-post] Quality gate attempt ${rewriteAttempts + 1}:`, {
         passed: qualityGateReport.passed,
@@ -1347,9 +1544,9 @@ TAMBIÉN:
       domain: s.domain
     }));
 
-    // 8.5. Select category with rotation (12-cluster system)
-    const selectedCategory = await selectNextCategory(supabase);
-    console.log('[generate-blog-post] Assigned category:', selectedCategory);
+    // 8.5. Select category based on TOPIC CONTENT (not rotation)
+    const selectedCategory = selectCategoryForTopic(selectedTopic);
+    console.log('[generate-blog-post] Assigned category (content-matched):', selectedCategory);
 
     // Generate schema JSON-LD - use CANONICAL_DOMAIN
     const schemaJsonld = {
