@@ -526,11 +526,22 @@ function sanitizeGeneratorArtifacts(md: string): string {
   clean = clean.replace(/<(?:div|span|section|article|header|footer|nav)[^>]*>/gi, '');
   clean = clean.replace(/<\/(?:div|span|section|article|header|footer|nav)>/gi, '');
   
-  // Clean empty image URLs
-  clean = clean.replace(/!\[([^\]]*)\]\(\s*\)/g, '');
+  // CRITICAL: Remove images with empty, invalid, or whitespace-only URLs
+  // Matches: ![alt](https://) ![alt](https://  ) ![alt]() ![alt](  )
+  clean = clean.replace(/!\[[^\]]*\]\(\s*(?:https?:\/\/)?\s*\)/g, '');
+  
+  // CRITICAL: Remove images where URL is only "https://" or "http://" with nothing after
+  clean = clean.replace(/!\[[^\]]*\]\(https?:\/\/\s*\)/g, '');
   
   // Clean empty link URLs - keep the text
   clean = clean.replace(/\[([^\]]+)\]\(\s*\)/g, '$1');
+  
+  // Remove raw HTML text leaking: attributes rendered as text (e.g.: alt="Trabajo remoto..." loading="lazy" class="content-image">)
+  // This catches when the AI writes the full img tag inline as text
+  clean = clean.replace(/^\s*(?:src|alt|loading|class|width|height|decoding)\s*=\s*"[^"]*".*$/gm, '');
+  
+  // Catch full raw HTML img strings rendered as text in paragraphs
+  clean = clean.replace(/[a-z0-9-]+\.supabase\.co\/st\.\.\."?\s+alt="[^"]*"[^>]*>/gi, '');
   
   // Remove AI placeholders
   clean = clean.replace(/\[insertar\s[^\]]*\]/gi, '');

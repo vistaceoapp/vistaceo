@@ -527,8 +527,18 @@ function sanitizeAIGeneratedMarkdown(md: string): string {
   clean = clean.replace(/<(?:div|span|section|article|header|footer|nav|p|br)\s*[^>]*>/gi, '');
   clean = clean.replace(/<\/(?:div|span|section|article|header|footer|nav|p|br)>/gi, '');
   
-  // Remove empty image/link URLs
-  clean = clean.replace(/!\[([^\]]*)\]\(\s*\)/g, '');
+  // Remove empty image/link URLs - CRITICAL: includes https:// with nothing after
+  clean = clean.replace(/!\[[^\]]*\]\(\s*\)/g, '');
+  clean = clean.replace(/!\[[^\]]*\]\(https?:\/\/\s*\)/g, '');
+  clean = clean.replace(/!\[[^\]]*\]\(https?:\/\/[^a-zA-Z0-9][^)]*\)/g, (match) => {
+    // Keep only if URL has real domain (more than just https://)
+    const urlMatch = match.match(/!\[[^\]]*\]\(([^)]+)\)/);
+    if (!urlMatch) return '';
+    const url = urlMatch[1].trim();
+    // Must have a real host (e.g. https://something.com/...)
+    if (/^https?:\/\/[a-zA-Z0-9]/.test(url)) return match;
+    return '';
+  });
   clean = clean.replace(/\[([^\]]+)\]\(\s*\)/g, '$1');
   
   // Remove AI placeholders
