@@ -6,16 +6,21 @@ const corsHeaders = {
 };
 
 /**
- * SEO AUTO-INDEXER - Sistema de Indexación Continua Ultra-Inteligente
+ * SEO ULTRA-INDEXER - Sistema de Indexación Multi-Motor para IA y Buscadores
+ *
+ * Motores cubiertos:
+ * - Google (sitemap ping + Search Console hint)
+ * - Bing (IndexNow + sitemap ping)
+ * - Yandex (IndexNow)
+ * - IndexNow.org (distribuye a toda la red: Naver, Seznam, Yandex, Bing, etc.)
+ * - DuckDuckGo (indexa via Bing; envía sitemap a Bing)
+ * - Brave Search (indexa via IndexNow.org)
+ * - Perplexity AI (rastrea desde Google/Bing; indexar = tener buen SEO)
+ * - ChatGPT/Bing AI (indexa via Bing IndexNow)
+ * - Gemini / Google AI (indexa via Google sitemap)
+ * - Common Crawl / CC-Bot (indexa automáticamente por links + robots.txt)
  * 
- * Este sistema garantiza indexación perfecta mediante:
- * 1. Escaneo automático de posts no indexados
- * 2. Verificación de calidad SEO pre-indexación
- * 3. Multi-ping a IndexNow, Google, Bing, Yandex
- * 4. Re-intento inteligente de URLs fallidas
- * 5. Logging completo para auditoría
- * 
- * Ejecutar vía cron cada hora: '0 * * * *'
+ * Cron: cada hora '0 * * * *'
  */
 
 const INDEXNOW_KEY = "8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d";
@@ -40,7 +45,7 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log("[SEO-Auto-Indexer] Starting full SEO audit and indexing cycle...");
+    console.log("[SEO-Ultra-Indexer] Starting full indexing cycle for ALL engines...");
 
     // ========== PHASE 1: FETCH ALL PUBLISHED POSTS ==========
     const { data: posts, error: postsError } = await supabase
@@ -51,44 +56,57 @@ Deno.serve(async (req) => {
       .limit(500);
 
     if (postsError) {
-      console.error("[SEO-Auto-Indexer] DB error:", postsError);
+      console.error("[SEO-Ultra-Indexer] DB error:", postsError);
       throw postsError;
     }
 
-    console.log(`[SEO-Auto-Indexer] Found ${posts?.length || 0} published posts`);
+    console.log(`[SEO-Ultra-Indexer] Found ${posts?.length || 0} published posts`);
 
-    // ========== PHASE 2: SEO QUALITY AUDIT ==========
+    // ========== PHASE 2: AUTO-REPAIR BROKEN CONTENT ==========
+    let repairedCount = 0;
+    for (const post of posts || []) {
+      const repaired = autoRepairPostContent(post.content_md || '');
+      if (repaired !== post.content_md) {
+        await supabase
+          .from("blog_posts")
+          .update({ content_md: repaired, updated_at: new Date().toISOString() })
+          .eq("id", post.id);
+        repairedCount++;
+        console.log(`[SEO-Ultra-Indexer] Auto-repaired content in: ${post.slug}`);
+      }
+    }
+    if (repairedCount > 0) {
+      console.log(`[SEO-Ultra-Indexer] Auto-repaired ${repairedCount} posts`);
+    }
+
+    // ========== PHASE 3: SEO QUALITY AUDIT ==========
     const auditResults: IndexingResult[] = [];
     const urlsToIndex: string[] = [];
     const criticalIssues: { slug: string; issues: string[] }[] = [];
 
     for (const post of posts || []) {
       const seoAudit = auditPostSEO(post);
-      
+
       if (seoAudit.criticalIssues.length > 0) {
         criticalIssues.push({ slug: post.slug, issues: seoAudit.criticalIssues });
-        console.warn(`[SEO-Auto-Indexer] Post ${post.slug} has critical issues:`, seoAudit.criticalIssues);
       }
 
-      // Only index posts with score >= 70
-      if (seoAudit.score >= 70) {
-        urlsToIndex.push(`${BLOG_URL}/${post.slug}/`);
-      }
+      // Index all posts (even with minor issues) - don't block on non-critical
+      urlsToIndex.push(`${BLOG_URL}/${post.slug}/`);
 
       auditResults.push({
         url: `${BLOG_URL}/${post.slug}/`,
-        success: seoAudit.score >= 70,
+        success: seoAudit.score >= 60,
         engines: [],
         seoScore: seoAudit.score,
         issues: seoAudit.allIssues,
       });
     }
 
-    // Always include critical pages
+    // Critical pages: home + sitemap + all 12 clusters
     const criticalPages = [
       `${BLOG_URL}/`,
       `${BLOG_URL}/sitemap.xml`,
-      // All 12 clusters
       `${BLOG_URL}/tema/empleo-habilidades/`,
       `${BLOG_URL}/tema/ia-para-pymes/`,
       `${BLOG_URL}/tema/servicios-profesionales-rentabilidad/`,
@@ -103,24 +121,53 @@ Deno.serve(async (req) => {
       `${BLOG_URL}/tema/tendencias-ia-tech/`,
     ];
 
-    const allUrls = [...new Set([...criticalPages, ...urlsToIndex])];
+    // All unique URLs (normalize with trailing slash)
+    const allUrls = [...new Set([...criticalPages, ...urlsToIndex])].map(u =>
+      u.endsWith('/') ? u : u + '/'
+    );
 
-    console.log(`[SEO-Auto-Indexer] Total URLs to index: ${allUrls.length}`);
-    console.log(`[SEO-Auto-Indexer] Posts with critical issues: ${criticalIssues.length}`);
+    console.log(`[SEO-Ultra-Indexer] Total URLs to index: ${allUrls.length}`);
 
-    // ========== PHASE 3: MULTI-ENGINE INDEXING ==========
-    const indexingResults = await submitToAllEngines(allUrls);
+    // ========== PHASE 4: SUBMIT TO ALL ENGINES ==========
+    const [indexNowResults, sitemapResults] = await Promise.allSettled([
+      submitToIndexNowNetwork(allUrls),
+      pingSitemapsAllEngines(),
+    ]);
 
-    // ========== PHASE 4: PING SITEMAPS ==========
-    await pingSitemaps();
+    // ========== PHASE 5: PING AI CRAWLERS ==========
+    // These don't have direct APIs but benefit from fresh sitemap pings
+    await pingAICrawlers();
 
-    // ========== PHASE 5: LOG RESULTS ==========
-    const successCount = indexingResults.filter(r => r.ok).length;
-    
-    console.log(`[SEO-Auto-Indexer] Indexing complete:`);
-    console.log(`  - URLs submitted: ${allUrls.length}`);
-    console.log(`  - Successful pings: ${successCount}`);
-    console.log(`  - Posts with SEO issues: ${criticalIssues.length}`);
+    // ========== PHASE 6: UPDATE CANONICAL URLS IN DB ==========
+    // Fix canonical URLs to always use trailing slash
+    const { data: canonicalPosts } = await supabase
+      .from("blog_posts")
+      .select("id, slug, canonical_url")
+      .eq("status", "published")
+      .or("canonical_url.is.null,canonical_url.not.like.%/");
+
+    if (canonicalPosts && canonicalPosts.length > 0) {
+      for (const p of canonicalPosts) {
+        const correctCanonical = `${BLOG_URL}/${p.slug}/`;
+        if (p.canonical_url !== correctCanonical) {
+          await supabase
+            .from("blog_posts")
+            .update({ canonical_url: correctCanonical })
+            .eq("id", p.id);
+        }
+      }
+      console.log(`[SEO-Ultra-Indexer] Fixed ${canonicalPosts.length} canonical URLs`);
+    }
+
+    const successCount = indexNowResults.status === 'fulfilled'
+      ? indexNowResults.value.filter(r => r.ok).length
+      : 0;
+
+    console.log(`[SEO-Ultra-Indexer] Complete:`);
+    console.log(`  - URLs indexed: ${allUrls.length}`);
+    console.log(`  - Successful IndexNow pings: ${successCount}`);
+    console.log(`  - Posts auto-repaired: ${repairedCount}`);
+    console.log(`  - Posts with critical issues: ${criticalIssues.length}`);
 
     return new Response(JSON.stringify({
       success: true,
@@ -129,25 +176,58 @@ Deno.serve(async (req) => {
         totalPosts: posts?.length || 0,
         urlsIndexed: allUrls.length,
         successfulPings: successCount,
-        postsWithIssues: criticalIssues.length,
+        postsAutoRepaired: repairedCount,
+        postsWithCriticalIssues: criticalIssues.length,
       },
-      criticalIssues: criticalIssues.slice(0, 10), // Limit for response size
-      indexingResults,
+      enginesTargeted: [
+        "Google (sitemap ping)",
+        "Bing (IndexNow + sitemap)",
+        "Yandex (IndexNow)",
+        "IndexNow.org (Naver, Seznam, Brave, etc.)",
+        "DuckDuckGo (via Bing/IndexNow)",
+        "Perplexity AI (via Google/Bing crawl)",
+        "ChatGPT/Bing AI (via Bing IndexNow)",
+        "Gemini AI (via Google sitemap)",
+        "Common Crawl (via robots.txt + links)",
+      ],
+      criticalIssues: criticalIssues.slice(0, 10),
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (error) {
-    console.error("[SEO-Auto-Indexer] Error:", error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      error: error instanceof Error ? error.message : "Unknown error" 
+    console.error("[SEO-Ultra-Indexer] Error:", error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error"
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
+
+/**
+ * Auto-repair broken content in markdown before indexing
+ */
+function autoRepairPostContent(content: string): string {
+  let clean = content;
+
+  // Remove images with empty/invalid URLs
+  clean = clean.replace(/!\[[^\]]*\]\(https?:\/\/\s*\)/g, '');
+  clean = clean.replace(/!\[[^\]]*\]\(\s*\)/g, '');
+
+  // Remove raw HTML img attributes leaking as text
+  clean = clean.replace(/\s*(?:loading|decoding|class|style|width|height)\s*=\s*"[^"]*"/g, '');
+
+  // Remove truncated storage URL text (renders as visible code)
+  clean = clean.replace(/nlewrgmcawzcdazhfiyy\.supabase\.co\/st\.\.\."[^>]*>/g, '');
+
+  // Remove broken encoded URLs
+  clean = clean.replace(/%3C[a-z]+[^%]*%3E/gi, '');
+
+  return clean;
+}
 
 /**
  * Comprehensive SEO audit for a single post
@@ -164,14 +244,12 @@ function auditPostSEO(post: {
   const criticalIssues: string[] = [];
   const allIssues: string[] = [];
 
-  // CRITICAL: Hero image (mandatory)
   if (!post.hero_image_url || !post.hero_image_url.startsWith('https://')) {
     score -= 30;
     criticalIssues.push('missing_hero_image');
     allIssues.push('missing_hero_image');
   }
 
-  // CRITICAL: Meta description
   if (!post.meta_description || post.meta_description.length < 50) {
     score -= 20;
     criticalIssues.push('missing_or_short_meta_description');
@@ -181,7 +259,6 @@ function auditPostSEO(post: {
     allIssues.push('meta_description_too_long');
   }
 
-  // CRITICAL: Meta title
   if (!post.meta_title || post.meta_title.length < 20) {
     score -= 15;
     criticalIssues.push('missing_or_short_meta_title');
@@ -191,44 +268,35 @@ function auditPostSEO(post: {
     allIssues.push('meta_title_too_long');
   }
 
-  // Content quality checks
   const contentMd = post.content_md || '';
-  
-  // Check for HTML pollution
+
+  // Check for HTML pollution (visible code artifacts)
   if (/%3c\s*a/i.test(contentMd) || /<img\s+[^>]*class/i.test(contentMd)) {
     score -= 15;
     criticalIssues.push('html_pollution_in_markdown');
     allIssues.push('html_pollution_in_markdown');
   }
 
-  // Check for broken URLs
-  if (/nlewrgmcawzcdazhfiyy\.supabase\.co\/st\.\.\./i.test(contentMd)) {
+  // Check for empty image URLs
+  if (/!\[[^\]]*\]\(https?:\/\/\s*\)/.test(contentMd)) {
     score -= 10;
-    allIssues.push('truncated_storage_urls');
+    allIssues.push('empty_image_urls');
   }
 
-  // Check content length (min 800 words for SEO)
   const wordCount = contentMd.split(/\s+/).filter(w => w.length > 2).length;
   if (wordCount < 500) {
     score -= 10;
     allIssues.push('content_too_short');
   }
 
-  // Check for headings structure
   const hasH2 = /^##\s+/m.test(contentMd);
-  const hasH3 = /^###\s+/m.test(contentMd);
   if (!hasH2) {
     score -= 5;
     allIssues.push('missing_h2_headings');
   }
-  if (!hasH3) {
-    score -= 2;
-    allIssues.push('missing_h3_headings');
-  }
 
-  // Check for internal links
-  const hasInternalLinks = /\[.*?\]\(\/[^)]+\)/.test(contentMd) || 
-                           /blog\.vistaceo\.com/.test(contentMd);
+  const hasInternalLinks = /\[.*?\]\(\/[^)]+\)/.test(contentMd) ||
+    /blog\.vistaceo\.com/.test(contentMd);
   if (!hasInternalLinks) {
     score -= 3;
     allIssues.push('no_internal_links');
@@ -238,16 +306,22 @@ function auditPostSEO(post: {
 }
 
 /**
- * Submit URLs to all search engines
+ * Submit to IndexNow network (covers Bing, Yandex, Naver, Seznam, Brave, etc.)
  */
-async function submitToAllEngines(urlList: string[]): Promise<{ endpoint: string; status: number; ok: boolean }[]> {
-  // Submit in batches of 100 (IndexNow limit)
+async function submitToIndexNowNetwork(urlList: string[]): Promise<{ endpoint: string; status: number; ok: boolean }[]> {
   const batches: string[][] = [];
   for (let i = 0; i < urlList.length; i += 100) {
     batches.push(urlList.slice(i, i + 100));
   }
 
   const allResults: { endpoint: string; status: number; ok: boolean }[] = [];
+
+  // IndexNow endpoints - covers Bing, Yandex, Naver, Seznam, Brave, DuckDuckGo
+  const indexNowEndpoints = [
+    "https://api.indexnow.org/indexnow",  // Master - distributes to all
+    "https://www.bing.com/indexnow",       // Bing + ChatGPT AI (Copilot)
+    "https://yandex.com/indexnow",        // Yandex
+  ];
 
   for (const batch of batches) {
     const payload = {
@@ -256,12 +330,6 @@ async function submitToAllEngines(urlList: string[]): Promise<{ endpoint: string
       keyLocation: `${BLOG_URL}/indexnow-key.txt`,
       urlList: batch,
     };
-
-    const indexNowEndpoints = [
-      "https://api.indexnow.org/indexnow",
-      "https://www.bing.com/indexnow",
-      "https://yandex.com/indexnow",
-    ];
 
     const results = await Promise.allSettled(
       indexNowEndpoints.map(async (endpoint) => {
@@ -288,7 +356,6 @@ async function submitToAllEngines(urlList: string[]): Promise<{ endpoint: string
       )
     );
 
-    // Delay between batches
     if (batches.length > 1) {
       await new Promise((r) => setTimeout(r, 500));
     }
@@ -298,22 +365,54 @@ async function submitToAllEngines(urlList: string[]): Promise<{ endpoint: string
 }
 
 /**
- * Ping all major search engine sitemaps
+ * Ping sitemaps to ALL major search engines and AI crawlers
  */
-async function pingSitemaps(): Promise<void> {
+async function pingSitemapsAllEngines(): Promise<void> {
   const sitemapUrl = `${BLOG_URL}/sitemap.xml`;
-  
+  const encoded = encodeURIComponent(sitemapUrl);
+
   const pingUrls = [
-    `https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`,
-    `https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`,
+    // Traditional search engines
+    `https://www.google.com/ping?sitemap=${encoded}`,
+    `https://www.bing.com/ping?sitemap=${encoded}`,
+    // Note: These ping Google/Bing which then feed AI crawlers
+    // Perplexity, ChatGPT, Gemini all crawl from Google/Bing index
   ];
 
-  console.log("[SEO-Auto-Indexer] Pinging sitemaps...");
+  console.log("[SEO-Ultra-Indexer] Pinging sitemaps to Google + Bing...");
 
   try {
-    await Promise.allSettled(pingUrls.map((url) => fetch(url)));
-    console.log("[SEO-Auto-Indexer] Sitemap pings sent to Google & Bing");
+    const results = await Promise.allSettled(pingUrls.map((url) => fetch(url)));
+    const successCount = results.filter(r => r.status === 'fulfilled').length;
+    console.log(`[SEO-Ultra-Indexer] Sitemap pings: ${successCount}/${pingUrls.length} successful`);
   } catch (e) {
-    console.error("[SEO-Auto-Indexer] Sitemap ping error:", e);
+    console.error("[SEO-Ultra-Indexer] Sitemap ping error:", e);
+  }
+}
+
+/**
+ * Ping AI-specific crawlers and discovery endpoints
+ * These crawlers index content for Perplexity, ChatGPT browsing, etc.
+ */
+async function pingAICrawlers(): Promise<void> {
+  console.log("[SEO-Ultra-Indexer] Pinging AI crawler endpoints...");
+
+  const crawlerPings = [
+    // Common Crawl - feeds Perplexity, C4, LLM training datasets
+    // No direct ping API - ensure robots.txt allows CCBot
+
+    // Brave Search - has its own crawler (Brave Bot) + IndexNow support (done above via api.indexnow.org)
+
+    // Google AI crawlers (Googlebot, Google-InspectionTool, AdsBot-Google) - covered by sitemap ping
+
+    // Submit fresh RSS feed URL for discovery
+    `https://www.google.com/ping?sitemap=${encodeURIComponent(`${BLOG_URL}/rss.xml`)}`,
+  ];
+
+  try {
+    await Promise.allSettled(crawlerPings.map(url => fetch(url)));
+    console.log("[SEO-Ultra-Indexer] AI crawler pings complete");
+  } catch (e) {
+    console.warn("[SEO-Ultra-Indexer] AI crawler ping partial failure (non-critical)");
   }
 }

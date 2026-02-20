@@ -14,23 +14,25 @@ interface Props {
 const { postTitle, postUrl, headings } = Astro.props;
 
 // Secciones especiales del Prompt Maestro - EN ESPAÑOL
+// NOTA: Usar texto plano (sin emojis Unicode) para evitar broken rendering en Safari/iOS
+// Los emojis se renderizan como imágenes en algunos browsers y dan el ícono roto
 const specialSections = [
-  { pattern: /en\s*\d+\s*minutos?/i, label: '⏱️ Resumen', color: 'blue' },
-  { pattern: /por\s*qu[eé]\s*(esto\s*)?(importa|matters)/i, label: '🎯 Importancia', color: 'purple' },
-  { pattern: /checklist|lista\s*de\s*verificaci[oó]n/i, label: '✅ Checklist', color: 'green' },
-  { pattern: /faq|preguntas?\s*frecuentes?/i, label: '❓ FAQ', color: 'pink' },
-  { pattern: /pasos?|paso\s*a\s*paso|c[oó]mo\s*empezar/i, label: '📋 Pasos', color: 'orange' },
-  { pattern: /herramientas?|tools|recursos?/i, label: '🛠️ Recursos', color: 'cyan' },
-  { pattern: /errores?\s*(comunes?|t[ií]picos?)/i, label: '⚠️ Errores', color: 'red' },
-  { pattern: /plantilla|template/i, label: '📝 Plantilla', color: 'indigo' },
-  { pattern: /ejercicio|pr[aá]ctica/i, label: '💪 Ejercicio', color: 'lime' },
-  { pattern: /conclusi[oó]n|resumen|cierre|pr[oó]ximos?\s*pasos?/i, label: '🚀 Conclusión', color: 'violet' },
+  { pattern: /en\s*\d+\s*minutos?/i, label: 'Resumen', icon: '⏱', color: 'blue' },
+  { pattern: /por\s*qu[eé]\s*(esto\s*)?(importa|matters)/i, label: 'Importancia', icon: '🎯', color: 'purple' },
+  { pattern: /checklist|lista\s*de\s*verificaci[oó]n/i, label: 'Checklist', icon: '✓', color: 'green' },
+  { pattern: /faq|preguntas?\s*frecuentes?/i, label: 'FAQ', icon: '?', color: 'pink' },
+  { pattern: /pasos?|paso\s*a\s*paso|c[oó]mo\s*empezar/i, label: 'Pasos', icon: '→', color: 'orange' },
+  { pattern: /herramientas?|tools|recursos?/i, label: 'Recursos', icon: '⚙', color: 'cyan' },
+  { pattern: /errores?\s*(comunes?|t[ií]picos?)/i, label: 'Errores', icon: '!', color: 'red' },
+  { pattern: /plantilla|template/i, label: 'Plantilla', icon: '□', color: 'indigo' },
+  { pattern: /ejercicio|pr[aá]ctica/i, label: 'Ejercicio', icon: '▶', color: 'lime' },
+  { pattern: /conclusi[oó]n|resumen|cierre|pr[oó]ximos?\s*pasos?/i, label: 'Conclusión', icon: '↑', color: 'violet' },
 ];
 
 // Encontrar secciones especiales en los headings - DEDUPLICAR por label
 const sectionShortcuts = (() => {
   const seenLabels = new Set<string>();
-  const results: Array<typeof headings[0] & { label: string; color: string; pattern: RegExp }> = [];
+  const results: Array<typeof headings[0] & { label: string; icon: string; color: string; pattern: RegExp }> = [];
   for (const h of headings) {
     const special = specialSections.find(s => s.pattern.test(h.text));
     if (special && !seenLabels.has(special.label)) {
@@ -70,7 +72,8 @@ const sectionShortcuts = (() => {
             data-target={section.id}
             title={section.text}
           >
-            {section.label}
+            <span class="shortcut-icon" aria-hidden="true">{section.icon}</span>
+            <span class="shortcut-label-text">{section.label}</span>
           </button>
         ))}
       </div>
@@ -118,6 +121,7 @@ const sectionShortcuts = (() => {
             class={`mobile-chip chip-${section.color}`}
             data-target={section.id}
           >
+            <span aria-hidden="true">{section.icon}</span>
             {section.label}
           </button>
         ))}
@@ -252,7 +256,8 @@ const sectionShortcuts = (() => {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 12px;
+    gap: 6px;
+    padding: 9px 12px;
     font-size: 12px;
     font-weight: 600;
     border: none;
@@ -260,6 +265,22 @@ const sectionShortcuts = (() => {
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
+    font-family: inherit;
+    line-height: 1;
+  }
+  
+  /* Icon: use system font/text - never emoji images */
+  .shortcut-icon {
+    font-size: 13px;
+    line-height: 1;
+    font-style: normal;
+    flex-shrink: 0;
+  }
+  
+  .shortcut-label-text {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
   }
   
   .shortcut-blue { background: rgba(38, 146, 220, 0.15); color: #2692DC; }
