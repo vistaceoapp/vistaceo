@@ -13,20 +13,64 @@ interface Props {
 
 const { postTitle, postUrl, headings } = Astro.props;
 
-// Secciones especiales del Prompt Maestro - EN ESPAÑOL
-// NOTA: Usar texto plano (sin emojis Unicode) para evitar broken rendering en Safari/iOS
-// Los emojis se renderizan como imágenes en algunos browsers y dan el ícono roto
+// Secciones especiales - detección inteligente por contenido de cada artículo
+// Emojis Unicode estables que funcionan en todos los browsers modernos
 const specialSections = [
-  { pattern: /en\s*\d+\s*minutos?/i, label: 'Resumen', icon: '⏱', color: 'blue' },
-  { pattern: /por\s*qu[eé]\s*(esto\s*)?(importa|matters)/i, label: 'Importancia', icon: '🎯', color: 'purple' },
-  { pattern: /checklist|lista\s*de\s*verificaci[oó]n/i, label: 'Checklist', icon: '✓', color: 'green' },
-  { pattern: /faq|preguntas?\s*frecuentes?/i, label: 'FAQ', icon: '?', color: 'pink' },
-  { pattern: /pasos?|paso\s*a\s*paso|c[oó]mo\s*empezar/i, label: 'Pasos', icon: '→', color: 'orange' },
-  { pattern: /herramientas?|tools|recursos?/i, label: 'Recursos', icon: '⚙', color: 'cyan' },
-  { pattern: /errores?\s*(comunes?|t[ií]picos?)/i, label: 'Errores', icon: '!', color: 'red' },
-  { pattern: /plantilla|template/i, label: 'Plantilla', icon: '□', color: 'indigo' },
-  { pattern: /ejercicio|pr[aá]ctica/i, label: 'Ejercicio', icon: '▶', color: 'lime' },
-  { pattern: /conclusi[oó]n|resumen|cierre|pr[oó]ximos?\s*pasos?/i, label: 'Conclusión', icon: '↑', color: 'violet' },
+  // === Secciones de resumen y contexto ===
+  { pattern: /en\s*\d+\s*(segundos?|minutos?)/i, label: 'Resumen', icon: '⏱️', color: 'blue' },
+  { pattern: /veredicto/i, label: 'Veredicto', icon: '⚡', color: 'blue' },
+  { pattern: /resumen\s*r[aá]pido/i, label: 'Resumen', icon: '📝', color: 'blue' },
+  { pattern: /la\s*meta\s*en\s*una?\s*frase/i, label: 'Meta', icon: '🎯', color: 'blue' },
+  
+  // === Secciones de diagnóstico y análisis ===
+  { pattern: /por\s*qu[eé]\s*(esto\s*)?(importa|matters)/i, label: 'Importancia', icon: '💡', color: 'purple' },
+  { pattern: /se[ñn]ales?\s*(de\s*alerta|concretas?)/i, label: 'Señales', icon: '🚨', color: 'red' },
+  { pattern: /para\s*qui[eé]n\s*(s[ií]|no)/i, label: 'Para quién', icon: '👤', color: 'purple' },
+  { pattern: /qu[eé]\s*problema\s*real/i, label: 'Problema', icon: '🔍', color: 'purple' },
+  { pattern: /lo\s*que\s*prometen\s*vs/i, label: 'Promesa vs Real', icon: '⚖️', color: 'orange' },
+  { pattern: /costos?\s*(visibles?|invisibles?)/i, label: 'Costos', icon: '💰', color: 'orange' },
+  
+  // === Secciones de acción ===
+  { pattern: /paso\s*a\s*paso|pasos?\s*numerados?/i, label: 'Pasos', icon: '📋', color: 'orange' },
+  { pattern: /c[oó]mo\s*empezar/i, label: 'Cómo empezar', icon: '🚀', color: 'orange' },
+  { pattern: /acci[oó]n\s*en\s*24/i, label: 'Acción 24h', icon: '⚡', color: 'orange' },
+  { pattern: /plan\s*de\s*\d+\s*d[ií]as?/i, label: 'Plan', icon: '📅', color: 'orange' },
+  { pattern: /d[ií]a\s*\d/i, label: 'Calendario', icon: '📅', color: 'orange' },
+  { pattern: /pr[oó]ximos?\s*(\d+\s*)?pasos?/i, label: 'Próximos pasos', icon: '➡️', color: 'violet' },
+  { pattern: /primer\s*movimiento/i, label: 'Primer paso', icon: '🎯', color: 'orange' },
+  
+  // === Secciones de herramientas y recursos ===
+  { pattern: /checklist|lista\s*de\s*verificaci[oó]n/i, label: 'Checklist', icon: '✅', color: 'green' },
+  { pattern: /herramienta\s*pr[aá]ctica/i, label: 'Herramienta', icon: '🛠️', color: 'cyan' },
+  { pattern: /herramientas?|tools|recursos?/i, label: 'Recursos', icon: '🔧', color: 'cyan' },
+  { pattern: /plantilla|template/i, label: 'Plantilla', icon: '📄', color: 'indigo' },
+  { pattern: /test\s*(r[aá]pido|s[ií].*no)/i, label: 'Test', icon: '📊', color: 'cyan' },
+  { pattern: /prueba\s*m[ií]nima/i, label: 'Prueba', icon: '🧪', color: 'cyan' },
+  { pattern: /alternativas?/i, label: 'Alternativas', icon: '🔄', color: 'indigo' },
+  
+  // === Secciones de aprendizaje ===
+  { pattern: /errores?\s*(comunes?|t[ií]picos?)/i, label: 'Errores', icon: '⚠️', color: 'red' },
+  { pattern: /la\s*traba\s*t[ií]pica/i, label: 'Traba típica', icon: '🚧', color: 'red' },
+  { pattern: /resistencia/i, label: 'Resistencia', icon: '🛑', color: 'red' },
+  { pattern: /ejercicio|pr[aá]ctica|reto\s*pr[aá]ctico/i, label: 'Ejercicio', icon: '💪', color: 'lime' },
+  { pattern: /autoevaluaci[oó]n|auditor[ií]a\s*r[aá]pida/i, label: 'Autoevaluación', icon: '🔎', color: 'lime' },
+  
+  // === Secciones de cierre ===
+  { pattern: /faq|preguntas?\s*frecuentes?/i, label: 'FAQ', icon: '❓', color: 'pink' },
+  { pattern: /para\s*profundizar/i, label: 'Profundizar', icon: '📚', color: 'violet' },
+  { pattern: /conclusi[oó]n|cierre/i, label: 'Conclusión', icon: '🏁', color: 'violet' },
+  
+  // === Secciones de casos y comparativas ===
+  { pattern: /\d+\s*usos?\s*reales?/i, label: 'Usos reales', icon: '💼', color: 'green' },
+  { pattern: /antes\s*vs\s*despu[eé]s/i, label: 'Antes vs Después', icon: '🔄', color: 'purple' },
+  { pattern: /comparativa|punto\s*por\s*punto/i, label: 'Comparativa', icon: '⚖️', color: 'cyan' },
+  { pattern: /indicador(es)?\s*de\s*[eé]xito/i, label: 'Indicadores', icon: '📈', color: 'green' },
+  { pattern: /qu[eé]\s*(se\s*puede|no\s*conviene)\s*copiar/i, label: 'Qué copiar', icon: '📋', color: 'green' },
+  { pattern: /dificultad\s*real/i, label: 'Dificultad', icon: '📊', color: 'orange' },
+  { pattern: /comunicaci[oó]n\s*deficiente/i, label: 'Comunicación', icon: '💬', color: 'red' },
+  { pattern: /procesos?\s*(inexistentes?|mal\s*definidos?)/i, label: 'Procesos', icon: '⚙️', color: 'red' },
+  { pattern: /liderazgo\s*(d[eé]bil|ausente)/i, label: 'Liderazgo', icon: '👑', color: 'red' },
+  { pattern: /rotaci[oó]n.*clima\s*laboral/i, label: 'Clima laboral', icon: '🌡️', color: 'red' },
 ];
 
 // Encontrar secciones especiales en los headings - DEDUPLICAR por label
@@ -39,7 +83,7 @@ const sectionShortcuts = (() => {
       seenLabels.add(special.label);
       results.push({ ...h, ...special });
     }
-    if (results.length >= 6) break; // Máximo 6 para no saturar
+    if (results.length >= 8) break; // Máximo 8 chips para navegación rica
   }
   return results;
 })();

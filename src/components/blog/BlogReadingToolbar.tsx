@@ -23,18 +23,30 @@ interface BlogReadingToolbarProps {
   className?: string;
 }
 
-// Key sections that users care about most (Prompt Maestro structure)
+// Key sections - rich detection with proper emojis
 const KEY_SECTION_PATTERNS: Array<{pattern: RegExp; icon: React.ReactNode; type: QuickNavSection['type']}> = [
-  { pattern: /en 2 minutos/i, icon: <Target className="h-3.5 w-3.5" />, type: 'key' },
-  { pattern: /por qu[eé].*importa/i, icon: <Lightbulb className="h-3.5 w-3.5" />, type: 'key' },
-  { pattern: /c[oó]mo empezar/i, icon: <Target className="h-3.5 w-3.5" />, type: 'action' },
-  { pattern: /checklist/i, icon: <Check className="h-3.5 w-3.5" />, type: 'action' },
-  { pattern: /ejercicio/i, icon: <Target className="h-3.5 w-3.5" />, type: 'action' },
-  { pattern: /errores? comunes?/i, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning' },
-  { pattern: /preguntas frecuentes|faq/i, icon: <HelpCircle className="h-3.5 w-3.5" />, type: 'faq' },
-  { pattern: /autoevaluaci[oó]n/i, icon: <Check className="h-3.5 w-3.5" />, type: 'action' },
-  { pattern: /plantilla/i, icon: <Bookmark className="h-3.5 w-3.5" />, type: 'action' },
-  { pattern: /para qui[eé]n es/i, icon: <Target className="h-3.5 w-3.5" />, type: 'key' },
+  { pattern: /en\s*\d+\s*(segundos?|minutos?)/i, icon: <Target className="h-3.5 w-3.5" />, type: 'key' },
+  { pattern: /veredicto/i, icon: <Lightbulb className="h-3.5 w-3.5" />, type: 'key' },
+  { pattern: /por\s*qu[eé]\s*(esto\s*)?(importa|matters)/i, icon: <Lightbulb className="h-3.5 w-3.5" />, type: 'key' },
+  { pattern: /para\s*qui[eé]n\s*(s[ií]|no)/i, icon: <Target className="h-3.5 w-3.5" />, type: 'key' },
+  { pattern: /se[ñn]ales?\s*(de\s*alerta|concretas?)/i, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning' },
+  { pattern: /c[oó]mo\s*empezar/i, icon: <Target className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /paso\s*a\s*paso/i, icon: <List className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /checklist|lista\s*de\s*verificaci[oó]n/i, icon: <Check className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /herramienta\s*pr[aá]ctica/i, icon: <Target className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /ejercicio|pr[aá]ctica|reto\s*pr[aá]ctico/i, icon: <Target className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /errores?\s*(comunes?|t[ií]picos?)/i, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning' },
+  { pattern: /\d+\s*usos?\s*reales?/i, icon: <Lightbulb className="h-3.5 w-3.5" />, type: 'key' },
+  { pattern: /costos?\s*(visibles?|invisibles?)/i, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning' },
+  { pattern: /prueba\s*m[ií]nima/i, icon: <Check className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /alternativas?/i, icon: <Target className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /preguntas?\s*frecuentes?|faq/i, icon: <HelpCircle className="h-3.5 w-3.5" />, type: 'faq' },
+  { pattern: /autoevaluaci[oó]n|auditor[ií]a\s*r[aá]pida/i, icon: <Check className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /plantilla|template/i, icon: <Bookmark className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /pr[oó]ximos?\s*(\d+\s*)?pasos?/i, icon: <Target className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /para\s*profundizar/i, icon: <Lightbulb className="h-3.5 w-3.5" />, type: 'key' },
+  { pattern: /lo\s*que\s*prometen\s*vs/i, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning' },
+  { pattern: /dificultad\s*real/i, icon: <Target className="h-3.5 w-3.5" />, type: 'key' },
 ];
 
 export function BlogReadingToolbar({ content, title, slug, className }: BlogReadingToolbarProps) {
@@ -137,7 +149,7 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
     }
   };
 
-  if (!isVisible || keySections.length < 2) return null;
+  if (!isVisible || keySections.length < 1) return null;
 
   const typeColors: Record<QuickNavSection['type'], string> = {
     key: 'bg-primary/10 text-primary border-primary/20',

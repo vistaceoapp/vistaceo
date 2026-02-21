@@ -217,14 +217,36 @@ function autoRepairPostContent(content: string): string {
   clean = clean.replace(/!\[[^\]]*\]\(https?:\/\/\s*\)/g, '');
   clean = clean.replace(/!\[[^\]]*\]\(\s*\)/g, '');
 
-  // Remove raw HTML img attributes leaking as text
-  clean = clean.replace(/\s*(?:loading|decoding|class|style|width|height)\s*=\s*"[^"]*"/g, '');
+  // Remove raw HTML img tags → convert to clean markdown
+  clean = clean.replace(/<img\s+[^>]*src="([^"]+)"[^>]*alt="([^"]*)"[^>]*\/?>/gi, '![$2]($1)');
+  clean = clean.replace(/<img\s+[^>]*alt="([^"]*)"[^>]*src="([^"]+)"[^>]*\/?>/gi, '![$1]($2)');
+  clean = clean.replace(/<img\s+[^>]*src="([^"]+)"[^>]*\/?>/gi, '![]($1)');
+
+  // Remove raw HTML anchor tags → convert to markdown
+  clean = clean.replace(/<a\s+[^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, '[$2]($1)');
+
+  // Remove raw HTML img attributes leaking as text (loading="lazy", class="content-image", etc.)
+  clean = clean.replace(/\s*(?:loading|decoding|class|style|width|height|srcset|sizes)\s*=\s*"[^"]*"/gi, '');
 
   // Remove truncated storage URL text (renders as visible code)
   clean = clean.replace(/nlewrgmcawzcdazhfiyy\.supabase\.co\/st\.\.\."[^>]*>/g, '');
+  
+  // Remove full Supabase storage URLs that appear as PLAIN TEXT (not inside markdown image/link syntax)
+  // This catches when URLs leak outside of ![alt](url) or [text](url) syntax
+  clean = clean.replace(/(?<![(\[])(https?:\/\/nlewrgmcawzcdazhfiyy\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s"')>\]]+)/g, '');
 
   // Remove broken encoded URLs
   clean = clean.replace(/%3C[a-z]+[^%]*%3E/gi, '');
+  
+  // Remove raw HTML block/inline tags (keep inner text)
+  clean = clean.replace(/<(?:div|span|section|article|header|footer|nav|p|br)\s*[^>]*>/gi, '');
+  clean = clean.replace(/<\/(?:div|span|section|article|header|footer|nav|p|br)>/gi, '');
+
+  // Clean up stray > from closing tags rendered as text
+  clean = clean.replace(/^\s*>\s*$/gm, '');
+
+  // Remove lines that are just HTML attribute text
+  clean = clean.replace(/^\s*(?:src|alt|loading|class|width|height|decoding)\s*=\s*"[^"]*".*$/gm, '');
 
   return clean;
 }
