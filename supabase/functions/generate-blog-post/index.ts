@@ -1736,11 +1736,31 @@ TAMBIÉN:
       }
     };
     
+    // Trigger SEO auto-indexer for immediate indexing of new post
+    const triggerSEOIndexer = async () => {
+      try {
+        console.log('[generate-blog-post] Triggering SEO auto-indexer for new post');
+        const response = await fetch(`${supabaseUrl}/functions/v1/seo-auto-indexer`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ trigger: 'new_post', slug: newPost.slug }),
+        });
+        const result = await response.json();
+        console.log('[generate-blog-post] SEO indexer result:', result);
+      } catch (error) {
+        console.error('[generate-blog-post] SEO indexer error:', error);
+      }
+    };
+
     // Fire all tasks in parallel - don't await
     Promise.all([
       triggerOGGeneration().catch(err => console.error('[generate-blog-post] OG background error:', err)),
       triggerLinkedInPublish().catch(err => console.error('[generate-blog-post] LinkedIn background error:', err)),
-      triggerSiteDeploy().catch(err => console.error('[generate-blog-post] Deploy background error:', err))
+      triggerSiteDeploy().catch(err => console.error('[generate-blog-post] Deploy background error:', err)),
+      triggerSEOIndexer().catch(err => console.error('[generate-blog-post] SEO background error:', err))
     ]);
 
     return new Response(JSON.stringify({
