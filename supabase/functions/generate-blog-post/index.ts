@@ -786,17 +786,25 @@ function runQualityGates(content: string, title: string): QualityGateReport {
     report.issues.push(...brokenIssues);
   }
 
+  // HARD BLOCK: raw HTML in content (most critical check)
+  const hasRawHTML = /<(?:img|a|div|span|h[1-6]|section|article)\s+[^>]*>/i.test(content) ||
+    /(?:loading|class|decoding)\s*=\s*"[^"]*"/i.test(content) ||
+    /nlewrgmcawzcdazhfiyy\.supabase\.co\/st/i.test(content);
+  if (hasRawHTML) {
+    report.issues.push('CRITICAL: Raw HTML or leaked code detected in content');
+  }
+
   // Calculate score
   const checksArray = Object.values(report.checks);
   const passedChecks = checksArray.filter(Boolean).length;
   report.score = Math.round((passedChecks / checksArray.length) * 100);
   
-  // PASS if: minimum word count met, has headings, no tables, no broken formatting
-  // Everything else is non-blocking
+  // PASS if: minimum word count met, has headings, no tables, no broken formatting, NO raw HTML
   report.passed = report.checks.min_word_count &&
     report.checks.real_headings &&
     report.checks.no_markdown_tables &&
-    report.checks.no_broken_lines;
+    report.checks.no_broken_lines &&
+    !hasRawHTML;
 
   return report;
 }
@@ -1379,8 +1387,9 @@ TAMBIÉN:
 9. CTA VistaCEO sutil al final
 10. Mínimo 1200 palabras de contenido real (no relleno)
 
-⛔ PROHIBIDO: tablas Markdown, líneas >120 chars, keywords repetidas, frases genéricas de IA, artículos que son solo listas y templates, HTML crudo (<img>, <a>, atributos como loading="lazy" class="...")
-⛔ NUNCA incluir atributos HTML crudos en el markdown. Solo markdown puro.`;
+⛔ PROHIBIDO: tablas Markdown, líneas >120 chars, keywords repetidas, frases genéricas de IA, artículos que son solo listas y templates.
+⛔ NUNCA incluir HTML crudo de ningún tipo. SOLO markdown puro. Nada de <img>, <a>, <h2>, <div>. Nada de atributos como loading="lazy", class="content-image", id="seccion". Si querés una imagen usá ![alt](url). Si querés un link usá [texto](url). Si querés un heading usá ## Texto. NUNCA HTML.
+⛔ NUNCA incluir URLs de storage raw como nlewrgmcawzcdazhfiyy.supabase.co en el texto. Solo en sintaxis de imagen markdown.`;
 
     console.log('[generate-blog-post] Calling Lovable AI with PATCH V7 prompt...');
 
@@ -1437,8 +1446,9 @@ TAMBIÉN:
       const { content: fixedContent, issues: fixIssues } = validateAndFixContent(contentMd, selectedTopic.title_base);
       contentMd = fixedContent;
       
-      // CRITICAL: Sanitize any raw HTML artifacts from AI output
+      // CRITICAL: Sanitize any raw HTML artifacts from AI output (DOUBLE PASS)
       contentMd = sanitizeAIGeneratedMarkdown(contentMd);
+      contentMd = sanitizeAIGeneratedMarkdown(contentMd); // Second pass catches nested artifacts
       
       // Run quality gates
       qualityGateReport = runQualityGates(contentMd, selectedTopic.title_base);
