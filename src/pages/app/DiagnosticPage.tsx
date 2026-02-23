@@ -226,7 +226,7 @@ const DiagnosticPage = () => {
             <div className="space-y-3">
               <Button 
                 className="w-full gap-2 h-12" 
-                onClick={() => toast.info('Próximamente: Planes Pro')}
+                onClick={() => navigate('/checkout')}
               >
                 <Crown className="w-5 h-5" />
                 Hacete Pro para desbloquear

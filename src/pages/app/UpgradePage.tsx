@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSubscription } from "@/hooks/use-subscription";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { 
   Crown, 
@@ -178,9 +179,9 @@ const UpgradePage = () => {
     }
   }, [currentBusiness, autoCheckoutTriggered, paymentStatus, loading]);
 
-  // Check if business is already Pro
+  // Check if business is already Pro using the subscription hook
+  const { isPro } = useSubscription();
   const businessSettings = currentBusiness?.settings as Record<string, any> | null;
-  const isPro = businessSettings?.plan === "pro";
   const planExpiresAt = businessSettings?.plan_expires_at;
 
   if (paymentStatus === "success") {
