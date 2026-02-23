@@ -47,14 +47,14 @@ const TodayPage = () => {
 
   const setupCompleted = dashboardData.setupCompleted;
   
-  // Handle sync and refresh data
+  // Handle sync and refresh data — navigate to force remount instead of hard reload
   const handleSync = useCallback(async () => {
     const result = await syncHealth();
     if (result.success) {
-      // Trigger a page reload to get fresh data
-      window.location.reload();
+      // Force remount by navigating away and back — avoids full page reload flash
+      navigate('/app', { replace: true });
     }
-  }, [syncHealth]);
+  }, [syncHealth, navigate]);
 
   useEffect(() => {
     if (!dashboardLoading && currentBusiness && !setupCompleted) {
@@ -153,7 +153,7 @@ const TodayPage = () => {
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-3">Configura tu negocio</h2>
         <p className="text-muted-foreground mb-8 max-w-sm">Para empezar a recibir acciones diarias personalizadas.</p>
-        <Button variant="hero" size="lg" onClick={() => navigate("/onboarding")}>
+        <Button variant="hero" size="lg" onClick={() => navigate("/setup")}>
           <Sparkles className="w-5 h-5 mr-2" />
           Comenzar ahora
         </Button>

@@ -97,51 +97,52 @@ const checkHasEnoughData = async (businessId: string): Promise<{ hasData: boolea
   }
 };
 
-// Placeholder missions
-const PLACEHOLDER_MISSIONS = [
-  { 
-    title: "Mejora tus reseñas en Google",
-    area: "Reputación", 
-    icon: "⭐",
-    description: "Aumenta tu rating promedio respondiendo a reseñas y pidiendo feedback a clientes satisfechos.",
-    impact: 8, 
-    effort: 4,
-    steps: [
-      "Responde a todas las reseñas negativas de los últimos 30 días",
-      "Crea un protocolo para pedir reseñas a clientes satisfechos",
-      "Entrena al equipo en el protocolo de feedback",
-      "Implementa seguimiento semanal de rating",
-    ]
-  },
-  { 
-    title: "Optimiza tu menú digital", 
-    area: "Marketing", 
-    icon: "📱",
-    description: "Mejora las fotos, descripciones y estructura de tu menú para aumentar el ticket promedio.",
-    impact: 7, 
-    effort: 5,
-    steps: [
-      "Fotografía los 10 platos más rentables",
-      "Reescribe las descripciones con técnicas de venta",
-      "Reorganiza el menú destacando items de alto margen",
-      "Actualiza el menú en todas las plataformas",
-    ]
-  },
-  { 
-    title: "Reduce tiempos de espera", 
-    area: "Operaciones", 
-    icon: "⚡",
-    description: "Analiza y mejora el flujo de trabajo para reducir el tiempo desde el pedido hasta la entrega.",
-    impact: 9, 
-    effort: 6,
-    steps: [
-      "Mide los tiempos actuales en cada turno",
-      "Identifica los cuellos de botella principales",
-      "Implementa mejoras en el proceso más lento",
-      "Monitorea y ajusta por 2 semanas",
-    ]
-  },
-];
+// Type for placeholder mission suggestions
+type PlaceholderMission = { title: string; area: string; icon: string; description: string; impact: number; effort: number; steps: string[] };
+
+// Dynamic placeholder missions — personalized based on business type
+const getPlaceholderMissions = (businessCategory?: string | null) => {
+  const category = businessCategory || 'general';
+  
+  // Category-specific mission suggestions
+  const categoryMissions: Record<string, typeof DEFAULT_MISSIONS> = {
+    gastronomia: [
+      { title: "Mejora tus reseñas en Google", area: "Reputación", icon: "⭐", description: "Aumenta tu rating promedio respondiendo a reseñas y pidiendo feedback a clientes satisfechos.", impact: 8, effort: 4, steps: ["Responde a todas las reseñas negativas recientes", "Crea un protocolo para pedir reseñas", "Entrena al equipo en el protocolo", "Implementa seguimiento semanal"] },
+      { title: "Optimiza tu menú digital", area: "Marketing", icon: "📱", description: "Mejora fotos, descripciones y estructura de tu menú para aumentar el ticket promedio.", impact: 7, effort: 5, steps: ["Fotografía los 10 platos más rentables", "Reescribe descripciones con técnicas de venta", "Reorganiza destacando items de alto margen", "Actualiza en todas las plataformas"] },
+      { title: "Reduce tiempos de espera", area: "Operaciones", icon: "⚡", description: "Analiza y mejora el flujo de trabajo para reducir tiempos.", impact: 9, effort: 6, steps: ["Mide tiempos actuales por turno", "Identifica cuellos de botella", "Implementa mejoras en el proceso más lento", "Monitorea por 2 semanas"] },
+    ],
+    retail: [
+      { title: "Optimiza tu vitrina/escaparate", area: "Marketing", icon: "🏪", description: "Mejora la presentación de tus productos estrella para atraer más tráfico.", impact: 8, effort: 4, steps: ["Identifica tus 5 productos más rentables", "Rediseña la exhibición principal", "Implementa señalización de precios clara", "Mide el cambio en tráfico semanal"] },
+      { title: "Reduce quiebre de stock", area: "Operaciones", icon: "📦", description: "Implementa un sistema de control para nunca quedarte sin tus productos clave.", impact: 9, effort: 5, steps: ["Lista tus 20 productos más vendidos", "Define stock mínimo para cada uno", "Crea alerta de reposición", "Negocia tiempos de entrega con proveedores"] },
+      { title: "Programa de fidelización simple", area: "Ventas", icon: "💎", description: "Crea un sistema de puntos o descuentos para clientes frecuentes.", impact: 7, effort: 5, steps: ["Define la mecánica de puntos/descuento", "Crea tarjetas o sistema digital", "Entrena al equipo", "Lanza con clientes actuales"] },
+    ],
+    salud: [
+      { title: "Mejora tus reseñas online", area: "Reputación", icon: "⭐", description: "Aumenta tu presencia digital con reseñas genuinas de pacientes/clientes satisfechos.", impact: 8, effort: 3, steps: ["Identifica tus mejores casos de éxito", "Pide testimonios post-servicio", "Responde todas las reseñas existentes", "Publica casos en redes sociales"] },
+      { title: "Reduce cancelaciones de turnos", area: "Operaciones", icon: "📅", description: "Implementa recordatorios y políticas para minimizar ausencias.", impact: 9, effort: 4, steps: ["Analiza tasa actual de cancelaciones", "Implementa recordatorio 24h antes", "Define política de cancelación", "Mide mejora en 2 semanas"] },
+      { title: "Optimiza tu agenda", area: "Eficiencia", icon: "⚡", description: "Maximiza turnos sin sacrificar calidad de atención.", impact: 8, effort: 5, steps: ["Analiza tiempos promedio por servicio", "Identifica huecos en la agenda", "Implementa turnos de distinta duración", "Evalúa satisfacción del paciente"] },
+    ],
+    b2b: [
+      { title: "Sistematiza tu seguimiento comercial", area: "Ventas", icon: "🎯", description: "Crea un proceso repetible para convertir propuestas en contratos.", impact: 9, effort: 5, steps: ["Mapea tu pipeline actual de ventas", "Define touchpoints obligatorios", "Crea templates de follow-up", "Mide conversión semanal"] },
+      { title: "Genera casos de éxito", area: "Marketing", icon: "📊", description: "Documenta resultados concretos de clientes para usar en ventas.", impact: 8, effort: 4, steps: ["Selecciona 3 clientes con buenos resultados", "Pide permiso para documentar", "Crea un caso de éxito con datos", "Úsalo en propuestas comerciales"] },
+      { title: "Optimiza tu propuesta de valor", area: "Estrategia", icon: "💡", description: "Diferénciate claramente de la competencia con una propuesta única.", impact: 8, effort: 6, steps: ["Investiga 5 competidores directos", "Identifica tu diferencial real", "Reescribe tu pitch en 1 párrafo", "Actualiza web y materiales"] },
+    ],
+  };
+
+  const DEFAULT_MISSIONS = [
+    { title: "Mejora tu presencia online", area: "Marketing", icon: "🌐", description: "Optimiza tu perfil en Google y redes para atraer más clientes.", impact: 8, effort: 4, steps: ["Completa tu perfil de Google", "Responde a todas las reseñas", "Publica contenido semanal en redes", "Mide tráfico web en 2 semanas"] },
+    { title: "Conoce mejor a tus clientes", area: "Estrategia", icon: "🎯", description: "Identifica quiénes son tus mejores clientes y qué buscan.", impact: 7, effort: 3, steps: ["Lista tus 10 mejores clientes", "Identifica qué tienen en común", "Pregúntales qué valoran más", "Ajusta tu oferta según hallazgos"] },
+    { title: "Optimiza tus costos principales", area: "Finanzas", icon: "💰", description: "Revisa y reduce tus gastos más grandes sin perder calidad.", impact: 9, effort: 5, steps: ["Lista tus 5 mayores gastos mensuales", "Compara precios con 2 proveedores", "Negocia mejores condiciones", "Implementa y mide ahorro mensual"] },
+  ];
+
+  // Try to match business category to mission set
+  const lcCategory = category.toLowerCase();
+  if (lcCategory.includes('gastro') || lcCategory.includes('restaurant') || lcCategory.includes('cafe') || lcCategory.includes('bar')) return categoryMissions.gastronomia;
+  if (lcCategory.includes('retail') || lcCategory.includes('tienda') || lcCategory.includes('comercio')) return categoryMissions.retail;
+  if (lcCategory.includes('salud') || lcCategory.includes('medic') || lcCategory.includes('belleza') || lcCategory.includes('bienestar')) return categoryMissions.salud;
+  if (lcCategory.includes('b2b') || lcCategory.includes('consult') || lcCategory.includes('agencia') || lcCategory.includes('profesional')) return categoryMissions.b2b;
+  
+  return DEFAULT_MISSIONS;
+};
 
 const MissionsPage = () => {
   const navigate = useNavigate();
@@ -155,10 +156,15 @@ const MissionsPage = () => {
   const [selectedMissionId, setSelectedMissionId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [hasEnoughData, setHasEnoughData] = useState<boolean | null>(null);
-  const [starredMissions, setStarredMissions] = useState<Set<string>>(new Set());
+  const [starredMissions, setStarredMissions] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem('vistaceo-starred-missions');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch { return new Set(); }
+  });
   
   // Plan preview state
-  const [selectedSuggestion, setSelectedSuggestion] = useState<typeof PLACEHOLDER_MISSIONS[0] | null>(null);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<PlaceholderMission | null>(null);
   const [generatedPlan, setGeneratedPlan] = useState<any>(null);
   const [planLoading, setPlanLoading] = useState(false);
   
@@ -227,7 +233,7 @@ const MissionsPage = () => {
   };
 
   // Generate AI plan for suggestion
-  const generatePlanForSuggestion = async (suggestion: typeof PLACEHOLDER_MISSIONS[0], regenerate = false) => {
+  const generatePlanForSuggestion = async (suggestion: PlaceholderMission, regenerate = false) => {
     if (!currentBusiness) return;
     
     setSelectedSuggestion(suggestion);
@@ -301,7 +307,7 @@ const MissionsPage = () => {
     }
   };
 
-  const startMission = async (suggestion: typeof PLACEHOLDER_MISSIONS[0]) => {
+  const startMission = async (suggestion: PlaceholderMission) => {
     generatePlanForSuggestion(suggestion);
   };
 
@@ -419,7 +425,7 @@ const MissionsPage = () => {
     }
   };
 
-  // Toggle starred
+  // Toggle starred — persist to localStorage
   const toggleStarred = (missionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setStarredMissions(prev => {
@@ -429,6 +435,7 @@ const MissionsPage = () => {
       } else {
         next.add(missionId);
       }
+      try { localStorage.setItem('vistaceo-starred-missions', JSON.stringify([...next])); } catch {}
       return next;
     });
   };
@@ -876,7 +883,7 @@ const MissionsPage = () => {
               <h3 className="font-semibold text-foreground">Sugeridas para ti</h3>
             </div>
             
-            {hasEnoughData && PLACEHOLDER_MISSIONS.filter(s => 
+            {hasEnoughData && getPlaceholderMissions(currentBusiness?.category).filter(s => 
               !missions.some(m => m.title === s.title)
             ).map((suggestion, idx) => (
               <div
@@ -1051,7 +1058,7 @@ const MissionsPage = () => {
         </h2>
         
         <div className="space-y-4">
-          {hasEnoughData && PLACEHOLDER_MISSIONS.filter(s => 
+          {hasEnoughData && getPlaceholderMissions(currentBusiness?.category).filter(s => 
             !missions.some(m => m.title === s.title)
           ).map((suggestion, idx) => (
             <GlassCard
