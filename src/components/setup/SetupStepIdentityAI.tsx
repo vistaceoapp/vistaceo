@@ -94,6 +94,15 @@ export const SetupStepIdentityAI = ({ onSelect, onManualFallback }: SetupStepIde
         return;
       }
 
+      // Auto-select if the AI is 100% confident on option 1
+      if (data.auto_select === true && data.options[0]?.confidence === 'alta') {
+        setThinkingProgress(100);
+        setTimeout(() => {
+          onSelect(data.options[0]);
+        }, 600);
+        return;
+      }
+
       setThinkingProgress(100);
       setTimeout(() => {
         setOptions(data.options);
