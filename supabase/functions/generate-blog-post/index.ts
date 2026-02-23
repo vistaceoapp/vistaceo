@@ -45,26 +45,139 @@ function getClustersForPillar(pillar: string): string[] {
     .map(([key]) => key);
 }
 
-// CATEGORY-TOPIC MATCHING RULES
-// Maps topic keywords/intent to the most appropriate category
+// CATEGORY-TOPIC MATCHING RULES — EXHAUSTIVE keyword map for precise categorization
+// Each category has weighted keywords: [weight, keyword] pairs
 const CATEGORY_KEYWORD_MAP: Record<string, string[]> = {
-  'empleo-habilidades': ['empleo', 'trabajo', 'cv', 'curriculum', 'entrevista', 'carrera', 'habilidades', 'talento', 'sueldo', 'salario', 'freelance', 'remoto', 'contratación', 'recruiter', 'linkedin', 'portfolio', 'industria', 'cambiar de carrera', 'perfil profesional', 'mercado laboral', 'búsqueda de empleo'],
-  'ia-para-pymes': ['ia', 'inteligencia artificial', 'automatización', 'chatbot', 'machine learning', 'gpt', 'prompt', 'ai', 'automatizar', 'robot', 'algoritmo', 'datos', 'modelo', 'neural'],
-  'servicios-profesionales-rentabilidad': ['servicios', 'consultoría', 'agencia', 'freelancer', 'rentabilidad', 'honorarios', 'propuesta', 'cliente', 'consultor', 'servicio profesional', 'cotizar', 'pricing'],
-  'marketing-crecimiento': ['marketing', 'contenido', 'redes sociales', 'marca', 'branding', 'crecimiento', 'clientes', 'embudo', 'funnel', 'seo', 'publicidad', 'ads', 'campaña', 'engagement', 'comunidad'],
-  'finanzas-cashflow': ['finanzas', 'cash', 'flujo de caja', 'dinero', 'costos', 'precio', 'margen', 'inversión', 'presupuesto', 'deuda', 'crédito', 'impuestos', 'facturación', 'fugas de dinero', 'ahorro'],
-  'operaciones-procesos': ['operaciones', 'procesos', 'sistemas', 'eficiencia', 'productividad', 'workflow', 'automatizar procesos', 'orden', 'logística', 'inventario', 'cadena', 'supply'],
-  'ventas-negociacion': ['ventas', 'vender', 'negociar', 'cerrar', 'prospecto', 'pipeline', 'cotización', 'propuesta comercial', 'deal', 'playbook', 'objeciones', 'cierre'],
-  'liderazgo-management': ['liderazgo', 'líder', 'equipo', 'management', 'gestión', 'cultura', 'onboarding', 'motivación', 'delegación', 'feedback', 'reuniones', 'hábitos', 'decisiones', 'management'],
-  'estrategia-latam': ['estrategia', 'latam', 'latinoamérica', 'región', 'mercado', 'expansión', 'escalar', 'modelo de negocio', 'competencia', 'oportunidad', 'tendencia regional'],
-  'herramientas-productividad': ['herramientas', 'productividad', 'apps', 'software', 'plataforma', 'tiempo', 'organización', 'notion', 'trello', 'calendario', 'hábitos productivos', 'eficiencia personal'],
-  'data-analytics': ['data', 'analytics', 'métricas', 'kpi', 'dashboard', 'reporte', 'indicadores', 'medir', 'análisis de datos', 'bi', 'tableau', 'excel'],
-  'tendencias-ia-tech': ['tendencias', 'futuro', 'innovación', 'tecnología', 'disrupción', 'startup', 'blockchain', 'web3', 'cloud', 'saas', 'digital', 'transformación digital', 'nuevo perfil'],
+  'empleo-habilidades': [
+    'empleo', 'trabajo', 'cv', 'curriculum', 'entrevista', 'carrera', 'habilidades', 'talento',
+    'sueldo', 'salario', 'freelance', 'remoto', 'contratación', 'recruiter', 'linkedin perfil',
+    'portfolio', 'mercado laboral', 'búsqueda de empleo', 'primer empleo', 'cambio de carrera',
+    'reconversión profesional', 'perfil profesional', 'habilidades blandas', 'soft skills',
+    'empresa caótica', 'empresa bien gestionada', 'aceptar empleo', 'rol en datos',
+    'negociar sueldo', 'oferta laboral', 'empleos demandados', 'perfiles demandados',
+    'título tech', 'contratable', 'experiencia transferible', 'trabajos que crecen con ia',
+    'upskilling', 'reskilling', 'burnout laboral', 'clima laboral', 'rotación personal',
+    'onboarding empleo', 'culture fit', 'trabajo híbrido', 'nómada digital',
+  ],
+  'ia-para-pymes': [
+    'ia para pymes', 'ia para negocio', 'inteligencia artificial negocio', 'chatbot negocio',
+    'chatgpt para negocios', 'chatgpt para marketing', 'ia para ecommerce', 'ia para restaurantes',
+    'ia para inmobiliarias', 'ia para abogados', 'ia para educación', 'ia para atención al cliente',
+    'automatizar con ia', 'implementar ia', 'ia práctica', 'machine learning pymes',
+    'ia para responder whatsapp', 'chatbot whatsapp business', 'bot de whatsapp',
+    'ia seguimiento clientes', 'ia calificar leads', 'ia atención cliente 24/7',
+    'ia guiones de ventas', 'whatsapp crm automatización', 'automatizar whatsapp ventas',
+    'chatbot ia para negocios', 'ia para pequeñas empresas',
+  ],
+  'servicios-profesionales-rentabilidad': [
+    'servicios profesionales', 'consultoría', 'agencia', 'freelancer a empresa',
+    'rentabilidad servicios', 'honorarios', 'propuesta servicios', 'consultor independiente',
+    'cotizar servicios', 'pricing servicios', 'escalar servicios', 'firma profesional',
+    'pasar de freelance a empresa', 'modelo de servicio', 'retainer', 'servicio recurrente',
+  ],
+  'marketing-crecimiento': [
+    'marketing', 'marketing digital', 'contenido marketing', 'redes sociales', 'marca personal',
+    'branding', 'crecimiento orgánico', 'clientes nuevos', 'embudo', 'funnel', 'seo',
+    'publicidad digital', 'ads', 'campaña marketing', 'engagement', 'comunidad online',
+    'growth hacking', 'inbound marketing', 'email marketing', 'copywriting',
+    'marketing no trae clientes', 'captación de leads', 'marketing pymes',
+    'contenido que convierte', 'estrategia de contenidos', 'redes para negocios',
+  ],
+  'finanzas-cashflow': [
+    'finanzas', 'cash flow', 'flujo de caja', 'costos', 'precio', 'margen',
+    'inversión', 'presupuesto', 'deuda', 'crédito', 'impuestos', 'facturación',
+    'fugas de dinero', 'ahorro empresarial', 'cashflow', 'rentabilidad financiera',
+    'finanzas pymes', 'contabilidad', 'capital de trabajo', 'punto de equilibrio',
+    'cobrar más', 'cobrar mejor', 'morosidad', 'financiamiento', 'inflación negocios',
+  ],
+  'operaciones-procesos': [
+    'operaciones', 'procesos', 'sistemas operativos', 'eficiencia operativa',
+    'workflow', 'automatizar procesos', 'logística', 'inventario', 'supply chain',
+    'cadena de suministro', 'playbook', 'sop', 'procedimientos', 'orden interno',
+    'mejora continua', 'lean', 'kaizen', 'six sigma', 'estandarizar procesos',
+    'procesos internos', 'operaciones pyme', 'documentar procesos', 'cultura ejecución',
+    'equipo no avanza', 'equipo trabaja mucho',
+  ],
+  'ventas-negociacion': [
+    'ventas', 'vender', 'negociar', 'cerrar ventas', 'prospecto', 'pipeline ventas',
+    'cotización', 'propuesta comercial', 'objeciones', 'cierre de ventas',
+    'proceso de ventas', 'b2b ventas', 'b2c ventas', 'cold calling', 'prospección',
+    'script de ventas', 'presentación comercial', 'negociación',
+    'prompts para ventas', 'ia para ventas', 'agentes de ia para ventas',
+  ],
+  'liderazgo-management': [
+    'liderazgo', 'líder', 'equipo', 'management', 'gestión equipo', 'cultura organizacional',
+    'onboarding equipo', 'motivación equipo', 'delegación', 'feedback equipo',
+    'reuniones efectivas', 'hábitos de liderazgo', 'tomar decisiones', 'management pyme',
+    'cultura de ejecución', 'primera semana', 'construir equipo', 'retener talento',
+    'liderazgo latam', 'liderazgo remoto', 'comunicación equipo',
+  ],
+  'estrategia-latam': [
+    'estrategia', 'latam', 'latinoamérica', 'expansión regional', 'escalar negocio',
+    'modelo de negocio', 'competencia mercado', 'oportunidad mercado', 'internacionalización',
+    'negocios locales', 'emprender latam', 'startup latam', 'pyme latam',
+    'estrategia regional', 'mercado latinoamericano', 'economía latam', 'negocio local inteligente',
+    'soberanía datos latinoamérica',
+  ],
+  'herramientas-productividad': [
+    'herramientas', 'productividad', 'apps productividad', 'software', 'plataforma',
+    'gestión del tiempo', 'organización personal', 'notion', 'trello', 'asana',
+    'calendario productividad', 'hábitos productivos', 'eficiencia personal',
+    'stack tecnológico', 'herramientas pymes', 'ia para excel', 'ia para presentaciones',
+    'ia para resumir pdf', 'chatpdf', 'ia estudiar', 'ia para redactar correos',
+    'ia para redactar contratos', 'copilot microsoft', 'make tutorial', 'zapier tutorial',
+    'n8n tutorial', 'n8n vs make vs zapier', 'zapier vs make', 'automatizar emails',
+    'automatizar crm', 'automatizar reportes', 'webhooks n8n', 'n8n self hosted',
+    'make escenarios', 'automatización no code', 'automatización pymes',
+    'prompt engineering', 'mejores prompts', 'prompts para marketing', 'prompts para linkedin',
+    'prompts para instagram', 'escribir mejor con ia',
+  ],
+  'data-analytics': [
+    'data', 'analytics', 'métricas', 'kpi', 'dashboard', 'reporte datos',
+    'indicadores negocio', 'medir resultados', 'análisis de datos', 'business intelligence',
+    'tableau', 'excel avanzado', 'ia analizar datos excel', 'data driven',
+    'bases de datos vectoriales', 'embeddings', 'rag inteligencia artificial',
+    'llamaindex', 'langchain', 'big data pymes',
+  ],
+  'tendencias-ia-tech': [
+    'tendencias', 'futuro', 'innovación tecnología', 'disrupción', 'startup tech',
+    'transformación digital', 'tendencias ia', 'futuro ia', 'modelos multimodales',
+    'agentes de ia', 'agentes autónomos', 'multiagentes', 'orquestación agentes',
+    'langgraph', 'crewai', 'autogen', 'semantic kernel', 'openai swarm',
+    'chatgpt en español', 'chatgpt gratis', 'chatgpt iniciar sesión',
+    'gemini vs chatgpt', 'gemini advanced precio', 'claude vs chatgpt',
+    'claude sonnet español', 'deepseek español', 'deepseek vs chatgpt',
+    'perplexity ai vs google', 'grok ai', 'alternativas a chatgpt',
+    'sora 2', 'heygen español', 'elevenlabs español', 'clonar voz ia',
+    'crear video con ia', 'ia para videos productos', 'ia para reels',
+    'ia subtítulos automáticos', 'avatar ia', 'ia crear imágenes gratis',
+    'generador imágenes ia', 'midjourney', 'flux ai', 'ia para logos',
+    'ia diseño flyers', 'ia editar fotos', 'ia mejorar calidad imagen',
+    'prompts imágenes realistas', 'ciberseguridad ia', 'nuevo perfil profesional',
+    'ia para videos', 'tendencias 2026', 'tecnología 2026',
+  ],
 };
 
-// Select category based on topic content (not rotation)
-function selectCategoryForTopic(topic: { title_base: string; pillar: string; intent?: string | null; primary_keyword?: string | null }): string {
-  const text = `${topic.title_base} ${topic.intent || ''} ${topic.primary_keyword || ''}`.toLowerCase();
+// ENHANCED: Select category based on deep content analysis (title + keyword + secondary_keywords + content analysis)
+function selectCategoryForTopic(topic: { 
+  title_base: string; 
+  pillar: string; 
+  intent?: string | null; 
+  primary_keyword?: string | null;
+  secondary_keywords?: string[] | null;
+  category?: string | null;
+}): string {
+  // If topic already has a category set, trust it
+  if (topic.category && BLOG_CLUSTERS[topic.category]) {
+    return topic.category;
+  }
+  
+  const text = [
+    topic.title_base,
+    topic.intent || '',
+    topic.primary_keyword || '',
+    ...(topic.secondary_keywords || []),
+  ].join(' ').toLowerCase();
   
   let bestCategory = '';
   let bestScore = 0;
@@ -73,7 +186,9 @@ function selectCategoryForTopic(topic: { title_base: string; pillar: string; int
     let score = 0;
     for (const kw of keywords) {
       if (text.includes(kw)) {
-        score += kw.split(' ').length; // Multi-word keywords score higher
+        // Multi-word keywords score higher (more specific = more valuable)
+        const wordCount = kw.split(' ').length;
+        score += wordCount * 2;
       }
     }
     if (score > bestScore) {
@@ -96,6 +211,42 @@ function selectCategoryForTopic(topic: { title_base: string; pillar: string; int
   }
   
   return bestCategory;
+}
+
+// POST-GENERATION CATEGORY VALIDATION: Re-analyze final content to confirm category
+function validateAndCorrectCategory(
+  content: string, 
+  title: string, 
+  currentCategory: string
+): string {
+  const fullText = `${title} ${content.substring(0, 3000)}`.toLowerCase();
+  
+  let bestCategory = '';
+  let bestScore = 0;
+  
+  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORD_MAP)) {
+    let score = 0;
+    for (const kw of keywords) {
+      // Count occurrences in the full text
+      const regex = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      const matches = fullText.match(regex);
+      if (matches) {
+        score += matches.length * kw.split(' ').length;
+      }
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestCategory = category;
+    }
+  }
+  
+  // Only override if the new category has a significantly higher score
+  if (bestCategory && bestCategory !== currentCategory && bestScore > 10) {
+    console.log(`[generate-blog-post] Category corrected: ${currentCategory} → ${bestCategory} (score: ${bestScore})`);
+    return bestCategory;
+  }
+  
+  return currentCategory;
 }
 
 // ═══════════════════════════════════════════
@@ -1576,8 +1727,18 @@ TAMBIÉN:
     }));
 
     // 8.5. Select category based on TOPIC CONTENT (not rotation)
-    const selectedCategory = selectCategoryForTopic(selectedTopic);
-    console.log('[generate-blog-post] Assigned category (content-matched):', selectedCategory);
+    let selectedCategory = selectCategoryForTopic(selectedTopic);
+    console.log('[generate-blog-post] Initial category (topic-matched):', selectedCategory);
+    
+    // 8.6. POST-GENERATION VALIDATION: Re-analyze actual content to correct category if needed
+    selectedCategory = validateAndCorrectCategory(contentMd, selectedTopic.title_base, selectedCategory);
+    
+    // Also ensure pillar matches the category's pillar
+    const categoryPillar = BLOG_CLUSTERS[selectedCategory]?.pillar;
+    if (categoryPillar && categoryPillar !== selectedTopic.pillar) {
+      console.log(`[generate-blog-post] Pillar adjusted: ${selectedTopic.pillar} → ${categoryPillar} (to match category ${selectedCategory})`);
+    }
+    console.log('[generate-blog-post] Final category (validated):', selectedCategory);
 
     // Generate schema JSON-LD - use CANONICAL_DOMAIN
     const schemaJsonld = {
