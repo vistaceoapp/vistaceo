@@ -24,12 +24,12 @@ import { SetupStepType } from '@/components/setup/SetupStepType';
 import { SetupStepMode } from '@/components/setup/SetupStepMode';
 import { SetupStepBusiness } from '@/components/setup/SetupStepBusiness';
 import { SetupStepQuestionnaire } from '@/components/setup/SetupStepQuestionnaire';
-import { SetupStepIntegrations } from '@/components/setup/SetupStepIntegrations';
+
 import { SetupProgress } from '@/components/setup/SetupProgress';
 
-// Steps: country -> identity (AI) -> business (name+google) -> mode -> questionnaire -> integrations -> create
+// Steps: country -> identity (AI) -> business (name+google) -> mode -> questionnaire -> create
 // Manual fallback inserts sector+type steps dynamically
-const STEPS = ['country', 'identity', 'business', 'mode', 'questionnaire', 'integrations', 'create'] as const;
+const STEPS = ['country', 'identity', 'business', 'mode', 'questionnaire', 'create'] as const;
 type StepId = typeof STEPS[number];
 
 interface SetupData {
@@ -155,7 +155,7 @@ const SetupPage = () => {
       case 'business': return data.businessName.trim().length >= 2;
       case 'mode': return true;
       case 'questionnaire': return true;
-      case 'integrations': return true;
+      
       case 'create': return true;
       default: return false;
     }
@@ -487,14 +487,6 @@ const SetupPage = () => {
             onQuestionIndexChange={(questionIndex) => setData(d => ({ ...d, questionIndex }))}
             onComplete={handleNext}
             onBack={handleBack}
-          />
-        );
-      case 'integrations':
-        return (
-          <SetupStepIntegrations
-            countryCode={data.countryCode}
-            profiled={data.integrationsProfiled}
-            onUpdate={(profiled) => setData(d => ({ ...d, integrationsProfiled: profiled }))}
           />
         );
       case 'create':
