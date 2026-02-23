@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useActivityTracker } from "@/hooks/use-activity-tracker";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
@@ -18,6 +19,7 @@ import confetti from "canvas-confetti";
 
 const SetupCompletePage = () => {
   const navigate = useNavigate();
+  const { trackSetupWowShown } = useActivityTracker();
   const [showContent, setShowContent] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
 
@@ -29,6 +31,8 @@ const SetupCompletePage = () => {
     (pendingPlan === "pro_monthly" || pendingPlan === "pro_yearly");
 
   useEffect(() => {
+    // Track wow moment
+    trackSetupWowShown({ hasPendingPlan: !!hasPendingPlan });
     // Trigger confetti celebration with Pro colors if pending plan
     const duration = 3000;
     const animationEnd = Date.now() + duration;
