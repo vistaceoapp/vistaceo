@@ -21,7 +21,7 @@ import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
 import { ChatSuggestedQuestions } from "@/components/chat/ChatSuggestedQuestions";
 import { SuggestedQuestionsButton } from "@/components/chat/SuggestedQuestionsButton";
 import { AudioSettings } from "@/components/chat/AudioSettingsPopover";
-import { ProPageGate } from "@/components/app/ProPageGate";
+// ProPageGate removed — Chat is accessible to Free users with 3 msg/month limit
 
 interface MissionSuggestion {
   title: string;
@@ -500,20 +500,9 @@ const ChatPage = () => {
     );
   }
 
-  // Wrap in Pro gate - Free users see upgrade CTA
+  // Chat is accessible to all users — Free users have 3 messages/month limit enforced at send time
   return (
-    <ProPageGate
-      featureName="Chat con VistaCEO"
-      featureDescription="Tu CEO virtual ultra-inteligente que analiza fotos, documentos y te guía con decisiones estratégicas."
-      features={[
-        "Conversaciones inteligentes con contexto de tu negocio",
-        "Análisis de fotos, documentos y reportes",
-        "Respuestas por voz con ElevenLabs",
-        "Sugerencias proactivas basadas en tus datos",
-        "Historial completo de conversaciones"
-      ]}
-      icon={<MessageCircle className="w-10 h-10 text-primary" />}
-    >
+    <>
       <LearningNotification isVisible={learningIndicator} />
 
       <div className={cn(
@@ -664,7 +653,7 @@ const ChatPage = () => {
           />
         </div>
       </div>
-    </ProPageGate>
+    </>
   );
 };
 
