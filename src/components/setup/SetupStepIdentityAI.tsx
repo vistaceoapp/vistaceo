@@ -306,92 +306,87 @@ export const SetupStepIdentityAI = ({ onSelect, onManualFallback }: SetupStepIde
               </p>
             </div>
 
-            {/* 3 Cards */}
+            {/* 3 Cards - sorted by precision, highest first */}
             <div className="grid gap-3">
-              {options.map((option, i) => (
-                <motion.button
-                  key={i}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.12 }}
-                  onClick={() => onSelect(option, text.trim())}
-                  className={cn(
-                    "w-full text-left rounded-2xl border-2 transition-all duration-300 group relative overflow-hidden",
-                    "hover:shadow-lg hover:scale-[1.01]",
-                    i === 0
-                      ? 'border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 hover:border-primary hover:shadow-primary/20 p-5 ring-1 ring-primary/20'
-                      : option.origin === 'a_medida'
-                        ? 'border-accent/30 bg-gradient-to-br from-accent/5 to-primary/5 hover:border-accent/50 p-5'
-                        : 'border-border bg-card hover:border-primary/30 p-5'
-                  )}
-                >
-                  {/* Top row: Title + labels */}
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-base font-semibold text-foreground truncate">
-                        {option.title}
-                      </h4>
-                      <p className="text-sm text-muted-foreground mt-0.5">
-                        {option.sector_label} · {option.subtype}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                      {i === 0 && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
-                          <Check className="w-3 h-3" />
-                          Recomendado
-                        </span>
+              {[...options]
+                .map((option, originalIndex) => ({ option, originalIndex }))
+                .sort((a, b) => (b.option.precision_percent ?? 0) - (a.option.precision_percent ?? 0))
+                .map(({ option, originalIndex }, displayIndex) => {
+                  const isTop = displayIndex === 0;
+                  return (
+                    <motion.button
+                      key={originalIndex}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: displayIndex * 0.12 }}
+                      onClick={() => onSelect(option, text.trim())}
+                      className={cn(
+                        "w-full text-left rounded-2xl border-2 transition-all duration-300 group relative overflow-hidden p-5",
+                        "hover:shadow-lg hover:scale-[1.01]",
+                        isTop
+                          ? 'border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 hover:border-primary hover:shadow-primary/20 ring-1 ring-primary/20'
+                          : 'border-border bg-card hover:border-primary/30'
                       )}
-                      {option.origin === 'a_medida' && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/10 text-accent-foreground text-[11px] font-semibold">
-                          <Sparkles className="w-3 h-3" />
-                          A medida
+                    >
+                      {/* Top row: Title + labels */}
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-base font-semibold text-foreground truncate">
+                            {option.title}
+                          </h4>
+                          <p className="text-sm text-muted-foreground mt-0.5">
+                            {option.sector_label} · {option.subtype}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                          {isTop && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
+                              <Check className="w-3 h-3" />
+                              Recomendado
+                            </span>
+                          )}
+                          {option.origin === 'a_medida' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/10 text-accent-foreground text-[11px] font-semibold">
+                              <Sparkles className="w-3 h-3" />
+                              A medida
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Precision + Reason */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className={cn(
+                          "inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold",
+                          (option.precision_percent ?? 0) >= 80
+                            ? 'bg-primary/10 text-primary'
+                            : (option.precision_percent ?? 0) >= 60
+                              ? 'bg-secondary text-foreground'
+                              : 'bg-secondary text-muted-foreground'
+                        )}>
+                          Precisión {option.precision_percent ?? 0}%
                         </span>
+                        <p className="text-xs text-muted-foreground italic truncate">
+                          {option.reason}
+                        </p>
+                      </div>
+
+                      {/* Tags */}
+                      {option.tags && option.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {option.tags.slice(0, 3).map((tag, ti) => (
+                            <span key={ti} className="px-2 py-0.5 rounded-md bg-secondary text-[10px] text-muted-foreground">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
                       )}
-                    </div>
-                  </div>
 
-                  {/* Precision + Reason */}
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className={cn(
-                      "inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold",
-                      (option.precision_percent ?? 0) >= 80
-                        ? 'bg-primary/10 text-primary'
-                        : (option.precision_percent ?? 0) >= 60
-                          ? 'bg-secondary text-foreground'
-                          : 'bg-secondary text-muted-foreground'
-                    )}>
-                      Precisión {option.precision_percent ?? 0}%
-                    </span>
-                    <p className="text-xs text-muted-foreground italic truncate">
-                      {option.reason}
-                    </p>
-                  </div>
-
-                  {/* Tags */}
-                  {option.tags && option.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {option.tags.slice(0, 3).map((tag, ti) => (
-                        <span key={ti} className="px-2 py-0.5 rounded-md bg-secondary text-[10px] text-muted-foreground">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* A medida premium line */}
-                  {option.origin === 'a_medida' && (
-                    <div className="mt-3 pt-3 border-t border-border/50">
-                      <p className="text-xs text-muted-foreground">
-                        <span className="text-primary font-medium">VistaCEO</span> te arma tu perfil exacto y lo deja listo para personalizar
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Arrow */}
-                  <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
-                </motion.button>
-              ))}
+                      {/* Arrow */}
+                      <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+                    </motion.button>
+                  );
+                })}
             </div>
 
             {/* Actions */}
