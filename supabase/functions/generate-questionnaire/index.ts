@@ -8,6 +8,12 @@ const corsHeaders = {
 const DIMENSIONS = ['reputation', 'profitability', 'finances', 'efficiency', 'traffic', 'team', 'growth'] as const;
 const CATEGORIES = ['identity', 'operation', 'sales', 'finance', 'team', 'marketing', 'reputation', 'goals'] as const;
 
+// Dimension distribution rules
+const DIMENSION_DISTRIBUTION = {
+  quick: { min: 1, max: 3 }, // Each dimension: 1-3 questions in quick mode (7 dims × ~2 = 14)
+  complete: { min: 7, max: 13 }, // Each dimension: 7-13 questions in complete mode (7 dims × ~10 = 70)
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -19,11 +25,12 @@ serve(async (req) => {
       businessTypeId,
       areaId,
       countryCode,
-      setupMode, // 'quick' | 'complete'
+      setupMode,
       businessName,
       googleAddress,
       rawUserText,
       universalProfile,
+      previousAnswers, // For learning/adaptation
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -32,53 +39,105 @@ serve(async (req) => {
     const isQuick = setupMode === 'quick';
     const questionCount = isQuick ? '12-15' : '65-75';
     const lang = countryCode === 'BR' ? 'pt-BR' : 'es';
-    const voiceStyle = countryCode === 'BR' ? 'você (tuteo brasileiro)' : (countryCode === 'AR' || countryCode === 'UY') ? 'vos (voseo)' : 'tú (tuteo)';
+    const voiceStyle = countryCode === 'BR' ? 'você (tuteo brasileiro)' : (countryCode === 'AR' || countryCode === 'UY') ? 'vos (voseo rioplatense)' : 'tú (tuteo)';
 
     const contextParts = [
-      `Tipo de negocio: ${businessTypeLabel || businessTypeId}`,
-      `Sector: ${areaId}`,
+      `Tipo de negocio/servicio/profesión: ${businessTypeLabel || businessTypeId}`,
+      `Sector/Industria: ${areaId}`,
       `País: ${countryCode}`,
-      businessName ? `Nombre: ${businessName}` : '',
+      businessName ? `Nombre del negocio: ${businessName}` : '',
       googleAddress ? `Ubicación: ${googleAddress}` : '',
-      rawUserText ? `Contexto adicional del usuario: "${rawUserText}"` : '',
+      rawUserText ? `Descripción libre del usuario sobre su negocio: "${rawUserText}"` : '',
       universalProfile?.keywords ? `Keywords del perfil: ${universalProfile.keywords.join(', ')}` : '',
-      universalProfile?.success_metrics ? `Métricas de éxito: ${universalProfile.success_metrics.join(', ')}` : '',
-      universalProfile?.main_pains ? `Dolores principales: ${universalProfile.main_pains.join(', ')}` : '',
+      universalProfile?.success_metrics ? `Métricas de éxito relevantes: ${universalProfile.success_metrics.join(', ')}` : '',
+      universalProfile?.main_pains ? `Dolores/problemas principales: ${universalProfile.main_pains.join(', ')}` : '',
       universalProfile?.user_goals ? `Objetivos del usuario: ${universalProfile.user_goals.join(', ')}` : '',
+      universalProfile?.opportunity_angles ? `Ángulos de oportunidad: ${universalProfile.opportunity_angles.join(', ')}` : '',
+      universalProfile?.subtype_label ? `Subtipo específico: ${universalProfile.subtype_label}` : '',
     ].filter(Boolean).join('\n');
 
-    const systemPrompt = `Eres un experto en diagnóstico de negocios, empresas, servicios y profesiones independientes. 
-Tu tarea es generar un cuestionario de ${questionCount} preguntas ULTRA-PERSONALIZADO para evaluar la salud y situación actual de un negocio/servicio/profesión específico.
+    // Learning context from previous interactions
+    const learningContext = previousAnswers && Object.keys(previousAnswers).length > 0
+      ? `\n\nCONTEXTO DE APRENDIZAJE - El usuario ya respondió estas preguntas previamente. Usa esta información para hacer preguntas MÁS PROFUNDAS y ESPECÍFICAS, NO repitas temas ya cubiertos:\n${JSON.stringify(previousAnswers, null, 2)}`
+      : '';
 
-REGLAS CRÍTICAS:
-1. Las preguntas DEBEN ser específicas para este tipo exacto de negocio/servicio/profesión. NO preguntas genéricas.
-2. Cada pregunta debe tener un impacto medible en una de estas 7 dimensiones: ${DIMENSIONS.join(', ')}
-3. Cada pregunta debe pertenecer a una de estas categorías: ${CATEGORIES.join(', ')}
-4. Usar ${voiceStyle} en idioma ${lang}
-5. Las preguntas deben cubrir TODAS las 7 dimensiones de manera balanceada
-6. Tipos de input permitidos: "single" (opciones únicas), "multi" (selección múltiple), "number", "slider", "text", "money"
-7. Para "single" y "multi": incluir 3-6 opciones con emoji y label en es y pt-BR
-8. Para "slider": incluir min, max, unit
-9. Para "number"/"money": incluir unit si aplica
-10. Cada pregunta DEBE tener un id único (formato: Q_AI_XXX donde XXX es un número)
-11. El campo "required" debe ser true para preguntas importantes y false para las opcionales
-12. Modo: ${isQuick ? 'RÁPIDO - Solo preguntas esenciales, las más importantes para un diagnóstico inicial rápido' : 'COMPLETO - Cuestionario exhaustivo que toque todos los aspectos del negocio en profundidad'}
-13. Para modo ${isQuick ? 'rápido, usar mode: "quick" o "both"' : 'completo, usar mode: "complete" o "both"'}
-14. weight: 1-10, qué tan importante es la pregunta para su dimensión
+    const dimDist = DIMENSION_DISTRIBUTION[isQuick ? 'quick' : 'complete'];
 
-IMPORTANTE: Las preguntas deben ser RELEVANTES y ESPECÍFICAS. 
-- Para un abogado: preguntar sobre cartera de clientes, tipos de casos, tarifas por hora, etc.
-- Para un restaurante: preguntar sobre tipo de cocina, ticket promedio, delivery, etc.
-- Para un ecommerce: preguntar sobre plataforma, tasa de conversión, logística, etc.
-- Para un consultorio médico: preguntar sobre especialidades, turnos, obras sociales, etc.
+    const systemPrompt = `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
 
-NO hacer preguntas que no tengan sentido para el tipo de negocio.`;
+OBJETIVO ESTRATÉGICO:
+Estas preguntas construyen el "Cerebro del Negocio" - un modelo de inteligencia que luego genera misiones, predicciones, radar de oportunidades y análisis de salud. Cada pregunta DEBE aportar datos accionables que alimenten decisiones estratégicas reales.
 
-    const userPrompt = `Genera el cuestionario para este negocio/servicio/profesión:
+LAS 7 DIMENSIONES DE SALUD (COBERTURA OBLIGATORIA BALANCEADA):
+Cada dimensión DEBE tener entre ${dimDist.min} y ${dimDist.max} preguntas:
+
+1. 👥 TRÁFICO (traffic) - Flujo de clientes/usuarios, canales de captación, horarios/momentos pico, estacionalidad, conversión de leads
+2. 💰 RENTABILIDAD (profitability) - Márgenes, pricing, costos variables, rentabilidad por producto/servicio, ticket promedio
+3. 🤝 EQUIPO (team) - Personal, productividad, roles, capacitación, rotación, cultura, satisfacción del equipo
+4. 📊 FINANZAS (finances) - Control de costos fijos, flujo de caja, deudas, inversión, control financiero, facturación
+5. ⚙️ EFICIENCIA (efficiency) - Operación, tiempos de servicio/entrega, gestión de recursos, procesos, tecnología
+6. 📈 CRECIMIENTO (growth) - Expansión, nuevos mercados, innovación, escalabilidad, diversificación, objetivos
+7. ⭐ REPUTACIÓN (reputation) - Reviews, ratings, percepción de marca, fidelización, NPS, presencia digital
+
+REGLAS CRÍTICAS DE PERSONALIZACIÓN:
+1. Las preguntas DEBEN ser 100% específicas para "${businessTypeLabel}". Prohibido preguntas genéricas que sirvan para cualquier negocio.
+2. Usa terminología propia del sector. Ejemplo: para un restaurante → "food cost", para un abogado → "cartera de clientes", para un ecommerce → "tasa de conversión", para un médico → "obras sociales/seguros".
+3. Las opciones de respuesta deben reflejar la REALIDAD del sector con rangos y valores reales del mercado.
+4. Adapta las preguntas al PAÍS (${countryCode}): regulaciones locales, plataformas populares, moneda, cultura de negocio.
+5. Usar ${voiceStyle} en idioma ${lang}. Tono: profesional pero cercano, como un consultor experto hablando con el dueño.
+
+REGLAS DE CALIDAD:
+- Cada pregunta debe generar un DATO ACCIONABLE, no solo información descriptiva
+- Las opciones deben tener impactScore diferenciado (1-10): opciones positivas = 8-10, neutras = 4-6, negativas/riesgosas = 1-3
+- Incluir preguntas de "pain points" específicos del sector
+- Incluir preguntas sobre tecnología/herramientas específicas del sector
+- Incluir preguntas sobre métricas clave del sector (KPIs propios)
+- Las preguntas numéricas deben tener rangos realistas para el sector y país
+
+TIPOS DE INPUT:
+- "single": Selección única (3-6 opciones con emoji, label bilingüe, impactScore)
+- "multi": Selección múltiple (3-6 opciones con emoji, label bilingüe)
+- "number": Valor numérico (incluir unit)
+- "slider": Rango deslizable (incluir min, max, unit)
+- "text": Respuesta abierta (solo para preguntas donde las opciones no cubren la variedad)
+- "money": Valor monetario (incluir unit con moneda local)
+
+DISTRIBUCIÓN POR CATEGORÍA:
+- identity: Posicionamiento, diferenciación, propuesta de valor
+- operation: Procesos, capacidad operativa, tiempos
+- sales: Ventas, conversión, canales, pricing
+- finance: Costos, márgenes, flujo de caja
+- team: Recursos humanos, roles, capacitación
+- marketing: Adquisición, retención, canales de marketing
+- reputation: Reseñas, percepción, marca
+- goals: Objetivos, metas, visión a futuro
+
+FORMATO:
+- id: Q_AI_XXX (número secuencial)
+- weight: 1-10 (importancia para su dimensión)
+- required: true para preguntas estratégicas clave, false para complementarias
+- mode: "${isQuick ? 'quick' : 'complete'}" o "both"
+${learningContext}
+
+ERRORES A EVITAR:
+- NO hacer preguntas sobre temas irrelevantes para el tipo de negocio
+- NO usar lenguaje corporativo genérico ("optimizar procesos", "mejorar la eficiencia")
+- NO repetir el mismo concepto en diferentes preguntas
+- NO hacer preguntas cuya respuesta sea obvia
+- NO usar opciones con impactScore todos iguales
+- GARANTIZAR que TODAS las 7 dimensiones tengan la cobertura requerida (${dimDist.min}-${dimDist.max} preguntas cada una)`;
+
+    const userPrompt = `Genera EXACTAMENTE ${questionCount} preguntas para este negocio/servicio/profesión:
 
 ${contextParts}
 
-Responde ÚNICAMENTE con el JSON array de preguntas. Usa tool calling.`;
+RECORDATORIO FINAL:
+- Distribución balanceada: cada una de las 7 dimensiones (traffic, profitability, team, finances, efficiency, growth, reputation) debe tener entre ${dimDist.min} y ${dimDist.max} preguntas
+- Total: ${questionCount} preguntas exactas
+- Idioma: ${lang} con ${voiceStyle}
+- 100% específico para "${businessTypeLabel}"
+
+Responde usando la función generate_questions.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -97,7 +156,7 @@ Responde ÚNICAMENTE con el JSON array de preguntas. Usa tool calling.`;
             type: "function",
             function: {
               name: "generate_questions",
-              description: `Generate ${questionCount} personalized diagnostic questions for this specific business type.`,
+              description: `Generate exactly ${questionCount} ultra-personalized diagnostic questions for "${businessTypeLabel}" covering all 7 health dimensions with balanced distribution.`,
               parameters: {
                 type: "object",
                 properties: {
@@ -201,7 +260,6 @@ Responde ÚNICAMENTE con el JSON array de preguntas. Usa tool calling.`;
         id: q.id || `Q_AI_${String(i + 1).padStart(3, '0')}`,
         required: q.required !== false,
         weight: Math.max(1, Math.min(10, q.weight || 5)),
-        // Ensure pt-BR exists
         title: {
           es: q.title.es,
           'pt-BR': q.title['pt-BR'] || q.title.es,
@@ -219,7 +277,22 @@ Responde ÚNICAMENTE con el JSON array de preguntas. Usa tool calling.`;
         })),
       }));
 
-    console.log(`Generated ${validQuestions.length} questions for ${businessTypeLabel} (${setupMode})`);
+    // Validate dimension coverage
+    const dimensionCounts: Record<string, number> = {};
+    for (const dim of DIMENSIONS) dimensionCounts[dim] = 0;
+    for (const q of validQuestions) {
+      if (q.dimension && dimensionCounts[q.dimension] !== undefined) {
+        dimensionCounts[q.dimension]++;
+      }
+    }
+    
+    const missingDimensions = DIMENSIONS.filter(d => dimensionCounts[d] === 0);
+
+    console.log(`Generated ${validQuestions.length} questions for "${businessTypeLabel}" (${setupMode})`);
+    console.log('Dimension coverage:', dimensionCounts);
+    if (missingDimensions.length > 0) {
+      console.warn('Missing dimensions:', missingDimensions);
+    }
 
     return new Response(JSON.stringify({ 
       questions: validQuestions,
@@ -227,6 +300,8 @@ Responde ÚNICAMENTE con el JSON array de preguntas. Usa tool calling.`;
         businessType: businessTypeLabel,
         mode: setupMode,
         count: validQuestions.length,
+        dimensionCoverage: dimensionCounts,
+        missingDimensions,
         generated_at: new Date().toISOString(),
       }
     }), {
