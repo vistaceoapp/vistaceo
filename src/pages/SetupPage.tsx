@@ -18,6 +18,7 @@ import { analyzeHealthFromAnswers } from '@/lib/gastroQuestionsEngine';
 
 // Setup steps
 import { SetupStepCountry } from '@/components/setup/SetupStepCountry';
+import { SetupStepIdentityAI } from '@/components/setup/SetupStepIdentityAI';
 import { SetupStepSector } from '@/components/setup/SetupStepSector';
 import { SetupStepType } from '@/components/setup/SetupStepType';
 import { SetupStepMode } from '@/components/setup/SetupStepMode';
@@ -26,8 +27,9 @@ import { SetupStepQuestionnaire } from '@/components/setup/SetupStepQuestionnair
 import { SetupStepIntegrations } from '@/components/setup/SetupStepIntegrations';
 import { SetupProgress } from '@/components/setup/SetupProgress';
 
-// Steps: country -> sector -> type -> business (name+google) -> mode -> questionnaire -> integrations -> create
-const STEPS = ['country', 'sector', 'type', 'business', 'mode', 'questionnaire', 'integrations', 'create'] as const;
+// Steps: country -> identity (AI) -> business (name+google) -> mode -> questionnaire -> integrations -> create
+// Manual fallback inserts sector+type steps dynamically
+const STEPS = ['country', 'identity', 'business', 'mode', 'questionnaire', 'integrations', 'create'] as const;
 type StepId = typeof STEPS[number];
 
 interface SetupData {
@@ -142,14 +144,17 @@ const SetupPage = () => {
   const precisionScore = calculatePrecision(data);
   const lang = COUNTRY_PACKS[data.countryCode]?.locale?.startsWith('pt') ? 'pt' : 'es';
 
+  // Track if user chose manual flow (sector+type cards)
+  const [manualIdentityMode, setManualIdentityMode] = useState(false);
+  const [manualSubStep, setManualSubStep] = useState<'sector' | 'type' | null>(null);
+
   const canProceed = useCallback(() => {
     switch (stepId) {
       case 'country': return !!data.countryCode;
-      case 'sector': return !!data.areaId;
-      case 'type': return !!data.businessTypeId;
+      case 'identity': return !!data.businessTypeId; // Set by AI selection or manual
       case 'business': return data.businessName.trim().length >= 2;
       case 'mode': return true;
-      case 'questionnaire': return true; // Handled internally
+      case 'questionnaire': return true;
       case 'integrations': return true;
       case 'create': return true;
       default: return false;
@@ -352,21 +357,53 @@ const SetupPage = () => {
             onChange={(code) => setData(d => ({ ...d, countryCode: code as CountryCode, areaId: '', businessTypeId: '' }))}
           />
         );
-      case 'sector':
+      case 'identity':
+        // Manual sub-steps (sector → type)
+        if (manualIdentityMode && manualSubStep === 'sector') {
+          return (
+            <SetupStepSector
+              countryCode={data.countryCode}
+              value={data.areaId}
+              onChange={(areaId) => {
+                setData(d => ({ ...d, areaId, businessTypeId: '' }));
+                setManualSubStep('type');
+              }}
+            />
+          );
+        }
+        if (manualIdentityMode && manualSubStep === 'type') {
+          return (
+            <SetupStepType
+              countryCode={data.countryCode}
+              areaId={data.areaId}
+              value={data.businessTypeId}
+              onChange={(id, label) => {
+                setData(d => ({ ...d, businessTypeId: id, businessTypeLabel: label }));
+                // Auto-advance after selecting type
+                setTimeout(() => setCurrentStep(prev => prev + 1), 300);
+              }}
+            />
+          );
+        }
+        // AI-first (default)
         return (
-          <SetupStepSector
-            countryCode={data.countryCode}
-            value={data.areaId}
-            onChange={(areaId) => setData(d => ({ ...d, areaId, businessTypeId: '' }))}
-          />
-        );
-      case 'type':
-        return (
-          <SetupStepType
-            countryCode={data.countryCode}
-            areaId={data.areaId}
-            value={data.businessTypeId}
-            onChange={(id, label) => setData(d => ({ ...d, businessTypeId: id, businessTypeLabel: label }))}
+          <SetupStepIdentityAI
+            onSelect={(option) => {
+              setData(d => ({
+                ...d,
+                areaId: option.sector_id,
+                businessTypeId: option.catalog_id || option.universal_profile?.subtype || 'custom',
+                businessTypeLabel: option.title,
+              }));
+              // Store universal profile for brain initialization
+              localStorage.setItem('setupUniversalProfile', JSON.stringify(option.universal_profile));
+              // Auto-advance
+              setTimeout(() => setCurrentStep(prev => prev + 1), 200);
+            }}
+            onManualFallback={() => {
+              setManualIdentityMode(true);
+              setManualSubStep('sector');
+            }}
           />
         );
       case 'business':
