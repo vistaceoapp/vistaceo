@@ -468,4 +468,10 @@
     opacity: 1;
     transform: none;
   }
+
+  /* Disable framer-motion transitions globally */
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

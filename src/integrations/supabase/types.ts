@@ -3311,6 +3311,18 @@ export type Database = {
         | "heladeria"
         | "panaderia"
         | "dark_kitchen"
+        | "ecommerce"
+        | "servicio_profesional"
+        | "freelancer"
+        | "empleado"
+        | "comercio"
+        | "b2b"
+        | "salud"
+        | "educacion"
+        | "agencia"
+        | "creador"
+        | "industria"
+        | "otro"
       country_code:
         | "AR"
         | "MX"
@@ -3463,6 +3475,18 @@ export const Constants = {
         "heladeria",
         "panaderia",
         "dark_kitchen",
+        "ecommerce",
+        "servicio_profesional",
+        "freelancer",
+        "empleado",
+        "comercio",
+        "b2b",
+        "salud",
+        "educacion",
+        "agencia",
+        "creador",
+        "industria",
+        "otro",
       ],
       country_code: [
         "AR",
