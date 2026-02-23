@@ -390,6 +390,30 @@ const Auth = () => {
                     </>
                   )}
                 </Button>
+
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!email) {
+                        toast.error("Ingresá tu email primero");
+                        return;
+                      }
+                      try {
+                        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                          redirectTo: `${window.location.origin}/auth?mode=login`,
+                        });
+                        if (error) throw error;
+                        toast.success("Te enviamos un email para restablecer tu contraseña");
+                      } catch (err) {
+                        toast.error("Error al enviar el email de recuperación");
+                      }
+                    }}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                )}
               </motion.form>
             )}
 

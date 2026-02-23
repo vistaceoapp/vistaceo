@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { 
   Crown, 
   Check, 
@@ -23,6 +23,7 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const UpgradePage = () => {
+  const navigate = useNavigate();
   const { currentBusiness } = useBusiness();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
@@ -196,7 +197,7 @@ const UpgradePage = () => {
             </p>
             <Button 
               className="w-full gradient-primary"
-              onClick={() => window.location.href = "/app"}
+              onClick={() => navigate("/app")}
             >
               <Sparkles className="w-4 h-4 mr-2" />
               Ir al Dashboard
