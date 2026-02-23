@@ -469,10 +469,6 @@ const SetupPage = () => {
               // Auto-advance
               setTimeout(() => setCurrentStep(prev => prev + 1), 200);
             }}
-            onManualFallback={() => {
-              setManualIdentityMode(true);
-              setManualSubStep('sector');
-            }}
           />
         );
       case 'business':

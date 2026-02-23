@@ -2,7 +2,7 @@
 // Textarea → 3 smart options → profile selection
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Brain, Loader2, Check, Wand2, ChevronRight, RotateCcw, List, AlertTriangle } from 'lucide-react';
+import { Sparkles, Brain, Loader2, Check, Wand2, ChevronRight, RotateCcw, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,7 +43,6 @@ interface SuggestResponse {
 
 interface SetupStepIdentityAIProps {
   onSelect: (option: ProfileOption, rawText: string) => void;
-  onManualFallback: () => void;
 }
 
 const EXAMPLE_CHIPS = [
@@ -57,7 +56,7 @@ const EXAMPLE_CHIPS = [
 
 type UIState = 'writing' | 'thinking' | 'results' | 'error';
 
-export const SetupStepIdentityAI = ({ onSelect, onManualFallback }: SetupStepIdentityAIProps) => {
+export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
   const [text, setText] = useState('');
   const [state, setState] = useState<UIState>('writing');
   const [options, setOptions] = useState<ProfileOption[]>([]);
@@ -217,14 +216,6 @@ export const SetupStepIdentityAI = ({ onSelect, onManualFallback }: SetupStepIde
                 <Wand2 className="w-5 h-5" />
                 Sugerirme 3 opciones
               </Button>
-
-              <button
-                onClick={onManualFallback}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
-              >
-                <List className="w-4 h-4" />
-                Elegir manualmente
-              </button>
             </div>
           </motion.div>
         )}
@@ -389,20 +380,13 @@ export const SetupStepIdentityAI = ({ onSelect, onManualFallback }: SetupStepIde
             </div>
 
             {/* Actions */}
-            <div className="flex justify-center gap-4 pt-2">
+            <div className="flex justify-center pt-2">
               <button
                 onClick={handleReset}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
               >
                 <RotateCcw className="w-4 h-4" />
                 Reescribir
-              </button>
-              <button
-                onClick={onManualFallback}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
-              >
-                <List className="w-4 h-4" />
-                Elegir manualmente
               </button>
             </div>
           </motion.div>
@@ -422,19 +406,13 @@ export const SetupStepIdentityAI = ({ onSelect, onManualFallback }: SetupStepIde
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-1">No pude analizarlo ahora</h3>
-              <p className="text-sm text-muted-foreground">Elegí manualmente y seguimos.</p>
+              <p className="text-sm text-muted-foreground">Intentá de nuevo con otra descripción.</p>
             </div>
             <div className="flex flex-col gap-3 items-center">
-              <Button onClick={onManualFallback} className="gap-2">
-                <List className="w-4 h-4" />
-                Elegir manualmente
-              </Button>
-              <button
-                onClick={handleReset}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <Button onClick={handleReset} className="gap-2">
+                <RotateCcw className="w-4 h-4" />
                 Intentar de nuevo
-              </button>
+              </Button>
             </div>
           </motion.div>
         )}
