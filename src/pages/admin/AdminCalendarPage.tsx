@@ -13,7 +13,7 @@ import {
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { PILLARS, type PillarKey } from '@/lib/blog/types';
+import { PILLARS, BLOG_CLUSTERS, type PillarKey, type BlogClusterKey } from '@/lib/blog/types';
 
 interface PlanItem {
   id: string;
@@ -44,13 +44,13 @@ export default function AdminCalendarPage() {
       const [planRes, postsRes] = await Promise.all([
         supabase
           .from('blog_plan')
-          .select('id, planned_date, pillar, status, topic:blog_topics(title_base)')
+          .select('id, planned_date, pillar, status, topic:blog_topics(title_base, category)')
           .gte('planned_date', start)
           .lte('planned_date', end)
           .order('planned_date', { ascending: true }),
         supabase
           .from('blog_posts')
-          .select('id, title, pillar, status, publish_at')
+          .select('id, title, pillar, status, publish_at, category')
           .eq('status', 'published')
           .gte('publish_at', `${start}T00:00:00`)
           .lte('publish_at', `${end}T23:59:59`)
@@ -81,18 +81,18 @@ export default function AdminCalendarPage() {
     }
   });
 
-  // Fetch upcoming posts (next 7 days)
+  // Fetch ALL upcoming posts (no limit)
   const { data: upcomingPosts } = useQuery({
     queryKey: ['admin-calendar-upcoming'],
     queryFn: async () => {
       const today = format(new Date(), 'yyyy-MM-dd');
       const { data, error } = await supabase
         .from('blog_plan')
-        .select('id, planned_date, pillar, status, topic:blog_topics(title_base)')
+        .select('id, planned_date, pillar, status, topic:blog_topics(title_base, category)')
         .gte('planned_date', today)
         .eq('status', 'planned')
         .order('planned_date', { ascending: true })
-        .limit(10);
+        .limit(500);
       
       if (error) throw error;
       return data as PlanItem[];
@@ -150,6 +150,15 @@ export default function AdminCalendarPage() {
 
   const getPillarEmoji = (pillar: string) => {
     return PILLARS[pillar as PillarKey]?.emoji || '📝';
+  };
+
+  const getCategoryLabel = (item: PlanItem) => {
+    const cat = (item as any).topic?.category;
+    if (cat && BLOG_CLUSTERS[cat as BlogClusterKey]) {
+      const info = BLOG_CLUSTERS[cat as BlogClusterKey];
+      return `${info.emoji} ${info.label}`;
+    }
+    return null;
   };
 
   const selectedDateItems = selectedDate 
@@ -335,20 +344,28 @@ export default function AdminCalendarPage() {
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    {(upcomingPosts || []).map(item => (
-                      <div 
-                        key={item.id} 
-                        className="p-2 rounded-lg hover:bg-muted/50 transition-colors flex items-center gap-2"
-                      >
-                        <span>{getPillarEmoji(item.pillar)}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm truncate">{item.topic?.title_base || 'Sin título'}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(item.planned_date), "EEE d MMM", { locale: es })}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                     {(upcomingPosts || []).map(item => {
+                       const catLabel = getCategoryLabel(item);
+                       return (
+                         <div 
+                           key={item.id} 
+                           className="p-2 rounded-lg hover:bg-muted/50 transition-colors flex items-center gap-2"
+                         >
+                           <span>{getPillarEmoji(item.pillar)}</span>
+                           <div className="flex-1 min-w-0">
+                             <p className="text-sm truncate">{item.topic?.title_base || 'Sin título'}</p>
+                             <div className="flex items-center gap-2">
+                               <p className="text-xs text-muted-foreground">
+                                 {format(new Date(item.planned_date), "EEE d MMM", { locale: es })}
+                               </p>
+                               {catLabel && (
+                                 <span className="text-xs text-muted-foreground">{catLabel}</span>
+                               )}
+                             </div>
+                           </div>
+                         </div>
+                       );
+                     })}
                   </div>
                 )}
               </ScrollArea>

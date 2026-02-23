@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { BLOG_CLUSTERS, type BlogClusterKey } from '@/lib/blog/types';
+import { BLOG_CLUSTERS, PILLARS, type BlogClusterKey } from '@/lib/blog/types';
 
 export default function BlogAdminPage() {
   const queryClient = useQueryClient();
@@ -94,18 +94,18 @@ export default function BlogAdminPage() {
     }
   });
 
-  // Fetch upcoming plan items
+  // Fetch ALL upcoming plan items (no limit)
   const { data: upcomingPlan } = useQuery({
     queryKey: ['admin-upcoming-plan'],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
         .from('blog_plan')
-        .select('*, topic:blog_topics(title_base)')
+        .select('*, topic:blog_topics(title_base, category, primary_keyword)')
         .eq('status', 'planned')
         .gte('planned_date', today)
         .order('planned_date', { ascending: true })
-        .limit(15);
+        .limit(500);
       if (error) throw error;
       return data;
     }
@@ -597,34 +597,63 @@ export default function BlogAdminPage() {
           <TabsContent value="calendar">
             <Card>
               <CardHeader>
-                <CardTitle>Próximas Publicaciones</CardTitle>
-                <CardDescription>Posts planificados para los próximos días</CardDescription>
+                <CardTitle>Próximas Publicaciones ({upcomingPlan?.length || 0} programadas)</CardTitle>
+                <CardDescription>Todos los posts planificados del sistema — categoría y pilar asignados</CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[400px]">
+                <ScrollArea className="h-[600px]">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Fecha</TableHead>
+                        <TableHead className="w-[100px]">Fecha</TableHead>
                         <TableHead>Título</TableHead>
-                        <TableHead>Estado</TableHead>
+                        <TableHead className="w-[200px]">Categoría</TableHead>
+                        <TableHead className="w-[120px]">Pilar</TableHead>
+                        <TableHead className="w-[100px]">Estado</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {upcomingPlan?.map((item: any) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-mono text-sm">
-                            {format(new Date(item.planned_date), 'dd MMM', { locale: es })}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {item.topic?.title_base || '—'}
-                          </TableCell>
-                          <TableCell>{getStatusBadge(item.status)}</TableCell>
-                        </TableRow>
-                      ))}
+                      {upcomingPlan?.map((item: any) => {
+                        const topicCategory = item.topic?.category;
+                        const clusterInfo = topicCategory ? BLOG_CLUSTERS[topicCategory as BlogClusterKey] : null;
+                        const pillarInfo = PILLARS[item.pillar as keyof typeof PILLARS];
+                        
+                        return (
+                          <TableRow key={item.id}>
+                            <TableCell className="font-mono text-sm">
+                              {format(new Date(item.planned_date), 'EEE dd MMM', { locale: es })}
+                            </TableCell>
+                            <TableCell>
+                              <div className="max-w-sm">
+                                <p className="truncate font-medium text-sm">{item.topic?.title_base || '—'}</p>
+                                {item.topic?.primary_keyword && (
+                                  <p className="text-xs text-muted-foreground truncate">🔑 {item.topic.primary_keyword}</p>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {clusterInfo ? (
+                                <Badge variant="outline" className="text-xs">
+                                  {clusterInfo.emoji} {clusterInfo.label}
+                                </Badge>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Sin categoría</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {pillarInfo ? (
+                                <span className="text-xs">{pillarInfo.emoji} {pillarInfo.label}</span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">{item.pillar}</span>
+                              )}
+                            </TableCell>
+                            <TableCell>{getStatusBadge(item.status)}</TableCell>
+                          </TableRow>
+                        );
+                      })}
                       {(!upcomingPlan || upcomingPlan.length === 0) && (
                         <TableRow>
-                          <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                          <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                             No hay publicaciones planificadas. Ejecuta "Construir Calendario Anual".
                           </TableCell>
                         </TableRow>
