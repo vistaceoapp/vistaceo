@@ -60,7 +60,7 @@ export const SetupStepQuestionnaire = ({
 }: SetupStepQuestionnaireProps) => {
   const [currentIndex, setCurrentIndex] = useState(questionIndex);
   const [aiQuestions, setAiQuestions] = useState<UniversalQuestion[] | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(true); // Start as true to prevent premature onComplete
   const [generationError, setGenerationError] = useState(false);
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
 
@@ -153,6 +153,14 @@ export const SetupStepQuestionnaire = ({
   useEffect(() => {
     onQuestionIndexChange?.(currentIndex);
   }, [currentIndex, onQuestionIndexChange]);
+
+  // Handle no questions after generation completes (must be before early returns)
+  useEffect(() => {
+    if (isGenerating) return;
+    if (!currentQuestion && activeQuestions.length === 0) {
+      onComplete();
+    }
+  }, [isGenerating, currentQuestion, activeQuestions.length, onComplete]);
 
   const getCurrentValue = () => answers[currentQuestion?.id];
 
@@ -248,19 +256,7 @@ export const SetupStepQuestionnaire = ({
     );
   }
 
-  // ============= NO QUESTIONS =============
-  if (!currentQuestion && !isGenerating) {
-    if (generationError && fallbackQuestions.length === 0) {
-      // Both AI and fallback failed - skip to complete
-      onComplete();
-      return null;
-    }
-    if (activeQuestions.length === 0) {
-      onComplete();
-      return null;
-    }
-  }
-
+  if (!currentQuestion && !isGenerating) return null;
   if (!currentQuestion) return null;
 
   // ============= RENDER INPUT =============
