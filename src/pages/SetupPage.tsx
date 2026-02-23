@@ -425,15 +425,21 @@ const SetupPage = () => {
         // AI-first (default)
         return (
           <SetupStepIdentityAI
-            onSelect={(option) => {
+            onSelect={(option, rawText) => {
               setData(d => ({
                 ...d,
                 areaId: option.sector_id,
                 businessTypeId: option.catalog_id || option.universal_profile?.subtype || 'custom',
                 businessTypeLabel: option.title,
               }));
-              // Store universal profile for brain initialization
-              localStorage.setItem('setupUniversalProfile', JSON.stringify(option.universal_profile));
+              // Store universal profile + raw text for brain initialization
+              const profileToStore = {
+                ...option.universal_profile,
+                _raw_user_text: rawText || '',
+                _selected_option_origin: option.origin,
+                _precision_percent: option.precision_percent,
+              };
+              localStorage.setItem('setupUniversalProfile', JSON.stringify(profileToStore));
               // Auto-advance
               setTimeout(() => setCurrentStep(prev => prev + 1), 200);
             }}
