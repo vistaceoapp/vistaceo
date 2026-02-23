@@ -103,6 +103,10 @@ serve(async (req) => {
         case "page_view":
           updates.pages_viewed = (existing?.pages_viewed || 0) + 1;
           break;
+        case "setup_started":
+        case "setup_step_viewed":
+        case "setup_completed":
+        case "setup_wow_shown":
         default:
           updates.actions_count = (existing?.actions_count || 0) + 1;
       }
