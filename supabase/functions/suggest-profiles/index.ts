@@ -241,12 +241,15 @@ ${Object.entries(CATALOG_SECTORS).map(([sectorId, s]) => `${sectorId} - ${s.labe
 
 REGLAS ABSOLUTAS:
 1. SIEMPRE devolver EXACTAMENTE 3 opciones
-2. Opción 1: Mejor encaje al catálogo
-3. Opción 2: Alternativa razonable del catálogo
-4. Opción 3: SIEMPRE un perfil "a_medida" personalizado al caso exacto del usuario
+2. Opción 1: Mejor encaje al catálogo, marcada como "Recomendado"
+3. Opción 2: Alternativa REALMENTE distinta del catálogo (distinto eje: cliente, canal, formato). PROHIBIDO duplicar semánticamente la opción 1
+4. Opción 3: SIEMPRE un perfil "a_medida" personalizado al caso exacto del usuario. Debe sentirse premium, no fallback
 5. Si el texto es confuso, igual intentar. NUNCA devolver "no entendí".
 6. Capturar subtipo real: "pizzería" NO es "gastronomía genérica", "abogado penalista" NO es "servicios profesionales genérico"
 7. Entender ortografía horrible, jerga LATAM, mezclas de idiomas
+8. Cada opción debe incluir "precision_percent" (0-100): qué tan bien representa lo que el usuario REALMENTE hace. Reflejar incertidumbre real, NO inflar. Opción 1 siempre tiene el % más alto. Si el perfil a medida resuelve mejor, puede tener % más alto que opción 2.
+9. "reason" debe ser ultra corta: máximo 12 palabras, humana, sin tecnicismos. Formato: "Porque detecté X e Y en tu descripción"
+10. Las 3 opciones deben ser DIFERENTES de verdad. Diversidad por eje: cliente (empresas vs personas), canal (online vs presencial), formato (academia vs consultoría vs plataforma)
 
 AUTO-SELECCIÓN:
 Si la opción 1 es un match PERFECTO e INDUDABLE al catálogo (por ejemplo el usuario escribió "pizzería" y el match es "Pizzería", o "abogado" y el match es "Estudio Jurídico / Abogado"), entonces agregar "auto_select": true en el JSON raíz.
@@ -268,9 +271,10 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
       "sector_label": "Nombre del sector",
       "subtype": "subtipo específico",
       "tags": ["tag1", "tag2", "tag3"],
-      "reason": "Una línea humana de por qué elegí esto",
+      "reason": "Máximo 12 palabras, humana",
       "origin": "catalogo" o "a_medida",
       "confidence": "alta" o "media" o "baja",
+      "precision_percent": 92,
       "universal_profile": {
         "display_name": "Nombre para mostrar",
         "activity_type": "negocio" o "servicio" o "profesión",
@@ -365,16 +369,17 @@ function buildFallbackOptions(rawText: string) {
   const best = scored[0] || FLAT_CATALOG.find(e => e.id === "freelance_independiente")!;
   const alt = scored[1] || FLAT_CATALOG.find(e => e.sectorId === best?.sectorId && e.id !== best?.id) || FLAT_CATALOG[0];
 
-  const makeProfile = (entry: typeof FLAT_CATALOG[0], origin: string) => ({
+  const makeProfile = (entry: typeof FLAT_CATALOG[0], origin: string, precisionPct: number) => ({
     title: entry.label,
     catalog_id: entry.id,
     sector_id: entry.sectorId,
     sector_label: entry.sectorLabel,
     subtype: entry.label,
     tags: entry.keywords.slice(0, 3),
-    reason: origin === "a_medida" ? "Perfil personalizado basado en tu descripción" : `Mejor coincidencia con "${entry.label}"`,
+    reason: origin === "a_medida" ? "Perfil armado a tu medida exacta" : `Coincide con lo que describiste`,
     origin,
     confidence: origin === "a_medida" ? "media" : (scored[0]?.score > 10 ? "alta" : "media"),
+    precision_percent: precisionPct,
     universal_profile: {
       display_name: entry.label,
       activity_type: "negocio",
@@ -392,14 +397,16 @@ function buildFallbackOptions(rawText: string) {
     },
   });
 
+  const bestPrecision = best.score > 15 ? 85 : best.score > 10 ? 70 : 55;
+  const altPrecision = Math.max(bestPrecision - 20, 30);
   return {
     options: [
-      makeProfile(best, "catalogo"),
-      makeProfile(alt, "catalogo"),
+      makeProfile(best, "catalogo", bestPrecision),
+      makeProfile(alt, "catalogo", altPrecision),
       {
-        ...makeProfile(best, "a_medida"),
+        ...makeProfile(best, "a_medida", Math.max(bestPrecision - 10, 40)),
         title: `${rawText.slice(0, 50).trim()} (personalizado)`,
-        reason: "VistaCEO armó tu perfil exacto a tu caso",
+        reason: "Perfil armado exacto a lo que describiste",
       },
     ],
     needs_clarification: false,
