@@ -172,6 +172,22 @@ const SetupPage = () => {
   };
 
   const handleBack = () => {
+    // Handle manual identity sub-steps
+    if (manualIdentityMode && STEPS[currentStep] === 'identity') {
+      if (manualSubStep === 'type') {
+        setManualSubStep('sector');
+        return;
+      }
+      // Going back from sector → return to AI mode
+      setManualIdentityMode(false);
+      setManualSubStep(null);
+      return;
+    }
+    // If going back to identity step from a later step, reset manual mode so AI shows
+    if (currentStep > 0 && STEPS[currentStep - 1] === 'identity') {
+      setManualIdentityMode(false);
+      setManualSubStep(null);
+    }
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
     }
@@ -361,28 +377,49 @@ const SetupPage = () => {
         // Manual sub-steps (sector → type)
         if (manualIdentityMode && manualSubStep === 'sector') {
           return (
-            <SetupStepSector
-              countryCode={data.countryCode}
-              value={data.areaId}
-              onChange={(areaId) => {
-                setData(d => ({ ...d, areaId, businessTypeId: '' }));
-                setManualSubStep('type');
-              }}
-            />
+            <div className="space-y-4">
+              <SetupStepSector
+                countryCode={data.countryCode}
+                value={data.areaId}
+                onChange={(areaId) => {
+                  setData(d => ({ ...d, areaId, businessTypeId: '' }));
+                  setManualSubStep('type');
+                }}
+              />
+              <div className="flex justify-center">
+                <button
+                  onClick={() => { setManualIdentityMode(false); setManualSubStep(null); }}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5"
+                >
+                  <Brain className="w-4 h-4" />
+                  Volver a probar con IA
+                </button>
+              </div>
+            </div>
           );
         }
         if (manualIdentityMode && manualSubStep === 'type') {
           return (
-            <SetupStepType
-              countryCode={data.countryCode}
-              areaId={data.areaId}
-              value={data.businessTypeId}
-              onChange={(id, label) => {
-                setData(d => ({ ...d, businessTypeId: id, businessTypeLabel: label }));
-                // Auto-advance after selecting type
-                setTimeout(() => setCurrentStep(prev => prev + 1), 300);
-              }}
-            />
+            <div className="space-y-4">
+              <SetupStepType
+                countryCode={data.countryCode}
+                areaId={data.areaId}
+                value={data.businessTypeId}
+                onChange={(id, label) => {
+                  setData(d => ({ ...d, businessTypeId: id, businessTypeLabel: label }));
+                  setTimeout(() => setCurrentStep(prev => prev + 1), 300);
+                }}
+              />
+              <div className="flex justify-center">
+                <button
+                  onClick={() => { setManualIdentityMode(false); setManualSubStep(null); }}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5"
+                >
+                  <Brain className="w-4 h-4" />
+                  Volver a probar con IA
+                </button>
+              </div>
+            </div>
           );
         }
         // AI-first (default)
