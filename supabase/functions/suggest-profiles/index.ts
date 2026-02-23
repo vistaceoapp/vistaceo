@@ -259,6 +259,16 @@ Esto SOLO aplica cuando:
 - El catalog_id de la opción 1 encaja perfectamente
 - NO hay información extra que sugiera un subtipo diferente al del catálogo
 Si hay CUALQUIER duda, dejar "auto_select": false.
+IMPORTANTE: Si el usuario da info extra (ej. "quiero crecer", "más clientes", "vender en todo el país", ubicación, objetivos), NO auto-seleccionar. Esa info es valiosa y debe quedar en auto_select: false para que vea las 3 opciones.
+
+EXTRACCIÓN PROFUNDA DE CONTEXTO:
+Cuando el usuario escribe texto largo con más contexto (objetivos, ubicación, canal de venta, tipo de cliente, aspiraciones, dolores), DEBES capturar TODO en el universal_profile:
+- "user_goals": extraer objetivos mencionados (ej: "crecer", "más clientes", "expandirme")
+- "detected_location": ciudad/país si lo mencionó (solo interno, NO mostrar al usuario)
+- "detected_pains": dolores que mencionó explícitamente
+- "detected_channels": canales que mencionó
+- "raw_context_notes": resumen de TODO lo extra que dijo el usuario, para que el Brain lo use después
+- "tone_and_context": incluir notas de personalización basadas en lo que escribió
 
 Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
 {
@@ -272,29 +282,29 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
       "subtype": "subtipo específico",
       "tags": ["tag1", "tag2", "tag3"],
       "reason": "Máximo 12 palabras, humana",
-      "origin": "catalogo" o "a_medida",
-      "confidence": "alta" o "media" o "baja",
+      "origin": "catalogo o a_medida",
+      "confidence": "alta o media o baja",
       "precision_percent": 92,
       "universal_profile": {
         "display_name": "Nombre para mostrar",
-        "activity_type": "negocio" o "servicio" o "profesión",
+        "activity_type": "negocio o servicio o profesión",
         "parent_sector": "sector macro",
         "subtype": "subtipo específico",
         "keywords": ["10-25 keywords"],
         "offerings": ["productos/servicios principales"],
-        "customer_type": "b2c" o "b2b" o "ambos",
+        "customer_type": "b2c o b2b o ambos",
         "channels": ["canales de venta"],
-        "business_model": "local" o "online" o "mixto" o "a_domicilio" o "suscripción",
+        "business_model": "local o online o mixto o a_domicilio o suscripción",
         "success_metrics": ["3-7 métricas sugeridas"],
         "primary_pains": ["3-7 dolores principales"],
         "opportunity_angles": ["3-7 oportunidades"],
-        "tone_and_context": "notas para el sistema"
+        "tone_and_context": "notas para el sistema",
+        "user_goals": ["objetivos del usuario si los mencionó"],
+        "detected_location": "ubicación si la mencionó o null",
+        "detected_pains": ["dolores explícitos del usuario"],
+        "raw_context_notes": "resumen de todo el contexto extra que dio el usuario"
       }
     }
-  ],
-  "needs_clarification": false,
-  "confidence_top": "alta"
-}
   ],
   "needs_clarification": false,
   "confidence_top": "alta"

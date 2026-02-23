@@ -42,7 +42,7 @@ interface SuggestResponse {
 }
 
 interface SetupStepIdentityAIProps {
-  onSelect: (option: ProfileOption) => void;
+  onSelect: (option: ProfileOption, rawText: string) => void;
   onManualFallback: () => void;
 }
 
@@ -99,7 +99,7 @@ export const SetupStepIdentityAI = ({ onSelect, onManualFallback }: SetupStepIde
       if (data.auto_select === true && data.options[0]?.confidence === 'alta') {
         setThinkingProgress(100);
         setTimeout(() => {
-          onSelect(data.options[0]);
+          onSelect(data.options[0], text.trim());
         }, 600);
         return;
       }
@@ -314,15 +314,15 @@ export const SetupStepIdentityAI = ({ onSelect, onManualFallback }: SetupStepIde
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.12 }}
-                  onClick={() => onSelect(option)}
+                  onClick={() => onSelect(option, text.trim())}
                   className={cn(
-                    "w-full text-left p-5 rounded-2xl border-2 transition-all duration-300 group relative",
+                    "w-full text-left rounded-2xl border-2 transition-all duration-300 group relative overflow-hidden",
                     "hover:shadow-lg hover:scale-[1.01]",
                     i === 0
-                      ? 'border-primary/40 bg-gradient-to-br from-primary/5 to-accent/5 hover:border-primary/60'
+                      ? 'border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 hover:border-primary hover:shadow-primary/20 p-5 ring-1 ring-primary/20'
                       : option.origin === 'a_medida'
-                        ? 'border-accent/30 bg-gradient-to-br from-accent/5 to-primary/5 hover:border-accent/50'
-                        : 'border-border bg-card hover:border-primary/30'
+                        ? 'border-accent/30 bg-gradient-to-br from-accent/5 to-primary/5 hover:border-accent/50 p-5'
+                        : 'border-border bg-card hover:border-primary/30 p-5'
                   )}
                 >
                   {/* Top row: Title + labels */}
