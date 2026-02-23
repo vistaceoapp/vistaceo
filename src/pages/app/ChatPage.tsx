@@ -452,7 +452,7 @@ const ChatPage = () => {
         });
       }
 
-      await fetchMessages();
+      // Messages already updated via setMessages above — skip redundant fetch
     } catch (error) {
       console.error("Error sending message:", error);
       toast({

@@ -50,10 +50,13 @@ const PredictionsPage = lazy(() => import("./pages/app/PredictionsPage"));
 
 const queryClient = new QueryClient();
 
-// Minimal loading spinner
+// Loading skeleton with branding — eliminates blank screen during lazy load
 const PageLoader = () => (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+    <p className="text-sm text-muted-foreground animate-pulse">Cargando...</p>
   </div>
 );
 
