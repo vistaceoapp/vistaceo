@@ -1,15 +1,16 @@
-// Step: Questionnaire v10 - Universal Questions Engine v3
-// Routes to sector-specific questionnaires based on areaId + businessTypeId
-// Supports 180 unique questionnaires (10 sectors × 18 types)
+// Step: Questionnaire v11 - AI-Generated Dynamic Questions
+// Generates personalized questionnaires on-demand using AI
+// Falls back to hardcoded questions if AI fails
 import { motion, AnimatePresence } from 'framer-motion';
-import { useEffect, useMemo, useState } from 'react';
-import { ChevronRight, ChevronLeft, Check, HelpCircle, Sparkles } from 'lucide-react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { ChevronRight, ChevronLeft, Check, HelpCircle, Sparkles, Brain, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { CountryCode, COUNTRY_PACKS, getRevenueRanges, getCurrencyLabel } from '@/lib/countryPacks';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   getUniversalQuestionsForSetup, 
   getUniversalCategoryLabel,
@@ -29,6 +30,22 @@ interface SetupStepQuestionnaireProps {
   onBack?: () => void;
 }
 
+// Loading messages for the AI generation animation
+const LOADING_MESSAGES_ES = [
+  'Analizando tu tipo de negocio...',
+  'Creando preguntas personalizadas...',
+  'Adaptando al contexto de tu industria...',
+  'Preparando diagnóstico inteligente...',
+  'Casi listo...',
+];
+const LOADING_MESSAGES_PT = [
+  'Analisando seu tipo de negócio...',
+  'Criando perguntas personalizadas...',
+  'Adaptando ao contexto da sua indústria...',
+  'Preparando diagnóstico inteligente...',
+  'Quase pronto...',
+];
+
 export const SetupStepQuestionnaire = ({
   countryCode,
   areaId,
@@ -42,28 +59,97 @@ export const SetupStepQuestionnaire = ({
   onBack,
 }: SetupStepQuestionnaireProps) => {
   const [currentIndex, setCurrentIndex] = useState(questionIndex);
+  const [aiQuestions, setAiQuestions] = useState<UniversalQuestion[] | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState(false);
+  const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
+
   const lang = COUNTRY_PACKS[countryCode]?.locale?.startsWith('pt') ? 'pt-BR' : 'es';
   const currency = COUNTRY_PACKS[countryCode]?.currencySymbol || '$';
   const currencyLabel = getCurrencyLabel(countryCode);
   const revenueRanges = getRevenueRanges(countryCode);
+  const loadingMessages = lang === 'pt-BR' ? LOADING_MESSAGES_PT : LOADING_MESSAGES_ES;
 
-  // Get filtered questions based on sector, country, business type, mode, and answers (branching)
-  const activeQuestions = useMemo(() => {
+  // Get universal profile from localStorage
+  const universalProfile = useMemo(() => {
+    try {
+      const stored = localStorage.getItem('setupUniversalProfile');
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  }, []);
+
+  const businessTypeLabel = universalProfile?.subtype_label || universalProfile?.subtype || businessTypeId;
+  const rawUserText = universalProfile?._raw_user_text || '';
+
+  // Generate AI questions on mount
+  const generateQuestions = useCallback(async () => {
+    setIsGenerating(true);
+    setGenerationError(false);
+    setLoadingMsgIndex(0);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-questionnaire', {
+        body: {
+          businessTypeLabel,
+          businessTypeId,
+          areaId,
+          countryCode,
+          setupMode,
+          businessName: localStorage.getItem('setupProgress') 
+            ? JSON.parse(localStorage.getItem('setupProgress') || '{}')?.data?.businessName 
+            : '',
+          rawUserText,
+          universalProfile,
+        },
+      });
+
+      if (error) throw error;
+      
+      if (data?.questions?.length > 0) {
+        setAiQuestions(data.questions);
+        setCurrentIndex(0);
+      } else {
+        throw new Error('No questions generated');
+      }
+    } catch (err) {
+      console.warn('AI questionnaire generation failed, falling back to hardcoded:', err);
+      setGenerationError(true);
+      setAiQuestions(null);
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [businessTypeLabel, businessTypeId, areaId, countryCode, setupMode, rawUserText, universalProfile]);
+
+  useEffect(() => {
+    generateQuestions();
+  }, [generateQuestions]);
+
+  // Cycle loading messages
+  useEffect(() => {
+    if (!isGenerating) return;
+    const interval = setInterval(() => {
+      setLoadingMsgIndex(prev => (prev + 1) % loadingMessages.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [isGenerating, loadingMessages.length]);
+
+  // Fallback to hardcoded questions if AI fails
+  const fallbackQuestions = useMemo(() => {
+    if (!generationError) return [];
     return getUniversalQuestionsForSetup(countryCode, areaId, businessTypeId, setupMode, answers);
-  }, [countryCode, areaId, businessTypeId, setupMode, answers]);
+  }, [generationError, countryCode, areaId, businessTypeId, setupMode, answers]);
 
+  const activeQuestions = aiQuestions || (generationError ? fallbackQuestions : []);
   const currentQuestion = activeQuestions[currentIndex];
   const totalQuestions = activeQuestions.length;
   const progress = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
 
   useEffect(() => {
-    // If branching changes the list and we go out of bounds, clamp the index.
     if (currentIndex >= totalQuestions && totalQuestions > 0) {
       setCurrentIndex(totalQuestions - 1);
     }
   }, [currentIndex, totalQuestions]);
 
-  // Notify parent of question index changes for persistence
   useEffect(() => {
     onQuestionIndexChange?.(currentIndex);
   }, [currentIndex, onQuestionIndexChange]);
@@ -102,16 +188,87 @@ export const SetupStepQuestionnaire = ({
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
     } else if (onBack) {
-      // If at first question and onBack is provided, go back to previous setup step
       onBack();
     }
   };
 
+  // ============= LOADING STATE =============
+  if (isGenerating) {
+    return (
+      <div className="space-y-8 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[400px]">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="relative"
+        >
+          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-accent/20 flex items-center justify-center">
+            <Brain className="w-12 h-12 text-primary animate-pulse" />
+          </div>
+          <motion.div
+            className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-primary/30 flex items-center justify-center"
+            animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Sparkles className="w-3 h-3 text-primary" />
+          </motion.div>
+        </motion.div>
+
+        <div className="space-y-3 text-center">
+          <h3 className="text-xl font-bold text-foreground">
+            {lang === 'pt-BR' ? 'Criando seu diagnóstico' : 'Creando tu diagnóstico'}
+          </h3>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={loadingMsgIndex}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="text-muted-foreground text-sm"
+            >
+              {loadingMessages[loadingMsgIndex]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+
+        {/* Progress dots */}
+        <div className="flex items-center gap-2">
+          {loadingMessages.map((_, i) => (
+            <motion.div
+              key={i}
+              className={cn(
+                "w-2 h-2 rounded-full transition-colors duration-300",
+                i <= loadingMsgIndex ? "bg-primary" : "bg-muted"
+              )}
+              animate={i === loadingMsgIndex ? { scale: [1, 1.4, 1] } : {}}
+              transition={{ duration: 0.6, repeat: Infinity }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ============= NO QUESTIONS =============
+  if (!currentQuestion && !isGenerating) {
+    if (generationError && fallbackQuestions.length === 0) {
+      // Both AI and fallback failed - skip to complete
+      onComplete();
+      return null;
+    }
+    if (activeQuestions.length === 0) {
+      onComplete();
+      return null;
+    }
+  }
+
+  if (!currentQuestion) return null;
+
+  // ============= RENDER INPUT =============
   const renderInput = () => {
     if (!currentQuestion) return null;
 
-    // Special handling for revenue question - use localized ranges
-    if (currentQuestion.id === 'Q_MONTHLY_REVENUE') {
+    // Special handling for revenue question
+    if (currentQuestion.id === 'Q_MONTHLY_REVENUE' || currentQuestion.id === 'Q_AI_MONTHLY_REVENUE') {
       return (
         <div className="grid grid-cols-1 gap-3">
           {revenueRanges.map((option) => {
@@ -140,7 +297,7 @@ export const SetupStepQuestionnaire = ({
     switch (currentQuestion.type) {
       case 'single':
         return (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {currentQuestion.options?.map((option) => {
               const isSelected = getCurrentValue() === option.id;
               return (
@@ -155,7 +312,7 @@ export const SetupStepQuestionnaire = ({
                   )}
                 >
                   {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
-                  <span className={cn("font-medium", isSelected && "text-primary")}>
+                  <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
                     {option.label[lang] || option.label.es}
                   </span>
                 </button>
@@ -164,10 +321,10 @@ export const SetupStepQuestionnaire = ({
           </div>
         );
 
-      case 'multi':
+      case 'multi': {
         const selectedItems = (getCurrentValue() as string[]) || [];
         return (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {currentQuestion.options?.map((option) => {
               const isSelected = selectedItems.includes(option.id);
               return (
@@ -185,7 +342,7 @@ export const SetupStepQuestionnaire = ({
                     <Check className="absolute top-2 right-2 w-4 h-4 text-primary" />
                   )}
                   {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
-                  <span className={cn("font-medium", isSelected && "text-primary")}>
+                  <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
                     {option.label[lang] || option.label.es}
                   </span>
                 </button>
@@ -193,6 +350,7 @@ export const SetupStepQuestionnaire = ({
             })}
           </div>
         );
+      }
 
       case 'number':
       case 'money':
@@ -223,7 +381,7 @@ export const SetupStepQuestionnaire = ({
           </div>
         );
 
-      case 'slider':
+      case 'slider': {
         const sliderValue = getCurrentValue() ?? currentQuestion.min ?? 0;
         return (
           <div className="space-y-6 py-4">
@@ -247,6 +405,7 @@ export const SetupStepQuestionnaire = ({
             </div>
           </div>
         );
+      }
 
       case 'text':
         return (
@@ -264,11 +423,7 @@ export const SetupStepQuestionnaire = ({
     }
   };
 
-  if (!currentQuestion) {
-    // No questions for this combination, skip to complete
-    onComplete();
-    return null;
-  }
+  const categoryLabel = getUniversalCategoryLabel(currentQuestion.category, lang);
 
   return (
     <div className="space-y-6 max-w-lg mx-auto">
@@ -277,7 +432,7 @@ export const SetupStepQuestionnaire = ({
         <div className="flex items-center justify-between text-sm">
           <Badge variant="secondary" className="gap-1">
             <Sparkles className="w-3 h-3" />
-            {getUniversalCategoryLabel(currentQuestion.category, lang)}
+            {categoryLabel}
           </Badge>
           <span className="text-muted-foreground">
             {currentIndex + 1} / {totalQuestions}
@@ -301,15 +456,25 @@ export const SetupStepQuestionnaire = ({
           exit={{ opacity: 0, x: -20 }}
           className="space-y-6"
         >
+          {/* AI badge */}
+          {aiQuestions && (
+            <div className="flex justify-center">
+              <Badge variant="outline" className="gap-1 text-xs text-primary border-primary/30">
+                <Brain className="w-3 h-3" />
+                {lang === 'pt-BR' ? 'Personalizado com IA' : 'Personalizado con IA'}
+              </Badge>
+            </div>
+          )}
+
           {/* Question */}
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold text-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-snug">
               {currentQuestion.title[lang] || currentQuestion.title.es}
             </h2>
             {currentQuestion.help && (
-              <p className="text-muted-foreground flex items-center justify-center gap-2">
-                <HelpCircle className="w-4 h-4" />
-                {currentQuestion.help[lang] || currentQuestion.help.es}
+              <p className="text-muted-foreground text-sm flex items-center justify-center gap-2">
+                <HelpCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{currentQuestion.help[lang] || currentQuestion.help.es}</span>
               </p>
             )}
           </div>
