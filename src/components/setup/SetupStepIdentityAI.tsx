@@ -17,6 +17,7 @@ interface ProfileOption {
   reason: string;
   origin: 'catalogo' | 'a_medida';
   confidence: 'alta' | 'media' | 'baja';
+  precision_percent: number;
   universal_profile: {
     display_name: string;
     activity_type: string;
@@ -286,7 +287,7 @@ export const SetupStepIdentityAI = ({ onSelect, onManualFallback }: SetupStepIde
           </motion.div>
         )}
 
-        {/* STATE: RESULTS - 3 Cards */}
+        {/* STATE: RESULTS - 3 Cards Premium */}
         {state === 'results' && (
           <motion.div
             key="results"
@@ -295,97 +296,100 @@ export const SetupStepIdentityAI = ({ onSelect, onManualFallback }: SetupStepIde
             exit={{ opacity: 0, y: -20 }}
             className="space-y-5"
           >
-            <div className="text-center mb-2">
+            {/* Header */}
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                Elegí la opción que mejor te describe
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Basado en: "<span className="text-foreground font-medium">{text.slice(0, 50)}{text.length > 50 ? '...' : ''}</span>"
+                Con esto personalizamos tu cuenta desde ahora
               </p>
             </div>
 
-            <div className="grid gap-4">
+            {/* 3 Cards */}
+            <div className="grid gap-3">
               {options.map((option, i) => (
                 <motion.button
                   key={i}
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.15 }}
+                  transition={{ delay: i * 0.12 }}
                   onClick={() => onSelect(option)}
                   className={cn(
-                    "w-full text-left p-5 rounded-2xl border-2 transition-all duration-300 group",
-                    "hover:border-primary/50 hover:shadow-lg hover:scale-[1.01]",
-                    option.origin === 'a_medida'
-                      ? 'border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5'
-                      : 'border-border bg-card hover:bg-accent/5'
+                    "w-full text-left p-5 rounded-2xl border-2 transition-all duration-300 group relative",
+                    "hover:shadow-lg hover:scale-[1.01]",
+                    i === 0
+                      ? 'border-primary/40 bg-gradient-to-br from-primary/5 to-accent/5 hover:border-primary/60'
+                      : option.origin === 'a_medida'
+                        ? 'border-accent/30 bg-gradient-to-br from-accent/5 to-primary/5 hover:border-accent/50'
+                        : 'border-border bg-card hover:border-primary/30'
                   )}
                 >
-                  <div className="flex items-start gap-4">
-                    {/* Number badge */}
-                    <div className={cn(
-                      "flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg",
-                      option.origin === 'a_medida'
-                        ? 'bg-gradient-to-br from-primary to-accent text-primary-foreground'
-                        : 'bg-secondary text-foreground'
-                    )}>
-                      {i + 1}
-                    </div>
-
+                  {/* Top row: Title + labels */}
+                  <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex-1 min-w-0">
-                      {/* Title */}
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-base font-semibold text-foreground truncate">
-                          {option.title}
-                        </h3>
-                        {option.origin === 'a_medida' && (
-                          <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
-                            <Sparkles className="w-3 h-3" />
-                            A medida
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Sector + subtype */}
-                      <p className="text-sm text-muted-foreground mb-2">
+                      <h4 className="text-base font-semibold text-foreground truncate">
+                        {option.title}
+                      </h4>
+                      <p className="text-sm text-muted-foreground mt-0.5">
                         {option.sector_label} · {option.subtype}
                       </p>
-
-                      {/* Reason */}
-                      <p className="text-xs text-muted-foreground/80 italic mb-3">
-                        {option.reason}
-                      </p>
-
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {option.tags.slice(0, 3).map((tag, ti) => (
-                          <span key={ti} className="px-2 py-0.5 rounded-md bg-secondary text-[10px] text-muted-foreground">
-                            {tag}
-                          </span>
-                        ))}
-                        <span className={cn(
-                          "px-2 py-0.5 rounded-md text-[10px] font-medium",
-                          option.confidence === 'alta' ? 'bg-primary/10 text-primary' :
-                          option.confidence === 'media' ? 'bg-secondary text-muted-foreground' :
-                          'bg-destructive/10 text-destructive'
-                        )}>
-                          {option.confidence === 'alta' ? '✓ Alta confianza' : option.confidence === 'media' ? '~ Media confianza' : '? Baja confianza'}
+                    </div>
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      {i === 0 && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
+                          <Check className="w-3 h-3" />
+                          Recomendado
                         </span>
-                      </div>
-
-                      {/* A medida preview */}
-                      {option.origin === 'a_medida' && option.universal_profile && (
-                        <div className="mt-3 p-3 rounded-xl bg-background/50 border border-border/50 space-y-1">
-                          <p className="text-[10px] text-primary font-semibold uppercase tracking-wider">VistaCEO arma tu perfil exacto</p>
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
-                            <span>📌 {option.universal_profile.activity_type}</span>
-                            <span>👥 {option.universal_profile.customer_type}</span>
-                            <span>🏪 {option.universal_profile.business_model}</span>
-                            <span>📊 {option.universal_profile.success_metrics.length} métricas</span>
-                          </div>
-                        </div>
+                      )}
+                      {option.origin === 'a_medida' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/10 text-accent-foreground text-[11px] font-semibold">
+                          <Sparkles className="w-3 h-3" />
+                          A medida
+                        </span>
                       )}
                     </div>
-
-                    {/* Arrow */}
-                    <ChevronRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-primary transition-colors flex-shrink-0 mt-2" />
                   </div>
+
+                  {/* Precision + Reason */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className={cn(
+                      "inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold",
+                      (option.precision_percent ?? 0) >= 80
+                        ? 'bg-primary/10 text-primary'
+                        : (option.precision_percent ?? 0) >= 60
+                          ? 'bg-secondary text-foreground'
+                          : 'bg-secondary text-muted-foreground'
+                    )}>
+                      Precisión {option.precision_percent ?? 0}%
+                    </span>
+                    <p className="text-xs text-muted-foreground italic truncate">
+                      {option.reason}
+                    </p>
+                  </div>
+
+                  {/* Tags */}
+                  {option.tags && option.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {option.tags.slice(0, 3).map((tag, ti) => (
+                        <span key={ti} className="px-2 py-0.5 rounded-md bg-secondary text-[10px] text-muted-foreground">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* A medida premium line */}
+                  {option.origin === 'a_medida' && (
+                    <div className="mt-3 pt-3 border-t border-border/50">
+                      <p className="text-xs text-muted-foreground">
+                        <span className="text-primary font-medium">VistaCEO</span> te arma tu perfil exacto y lo deja listo para personalizar
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Arrow */}
+                  <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
                 </motion.button>
               ))}
             </div>
