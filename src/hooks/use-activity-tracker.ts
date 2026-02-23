@@ -15,7 +15,11 @@ type EventType =
   | 'checkin'
   | 'prediction_view'
   | 'subscription_start'
-  | 'feature_use';
+  | 'feature_use'
+  | 'setup_started'
+  | 'setup_step_viewed'
+  | 'setup_completed'
+  | 'setup_wow_shown';
 
 interface TrackEventOptions {
   eventType: EventType;
@@ -112,6 +116,23 @@ export function useActivityTracker() {
     });
   }, [trackEvent]);
 
+  // Track setup events
+  const trackSetupStarted = useCallback((details?: Record<string, unknown>) => {
+    trackEvent({ eventType: 'setup_started', eventData: details, pagePath: '/setup' });
+  }, [trackEvent]);
+
+  const trackSetupStepViewed = useCallback((stepId: string, stepIndex: number) => {
+    trackEvent({ eventType: 'setup_step_viewed', eventData: { stepId, stepIndex }, pagePath: '/setup' });
+  }, [trackEvent]);
+
+  const trackSetupCompleted = useCallback((details?: Record<string, unknown>) => {
+    trackEvent({ eventType: 'setup_completed', eventData: details, pagePath: '/setup' });
+  }, [trackEvent]);
+
+  const trackSetupWowShown = useCallback((details?: Record<string, unknown>) => {
+    trackEvent({ eventType: 'setup_wow_shown', eventData: details, pagePath: '/setup-complete' });
+  }, [trackEvent]);
+
   return {
     trackEvent,
     trackPageView,
@@ -122,5 +143,9 @@ export function useActivityTracker() {
     trackCheckin,
     trackLogin,
     trackFeatureUse,
+    trackSetupStarted,
+    trackSetupStepViewed,
+    trackSetupCompleted,
+    trackSetupWowShown,
   };
 }

@@ -1,5 +1,5 @@
 // Setup Page v7.0 - Complete Rebuild
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { CountryCode, COUNTRY_PACKS } from '@/lib/countryPacks';
 import { analyzeHealthFromAnswers } from '@/lib/gastroQuestionsEngine';
 
@@ -59,8 +60,10 @@ const SetupPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { refreshBusinesses, setCurrentBusiness, businesses } = useBusiness();
+  const { trackSetupStarted, trackSetupStepViewed, trackSetupCompleted } = useActivityTracker();
   const [creatingBusiness, setCreatingBusiness] = useState(false);
   const [createProgress, setCreateProgress] = useState(0);
+  const setupStartTracked = useRef(false);
   
   // Check if user already has Pro (from pre-setup purchase stored in localStorage)
   const hasPendingProPurchase = localStorage.getItem('proPurchaseCompleted') === 'true';
@@ -137,6 +140,19 @@ const SetupPage = () => {
       }
     }
   }, [businesses, navigate]);
+
+  // Track setup_started once
+  useEffect(() => {
+    if (!setupStartTracked.current && user) {
+      setupStartTracked.current = true;
+      trackSetupStarted({ countryCode: data.countryCode });
+    }
+  }, [user]);
+
+  // Track step views
+  useEffect(() => {
+    trackSetupStepViewed(STEPS[currentStep], currentStep);
+  }, [currentStep]);
 
   const stepId = STEPS[currentStep];
   const totalSteps = STEPS.length;
@@ -338,6 +354,16 @@ const SetupPage = () => {
       // Clear saved progress since setup is complete
       clearSavedProgress();
       localStorage.removeItem('selectedCountryCode');
+
+      // Track setup completed
+      trackSetupCompleted({
+        countryCode: data.countryCode,
+        areaId: data.areaId,
+        businessTypeId: data.businessTypeId,
+        setupMode: data.setupMode,
+        precisionScore,
+        durationMs: Date.now() - (savedState?.timestamp || Date.now()),
+      });
 
       // Step 6: Send "Activated" email (fire and forget - don't block navigation)
       supabase.functions.invoke('send-email-activated', {
