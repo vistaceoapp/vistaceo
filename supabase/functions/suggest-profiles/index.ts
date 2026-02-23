@@ -248,8 +248,18 @@ REGLAS ABSOLUTAS:
 6. Capturar subtipo real: "pizzería" NO es "gastronomía genérica", "abogado penalista" NO es "servicios profesionales genérico"
 7. Entender ortografía horrible, jerga LATAM, mezclas de idiomas
 
+AUTO-SELECCIÓN:
+Si la opción 1 es un match PERFECTO e INDUDABLE al catálogo (por ejemplo el usuario escribió "pizzería" y el match es "Pizzería", o "abogado" y el match es "Estudio Jurídico / Abogado"), entonces agregar "auto_select": true en el JSON raíz.
+Esto SOLO aplica cuando:
+- La confianza de la opción 1 es "alta"
+- El texto del usuario describe claramente UNA sola actividad sin ambigüedad
+- El catalog_id de la opción 1 encaja perfectamente
+- NO hay información extra que sugiera un subtipo diferente al del catálogo
+Si hay CUALQUIER duda, dejar "auto_select": false.
+
 Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
 {
+  "auto_select": false,
   "options": [
     {
       "title": "Nombre claro de la actividad",
@@ -277,6 +287,10 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
         "tone_and_context": "notas para el sistema"
       }
     }
+  ],
+  "needs_clarification": false,
+  "confidence_top": "alta"
+}
   ],
   "needs_clarification": false,
   "confidence_top": "alta"
