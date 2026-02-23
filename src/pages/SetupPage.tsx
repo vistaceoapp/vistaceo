@@ -206,7 +206,7 @@ const SetupPage = () => {
         .from('businesses')
         .insert({
           name: data.businessName.trim(),
-          category: 'restaurant',
+          category: (data.areaId || 'restaurant') as any,
           country: data.countryCode,
           owner_id: user.id,
           setup_completed: true,

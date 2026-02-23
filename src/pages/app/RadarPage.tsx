@@ -480,19 +480,19 @@ const RadarPage = () => {
     if (!item || !currentBusiness) return;
     
     try {
-      // Record dismissal in brain for future filtering (LEARNING)
-      await supabase.from("signals").insert({
-        business_id: currentBusiness.id,
-        signal_type: "research_dismissed",
-        source: "radar_externo",
-        content: {
-          learning_item_id: item.id,
-          learning_title: item.title,
-          item_type: item.item_type,
-          reason: "user_not_interested",
-        },
-        raw_text: `Usuario descartó insight I+D: ${item.title}`,
-        importance: 5,
+      // Record dismissal in brain via edge function (no direct 'signals' table)
+      await supabase.functions.invoke("brain-record-signal", {
+        body: {
+          businessId: currentBusiness.id,
+          signalType: "research_dismissed",
+          content: {
+            learning_item_id: item.id,
+            learning_title: item.title,
+            item_type: item.item_type,
+            reason: "user_not_interested",
+          },
+          source: "radar_externo",
+        }
       });
 
       // Delete the learning item
@@ -553,19 +553,19 @@ const RadarPage = () => {
 
       if (missionError) throw missionError;
 
-      // Record signal in brain for learning
-      await supabase.from("signals").insert({
-        business_id: currentBusiness.id,
-        signal_type: "research_converted",
-        source: "radar_externo",
-        content: {
-          learning_item_id: learningItem.id,
-          learning_title: learningItem.title,
-          mission_id: missionData.id,
-          item_type: learningItem.item_type,
-        },
-        raw_text: `Usuario convirtió insight I+D a misión: ${learningItem.title}`,
-        importance: 8,
+      // Record signal in brain via edge function
+      await supabase.functions.invoke("brain-record-signal", {
+        body: {
+          businessId: currentBusiness.id,
+          signalType: "research_converted",
+          content: {
+            learning_item_id: learningItem.id,
+            learning_title: learningItem.title,
+            mission_id: missionData.id,
+            item_type: learningItem.item_type,
+          },
+          source: "radar_externo",
+        }
       });
 
       // Delete learning item after conversion

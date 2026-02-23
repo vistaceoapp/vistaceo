@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Plus, Settings2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -45,6 +45,7 @@ interface Message {
 
 const ChatPage = () => {
   const { currentBusiness } = useBusiness();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -492,7 +493,7 @@ const ChatPage = () => {
         <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
           Tu mentor ejecutivo para gestionar tu negocio de manera inteligente.
         </p>
-        <Button variant="default" size="lg" onClick={() => (window.location.href = "/setup")} className="gradient-primary">
+        <Button variant="default" size="lg" onClick={() => navigate("/setup")} className="gradient-primary">
           Configurar negocio
         </Button>
       </div>
