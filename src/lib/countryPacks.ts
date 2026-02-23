@@ -285,12 +285,34 @@ export const getLocalizedCopy = (countryCode: CountryCode, key: 'welcome' | 'men
 
 // Business types con presets
 export const BUSINESS_TYPES = [
-  { value: 'restaurant', label: { es: 'Restaurante', pt: 'Restaurante', en: 'Restaurant' }, emoji: '🍽️' },
-  { value: 'cafeteria', label: { es: 'Cafetería', pt: 'Cafeteria', en: 'Café' }, emoji: '☕' },
-  { value: 'bar', label: { es: 'Bar', pt: 'Bar', en: 'Bar' }, emoji: '🍺' },
-  { value: 'fast_casual', label: { es: 'Fast Casual / QSR', pt: 'Fast Casual / QSR', en: 'Fast Casual / QSR' }, emoji: '🍔' },
-  { value: 'food_truck', label: { es: 'Food Truck', pt: 'Food Truck', en: 'Food Truck' }, emoji: '🚚' },
-  { value: 'dark_kitchen', label: { es: 'Cocina Oculta', pt: 'Dark Kitchen', en: 'Ghost Kitchen' }, emoji: '👨‍🍳' },
+  // Gastronomía
+  { value: 'restaurant', label: { es: 'Restaurante', pt: 'Restaurante', en: 'Restaurant' }, emoji: '🍽️', category: 'gastronomia' },
+  { value: 'cafeteria', label: { es: 'Cafetería', pt: 'Cafeteria', en: 'Café' }, emoji: '☕', category: 'gastronomia' },
+  { value: 'bar', label: { es: 'Bar', pt: 'Bar', en: 'Bar' }, emoji: '🍺', category: 'gastronomia' },
+  { value: 'fast_casual', label: { es: 'Fast Casual / QSR', pt: 'Fast Casual / QSR', en: 'Fast Casual / QSR' }, emoji: '🍔', category: 'gastronomia' },
+  { value: 'food_truck', label: { es: 'Food Truck', pt: 'Food Truck', en: 'Food Truck' }, emoji: '🚚', category: 'gastronomia' },
+  { value: 'dark_kitchen', label: { es: 'Cocina Oculta', pt: 'Dark Kitchen', en: 'Ghost Kitchen' }, emoji: '👨‍🍳', category: 'gastronomia' },
+  // Comercio y Retail
+  { value: 'retail', label: { es: 'Comercio / Tienda', pt: 'Comércio / Loja', en: 'Retail / Store' }, emoji: '🏪', category: 'comercio' },
+  { value: 'ecommerce', label: { es: 'E-commerce', pt: 'E-commerce', en: 'E-commerce' }, emoji: '🛒', category: 'ecommerce' },
+  // Servicios profesionales
+  { value: 'servicio_profesional', label: { es: 'Servicio Profesional', pt: 'Serviço Profissional', en: 'Professional Service' }, emoji: '💼', category: 'servicio_profesional' },
+  { value: 'freelancer', label: { es: 'Freelancer', pt: 'Freelancer', en: 'Freelancer' }, emoji: '🎯', category: 'freelancer' },
+  { value: 'agencia', label: { es: 'Agencia', pt: 'Agência', en: 'Agency' }, emoji: '🏢', category: 'agencia' },
+  // B2B
+  { value: 'b2b', label: { es: 'Empresa B2B', pt: 'Empresa B2B', en: 'B2B Business' }, emoji: '🤝', category: 'b2b' },
+  // Salud
+  { value: 'salud', label: { es: 'Salud / Bienestar', pt: 'Saúde / Bem-estar', en: 'Health / Wellness' }, emoji: '🏥', category: 'salud' },
+  // Educación
+  { value: 'educacion', label: { es: 'Educación / Cursos', pt: 'Educação / Cursos', en: 'Education / Courses' }, emoji: '📚', category: 'educacion' },
+  // Creador profesional
+  { value: 'creador_profesional', label: { es: 'Creador / Influencer', pt: 'Criador / Influencer', en: 'Creator / Influencer' }, emoji: '🎬', category: 'creador_profesional' },
+  // Turismo y hotelería
+  { value: 'turismo', label: { es: 'Turismo / Hotelería', pt: 'Turismo / Hotelaria', en: 'Tourism / Hospitality' }, emoji: '🏨', category: 'turismo' },
+  // Industria ligera
+  { value: 'industria', label: { es: 'Industria / Manufactura', pt: 'Indústria / Manufatura', en: 'Industry / Manufacturing' }, emoji: '🏭', category: 'industria' },
+  // Otro
+  { value: 'otro', label: { es: 'Otro', pt: 'Outro', en: 'Other' }, emoji: '⚡', category: 'otro' },
 ] as const;
 
 export const SERVICE_MODELS = [
