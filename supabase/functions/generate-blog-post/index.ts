@@ -523,6 +523,17 @@ function sanitizeAIGeneratedMarkdown(md: string): string {
   clean = clean.replace(/%3C\/?a(?:\s[^%]*)?\s*%3E/gi, '');
   clean = clean.replace(/%3C\/?(?:div|span|p|img|br)\s*(?:[^%]*)%3E/gi, '');
   
+  // CRITICAL: Convert raw HTML heading tags to markdown headings
+  clean = clean.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1');
+  clean = clean.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1');
+  clean = clean.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1');
+  clean = clean.replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1');
+  clean = clean.replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1');
+  clean = clean.replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1');
+  
+  // Convert raw <hr> tags to markdown
+  clean = clean.replace(/<hr\s*[^>]*\/?>/gi, '\n---\n');
+  
   // Remove raw HTML block tags (keep inner text)
   clean = clean.replace(/<(?:div|span|section|article|header|footer|nav|p|br)\s*[^>]*>/gi, '');
   clean = clean.replace(/<\/(?:div|span|section|article|header|footer|nav|p|br)>/gi, '');
