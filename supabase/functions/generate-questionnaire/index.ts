@@ -257,12 +257,105 @@ Responde usando la función generate_questions.`;
     const result = await response.json();
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
     
-    if (!toolCall?.function?.arguments) {
-      throw new Error("No tool call response from AI");
-    }
+    let questions: any[] = [];
+    
+    if (toolCall?.function?.arguments) {
+      const parsed = JSON.parse(toolCall.function.arguments);
+      questions = parsed.questions || [];
+    } else {
+      // Fallback: try to extract JSON from content (model returned text instead of tool call)
+      const content = result.choices?.[0]?.message?.content || '';
+      console.warn("No tool call, attempting content parse. Content length:", content.length);
+      
+      // Try to find JSON array in the content
+      const jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
+      if (jsonMatch) {
+        try {
+          questions = JSON.parse(jsonMatch[0]);
+        } catch { /* ignore parse error */ }
+      }
+      
+      // If still no questions, try finding {questions: [...]} pattern
+      if (questions.length === 0) {
+        const objMatch = content.match(/\{[\s\S]*"questions"\s*:\s*\[[\s\S]*\][\s\S]*\}/);
+        if (objMatch) {
+          try {
+            const obj = JSON.parse(objMatch[0]);
+            questions = obj.questions || [];
+          } catch { /* ignore */ }
+        }
+      }
+      
+      // If still empty, retry once with the main model
+      if (questions.length === 0) {
+        console.warn("Content parse failed, retrying with gemini-2.5-flash");
+        const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            tools: [
+              {
+                type: "function",
+                function: {
+                  name: "generate_questions",
+                  description: `Generate exactly ${questionCount} ultra-personalized diagnostic questions.`,
+                  parameters: {
+                    type: "object",
+                    properties: {
+                      questions: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            id: { type: "string" },
+                            category: { type: "string", enum: [...CATEGORIES] },
+                            mode: { type: "string", enum: ["quick", "complete", "both"] },
+                            dimension: { type: "string", enum: [...DIMENSIONS] },
+                            weight: { type: "number", minimum: 1, maximum: 10 },
+                            title: { type: "object", properties: { es: { type: "string" }, "pt-BR": { type: "string" } }, required: ["es", "pt-BR"] },
+                            help: { type: "object", properties: { es: { type: "string" }, "pt-BR": { type: "string" } } },
+                            type: { type: "string", enum: ["single", "multi", "number", "slider", "text", "money"] },
+                            options: { type: "array", items: { type: "object", properties: { id: { type: "string" }, label: { type: "object", properties: { es: { type: "string" }, "pt-BR": { type: "string" } }, required: ["es", "pt-BR"] }, emoji: { type: "string" }, impactScore: { type: "number" } }, required: ["id", "label"] } },
+                            min: { type: "number" }, max: { type: "number" }, unit: { type: "string" },
+                            required: { type: "boolean" },
+                          },
+                          required: ["id", "category", "mode", "dimension", "weight", "title", "type"],
+                        },
+                      },
+                    },
+                    required: ["questions"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+            ],
+            tool_choice: { type: "function", function: { name: "generate_questions" } },
+            temperature: 0.4,
+          }),
+        });
 
-    const parsed = JSON.parse(toolCall.function.arguments);
-    const questions = parsed.questions || [];
+        if (retryResponse.ok) {
+          const retryResult = await retryResponse.json();
+          const retryToolCall = retryResult.choices?.[0]?.message?.tool_calls?.[0];
+          if (retryToolCall?.function?.arguments) {
+            const retryParsed = JSON.parse(retryToolCall.function.arguments);
+            questions = retryParsed.questions || [];
+          }
+        }
+        
+        if (questions.length === 0) {
+          throw new Error("No tool call response from AI after retry");
+        }
+      }
+    }
 
     // Validate and sanitize questions
     const validQuestions = questions
