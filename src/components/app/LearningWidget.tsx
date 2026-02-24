@@ -14,6 +14,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
+import { sourceLabel } from "@/lib/presentationRegistry";
 import { toast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -256,7 +257,7 @@ export const LearningWidget = ({ variant = "compact" }: LearningWidgetProps) => 
             )}
             {selectedItem?.source && (
               <p className="text-xs text-muted-foreground mt-4">
-                Fuente: {selectedItem.source}
+                Fuente: {sourceLabel(selectedItem.source)}
               </p>
             )}
           </DialogContent>
@@ -273,7 +274,7 @@ export const LearningWidget = ({ variant = "compact" }: LearningWidgetProps) => 
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-primary" />
-              Learning & Tendencias
+              Aprendizaje y Tendencias
             </span>
             <Button variant="outline" size="sm" onClick={generateLearningItems} disabled={generating}>
               <Sparkles className={cn("w-4 h-4 mr-2", generating && "animate-spin")} />
@@ -300,7 +301,7 @@ export const LearningWidget = ({ variant = "compact" }: LearningWidgetProps) => 
                         {badgeInfo.label}
                       </Badge>
                       {item.source && (
-                        <span className="text-xs text-muted-foreground">{item.source}</span>
+                        <span className="text-xs text-muted-foreground">{sourceLabel(item.source)}</span>
                       )}
                     </div>
                     <h4 className="font-medium text-foreground mb-1">{item.title}</h4>
@@ -344,7 +345,7 @@ export const LearningWidget = ({ variant = "compact" }: LearningWidgetProps) => 
           )}
           {selectedItem?.source && (
             <p className="text-xs text-muted-foreground mt-4">
-              Fuente: {selectedItem.source}
+              Fuente: {sourceLabel(selectedItem.source)}
             </p>
           )}
         </DialogContent>

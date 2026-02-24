@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { categoryLabel } from "@/lib/presentationRegistry";
 
 interface ChatSuggestionCardProps {
   icon: string;
@@ -42,7 +43,7 @@ export const ChatSuggestionCard = ({
             {title}
           </p>
           <span className="inline-block mt-2 px-2 py-0.5 rounded-md bg-secondary text-xs text-muted-foreground">
-            {category}
+            {categoryLabel(category)}
           </span>
         </div>
       </div>
