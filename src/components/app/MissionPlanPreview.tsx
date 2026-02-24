@@ -9,6 +9,7 @@ import {
   Zap, BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 
 interface PlanStep {
   text: string;
@@ -206,7 +207,7 @@ export const MissionPlanPreview = ({
                           {step.howTo.map((item, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm text-foreground">
                               <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                              {item}
+                              {sanitizeAIOutput(item)}
                             </li>
                           ))}
                         </ul>
@@ -220,7 +221,7 @@ export const MissionPlanPreview = ({
                           Por qué es importante
                         </h5>
                         <p className="text-sm text-foreground bg-secondary/30 rounded-lg p-3">
-                          {step.why}
+                          {sanitizeAIOutput(step.why)}
                         </p>
                       </div>
                     )}
@@ -230,7 +231,7 @@ export const MissionPlanPreview = ({
                       <div className="flex items-center gap-2 text-sm">
                         <TrendingUp className="w-4 h-4 text-success" />
                         <span className="text-muted-foreground">Métrica:</span>
-                        <span className="text-foreground">{step.metric}</span>
+                        <span className="text-foreground">{sanitizeAIOutput(step.metric)}</span>
                       </div>
                     )}
 
@@ -241,7 +242,7 @@ export const MissionPlanPreview = ({
                           <Lightbulb className="w-4 h-4" />
                           <span className="text-xs font-semibold">Tip para tu negocio</span>
                         </div>
-                        <p className="text-sm text-foreground">{step.tips[0]}</p>
+                        <p className="text-sm text-foreground">{sanitizeAIOutput(step.tips[0])}</p>
                       </div>
                     )}
                   </div>
@@ -263,7 +264,7 @@ export const MissionPlanPreview = ({
             {plan.businessSpecificTips.slice(0, 3).map((tip, i) => (
               <li key={i} className="text-sm text-foreground flex items-start gap-2">
                 <span className="text-primary">•</span>
-                {tip}
+                {sanitizeAIOutput(tip)}
               </li>
             ))}
           </ul>
@@ -281,7 +282,7 @@ export const MissionPlanPreview = ({
             {plan.potentialChallenges.slice(0, 2).map((challenge, i) => (
               <li key={i} className="text-sm text-foreground flex items-start gap-2">
                 <span className="text-destructive">•</span>
-                {challenge}
+                {sanitizeAIOutput(challenge)}
               </li>
             ))}
           </ul>

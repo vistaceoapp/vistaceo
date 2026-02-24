@@ -16,6 +16,7 @@ import {
   Link2, Bookmark, Sparkles, RefreshCw, Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { 
@@ -125,7 +126,7 @@ const ImpactBar = ({ score, type }: { score: number; type: "impact" | "effort" }
 // Generate business-specific trigger
 const getTrigger = (opportunity: Opportunity, business: Business | null): string => {
   const evidence = opportunity.evidence as OpportunityEvidence | null;
-  if (evidence?.trigger) return evidence.trigger;
+  if (evidence?.trigger) return sanitizeAIOutput(evidence.trigger);
   const businessName = business?.name || "tu negocio";
   const sourceInfo = getSourceInfo(opportunity.source);
   return `Detectado a través de ${sourceInfo.label.toLowerCase()} en ${businessName}`;
@@ -138,10 +139,13 @@ const getWhyItApplies = (opportunity: Opportunity, business: Business | null): s
   const businessName = business?.name || "tu negocio";
   
   if (evidence?.signals?.length) {
-    evidence.signals.slice(0, 2).forEach(signal => bullets.push(signal));
+    evidence.signals.slice(0, 2).forEach(signal => {
+      const clean = sanitizeAIOutput(signal);
+      if (clean.length > 3) bullets.push(clean);
+    });
   }
   if (evidence?.basedOn?.length) {
-    evidence.basedOn.slice(0, 2).forEach(reason => bullets.push(reason));
+    // basedOn usually contains raw codes like Q_BIO_104 - skip them
   }
   if (opportunity.source === "reviews") {
     bullets.push(`Patrón detectado en reseñas de ${businessName}`);
@@ -260,7 +264,7 @@ export const OpportunityDetailEnhanced = ({
             </Badge>
           )}
         </div>
-        <DialogTitle className="text-xl leading-tight">{opportunity.title}</DialogTitle>
+        <DialogTitle className="text-xl leading-tight">{sanitizeAIOutput(opportunity.title)}</DialogTitle>
         <DialogDescription className="text-sm">
           Para {business?.name || "tu negocio"} • {business?.category || "Gastronomía"}
         </DialogDescription>
@@ -275,7 +279,7 @@ export const OpportunityDetailEnhanced = ({
               Qué es
             </h4>
             <p className="text-sm text-foreground leading-relaxed">
-              {opportunity.description || "Oportunidad de mejora detectada para optimizar esta área de tu negocio."}
+              {sanitizeAIOutput(opportunity.description) || "Oportunidad de mejora detectada para optimizar esta área de tu negocio."}
             </p>
           </div>
 
@@ -292,7 +296,7 @@ export const OpportunityDetailEnhanced = ({
                   Regenerar
                 </Button>
               </div>
-              <p className="text-sm text-foreground mb-3">{aiPlan.planSummary}</p>
+              <p className="text-sm text-foreground mb-3">{sanitizeAIOutput(aiPlan.planSummary)}</p>
               <div className="flex flex-wrap gap-2 text-xs">
                 <Badge variant="outline" className="bg-background">
                   <Clock className="w-3 h-3 mr-1" />
@@ -306,7 +310,7 @@ export const OpportunityDetailEnhanced = ({
               {aiPlan.expectedResult && (
                 <p className="text-xs text-success mt-2 flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
-                  Resultado esperado: {aiPlan.expectedResult}
+                  Resultado esperado: {sanitizeAIOutput(aiPlan.expectedResult)}
                 </p>
               )}
             </div>
@@ -446,7 +450,7 @@ export const OpportunityDetailEnhanced = ({
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
-                          <h5 className="font-medium text-foreground text-sm">{step.title}</h5>
+                          <h5 className="font-medium text-foreground text-sm">{sanitizeAIOutput(step.title)}</h5>
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-[10px]">
                               <Clock className="w-3 h-3 mr-1" />
@@ -457,7 +461,7 @@ export const OpportunityDetailEnhanced = ({
                             </Badge>
                           </div>
                         </div>
-                        <p className="text-xs text-muted-foreground mb-2">{step.description}</p>
+                        <p className="text-xs text-muted-foreground mb-2">{sanitizeAIOutput(step.description)}</p>
                         
                         {step.howTo?.length > 0 && (
                           <div className="bg-background/50 rounded-lg p-2 mb-2">
@@ -466,7 +470,7 @@ export const OpportunityDetailEnhanced = ({
                               {step.howTo.slice(0, 4).map((item, i) => (
                                 <li key={i} className="flex items-start gap-2 text-xs text-foreground">
                                   <ChevronRight className="w-3 h-3 text-primary shrink-0 mt-0.5" />
-                                  <span>{item}</span>
+                                  <span>{sanitizeAIOutput(item)}</span>
                                 </li>
                               ))}
                             </ul>
@@ -475,7 +479,7 @@ export const OpportunityDetailEnhanced = ({
                         
                         {step.why && (
                           <p className="text-[10px] text-muted-foreground mb-2 italic">
-                            💡 {step.why}
+                            💡 {sanitizeAIOutput(step.why)}
                           </p>
                         )}
                         
@@ -484,7 +488,7 @@ export const OpportunityDetailEnhanced = ({
                             <div className="flex items-center gap-1">
                               <BarChart3 className="w-3 h-3 text-muted-foreground" />
                               <span className="text-[10px] text-muted-foreground">
-                                Métrica: <span className="text-foreground font-medium">{step.metric}</span>
+                                Métrica: <span className="text-foreground font-medium">{sanitizeAIOutput(step.metric)}</span>
                               </span>
                             </div>
                           )}
@@ -492,13 +496,13 @@ export const OpportunityDetailEnhanced = ({
 
                         {step.tips?.length > 0 && (
                           <div className="mt-2 p-2 rounded-lg bg-primary/5">
-                            <p className="text-[10px] text-primary font-medium">💡 {step.tips[0]}</p>
+                            <p className="text-[10px] text-primary font-medium">💡 {sanitizeAIOutput(step.tips[0])}</p>
                           </div>
                         )}
 
                         {step.warnings?.length > 0 && (
                           <div className="mt-2 p-2 rounded-lg bg-warning/5">
-                            <p className="text-[10px] text-warning font-medium">⚠️ {step.warnings[0]}</p>
+                            <p className="text-[10px] text-warning font-medium">⚠️ {sanitizeAIOutput(step.warnings[0])}</p>
                           </div>
                         )}
                       </div>
@@ -520,13 +524,13 @@ export const OpportunityDetailEnhanced = ({
             <div className="p-4 rounded-xl bg-success/5 border border-success/20">
               <h4 className="font-semibold text-success mb-2 flex items-center gap-2 text-sm">
                 <Zap className="w-4 h-4" />
-                Quick Wins - Podés hacer hoy
+                Victorias rápidas - Podés hacer hoy
               </h4>
               <ul className="space-y-1.5">
                 {aiPlan.quickWins.map((win, idx) => (
                   <li key={idx} className="flex items-start gap-2 text-xs text-foreground">
                     <Check className="w-3 h-3 text-success shrink-0 mt-0.5" />
-                    {win}
+                    {sanitizeAIOutput(win)}
                   </li>
                 ))}
               </ul>
@@ -544,7 +548,7 @@ export const OpportunityDetailEnhanced = ({
                 {(aiPlan?.risks || ["Requiere consistencia", "Resultados pueden variar"]).slice(0, 3).map((risk, idx) => (
                   <li key={idx} className="text-xs text-foreground flex items-start gap-2">
                     <span className="text-destructive">•</span>
-                    {risk}
+                    {sanitizeAIOutput(risk)}
                   </li>
                 ))}
               </ul>
@@ -558,7 +562,7 @@ export const OpportunityDetailEnhanced = ({
                 {(aiPlan?.dependencies || ["Tiempo disponible", "Compromiso del equipo"]).slice(0, 3).map((dep, idx) => (
                   <li key={idx} className="text-xs text-foreground flex items-start gap-2">
                     <span className="text-muted-foreground">•</span>
-                    {dep}
+                    {sanitizeAIOutput(dep)}
                   </li>
                 ))}
               </ul>

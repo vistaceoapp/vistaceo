@@ -42,7 +42,7 @@ const TECH_ENGLISH_MAP: Record<string, string> = {
   "retry": "reintentar",
 };
 
-export function sanitizeAIOutput(text: string): string {
+export function sanitizeAIOutput(text: string | null | undefined): string {
   if (!text || typeof text !== 'string') return '';
   
   let result = text;
@@ -53,8 +53,15 @@ export function sanitizeAIOutput(text: string): string {
     result = result.replace(pattern, '');
   }
   
+  // Remove "Q_BIO_104: value" style signal strings
+  result = result.replace(/Q_[A-Z_]+\d*:\s*[a-z_]+/gi, '');
+  
   // Remove empty parentheses left over
   result = result.replace(/\(\s*\)/g, '');
+  
+  // Remove orphan colons from cleaned signals (e.g., ": ")
+  result = result.replace(/^\s*:\s*/gm, '');
+  result = result.replace(/\s+:\s*$/gm, '');
   
   // Remove double spaces
   result = result.replace(/\s{2,}/g, ' ');
@@ -66,4 +73,15 @@ export function sanitizeAIOutput(text: string): string {
   result = result.replace(/\n{3,}/g, '\n\n');
   
   return result.trim();
+}
+
+/**
+ * Sanitize an array of strings (signals, basedOn, etc.)
+ * Filters out items that are purely internal codes.
+ */
+export function sanitizeSignals(signals: string[] | null | undefined): string[] {
+  if (!signals || !Array.isArray(signals)) return [];
+  return signals
+    .map(s => sanitizeAIOutput(s))
+    .filter(s => s.length > 3); // remove empty/near-empty results
 }

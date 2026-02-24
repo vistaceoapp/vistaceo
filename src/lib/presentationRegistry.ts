@@ -66,6 +66,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   
   // Generic categories
   general: "General",
+  industria: "Industria",
   other: "Otro",
   custom: "Personalizado",
   unknown: "Sin categoría",
