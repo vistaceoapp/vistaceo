@@ -14,6 +14,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { GlassCard } from "./GlassCard";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { categoryLabel } from "@/lib/presentationRegistry";
 
 interface InsightMetricsData {
   totalInsights: number;
@@ -286,7 +287,7 @@ export const InsightMetricsWidget = ({ className }: InsightMetricsWidgetProps) =
                 className={cn("text-[10px]", getCategoryColor(cat.category))}
               >
                 <span className="mr-1">{getCategoryIcon(cat.category)}</span>
-                {cat.category} ({cat.count})
+                {categoryLabel(cat.category)} ({cat.count})
               </Badge>
             ))}
           </div>

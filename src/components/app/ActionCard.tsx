@@ -4,6 +4,7 @@ import { Check, Clock, Zap, ChevronDown, ChevronUp, Lightbulb, TrendingUp, Trend
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { categoryLabel } from "@/lib/presentationRegistry";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -140,7 +141,7 @@ export const ActionCard = ({
               <span className={cn("px-2 py-0.5 rounded-full border", priorityConfig.color)}>
                 {priorityConfig.emoji} {priorityConfig.label}
               </span>
-              {action.category && <span>{categoryEmoji} {action.category}</span>}
+              {action.category && <span>{categoryEmoji} {categoryLabel(action.category)}</span>}
             </div>
           </div>
           <Button size="sm" onClick={handleComplete} disabled={loading}>
@@ -209,7 +210,7 @@ export const ActionCard = ({
             </span>
             {action.category && (
               <span className="text-xs text-muted-foreground bg-secondary px-3 py-1.5 rounded-full">
-                {categoryEmoji} {action.category}
+                {categoryEmoji} {categoryLabel(action.category)}
               </span>
             )}
           </div>

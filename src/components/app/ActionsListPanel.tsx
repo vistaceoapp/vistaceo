@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
+import { categoryLabel } from "@/lib/presentationRegistry";
 import {
   Sheet,
   SheetContent,
@@ -168,7 +169,7 @@ export const ActionsListPanel = ({
                   </span>
                   {selectedAction.category && (
                     <span className="text-xs text-muted-foreground ml-2">
-                      {selectedAction.category}
+                      {categoryLabel(selectedAction.category)}
                     </span>
                   )}
                 </div>
@@ -237,7 +238,7 @@ export const ActionsListPanel = ({
                               {priorityConfig.emoji} {priorityConfig.label}
                             </span>
                             {action.category && (
-                              <span className="text-[10px] text-muted-foreground">{action.category}</span>
+                              <span className="text-[10px] text-muted-foreground">{categoryLabel(action.category)}</span>
                             )}
                           </div>
                         </div>
