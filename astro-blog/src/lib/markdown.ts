@@ -140,6 +140,20 @@ export function parseMarkdown(content: string): string {
     html = html.replace(`__CODE_BLOCK_${index}__`, rendered);
   });
   
+  // ===== FINAL SAFETY NET: Remove any unreplaced placeholders =====
+  // If a CODE_BLOCK placeholder wasn't restored, strip it so users never see it
+  html = html.replace(/__CODE_BLOCK_\d+__/g, '');
+  html = html.replace(/__HTML_PROTECTED_\d+__/g, '');
+  
+  // Remove any remaining raw HTML attributes rendered as text
+  html = html.replace(/(?<![<"'])\b(?:loading|decoding|class|style|width|height|srcset|sizes)\s*=\s*"[^"]*"/gi, '');
+  
+  // Remove raw img tag text that leaked (e.g. nlewrgmcawzcdazhfiyy.supabase.co/st...")
+  html = html.replace(/[a-z0-9-]+\.supabase\.co\/st(?:orage)?[^\s<"]*"?\s*(?:alt|loading|class|decoding|width|height)\s*=\s*"[^"]*"[^>]*>?/gi, '');
+  
+  // Remove stray closing angle brackets from stripped tags
+  html = html.replace(/^\s*>\s*$/gm, '');
+  
   return html;
 }
 
@@ -536,26 +550,39 @@ function sanitizeGeneratorArtifacts(md: string): string {
   clean = clean.replace(/<\/(?:div|span|section|article|header|footer|nav)>/gi, '');
   
   // CRITICAL: Remove images with empty, invalid, or whitespace-only URLs
-  // Matches: ![alt](https://) ![alt](https://  ) ![alt]() ![alt](  )
   clean = clean.replace(/!\[[^\]]*\]\(\s*(?:https?:\/\/)?\s*\)/g, '');
-  
-  // CRITICAL: Remove images where URL is only "https://" or "http://" with nothing after
   clean = clean.replace(/!\[[^\]]*\]\(https?:\/\/\s*\)/g, '');
   
   // Clean empty link URLs - keep the text
   clean = clean.replace(/\[([^\]]+)\]\(\s*\)/g, '$1');
   
-  // Remove raw HTML text leaking: attributes rendered as text (e.g.: alt="Trabajo remoto..." loading="lazy" class="content-image">)
-  // This catches when the AI writes the full img tag inline as text
+  // Remove raw HTML text leaking: attributes rendered as text
   clean = clean.replace(/^\s*(?:src|alt|loading|class|width|height|decoding)\s*=\s*"[^"]*".*$/gm, '');
   
-  // Catch full raw HTML img strings rendered as text in paragraphs
-  clean = clean.replace(/[a-z0-9-]+\.supabase\.co\/st\.\.\."?\s+alt="[^"]*"[^>]*>/gi, '');
+  // CRITICAL: Catch full raw HTML img strings rendered as text in paragraphs
+  // Handles: nlewrgmcawzcdazhfiyy.supabase.co/st..." alt="..." loading="lazy" class="content-image">
+  clean = clean.replace(/[a-z0-9-]+\.supabase\.co\/st[^\s"]*\.\.\.?"?\s*(?:alt|loading|class|decoding)\s*=\s*"[^"]*"[^>\n]*>?/gi, '');
+  
+  // Catch truncated supabase URLs as plain text (e.g. nlewrgmcawzcdazhfiyy.supabase.co/st...)
+  clean = clean.replace(/[a-z0-9-]+\.supabase\.co\/(?:storage|st)[^\s"'<>)]*(?:\.\.\.)?/gi, '');
+  
+  // Remove entire lines that are just raw HTML attribute fragments
+  clean = clean.replace(/^\s*(?:alt|src|loading|class|decoding|width|height)\s*=\s*"[^"]*"\s*$/gm, '');
+  
+  // Remove stray closing angle brackets left from stripped tags
+  clean = clean.replace(/^\s*>\s*$/gm, '');
+  
+  // Remove __CODE_BLOCK_N__ placeholders that leaked into content_md
+  clean = clean.replace(/__CODE_BLOCK_\d+__/g, '');
+  clean = clean.replace(/\bCODE_BLOCK_\d+\b/g, '');
   
   // Remove AI placeholders
   clean = clean.replace(/\[insertar\s[^\]]*\]/gi, '');
   clean = clean.replace(/\[PLACEHOLDER[^\]]*\]/gi, '');
   clean = clean.replace(/\*\*Nota del editor\*\*[^\n]*/gi, '');
+  
+  // Clean up multiple blank lines left by removals
+  clean = clean.replace(/\n{3,}/g, '\n\n');
   
   return clean;
 }

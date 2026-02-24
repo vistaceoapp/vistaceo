@@ -710,16 +710,30 @@ function sanitizeAIGeneratedMarkdown(md: string): string {
   
   // Fix broken image markdown: ![alt](broken-url)rest-of-url
   clean = clean.replace(/^!\[([^\]]*)\]\(([^)]*%3[Cc][^)]*)\)(.*)$/gm, (full, alt, src, tail) => {
-    // If src contains encoded HTML, try to find real URL in tail
     const realUrl = tail.match(/https?:\/\/[^\s"'>]+\.(png|jpe?g|webp)(\?[^\s"'>]*)?/i);
     if (realUrl) return `![${alt}](${realUrl[0]})`;
-    // If src itself is clean, keep it
     if (/^https?:\/\//i.test(src) && !/%3[Cc]/i.test(src)) return `![${alt}](${src})`;
-    return ''; // Drop broken image
+    return '';
   });
   
-  // Remove any remaining raw Supabase URLs that appear as plain text (not in markdown links)
+  // Remove any remaining raw Supabase URLs that appear as plain text
   clean = clean.replace(/(?<!\(|!)nlewrgmcawzcdazhfiyy\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s"')>]+/g, '');
+  
+  // CRITICAL: Remove CODE_BLOCK placeholders that may leak from processing
+  clean = clean.replace(/__CODE_BLOCK_\d+__/g, '');
+  clean = clean.replace(/\bCODE_BLOCK_\d+\b/g, '');
+  
+  // Remove truncated supabase URLs (e.g. nlewrgmcawzcdazhfiyy.supabase.co/st...)
+  clean = clean.replace(/[a-z0-9-]+\.supabase\.co\/(?:storage|st)[^\s"'<>)]*(?:\.\.\.)?/gi, '');
+  
+  // Remove entire lines that are just raw HTML attribute fragments
+  clean = clean.replace(/^\s*(?:alt|src|loading|class|decoding|width|height)\s*=\s*"[^"]*"\s*$/gm, '');
+  
+  // Remove stray closing angle brackets
+  clean = clean.replace(/^\s*>\s*$/gm, '');
+  
+  // Clean up multiple blank lines
+  clean = clean.replace(/\n{3,}/g, '\n\n');
   
   return clean;
 }

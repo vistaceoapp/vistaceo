@@ -529,6 +529,22 @@ function autoRepairMarkdown(contentMd: string): { content: string; repaired: boo
   const rawUrlFixed = content.replace(/(?<!\(|!)nlewrgmcawzcdazhfiyy\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s"')>]+/g, '');
   if (rawUrlFixed !== content) { repairs.push('removed_raw_supabase_urls'); content = rawUrlFixed; }
   
+  // CRITICAL: Remove CODE_BLOCK placeholders that leaked
+  const codeBlockFixed = content.replace(/__CODE_BLOCK_\d+__/g, '').replace(/\bCODE_BLOCK_\d+\b/g, '');
+  if (codeBlockFixed !== content) { repairs.push('removed_code_block_placeholders'); content = codeBlockFixed; }
+  
+  // Remove truncated supabase URLs
+  content = content.replace(/[a-z0-9-]+\.supabase\.co\/(?:storage|st)[^\s"'<>)]*(?:\.\.\.)?/gi, '');
+  
+  // Remove raw HTML attribute lines
+  content = content.replace(/^\s*(?:alt|src|loading|class|decoding|width|height)\s*=\s*"[^"]*"\s*$/gm, '');
+  
+  // Remove stray closing angle brackets
+  content = content.replace(/^\s*>\s*$/gm, '');
+  
+  // Clean up multiple blank lines
+  content = content.replace(/\n{3,}/g, '\n\n');
+  
   return { content, repaired: repairs.length > 0, repairs };
 }
 

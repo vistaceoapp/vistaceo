@@ -19,6 +19,9 @@ function cleanMarkdownContent(content: string): string {
   // Remove broken image references that show as text
   cleaned = cleaned.replace(/nlewrgmcawzcdazhfiyy\.supabase\.co\/[^\s"<>]*/g, '');
   
+  // Remove truncated supabase URLs (e.g. nlewrgmcawzcdazhfiyy.supabase.co/st...)
+  cleaned = cleaned.replace(/[a-z0-9-]+\.supabase\.co\/(?:storage|st)[^\s"'<>)]*(?:\.\.\.)?/gi, '');
+  
   // Remove partial HTML attributes that appear as text
   cleaned = cleaned.replace(/\s*alt="[^"]*"/g, '');
   cleaned = cleaned.replace(/\s*loading="[^"]*"/g, '');
@@ -26,6 +29,11 @@ function cleanMarkdownContent(content: string): string {
   cleaned = cleaned.replace(/\s*src="[^"]*"/g, '');
   cleaned = cleaned.replace(/\s*width="[^"]*"/g, '');
   cleaned = cleaned.replace(/\s*height="[^"]*"/g, '');
+  cleaned = cleaned.replace(/\s*decoding="[^"]*"/g, '');
+  
+  // CRITICAL: Remove CODE_BLOCK placeholders that leaked from processing
+  cleaned = cleaned.replace(/__CODE_BLOCK_\d+__/g, '');
+  cleaned = cleaned.replace(/\bCODE_BLOCK_\d+\b/g, '');
   
   // Clean up stray closing brackets
   cleaned = cleaned.replace(/^\s*>\s*$/gm, '');
@@ -38,7 +46,6 @@ function cleanMarkdownContent(content: string): string {
   
   // Trim each line
   cleaned = cleaned.split('\n').map(line => {
-    // If line is just broken HTML attributes, skip it
     if (/^[\s]*[a-z]+="[^"]*"[\s]*$/.test(line)) {
       return '';
     }
