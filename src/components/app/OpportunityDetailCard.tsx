@@ -13,6 +13,7 @@ import {
   ChevronRight, FileText, Lightbulb
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 
 interface Opportunity {
   id: string;
@@ -67,7 +68,7 @@ const getSourceInfo = (source: string | null) => {
 const getTrigger = (opportunity: Opportunity, business: Business | null): string => {
   const evidence = opportunity.evidence as Record<string, any> | null;
   
-  if (evidence?.trigger) return evidence.trigger;
+  if (evidence?.trigger) return sanitizeAIOutput(evidence.trigger);
   
   // Generate contextual trigger based on source and business
   const businessName = business?.name || "tu negocio";
@@ -255,7 +256,7 @@ export const OpportunityDetailCard = ({
               Qué ganarías
             </h4>
             <p className="text-sm text-foreground leading-relaxed">
-              {opportunity.description || "Mejora potencial detectada para optimizar esta área de tu negocio."}
+              {sanitizeAIOutput(opportunity.description) || "Mejora potencial detectada para optimizar esta área de tu negocio."}
             </p>
           </div>
 
@@ -293,7 +294,7 @@ export const OpportunityDetailCard = ({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h5 className="font-medium text-foreground text-sm">
-                          {step.title}
+                          {sanitizeAIOutput(step.title)}
                         </h5>
                         <Badge variant="outline" className="text-[10px]">
                           <Clock className="w-3 h-3 mr-1" />
@@ -301,7 +302,7 @@ export const OpportunityDetailCard = ({
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mb-2">
-                        {step.description}
+                        {sanitizeAIOutput(step.description)}
                       </p>
                       
                       {/* How to */}
@@ -311,7 +312,7 @@ export const OpportunityDetailCard = ({
                           {step.howTo?.map((item: string, i: number) => (
                             <li key={i} className="flex items-start gap-2 text-xs text-foreground">
                               <ChevronRight className="w-3 h-3 text-primary shrink-0 mt-0.5" />
-                              <span>{item}</span>
+                              <span>{sanitizeAIOutput(item)}</span>
                             </li>
                           ))}
                         </ul>
@@ -321,7 +322,7 @@ export const OpportunityDetailCard = ({
                       <div className="flex items-center gap-2">
                         <BarChart3 className="w-3 h-3 text-muted-foreground" />
                         <span className="text-[10px] text-muted-foreground">
-                          Métrica: <span className="text-foreground font-medium">{step.metric}</span>
+                          Métrica: <span className="text-foreground font-medium">{sanitizeAIOutput(step.metric)}</span>
                         </span>
                       </div>
                     </div>

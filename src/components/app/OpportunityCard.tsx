@@ -5,6 +5,7 @@ import {
   Target, CheckCircle2, AlertCircle, Shield
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { 
   QualityGateResult, 
   getTimeEstimate, 
@@ -175,11 +176,11 @@ export const OpportunityCard = ({
         <span className="text-2xl">{getSourceIcon(opportunity.source)}</span>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-foreground text-base group-hover:text-primary transition-colors">
-            {opportunity.title}
+            {sanitizeAIOutput(opportunity.title)}
           </h3>
           {opportunity.description && (
             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-              {opportunity.description}
+              {sanitizeAIOutput(opportunity.description)}
             </p>
           )}
         </div>
