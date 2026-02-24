@@ -3,9 +3,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/hooks/use-theme";
 
 // Brand assets
-import logoLightFull from "@/assets/brand/logo-full-text.webp";
-import logoLightCompact from "@/assets/brand/logo-full-text.webp";
-import logoDarkFull from "@/assets/brand/logo-full-text.webp";
+import logoLightFull from "@/assets/brand/logo-full-text.png";
+import logoLightCompact from "@/assets/brand/logo-full-text.png";
+import logoDarkFull from "@/assets/brand/logo-full-text.png";
 import iconLight from "@/assets/brand/icon-vistaceo.webp";
 import iconDark from "@/assets/brand/icon-vistaceo.webp";
 
