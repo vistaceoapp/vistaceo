@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Plus, Settings2, MessageCircle } from "lucide-react";
+import { Plus, Settings2, MessageCircle, Crown, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
 
 // Chat components
 import { ChatWelcome } from "@/components/chat/ChatWelcome";
@@ -21,7 +22,6 @@ import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
 import { ChatSuggestedQuestions } from "@/components/chat/ChatSuggestedQuestions";
 import { SuggestedQuestionsButton } from "@/components/chat/SuggestedQuestionsButton";
 import { AudioSettings } from "@/components/chat/AudioSettingsPopover";
-// ProPageGate removed — Chat is accessible to Free users with 3 msg/month limit
 
 interface MissionSuggestion {
   title: string;
@@ -47,6 +47,7 @@ const ChatPage = () => {
   const { currentBusiness } = useBusiness();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { canCreate, remaining, isPro, usage, refresh: refreshLimits } = useFreeLimits();
   const [searchParams, setSearchParams] = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -343,6 +344,16 @@ const ChatPage = () => {
     
     if ((!textToSend && !hasAttachments) || !currentBusiness || loading) return;
 
+    // Free user limit check
+    if (!isPro && !canCreate.chat) {
+      toast({
+        title: "Límite alcanzado",
+        description: "Usaste tus 3 mensajes gratis este mes. Actualizá a Pro para mensajes ilimitados.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const messageAttachments = [...attachedFiles];
     
     setInput("");
@@ -464,6 +475,7 @@ const ChatPage = () => {
       setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
     } finally {
       setLoading(false);
+      if (!isPro) refreshLimits();
     }
   };
 
@@ -625,6 +637,28 @@ const ChatPage = () => {
               onSelectQuestion={sendMessage}
               disabled={loading}
             />
+          </div>
+        )}
+
+        {/* Free user message counter */}
+        {!isPro && (
+          <div className={cn(
+            "flex items-center justify-between px-4 py-2 border-t border-border/30 bg-card/50",
+            isMobile && "px-3"
+          )}>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>{usage.chatMessages}/{FREE_LIMITS.chatMessages} mensajes este mes</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-primary hover:text-primary gap-1"
+              onClick={() => navigate("/checkout")}
+            >
+              <Crown className="w-3 h-3" />
+              Pro = ilimitados
+            </Button>
           </div>
         )}
 

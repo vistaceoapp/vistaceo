@@ -14,9 +14,6 @@ const AnalyticsPage = () => {
   const isMobile = useIsMobile();
   const { isPro } = useSubscription();
 
-  // Free users default to "reputacion", Pro users default to "insights"
-  const defaultTab = isPro ? "insights" : "reputacion";
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -42,10 +39,9 @@ const AnalyticsPage = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue={defaultTab} className="w-full">
-        <TabsList className={`grid w-full ${isPro ? 'grid-cols-5' : 'grid-cols-3'} mb-6`}>
-          {/* Free tabs */}
+      {/* Tabs - All visible, but Pro tabs gated */}
+      <Tabs defaultValue={isPro ? "insights" : "reputacion"} className="w-full">
+        <TabsList className="grid w-full grid-cols-5 mb-6">
           <TabsTrigger value="reputacion" className={isMobile ? "text-xs px-1" : ""}>
             <Star className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
             {isMobile ? "Reputación" : "Reputación"}
@@ -54,29 +50,21 @@ const AnalyticsPage = () => {
             <Stethoscope className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
             {isMobile ? "Diagnóstico" : "Diagnóstico"}
           </TabsTrigger>
-
-          {/* Pro tabs */}
-          {isPro ? (
-            <>
-              <TabsTrigger value="insights" className={isMobile ? "text-xs px-1" : ""}>
-                <Brain className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
-                Insights
-              </TabsTrigger>
-              <TabsTrigger value="evolucion" className={isMobile ? "text-xs px-1" : ""}>
-                <TrendingUp className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
-                {isMobile ? "Evolución" : "Evolución"}
-              </TabsTrigger>
-              <TabsTrigger value="metricas" className={isMobile ? "text-xs px-1" : ""}>
-                <BarChart3 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
-                {isMobile ? "Métricas" : "Métricas"}
-              </TabsTrigger>
-            </>
-          ) : (
-            <TabsTrigger value="pro_preview" className={isMobile ? "text-xs px-1" : ""}>
-              <Lock className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
-              {isMobile ? "Pro" : "Más con Pro"}
-            </TabsTrigger>
-          )}
+          <TabsTrigger value="insights" className={isMobile ? "text-xs px-1" : ""}>
+            <Brain className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
+            Insights
+            {!isPro && <Lock className="w-3 h-3 ml-1 text-muted-foreground" />}
+          </TabsTrigger>
+          <TabsTrigger value="evolucion" className={isMobile ? "text-xs px-1" : ""}>
+            <TrendingUp className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
+            {isMobile ? "Evolución" : "Evolución"}
+            {!isPro && <Lock className="w-3 h-3 ml-1 text-muted-foreground" />}
+          </TabsTrigger>
+          <TabsTrigger value="metricas" className={isMobile ? "text-xs px-1" : ""}>
+            <BarChart3 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
+            {isMobile ? "Métricas" : "Métricas"}
+            {!isPro && <Lock className="w-3 h-3 ml-1 text-muted-foreground" />}
+          </TabsTrigger>
         </TabsList>
 
         {/* Free-accessible tabs */}
@@ -88,32 +76,42 @@ const AnalyticsPage = () => {
           <BusinessHealthAnalytics />
         </TabsContent>
 
-        {/* Pro tabs */}
-        {isPro ? (
-          <>
-            <TabsContent value="insights" className="space-y-6">
-              <SmartInsightsPanel />
-            </TabsContent>
-            <TabsContent value="evolucion" className="space-y-6">
-              <EvolutionPanel />
-            </TabsContent>
-            <TabsContent value="metricas" className="space-y-6">
-              <AnalyticsDashboard variant={isMobile ? "compact" : "full"} />
-            </TabsContent>
-          </>
-        ) : (
-          <TabsContent value="pro_preview" className="space-y-6">
-            <ProFeatureGate
-              feature="advanced_analytics"
-              title="Analytics Avanzado"
-              description="Desbloquea Insights IA, Evolución de métricas y análisis completo con VistaCEO Pro"
-            >
+        {/* Pro tabs - show content if Pro, gate if Free */}
+        <TabsContent value="insights" className="space-y-6">
+          {isPro ? (
+            <SmartInsightsPanel />
+          ) : (
+            <ProFeatureGate feature="advanced_analytics" title="Insights IA" description="Desbloquea análisis inteligente con IA y recomendaciones estratégicas con VistaCEO Pro">
               <div className="h-64 flex items-center justify-center text-muted-foreground">
-                <p>Insights • Evolución • Métricas avanzadas</p>
+                <p>Insights inteligentes basados en tus datos reales</p>
               </div>
             </ProFeatureGate>
-          </TabsContent>
-        )}
+          )}
+        </TabsContent>
+
+        <TabsContent value="evolucion" className="space-y-6">
+          {isPro ? (
+            <EvolutionPanel />
+          ) : (
+            <ProFeatureGate feature="advanced_analytics" title="Evolución" description="Seguí la evolución de tus métricas clave semana a semana con VistaCEO Pro">
+              <div className="h-64 flex items-center justify-center text-muted-foreground">
+                <p>Evolución de métricas y tendencias</p>
+              </div>
+            </ProFeatureGate>
+          )}
+        </TabsContent>
+
+        <TabsContent value="metricas" className="space-y-6">
+          {isPro ? (
+            <AnalyticsDashboard variant={isMobile ? "compact" : "full"} />
+          ) : (
+            <ProFeatureGate feature="advanced_analytics" title="Métricas Avanzadas" description="Accedé al dashboard completo de métricas y KPIs con VistaCEO Pro">
+              <div className="h-64 flex items-center justify-center text-muted-foreground">
+                <p>Dashboard completo de métricas</p>
+              </div>
+            </ProFeatureGate>
+          )}
+        </TabsContent>
       </Tabs>
     </div>
   );

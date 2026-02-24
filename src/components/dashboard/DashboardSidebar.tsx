@@ -60,16 +60,6 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
         )}>
           <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
             <VistaceoLogo size={collapsed ? 28 : 36} variant={collapsed ? "icon" : "full"} className="transition-transform hover:scale-105" />
-            {!collapsed && currentBusiness && (
-              <div className="overflow-hidden animate-fade-in">
-                <p className="text-sm font-medium text-foreground truncate max-w-[140px]">
-                  {currentBusiness.name}
-                </p>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {currentBusiness.category?.replace("_", " ") || "Tu negocio"}
-                </p>
-              </div>
-            )}
           </div>
           {!collapsed && (
             <Button
