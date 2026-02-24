@@ -9,11 +9,13 @@
  */
 
 import { useEffect, useRef } from "react";
+import { sanitizeForUI, NEUTRAL_FALLBACKS } from "@/lib/presentationRegistry";
 
 // Patterns that should NEVER appear in user-visible text
 const LEAK_PATTERNS = [
   /\bQ_[A-Z]{2,}_\d{2,}\b/,                    // Q_BIO_104
   /\b[a-z]+_[a-z]+_\d{3}\b/,                    // b2b_arq_finance_001
+  /\b[a-z]+(?:_[a-z0-9]+){1,}\b/,               // train_new, no_record, manual_agenda
   /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/,      // UUID
   /\bauth\.uid\b/,                               // SQL
   /\bconsole\.(log|error|warn|debug)\b/,          // Code
@@ -32,6 +34,7 @@ interface LeakEvent {
   element: string;
   path: string;
   timestamp: number;
+  sanitizedText: string;
 }
 
 const reportedLeaks = new Set<string>();
@@ -64,6 +67,9 @@ function scanTextNode(node: Text): LeakEvent | null {
       const key = `${pattern.source}:${text.slice(0, 50)}`;
       if (reportedLeaks.has(key)) return null;
       reportedLeaks.add(key);
+
+      const sanitized = sanitizeForUI(text).trim();
+      const sanitizedText = sanitized || NEUTRAL_FALLBACKS.value || REPLACEMENT;
       
       return {
         pattern: pattern.source,
@@ -71,6 +77,7 @@ function scanTextNode(node: Text): LeakEvent | null {
         element: node.parentElement?.tagName || "TEXT",
         path: node.parentElement ? getElementPath(node.parentElement) : "unknown",
         timestamp: Date.now(),
+        sanitizedText,
       };
     }
   }
@@ -98,8 +105,13 @@ function scanDOM(root: Node): LeakEvent[] {
 
   let node: Node | null;
   while ((node = walker.nextNode())) {
-    const leak = scanTextNode(node as Text);
-    if (leak) leaks.push(leak);
+    const textNode = node as Text;
+    const leak = scanTextNode(textNode);
+    if (leak) {
+      // Airbag: replace immediately so user never sees raw internal tokens
+      textNode.textContent = leak.sanitizedText;
+      leaks.push(leak);
+    }
   }
   return leaks;
 }
@@ -122,8 +134,8 @@ export function useDOMLeakScanner(enabled = true) {
       const leaks = scanDOM(document.body);
       if (leaks.length > 0) {
         console.warn(
-          `[P0 ZERO LEAKAGE] ${leaks.length} fuga(s) detectada(s):`,
-          leaks.map(l => ({ pattern: l.pattern, text: l.text, path: l.path }))
+          `[P0 ZERO LEAKAGE] ${leaks.length} fuga(s) detectada(s) y corregida(s):`,
+          leaks.map(l => ({ pattern: l.pattern, text: l.text, path: l.path, replacedWith: l.sanitizedText }))
         );
       }
     }, 2000);

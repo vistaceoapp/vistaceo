@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import SafeText from "@/components/ui/SafeText";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { Brain, Sparkles, MessageCircle, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { categoryLabel, humanValue, questionLabel, sanitizeForUI } from "@/lib/presentationRegistry";
 
 interface LearningFact {
   question: string;
@@ -44,6 +46,7 @@ const categoryConfig: Record<string, { label: string; icon: string; color: strin
   tecnologia: { label: "Tecnología", icon: "💻", color: "bg-violet-500/10 text-violet-400 border-violet-500/30" },
   constraints: { label: "Limitaciones", icon: "⚠️", color: "bg-orange-500/10 text-orange-400 border-orange-500/30" },
   top_sellers: { label: "Más Vendidos", icon: "⭐", color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30" },
+  answers: { label: "Diagnóstico", icon: "🧠", color: "bg-primary/10 text-primary border-primary/30" },
   general: { label: "General", icon: "📝", color: "bg-slate-500/10 text-slate-400 border-slate-500/30" },
 };
 
@@ -57,7 +60,6 @@ const fieldTranslations: Record<string, string> = {
 };
 
 const getCategoryKey = (rawCategory: string): string => {
-  // Extract category from learning_xxx format
   if (rawCategory.startsWith("learning_")) {
     return rawCategory.replace("learning_", "");
   }
@@ -67,10 +69,10 @@ const getCategoryKey = (rawCategory: string): string => {
 const formatDate = (dateStr: string): string => {
   try {
     const date = new Date(dateStr);
-    return date.toLocaleDateString("es-ES", { 
-      day: "numeric", 
+    return date.toLocaleDateString("es-ES", {
+      day: "numeric",
       month: "short",
-      year: "numeric"
+      year: "numeric",
     });
   } catch {
     return dateStr;
@@ -79,43 +81,44 @@ const formatDate = (dateStr: string): string => {
 
 const parseLearningData = (data: unknown): LearningFact[] => {
   const facts: LearningFact[] = [];
-  
+
   if (Array.isArray(data)) {
     data.forEach((item) => {
       if (typeof item === "object" && item !== null) {
         const obj = item as Record<string, unknown>;
+
         // Handle {q, a, t} format
         if (obj.q && obj.a) {
           facts.push({
-            question: String(obj.q),
-            answer: String(obj.a),
+            question: sanitizeForUI(String(obj.q)),
+            answer: humanValue(obj.a),
             date: obj.t ? formatDate(String(obj.t)) : "",
           });
         }
         // Handle {question, answer} format
         else if (obj.question && obj.answer) {
           facts.push({
-            question: String(obj.question),
-            answer: String(obj.answer),
+            question: sanitizeForUI(String(obj.question)),
+            answer: humanValue(obj.answer),
             date: obj.timestamp ? formatDate(String(obj.timestamp)) : "",
           });
         }
         // Handle simple value objects
         else {
           Object.entries(obj).forEach(([key, value]) => {
-            if (value && typeof value !== "object") {
+            if (value !== null && value !== undefined && typeof value !== "object") {
               facts.push({
-                question: fieldTranslations[key] || key,
-                answer: String(value),
+                question: fieldTranslations[key] || questionLabel(key),
+                answer: humanValue(value),
                 date: "",
               });
             }
           });
         }
-      } else if (typeof item === "string") {
+      } else if (typeof item === "string" || typeof item === "number" || typeof item === "boolean") {
         facts.push({
           question: "",
-          answer: item,
+          answer: humanValue(item),
           date: "",
         });
       }
@@ -123,17 +126,17 @@ const parseLearningData = (data: unknown): LearningFact[] => {
   } else if (typeof data === "object" && data !== null) {
     const obj = data as Record<string, unknown>;
     Object.entries(obj).forEach(([key, value]) => {
-      if (value && typeof value !== "object") {
+      if (value !== null && value !== undefined) {
         facts.push({
-          question: fieldTranslations[key] || key,
-          answer: String(value),
+          question: fieldTranslations[key] || questionLabel(key),
+          answer: humanValue(value),
           date: "",
         });
       }
     });
   }
-  
-  return facts;
+
+  return facts.filter((fact) => fact.answer && fact.answer.trim().length > 0);
 };
 
 export const ChatLearningPanel = ({
@@ -162,6 +165,11 @@ export const ChatLearningPanel = ({
         let count = 0;
 
         Object.entries(factualMemory).forEach(([rawCategory, data]) => {
+          // Only expose user-facing categories (learning_* and answers)
+          if (rawCategory !== "answers" && !rawCategory.startsWith("learning_")) {
+            return;
+          }
+
           const categoryKey = getCategoryKey(rawCategory);
           const config = categoryConfig[categoryKey] || categoryConfig.general;
           const facts = parseLearningData(data);
@@ -169,7 +177,7 @@ export const ChatLearningPanel = ({
           if (facts.length > 0) {
             parsedCategories.push({
               category: categoryKey,
-              label: config.label,
+              label: config.label || categoryLabel(categoryKey),
               icon: config.icon,
               facts: facts.slice(0, 5), // Limit to 5 per category
             });
@@ -281,18 +289,18 @@ export const ChatLearningPanel = ({
                             <>
                               <div className="flex items-start gap-2 mb-1.5">
                                 <MessageCircle className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                <SafeText as="p" className="text-xs text-muted-foreground leading-relaxed" fallback="Dato del negocio">
                                   {fact.question}
-                                </p>
+                                </SafeText>
                               </div>
-                              <p className="text-sm text-foreground font-medium pl-5.5 leading-relaxed">
+                              <SafeText as="p" className="text-sm text-foreground font-medium pl-5.5 leading-relaxed" fallback="Configurado">
                                 {fact.answer}
-                              </p>
+                              </SafeText>
                             </>
                           ) : (
-                            <p className="text-sm text-foreground leading-relaxed">
+                            <SafeText as="p" className="text-sm text-foreground leading-relaxed" fallback="Configurado">
                               {fact.answer}
-                            </p>
+                            </SafeText>
                           )}
                           {fact.date && (
                             <div className="flex items-center gap-1 mt-2 pl-5.5">
