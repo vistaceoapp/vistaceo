@@ -45,7 +45,7 @@ const LOADING_MESSAGES_PT = [
   'Quase pronto...',
 ];
 
-// Batch configuration
+// Batch configuration - optimized for speed with parallel generation
 const BATCH_CONFIG = {
   quick: {
     firstBatch: 5,       // Show first 5 questions immediately
@@ -53,8 +53,8 @@ const BATCH_CONFIG = {
   },
   complete: {
     firstBatch: 8,        // Show first 8 questions immediately
-    remainingBatches: 4,  // Generate 4 more batches of ~15
-    perBatch: 17,         // ~17 per batch to reach 65-75 total
+    parallelBatches: 3,   // Generate 3 batches IN PARALLEL
+    perBatch: 22,         // ~22 per batch to reach 65-75 total
   },
 };
 
@@ -158,7 +158,7 @@ export const SetupStepQuestionnaire = ({
     }
   }, [fetchQuestions, setupMode]);
 
-  // Generate remaining batches in background
+  // Generate remaining batches in background - PARALLEL for speed
   const generateRemainingBatches = useCallback(async () => {
     if (backgroundFetchStarted.current || allBatchesDone.current) return;
     backgroundFetchStarted.current = true;
@@ -178,23 +178,27 @@ export const SetupStepQuestionnaire = ({
           return [...prev, ...newQuestions];
         });
       } else {
-        // Complete: multiple batches to reach 65-75 total
-        for (let batch = 1; batch <= BATCH_CONFIG.complete.remainingBatches; batch++) {
-          try {
-            const batchQuestions = await fetchQuestions(
-              `${BATCH_CONFIG.complete.perBatch}-${BATCH_CONFIG.complete.perBatch + 2}`,
-              batch,
-              latestAnswersRef.current
-            );
-            setQuestions(prev => {
-              const existingIds = new Set(prev.map(q => q.id));
-              const newQuestions = batchQuestions.filter(q => !existingIds.has(q.id));
-              return [...prev, ...newQuestions];
-            });
-          } catch (batchErr) {
-            console.warn(`Batch ${batch} failed, continuing:`, batchErr);
-          }
-        }
+        // Complete: run ALL batches in PARALLEL for maximum speed
+        const batchPromises = Array.from(
+          { length: BATCH_CONFIG.complete.parallelBatches },
+          (_, i) => fetchQuestions(
+            `${BATCH_CONFIG.complete.perBatch}-${BATCH_CONFIG.complete.perBatch + 2}`,
+            i + 1,
+            latestAnswersRef.current
+          ).catch(err => {
+            console.warn(`Batch ${i + 1} failed:`, err);
+            return [] as UniversalQuestion[];
+          })
+        );
+
+        const results = await Promise.all(batchPromises);
+        
+        // Merge all results at once
+        setQuestions(prev => {
+          const existingIds = new Set(prev.map(q => q.id));
+          const allNew = results.flat().filter(q => q.id && !existingIds.has(q.id));
+          return [...prev, ...allNew];
+        });
       }
     } catch (err) {
       console.warn('Background question generation failed:', err);

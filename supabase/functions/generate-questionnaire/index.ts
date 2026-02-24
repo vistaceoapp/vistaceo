@@ -148,8 +148,8 @@ RECORDATORIO FINAL:
 
 Responde usando la función generate_questions.`;
 
-    // Use faster model for subsequent batches (batchIndex > 0) since context is simpler
-    const model = batchIndex > 0 ? "google/gemini-2.5-flash-lite" : "google/gemini-2.5-flash";
+    // Use fastest quality model for all batches
+    const model = "google/gemini-3-flash-preview";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -288,7 +288,7 @@ Responde usando la función generate_questions.`;
       
       // If still empty, retry once with the main model
       if (questions.length === 0) {
-        console.warn("Content parse failed, retrying with gemini-2.5-flash");
+        console.warn("Content parse failed, retrying with gemini-3-flash-preview");
         const retryResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -296,7 +296,7 @@ Responde usando la función generate_questions.`;
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: "google/gemini-3-flash-preview",
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt },
