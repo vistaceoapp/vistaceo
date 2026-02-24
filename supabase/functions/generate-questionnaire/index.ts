@@ -31,15 +31,22 @@ serve(async (req) => {
       rawUserText,
       universalProfile,
       previousAnswers, // For learning/adaptation
+      questionCount: questionCountOverride, // Override from progressive loading
+      batchIndex = 0, // Which batch (0 = first)
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const isQuick = setupMode === 'quick';
-    const questionCount = isQuick ? '12-15' : '65-75';
+    const questionCount = questionCountOverride || (isQuick ? '12-15' : '65-75');
     const lang = countryCode === 'BR' ? 'pt-BR' : 'es';
     const voiceStyle = countryCode === 'BR' ? 'você (tuteo brasileiro)' : (countryCode === 'AR' || countryCode === 'UY') ? 'vos (voseo rioplatense)' : 'tú (tuteo)';
+
+    // For batch requests, adjust dimension distribution
+    const batchQuestionCount = questionCountOverride 
+      ? parseInt(questionCountOverride.split('-')[0]) 
+      : (isQuick ? 14 : 70);
 
     const contextParts = [
       `Tipo de negocio/servicio/profesión: ${businessTypeLabel || businessTypeId}`,
@@ -61,7 +68,9 @@ serve(async (req) => {
       ? `\n\nCONTEXTO DE APRENDIZAJE - El usuario ya respondió estas preguntas previamente. Usa esta información para hacer preguntas MÁS PROFUNDAS y ESPECÍFICAS, NO repitas temas ya cubiertos:\n${JSON.stringify(previousAnswers, null, 2)}`
       : '';
 
-    const dimDist = DIMENSION_DISTRIBUTION[isQuick ? 'quick' : 'complete'];
+    const dimDist = questionCountOverride 
+      ? { min: Math.max(1, Math.floor(batchQuestionCount / 7) - 1), max: Math.ceil(batchQuestionCount / 7) + 1 }
+      : DIMENSION_DISTRIBUTION[isQuick ? 'quick' : 'complete'];
 
     const systemPrompt = `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
 
