@@ -73,13 +73,7 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
               {fullName || user?.email?.split("@")[0] || "Usuario"}
             </h2>
           </div>
-          {currentBusiness && (
-            <div className="lg:hidden">
-              <h2 className="text-base font-semibold text-foreground">
-                {currentBusiness.name}
-              </h2>
-            </div>
-          )}
+          {/* Business name removed - already visible in sidebar/settings */}
         </div>
 
         {/* Right side - Actions */}

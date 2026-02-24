@@ -3,14 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Orbit, TrendingUp, AlertTriangle, ChevronRight, Sparkles, Eye, Filter, Calendar,
   Target, Zap, RefreshCw, Info, X, Check, ArrowRight, Wallet, Users, Settings,
-  ShoppingCart, Megaphone, Package, Cpu, Send, Clock
+  ShoppingCart, Megaphone, Package, Cpu, Send, Clock, Crown, Lock, Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ProPageGate } from '@/components/app/ProPageGate';
+import { useSubscription } from '@/hooks/use-subscription';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -425,19 +426,67 @@ export default function PredictionsPage() {
     );
   }
 
+  const navigate = useNavigate();
+  const { isPro: isProUser, isLoading: isSubLoading } = useSubscription();
+
+  if (!isProUser && !isSubLoading) {
+    // Show blurred preview with Pro CTA
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Orbit className="w-7 h-7 text-primary" />Predicciones
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Anticipá el futuro de tu negocio basado en datos reales
+          </p>
+        </div>
+        
+        <div className="relative">
+          {/* Blurred fake content */}
+          <div className="blur-sm pointer-events-none select-none opacity-50 space-y-4">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card><CardContent className="p-6"><div className="h-48 flex items-center justify-center"><Orbit className="w-16 h-16 text-primary/30" /></div></CardContent></Card>
+              <div className="space-y-4">
+                <Card><CardContent className="p-4"><div className="h-20" /></CardContent></Card>
+                <Card><CardContent className="p-4"><div className="h-20" /></CardContent></Card>
+              </div>
+            </div>
+            <Card><CardContent className="p-6"><div className="h-32" /></CardContent></Card>
+          </div>
+
+          {/* Overlay CTA */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm rounded-xl"
+          >
+            <div className="text-center p-6 max-w-sm">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
+                <Orbit className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Predicciones con IA
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Anticipá el futuro de tu negocio con el Gemelo Causal y escenarios predictivos basados en tus datos reales.
+              </p>
+              <Button 
+                className="group gradient-primary text-white"
+                onClick={() => navigate("/checkout")}
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Desbloquear con Pro
+                <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <ProPageGate
-      featureName="Predicciones"
-      featureDescription="Anticipá el futuro de tu negocio con IA predictiva basada en datos reales."
-      features={[
-        "Predicciones basadas en tu contexto real",
-        "Gemelo Causal con escenarios múltiples",
-        "Calibración interactiva para mayor precisión",
-        "Convertí predicciones en misiones",
-        "Timeline de 30 días a 3+ años"
-      ]}
-      icon={<Orbit className="w-10 h-10 text-primary" />}
-    >
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -712,6 +761,5 @@ export default function PredictionsPage() {
         </DialogContent>
       </Dialog>
     </div>
-    </ProPageGate>
   );
 }
