@@ -72,7 +72,22 @@ serve(async (req) => {
       ? { min: Math.max(1, Math.floor(batchQuestionCount / 7) - 1), max: Math.ceil(batchQuestionCount / 7) + 1 }
       : DIMENSION_DISTRIBUTION[isQuick ? 'quick' : 'complete'];
 
-    const systemPrompt = `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
+    // Use compact prompt for background batches (batchIndex > 0) for speed
+    const isBackgroundBatch = batchIndex > 0;
+    
+    const systemPrompt = isBackgroundBatch 
+      ? `Genera preguntas de diagnóstico para "${businessTypeLabel}" (${countryCode}). Idioma: ${lang}, voz: ${voiceStyle}.
+
+DIMENSIONES (cobertura balanceada ${dimDist.min}-${dimDist.max} c/u): traffic, profitability, team, finances, efficiency, growth, reputation.
+
+TIPOS: single (3-6 opciones con emoji/impactScore 1-10), multi, number, slider, text, money.
+CATEGORÍAS: identity, operation, sales, finance, team, marketing, reputation, goals.
+
+REGLAS: 100% específico para "${businessTypeLabel}". Terminología del sector. Rangos realistas. Datos accionables.
+${learningContext}
+
+Responde con generate_questions.`
+      : `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
 
 OBJETIVO ESTRATÉGICO:
 Estas preguntas construyen el "Cerebro del Negocio" - un modelo de inteligencia que luego genera misiones, predicciones, radar de oportunidades y análisis de salud. Cada pregunta DEBE aportar datos accionables que alimenten decisiones estratégicas reales.
@@ -89,67 +104,45 @@ Cada dimensión DEBE tener entre ${dimDist.min} y ${dimDist.max} preguntas:
 7. ⭐ REPUTACIÓN (reputation) - Reviews, ratings, percepción de marca, fidelización, NPS, presencia digital
 
 REGLAS CRÍTICAS DE PERSONALIZACIÓN:
-1. Las preguntas DEBEN ser 100% específicas para "${businessTypeLabel}". Prohibido preguntas genéricas que sirvan para cualquier negocio.
-2. Usa terminología propia del sector. Ejemplo: para un restaurante → "food cost", para un abogado → "cartera de clientes", para un ecommerce → "tasa de conversión", para un médico → "obras sociales/seguros".
+1. Las preguntas DEBEN ser 100% específicas para "${businessTypeLabel}". Prohibido preguntas genéricas.
+2. Usa terminología propia del sector.
 3. Las opciones de respuesta deben reflejar la REALIDAD del sector con rangos y valores reales del mercado.
-4. Adapta las preguntas al PAÍS (${countryCode}): regulaciones locales, plataformas populares, moneda, cultura de negocio.
-5. Usar ${voiceStyle} en idioma ${lang}. Tono: profesional pero cercano, como un consultor experto hablando con el dueño.
-
-REGLAS DE CALIDAD:
-- Cada pregunta debe generar un DATO ACCIONABLE, no solo información descriptiva
-- Las opciones deben tener impactScore diferenciado (1-10): opciones positivas = 8-10, neutras = 4-6, negativas/riesgosas = 1-3
-- Incluir preguntas de "pain points" específicos del sector
-- Incluir preguntas sobre tecnología/herramientas específicas del sector
-- Incluir preguntas sobre métricas clave del sector (KPIs propios)
-- Las preguntas numéricas deben tener rangos realistas para el sector y país
+4. Adapta las preguntas al PAÍS (${countryCode}).
+5. Usar ${voiceStyle} en idioma ${lang}. Tono: profesional pero cercano.
 
 TIPOS DE INPUT:
 - "single": Selección única (3-6 opciones con emoji, label bilingüe, impactScore)
 - "multi": Selección múltiple (3-6 opciones con emoji, label bilingüe)
 - "number": Valor numérico (incluir unit)
 - "slider": Rango deslizable (incluir min, max, unit)
-- "text": Respuesta abierta (solo para preguntas donde las opciones no cubren la variedad)
+- "text": Respuesta abierta
 - "money": Valor monetario (incluir unit con moneda local)
 
-DISTRIBUCIÓN POR CATEGORÍA:
-- identity: Posicionamiento, diferenciación, propuesta de valor
-- operation: Procesos, capacidad operativa, tiempos
-- sales: Ventas, conversión, canales, pricing
-- finance: Costos, márgenes, flujo de caja
-- team: Recursos humanos, roles, capacitación
-- marketing: Adquisición, retención, canales de marketing
-- reputation: Reseñas, percepción, marca
-- goals: Objetivos, metas, visión a futuro
+CATEGORÍAS: identity, operation, sales, finance, team, marketing, reputation, goals.
 
 FORMATO:
 - id: Q_AI_XXX (número secuencial)
 - weight: 1-10 (importancia para su dimensión)
 - required: true para preguntas estratégicas clave, false para complementarias
 - mode: "${isQuick ? 'quick' : 'complete'}" o "both"
-${learningContext}
+${learningContext}`;
 
-ERRORES A EVITAR:
-- NO hacer preguntas sobre temas irrelevantes para el tipo de negocio
-- NO usar lenguaje corporativo genérico ("optimizar procesos", "mejorar la eficiencia")
-- NO repetir el mismo concepto en diferentes preguntas
-- NO hacer preguntas cuya respuesta sea obvia
-- NO usar opciones con impactScore todos iguales
-- GARANTIZAR que TODAS las 7 dimensiones tengan la cobertura requerida (${dimDist.min}-${dimDist.max} preguntas cada una)`;
-
-    const userPrompt = `Genera EXACTAMENTE ${questionCount} preguntas para este negocio/servicio/profesión:
+    const userPrompt = isBackgroundBatch
+      ? `Genera EXACTAMENTE ${questionCount} preguntas para "${businessTypeLabel}" (${areaId}, ${countryCode}). ${dimDist.min}-${dimDist.max} por dimensión. Usa generate_questions.`
+      : `Genera EXACTAMENTE ${questionCount} preguntas para este negocio/servicio/profesión:
 
 ${contextParts}
 
 RECORDATORIO FINAL:
-- Distribución balanceada: cada una de las 7 dimensiones (traffic, profitability, team, finances, efficiency, growth, reputation) debe tener entre ${dimDist.min} y ${dimDist.max} preguntas
+- Distribución balanceada: cada una de las 7 dimensiones debe tener entre ${dimDist.min} y ${dimDist.max} preguntas
 - Total: ${questionCount} preguntas exactas
 - Idioma: ${lang} con ${voiceStyle}
 - 100% específico para "${businessTypeLabel}"
 
 Responde usando la función generate_questions.`;
 
-    // Use fastest quality model for all batches
-    const model = "google/gemini-3-flash-preview";
+    // Use fast model for background batches, quality model for first batch
+    const model = isBackgroundBatch ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

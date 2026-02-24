@@ -17,6 +17,35 @@ import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { CountryCode, COUNTRY_PACKS } from '@/lib/countryPacks';
 import { analyzeHealthFromAnswers } from '@/lib/gastroQuestionsEngine';
 
+// Map area IDs to valid business_category enum values
+const AREA_TO_CATEGORY: Record<string, string> = {
+  'A1_GASTRO': 'restaurant',
+  'A2_RETAIL': 'comercio',
+  'A3_SALUD': 'salud',
+  'A4_EDUCA': 'educacion',
+  'A5_TECH': 'ecommerce',
+  'A6_B2B': 'b2b',
+  'A7_HOGAR_SERV': 'servicio_profesional',
+  'A8_CONSTRU_INMO': 'industria',
+  'A9_LOGISTICA': 'industria',
+  'A10_AGRO': 'industria',
+  'A11_FINANZAS': 'servicio_profesional',
+  'A12_LEGAL': 'servicio_profesional',
+  'A13_CREATIVO': 'creador',
+  'A14_TURISMO': 'servicio_profesional',
+  'A15_DEPORTE': 'salud',
+  'A16_BELLEZA': 'salud',
+  'A17_VETERINARIA': 'salud',
+  'A18_GREENTECH': 'industria',
+  'A19_SOCIAL': 'freelancer',
+  'A20_FREELANCE': 'freelancer',
+};
+
+function mapAreaToCategory(areaId?: string): string {
+  if (!areaId) return 'otro';
+  return AREA_TO_CATEGORY[areaId] || 'otro';
+}
+
 // Setup steps
 import { SetupStepCountry } from '@/components/setup/SetupStepCountry';
 import { SetupStepIdentityAI } from '@/components/setup/SetupStepIdentityAI';
@@ -222,7 +251,7 @@ const SetupPage = () => {
         .from('businesses')
         .insert({
           name: data.businessName.trim(),
-          category: (data.areaId || 'restaurant') as any,
+          category: mapAreaToCategory(data.areaId) as any,
           country: data.countryCode,
           owner_id: user.id,
           setup_completed: true,
