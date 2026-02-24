@@ -97,17 +97,19 @@ interface MissionSummaryViewProps {
   onRegenerate: () => void;
 }
 
-const confidenceConfig = {
+const confidenceConfig: Record<string, { label: string; color: string; bg: string; icon: typeof Shield }> = {
   high: { label: "Alta", color: "text-success", bg: "bg-success/10", icon: Shield },
   medium: { label: "Media", color: "text-warning", bg: "bg-warning/10", icon: AlertTriangle },
   low: { label: "Baja", color: "text-muted-foreground", bg: "bg-muted", icon: HelpCircle },
 };
+const getConf = (key?: string) => confidenceConfig[key || 'medium'] || confidenceConfig.medium;
 
-const riskConfig = {
+const riskConfig: Record<string, { label: string; color: string; bg: string }> = {
   low: { label: "Bajo", color: "text-success", bg: "bg-success/10" },
   medium: { label: "Medio", color: "text-warning", bg: "bg-warning/10" },
   high: { label: "Alto", color: "text-destructive", bg: "bg-destructive/10" },
 };
+const getRisk = (key?: string) => riskConfig[key || 'medium'] || riskConfig.medium;
 
 const formatTime = (minutes: number) => {
   if (minutes < 60) return `${minutes} min`;
@@ -140,7 +142,7 @@ export const MissionSummaryView = ({
   }
 
   const confidenceLevel = enhancedPlan?.confidence || "medium";
-  const ConfidenceIcon = confidenceConfig[confidenceLevel].icon;
+  const ConfidenceIcon = getConf(confidenceLevel).icon;
   const probabilityScore = enhancedPlan?.probabilityScore ?? 70;
   const riskLevel = enhancedPlan?.riskLevel || "medium";
   const expectedBenefit = enhancedPlan?.expectedBenefit;
@@ -194,9 +196,9 @@ export const MissionSummaryView = ({
         
         {/* Pills */}
         <div className="flex flex-wrap gap-2">
-          <Badge className={cn("text-xs", riskConfig[riskLevel].bg, riskConfig[riskLevel].color)}>
+          <Badge className={cn("text-xs", getRisk(riskLevel).bg, getRisk(riskLevel).color)}>
             <AlertTriangle className="w-3 h-3 mr-1" />
-            Riesgo {riskConfig[riskLevel].label}
+            Riesgo {getRisk(riskLevel).label}
           </Badge>
           <Badge variant="outline" className="text-xs">
             <Sparkles className="w-3 h-3 mr-1" />
@@ -221,8 +223,8 @@ export const MissionSummaryView = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xl font-bold text-foreground">{probabilityScore}%</span>
-                  <Badge className={cn("text-[9px]", confidenceConfig[confidenceLevel].bg, confidenceConfig[confidenceLevel].color)}>
-                    {confidenceConfig[confidenceLevel].label}
+                  <Badge className={cn("text-[9px]", getConf(confidenceLevel).bg, getConf(confidenceLevel).color)}>
+                    {getConf(confidenceLevel).label}
                   </Badge>
                 </div>
               </TooltipTrigger>
@@ -279,8 +281,8 @@ export const MissionSummaryView = ({
             <div>
               <div className="text-sm font-bold text-foreground">{expectedBenefit.range}</div>
               <div className="flex items-center gap-1 mt-0.5">
-                <Badge className={cn("text-[8px]", confidenceConfig[expectedBenefit.confidence].bg, confidenceConfig[expectedBenefit.confidence].color)}>
-                  Confianza {confidenceConfig[expectedBenefit.confidence].label}
+                <Badge className={cn("text-[8px]", getConf(expectedBenefit.confidence).bg, getConf(expectedBenefit.confidence).color)}>
+                  Confianza {getConf(expectedBenefit.confidence).label}
                 </Badge>
                 {expectedBenefit.timeframe && (
                   <span className="text-[10px] text-muted-foreground">({expectedBenefit.timeframe})</span>

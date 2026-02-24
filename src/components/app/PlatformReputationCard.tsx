@@ -118,7 +118,7 @@ export const PlatformReputationCard = ({
   variant = "default",
   className 
 }: PlatformReputationCardProps) => {
-  const config = platformConfig[data.platform];
+  const config = platformConfig[data.platform] || platformConfig.google;
   
   const getTrendIcon = () => {
     switch (data.metrics.trend) {

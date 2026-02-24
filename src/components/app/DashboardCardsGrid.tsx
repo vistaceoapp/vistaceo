@@ -65,7 +65,7 @@ interface CardItemProps {
 
 const DashboardCardItem = ({ card, availableData, onClick }: CardItemProps) => {
   const { state, missingData } = getCardState(card, availableData);
-  const styles = STATE_STYLES[state];
+  const styles = STATE_STYLES[state] || STATE_STYLES['locked'];
   const icon = CATEGORY_ICONS[card.category] || <Zap className="w-4 h-4" />;
 
   return (
