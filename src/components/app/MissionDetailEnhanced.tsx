@@ -113,11 +113,12 @@ const AREA_ICONS: Record<string, string> = {
   Finanzas: "📊",
 };
 
-const confidenceConfig = {
+const confidenceConfig: Record<string, { label: string; color: string; bg: string; icon: typeof Shield }> = {
   high: { label: "Alta", color: "text-success", bg: "bg-success/10", icon: Shield },
   medium: { label: "Media", color: "text-warning", bg: "bg-warning/10", icon: AlertTriangle },
   low: { label: "Baja", color: "text-muted-foreground", bg: "bg-muted", icon: HelpCircle },
 };
+const getConf = (key?: string) => confidenceConfig[key || 'medium'] || confidenceConfig.medium;
 
 // Cache key prefix
 const CACHE_PREFIX = "mission_plan_";
@@ -375,14 +376,14 @@ export const MissionDetailEnhanced = ({
                     variant="outline"
                     className={cn(
                       "text-[10px] gap-0.5 px-1.5 h-5",
-                      confidenceConfig[enhancedPlan.confidence].color
+                      getConf(enhancedPlan.confidence).color
                     )}
                   >
                     {(() => {
-                      const IconComp = confidenceConfig[enhancedPlan.confidence].icon;
+                      const IconComp = getConf(enhancedPlan.confidence).icon;
                       return <IconComp className="w-2.5 h-2.5" />;
                     })()}
-                    {confidenceConfig[enhancedPlan.confidence].label}
+                    {getConf(enhancedPlan.confidence).label}
                   </Badge>
                 )}
               </div>
@@ -833,15 +834,15 @@ export const MissionDetailEnhanced = ({
                         <div
                           className={cn(
                             "flex items-center gap-1.5 text-xs rounded-full px-3 py-1.5",
-                            confidenceConfig[confidence].bg,
-                            confidenceConfig[confidence].color
+                            getConf(confidence).bg,
+                            getConf(confidence).color
                           )}
                         >
                           {(() => {
-                            const ConfIcon = confidenceConfig[confidence].icon;
+                            const ConfIcon = getConf(confidence).icon;
                             return <ConfIcon className="w-3 h-3" />;
                           })()}
-                          Confianza: {confidenceConfig[confidence].label}
+                          Confianza: {getConf(confidence).label}
                         </div>
                       </div>
                     </div>

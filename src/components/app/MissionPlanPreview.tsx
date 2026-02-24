@@ -54,11 +54,12 @@ export const MissionPlanPreview = ({
 }: MissionPlanPreviewProps) => {
   const [expandedStep, setExpandedStep] = useState<number | null>(0);
 
-  const confidenceLabels = {
+  const confidenceLabels: Record<string, { label: string; color: string; bg: string; icon: string }> = {
     high: { label: "Alta", color: "text-success", bg: "bg-success/10", icon: "✓" },
     medium: { label: "Media", color: "text-warning", bg: "bg-warning/10", icon: "~" },
     low: { label: "Baja", color: "text-muted-foreground", bg: "bg-muted", icon: "?" }
   };
+  const getConfLabel = (key?: string) => confidenceLabels[key || 'medium'] || confidenceLabels.medium;
 
   const totalTime = plan.steps?.reduce((acc, step) => {
     const match = step.timeEstimate?.match(/(\d+)/);
@@ -174,10 +175,10 @@ export const MissionPlanPreview = ({
                       {step.confidence && (
                         <span className={cn(
                           "px-2 py-0.5 rounded-full",
-                          confidenceLabels[step.confidence].bg,
-                          confidenceLabels[step.confidence].color
+                          getConfLabel(step.confidence).bg,
+                          getConfLabel(step.confidence).color
                         )}>
-                          Confianza: {confidenceLabels[step.confidence].label}
+                          Confianza: {getConfLabel(step.confidence).label}
                         </span>
                       )}
                     </div>

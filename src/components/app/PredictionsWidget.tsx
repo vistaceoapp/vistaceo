@@ -70,9 +70,12 @@ const MiniOrb = memo(({ clarity, pulseState }: { clarity: number; pulseState: 'c
 MiniOrb.displayName = 'MiniOrb';
 
 // Prediction card mini
+const defaultDomain = { label: 'General', icon: 'Sparkles', color: 'hsl(var(--primary))' };
+const defaultHorizon = { label: '—', days: 0, type: 'tactical' as const };
+
 const PredictionCardMini = memo(({ prediction }: { prediction: Prediction }) => {
-  const domainInfo = PREDICTION_DOMAINS[prediction.domain];
-  const horizonInfo = HORIZON_RINGS[prediction.horizon_ring];
+  const domainInfo = PREDICTION_DOMAINS[prediction.domain] || defaultDomain;
+  const horizonInfo = HORIZON_RINGS[prediction.horizon_ring] || defaultHorizon;
   
   return (
     <div className="flex items-center gap-3 p-2 rounded-lg bg-secondary/50 hover:bg-secondary/80 transition-colors">
