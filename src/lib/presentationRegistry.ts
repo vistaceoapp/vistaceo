@@ -221,6 +221,73 @@ export const HORIZON_LABELS: Record<string, string> = {
 };
 
 // =============================================
+// QUESTION / OPTION HUMANIZATION MAPS
+// =============================================
+const QUESTION_LABELS: Record<string, string> = {
+  Q_AI_001: "Origen principal de clientes",
+  Q_AI_002: "Rango de clientes por mes",
+  Q_AI_003: "Enfoque de capacitación",
+  Q_AI_004: "Nivel de registro operativo",
+  Q_AI_005: "Método de agenda",
+  Q_AI_006: "Zona de crecimiento",
+  Q_AI_007: "Tipo de feedback de clientes",
+  Q_AI_008: "Presupuesto operativo",
+  Q_AI_009: "Tamaño del equipo",
+  Q_AI_010: "Horas disponibles por semana",
+  Q_AI_011: "Estado de entrenamiento",
+  Q_AI_012: "Margen actual",
+  Q_AI_013: "Meta de crecimiento",
+  Q_AI_014: "Nivel de implementación",
+  Q_AI_015: "Tasa de conversión",
+  Q_AI_016: "Cobertura actual",
+  Q_AI_017: "Principal límite",
+  Q_AI_018: "Formato de contenido",
+  Q_AI_019: "Tiempo de respuesta al cliente",
+};
+
+const OPTION_LABELS: Record<string, string> = {
+  referrals: "Referidos",
+  train_new: "Entrenar al equipo",
+  no_record: "Sin registro formal",
+  manual_agenda: "Agenda manual",
+  new_neighborhoods: "Nuevas zonas",
+  private_feedback: "Feedback privado",
+  no_training: "Sin capacitación",
+  yes_implemented: "Implementado",
+  yes_limited: "Implementado con límites",
+  limit_clients: "Capacidad limitada por clientes",
+  behind_the_scenes: "Detrás de escena",
+  within_24h: "Dentro de 24 horas",
+  general_estimate: "Estimación general",
+  hand_drawings: "Bocetos a mano",
+  larger_projects: "Proyectos de mayor escala",
+  lab_tests: "Pruebas de laboratorio",
+  thermal_analysis: "Análisis térmico",
+  carbon_calc: "Cálculo de huella de carbono",
+  logistics: "Logística",
+  urban_focus: "Enfoque urbano",
+  tight_cash: "Flujo de caja ajustado",
+  high_conv: "Alta conversión",
+  parity_price: "Precio competitivo",
+  standard_tax: "Régimen impositivo estándar",
+  residential: "Residencial",
+  fixed_crew: "Equipo fijo",
+  direct_waste: "Gestión directa de residuos",
+  product_sales: "Venta de productos",
+  premium_price: "Precio premium",
+  universities_alliance: "Alianzas con universidades",
+  speaker_expert: "Posicionamiento como experto",
+  milestones: "Trabajo por hitos",
+  experienced_hire: "Contratación con experiencia",
+  intl_cert: "Certificación internacional",
+  artisanal: "Producción artesanal",
+  rec_focus: "Enfoque recomendado",
+};
+
+const INTERNAL_TOKEN_PATTERN = /^[a-z]+(?:_[a-z0-9]+)+$/i;
+const QUESTION_CODE_PATTERN = /^Q_[A-Z]{2,}_\d+$/i;
+
+// =============================================
 // ERROR MESSAGES (user-friendly, in Spanish)
 // =============================================
 export const ERROR_MESSAGES: Record<string, string> = {
@@ -388,6 +455,50 @@ export function humanError(errorKey: string | null | undefined, fallbackMessage?
 }
 
 /**
+ * Humanize internal question keys (Q_AI_002, etc.) with safe fallback.
+ */
+export function questionLabel(questionKey: string | null | undefined): string {
+  if (!questionKey) return NEUTRAL_FALLBACKS.label;
+
+  const key = questionKey.trim().toUpperCase();
+  if (QUESTION_LABELS[key]) return QUESTION_LABELS[key];
+  if (QUESTION_CODE_PATTERN.test(key)) return NEUTRAL_FALLBACKS.label;
+
+  return humanizeRawString(questionKey);
+}
+
+/**
+ * Humanize values from domain/internal payloads (enum-like tokens, arrays, booleans).
+ */
+export function humanValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") {
+    return NEUTRAL_FALLBACKS.notInformed;
+  }
+
+  if (typeof value === "boolean") return value ? "Sí" : "No";
+  if (typeof value === "number") return String(value);
+
+  if (Array.isArray(value)) {
+    const mapped = value.map((v) => humanValue(v)).filter(Boolean);
+    return mapped.length ? mapped.join(", ") : NEUTRAL_FALLBACKS.notInformed;
+  }
+
+  const raw = String(value).trim();
+  if (!raw) return NEUTRAL_FALLBACKS.notInformed;
+
+  if (isProhibitedContent(raw)) return NEUTRAL_FALLBACKS.value;
+
+  const normalized = raw.toLowerCase();
+  if (OPTION_LABELS[normalized]) return OPTION_LABELS[normalized];
+
+  if (QUESTION_CODE_PATTERN.test(raw)) return questionLabel(raw);
+  if (INTERNAL_TOKEN_PATTERN.test(normalized)) return NEUTRAL_FALLBACKS.option;
+
+  const sanitized = sanitizeForUI(raw);
+  return sanitized || NEUTRAL_FALLBACKS.value;
+}
+
+/**
  * Humanize a raw technical string into something presentable.
  * Transforms snake_case, camelCase, slugs into human-readable text.
  */
@@ -451,6 +562,14 @@ export function sanitizeForUI(text: string | null | undefined): string {
   // Remove parentheses with internal codes e.g., (Q_BIO_104)
   result = result.replace(/\([A-Z_]+\d*\)/g, '');
   result = result.replace(/\(\s*\)/g, '');
+  
+  // Replace enum-like snake_case tokens with human labels or neutral fallback
+  result = result.replace(/\b[a-z]+(?:_[a-z0-9]+)+\b/gi, (token) => {
+    const normalized = token.toLowerCase();
+    if (OPTION_LABELS[normalized]) return OPTION_LABELS[normalized];
+    if (ENGLISH_ALLOWLIST.has(normalized)) return token;
+    return NEUTRAL_FALLBACKS.option;
+  });
   
   // Translate common English words (only standalone words, not within brands)
   const words = result.split(/\b/);
