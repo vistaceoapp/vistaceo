@@ -155,11 +155,12 @@ const getWhyItApplies = (opportunity: Opportunity, business: Business | null): s
   return bullets.slice(0, 4);
 };
 
-const confidenceConfig = {
+const confidenceConfig: Record<string, { label: string; color: string; bg: string }> = {
   high: { label: "Alta", color: "text-success", bg: "bg-success/10" },
   medium: { label: "Media", color: "text-warning", bg: "bg-warning/10" },
-  low: { label: "Baja", color: "text-muted-foreground", bg: "bg-muted" }
+  low: { label: "Baja", color: "text-muted-foreground", bg: "bg-muted" },
 };
+const getConfidence = (key?: string) => confidenceConfig[key || 'medium'] || confidenceConfig.medium;
 
 export const OpportunityDetailEnhanced = ({
   opportunity,
@@ -297,9 +298,9 @@ export const OpportunityDetailEnhanced = ({
                   <Clock className="w-3 h-3 mr-1" />
                   {aiPlan.estimatedTotalTime}
                 </Badge>
-                <Badge variant="outline" className={cn("bg-background", confidenceConfig[aiPlan.confidence].color)}>
+                <Badge variant="outline" className={cn("bg-background", getConfidence(aiPlan.confidence).color)}>
                   <Shield className="w-3 h-3 mr-1" />
-                  Confianza: {confidenceConfig[aiPlan.confidence].label}
+                  Confianza: {getConfidence(aiPlan.confidence).label}
                 </Badge>
               </div>
               {aiPlan.expectedResult && (
@@ -451,8 +452,8 @@ export const OpportunityDetailEnhanced = ({
                               <Clock className="w-3 h-3 mr-1" />
                               {step.timeEstimate}
                             </Badge>
-                            <Badge variant="outline" className={cn("text-[10px]", confidenceConfig[step.confidence || "medium"].bg, confidenceConfig[step.confidence || "medium"].color)}>
-                              {confidenceConfig[step.confidence || "medium"].label}
+                            <Badge variant="outline" className={cn("text-[10px]", getConfidence(step.confidence).bg, getConfidence(step.confidence).color)}>
+                              {getConfidence(step.confidence).label}
                             </Badge>
                           </div>
                         </div>
