@@ -75,11 +75,12 @@ export const SetupStepQuestionnaire = ({
   const [isLoadingFirst, setIsLoadingFirst] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [generationError, setGenerationError] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   const backgroundFetchStarted = useRef(false);
   const allBatchesDone = useRef(false);
+  const latestAnswersRef = useRef(answers);
 
   const lang = COUNTRY_PACKS[countryCode]?.locale?.startsWith('pt') ? 'pt-BR' : 'es';
   const currency = COUNTRY_PACKS[countryCode]?.currencySymbol || '$';
@@ -126,6 +127,9 @@ export const SetupStepQuestionnaire = ({
     return data.questions as UniversalQuestion[];
   }, [businessTypeLabel, businessTypeId, areaId, countryCode, setupMode, businessName, rawUserText, universalProfile]);
 
+  // Keep latestAnswersRef in sync
+  useEffect(() => { latestAnswersRef.current = answers; }, [answers]);
+
   // Generate first batch of questions
   const generateFirstBatch = useCallback(async () => {
     setIsLoadingFirst(true);
@@ -142,16 +146,17 @@ export const SetupStepQuestionnaire = ({
       setCurrentIndex(0);
       setIsLoadingFirst(false);
     } catch (err) {
-      console.warn('AI questionnaire first batch failed (attempt ' + (retryCount + 1) + '):', err);
-      if (retryCount < MAX_RETRIES) {
-        setRetryCount(prev => prev + 1);
+      const attempt = retryCountRef.current + 1;
+      console.warn('AI questionnaire first batch failed (attempt ' + attempt + '):', err);
+      if (retryCountRef.current < MAX_RETRIES) {
+        retryCountRef.current += 1;
         setTimeout(() => generateFirstBatch(), 2000);
         return;
       }
       setGenerationError(true);
       setIsLoadingFirst(false);
     }
-  }, [fetchQuestions, setupMode, retryCount]);
+  }, [fetchQuestions, setupMode]);
 
   // Generate remaining batches in background
   const generateRemainingBatches = useCallback(async () => {
@@ -165,7 +170,7 @@ export const SetupStepQuestionnaire = ({
         const remaining = await fetchQuestions(
           `${BATCH_CONFIG.quick.remainingTarget}-${BATCH_CONFIG.quick.remainingTarget + 2}`,
           1,
-          answers
+          latestAnswersRef.current
         );
         setQuestions(prev => {
           const existingIds = new Set(prev.map(q => q.id));
@@ -179,7 +184,7 @@ export const SetupStepQuestionnaire = ({
             const batchQuestions = await fetchQuestions(
               `${BATCH_CONFIG.complete.perBatch}-${BATCH_CONFIG.complete.perBatch + 2}`,
               batch,
-              answers
+              latestAnswersRef.current
             );
             setQuestions(prev => {
               const existingIds = new Set(prev.map(q => q.id));
@@ -188,7 +193,6 @@ export const SetupStepQuestionnaire = ({
             });
           } catch (batchErr) {
             console.warn(`Batch ${batch} failed, continuing:`, batchErr);
-            // Continue with remaining batches even if one fails
           }
         }
       }
@@ -198,7 +202,7 @@ export const SetupStepQuestionnaire = ({
       setIsLoadingMore(false);
       allBatchesDone.current = true;
     }
-  }, [fetchQuestions, setupMode, answers]);
+  }, [fetchQuestions, setupMode]);
 
   // Start first batch on mount
   useEffect(() => {
@@ -379,7 +383,7 @@ export const SetupStepQuestionnaire = ({
           <Button
             variant="outline"
             onClick={() => {
-              setRetryCount(0);
+              retryCountRef.current = 0;
               setGenerationError(false);
               backgroundFetchStarted.current = false;
               allBatchesDone.current = false;

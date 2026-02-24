@@ -148,6 +148,9 @@ RECORDATORIO FINAL:
 
 Responde usando la función generate_questions.`;
 
+    // Use faster model for subsequent batches (batchIndex > 0) since context is simpler
+    const model = batchIndex > 0 ? "google/gemini-2.5-flash-lite" : "google/gemini-2.5-flash";
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -155,7 +158,7 @@ Responde usando la función generate_questions.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
