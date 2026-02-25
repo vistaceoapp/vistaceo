@@ -105,7 +105,7 @@ Las misiones se generan desde el Radar, desde el Chat con el Mentor IA, o desde 
 • **📈 Ventas**: Volumen, tendencia, ticket promedio
 • **💰 Finanzas**: Márgenes, costos, flujo de caja
 • **📣 Marketing**: Visibilidad, alcance, conversión
-• **⭐ Reputación**: Reviews, NPS, satisfacción del cliente
+• **🚀 Crecimiento**: Tendencias, captación, expansión
 • **⚙️ Operaciones**: Eficiencia, tiempos, procesos
 • **👥 Equipo**: Productividad, rotación, clima laboral
 • **🚀 Innovación**: Nuevos productos, mejoras, adaptación
@@ -132,7 +132,7 @@ El sistema te hace preguntas personalizadas para entender mejor tu operación
 Cada misión que completás, pausás o rechazás enseña al sistema qué funciona para vos
 
 **5. Integraciones** (opcional)
-Si conectás Google Reviews u otras plataformas, el sistema analiza automáticamente
+Tus decisiones y acciones diarias alimentan el sistema continuamente
 
 **El resultado:**
 • Empezás con ~70% de certeza
@@ -157,11 +157,11 @@ Si conectás Google Reviews u otras plataformas, el sistema analiza automáticam
 • Optimizar inventario
 • Negociar mejor con proveedores
 
-**Objetivos de Reputación:**
-• Subir rating en Google/redes
+**Objetivos de Posicionamiento:**
 • Mejorar experiencia del cliente
 • Aumentar recomendaciones
 • Construir marca reconocida
+• Diferenciarse de la competencia
 
 **Objetivos de Eficiencia:**
 • Automatizar procesos repetitivos

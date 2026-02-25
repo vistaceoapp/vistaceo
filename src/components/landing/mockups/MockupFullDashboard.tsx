@@ -31,12 +31,12 @@ const businessData = {
     certaintyPct: 85,
     dimensions: [
       { name: "Ventas", score: 82, icon: "📈" },
-      { name: "Reputación", score: 91, icon: "⭐" },
+      { name: "Crecimiento", score: 91, icon: "🚀" },
       { name: "Eficiencia", score: 74, icon: "⚡" },
       { name: "Finanzas", score: 68, icon: "💰" },
     ],
     focus: { area: "Ventas", description: "Aumentar ingresos y ticket promedio" },
-    reputation: { platform: "Google Reviews", score: 4.5, reviews: 127, change: "+0.2" },
+    extraMetric: { label: "Misiones completadas", value: "12", change: "+3" },
     pulseDate: "lunes, 27 de enero",
     radarCount: 5,
     greeting: "Buenas tardes",
@@ -53,12 +53,12 @@ const businessData = {
     certaintyPct: 92,
     dimensions: [
       { name: "Ventas", score: 88, icon: "📈" },
-      { name: "Reputación", score: 94, icon: "⭐" },
+      { name: "Crecimiento", score: 94, icon: "🚀" },
       { name: "Eficiencia", score: 82, icon: "⚡" },
       { name: "Finanzas", score: 78, icon: "💰" },
     ],
-    focus: { area: "Reputación", description: "Mejorar presencia en redes sociales" },
-    reputation: { platform: "Google Reviews", score: 4.8, reviews: 89, change: "+0.3" },
+    focus: { area: "Marketing", description: "Mejorar presencia en redes sociales" },
+    extraMetric: { label: "Misiones completadas", value: "8", change: "+2" },
     pulseDate: "lunes, 27 de enero",
     radarCount: 3,
     greeting: "Buenas tardes",
@@ -407,47 +407,39 @@ export const MockupFullDashboard = forwardRef<HTMLDivElement, MockupFullDashboar
                     </button>
                   </motion.div>
 
-                  {/* Reputation Widget - compact */}
-                  <motion.div 
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.25 }}
-                    className="bg-card rounded-xl border border-border p-3 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-1.5">
-                        <Star className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-xs font-bold text-foreground">Reputación</span>
-                      </div>
-                      <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-success/10 text-success border border-success/30">
-                        Conectado
-                      </span>
-                    </div>
+                   {/* Missions Summary Widget - compact */}
+                   <motion.div 
+                     initial={{ opacity: 0, x: 10 }}
+                     animate={{ opacity: 1, x: 0 }}
+                     transition={{ delay: 0.25 }}
+                     className="bg-card rounded-xl border border-border p-3 shadow-sm"
+                   >
+                     <div className="flex items-center justify-between mb-2">
+                       <div className="flex items-center gap-1.5">
+                         <Target className="w-3.5 h-3.5 text-primary" />
+                         <span className="text-xs font-bold text-foreground">Misiones</span>
+                       </div>
+                       <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/30">
+                         Activo
+                       </span>
+                     </div>
 
-                    <div className="p-2 rounded-lg bg-secondary/30 border border-border">
-                      <div className="flex items-center gap-1.5 mb-1.5">
-                        <span className="text-[10px] text-muted-foreground">{data.reputation.platform}</span>
-                        <span className="text-[9px] text-success flex items-center gap-0.5">
-                          <TrendingUp className="w-2 h-2" />
-                          {data.reputation.change}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Star className="w-4 h-4 text-primary fill-primary" />
-                        <span className="text-lg font-bold text-foreground">{data.reputation.score}</span>
-                        <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-primary rounded-full" 
-                            style={{ width: `${(data.reputation.score / 5) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                      <p className="text-[9px] text-muted-foreground mt-1">{data.reputation.reviews} reseñas</p>
-                    </div>
+                     <div className="p-2 rounded-lg bg-secondary/30 border border-border">
+                       <div className="flex items-center gap-1.5 mb-1.5">
+                         <span className="text-[10px] text-muted-foreground">{data.extraMetric.label}</span>
+                         <span className="text-[9px] text-success flex items-center gap-0.5">
+                           <TrendingUp className="w-2 h-2" />
+                           {data.extraMetric.change}
+                         </span>
+                       </div>
+                       <div className="flex items-center gap-1.5">
+                         <span className="text-lg font-bold text-foreground">{data.extraMetric.value}</span>
+                       </div>
+                     </div>
 
-                    <button className="w-full flex items-center justify-center gap-1 py-1.5 mt-2 text-[10px] text-primary hover:underline">
-                      Ver más detalles
-                      <ChevronRight className="w-3 h-3" />
+                     <button className="w-full flex items-center justify-center gap-1 py-1.5 mt-2 text-[10px] text-primary hover:underline">
+                       Ver misiones
+                       <ChevronRight className="w-3 h-3" />
                     </button>
                   </motion.div>
                 </div>

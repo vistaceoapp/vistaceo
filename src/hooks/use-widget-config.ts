@@ -22,7 +22,7 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: "missions", name: "Misiones activas", icon: "Target", visible: true, order: 4, section: "main" },
   { id: "predictions", name: "Predicciones", icon: "Orbit", visible: true, order: 5, section: "main" },
   { id: "focus", name: "Foco actual", icon: "Crosshair", visible: true, order: 0, section: "sidebar" },
-  { id: "reputation", name: "Reputación", icon: "Star", visible: true, order: 1, section: "sidebar" },
+  // { id: "reputation", name: "Reputación", icon: "Star", visible: true, order: 1, section: "sidebar" }, // Hidden until properly configured
   { id: "radar", name: "Radar de mercado", icon: "Radar", visible: true, order: 2, section: "sidebar" },
 ];
 

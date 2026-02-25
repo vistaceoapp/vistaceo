@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, Stethoscope, TrendingUp, BarChart3, RefreshCw, Clock, Users, DollarSign, Handshake, PieChart, Zap, TrendingDown } from "lucide-react";
+import { Star, Stethoscope, TrendingUp, BarChart3, RefreshCw, Clock, Users, DollarSign, Handshake, PieChart, Zap, TrendingDown, Brain } from "lucide-react";
 
 export const MockupHealthDashboard = () => {
   const dimensions = [
@@ -44,7 +44,7 @@ export const MockupHealthDashboard = () => {
       {/* Tabs */}
       <div className="flex border-b border-border bg-card">
         {[
-          { icon: Star, label: "Reputación", active: false },
+          { icon: Brain, label: "Insights", active: false },
           { icon: Stethoscope, label: "Diagnóstico", active: true },
           { icon: TrendingUp, label: "Evolución", active: false },
           { icon: BarChart3, label: "Métricas", active: false },
@@ -139,7 +139,7 @@ export const MockupHealthDashboard = () => {
                 { label: "Finanzas", angle: 64.29 },
                 { label: "Eficiencia", angle: 115.71 },
                 { label: "Crecimiento", angle: 167.14 },
-                { label: "Reputación", angle: 218.57 },
+                { label: "Marketing", angle: 218.57 },
               ].map((dim, i) => {
                 const rad = dim.angle * (Math.PI / 180);
                 const x = 50 + 46 * Math.cos(rad);
