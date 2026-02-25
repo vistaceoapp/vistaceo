@@ -27,7 +27,7 @@ const improvementAreas = [
   { icon: TrendingUp, label: "Ventas" },
   { icon: BarChart3, label: "Finanzas" },
   { icon: Lightbulb, label: "Marketing" },
-  { icon: Search, label: "Reputación" },
+  { icon: Search, label: "Crecimiento" },
   { icon: Zap, label: "Eficiencia" },
 ];
 

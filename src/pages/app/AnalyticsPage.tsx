@@ -2,7 +2,6 @@ import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 import { BusinessHealthAnalytics } from "@/components/analytics/BusinessHealthAnalytics";
 import { SmartInsightsPanel } from "@/components/analytics/SmartInsightsPanel";
 import { EvolutionPanel } from "@/components/app/EvolutionPanel";
-import { ReputationAnalyticsPanel } from "@/components/app/ReputationAnalyticsPanel";
 import { ProFeatureGate } from "@/components/app/ProFeatureGate";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -33,19 +32,15 @@ const AnalyticsPage = () => {
               )}
             </div>
             <p className="text-muted-foreground">
-              {isPro ? "Inteligencia de negocio en tiempo real" : "Reputación y diagnóstico de tu negocio"}
+              {isPro ? "Inteligencia de negocio en tiempo real" : "Diagnóstico y métricas de tu negocio"}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Tabs - All visible, but Pro tabs gated */}
-      <Tabs defaultValue={isPro ? "insights" : "reputacion"} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 mb-6">
-          <TabsTrigger value="reputacion" className={isMobile ? "text-xs px-1" : ""}>
-            <Star className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
-            {isMobile ? "Reputación" : "Reputación"}
-          </TabsTrigger>
+      {/* Tabs - Reputación removed until properly configured */}
+      <Tabs defaultValue={isPro ? "insights" : "diagnostico"} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="diagnostico" className={isMobile ? "text-xs px-1" : ""}>
             <Stethoscope className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
             {isMobile ? "Diagnóstico" : "Diagnóstico"}
@@ -68,10 +63,6 @@ const AnalyticsPage = () => {
         </TabsList>
 
         {/* Free-accessible tabs */}
-        <TabsContent value="reputacion" className="space-y-6">
-          <ReputationAnalyticsPanel />
-        </TabsContent>
-
         <TabsContent value="diagnostico" className="space-y-6">
           <BusinessHealthAnalytics />
         </TabsContent>

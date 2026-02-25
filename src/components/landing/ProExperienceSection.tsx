@@ -21,8 +21,8 @@ const proFeatures = [
   },
   { 
     icon: Star, 
-    title: "Integración con Google Reviews",
-    description: "Analizá automáticamente tus reseñas y recibí acciones para mejorar tu reputación."
+    title: "Diagnóstico inteligente del negocio",
+    description: "Evaluá la salud de tu empresa en 7 dimensiones y recibí recomendaciones accionables."
   },
   { 
     icon: HeadphonesIcon, 

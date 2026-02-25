@@ -921,7 +921,7 @@ const LandingUltra = () => {
                         "Chat ilimitado con VistaCEO",
                         "Análisis de fotos y documentos",
                         "Radar I+D completo",
-                        "Integración Google Reviews",
+                        "Diagnóstico inteligente avanzado",
                         "Analytics avanzado",
                         "Soporte prioritario",
                       ].map((feature, i) => (
@@ -989,7 +989,7 @@ const LandingUltra = () => {
               },
               {
                 q: "¿Necesito conectar mis cuentas o sistemas?",
-                a: "No es obligatorio. VistaCEO aprende de las respuestas que le das. Pero si conectás Google Reviews, Instagram o Facebook, la inteligencia se potencia."
+                a: "No es obligatorio. VistaCEO aprende de las respuestas que le das y de tu interacción diaria. Cuanto más lo usás, más inteligente se vuelve."
               },
               {
                 q: "¿Mis datos están seguros?",
