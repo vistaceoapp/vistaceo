@@ -141,8 +141,10 @@ export function parseMarkdown(content: string): string {
   });
   
   // ===== FINAL SAFETY NET: Remove any unreplaced placeholders =====
-  // If a CODE_BLOCK placeholder wasn't restored, strip it so users never see it
+  // Catches all variants: __CODE_BLOCK_0__, CODE_BLOCK_0, **CODE_BLOCK_0**, `CODE_BLOCK_0`
   html = html.replace(/__CODE_BLOCK_\d+__/g, '');
+  html = html.replace(/\*{0,2}\bCODE_BLOCK[_\s]*\d+\b\*{0,2}/gi, '');
+  html = html.replace(/`CODE_BLOCK[_\s]*\d+`/gi, '');
   html = html.replace(/__HTML_PROTECTED_\d+__/g, '');
   
   // Remove any remaining raw HTML attributes rendered as text
@@ -572,9 +574,10 @@ function sanitizeGeneratorArtifacts(md: string): string {
   // Remove stray closing angle brackets left from stripped tags
   clean = clean.replace(/^\s*>\s*$/gm, '');
   
-  // Remove __CODE_BLOCK_N__ placeholders that leaked into content_md
+  // Remove CODE_BLOCK placeholders that leaked into content_md (all variants)
   clean = clean.replace(/__CODE_BLOCK_\d+__/g, '');
-  clean = clean.replace(/\bCODE_BLOCK_\d+\b/g, '');
+  clean = clean.replace(/\*{0,2}\bCODE_BLOCK[_\s]*\d+\b\*{0,2}/gi, '');
+  clean = clean.replace(/`CODE_BLOCK[_\s]*\d+`/gi, '');
   
   // Remove AI placeholders
   clean = clean.replace(/\[insertar\s[^\]]*\]/gi, '');

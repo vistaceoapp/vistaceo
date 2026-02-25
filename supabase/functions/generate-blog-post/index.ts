@@ -720,8 +720,10 @@ function sanitizeAIGeneratedMarkdown(md: string): string {
   clean = clean.replace(/(?<!\(|!)nlewrgmcawzcdazhfiyy\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s"')>]+/g, '');
   
   // CRITICAL: Remove CODE_BLOCK placeholders that may leak from processing
+  // Catches: __CODE_BLOCK_0__, CODE_BLOCK_0, **CODE_BLOCK_0**, `CODE_BLOCK_0`
   clean = clean.replace(/__CODE_BLOCK_\d+__/g, '');
-  clean = clean.replace(/\bCODE_BLOCK_\d+\b/g, '');
+  clean = clean.replace(/\*{0,2}\bCODE_BLOCK[_\s]*\d+\b\*{0,2}/gi, '');
+  clean = clean.replace(/`CODE_BLOCK[_\s]*\d+`/gi, '');
   
   // Remove truncated supabase URLs (e.g. nlewrgmcawzcdazhfiyy.supabase.co/st...)
   clean = clean.replace(/[a-z0-9-]+\.supabase\.co\/(?:storage|st)[^\s"'<>)]*(?:\.\.\.)?/gi, '');
@@ -970,17 +972,24 @@ function runQualityGates(content: string, title: string): QualityGateReport {
     report.issues.push('CRITICAL: Raw HTML or leaked code detected in content');
   }
 
+  // HARD BLOCK: CODE_BLOCK placeholders leaked into content
+  const hasCodeBlockLeak = /\bCODE_BLOCK[_\s]*\d+\b/i.test(content) || /__CODE_BLOCK_\d+__/.test(content);
+  if (hasCodeBlockLeak) {
+    report.issues.push('CRITICAL: CODE_BLOCK placeholder leaked into content');
+  }
+
   // Calculate score
   const checksArray = Object.values(report.checks);
   const passedChecks = checksArray.filter(Boolean).length;
   report.score = Math.round((passedChecks / checksArray.length) * 100);
   
-  // PASS if: minimum word count met, has headings, no tables, no broken formatting, NO raw HTML
+  // PASS if: minimum word count met, has headings, no tables, no broken formatting, NO raw HTML, NO code block leaks
   report.passed = report.checks.min_word_count &&
     report.checks.real_headings &&
     report.checks.no_markdown_tables &&
     report.checks.no_broken_lines &&
-    !hasRawHTML;
+    !hasRawHTML &&
+    !hasCodeBlockLeak;
 
   return report;
 }
@@ -1565,7 +1574,8 @@ TAMBIÉN:
 
 ⛔ PROHIBIDO: tablas Markdown, líneas >120 chars, keywords repetidas, frases genéricas de IA, artículos que son solo listas y templates.
 ⛔ NUNCA incluir HTML crudo de ningún tipo. SOLO markdown puro. Nada de <img>, <a>, <h2>, <div>. Nada de atributos como loading="lazy", class="content-image", id="seccion". Si querés una imagen usá ![alt](url). Si querés un link usá [texto](url). Si querés un heading usá ## Texto. NUNCA HTML.
-⛔ NUNCA incluir URLs de storage raw como nlewrgmcawzcdazhfiyy.supabase.co en el texto. Solo en sintaxis de imagen markdown.`;
+⛔ NUNCA incluir URLs de storage raw como nlewrgmcawzcdazhfiyy.supabase.co en el texto. Solo en sintaxis de imagen markdown.
+⛔ NUNCA escribir "CODE_BLOCK_0", "CODE_BLOCK_1", "__CODE_BLOCK__" ni ningún placeholder técnico. Estos son artefactos internos del sistema. Si querés mostrar código, usá triple backtick (\`\`\`). NUNCA la palabra "CODE_BLOCK" como texto.`;
 
     console.log('[generate-blog-post] Calling Lovable AI with PATCH V7 prompt...');
 

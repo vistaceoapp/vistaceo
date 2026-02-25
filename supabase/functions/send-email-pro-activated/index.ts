@@ -34,7 +34,7 @@ const BRAND = {
   textSecondary: "rgba(255,255,255,0.82)",
   textMuted: "rgba(255,255,255,0.62)",
   // Email-safe hosted assets (absolute URLs required for email clients)
-  logoUrl: "https://nlewrgmcawzcdazhfiyy.supabase.co/storage/v1/object/public/email-assets/vistaceo-logo-white.png?v=3",
+  logoUrl: "https://nlewrgmcawzcdazhfiyy.supabase.co/storage/v1/object/public/email-assets/vistaceo-logo-white.png?v=4",
 };
 
 function generateProActivatedEmail(
