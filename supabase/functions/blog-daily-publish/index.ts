@@ -529,8 +529,11 @@ function autoRepairMarkdown(contentMd: string): { content: string; repaired: boo
   const rawUrlFixed = content.replace(/(?<!\(|!)nlewrgmcawzcdazhfiyy\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s"')>]+/g, '');
   if (rawUrlFixed !== content) { repairs.push('removed_raw_supabase_urls'); content = rawUrlFixed; }
   
-  // CRITICAL: Remove CODE_BLOCK placeholders that leaked
-  const codeBlockFixed = content.replace(/__CODE_BLOCK_\d+__/g, '').replace(/\bCODE_BLOCK_\d+\b/g, '');
+  // CRITICAL: Remove CODE_BLOCK placeholders that leaked (all variants)
+  const codeBlockFixed = content
+    .replace(/__CODE_BLOCK_\d+__/g, '')
+    .replace(/\*{0,2}\bCODE_BLOCK[_\s]*\d+\b\*{0,2}/gi, '')
+    .replace(/`CODE_BLOCK[_\s]*\d+`/gi, '');
   if (codeBlockFixed !== content) { repairs.push('removed_code_block_placeholders'); content = codeBlockFixed; }
   
   // Remove truncated supabase URLs

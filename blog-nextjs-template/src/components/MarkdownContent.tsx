@@ -31,9 +31,10 @@ function cleanMarkdownContent(content: string): string {
   cleaned = cleaned.replace(/\s*height="[^"]*"/g, '');
   cleaned = cleaned.replace(/\s*decoding="[^"]*"/g, '');
   
-  // CRITICAL: Remove CODE_BLOCK placeholders that leaked from processing
+  // CRITICAL: Remove CODE_BLOCK placeholders that leaked from processing (all variants)
   cleaned = cleaned.replace(/__CODE_BLOCK_\d+__/g, '');
-  cleaned = cleaned.replace(/\bCODE_BLOCK_\d+\b/g, '');
+  cleaned = cleaned.replace(/\*{0,2}\bCODE_BLOCK[_\s]*\d+\b\*{0,2}/gi, '');
+  cleaned = cleaned.replace(/`CODE_BLOCK[_\s]*\d+`/gi, '');
   
   // Clean up stray closing brackets
   cleaned = cleaned.replace(/^\s*>\s*$/gm, '');
