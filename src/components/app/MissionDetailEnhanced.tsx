@@ -120,9 +120,8 @@ const confidenceConfig: Record<string, { label: string; color: string; bg: strin
 };
 const getConf = (key?: string) => confidenceConfig[key || 'medium'] || confidenceConfig.medium;
 
-// Cache key prefix
+// Cache key prefix — permanent, no TTL
 const CACHE_PREFIX = "mission_plan_";
-const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 interface CachedPlan {
   plan: EnhancedPlan;
@@ -130,7 +129,7 @@ interface CachedPlan {
   businessId: string;
 }
 
-// Get from localStorage with TTL check
+// Get from localStorage — no TTL expiration, permanent cache
 const getCachedPlan = (missionId: string, businessId: string): EnhancedPlan | null => {
   try {
     const key = `${CACHE_PREFIX}${missionId}`;
@@ -138,11 +137,7 @@ const getCachedPlan = (missionId: string, businessId: string): EnhancedPlan | nu
     if (!raw) return null;
     
     const cached: CachedPlan = JSON.parse(raw);
-    const isValid = 
-      cached.businessId === businessId &&
-      Date.now() - cached.cachedAt < CACHE_TTL_MS;
-    
-    return isValid ? cached.plan : null;
+    return cached.businessId === businessId ? cached.plan : null;
   } catch {
     return null;
   }

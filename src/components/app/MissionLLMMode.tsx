@@ -205,9 +205,8 @@ const CollapsibleArea = ({ area, missions, selectedMissionId, starredMissions, o
   );
 };
 
-// Cache
+// Cache — permanent, never expires unless user explicitly regenerates
 const CACHE_PREFIX = "mission_plan_v4_";
-const CACHE_TTL_MS = 20 * 60 * 1000; // 20 minutes
 
 interface CachedPlan {
   plan: EnhancedPlan;
@@ -221,8 +220,8 @@ const getCachedPlan = (missionId: string, businessId: string): EnhancedPlan | nu
     const raw = localStorage.getItem(key);
     if (!raw) return null;
     const cached: CachedPlan = JSON.parse(raw);
-    const isValid = cached.businessId === businessId && Date.now() - cached.cachedAt < CACHE_TTL_MS;
-    return isValid ? cached.plan : null;
+    // Only validate businessId match — no TTL expiration
+    return cached.businessId === businessId ? cached.plan : null;
   } catch {
     return null;
   }
@@ -269,6 +268,8 @@ export const MissionLLMMode = ({
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+
 
   const steps = useMemo(() => (mission.steps || []) as Step[], [mission.steps]);
   const completedSteps = useMemo(() => steps.filter((s) => s.done).length, [steps]);
@@ -346,6 +347,11 @@ export const MissionLLMMode = ({
       setRegenerating(false);
     }
   }, [mission.id, mission.title, mission.description, mission.area, businessId, steps]);
+
+  const confirmAndRegenerate = useCallback(() => {
+    if (!window.confirm("¿Regenerar la guía? Se perderá el progreso actual de los pasos.")) return;
+    fetchEnhancedPlan(true);
+  }, [fetchEnhancedPlan]);
 
   // Effect for mission change
   useEffect(() => {
@@ -495,7 +501,7 @@ export const MissionLLMMode = ({
                     loading={loading}
                     regenerating={regenerating}
                     estimatedTimeRemaining={estimatedTimeRemaining}
-                    onRegenerate={() => fetchEnhancedPlan(true)}
+                    onRegenerate={confirmAndRegenerate}
                   />
                 </TabsContent>
 
@@ -515,9 +521,7 @@ export const MissionLLMMode = ({
                       variant="outline"
                       size="sm"
                       className="flex-1 text-xs h-9"
-                      onClick={() => {
-                        fetchEnhancedPlan(true);
-                      }}
+                      onClick={confirmAndRegenerate}
                       disabled={regenerating}
                     >
                       <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", regenerating && "animate-spin")} />
@@ -542,7 +546,7 @@ export const MissionLLMMode = ({
                     loading={loading}
                     regenerating={regenerating}
                     estimatedTimeRemaining={estimatedTimeRemaining}
-                    onRegenerate={() => fetchEnhancedPlan(true)}
+                    onRegenerate={confirmAndRegenerate}
                   />
                 </TabsContent>
               </div>
@@ -577,7 +581,7 @@ export const MissionLLMMode = ({
   return (
     <div className="flex h-full min-h-0">
       {/* Left: Missions List + Filters */}
-      <aside className="w-64 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
+      <aside className="w-56 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
         <div className="p-4 border-b border-border">
           <Button variant="ghost" size="sm" onClick={onBack} className="mb-3 -ml-2">
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -665,6 +669,7 @@ export const MissionLLMMode = ({
                       size="sm"
                       className="h-9"
                       onClick={() => {
+                        if (!window.confirm("¿Regenerar la guía? Se perderá el progreso actual de los pasos.")) return;
                         fetchEnhancedPlan(true);
                         if (currentBusiness) {
                           supabase.functions.invoke("brain-record-signal", {
@@ -772,7 +777,7 @@ export const MissionLLMMode = ({
                 loading={loading}
                 regenerating={regenerating}
                 estimatedTimeRemaining={estimatedTimeRemaining}
-                onRegenerate={() => fetchEnhancedPlan(true)}
+                onRegenerate={confirmAndRegenerate}
               />
             ) : (
               <MissionStepsView
