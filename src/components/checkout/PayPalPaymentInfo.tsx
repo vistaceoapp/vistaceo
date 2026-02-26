@@ -86,7 +86,7 @@ export const PayPalPaymentInfo = ({ usdAmount, planId }: PayPalPaymentInfoProps)
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] sm:text-xs text-muted-foreground">
-              VistaCEO Pro {planId === "pro_yearly" ? "Anual" : "Mensual"}
+              VISTACEO Pro {planId === "pro_yearly" ? "Anual" : "Mensual"}
             </p>
             <p className="font-semibold text-foreground text-sm sm:text-base">Total a pagar</p>
           </div>

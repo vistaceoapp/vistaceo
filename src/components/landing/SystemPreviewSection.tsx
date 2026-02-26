@@ -16,7 +16,7 @@ export const SystemPreviewSection = () => {
           className="text-center max-w-2xl mx-auto mb-12"
         >
           <span className="inline-block text-xs font-medium text-primary mb-3 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
-            Así se ve VistaCEO
+            Así se ve VISTACEO
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3 leading-tight">
             Tu negocio en <span className="text-gradient-primary">tiempo real</span>
@@ -37,7 +37,7 @@ export const SystemPreviewSection = () => {
           <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
             <img 
               src={analyticsSaludImg} 
-              alt="VistaCEO - Salud del Negocio" 
+              alt="VISTACEO - Salud del Negocio" 
               className="w-full h-auto"
             />
           </div>

@@ -41,12 +41,12 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
     dateModified: post.updated_at,
     author: {
       '@type': 'Person',
-      name: post.author_name || 'VistaCEO',
+      name: post.author_name || 'VISTACEO',
       ...(post.author_url && { url: post.author_url }),
     },
     publisher: {
       '@type': 'Organization',
-      name: 'VistaCEO',
+      name: 'VISTACEO',
       logo: {
         '@type': 'ImageObject',
         url: `${CANONICAL_DOMAIN}/favicon.png`,
@@ -86,13 +86,13 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
   return (
     <Helmet>
       {/* Basic meta */}
-      <title>{post.meta_title || post.title} | VistaCEO Blog</title>
+      <title>{post.meta_title || post.title} | VISTACEO Blog</title>
       <meta name="description" content={post.meta_description || post.excerpt || ''} />
       <link rel="canonical" href={post.canonical_url || canonicalUrl} />
 
       {/* Open Graph - CRITICAL for LinkedIn/Social sharing */}
       <meta property="og:type" content="article" />
-      <meta property="og:site_name" content="VistaCEO" />
+      <meta property="og:site_name" content="VISTACEO" />
       <meta property="og:title" content={post.meta_title || post.title} />
       <meta property="og:description" content={post.meta_description || post.excerpt || ''} />
       <meta property="og:url" content={canonicalUrl} />
@@ -102,7 +102,7 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
       <meta property="og:locale" content="es_LA" />
       <meta property="article:published_time" content={post.publish_at || ''} />
       <meta property="article:modified_time" content={post.updated_at} />
-      <meta property="article:author" content={post.author_name || 'VistaCEO'} />
+      <meta property="article:author" content={post.author_name || 'VISTACEO'} />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />

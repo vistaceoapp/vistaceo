@@ -177,7 +177,7 @@ const SetupCompletePage = () => {
             
             <p className="text-lg text-muted-foreground mb-8">
               {hasPendingPlan 
-                ? "Solo falta activar tu plan Pro para desbloquear todo el poder de VistaCEO."
+                ? "Solo falta activar tu plan Pro para desbloquear todo el poder de VISTACEO."
                 : "VISTACEO ya está analizando tu negocio y preparando recomendaciones personalizadas."
               }
             </p>

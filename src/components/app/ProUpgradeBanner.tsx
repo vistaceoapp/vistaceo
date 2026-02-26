@@ -51,7 +51,7 @@ export const ProUpgradeBanner = ({
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">
-                Desbloquea todo el poder de VistaCEO
+                Desbloquea todo el poder de VISTACEO
               </p>
               <p className="text-xs text-muted-foreground">
                 Analytics, predicciones, voz y más
@@ -103,7 +103,7 @@ export const ProUpgradeBanner = ({
           
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-foreground mb-1">
-              Actualiza a VistaCEO Pro
+              Actualiza a VISTACEO Pro
             </h3>
             <p className="text-sm text-muted-foreground">
               Desbloquea el cerebro completo: analytics avanzado, predicciones IA, 

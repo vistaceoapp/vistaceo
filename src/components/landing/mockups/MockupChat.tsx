@@ -39,7 +39,7 @@ export const MockupChat = () => {
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-success border-2 border-card" />
           </div>
           <div>
-            <h4 className="font-semibold text-foreground text-sm">VistaCEO</h4>
+            <h4 className="font-semibold text-foreground text-sm">VISTACEO</h4>
             <p className="text-xs text-success flex items-center gap-1">
               Conectado • Analizando Café Aurora
             </p>

@@ -48,7 +48,7 @@ export const GuaranteeSection = () => {
               </h2>
               
               <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
-                Si VistaCEO Pro no genera valor real para tu negocio en los primeros 7 días, 
+                Si VISTACEO Pro no genera valor real para tu negocio en los primeros 7 días, 
                 te devolvemos el 100% de tu inversión. Sin excusas, sin letras pequeñas.
               </p>
 

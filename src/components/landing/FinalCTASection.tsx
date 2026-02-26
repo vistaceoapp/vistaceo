@@ -38,7 +38,7 @@ export const FinalCTASection = () => {
           
           <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
             Mientras lo pensás, tu competencia ya está actuando. 
-            VistaCEO te da la claridad para moverte primero.
+            VISTACEO te da la claridad para moverte primero.
           </p>
 
           {/* CTAs */}

@@ -75,9 +75,9 @@ export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => 
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-foreground mb-2">¿Dónde está tu negocio?</h2>
         <p className="text-muted-foreground">Esto define moneda, impuestos y plataformas locales</p>
-        {detectedCountryCode && isSupportedCountry(detectedCountryCode) && !userManuallyChanged && !value && (
+        {detectedCountryCode && isSupportedCountry(detectedCountryCode) && !userManuallyChanged && (
           <p className="text-sm text-primary mt-2">
-            Detectamos tu ubicación automáticamente — podés cambiarlo
+            Detectamos que estás en {COUNTRY_FLAGS[detectedCountryCode] || '🌍'} — podés cambiarlo
           </p>
         )}
       </div>

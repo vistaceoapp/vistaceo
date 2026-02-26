@@ -32,7 +32,7 @@ const tocItems: TocItem[] = [
 ];
 
 const quickSummary = [
-  "VistaCEO es una herramienta de IA para negocios. Las respuestas son sugerencias, no garantías.",
+  "VISTACEO es una herramienta de IA para negocios. Las respuestas son sugerencias, no garantías.",
   "Hay una versión Gratis (sin tarjeta) y una versión Pro paga con más funcionalidades.",
   "Los precios se muestran en USD. El tipo de cambio puede variar.",
   "No somos responsables por impuestos, comisiones del procesador o diferencias de tipo de cambio.",
@@ -44,7 +44,7 @@ const quickSummary = [
 
 const faqQuestions = [
   {
-    q: "¿Puedo usar VistaCEO gratis?",
+    q: "¿Puedo usar VISTACEO gratis?",
     a: "Sí. Existe una versión Gratis 100% gratuita que no requiere tarjeta de crédito ni datos de pago. Tiene funcionalidades limitadas respecto al plan Pro.",
   },
   {
@@ -53,11 +53,11 @@ const faqQuestions = [
   },
   {
     q: "¿Quién es responsable por impuestos o comisiones bancarias?",
-    a: "VistaCEO no controla ni se responsabiliza por impuestos, retenciones, comisiones del procesador de pago, banco o emisor, ni diferencias por tipo de cambio. Esos cargos son responsabilidad del usuario.",
+    a: "VISTACEO no controla ni se responsabiliza por impuestos, retenciones, comisiones del procesador de pago, banco o emisor, ni diferencias por tipo de cambio. Esos cargos son responsabilidad del usuario.",
   },
   {
     q: "¿Las sugerencias de la IA son confiables?",
-    a: "La IA genera sugerencias automatizadas que pueden contener errores o inexactitudes. Siempre debés validar la información importante y consultar profesionales cuando corresponda. VistaCEO no es un sustituto del asesoramiento profesional.",
+    a: "La IA genera sugerencias automatizadas que pueden contener errores o inexactitudes. Siempre debés validar la información importante y consultar profesionales cuando corresponda. VISTACEO no es un sustituto del asesoramiento profesional.",
   },
   {
     q: "¿Puedo cancelar mi suscripción en cualquier momento?",
@@ -79,17 +79,17 @@ const TermsOfServicePage = () => {
   return (
     <>
       <Helmet>
-        <title>Condiciones del Servicio | VistaCEO</title>
+        <title>Condiciones del Servicio | VISTACEO</title>
         <meta
           name="description"
-          content="Términos y condiciones de uso de VistaCEO. Conocé tus derechos, responsabilidades y las reglas del servicio."
+          content="Términos y condiciones de uso de VISTACEO. Conocé tus derechos, responsabilidades y las reglas del servicio."
         />
         <link rel="canonical" href="https://www.vistaceo.com/condiciones" />
       </Helmet>
 
       <LegalPageLayout
         title="Condiciones del Servicio"
-        subtitle="Términos que regulan el uso de VistaCEO"
+        subtitle="Términos que regulan el uso de VISTACEO"
         lastUpdated={lastUpdated}
         tocItems={tocItems}
         quickSummary={quickSummary}
@@ -104,22 +104,22 @@ const TermsOfServicePage = () => {
         <LegalSection id="aceptacion" title="1. Aceptación y alcance">
           <p className="text-muted-foreground mb-4">
             Estas Condiciones del Servicio ("Condiciones") constituyen un acuerdo legal entre 
-            vos y <strong>VistaCEO</strong> ("nosotros", "la plataforma", "el servicio") para 
+            vos y <strong>VISTACEO</strong> ("nosotros", "la plataforma", "el servicio") para 
             el uso del sitio web <strong>www.vistaceo.com</strong> y los servicios relacionados.
           </p>
           <p className="text-muted-foreground mb-4">
-            Al crear una cuenta, acceder o usar VistaCEO, aceptás estas Condiciones y nuestra 
-            Política de Privacidad. Si no estás de acuerdo, no uses el servicio.
+             Al crear una cuenta, acceder o usar VISTACEO, aceptás estas Condiciones y nuestra 
+             Política de Privacidad. Si no estás de acuerdo, no uses el servicio.
           </p>
           <WhatThisMeans>
-            Al usar VistaCEO, aceptás estas reglas. Si algo no te parece, podés no usar 
+            Al usar VISTACEO, aceptás estas reglas. Si algo no te parece, podés no usar 
             el servicio.
           </WhatThisMeans>
         </LegalSection>
 
         <LegalSection id="descripcion" title="2. Descripción del servicio">
           <p className="text-muted-foreground mb-4">
-            VistaCEO es una plataforma SaaS (Software as a Service) con inteligencia artificial 
+            VISTACEO es una plataforma SaaS (Software as a Service) con inteligencia artificial 
             diseñada para ayudar a dueños de negocios, CEOs y equipos a:
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
@@ -137,7 +137,7 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="elegibilidad" title="3. Elegibilidad">
           <p className="text-muted-foreground mb-4">
-            Para usar VistaCEO debés:
+            Para usar VISTACEO debés:
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
             <li>Tener al menos 18 años de edad (o la edad legal mínima en tu jurisdicción)</li>
@@ -164,7 +164,7 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="planes" title="5. Planes y disponibilidad">
           <p className="text-muted-foreground mb-4">
-            VistaCEO ofrece diferentes planes:
+            VISTACEO ofrece diferentes planes:
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
             <li><strong>Plan Gratis:</strong> 100% gratuito, no requiere tarjeta de crédito ni datos de pago. Incluye funcionalidades básicas.</li>
@@ -183,7 +183,7 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="uso-aceptable" title="6. Uso aceptable y prohibiciones">
           <p className="text-muted-foreground mb-4">
-            Aceptás usar VistaCEO únicamente para fines legales y conforme a estas Condiciones. 
+            Aceptás usar VISTACEO únicamente para fines legales y conforme a estas Condiciones. 
             Está <strong>prohibido</strong>:
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
@@ -207,7 +207,7 @@ const TermsOfServicePage = () => {
         <LegalSection id="contenido-usuario" title="7. Contenido del usuario">
           <p className="text-muted-foreground mb-4">
             "Contenido" incluye mensajes, prompts, textos, audios, imágenes, archivos u otra 
-            información que subas o generes en VistaCEO.
+            información que subas o generes en VISTACEO.
           </p>
           <p className="text-muted-foreground mb-4">
             <strong>Tus responsabilidades:</strong>
@@ -231,7 +231,7 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="ia-limitaciones" title="8. IA: limitaciones">
           <p className="text-muted-foreground mb-4">
-            VistaCEO utiliza inteligencia artificial para generar respuestas, sugerencias, 
+            VISTACEO utiliza inteligencia artificial para generar respuestas, sugerencias, 
             análisis y recomendaciones. Es fundamental que entiendas:
           </p>
           <div className="bg-warning/10 border border-warning/30 rounded-lg p-4 mb-4">
@@ -260,7 +260,7 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="sin-garantias" title="9. Sin garantías">
           <p className="text-muted-foreground mb-4">
-            En la máxima medida permitida por la normativa aplicable, VistaCEO se provee 
+            En la máxima medida permitida por la normativa aplicable, VISTACEO se provee 
             <strong> "tal cual" (as-is)</strong> y <strong>"según disponibilidad" (as-available)</strong>, 
             sin garantías de ningún tipo, expresas o implícitas.
           </p>
@@ -283,7 +283,7 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="limitacion-responsabilidad" title="10. Limitación de responsabilidad">
           <p className="text-muted-foreground mb-4">
-            En la máxima medida permitida por la normativa aplicable, VistaCEO, sus directores, 
+            En la máxima medida permitida por la normativa aplicable, VISTACEO, sus directores, 
             empleados, afiliados y proveedores <strong>no serán responsables</strong> por:
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
@@ -305,7 +305,7 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="indemnidad" title="11. Indemnidad">
           <p className="text-muted-foreground mb-4">
-            Aceptás defender, indemnizar y mantener indemne a VistaCEO, sus directores, 
+            Aceptás defender, indemnizar y mantener indemne a VISTACEO, sus directores, 
             empleados y afiliados frente a cualquier reclamo, daño, costo o gasto (incluyendo 
             honorarios legales) que surja de:
           </p>
@@ -320,7 +320,7 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="terceros" title="12. Terceros">
           <p className="text-muted-foreground mb-4">
-            VistaCEO puede utilizar o integrarse con servicios de terceros, incluyendo:
+            VISTACEO puede utilizar o integrarse con servicios de terceros, incluyendo:
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
             <li>Proveedores de IA para procesamiento de lenguaje</li>
@@ -357,7 +357,7 @@ const TermsOfServicePage = () => {
 
           <LegalSubsection id="comisiones" title="13.3 Comisiones, impuestos y terceros">
             <div className="bg-card border border-border rounded-lg p-4 mb-4">
-              <p className="text-foreground font-medium mb-2">⚠️ VistaCEO NO controla ni se responsabiliza por:</p>
+              <p className="text-foreground font-medium mb-2">⚠️ VISTACEO NO controla ni se responsabiliza por:</p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-1">
                 <li>Tipo de cambio final aplicado por el procesador, banco o emisor</li>
                 <li>Comisiones del procesador de pago</li>
@@ -375,7 +375,7 @@ const TermsOfServicePage = () => {
           <LegalSubsection id="procesamiento" title="13.4 Procesamiento de pagos">
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
               <li>Los pagos son procesados por pasarelas de pago de terceros</li>
-              <li>VistaCEO no almacena datos completos de tarjetas de crédito/débito</li>
+              <li>VISTACEO no almacena datos completos de tarjetas de crédito/débito</li>
               <li>El procesamiento cumple con estándares de seguridad del sector (pero ningún sistema es 100% invulnerable)</li>
             </ul>
           </LegalSubsection>
@@ -410,8 +410,8 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="propiedad-intelectual" title="15. Propiedad intelectual">
           <p className="text-muted-foreground mb-4">
-            VistaCEO, incluyendo su nombre, logo, diseño, código, funcionalidades, contenido 
-            original y marca, es propiedad exclusiva de VistaCEO o sus licenciantes.
+             VISTACEO, incluyendo su nombre, logo, diseño, código, funcionalidades, contenido 
+             original y marca, es propiedad exclusiva de VISTACEO o sus licenciantes.
           </p>
           <p className="text-muted-foreground mb-4">
             No podés:
@@ -435,7 +435,7 @@ const TermsOfServicePage = () => {
             que forma parte de estas Condiciones.
           </p>
           <p className="text-muted-foreground">
-            Al usar VistaCEO, aceptás también nuestra Política de Privacidad.
+            Al usar VISTACEO, aceptás también nuestra Política de Privacidad.
           </p>
         </LegalSection>
 
@@ -460,7 +460,7 @@ const TermsOfServicePage = () => {
             Para consultas sobre estas Condiciones:
           </p>
           <div className="bg-card border border-border rounded-lg p-4">
-            <p className="text-foreground font-medium">VistaCEO</p>
+            <p className="text-foreground font-medium">VISTACEO</p>
             <p className="text-muted-foreground">Email: info@vistaceo.com</p>
             <p className="text-muted-foreground">Web: www.vistaceo.com</p>
           </div>
@@ -468,7 +468,7 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="disposiciones" title="19. Disposiciones generales">
           <ul className="list-disc pl-6 text-muted-foreground space-y-3">
-            <li><strong>Acuerdo completo:</strong> Estas Condiciones, junto con la Política de Privacidad, constituyen el acuerdo completo entre vos y VistaCEO.</li>
+            <li><strong>Acuerdo completo:</strong> Estas Condiciones, junto con la Política de Privacidad, constituyen el acuerdo completo entre vos y VISTACEO.</li>
             <li><strong>Separabilidad:</strong> Si alguna disposición es inválida o inaplicable, las demás permanecen vigentes.</li>
             <li><strong>Renuncia:</strong> No ejercer un derecho no implica renunciar a él.</li>
             <li><strong>Cesión:</strong> No podés ceder tus derechos u obligaciones sin nuestro consentimiento. Nosotros podemos ceder este acuerdo a un sucesor o afiliado.</li>

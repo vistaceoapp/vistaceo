@@ -86,7 +86,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground text-center">
-              Si creés que esto es un error, contactá al equipo de VistaCEO.
+              Si creés que esto es un error, contactá al equipo de VISTACEO.
             </p>
             <Button variant="ghost" onClick={() => navigate('/')} className="w-full">
               Volver al inicio

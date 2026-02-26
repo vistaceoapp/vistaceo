@@ -41,7 +41,7 @@ export const FreeExperienceSection = () => {
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
                 El plan Free no es un demo limitado. Es{" "}
                 <span className="text-foreground font-semibold">valor real</span>: 
-                diagnóstico completo, acciones diarias y la experiencia VistaCEO 
+                diagnóstico completo, acciones diarias y la experiencia VISTACEO 
                 que ya genera resultados en miles de negocios.
               </p>
 
@@ -93,7 +93,7 @@ export const FreeExperienceSection = () => {
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border">
                   <img 
                     src={dashboardMainImg} 
-                    alt="VistaCEO - Dashboard Principal" 
+                    alt="VISTACEO - Dashboard Principal" 
                     className="w-full h-auto"
                   />
                 </div>

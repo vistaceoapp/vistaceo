@@ -37,7 +37,7 @@ export const SolutionSection = () => {
             </div>
             
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-foreground mb-6 leading-tight">
-              VistaCEO convierte{" "}
+              VISTACEO convierte{" "}
               <span className="text-gradient-primary">complejidad</span>{" "}
               en claridad accionable
             </h2>
@@ -85,7 +85,7 @@ export const SolutionSection = () => {
                 <div className="flex items-center gap-4 mb-8">
                   <VistaceoLogo size={48} variant="icon" className="animate-float" />
                   <div>
-                    <div className="text-sm text-muted-foreground">VistaCEO dice:</div>
+                    <div className="text-sm text-muted-foreground">VISTACEO dice:</div>
                     <div className="text-lg font-semibold text-foreground">Tu visión estratégica</div>
                   </div>
                 </div>

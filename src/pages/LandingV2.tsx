@@ -201,12 +201,12 @@ const LandingV2 = () => {
       a: "Al suscribirte al plan anual, obtenés 2 meses gratis. Si no estás satisfecho en los primeros 7 días, te devolvemos el 100% sin preguntas."
     },
     {
-      q: "¿Qué tipo de negocios pueden usar VistaCEO?",
-      a: "VistaCEO está optimizado para +180 tipos de negocios: gastronomía, retail, salud, servicios profesionales, turismo, educación, y muchos más."
+      q: "¿Qué tipo de negocios pueden usar VISTACEO?",
+      a: "VISTACEO está optimizado para +180 tipos de negocios: gastronomía, retail, salud, servicios profesionales, turismo, educación, y muchos más."
     },
     {
       q: "¿Necesito conectar mis cuentas o sistemas?",
-      a: "No es obligatorio. VistaCEO aprende de las respuestas que le das y de tu interacción diaria. Cuanto más lo usás, más inteligente se vuelve."
+      a: "No es obligatorio. VISTACEO aprende de las respuestas que le das y de tu interacción diaria. Cuanto más lo usás, más inteligente se vuelve."
     },
     {
       q: "¿Mis datos están seguros?",
