@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Sparkles, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useState, useRef, useEffect, memo, useMemo } from "react";
+import { useState, useRef, useEffect, memo, useMemo, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
 
@@ -46,7 +46,8 @@ const ShimmerButton = memo(({ children, className, onClick, ariaLabel }: {
 ShimmerButton.displayName = "ShimmerButton";
 
 // Typewriter - zero re-render: direct DOM manipulation via refs
-const TypewriterText = memo(({ texts }: { texts: string[] }) => {
+// Supports onCycleComplete callback to coordinate with other typewriters
+const TypewriterText = memo(({ texts, onCycleComplete }: { texts: string[]; onCycleComplete?: () => void }) => {
   const textRef = useRef<HTMLSpanElement>(null);
   const stateRef = useRef({ idx: 0, pos: 0, deleting: false, paused: false });
 
@@ -67,14 +68,18 @@ const TypewriterText = memo(({ texts }: { texts: string[] }) => {
         else { s.paused = true; }
       } else {
         if (s.pos > 0) { s.pos--; }
-        else { s.deleting = false; s.idx = (s.idx + 1) % texts.length; }
+        else {
+          s.deleting = false;
+          s.idx = (s.idx + 1) % texts.length;
+          if (s.idx === 0 && onCycleComplete) onCycleComplete();
+        }
       }
       if (textRef.current) textRef.current.textContent = texts[s.idx].slice(0, s.pos);
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [texts]);
+  }, [texts, onCycleComplete]);
 
   return (
     <span
@@ -87,6 +92,33 @@ const TypewriterText = memo(({ texts }: { texts: string[] }) => {
   );
 });
 TypewriterText.displayName = "TypewriterText";
+
+// Hook for a text that swaps with a fade after N external triggers
+const useRotatingText = (texts: string[], cyclesPerSwap: number) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const stateRef = useRef({ idx: 0, cycles: 0 });
+
+  const advance = useCallback(() => {
+    const s = stateRef.current;
+    s.cycles++;
+    if (s.cycles >= cyclesPerSwap && ref.current) {
+      s.cycles = 0;
+      ref.current.style.transition = "opacity 0.3s, transform 0.3s";
+      ref.current.style.opacity = "0";
+      ref.current.style.transform = "translateY(8px)";
+      setTimeout(() => {
+        s.idx = (s.idx + 1) % texts.length;
+        if (ref.current) {
+          ref.current.textContent = texts[s.idx];
+          ref.current.style.opacity = "1";
+          ref.current.style.transform = "translateY(0)";
+        }
+      }, 300);
+    }
+  }, [texts, cyclesPerSwap]);
+
+  return { ref, advance, initialText: texts[0] };
+};
 
 // Google-style star rating component
 const GoogleStarRating = memo(({ rating, fillPercentage = 91 }: { rating: number; fillPercentage?: number }) => {
@@ -188,6 +220,17 @@ export const HeroSection = memo(() => {
   const navigate = useNavigate();
   const activeUsers = useRealtimeCounter();
 
+  // Bottom line changes every 5 full cycles of the top typewriter
+  const { ref: topLineRef, advance: advanceTopLine, initialText: topInitial } = useRotatingText(
+    ["Potenciá tu proyecto con un", "Crecé más rápido con un", "Mejorá tu empresa con un", "Aumentá tus ventas con un", "Brindá un mejor servicio con un"],
+    5
+  );
+
+  // Stable callback for typewriter
+  const handleCycleComplete = useCallback(() => {
+    advanceTopLine();
+  }, [advanceTopLine]);
+
   return (
     <section className="relative min-h-[100svh] flex flex-col justify-center pt-20 pb-6 overflow-hidden">
       {/* Static background gradients - CSS only, no Framer Motion */}
@@ -212,13 +255,13 @@ export const HeroSection = memo(() => {
             </Badge>
           </div>
           
-          {/* Main Headline - 2 lines: static top, colorful typewriter bottom */}
+          {/* Main Headline - 2 lines: rotating top, colorful typewriter bottom */}
             <div className="mb-5 animate-fade-in-up-delay-2">
              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-normal tracking-tight">
-              Potenciá tu proyecto con un
+              <span ref={topLineRef} style={{ transition: "opacity 0.3s, transform 0.3s" }}>{topInitial}</span>
             </h1>
             <div className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-normal tracking-tight pb-2">
-              <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
+              <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} onCycleComplete={handleCycleComplete} />
             </div>
           </div>
           
