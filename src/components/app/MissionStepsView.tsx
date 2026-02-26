@@ -137,40 +137,43 @@ export const MissionStepsView = ({
     <div className="space-y-5">
       {/* Active step detail (expandido) */}
       {activeStep && stepData && (
-        <section className="bg-card border border-primary/20 rounded-2xl p-5 md:p-8 space-y-5">
-          <div className="flex items-center justify-between gap-2">
-            <h4 className="font-semibold text-foreground flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                <span className="text-base font-bold text-primary-foreground">{(expandedStep ?? 0) + 1}</span>
+        <section className="bg-card border border-primary/20 rounded-2xl p-5 md:p-10 space-y-6">
+          <div className="flex items-center justify-between gap-3">
+            <h4 className="font-semibold text-foreground flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
+                <span className="text-lg font-bold text-primary-foreground">{(expandedStep ?? 0) + 1}</span>
               </div>
-              <span className="text-lg">Qué vas a hacer</span>
+              <div>
+                <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Paso {(expandedStep ?? 0) + 1} de {steps.length}</span>
+                <p className="text-base md:text-lg font-bold text-foreground">Qué vas a hacer</p>
+              </div>
             </h4>
             <div className="flex items-center gap-1 flex-shrink-0">
-              <Button variant="outline" size="icon" onClick={goPrevStep} disabled={!canGoPrevStep} className="h-8 w-8">
+              <Button variant="outline" size="icon" onClick={goPrevStep} disabled={!canGoPrevStep} className="h-9 w-9">
                 <ChevronUp className="w-4 h-4" />
               </Button>
-              <Button variant="outline" size="icon" onClick={goNextStep} disabled={!canGoNextStep} className="h-8 w-8">
+              <Button variant="outline" size="icon" onClick={goNextStep} disabled={!canGoNextStep} className="h-9 w-9">
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
           {/* Qué vas a hacer */}
-          <p className={cn("text-lg md:text-xl font-medium text-foreground leading-relaxed", activeStep.done && "line-through text-muted-foreground")}>
+          <p className={cn("text-xl md:text-2xl font-semibold text-foreground leading-snug tracking-tight", activeStep.done && "line-through text-muted-foreground")}>
             {activeStep.text}
           </p>
 
           {/* Cómo hacerlo (subpasos) */}
           {stepData.howTo && stepData.howTo.length > 0 && (
-            <div className="bg-muted/30 rounded-xl p-4">
-              <h5 className="text-sm font-semibold text-primary uppercase mb-3 flex items-center gap-1.5">
+            <div className="bg-muted/30 rounded-xl p-5 md:p-6">
+              <h5 className="text-sm font-bold text-primary uppercase mb-4 flex items-center gap-2 tracking-wide">
                 <Target className="w-4 h-4" />
                 Cómo hacerlo
               </h5>
-              <ol className="space-y-4">
+              <ol className="space-y-5">
                 {stepData.howTo.map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm md:text-base text-foreground leading-relaxed">
-                    <span className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-primary mt-0.5">
+                  <li key={i} className="flex items-start gap-3 text-base md:text-lg text-foreground leading-relaxed">
+                    <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-sm font-bold text-primary mt-0.5">
                       {i + 1}
                     </span>
                     {item}
@@ -182,34 +185,34 @@ export const MissionStepsView = ({
 
           {/* Ejemplo aplicado a TU negocio */}
           {stepData.example && (
-            <div className="bg-accent/5 border border-accent/20 rounded-xl p-4">
-              <h5 className="text-xs font-semibold text-accent uppercase mb-2 flex items-center gap-1.5">
-                <Lightbulb className="w-3.5 h-3.5" />
+            <div className="bg-accent/5 border border-accent/20 rounded-xl p-5">
+              <h5 className="text-xs font-bold text-accent uppercase mb-2.5 flex items-center gap-1.5 tracking-wide">
+                <Lightbulb className="w-4 h-4" />
                 Ejemplo para tu negocio
               </h5>
-              <p className="text-sm md:text-base text-foreground italic leading-relaxed">"{stepData.example}"</p>
+              <p className="text-base md:text-lg text-foreground italic leading-relaxed">"{stepData.example}"</p>
             </div>
           )}
 
           {/* Por qué este paso */}
           {stepData.why && (
-            <div className="bg-secondary/30 rounded-xl p-4">
-              <h5 className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">¿Por qué?</h5>
-              <p className="text-sm md:text-base text-foreground leading-relaxed">{stepData.why}</p>
+            <div className="bg-secondary/30 rounded-xl p-5">
+              <h5 className="text-xs font-bold text-muted-foreground uppercase mb-2 tracking-wide">¿Por qué?</h5>
+              <p className="text-base md:text-lg text-foreground leading-relaxed">{stepData.why}</p>
             </div>
           )}
 
           {/* Tips */}
           {stepData.tips && stepData.tips.length > 0 && (
-            <div className="bg-warning/5 rounded-xl p-4 border border-warning/20">
-              <h5 className="text-xs font-semibold text-warning uppercase mb-2.5 flex items-center gap-1.5">
-                <Star className="w-3.5 h-3.5" />
+            <div className="bg-warning/5 rounded-xl p-5 border border-warning/20">
+              <h5 className="text-xs font-bold text-warning uppercase mb-3 flex items-center gap-1.5 tracking-wide">
+                <Star className="w-4 h-4" />
                 Tips
               </h5>
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {stepData.tips.map((tip, i) => (
-                  <li key={i} className="text-sm md:text-base text-foreground flex items-start gap-2 leading-relaxed">
-                    <Star className="w-3 h-3 text-warning mt-1 flex-shrink-0" />
+                  <li key={i} className="text-base md:text-lg text-foreground flex items-start gap-2.5 leading-relaxed">
+                    <Star className="w-3.5 h-3.5 text-warning mt-1.5 flex-shrink-0" />
                     {tip}
                   </li>
                 ))}
@@ -253,9 +256,9 @@ export const MissionStepsView = ({
 
           {/* Hecho cuando... */}
           {stepData.definitionOfDone && (
-            <div className="bg-success/5 border border-success/20 rounded-xl p-3">
-              <span className="text-xs font-semibold text-success uppercase">Hecho cuando:</span>
-              <p className="text-sm md:text-base text-foreground mt-1 leading-relaxed">{stepData.definitionOfDone}</p>
+            <div className="bg-success/5 border border-success/20 rounded-xl p-4 md:p-5">
+              <span className="text-xs font-bold text-success uppercase tracking-wide">Hecho cuando:</span>
+              <p className="text-base md:text-lg text-foreground mt-1.5 leading-relaxed">{stepData.definitionOfDone}</p>
             </div>
           )}
 
