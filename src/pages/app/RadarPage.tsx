@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -188,6 +188,7 @@ const RadarPage = () => {
   
   // Inactivity tracking
   const [oldestOpportunityAge, setOldestOpportunityAge] = useState<number>(0);
+  const autoScanDoneRef = useRef(false);
 
   // Fetch data
   useEffect(() => {
@@ -236,8 +237,19 @@ const RadarPage = () => {
       const saved = learningRes.data?.filter(i => i.is_saved).map(i => i.id) || [];
       setSavedItems(prev => ({ ...prev, learning: saved }));
       
-      // Note: Auto-generation removed to prevent race conditions
-      // User must explicitly click scan buttons
+      // Auto-generate if data is stale or empty (only once per session)
+      if (!autoScanDoneRef.current) {
+        const learningData = learningRes.data || [];
+        const shouldScanOpps = opps.length === 0 || 
+          (opps.length > 0 && (Date.now() - new Date(opps[opps.length - 1].created_at).getTime()) > 3 * 24 * 60 * 60 * 1000);
+        const shouldScanResearch = learningData.length === 0 ||
+          (learningData.length > 0 && (Date.now() - new Date(learningData[0].created_at).getTime()) > 3 * 24 * 60 * 60 * 1000);
+        
+        if (shouldScanOpps || shouldScanResearch) {
+          autoScanDoneRef.current = true;
+          // We'll trigger auto-scan after state is set, via a separate effect
+        }
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
       toast({
@@ -324,6 +336,24 @@ const RadarPage = () => {
       setGeneratingResearch(false);
     }
   }, [currentBusiness, brain, generatingResearch, fetchData]);
+
+  // Auto-scan effect: triggers after initial load if data is stale
+  useEffect(() => {
+    if (!loading && currentBusiness && autoScanDoneRef.current) {
+      const oppsStale = opportunities.length === 0 || 
+        (opportunities.length > 0 && (Date.now() - new Date(opportunities[opportunities.length - 1].created_at).getTime()) > 3 * 24 * 60 * 60 * 1000);
+      const learningStale = learningItems.length === 0 ||
+        (learningItems.length > 0 && (Date.now() - new Date(learningItems[0].created_at).getTime()) > 3 * 24 * 60 * 60 * 1000);
+
+      if (oppsStale && !generatingOpportunities) {
+        generateOpportunities();
+      }
+      if (learningStale && !generatingResearch) {
+        setTimeout(() => generateResearchItems(), 2000);
+      }
+      autoScanDoneRef.current = false; // prevent re-trigger
+    }
+  }, [loading]);
 
   // Filter and sort opportunities - with Quality Gate
   const getFilteredOpportunities = () => {

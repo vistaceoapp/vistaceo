@@ -610,7 +610,12 @@ const MissionsPage = () => {
   // ========== LLM MISSION MODE (inline, no modal) ==========
   if (selectedMission) {
     return (
-      <div className="h-[calc(100vh-6rem)] flex flex-col -m-6">
+      <div className={cn(
+        "flex flex-col",
+        isMobile 
+          ? "h-[calc(100vh-8rem)] -mx-4 -my-4" 
+          : "h-[calc(100vh-4rem)] -mx-6 -mb-6 -mt-6"
+      )}>
         <MissionLLMMode
           mission={selectedMission}
           businessId={currentBusiness.id}
