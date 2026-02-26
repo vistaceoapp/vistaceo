@@ -12,8 +12,7 @@ import { AlertFAB } from "@/components/app/AlertFAB";
 import { ActionsListPanel } from "@/components/app/ActionsListPanel";
 import { HealthScoreWidget } from "@/components/app/HealthScoreWidget";
 import { FocusWidget } from "@/components/app/FocusWidget";
-// ReputationWidget hidden until properly configured
-// import { ReputationWidget } from "@/components/app/ReputationWidget";
+import { ReputationWidget } from "@/components/app/ReputationWidget";
 import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
 import { RadarWidget } from "@/components/app/RadarWidget";
 import { PulseCheckinCard } from "@/components/app/PulseCheckinCard";
@@ -115,7 +114,7 @@ const TodayPage = () => {
       case "focus":
         return <FocusWidget key="focus" />;
       case "reputation":
-        return null; // Hidden until Reputación is properly configured
+        return <ReputationWidget key="reputation" isPro={isPro} />;
       case "radar":
         return <RadarWidget key="radar" isPro={isPro} />;
       default:

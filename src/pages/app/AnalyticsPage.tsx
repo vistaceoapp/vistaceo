@@ -3,6 +3,7 @@ import { BusinessHealthAnalytics } from "@/components/analytics/BusinessHealthAn
 import { SmartInsightsPanel } from "@/components/analytics/SmartInsightsPanel";
 import { EvolutionPanel } from "@/components/app/EvolutionPanel";
 import { ProFeatureGate } from "@/components/app/ProFeatureGate";
+import { GoogleBusinessProfileSection } from "@/components/app/GoogleBusinessProfileSection";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/use-subscription";
 import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star, Brain, Lock } from "lucide-react";
@@ -38,12 +39,15 @@ const AnalyticsPage = () => {
         </div>
       </div>
 
-      {/* Tabs - Reputación removed until properly configured */}
       <Tabs defaultValue={isPro ? "insights" : "diagnostico"} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
+        <TabsList className="grid w-full grid-cols-5 mb-6">
           <TabsTrigger value="diagnostico" className={isMobile ? "text-xs px-1" : ""}>
             <Stethoscope className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
             {isMobile ? "Diagnóstico" : "Diagnóstico"}
+          </TabsTrigger>
+          <TabsTrigger value="reputacion" className={isMobile ? "text-xs px-1" : ""}>
+            <Star className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
+            {isMobile ? "Reputación" : "Reputación"}
           </TabsTrigger>
           <TabsTrigger value="insights" className={isMobile ? "text-xs px-1" : ""}>
             <Brain className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
@@ -65,6 +69,21 @@ const AnalyticsPage = () => {
         {/* Free-accessible tabs */}
         <TabsContent value="diagnostico" className="space-y-6">
           <BusinessHealthAnalytics />
+        </TabsContent>
+
+        <TabsContent value="reputacion" className="space-y-6">
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-secondary/50 border border-border/50">
+              <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
+                <Star className="w-4 h-4 text-primary" />
+                Reputación Online
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Conecta tu Google Business Profile para sincronizar reseñas, analizar sentimiento y alimentar el Cerebro de tu negocio.
+              </p>
+            </div>
+            <GoogleBusinessProfileSection />
+          </div>
         </TabsContent>
 
         {/* Pro tabs - show content if Pro, gate if Free */}
