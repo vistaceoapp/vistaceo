@@ -134,43 +134,43 @@ export const MissionStepsView = ({
       : activeStep;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Active step detail (expandido) */}
       {activeStep && stepData && (
-        <section className="bg-card border border-primary/20 rounded-xl p-5 space-y-4">
+        <section className="bg-card border border-primary/20 rounded-2xl p-5 md:p-6 space-y-4">
           <div className="flex items-center justify-between gap-2">
-            <h4 className="font-semibold text-foreground flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+            <h4 className="font-semibold text-foreground flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
                 <span className="text-sm font-bold text-primary-foreground">{(expandedStep ?? 0) + 1}</span>
               </div>
               <span className="text-base">Qué vas a hacer</span>
             </h4>
             <div className="flex items-center gap-1 flex-shrink-0">
-              <Button variant="outline" size="icon" onClick={goPrevStep} disabled={!canGoPrevStep} className="h-9 w-9">
+              <Button variant="outline" size="icon" onClick={goPrevStep} disabled={!canGoPrevStep} className="h-8 w-8">
                 <ChevronUp className="w-4 h-4" />
               </Button>
-              <Button variant="outline" size="icon" onClick={goNextStep} disabled={!canGoNextStep} className="h-9 w-9">
+              <Button variant="outline" size="icon" onClick={goNextStep} disabled={!canGoNextStep} className="h-8 w-8">
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
-          {/* Qué vas a hacer (1 línea) */}
-          <p className={cn("text-base font-medium text-foreground", activeStep.done && "line-through text-muted-foreground")}>
+          {/* Qué vas a hacer */}
+          <p className={cn("text-base font-medium text-foreground leading-relaxed", activeStep.done && "line-through text-muted-foreground")}>
             {activeStep.text}
           </p>
 
           {/* Cómo hacerlo (subpasos) */}
           {stepData.howTo && stepData.howTo.length > 0 && (
-            <div className="bg-muted/30 rounded-lg p-4">
-              <h5 className="text-xs font-semibold text-primary uppercase mb-3 flex items-center gap-1">
+            <div className="bg-muted/30 rounded-xl p-4">
+              <h5 className="text-xs font-semibold text-primary uppercase mb-3 flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5" />
                 Cómo hacerlo
               </h5>
-              <ol className="space-y-2.5">
+              <ol className="space-y-3">
                 {stepData.howTo.map((item, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-foreground">
-                    <span className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-xs font-medium text-primary">
+                  <li key={i} className="flex items-start gap-3 text-sm text-foreground leading-relaxed">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-primary mt-0.5">
                       {i + 1}
                     </span>
                     {item}
@@ -182,33 +182,33 @@ export const MissionStepsView = ({
 
           {/* Ejemplo aplicado a TU negocio */}
           {stepData.example && (
-            <div className="bg-accent/5 border border-accent/20 rounded-lg p-4">
-              <h5 className="text-xs font-semibold text-accent uppercase mb-2 flex items-center gap-1">
+            <div className="bg-accent/5 border border-accent/20 rounded-xl p-4">
+              <h5 className="text-xs font-semibold text-accent uppercase mb-2 flex items-center gap-1.5">
                 <Lightbulb className="w-3.5 h-3.5" />
                 Ejemplo para tu negocio
               </h5>
-              <p className="text-sm text-foreground italic">"{stepData.example}"</p>
+              <p className="text-sm text-foreground italic leading-relaxed">"{stepData.example}"</p>
             </div>
           )}
 
           {/* Por qué este paso */}
           {stepData.why && (
-            <div className="bg-secondary/30 rounded-lg p-3">
-              <h5 className="text-xs font-semibold text-muted-foreground uppercase mb-1">¿Por qué?</h5>
-              <p className="text-sm text-foreground">{stepData.why}</p>
+            <div className="bg-secondary/30 rounded-xl p-4">
+              <h5 className="text-xs font-semibold text-muted-foreground uppercase mb-1.5">¿Por qué?</h5>
+              <p className="text-sm text-foreground leading-relaxed">{stepData.why}</p>
             </div>
           )}
 
           {/* Tips */}
           {stepData.tips && stepData.tips.length > 0 && (
-            <div className="bg-warning/5 rounded-lg p-4 border border-warning/20">
-              <h5 className="text-xs font-semibold text-warning uppercase mb-2 flex items-center gap-1">
+            <div className="bg-warning/5 rounded-xl p-4 border border-warning/20">
+              <h5 className="text-xs font-semibold text-warning uppercase mb-2.5 flex items-center gap-1.5">
                 <Star className="w-3.5 h-3.5" />
                 Tips
               </h5>
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {stepData.tips.map((tip, i) => (
-                  <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                  <li key={i} className="text-sm text-foreground flex items-start gap-2 leading-relaxed">
                     <Star className="w-3 h-3 text-warning mt-1 flex-shrink-0" />
                     {tip}
                   </li>
@@ -219,17 +219,15 @@ export const MissionStepsView = ({
 
           {/* Checklist micro */}
           {stepData.checklist && stepData.checklist.length > 0 && (
-            <div className="border border-border rounded-lg p-4">
-              <h5 className="text-xs font-semibold text-foreground uppercase mb-3 flex items-center gap-1">
+            <div className="border border-border rounded-xl p-4">
+              <h5 className="text-xs font-semibold text-foreground uppercase mb-3 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Checklist
               </h5>
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {stepData.checklist.map((item, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-foreground">
-                    <div className="w-4 h-4 rounded border border-muted-foreground/30 flex items-center justify-center">
-                      {/* Could be interactive */}
-                    </div>
+                  <li key={i} className="flex items-center gap-2.5 text-sm text-foreground">
+                    <div className="w-4 h-4 rounded border border-muted-foreground/30 flex items-center justify-center flex-shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -238,7 +236,7 @@ export const MissionStepsView = ({
           )}
 
           {/* Time estimate + metric */}
-          <div className="flex flex-wrap gap-2 pt-2">
+          <div className="flex flex-wrap gap-2 pt-1">
             {stepData.timeEstimate && (
               <Badge variant="secondary" className="text-xs">
                 <Clock className="w-3 h-3 mr-1" />
@@ -255,21 +253,21 @@ export const MissionStepsView = ({
 
           {/* Hecho cuando... */}
           {stepData.definitionOfDone && (
-            <div className="bg-success/5 border border-success/20 rounded-lg p-3">
+            <div className="bg-success/5 border border-success/20 rounded-xl p-3">
               <span className="text-xs font-semibold text-success uppercase">Hecho cuando:</span>
-              <p className="text-sm text-foreground mt-1">{stepData.definitionOfDone}</p>
+              <p className="text-sm text-foreground mt-1 leading-relaxed">{stepData.definitionOfDone}</p>
             </div>
           )}
 
           {/* CTA: Mark done / Undo */}
-          <div className="pt-2">
+          <div className="pt-1">
             {!activeStep.done ? (
-              <Button onClick={() => handleToggleStep(expandedStep ?? 0)} className="w-full h-12" size="lg">
+              <Button onClick={() => handleToggleStep(expandedStep ?? 0)} className="w-full h-11 text-sm font-semibold" size="lg">
                 <Check className="w-5 h-5 mr-2" />
                 Listo, ya lo hice
               </Button>
             ) : (
-              <Button variant="outline" onClick={() => handleToggleStep(expandedStep ?? 0)} className="w-full h-12" size="lg">
+              <Button variant="outline" onClick={() => handleToggleStep(expandedStep ?? 0)} className="w-full h-11 text-sm" size="lg">
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Deshacer paso
               </Button>
@@ -279,8 +277,8 @@ export const MissionStepsView = ({
       )}
 
       {/* Steps timeline */}
-      <div className="space-y-2">
-        <h4 className="text-sm font-semibold text-muted-foreground uppercase mb-3">Todos los pasos</h4>
+      <div className="space-y-1.5">
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Todos los pasos</h4>
         {steps.map((step, idx) => {
           const isCurrentStep = idx === currentStepIndex;
           const isExpanded = expandedStep === idx;
@@ -290,7 +288,7 @@ export const MissionStepsView = ({
               <button
                 onClick={() => setExpandedStep(idx)}
                 className={cn(
-                  "w-full text-left p-3 rounded-lg border transition-all",
+                  "w-full text-left p-3 rounded-xl border transition-all",
                   step.done
                     ? "bg-success/5 border-success/20"
                     : isCurrentStep
@@ -306,7 +304,7 @@ export const MissionStepsView = ({
                       handleToggleStep(idx);
                     }}
                     className={cn(
-                      "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold transition-all",
+                      "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 text-sm font-bold transition-all",
                       step.done
                         ? "bg-success text-success-foreground hover:bg-success/80"
                         : isCurrentStep
@@ -317,11 +315,11 @@ export const MissionStepsView = ({
                     {step.done ? <Check className="w-4 h-4" /> : idx + 1}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <p className={cn("text-sm font-medium line-clamp-2", step.done && "line-through text-muted-foreground")}>
+                    <p className={cn("text-sm font-medium line-clamp-2 leading-snug", step.done && "line-through text-muted-foreground")}>
                       {step.text}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      {isCurrentStep && !step.done && <span className="text-xs text-primary font-medium">Siguiente</span>}
+                      {isCurrentStep && !step.done && <span className="text-[11px] text-primary font-semibold">Siguiente</span>}
                       {step.timeEstimate && (
                         <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />

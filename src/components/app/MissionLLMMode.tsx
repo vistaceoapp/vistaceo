@@ -433,20 +433,19 @@ export const MissionLLMMode = ({
     return (
       <div className="flex flex-col h-full min-h-0">
         {/* Header */}
-        <header className="sticky top-0 z-20 p-4 border-b border-border bg-background">
-          <div className="flex items-center gap-3 mb-3">
-            <Button variant="ghost" size="icon" onClick={onBack} className="h-11 w-11 flex-shrink-0">
+        <header className="sticky top-0 z-20 px-4 py-3 border-b border-border bg-background/95 backdrop-blur-sm">
+          <div className="flex items-center gap-3 mb-2.5">
+            <Button variant="ghost" size="icon" onClick={onBack} className="h-10 w-10 flex-shrink-0 -ml-1">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xl">{areaIcon}</span>
-                <Badge variant="outline" className="text-[10px]">{mission.area || "General"}</Badge>
-                <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px]">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="text-lg">{areaIcon}</span>
+                <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px] h-5">
                   {mission.status === "active" ? "Activa" : "Pausada"}
                 </Badge>
               </div>
-              <h1 className="text-base font-bold text-foreground line-clamp-1">
+              <h1 className="text-sm font-bold text-foreground line-clamp-1">
                 {mission.title}
               </h1>
             </div>
@@ -454,8 +453,10 @@ export const MissionLLMMode = ({
 
           {/* Progress bar */}
           <div className="flex items-center gap-3">
-            <Progress value={progress} className="flex-1 h-2" />
-            <span className="text-xs font-medium text-muted-foreground">{completedSteps}/{steps.length}</span>
+            <Progress value={progress} className="flex-1 h-1.5" />
+            <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">
+              {completedSteps}/{steps.length} pasos
+            </span>
           </div>
         </header>
 
@@ -467,57 +468,35 @@ export const MissionLLMMode = ({
           />
         ) : (
           <>
-            {/* Tabs - Fixed width to prevent overflow */}
+            {/* Tabs */}
             <Tabs value={mobileTab} onValueChange={setMobileTab} className="flex-1 flex flex-col min-h-0 overflow-hidden">
-              <div className="px-4 pt-3">
-                <TabsList className="grid w-full grid-cols-3 p-1 bg-secondary">
-                  <TabsTrigger value="guide" className="text-xs">Guía</TabsTrigger>
-                  <TabsTrigger value="steps" className="text-xs">Pasos</TabsTrigger>
-                  <TabsTrigger value="resources" className="text-xs">Recursos</TabsTrigger>
+              <div className="px-4 pt-2.5 pb-1">
+                <TabsList className="grid w-full grid-cols-3 p-0.5 h-9 bg-secondary/80">
+                  <TabsTrigger value="guide" className="text-[11px] h-8 data-[state=active]:shadow-sm">
+                    <Sparkles className="w-3.5 h-3.5 mr-1" />
+                    Resumen
+                  </TabsTrigger>
+                  <TabsTrigger value="steps" className="text-[11px] h-8 data-[state=active]:shadow-sm">
+                    <List className="w-3.5 h-3.5 mr-1" />
+                    Pasos
+                  </TabsTrigger>
+                  <TabsTrigger value="resources" className="text-[11px] h-8 data-[state=active]:shadow-sm">
+                    <Brain className="w-3.5 h-3.5 mr-1" />
+                    Más info
+                  </TabsTrigger>
                 </TabsList>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-4 py-4">
-                <TabsContent value="guide" className="m-0 space-y-4">
-                  {/* Toggle button */}
-                  <div className="flex gap-2">
-                    <Button
-                      variant={viewMode === "summary" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setViewMode("summary")}
-                      className="flex-1"
-                    >
-                      <Brain className="w-4 h-4 mr-2" />
-                      Resumen
-                    </Button>
-                    <Button
-                      variant={viewMode === "steps" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setViewMode("steps")}
-                      className="flex-1"
-                    >
-                      <List className="w-4 h-4 mr-2" />
-                      Guía por pasos
-                    </Button>
-                  </div>
-
-                  {viewMode === "summary" ? (
-                    <MissionSummaryView
-                      mission={mission}
-                      enhancedPlan={enhancedPlan}
-                      loading={loading}
-                      regenerating={regenerating}
-                      estimatedTimeRemaining={estimatedTimeRemaining}
-                      onRegenerate={() => fetchEnhancedPlan(true)}
-                    />
-                  ) : (
-                    <MissionStepsView
-                      missionId={mission.id}
-                      steps={steps}
-                      enhancedPlan={enhancedPlan}
-                      onToggleStep={onToggleStep}
-                    />
-                  )}
+              <div className="flex-1 overflow-y-auto px-4 py-3">
+                <TabsContent value="guide" className="m-0">
+                  <MissionSummaryView
+                    mission={mission}
+                    enhancedPlan={enhancedPlan}
+                    loading={loading}
+                    regenerating={regenerating}
+                    estimatedTimeRemaining={estimatedTimeRemaining}
+                    onRegenerate={() => fetchEnhancedPlan(true)}
+                  />
                 </TabsContent>
 
                 <TabsContent value="steps" className="m-0">
@@ -529,7 +508,34 @@ export const MissionLLMMode = ({
                   />
                 </TabsContent>
 
-                <TabsContent value="resources" className="m-0">
+                <TabsContent value="resources" className="m-0 space-y-4">
+                  {/* Quick actions */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs h-9"
+                      onClick={() => {
+                        fetchEnhancedPlan(true);
+                      }}
+                      disabled={regenerating}
+                    >
+                      <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", regenerating && "animate-spin")} />
+                      Regenerar guía
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs h-9"
+                      onClick={() => onToggleStatus(mission)}
+                    >
+                      {mission.status === "active" ? (
+                        <><Pause className="w-3.5 h-3.5 mr-1.5" /> Pausar</>
+                      ) : (
+                        <><Play className="w-3.5 h-3.5 mr-1.5" /> Reanudar</>
+                      )}
+                    </Button>
+                  </div>
                   <MissionSummaryView
                     mission={mission}
                     enhancedPlan={enhancedPlan}
@@ -543,22 +549,24 @@ export const MissionLLMMode = ({
             </Tabs>
 
             {/* Sticky CTA */}
-            <div className="sticky bottom-0 p-4 border-t border-border bg-background">
-              <Button 
-                className="w-full h-12" 
-                size="lg"
-                onClick={() => {
-                  const nextStep = steps.findIndex(s => !s.done);
-                  if (nextStep >= 0) {
-                    onToggleStep(mission.id, nextStep);
-                  }
-                }}
-                disabled={steps.every(s => s.done)}
-              >
-                <Check className="w-5 h-5 mr-2" />
-                {steps.every(s => s.done) ? "Misión completada" : `Marcar paso ${steps.findIndex(s => !s.done) + 1} como hecho`}
-              </Button>
-            </div>
+            {mobileTab === "steps" && (
+              <div className="sticky bottom-0 px-4 py-3 border-t border-border bg-background/95 backdrop-blur-sm">
+                <Button 
+                  className="w-full h-11 text-sm font-semibold" 
+                  size="lg"
+                  onClick={() => {
+                    const nextStep = steps.findIndex(s => !s.done);
+                    if (nextStep >= 0) {
+                      onToggleStep(mission.id, nextStep);
+                    }
+                  }}
+                  disabled={steps.every(s => s.done)}
+                >
+                  <Check className="w-5 h-5 mr-2" />
+                  {steps.every(s => s.done) ? "✅ Misión completada" : `Completar paso ${steps.findIndex(s => !s.done) + 1}`}
+                </Button>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -622,42 +630,42 @@ export const MissionLLMMode = ({
       {/* Center: Main content */}
       <main ref={containerRef} className="flex-1 overflow-y-auto">
         {/* Header */}
-        <header className="sticky top-0 z-20 p-4 border-b border-border bg-background">
+        <header className="sticky top-0 z-20 px-6 py-4 border-b border-border bg-background/95 backdrop-blur-sm">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-4 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <span className="text-2xl">{areaIcon}</span>
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-0.5">
                   <h1 className="text-lg font-bold text-foreground line-clamp-1">
                     {mission.title}
                   </h1>
-                  <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px]">
+                  <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px] flex-shrink-0">
                     {mission.status === "active" ? "Activa" : "Pausada"}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
                     {formatTime(estimatedTimeRemaining)} restante
                   </span>
-                  <span>{completedSteps}/{steps.length} pasos</span>
+                  <span className="text-xs">{completedSteps}/{steps.length} pasos</span>
                 </div>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
                       size="sm"
+                      className="h-9"
                       onClick={() => {
                         fetchEnhancedPlan(true);
-                        // Record regeneration signal
                         if (currentBusiness) {
                           supabase.functions.invoke("brain-record-signal", {
                             body: {
@@ -675,12 +683,12 @@ export const MissionLLMMode = ({
                       disabled={regenerating}
                     >
                       <RefreshCw className={cn("w-4 h-4", regenerating && "animate-spin")} />
-                      <span className="ml-2 hidden lg:inline">Regenerar guía</span>
+                      <span className="ml-1.5 hidden lg:inline text-xs">Regenerar guía</span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="text-xs max-w-[200px]">
-                      Generaremos una nueva Guía de Pasos para la misma necesidad, con un enfoque alternativo.
+                      Generaremos una nueva Guía de Pasos con un enfoque alternativo.
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -692,17 +700,18 @@ export const MissionLLMMode = ({
                     <Button
                       variant="outline"
                       size="sm"
+                      className="h-9"
                       onClick={() => onToggleStatus(mission)}
                     >
                       {mission.status === "active" ? (
                         <>
                           <Pause className="w-4 h-4" />
-                          <span className="ml-2 hidden lg:inline">Pausar</span>
+                          <span className="ml-1.5 hidden lg:inline text-xs">Pausar</span>
                         </>
                       ) : (
                         <>
                           <Play className="w-4 h-4" />
-                          <span className="ml-2 hidden lg:inline">Reanudar</span>
+                          <span className="ml-1.5 hidden lg:inline text-xs">Reanudar</span>
                         </>
                       )}
                     </Button>
@@ -710,8 +719,8 @@ export const MissionLLMMode = ({
                   <TooltipContent>
                     <p className="text-xs max-w-[200px]">
                       {mission.status === "active" 
-                        ? "La ocultamos temporalmente. Puedes reanudarla cuando quieras." 
-                        : "Reactivar esta misión para seguir avanzando."}
+                        ? "Ocultar temporalmente. Podés reanudarla cuando quieras." 
+                        : "Reactivar esta misión."}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -721,7 +730,7 @@ export const MissionLLMMode = ({
 
           {/* Progress */}
           <div className="mt-3">
-            <Progress value={progress} className="h-2" />
+            <Progress value={progress} className="h-1.5" />
           </div>
         </header>
 
@@ -734,25 +743,25 @@ export const MissionLLMMode = ({
         ) : (
           <div className="p-6">
             {/* Toggle between Summary and Steps */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex gap-2">
-                <Button
-                  variant={viewMode === "summary" ? "default" : "outline"}
-                  onClick={() => setViewMode("summary")}
-                  className="gap-2"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  Ver resumen de misión
-                </Button>
-                <Button
-                  variant={viewMode === "steps" ? "default" : "outline"}
-                  onClick={() => setViewMode("steps")}
-                  className="gap-2"
-                >
-                  <List className="w-4 h-4" />
-                  Ver guía por pasos
-                </Button>
-              </div>
+            <div className="flex items-center gap-2 mb-6">
+              <Button
+                variant={viewMode === "summary" ? "default" : "outline"}
+                onClick={() => setViewMode("summary")}
+                size="sm"
+                className="gap-2 h-9"
+              >
+                <Sparkles className="w-4 h-4" />
+                Ver resumen de misión
+              </Button>
+              <Button
+                variant={viewMode === "steps" ? "default" : "outline"}
+                onClick={() => setViewMode("steps")}
+                size="sm"
+                className="gap-2 h-9"
+              >
+                <List className="w-4 h-4" />
+                Ver guía por pasos
+              </Button>
             </div>
 
             {/* Content */}
@@ -779,19 +788,19 @@ export const MissionLLMMode = ({
         )}
       </main>
 
-      {/* Right: Steps Timeline (optional, visible when in steps mode) */}
+      {/* Right: Steps Timeline */}
       {viewMode === "steps" && !loading && (
         <aside className="w-72 border-l border-border bg-background overflow-y-auto hidden xl:block">
-          <div className="p-4 border-b border-border">
-            <h3 className="font-semibold text-foreground flex items-center gap-2">
+          <div className="px-4 py-3.5 border-b border-border">
+            <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
               <FileText className="w-4 h-4 text-primary" />
               Timeline de pasos
             </h3>
-            <p className="text-[10px] text-muted-foreground mt-1">
+            <p className="text-[10px] text-muted-foreground mt-0.5">
               Haz clic en un paso para ver detalles
             </p>
           </div>
-          <div className="p-4 space-y-2">
+          <div className="p-3 space-y-1.5">
             {steps.map((step, idx) => {
               const isCurrentStep = steps.findIndex(s => !s.done) === idx;
               const isSelected = selectedStepIdx === idx;
@@ -801,12 +810,11 @@ export const MissionLLMMode = ({
                   key={idx}
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Just select the step - don't toggle done/undone
                     setSelectedStepIdx(idx);
                   }}
                   className={cn(
-                    "w-full text-left p-3 rounded-lg border transition-all group",
-                    isSelected && "ring-2 ring-primary",
+                    "w-full text-left p-2.5 rounded-xl border transition-all group",
+                    isSelected && "ring-2 ring-primary shadow-sm",
                     step.done
                       ? "bg-success/5 border-success/20"
                       : isCurrentStep
@@ -818,11 +826,10 @@ export const MissionLLMMode = ({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        // This button toggles step done/undone
                         onToggleStep(mission.id, idx);
                       }}
                       className={cn(
-                        "w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors",
+                        "w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors",
                         step.done
                           ? "bg-success text-success-foreground hover:bg-success/80"
                           : isCurrentStep
@@ -833,22 +840,11 @@ export const MissionLLMMode = ({
                       {step.done ? <Check className="w-3.5 h-3.5" /> : idx + 1}
                     </button>
                     <p className={cn(
-                      "text-xs line-clamp-2 flex-1",
+                      "text-[11px] line-clamp-2 flex-1 leading-snug",
                       step.done && "line-through text-muted-foreground"
                     )}>
                       {step.text}
                     </p>
-                    {step.done && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleStep(mission.id, idx);
-                        }}
-                        className="p-1 rounded hover:bg-secondary"
-                      >
-                        <RotateCcw className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                      </button>
-                    )}
                   </div>
                 </button>
               );
