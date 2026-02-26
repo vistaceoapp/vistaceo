@@ -222,7 +222,7 @@ export const HeroSection = memo(() => {
 
   // Bottom line changes every 5 full cycles of the top typewriter
   const { ref: topLineRef, advance: advanceTopLine, initialText: topInitial } = useRotatingText(
-    ["Potenciá tu proyecto con un", "Crecé más rápido con un", "Mejorá tu empresa con un", "Aumentá tus ventas con un", "Brindá un mejor servicio con un"],
+    ["Crecé más rápido con un", "Mejorá tu empresa con un", "Potenciá tu servicio con un", "Aumentá tus ventas con un", "Brindá un mejor servicio con un"],
     5
   );
 
@@ -265,13 +265,10 @@ export const HeroSection = memo(() => {
             </div>
           </div>
           
-          {/* Subtitle - Only 2 lines, removed "Tu CEO digital..." */}
+          {/* Subtitle */}
           <div className="mb-6 max-w-2xl mx-auto animate-fade-in-up-delay-3">
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center">
-          Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu proyecto, negocio o emprendimiento.
-            </p>
-            <p className="hidden sm:block text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
-              Un <span className="text-foreground font-semibold">cerebro estratégico</span> para profesionales, empresas y equipos.
+              Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu empresa, negocio, servicio o emprendimiento.
             </p>
           </div>
           
