@@ -9,10 +9,13 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star, Brain, Lock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { useSearchParams } from "react-router-dom";
 
 const AnalyticsPage = () => {
   const isMobile = useIsMobile();
   const { isPro } = useSubscription();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || (isPro ? "insights" : "diagnostico");
 
   return (
     <div className="space-y-6">
@@ -39,7 +42,7 @@ const AnalyticsPage = () => {
         </div>
       </div>
 
-      <Tabs defaultValue={isPro ? "insights" : "diagnostico"} className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5 mb-6">
           <TabsTrigger value="diagnostico" className={isMobile ? "text-xs px-1" : ""}>
             <Stethoscope className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} mr-1`} />
