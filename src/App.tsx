@@ -7,7 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BusinessProvider, useBusiness } from "@/contexts/BusinessContext";
 import { UserLifecycleProvider } from "@/contexts/UserLifecycleContext";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { toast } from "sonner";
 
@@ -66,8 +66,27 @@ const PageLoader = () => (
 // Protected route wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const [timedOut, setTimedOut] = useState(false);
 
-  if (loading) return <PageLoader />;
+  useEffect(() => {
+    if (!loading) return;
+    const timeout = setTimeout(() => setTimedOut(true), 10000);
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
+  if (loading && !timedOut) return <PageLoader />;
+  if (loading && timedOut) {
+    // Force reload if auth is stuck
+    console.error('[ProtectedRoute] Auth loading timed out');
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <p className="text-muted-foreground">La carga está tardando más de lo normal.</p>
+        <button onClick={() => window.location.reload()} className="text-primary underline">
+          Reintentar
+        </button>
+      </div>
+    );
+  }
   if (!user) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 };

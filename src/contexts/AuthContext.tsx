@@ -65,9 +65,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+    }).catch((err) => {
+      console.error('[AuthContext] getSession failed:', err);
+      setLoading(false); // CRITICAL: never leave loading=true
     });
 
-    return () => subscription.unsubscribe();
+    // Safety timeout: if loading is STILL true after 8s, force it off
+    const safetyTimeout = setTimeout(() => {
+      setLoading((current) => {
+        if (current) {
+          console.warn('[AuthContext] Safety timeout triggered - forcing loading=false');
+          return false;
+        }
+        return current;
+      });
+    }, 8000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
+    };
+
+    
   }, []);
 
   const signUp = async (email: string, password: string, fullName?: string) => {
