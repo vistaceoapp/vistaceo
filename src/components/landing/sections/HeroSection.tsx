@@ -257,10 +257,10 @@ export const HeroSection = memo(() => {
           
           {/* Main Headline - 2 lines: rotating top, colorful typewriter bottom */}
             <div className="mb-5 animate-fade-in-up-delay-2">
-             <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-normal tracking-tight">
+             <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-normal tracking-tight whitespace-nowrap">
               <span ref={topLineRef} style={{ transition: "opacity 0.3s, transform 0.3s" }}>{topInitial}</span>
             </h1>
-            <div className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-normal tracking-tight pb-2">
+            <div className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-normal tracking-tight pb-2">
               <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} onCycleComplete={handleCycleComplete} />
             </div>
           </div>
