@@ -343,23 +343,32 @@ export const SmartInsightsPanel = () => {
 
       // 7. Health dimensions insight (from latest snapshot)
       if (latestSnapshot?.dimensions_json) {
+        const dimLabelMap: Record<string, string> = {
+          reputation: "Reputación", profitability: "Rentabilidad", finances: "Finanzas",
+          efficiency: "Eficiencia", traffic: "Tráfico", team: "Equipo", growth: "Crecimiento",
+          reputacion: "Reputación", rentabilidad: "Rentabilidad", finanzas: "Finanzas",
+          eficiencia: "Eficiencia", trafico: "Tráfico", equipo: "Equipo", crecimiento: "Crecimiento",
+          ventas: "Ventas", operaciones: "Operación", marketing: "Marketing", clientes: "Clientes",
+          servicio: "Servicio",
+        };
         const dims = latestSnapshot.dimensions_json as Record<string, number>;
         const weakDims = Object.entries(dims)
           .filter(([_, score]) => typeof score === 'number' && score < 50)
           .sort(([, a], [, b]) => (a as number) - (b as number));
         
         if (weakDims.length > 0) {
-          const weakestName = weakDims[0][0];
+          const weakestKey = weakDims[0][0];
+          const weakestLabel = dimLabelMap[weakestKey] || weakestKey;
           const weakestScore = weakDims[0][1] as number;
           generatedInsights.push({
             id: "health-weak-dim",
             type: "warning",
-            title: `${weakestName} necesita atención`,
-            description: `Tu dimensión "${weakestName}" tiene un score de ${weakestScore}/100. Es el área más débil de ${businessName} y vale la pena trabajarla.`,
+            title: `${weakestLabel} necesita atención`,
+            description: `Tu dimensión "${weakestLabel}" tiene un score de ${weakestScore}/100. Es el área más débil de ${businessName} y vale la pena trabajarla.`,
             impact: "high",
             metric: `${weakestScore}/100`,
             actionable: true,
-            actionRoute: "/app/analytics",
+            actionRoute: "/app/analytics?tab=diagnostico",
             actionLabel: "Ver diagnóstico"
           });
         }
@@ -620,12 +629,19 @@ export const SmartInsightsPanel = () => {
                           )}
                         </div>
                       )}
-                      {insight.actionable && (
+                      {insight.actionable && insight.actionRoute && (
                         <Button 
                           variant="ghost" 
                           size="sm" 
                           className="mt-2 h-7 text-xs px-2"
-                          onClick={() => insight.actionRoute && navigate(insight.actionRoute)}
+                          onClick={() => {
+                            const [path, query] = insight.actionRoute!.split('?');
+                            if (query) {
+                              navigate(`${path}?${query}`);
+                            } else {
+                              navigate(path);
+                            }
+                          }}
                         >
                           {insight.actionLabel || "Ver acción"} <ChevronRight className="w-3 h-3 ml-1" />
                         </Button>
