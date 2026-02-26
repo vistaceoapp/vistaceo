@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null; requiresEmailConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -72,8 +72,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -83,7 +83,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       },
     });
-    return { error };
+
+    return {
+      error,
+      requiresEmailConfirmation: !data.session,
+    };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -95,17 +99,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    // Check for pending plan and redirect to checkout
     const pendingPlan = localStorage.getItem("pendingPlan");
-    let redirectUrl: string;
-    
-    if (pendingPlan === "pro_monthly" || pendingPlan === "pro_yearly") {
-      redirectUrl = `${window.location.origin}/checkout?plan=${pendingPlan}`;
-    } else {
-      // Default: check if user has business after auth
-      redirectUrl = `${window.location.origin}/auth`;
+    const redirectUrl = (pendingPlan === "pro_monthly" || pendingPlan === "pro_yearly")
+      ? `${window.location.origin}/checkout?plan=${pendingPlan}`
+      : `${window.location.origin}/auth`;
+
+    const hostname = window.location.hostname;
+    const isCustomDomain =
+      !hostname.includes("lovable.app") &&
+      !hostname.includes("lovableproject.com") &&
+      hostname !== "localhost";
+
+    if (isCustomDomain) {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (error) return { error };
+
+      if (!data?.url) {
+        return { error: new Error("No se pudo iniciar el login con Google") };
+      }
+
+      const oauthUrl = new URL(data.url);
+      const allowedHosts = new Set<string>([
+        'accounts.google.com',
+        new URL(import.meta.env.VITE_SUPABASE_URL).hostname,
+      ]);
+
+      if (!allowedHosts.has(oauthUrl.hostname)) {
+        return { error: new Error("URL de autenticación inválida") };
+      }
+
+      window.location.assign(data.url);
+      return { error: null };
     }
-    
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

@@ -39,6 +39,18 @@ interface PlacePrediction {
   secondaryText?: string;
 }
 
+const createSessionToken = () => {
+  try {
+    if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.randomUUID === 'function') {
+      return globalThis.crypto.randomUUID();
+    }
+  } catch {
+    // Fallback below
+  }
+
+  return `session_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+};
+
 export const SetupStepBusiness = ({ 
   countryCode, 
   currentName,
@@ -51,7 +63,7 @@ export const SetupStepBusiness = ({
   const [selectedPlace, setSelectedPlace] = useState<GooglePlaceData | null>(null);
   const [manualMode, setManualMode] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout>();
-  const sessionTokenRef = useRef(crypto.randomUUID());
+  const sessionTokenRef = useRef(createSessionToken());
 
   // If we have a current name but no placeId, we're in manual mode
   useEffect(() => {
@@ -124,7 +136,7 @@ export const SetupStepBusiness = ({
         };
         setSelectedPlace(placeData);
         setSearch(placeData.name);
-        sessionTokenRef.current = crypto.randomUUID();
+        sessionTokenRef.current = createSessionToken();
         
         // Update parent immediately
         onUpdate({
