@@ -107,10 +107,12 @@ export const GoogleBusinessProfileSection = () => {
   };
 
   const isConnected = integration?.status === "connected";
+  const isTokenExpired = integration?.status === "token_expired";
   const meta = integration?.metadata;
   const locationName = meta?.google_location_name;
   const accountEmail = meta?.account_email;
   const needsLocation = isConnected && !meta?.google_location_id;
+  const needsReconnect = isTokenExpired || (meta as any)?.needs_reconnect;
   const hasGoogleFromSetup = !!currentBusiness?.google_place_id;
 
   const formatTimeAgo = (d?: string | null) => {
@@ -239,6 +241,33 @@ export const GoogleBusinessProfileSection = () => {
           }}
         />
       </>
+    );
+  }
+
+  // Pro - needs reconnect (token expired)
+  if (needsReconnect) {
+    return (
+      <GlassCard className="p-4 border-destructive/30">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+            <GoogleIcon />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">Google Business Profile</p>
+            <p className="text-xs text-destructive font-medium flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              Sesión expirada — reconectá
+            </p>
+          </div>
+        </div>
+        <Button className="w-full" variant="destructive" onClick={handleConnect} disabled={connecting}>
+          {connecting ? (
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Reconectando...</>
+          ) : (
+            <><RefreshCw className="w-4 h-4 mr-2" /> Reconectar Google</>
+          )}
+        </Button>
+      </GlassCard>
     );
   }
 

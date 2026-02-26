@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,20 +25,39 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Update the integration with the selected location
+    // Get existing integration to MERGE metadata (not overwrite)
+    const { data: integration, error: intErr } = await supabase
+      .from("business_integrations")
+      .select("id, metadata")
+      .eq("business_id", businessId)
+      .eq("integration_type", "google_reviews")
+      .single();
+
+    if (intErr || !integration) {
+      return new Response(
+        JSON.stringify({ error: "Google Reviews integration not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const existingMeta = (integration.metadata as Record<string, any>) || {};
+
+    // Merge with existing metadata to preserve account_email, gbp_locations, etc.
+    const mergedMetadata = {
+      ...existingMeta,
+      google_location_id: locationId,
+      google_location_name: locationName,
+      google_location_address: locationAddress,
+      location_selected_at: new Date().toISOString(),
+    };
+
     const { error: updateError } = await supabase
       .from("business_integrations")
       .update({
-        metadata: {
-          google_location_id: locationId,
-          google_location_name: locationName,
-          google_location_address: locationAddress,
-          location_selected_at: new Date().toISOString(),
-        },
+        metadata: mergedMetadata,
         updated_at: new Date().toISOString(),
       })
-      .eq("business_id", businessId)
-      .eq("integration_type", "google_reviews");
+      .eq("id", integration.id);
 
     if (updateError) {
       console.error("Failed to update integration:", updateError);
@@ -47,15 +66,24 @@ serve(async (req) => {
 
     console.log("Location selected:", locationName, "for business:", businessId);
 
+    // Auto-trigger initial review sync
+    try {
+      await supabase.functions.invoke("google-sync-reviews", {
+        body: { businessId },
+      });
+      console.log("Triggered initial review sync after location selection");
+    } catch (syncErr) {
+      console.warn("Could not trigger initial sync (non-fatal):", syncErr);
+    }
+
     return new Response(
       JSON.stringify({ success: true, message: "Location connected successfully" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error) {
     console.error("Error selecting location:", error);
     return new Response(
-      JSON.stringify({ error: "Failed to select location" }),
+      JSON.stringify({ error: "Failed to select location", details: String(error) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
