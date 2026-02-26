@@ -117,6 +117,94 @@ const COUNTRY_CONFIG: Record<string, CountryInfo> = {
     locale: "es-UY",
     name: "Uruguay",
   },
+  // Bolivia - PayPal (muestra BOB, paga USD)
+  BO: {
+    code: "BO" as CountryCode,
+    currency: "BOB",
+    symbol: "Bs",
+    paymentProvider: "paypal",
+    prices: { monthly: 199, yearly: 1990 },
+    flag: "🇧🇴",
+    locale: "es-BO",
+    name: "Bolivia",
+  },
+  // República Dominicana - PayPal (muestra DOP, paga USD)
+  DO: {
+    code: "DO" as CountryCode,
+    currency: "DOP",
+    symbol: "RD$",
+    paymentProvider: "paypal",
+    prices: { monthly: 1690, yearly: 16900 },
+    flag: "🇩🇴",
+    locale: "es-DO",
+    name: "República Dominicana",
+  },
+  // España - PayPal (muestra EUR, paga USD)
+  ES: {
+    code: "ES" as CountryCode,
+    currency: "EUR",
+    symbol: "€",
+    paymentProvider: "paypal",
+    prices: { monthly: 27, yearly: 270 },
+    flag: "🇪🇸",
+    locale: "es-ES",
+    name: "España",
+  },
+  // Guatemala - PayPal (muestra GTQ, paga USD)
+  GT: {
+    code: "GT" as CountryCode,
+    currency: "GTQ",
+    symbol: "Q",
+    paymentProvider: "paypal",
+    prices: { monthly: 229, yearly: 2290 },
+    flag: "🇬🇹",
+    locale: "es-GT",
+    name: "Guatemala",
+  },
+  // Honduras - PayPal (muestra HNL, paga USD)
+  HN: {
+    code: "HN" as CountryCode,
+    currency: "HNL",
+    symbol: "L",
+    paymentProvider: "paypal",
+    prices: { monthly: 729, yearly: 7290 },
+    flag: "🇭🇳",
+    locale: "es-HN",
+    name: "Honduras",
+  },
+  // Nicaragua - PayPal (muestra NIO, paga USD)
+  NI: {
+    code: "NI" as CountryCode,
+    currency: "NIO",
+    symbol: "C$",
+    paymentProvider: "paypal",
+    prices: { monthly: 1090, yearly: 10900 },
+    flag: "🇳🇮",
+    locale: "es-NI",
+    name: "Nicaragua",
+  },
+  // Perú - PayPal (muestra PEN, paga USD)
+  PE: {
+    code: "PE" as CountryCode,
+    currency: "PEN",
+    symbol: "S/",
+    paymentProvider: "paypal",
+    prices: { monthly: 109, yearly: 1090 },
+    flag: "🇵🇪",
+    locale: "es-PE",
+    name: "Perú",
+  },
+  // El Salvador - USD (dolarizado)
+  SV: {
+    code: "SV" as CountryCode,
+    currency: "USD",
+    symbol: "$",
+    paymentProvider: "paypal",
+    prices: { monthly: 29, yearly: 290 },
+    flag: "🇸🇻",
+    locale: "es-SV",
+    name: "El Salvador",
+  },
   // Default fallback - Argentina
   DEFAULT: {
     code: "DEFAULT",
@@ -131,7 +219,7 @@ const COUNTRY_CONFIG: Record<string, CountryInfo> = {
 };
 
 // Supported country codes for validation
-const SUPPORTED_COUNTRY_CODES: CountryCode[] = ['AR', 'CL', 'CO', 'CR', 'EC', 'MX', 'PA', 'PY', 'UY'];
+const SUPPORTED_COUNTRY_CODES: CountryCode[] = ['AR', 'BO', 'CL', 'CO', 'CR', 'DO', 'EC', 'ES', 'GT', 'HN', 'MX', 'NI', 'PA', 'PE', 'PY', 'SV', 'UY'];
 
 // Free IP Geolocation API
 const GEOLOCATION_API = "https://ipapi.co/json/";

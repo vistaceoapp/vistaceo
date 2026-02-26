@@ -2,6 +2,7 @@
 // Uses the greentech JSON structure for intelligent setup flow
 
 import setupData from './greentech_super_estructura_setup_paises.json';
+import { COUNTRY_PACKS, SUPPORTED_COUNTRIES, type CountryCode as CPCountryCode } from './countryPacks';
 
 export interface Country {
   code: string;
@@ -30,9 +31,28 @@ export interface BusinessType {
 export type { CountryCode } from './countryPacks';
 import type { CountryCode } from './countryPacks';
 
-// Get all supported countries
+// Get all supported countries (merge JSON + countryPacks for full coverage)
 export function getCountries(): Country[] {
-  return setupData.countries as Country[];
+  const jsonCountries = setupData.countries as Country[];
+  const jsonCodes = new Set(jsonCountries.map(c => c.code));
+  
+  // Add any countries from countryPacks not in JSON
+  const allCountries = [...jsonCountries];
+  for (const code of SUPPORTED_COUNTRIES) {
+    if (!jsonCodes.has(code)) {
+      const pack = COUNTRY_PACKS[code as CPCountryCode];
+      if (pack) {
+        allCountries.push({
+          code: pack.code,
+          name: pack.name,
+          language: pack.locale.startsWith('pt') ? 'pt' : 'es',
+        });
+      }
+    }
+  }
+  
+  // Sort alphabetically by name
+  return allCountries.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 // Get all areas with labels for a specific country

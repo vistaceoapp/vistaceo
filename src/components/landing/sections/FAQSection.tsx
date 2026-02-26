@@ -9,7 +9,8 @@ import {
   Radar as RadarIcon, 
   Target, 
   Heart, 
-  TrendingUp 
+  TrendingUp,
+  Sparkles 
 } from "lucide-react";
 import {
   Accordion,
@@ -19,6 +20,27 @@ import {
 } from "@/components/ui/accordion";
 
 const faqs = [
+  {
+    icon: Sparkles,
+    question: "¿Qué es VISTACEO?",
+    answer: `**VISTACEO es tu CEO digital con inteligencia artificial.** Es una plataforma que actúa como un director ejecutivo virtual para tu negocio, analizando datos, detectando oportunidades y diciéndote exactamente qué hacer cada día para crecer.
+
+**¿Cómo funciona?**
+1. Configurás tu negocio en 3-5 minutos
+2. VISTACEO analiza tu situación y crea un diagnóstico completo
+3. Cada día recibís misiones personalizadas: acciones concretas para mejorar ventas, reducir costos, atraer más clientes
+4. El sistema aprende de tus resultados y se vuelve más inteligente con el tiempo
+
+**¿Para quién es?**
+Para dueños de negocios, emprendedores y profesionales independientes que quieren tomar mejores decisiones sin necesitar un equipo de consultores. Funciona para cualquier tipo de negocio o servicio, en cualquier sector.
+
+**Lo que te da VISTACEO:**
+• Un cerebro estratégico que piensa en tu negocio 24/7
+• Misiones diarias con pasos concretos para ejecutar
+• Diagnóstico de salud de tu negocio en tiempo real
+• Detección de oportunidades que no estás viendo
+• Todo 100% personalizado a tu realidad y tu mercado`,
+  },
   {
     icon: Building2,
     question: "¿Qué tipo de negocios pueden usar VistaCEO?",
