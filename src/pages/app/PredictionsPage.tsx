@@ -414,7 +414,10 @@ export default function PredictionsPage() {
   const clarity = uiModel?.sphere_state.clarity || 0.5;
   const pulseState = uiModel?.sphere_state.pulse_state || 'calm';
 
-  if (loading) {
+  const navigate = useNavigate();
+  const { isPro: isProUser, isLoading: isSubLoading } = useSubscription();
+
+  if (loading || isSubLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-64" />
@@ -426,10 +429,7 @@ export default function PredictionsPage() {
     );
   }
 
-  const navigate = useNavigate();
-  const { isPro: isProUser, isLoading: isSubLoading } = useSubscription();
-
-  if (!isProUser && !isSubLoading) {
+  if (!isProUser) {
     // Show blurred preview with Pro CTA
     return (
       <div className="space-y-6">

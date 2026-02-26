@@ -305,11 +305,11 @@ const RadarPage = () => {
       const created = typeof data?.learningCreated === "number" ? data.learningCreated : 0;
 
       toast({
-        title: created > 0 ? "Nuevos insights externos" : "Sin novedades externas por ahora",
+        title: created > 0 ? "Nuevos insights externos" : "Sin novedades muy específicas por ahora",
         description:
           created > 0
             ? `Encontré ${created} oportunidades externas para tu negocio.`
-            : "Vuelvo a escanear más tarde con más señal/contexto.",
+            : "No encontré tendencias ultra-específicas para tu negocio en este momento, pero sigo monitoreando. Volvé a escanear en unos días.",
       });
 
       fetchData();

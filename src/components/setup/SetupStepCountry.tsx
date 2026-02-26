@@ -14,13 +14,21 @@ interface SetupStepCountryProps {
 // Países ordenados alfabéticamente (solo español)
 const COUNTRY_FLAGS: Record<string, string> = {
   AR: '🇦🇷',
+  BO: '🇧🇴',
   CL: '🇨🇱',
   CO: '🇨🇴',
   CR: '🇨🇷',
+  DO: '🇩🇴',
   EC: '🇪🇨',
+  ES: '🇪🇸',
+  GT: '🇬🇹',
+  HN: '🇭🇳',
   MX: '🇲🇽',
+  NI: '🇳🇮',
   PA: '🇵🇦',
+  PE: '🇵🇪',
   PY: '🇵🇾',
+  SV: '🇸🇻',
   UY: '🇺🇾',
 };
 
@@ -28,6 +36,7 @@ export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => 
   const countries = getCountries();
   const { detectedCountryCode, isDetecting, isSupportedCountry, setCountryOverride } = useCountryDetection();
   const [hasAutoSelected, setHasAutoSelected] = useState(false);
+  const [userManuallyChanged, setUserManuallyChanged] = useState(false);
 
   // Auto-select detected country on first load
   useEffect(() => {
@@ -44,6 +53,7 @@ export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => 
   const handleCountryChange = (code: CountryCode) => {
     onChange(code);
     setCountryOverride(code);
+    setUserManuallyChanged(true);
   };
 
   if (isDetecting) {
@@ -65,14 +75,14 @@ export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => 
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-foreground mb-2">¿Dónde está tu negocio?</h2>
         <p className="text-muted-foreground">Esto define moneda, impuestos y plataformas locales</p>
-        {detectedCountryCode && isSupportedCountry(detectedCountryCode) && (
+        {detectedCountryCode && isSupportedCountry(detectedCountryCode) && !userManuallyChanged && !value && (
           <p className="text-sm text-primary mt-2">
-            Detectamos que estás en {COUNTRY_FLAGS[detectedCountryCode]} — podés cambiarlo
+            Detectamos tu ubicación automáticamente — podés cambiarlo
           </p>
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-w-2xl mx-auto">
         {countries.map((country, idx) => {
           const isSelected = value === country.code;
           const isDetected = detectedCountryCode === country.code;
@@ -94,8 +104,8 @@ export const SetupStepCountry = ({ value, onChange }: SetupStepCountryProps) => 
                     : 'border-border bg-card'
               )}
             >
-              <span className="text-4xl">{COUNTRY_FLAGS[country.code] || '🌍'}</span>
-              <span className="text-sm font-medium text-foreground">{country.name}</span>
+              <span className="text-3xl">{COUNTRY_FLAGS[country.code] || '🌍'}</span>
+              <span className="text-xs font-medium text-foreground leading-tight">{country.name}</span>
               {isSelected && (
                 <motion.div
                   initial={{ scale: 0 }}

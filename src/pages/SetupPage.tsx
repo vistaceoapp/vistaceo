@@ -374,6 +374,20 @@ const SetupPage = () => {
         }
       }
       
+      // Step 5b: Auto-trigger opportunity scanning (fire and forget)
+      try {
+        console.log('[Setup] Triggering auto radar scan for business:', business.id);
+        supabase.functions.invoke('scan-opportunities', {
+          body: { businessId: business.id, source: 'setup_auto' },
+        }).then(res => {
+          console.log('[Setup] Auto radar scan triggered:', res.data);
+        }).catch(err => {
+          console.warn('[Setup] Auto radar scan failed (non-blocking):', err);
+        });
+      } catch (scanErr) {
+        console.warn('[Setup] Error triggering auto scan:', scanErr);
+      }
+      
       setCreateProgress(100);
 
       // Set as current business and navigate to celebration page
