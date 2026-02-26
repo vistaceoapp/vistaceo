@@ -145,7 +145,7 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
           ¿A qué te dedicás?
         </h2>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Negocio, servicio o profesión. Escribilo como te salga. VistaCEO lo entiende y arma tu perfil.
+          Negocio, servicio o profesión. Escribilo como te salga. VISTACEO lo entiende y arma tu perfil.
         </p>
       </div>
 

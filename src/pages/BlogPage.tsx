@@ -40,11 +40,11 @@ export default function BlogPage() {
   return (
     <>
       <Helmet>
-        <title>Blog | VistaCEO - Recursos para gestionar mejor tu negocio</title>
+        <title>Blog | VISTACEO - Recursos para gestionar mejor tu negocio</title>
         <meta name="description" content="Artículos, guías y recursos prácticos para dueños de negocios en LATAM. Liderazgo, IA aplicada, emprendimiento y más." />
         <link rel="canonical" href="https://www.vistaceo.com/blog" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Blog | VistaCEO - Recursos para gestionar mejor tu negocio" />
+        <meta property="og:title" content="Blog | VISTACEO - Recursos para gestionar mejor tu negocio" />
         <meta property="og:url" content="https://www.vistaceo.com/blog" />
       </Helmet>
 
@@ -75,7 +75,7 @@ export default function BlogPage() {
                 <div className="space-y-6">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
                     <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-xs font-medium text-primary">Blog VistaCEO</span>
+                    <span className="text-xs font-medium text-primary">Blog VISTACEO</span>
                     {stats && (
                       <span className="text-xs text-muted-foreground">· {stats.total} artículos</span>
                     )}

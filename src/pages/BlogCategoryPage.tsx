@@ -40,7 +40,7 @@ export default function BlogCategoryPage() {
   return (
     <>
       <Helmet>
-        <title>{clusterInfo.label} | Blog VistaCEO</title>
+        <title>{clusterInfo.label} | Blog VISTACEO</title>
         <meta 
           name="description" 
           content={`Artículos y guías sobre ${clusterInfo.label.toLowerCase()} para PyMEs latinoamericanas. Recursos prácticos y estrategias probadas.`} 

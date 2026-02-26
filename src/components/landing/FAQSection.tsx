@@ -10,8 +10,8 @@ import {
 const faqs = [
   {
     icon: Building2,
-    question: "¿Qué tipos de negocio soporta VistaCEO?",
-    answer: `VistaCEO está diseñado para **más de 180 tipos de negocio** organizados en **10 sectores principales**:
+    question: "¿Qué tipos de negocio soporta VISTACEO?",
+    answer: `VISTACEO está diseñado para **más de 180 tipos de negocio** organizados en **10 sectores principales**:
 
 • **Gastronomía**: Restaurantes, cafeterías, bares, heladerías, panaderías, dark kitchens, food trucks...
 • **Retail**: Tiendas de ropa, calzado, electrónica, joyerías, ferreterías, farmacias...
@@ -49,8 +49,8 @@ En Argentina, pagás en pesos con MercadoPago. Para el resto del mundo, PayPal e
   },
   {
     icon: Brain,
-    question: "¿Cómo aprende VistaCEO sobre mi negocio?",
-    answer: `VistaCEO utiliza un **Cerebro de Negocio** que aprende continuamente de múltiples fuentes:
+    question: "¿Cómo aprende VISTACEO sobre mi negocio?",
+    answer: `VISTACEO utiliza un **Cerebro de Negocio** que aprende continuamente de múltiples fuentes:
 
 1. **Setup inicial**: Respondes un cuestionario adaptado a tu sector (3-5 minutos)
 2. **Check-ins diarios**: Indicas cómo te fue hoy en 10 segundos
@@ -58,12 +58,12 @@ En Argentina, pagás en pesos con MercadoPago. Para el resto del mundo, PayPal e
 4. **Tus decisiones**: Cada misión que completas, pausas o rechazas enseña al sistema qué funciona para ti
 5. **Integraciones**: Si conectas Google Reviews u otras plataformas, el sistema analiza automáticamente
 
-Mientras más usas VistaCEO, más preciso se vuelve. Empiezas con ~70% de certeza y puedes llegar a 95%+.`,
+Mientras más usas VISTACEO, más preciso se vuelve. Empiezas con ~70% de certeza y puedes llegar a 95%+.`,
   },
   {
     icon: Zap,
     question: "¿Cuánto tiempo necesito dedicarle?",
-    answer: `VistaCEO está diseñado para dueños de negocio **ocupados**:
+    answer: `VISTACEO está diseñado para dueños de negocio **ocupados**:
 
 • **Setup inicial**: 3-5 minutos (respondés preguntas simples)
 • **Check-in diario**: 10 segundos (un toque: excelente, normal o flojo)
@@ -71,7 +71,7 @@ Mientras más usas VistaCEO, más preciso se vuelve. Empiezas con ~70% de certez
 
 El sistema hace el trabajo pesado por vos: analiza datos, detecta patrones, investiga tendencias del mercado, y te presenta todo en acciones concretas con tiempo estimado e impacto proyectado.
 
-**No tenés que ser experto en nada**. VistaCEO traduce todo a pasos simples que podés ejecutar.`,
+**No tenés que ser experto en nada**. VISTACEO traduce todo a pasos simples que podés ejecutar.`,
   },
   {
     icon: Shield,
@@ -83,7 +83,7 @@ El sistema hace el trabajo pesado por vos: analiza datos, detecta patrones, inve
 • **Sin acceso de terceros**: Nunca vendemos ni compartimos tu información
 • **Control total**: Podés exportar o eliminar tus datos cuando quieras
 
-Además, VistaCEO **no requiere acceso a tu cuenta bancaria ni sistema de punto de venta**. Trabajamos con rangos y estimaciones que vos proporcionás, nunca datos financieros exactos.
+Además, VISTACEO **no requiere acceso a tu cuenta bancaria ni sistema de punto de venta**. Trabajamos con rangos y estimaciones que vos proporcionás, nunca datos financieros exactos.
 
 Cumplimos con regulaciones de protección de datos de Argentina y Latinoamérica.`,
   },
@@ -110,7 +110,7 @@ export const FAQSection = () => {
             Todo lo que necesitás <span className="text-gradient-primary">saber</span>
           </h2>
           <p className="text-muted-foreground">
-            Respuestas a las dudas más comunes sobre VistaCEO
+            Respuestas a las dudas más comunes sobre VISTACEO
           </p>
         </motion.div>
 

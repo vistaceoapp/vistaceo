@@ -74,10 +74,10 @@ const PrivacyPolicyPage = () => {
   return (
     <>
       <Helmet>
-        <title>Política de Privacidad | VistaCEO</title>
+        <title>Política de Privacidad | VISTACEO</title>
         <meta
           name="description"
-          content="Conocé cómo VistaCEO recopila, usa y protege tus datos personales. Tu privacidad es importante para nosotros."
+          content="Conocé cómo VISTACEO recopila, usa y protege tus datos personales. Tu privacidad es importante para nosotros."
         />
         <link rel="canonical" href="https://www.vistaceo.com/politicas" />
       </Helmet>
@@ -92,13 +92,13 @@ const PrivacyPolicyPage = () => {
           {
             title: "Condiciones del Servicio",
             href: "/condiciones",
-            description: "Términos de uso de la plataforma VistaCEO.",
+            description: "Términos de uso de la plataforma VISTACEO.",
           },
         ]}
       >
         <LegalSection id="alcance" title="1. Alcance y definiciones">
           <p className="text-muted-foreground mb-4">
-            Esta Política de Privacidad describe cómo <strong>VistaCEO</strong> ("nosotros", 
+            Esta Política de Privacidad describe cómo <strong>VISTACEO</strong> ("nosotros", 
             "la plataforma", "el servicio") recopila, usa, almacena y protege tu información 
             personal cuando utilizás nuestro sitio web en <strong>www.vistaceo.com</strong> y 
             servicios relacionados.
@@ -107,10 +107,10 @@ const PrivacyPolicyPage = () => {
             <strong>Definiciones clave:</strong>
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-            <li><strong>Usuario:</strong> Cualquier persona que acceda o use VistaCEO.</li>
+            <li><strong>Usuario:</strong> Cualquier persona que acceda o use VISTACEO.</li>
             <li><strong>Contenido:</strong> Mensajes, prompts, textos, audios, imágenes, archivos u otra información que subas o generes en la plataforma.</li>
             <li><strong>Datos personales:</strong> Información que te identifica directa o indirectamente.</li>
-            <li><strong>IA:</strong> Los sistemas de inteligencia artificial integrados en VistaCEO.</li>
+            <li><strong>IA:</strong> Los sistemas de inteligencia artificial integrados en VISTACEO.</li>
           </ul>
           <WhatThisMeans>
             Este documento aplica a todo lo que hacés en VistaCEO. Si usás nuestra plataforma, 

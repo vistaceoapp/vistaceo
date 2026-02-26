@@ -107,7 +107,7 @@ export default function AdminDashboard() {
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">
-          Resumen general de VistaCEO • {format(new Date(), "EEEE d 'de' MMMM", { locale: es })}
+          Resumen general de VISTACEO • {format(new Date(), "EEEE d 'de' MMMM", { locale: es })}
         </p>
       </div>
 

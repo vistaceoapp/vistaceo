@@ -91,7 +91,7 @@ const AnalyticsPage = () => {
           {isPro ? (
             <SmartInsightsPanel />
           ) : (
-            <ProFeatureGate feature="advanced_analytics" title="Insights IA" description="Desbloquea análisis inteligente con IA y recomendaciones estratégicas con VistaCEO Pro">
+            <ProFeatureGate feature="advanced_analytics" title="Insights IA" description="Desbloquea análisis inteligente con IA y recomendaciones estratégicas con VISTACEO Pro">
               <div className="h-64 flex items-center justify-center text-muted-foreground">
                 <p>Insights inteligentes basados en tus datos reales</p>
               </div>
@@ -103,7 +103,7 @@ const AnalyticsPage = () => {
           {isPro ? (
             <EvolutionPanel />
           ) : (
-            <ProFeatureGate feature="advanced_analytics" title="Evolución" description="Seguí la evolución de tus métricas clave semana a semana con VistaCEO Pro">
+            <ProFeatureGate feature="advanced_analytics" title="Evolución" description="Seguí la evolución de tus métricas clave semana a semana con VISTACEO Pro">
               <div className="h-64 flex items-center justify-center text-muted-foreground">
                 <p>Evolución de métricas y tendencias</p>
               </div>
@@ -115,7 +115,7 @@ const AnalyticsPage = () => {
           {isPro ? (
             <AnalyticsDashboard variant={isMobile ? "compact" : "full"} />
           ) : (
-            <ProFeatureGate feature="advanced_analytics" title="Métricas Avanzadas" description="Accedé al dashboard completo de métricas y KPIs con VistaCEO Pro">
+            <ProFeatureGate feature="advanced_analytics" title="Métricas Avanzadas" description="Accedé al dashboard completo de métricas y KPIs con VISTACEO Pro">
               <div className="h-64 flex items-center justify-center text-muted-foreground">
                 <p>Dashboard completo de métricas</p>
               </div>

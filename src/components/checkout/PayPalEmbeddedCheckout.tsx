@@ -316,7 +316,7 @@ export const PayPalEmbeddedCheckout = ({
       <div className="p-4 rounded-xl bg-secondary/50 border border-border/50">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-muted-foreground">
-            VistaCEO Pro {planId === "pro_yearly" ? "Anual" : "Mensual"}
+            VISTACEO Pro {planId === "pro_yearly" ? "Anual" : "Mensual"}
           </span>
           <span className="text-sm font-medium text-foreground">
             USD ${usdAmount.toFixed(2)}

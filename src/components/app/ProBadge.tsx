@@ -67,7 +67,7 @@ export const ProBadge = ({
         <TooltipContent side="top" className="text-xs">
           <p>
             {variant === "locked" 
-              ? "Función disponible con VistaCEO Pro" 
+              ? "Función disponible con VISTACEO Pro" 
               : "Incluido en tu plan Pro"
             }
           </p>

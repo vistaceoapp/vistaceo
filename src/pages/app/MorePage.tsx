@@ -1121,7 +1121,7 @@ const MorePage = () => {
             </div>
             <div className="text-center">
               <p className="text-xs text-muted-foreground">
-                ¡Gracias por ser parte de VistaCEO Pro! 🚀
+                ¡Gracias por ser parte de VISTACEO Pro! 🚀
               </p>
             </div>
           </div>

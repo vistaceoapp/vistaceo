@@ -6,13 +6,13 @@ import { useNavigate } from "react-router-dom";
 const proFeatures = [
   { 
     icon: MessageSquare, 
-    title: "Chat ultra-inteligente con VistaCEO",
+    title: "Chat ultra-inteligente con VISTACEO",
     description: "Hablá con tu CEO digital por texto o voz. Respuestas personalizadas a tu negocio."
   },
   { 
     icon: FileImage, 
     title: "Análisis de fotos, documentos y reportes",
-    description: "Enviá facturas, menús, reportes. VistaCEO los analiza y te da insights."
+    description: "Enviá facturas, menús, reportes. VISTACEO los analiza y te da insights."
   },
   { 
     icon: Radar, 
@@ -59,7 +59,7 @@ export const ProExperienceSection = () => {
             {/* Pro Badge */}
             <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-primary to-accent text-white mb-6">
               <Crown className="w-5 h-5" />
-              <span className="text-sm font-semibold">VistaCEO Pro</span>
+              <span className="text-sm font-semibold">VISTACEO Pro</span>
             </div>
             
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
