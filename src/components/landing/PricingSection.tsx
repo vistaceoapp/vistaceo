@@ -76,12 +76,12 @@ export const PricingSection = () => {
           </div>
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-            Elegí tu plan,{" "}
-            <span className="text-gradient-primary">empezá a crecer</span>
+            Elige tu plan,{" "}
+            <span className="text-gradient-primary">empieza a crecer</span>
           </h2>
           
           <p className="text-lg text-muted-foreground">
-            Sin sorpresas. Sin contratos. Cancelás cuando quieras.
+            Sin sorpresas. Sin contratos. Cancelas cuando quieras.
           </p>
 
           {/* Country indicator */}

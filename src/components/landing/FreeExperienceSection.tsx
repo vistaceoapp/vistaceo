@@ -34,7 +34,7 @@ export const FreeExperienceSection = () => {
               </div>
               
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-                Empezá gratis.{" "}
+                Empieza gratis.{" "}
                 <span className="text-gradient-primary">En serio.</span>
               </h2>
               

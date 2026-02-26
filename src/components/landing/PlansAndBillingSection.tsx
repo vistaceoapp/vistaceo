@@ -12,7 +12,7 @@ export const PlansAndBillingSection = () => {
             Planes simples, sin sorpresas
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Empezá gratis, sin compromiso. Actualizá cuando lo necesites.
+            Empieza gratis, sin compromiso. Actualiza cuando lo necesites.
           </p>
         </div>
 

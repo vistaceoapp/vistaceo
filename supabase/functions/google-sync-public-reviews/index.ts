@@ -65,7 +65,7 @@ serve(async (req) => {
       "id", "displayName", "formattedAddress", "location",
       "rating", "userRatingCount", "reviews",
       "types", "primaryType", "primaryTypeDisplayName",
-      "currentOpeningHours", "regularOpeningHours", "weekdayDescriptions",
+      "currentOpeningHours", "regularOpeningHours",
       "photos", "priceLevel", "priceRange",
       "websiteUri", "nationalPhoneNumber", "internationalPhoneNumber",
       "googleMapsUri", "businessStatus",
@@ -393,7 +393,7 @@ async function syncWithLegacyApi(placeId: string, businessId: string, apiKey: st
       })
       .select("id")
       .single();
-    integrationId = newInt.id;
+    integrationId = newInt?.id;
   }
 
   for (const review of reviews) {
