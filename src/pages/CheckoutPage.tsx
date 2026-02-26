@@ -305,7 +305,7 @@ const CheckoutPage = () => {
                   <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
                     <Crown className="w-6 h-6 text-white" />
                   </div>
-                  <h1 className="text-3xl font-bold text-foreground">VistaCEO Pro</h1>
+                  <h1 className="text-3xl font-bold text-foreground">VISTACEO Pro</h1>
                 </div>
 
                 {/* Billing Toggle */}
@@ -364,7 +364,7 @@ const CheckoutPage = () => {
                 {!isArgentina && (
                   <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
                     <p className="text-xs text-muted-foreground text-center">
-                      💵 El pago se procesará en <strong>USD ${isYearly ? 290 : 29}</strong> vía PayPal.
+                       Te mostramos los precios en <strong>{country.currency}</strong>, pero siempre abonarás en <strong>USD ${isYearly ? 290 : 29}</strong>.
                       <br />
                       <span className="text-muted-foreground/80">
                         Podés pagar con tarjeta de débito/crédito o con tu cuenta PayPal.

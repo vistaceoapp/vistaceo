@@ -34,13 +34,6 @@ export const DataNeededState = ({
 
   const dataNeeds = [
     {
-      icon: Link,
-      title: "Conectar integraciones",
-      description: "Google Reviews, redes sociales, ventas",
-      action: () => navigate("/app/more"),
-      cta: "Conectar"
-    },
-    {
       icon: MessageSquare,
       title: "Contarme sobre tu negocio",
       description: "Responde algunas preguntas rápidas",

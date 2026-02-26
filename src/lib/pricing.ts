@@ -84,17 +84,33 @@ export const LOCAL_PRICES: Record<CountryCode | "DEFAULT", {
     currency: "UYU",
     symbol: "$",
   },
+  // Bolivia - displays BOB, pays USD
+  BO: { monthly: 199, yearly: 1990, currency: "BOB", symbol: "Bs" },
+  // República Dominicana - displays DOP, pays USD
+  DO: { monthly: 1690, yearly: 16900, currency: "DOP", symbol: "RD$" },
+  // España - displays EUR, pays USD
+  ES: { monthly: 27, yearly: 270, currency: "EUR", symbol: "€" },
+  // Guatemala - displays GTQ, pays USD
+  GT: { monthly: 225, yearly: 2250, currency: "GTQ", symbol: "Q" },
+  // Honduras - displays HNL, pays USD
+  HN: { monthly: 719, yearly: 7190, currency: "HNL", symbol: "L" },
+  // Nicaragua - displays NIO, pays USD
+  NI: { monthly: 1069, yearly: 10690, currency: "NIO", symbol: "C$" },
+  // Perú - displays PEN, pays USD
+  PE: { monthly: 109, yearly: 1090, currency: "PEN", symbol: "S/" },
+  // El Salvador - USD (dollarized)
+  SV: { monthly: 29, yearly: 290, currency: "USD", symbol: "$" },
   // Default fallback
   DEFAULT: {
-    monthly: 29990,
-    yearly: 299900,
-    currency: "ARS",
+    monthly: 29,
+    yearly: 290,
+    currency: "USD",
     symbol: "$",
   },
 };
 
 // Countries that pay in USD (all except AR)
-export const USD_PAYMENT_COUNTRIES: CountryCode[] = ['CL', 'CO', 'CR', 'EC', 'MX', 'PA', 'PY', 'UY'];
+export const USD_PAYMENT_COUNTRIES: CountryCode[] = ['BO', 'CL', 'CO', 'CR', 'DO', 'EC', 'ES', 'GT', 'HN', 'MX', 'NI', 'PA', 'PE', 'PY', 'SV', 'UY'];
 
 // Check if a country pays in USD
 export const paysInUSD = (countryCode: string): boolean => {

@@ -99,18 +99,18 @@ const SetupCompletePage = () => {
   const features = [
     {
       icon: Target,
-      title: "1 acción diaria",
-      description: "Enfocada en lo que más impacta tu negocio",
+      title: "Misiones personalizadas",
+      description: "Acciones concretas para hacer crecer tu negocio",
     },
     {
       icon: TrendingUp,
-      title: "Dashboard inteligente",
-      description: "Salud de tu negocio en tiempo real",
+      title: "Oportunidades y crecimiento",
+      description: "Descubrí oportunidades únicas para tu sector",
     },
     {
       icon: Sparkles,
-      title: "IA personalizada",
-      description: "Aprende de tu negocio cada día",
+      title: "IA que aprende de vos",
+      description: "Cada día más inteligente y precisa",
     },
   ];
 
@@ -178,7 +178,7 @@ const SetupCompletePage = () => {
             <p className="text-lg text-muted-foreground mb-8">
               {hasPendingPlan 
                 ? "Solo falta activar tu plan Pro para desbloquear todo el poder de VistaCEO."
-                : "Tu CEO digital ya está analizando tu negocio y preparando recomendaciones personalizadas."
+                : "VISTACEO ya está analizando tu negocio y preparando recomendaciones personalizadas."
               }
             </p>
 
@@ -244,7 +244,7 @@ const SetupCompletePage = () => {
               ) : (
                 <>
                   <Rocket className="w-5 h-5 transition-transform group-hover:-translate-y-0.5" />
-                  Empezar a usar Vistaceo
+                  Empezar a usar VISTACEO
                   <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
                 </>
               )}

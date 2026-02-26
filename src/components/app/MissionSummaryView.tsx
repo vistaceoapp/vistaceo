@@ -372,50 +372,7 @@ export const MissionSummaryView = ({
         </section>
       )}
 
-      {/* F) Competencia / Mercado */}
-      <section className="bg-card border border-border rounded-xl p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Building2 className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold text-foreground text-sm">Competencia / Mercado</h3>
-          {!enhancedPlan?.competitorInsights?.hasData && (
-            <Badge variant="outline" className="text-[9px] ml-auto">
-              Estimado
-            </Badge>
-          )}
-        </div>
-        {enhancedPlan?.competitorInsights?.hasData ? (
-          <>
-            {enhancedPlan.competitorInsights.summary && (
-              <p className="text-sm text-muted-foreground mb-3">
-                {enhancedPlan.competitorInsights.summary}
-              </p>
-            )}
-            {enhancedPlan.competitorInsights.comparison && (
-              <ul className="space-y-2">
-                {enhancedPlan.competitorInsights.comparison.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm text-foreground">
-                    <ArrowRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-4">
-            <p className="text-xs text-muted-foreground mb-3">
-              Basado en datos de mercado similares. Conecta Google Business para datos reales de tu zona.
-            </p>
-            <Badge variant="secondary" className="text-xs mb-3">
-              Confianza: Media
-            </Badge>
-            <Button variant="outline" size="sm" className="w-full mt-2">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Conectar Pro para comparación real
-            </Button>
-          </div>
-        )}
-      </section>
+      {/* F) Competencia / Mercado - HIDDEN until Google Business is ready */}
 
       {/* G) Riesgos y Dependencias */}
       <div className="grid md:grid-cols-2 gap-4">

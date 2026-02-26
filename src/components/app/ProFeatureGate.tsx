@@ -16,7 +16,7 @@ export const ProFeatureGate = ({
   children, 
   feature,
   title = "Función Pro",
-  description = "Desbloquea esta función con VistaCEO Pro"
+  description = "Desbloquea esta función con VISTACEO Pro"
 }: ProFeatureGateProps) => {
   const navigate = useNavigate();
   const { isPro } = useSubscription();

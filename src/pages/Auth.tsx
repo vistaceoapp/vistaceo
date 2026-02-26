@@ -194,7 +194,7 @@ const Auth = () => {
     { value: "2,847", label: "negocios" },
     { value: "+32%", label: "crecimiento" },
     { value: "4.9★", label: "rating" },
-    { value: "9", label: "países" },
+    { value: "17", label: "países" },
   ];
 
   const testimonial = {
@@ -233,9 +233,6 @@ const Auth = () => {
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 {welcomeMessage}
               </h1>
-              <p className="text-muted-foreground mt-2 text-base sm:text-lg">
-                Tu CEO digital te está esperando
-              </p>
               
               {/* Plan badge if coming from pricing */}
               {pendingPlan && (
@@ -461,7 +458,7 @@ const Auth = () => {
                   ))}
                 </div>
                 <p className="text-center text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">+{reviewCount.toLocaleString()} negocios</span> confían en VistaCEO
+                  <span className="font-semibold text-foreground">+{reviewCount.toLocaleString()} negocios</span> confían en VISTACEO
                 </p>
               </motion.div>
             )}
