@@ -83,6 +83,21 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
     refreshBusinesses();
   }, [user]);
 
+  // Safety timeout: never leave loading=true forever
+  useEffect(() => {
+    if (!loading) return;
+    const timeout = setTimeout(() => {
+      setLoading((current) => {
+        if (current) {
+          console.warn('[BusinessContext] Safety timeout - forcing loading=false');
+          return false;
+        }
+        return current;
+      });
+    }, 10000);
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
   return (
     <BusinessContext.Provider 
       value={{ 
