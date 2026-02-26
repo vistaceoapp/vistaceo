@@ -1,10 +1,9 @@
 // Country Packs - Configuración completa por país
-// Basado en spec v1: 9 países soportados
+// 17 países soportados - Solo español (ordenados alfabéticamente)
 
-// 9 países soportados - Solo español (ordenados alfabéticamente)
-export type CountryCode = 'AR' | 'CL' | 'CO' | 'CR' | 'EC' | 'MX' | 'PA' | 'PY' | 'UY';
+export type CountryCode = 'AR' | 'BO' | 'CL' | 'CO' | 'CR' | 'DO' | 'EC' | 'ES' | 'GT' | 'HN' | 'MX' | 'NI' | 'PA' | 'PE' | 'PY' | 'SV' | 'UY';
 
-export const SUPPORTED_COUNTRIES: CountryCode[] = ['AR', 'CL', 'CO', 'CR', 'EC', 'MX', 'PA', 'PY', 'UY'];
+export const SUPPORTED_COUNTRIES: CountryCode[] = ['AR', 'BO', 'CL', 'CO', 'CR', 'DO', 'EC', 'ES', 'GT', 'HN', 'MX', 'NI', 'PA', 'PE', 'PY', 'SV', 'UY'];
 
 export interface CountryPack {
   code: CountryCode;
@@ -26,7 +25,6 @@ export interface CountryPack {
     tip: string;
     serviceCharge: string;
   };
-  // Pasos adicionales requeridos por país
   additionalSteps: string[];
 }
 
@@ -45,34 +43,24 @@ export const COUNTRY_PACKS: Record<CountryCode, CountryPack> = {
       reservations: ['TheFork (Restorando)', 'Google Reserve'],
       reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
     },
-    lexicon: {
-      receipt: 'ticket',
-      order: 'pedido',
-      tip: 'propina',
-      serviceCharge: 'cargo por servicio',
-    },
+    lexicon: { receipt: 'ticket', order: 'pedido', tip: 'propina', serviceCharge: 'cargo por servicio' },
     additionalSteps: [],
   },
-  MX: {
-    code: 'MX',
-    name: 'México',
-    flag: '🇲🇽',
-    currency: 'MXN',
-    currencySymbol: '$',
-    locale: 'es-MX',
-    timezone: 'America/Mexico_City',
-    dayparts: ['Desayuno', 'Comida', 'Merienda', 'Cena', 'Noche'],
+  BO: {
+    code: 'BO',
+    name: 'Bolivia',
+    flag: '🇧🇴',
+    currency: 'BOB',
+    currencySymbol: 'Bs',
+    locale: 'es-BO',
+    timezone: 'America/La_Paz',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
     platforms: {
-      delivery: ['Uber Eats', 'DiDi Food', 'Rappi'],
-      reservations: ['OpenTable', 'TheFork (Restorando)'],
+      delivery: ['PedidosYa'],
+      reservations: [],
       reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
     },
-    lexicon: {
-      receipt: 'ticket',
-      order: 'pedido',
-      tip: 'propina',
-      serviceCharge: 'cargo por servicio',
-    },
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
     additionalSteps: [],
   },
   CL: {
@@ -89,12 +77,7 @@ export const COUNTRY_PACKS: Record<CountryCode, CountryPack> = {
       reservations: ['TheFork (Restorando)'],
       reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
     },
-    lexicon: {
-      receipt: 'boleta',
-      order: 'pedido',
-      tip: 'propina',
-      serviceCharge: 'servicio',
-    },
+    lexicon: { receipt: 'boleta', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
     additionalSteps: [],
   },
   CO: {
@@ -111,78 +94,7 @@ export const COUNTRY_PACKS: Record<CountryCode, CountryPack> = {
       reservations: ['TheFork (Restorando)'],
       reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
     },
-    lexicon: {
-      receipt: 'factura',
-      order: 'pedido',
-      tip: 'propina',
-      serviceCharge: 'servicio',
-    },
-    additionalSteps: [],
-  },
-  EC: {
-    code: 'EC',
-    name: 'Ecuador',
-    flag: '🇪🇨',
-    currency: 'USD',
-    currencySymbol: '$',
-    locale: 'es-EC',
-    timezone: 'America/Guayaquil',
-    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
-    platforms: {
-      delivery: ['PedidosYa', 'Rappi'],
-      reservations: ['TheFork'],
-      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
-    },
-    lexicon: {
-      receipt: 'factura',
-      order: 'pedido',
-      tip: 'propina',
-      serviceCharge: 'servicio',
-    },
-    additionalSteps: [],
-  },
-  PY: {
-    code: 'PY',
-    name: 'Paraguay',
-    flag: '🇵🇾',
-    currency: 'PYG',
-    currencySymbol: '₲',
-    locale: 'es-PY',
-    timezone: 'America/Asuncion',
-    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
-    platforms: {
-      delivery: ['PedidosYa'],
-      reservations: [],
-      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
-    },
-    lexicon: {
-      receipt: 'factura',
-      order: 'pedido',
-      tip: 'propina',
-      serviceCharge: 'servicio',
-    },
-    additionalSteps: [],
-  },
-  UY: {
-    code: 'UY',
-    name: 'Uruguay',
-    flag: '🇺🇾',
-    currency: 'UYU',
-    currencySymbol: '$',
-    locale: 'es-UY',
-    timezone: 'America/Montevideo',
-    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Late night'],
-    platforms: {
-      delivery: ['PedidosYa', 'Rappi'],
-      reservations: ['TheFork (Restorando)'],
-      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
-    },
-    lexicon: {
-      receipt: 'ticket',
-      order: 'pedido',
-      tip: 'propina',
-      serviceCharge: 'servicio',
-    },
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
     additionalSteps: [],
   },
   CR: {
@@ -199,12 +111,126 @@ export const COUNTRY_PACKS: Record<CountryCode, CountryPack> = {
       reservations: ['TheFork'],
       reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
     },
-    lexicon: {
-      receipt: 'factura',
-      order: 'pedido',
-      tip: 'propina',
-      serviceCharge: 'servicio',
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
+    additionalSteps: [],
+  },
+  DO: {
+    code: 'DO',
+    name: 'República Dominicana',
+    flag: '🇩🇴',
+    currency: 'DOP',
+    currencySymbol: 'RD$',
+    locale: 'es-DO',
+    timezone: 'America/Santo_Domingo',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['PedidosYa', 'Hugo'],
+      reservations: [],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
     },
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
+    additionalSteps: [],
+  },
+  EC: {
+    code: 'EC',
+    name: 'Ecuador',
+    flag: '🇪🇨',
+    currency: 'USD',
+    currencySymbol: '$',
+    locale: 'es-EC',
+    timezone: 'America/Guayaquil',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['PedidosYa', 'Rappi'],
+      reservations: ['TheFork'],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
+    },
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
+    additionalSteps: [],
+  },
+  ES: {
+    code: 'ES',
+    name: 'España',
+    flag: '🇪🇸',
+    currency: 'EUR',
+    currencySymbol: '€',
+    locale: 'es-ES',
+    timezone: 'Europe/Madrid',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['Glovo', 'Just Eat', 'Uber Eats'],
+      reservations: ['TheFork', 'OpenTable'],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
+    },
+    lexicon: { receipt: 'ticket', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
+    additionalSteps: [],
+  },
+  GT: {
+    code: 'GT',
+    name: 'Guatemala',
+    flag: '🇬🇹',
+    currency: 'GTQ',
+    currencySymbol: 'Q',
+    locale: 'es-GT',
+    timezone: 'America/Guatemala',
+    dayparts: ['Desayuno', 'Almuerzo', 'Refacción', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['PedidosYa', 'Hugo'],
+      reservations: [],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
+    },
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
+    additionalSteps: [],
+  },
+  HN: {
+    code: 'HN',
+    name: 'Honduras',
+    flag: '🇭🇳',
+    currency: 'HNL',
+    currencySymbol: 'L',
+    locale: 'es-HN',
+    timezone: 'America/Tegucigalpa',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['Hugo', 'PedidosYa'],
+      reservations: [],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
+    },
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
+    additionalSteps: [],
+  },
+  MX: {
+    code: 'MX',
+    name: 'México',
+    flag: '🇲🇽',
+    currency: 'MXN',
+    currencySymbol: '$',
+    locale: 'es-MX',
+    timezone: 'America/Mexico_City',
+    dayparts: ['Desayuno', 'Comida', 'Merienda', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['Uber Eats', 'DiDi Food', 'Rappi'],
+      reservations: ['OpenTable', 'TheFork (Restorando)'],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
+    },
+    lexicon: { receipt: 'ticket', order: 'pedido', tip: 'propina', serviceCharge: 'cargo por servicio' },
+    additionalSteps: [],
+  },
+  NI: {
+    code: 'NI',
+    name: 'Nicaragua',
+    flag: '🇳🇮',
+    currency: 'NIO',
+    currencySymbol: 'C$',
+    locale: 'es-NI',
+    timezone: 'America/Managua',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['Hugo'],
+      reservations: [],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
+    },
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
     additionalSteps: [],
   },
   PA: {
@@ -221,12 +247,75 @@ export const COUNTRY_PACKS: Record<CountryCode, CountryPack> = {
       reservations: ['TheFork (Restorando)'],
       reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
     },
-    lexicon: {
-      receipt: 'factura',
-      order: 'pedido',
-      tip: 'propina',
-      serviceCharge: 'servicio',
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
+    additionalSteps: [],
+  },
+  PE: {
+    code: 'PE',
+    name: 'Perú',
+    flag: '🇵🇪',
+    currency: 'PEN',
+    currencySymbol: 'S/',
+    locale: 'es-PE',
+    timezone: 'America/Lima',
+    dayparts: ['Desayuno', 'Almuerzo', 'Lonche', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['Rappi', 'PedidosYa'],
+      reservations: ['TheFork'],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
     },
+    lexicon: { receipt: 'boleta', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
+    additionalSteps: [],
+  },
+  PY: {
+    code: 'PY',
+    name: 'Paraguay',
+    flag: '🇵🇾',
+    currency: 'PYG',
+    currencySymbol: '₲',
+    locale: 'es-PY',
+    timezone: 'America/Asuncion',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['PedidosYa'],
+      reservations: [],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
+    },
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
+    additionalSteps: [],
+  },
+  SV: {
+    code: 'SV',
+    name: 'El Salvador',
+    flag: '🇸🇻',
+    currency: 'USD',
+    currencySymbol: '$',
+    locale: 'es-SV',
+    timezone: 'America/El_Salvador',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Noche'],
+    platforms: {
+      delivery: ['Hugo', 'PedidosYa'],
+      reservations: [],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
+    },
+    lexicon: { receipt: 'factura', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
+    additionalSteps: [],
+  },
+  UY: {
+    code: 'UY',
+    name: 'Uruguay',
+    flag: '🇺🇾',
+    currency: 'UYU',
+    currencySymbol: '$',
+    locale: 'es-UY',
+    timezone: 'America/Montevideo',
+    dayparts: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena', 'Late night'],
+    platforms: {
+      delivery: ['PedidosYa', 'Rappi'],
+      reservations: ['TheFork (Restorando)'],
+      reviews: ['Google Maps / Business Profile', 'Tripadvisor'],
+    },
+    lexicon: { receipt: 'ticket', order: 'pedido', tip: 'propina', serviceCharge: 'servicio' },
     additionalSteps: [],
   },
 };
@@ -324,12 +413,12 @@ export const SERVICE_MODELS = [
 
 // PMO - Perfil Mínimo Operable
 export interface PMOStatus {
-  identity: boolean; // nombre, dirección, ciudad, país
-  model: boolean; // tipo principal + modelo de servicio
-  sales: boolean; // facturación mensual + ticket medio + transacciones/día
-  menu: boolean; // 12+ items con precio (o 8 estrella)
-  costs: boolean; // food cost % + costos fijos
-  competition: boolean; // 5-12 competidores
+  identity: boolean;
+  model: boolean;
+  sales: boolean;
+  menu: boolean;
+  costs: boolean;
+  competition: boolean;
 }
 
 export const getPMOCompletionPercentage = (status: PMOStatus): number => {
@@ -338,7 +427,6 @@ export const getPMOCompletionPercentage = (status: PMOStatus): number => {
   return Math.round((completed / fields.length) * 100);
 };
 
-// Metric states
 export type MetricState = 'active' | 'estimated' | 'blocked';
 
 export interface MetricStatus {
@@ -349,13 +437,19 @@ export interface MetricStatus {
 }
 
 // ============= LOCALIZED REVENUE RANGES BY COUNTRY =============
-// Adjusted for each country's currency and typical business sizes
-
 export interface RevenueRange {
   id: string;
   label: { es: string };
   impactScore: number;
 }
+
+const defaultRevenueRange: RevenueRange[] = [
+  { id: 'tier1', label: { es: 'Menos de $1k USD' }, impactScore: -5 },
+  { id: 'tier2', label: { es: '$1k - $5k USD' }, impactScore: 5 },
+  { id: 'tier3', label: { es: '$5k - $15k USD' }, impactScore: 10 },
+  { id: 'tier4', label: { es: 'Más de $15k USD' }, impactScore: 15 },
+  { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+];
 
 export const REVENUE_RANGES: Record<CountryCode, RevenueRange[]> = {
   AR: [
@@ -363,6 +457,13 @@ export const REVENUE_RANGES: Record<CountryCode, RevenueRange[]> = {
     { id: 'tier2', label: { es: '$2M - $5M ARS' }, impactScore: 5 },
     { id: 'tier3', label: { es: '$5M - $15M ARS' }, impactScore: 10 },
     { id: 'tier4', label: { es: 'Más de $15M ARS' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+  ],
+  BO: [
+    { id: 'tier1', label: { es: 'Menos de Bs 30k' }, impactScore: -5 },
+    { id: 'tier2', label: { es: 'Bs 30k - Bs 100k' }, impactScore: 5 },
+    { id: 'tier3', label: { es: 'Bs 100k - Bs 300k' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de Bs 300k' }, impactScore: 15 },
     { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
   MX: [
@@ -386,32 +487,47 @@ export const REVENUE_RANGES: Record<CountryCode, RevenueRange[]> = {
     { id: 'tier4', label: { es: 'Más de $150M COP' }, impactScore: 15 },
     { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
-  EC: [
-    { id: 'tier1', label: { es: 'Menos de $1k USD' }, impactScore: -5 },
-    { id: 'tier2', label: { es: '$1k - $5k USD' }, impactScore: 5 },
-    { id: 'tier3', label: { es: '$5k - $15k USD' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Más de $15k USD' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
-  ],
-  PY: [
-    { id: 'tier1', label: { es: 'Menos de ₲10M' }, impactScore: -5 },
-    { id: 'tier2', label: { es: '₲10M - ₲50M' }, impactScore: 5 },
-    { id: 'tier3', label: { es: '₲50M - ₲150M' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Más de ₲150M' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
-  ],
-  UY: [
-    { id: 'tier1', label: { es: 'Menos de $200k UYU' }, impactScore: -5 },
-    { id: 'tier2', label: { es: '$200k - $600k UYU' }, impactScore: 5 },
-    { id: 'tier3', label: { es: '$600k - $1.5M UYU' }, impactScore: 10 },
-    { id: 'tier4', label: { es: 'Más de $1.5M UYU' }, impactScore: 15 },
-    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
-  ],
   CR: [
     { id: 'tier1', label: { es: 'Menos de ₡3M' }, impactScore: -5 },
     { id: 'tier2', label: { es: '₡3M - ₡10M' }, impactScore: 5 },
     { id: 'tier3', label: { es: '₡10M - ₡25M' }, impactScore: 10 },
     { id: 'tier4', label: { es: 'Más de ₡25M' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+  ],
+  DO: [
+    { id: 'tier1', label: { es: 'Menos de RD$200k' }, impactScore: -5 },
+    { id: 'tier2', label: { es: 'RD$200k - RD$800k' }, impactScore: 5 },
+    { id: 'tier3', label: { es: 'RD$800k - RD$2M' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de RD$2M' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+  ],
+  EC: defaultRevenueRange,
+  ES: [
+    { id: 'tier1', label: { es: 'Menos de €5k' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '€5k - €20k' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '€20k - €60k' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de €60k' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+  ],
+  GT: [
+    { id: 'tier1', label: { es: 'Menos de Q30k' }, impactScore: -5 },
+    { id: 'tier2', label: { es: 'Q30k - Q100k' }, impactScore: 5 },
+    { id: 'tier3', label: { es: 'Q100k - Q300k' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de Q300k' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+  ],
+  HN: [
+    { id: 'tier1', label: { es: 'Menos de L100k' }, impactScore: -5 },
+    { id: 'tier2', label: { es: 'L100k - L400k' }, impactScore: 5 },
+    { id: 'tier3', label: { es: 'L400k - L1M' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de L1M' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+  ],
+  NI: [
+    { id: 'tier1', label: { es: 'Menos de C$100k' }, impactScore: -5 },
+    { id: 'tier2', label: { es: 'C$100k - C$400k' }, impactScore: 5 },
+    { id: 'tier3', label: { es: 'C$400k - C$1M' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de C$1M' }, impactScore: 15 },
     { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
   PA: [
@@ -421,13 +537,34 @@ export const REVENUE_RANGES: Record<CountryCode, RevenueRange[]> = {
     { id: 'tier4', label: { es: 'Más de B/.40k' }, impactScore: 15 },
     { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
   ],
+  PE: [
+    { id: 'tier1', label: { es: 'Menos de S/10k' }, impactScore: -5 },
+    { id: 'tier2', label: { es: 'S/10k - S/40k' }, impactScore: 5 },
+    { id: 'tier3', label: { es: 'S/40k - S/100k' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de S/100k' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+  ],
+  PY: [
+    { id: 'tier1', label: { es: 'Menos de ₲10M' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '₲10M - ₲50M' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '₲50M - ₲150M' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de ₲150M' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+  ],
+  SV: defaultRevenueRange,
+  UY: [
+    { id: 'tier1', label: { es: 'Menos de $200k UYU' }, impactScore: -5 },
+    { id: 'tier2', label: { es: '$200k - $600k UYU' }, impactScore: 5 },
+    { id: 'tier3', label: { es: '$600k - $1.5M UYU' }, impactScore: 10 },
+    { id: 'tier4', label: { es: 'Más de $1.5M UYU' }, impactScore: 15 },
+    { id: 'prefer_not', label: { es: 'Prefiero no decir' }, impactScore: 0 },
+  ],
 };
 
 export const getRevenueRanges = (countryCode: CountryCode): RevenueRange[] => {
   return REVENUE_RANGES[countryCode] || REVENUE_RANGES.AR;
 };
 
-// Get currency label with symbol for display
 export const getCurrencyLabel = (countryCode: CountryCode): string => {
   const pack = COUNTRY_PACKS[countryCode];
   return `${pack.currencySymbol} (${pack.currency})`;

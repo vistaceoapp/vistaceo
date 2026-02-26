@@ -3335,6 +3335,14 @@ export type Database = {
         | "US"
         | "EC"
         | "PY"
+        | "ES"
+        | "PE"
+        | "DO"
+        | "GT"
+        | "SV"
+        | "BO"
+        | "HN"
+        | "NI"
       mission_status: "active" | "completed" | "paused" | "abandoned"
       priority_level: "low" | "medium" | "high" | "urgent"
       user_mode: "nano" | "standard" | "proactive" | "sos"
@@ -3500,6 +3508,14 @@ export const Constants = {
         "US",
         "EC",
         "PY",
+        "ES",
+        "PE",
+        "DO",
+        "GT",
+        "SV",
+        "BO",
+        "HN",
+        "NI",
       ],
       mission_status: ["active", "completed", "paused", "abandoned"],
       priority_level: ["low", "medium", "high", "urgent"],
