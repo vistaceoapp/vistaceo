@@ -7,7 +7,9 @@ import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BusinessProvider, useBusiness } from "@/contexts/BusinessContext";
 import { UserLifecycleProvider } from "@/contexts/UserLifecycleContext";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { toast } from "sonner";
 
 // Critical path - loaded eagerly (landing + auth)
 import LandingV3 from "./pages/LandingV3";
@@ -81,6 +83,31 @@ const SetupGate = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Global unhandled promise rejection catcher
+const GlobalErrorCatcher = ({ children }: { children: React.ReactNode }) => {
+  useEffect(() => {
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      console.error("[GlobalErrorCatcher] Unhandled rejection:", event.reason);
+      toast.error("Ocurrió un error inesperado. Intentá de nuevo.");
+      event.preventDefault(); // Prevent default browser behavior (white screen)
+    };
+
+    const handleError = (event: ErrorEvent) => {
+      console.error("[GlobalErrorCatcher] Uncaught error:", event.error);
+      // Don't show toast for every error, ErrorBoundary handles rendering
+    };
+
+    window.addEventListener("unhandledrejection", handleRejection);
+    window.addEventListener("error", handleError);
+    return () => {
+      window.removeEventListener("unhandledrejection", handleRejection);
+      window.removeEventListener("error", handleError);
+    };
+  }, []);
+
+  return <>{children}</>;
+};
+
 const AppRoutes = () => {
   return (
     <Suspense fallback={<PageLoader />}>
@@ -131,7 +158,9 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <BusinessProvider>
-                <SetupPage />
+                <ErrorBoundary fallbackRoute="/auth">
+                  <SetupPage />
+                </ErrorBoundary>
               </BusinessProvider>
             </ProtectedRoute>
           }
@@ -188,11 +217,15 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AuthProvider>
-            <UserLifecycleProvider>
-              <AppRoutes />
-            </UserLifecycleProvider>
-          </AuthProvider>
+          <ErrorBoundary>
+            <AuthProvider>
+              <UserLifecycleProvider>
+                <GlobalErrorCatcher>
+                  <AppRoutes />
+                </GlobalErrorCatcher>
+              </UserLifecycleProvider>
+            </AuthProvider>
+          </ErrorBoundary>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
