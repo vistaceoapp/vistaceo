@@ -92,20 +92,24 @@ const Auth = () => {
 
   const checkUserAndRedirect = async () => {
     if (!user) return;
-    
-    // Mark that user has logged in for "Bienvenido de vuelta" logic
-    localStorage.setItem("has_logged_in", "true");
-    
-    // Check if user has a business
-    const { data: businesses } = await supabase
-      .from("businesses")
-      .select("id, setup_completed")
-      .eq("owner_id", user.id)
-      .limit(1);
 
-    if (businesses && businesses.length > 0 && businesses[0].setup_completed) {
-      navigate(DASHBOARD_ROUTE, { replace: true });
-    } else {
+    localStorage.setItem("has_logged_in", "true");
+
+    try {
+      const { data: businesses, error } = await supabase
+        .from("businesses")
+        .select("id, setup_completed, created_at")
+        .eq("owner_id", user.id)
+        .order("setup_completed", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      const hasCompletedBusiness = (businesses || []).some((b) => b.setup_completed === true);
+      navigate(hasCompletedBusiness ? DASHBOARD_ROUTE : "/setup", { replace: true });
+    } catch (error) {
+      console.error("[Auth] Error resolving redirect:", error);
       navigate("/setup", { replace: true });
     }
   };
@@ -157,7 +161,7 @@ const Auth = () => {
         }
         toast.success("¡Bienvenido de vuelta!");
       } else {
-        const { error } = await signUp(email, password, fullName);
+        const { error, requiresEmailConfirmation } = await signUp(email, password, fullName);
         if (error) {
           if (error.message.includes("already registered")) {
             toast.error("Este email ya está registrado");
@@ -166,9 +170,17 @@ const Auth = () => {
           }
           return;
         }
+
         await sendWelcomeEmail(email, fullName, 'email');
+
+        if (requiresEmailConfirmation) {
+          toast.success("¡Cuenta creada! Revisá tu email para confirmarla e ingresar.");
+          navigate("/auth?mode=login", { replace: true });
+          return;
+        }
+
         toast.success("¡Cuenta creada! Bienvenido");
-        
+
         const storedPlan = localStorage.getItem("pendingPlan");
         if (storedPlan === "pro_monthly" || storedPlan === "pro_yearly") {
           navigate("/checkout", { replace: true });
