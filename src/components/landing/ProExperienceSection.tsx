@@ -17,12 +17,12 @@ const proFeatures = [
   { 
     icon: Radar, 
     title: "Radar I+D completo e ilimitado",
-    description: "Detectá oportunidades de mercado, tendencias y competencia en tiempo real."
+    description: "Detecta oportunidades de mercado, tendencias y competencia en tiempo real."
   },
   { 
     icon: Star, 
     title: "Diagnóstico inteligente del negocio",
-    description: "Evaluá la salud de tu empresa en 7 dimensiones y recibí recomendaciones accionables."
+    description: "Evalúa la salud de tu empresa en 7 dimensiones y recibe recomendaciones accionables."
   },
   { 
     icon: HeadphonesIcon, 

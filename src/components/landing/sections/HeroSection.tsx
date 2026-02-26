@@ -222,7 +222,7 @@ export const HeroSection = memo(() => {
 
   // Bottom line changes every 5 full cycles of the top typewriter
   const { ref: topLineRef, advance: advanceTopLine, initialText: topInitial } = useRotatingText(
-    ["Crecé más rápido con un", "Mejorá tu empresa con un", "Potenciá tu servicio con un", "Aumentá tus ventas con un", "Brindá un mejor servicio con un"],
+    ["Crece más rápido con un", "Mejora tu empresa con un", "Potencia tu servicio con un", "Aumenta tus ventas con un", "Brinda un mejor servicio con un"],
     5
   );
 

@@ -26,9 +26,9 @@ const faqs = [
     answer: `**VISTACEO es tu CEO digital con inteligencia artificial.** Es una plataforma que actúa como un director ejecutivo virtual para tu negocio, analizando datos, detectando oportunidades y diciéndote exactamente qué hacer cada día para crecer.
 
 **¿Cómo funciona?**
-1. Configurás tu negocio en 3-5 minutos
+1. Configuras tu negocio en 3-5 minutos
 2. VISTACEO analiza tu situación y crea un diagnóstico completo
-3. Cada día recibís misiones personalizadas: acciones concretas para mejorar ventas, reducir costos, atraer más clientes
+3. Cada día recibes misiones personalizadas: acciones concretas para mejorar ventas, reducir costos, atraer más clientes
 4. El sistema aprende de tus resultados y se vuelve más inteligente con el tiempo
 
 **¿Para quién es?**
@@ -79,7 +79,7 @@ El sistema adapta automáticamente las preguntas, métricas, misiones y recomend
 • ❌ **Radar de Oportunidades Ilimitado**: Análisis continuo sin restricciones de oportunidades internas y de mercado
 • ❌ **Chat IA Ilimitado**: Conversaciones sin límite incluyendo análisis de fotos, documentos y reportes
 
-VistaCEO está diseñado para crecer contigo. Empezá gratis, y cuando estés listo para escalar, activá Pro.`,
+VistaCEO está diseñado para crecer contigo. Empieza gratis, y cuando estés listo para escalar, activa Pro.`,
   },
   {
     icon: RadarIcon,
@@ -142,23 +142,23 @@ Mientras más interactuás con VistaCEO, más preciso se vuelve el diagnóstico 
     answer: `VistaCEO utiliza un **Cerebro de Negocio** que aprende continuamente de múltiples fuentes:
 
 **1. Setup inicial** (3-5 minutos)
-Respondés un cuestionario adaptado a tu sector específico
+Respondes un cuestionario adaptado a tu sector específico
 
 **2. Check-ins diarios** (10 segundos)
-Tocás cómo te fue hoy: excelente, normal o flojo
+Indicas cómo te fue hoy: excelente, normal o flojo
 
 **3. Preguntas de aprendizaje**
 El sistema te hace preguntas personalizadas para entender mejor tu operación
 
 **4. Tus decisiones**
-Cada misión que completás, pausás o rechazás enseña al sistema qué funciona para vos
+Cada misión que completas, pausas o rechazas enseña al sistema qué funciona para ti
 
 **5. Integraciones** (opcional)
 Tus decisiones y acciones diarias alimentan el sistema continuamente
 
 **El resultado:**
-• Empezás con ~70% de certeza
-• Con uso regular, llegás a 90-95%+ de precisión
+• Empiezas con ~70% de certeza
+• Con uso regular, llegas a 90-95%+ de precisión
 • Las recomendaciones se vuelven cada vez más acertadas
 • El sistema anticipa tus necesidades antes de que las menciones`,
   },

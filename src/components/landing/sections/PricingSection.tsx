@@ -100,7 +100,7 @@ export const PricingSection = memo(() => {
             Simple y <span className="text-gradient-primary">transparente</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Empezá gratis, crecé cuando quieras. Sin sorpresas ni costos ocultos.
+            Empieza gratis, crece cuando quieras. Sin sorpresas ni costos ocultos.
           </p>
         </div>
 

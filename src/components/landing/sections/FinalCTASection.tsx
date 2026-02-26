@@ -57,7 +57,7 @@ export const FinalCTASection = memo(() => {
             <div className="relative bg-card/95 backdrop-blur-xl rounded-3xl border border-border/80 p-8 md:p-16 shadow-2xl">
               <Badge variant="outline" className="mb-6 border-primary/40 bg-primary/10 px-4 py-2">
                 <Sparkles className="w-4 h-4 mr-2 text-primary" aria-hidden="true" />
-                Empezá hoy
+                Empieza hoy
               </Badge>
               
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
@@ -66,7 +66,7 @@ export const FinalCTASection = memo(() => {
               </h2>
               
               <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Más de 500 negocios ya están usando VistaCEO para tomar mejores decisiones. Empezá gratis y sin compromiso.
+                Más de 500 negocios ya están usando VistaCEO para tomar mejores decisiones. Empieza gratis y sin compromiso.
               </p>
               
               <ShimmerButton

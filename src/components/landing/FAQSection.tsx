@@ -52,13 +52,13 @@ En Argentina, pagás en pesos con MercadoPago. Para el resto del mundo, PayPal e
     question: "¿Cómo aprende VistaCEO sobre mi negocio?",
     answer: `VistaCEO utiliza un **Cerebro de Negocio** que aprende continuamente de múltiples fuentes:
 
-1. **Setup inicial**: Respondés un cuestionario adaptado a tu sector (3-5 minutos)
-2. **Check-ins diarios**: Tocás cómo te fue hoy en 10 segundos
+1. **Setup inicial**: Respondes un cuestionario adaptado a tu sector (3-5 minutos)
+2. **Check-ins diarios**: Indicas cómo te fue hoy en 10 segundos
 3. **Preguntas de aprendizaje**: El sistema te hace preguntas personalizadas para entender mejor tu operación
-4. **Tus decisiones**: Cada misión que completás, pausás o rechazás enseña al sistema qué funciona para vos
-5. **Integraciones**: Si conectás Google Reviews u otras plataformas, el sistema analiza automáticamente
+4. **Tus decisiones**: Cada misión que completas, pausas o rechazas enseña al sistema qué funciona para ti
+5. **Integraciones**: Si conectas Google Reviews u otras plataformas, el sistema analiza automáticamente
 
-Mientras más usás VistaCEO, más preciso se vuelve. Empezás con ~70% de certeza y podés llegar a 95%+.`,
+Mientras más usas VistaCEO, más preciso se vuelve. Empiezas con ~70% de certeza y puedes llegar a 95%+.`,
   },
   {
     icon: Zap,
