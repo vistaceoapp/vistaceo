@@ -144,8 +144,8 @@ const VerifiedReviews = memo(() => {
 
   return (
     <div className="flex items-center justify-center gap-3 flex-wrap">
-      <GoogleStarRating rating={4.8} fillPercentage={80} />
-      <span className="text-lg font-bold text-foreground">4.8/5</span>
+      <GoogleStarRating rating={4.91} fillPercentage={91} />
+      <span className="text-lg font-bold text-foreground">4,91/5</span>
       <div className="flex -space-x-2">
         {reviewers.map((img, i) => (
           <img
@@ -212,13 +212,13 @@ export const HeroSection = memo(() => {
             </Badge>
           </div>
           
-          {/* Main Headline */}
+          {/* Main Headline - always 2 lines, second line is colorful typewriter */}
             <div className="mb-5 animate-fade-in-up-delay-2">
              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-normal tracking-tight">
-              Tu próximo nivel empieza con un
+              <TypewriterText texts={["Crecé más rápido con un", "Potenciá tu proyecto con un", "Mejorá tu empresa con un", "Aumentá tus ventas con un", "Brindá un mejor servicio con un", "Potenciá tus ingresos con un"]} />
             </h1>
             <div className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-normal tracking-tight pb-2">
-              <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
+              <span className="text-gradient-primary">estratega de IA</span>
             </div>
           </div>
           
