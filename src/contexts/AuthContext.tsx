@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { safeLocalStorage } from "@/lib/safe-storage";
 
 interface AuthContextType {
   user: User | null;
@@ -118,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    const pendingPlan = localStorage.getItem("pendingPlan");
+    const pendingPlan = safeLocalStorage.getItem("pendingPlan");
     const redirectUrl = (pendingPlan === "pro_monthly" || pendingPlan === "pro_yearly")
       ? `${window.location.origin}/checkout?plan=${pendingPlan}`
       : `${window.location.origin}/auth`;
