@@ -96,7 +96,7 @@ export const HeroSection = () => {
           className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground mb-6 leading-tight tracking-tight"
         >
           <span className="block">
-            Tu <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
+            Tu próximo nivel con un <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
           </span>
           <span className="block">que piensa por vos</span>
         </motion.h1>

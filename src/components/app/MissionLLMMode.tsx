@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Brain,
   Check,
+  ChevronDown,
   Clock,
   Eye,
   FileText,
@@ -124,6 +125,84 @@ const AREA_ICONS: Record<string, string> = {
   Equipo: "👥",
   Producto: "📦",
   Finanzas: "📊",
+};
+
+// Sidebar mission item - extracted for reuse
+const SidebarMissionItem = ({ m, mission, starredMissions, onSelectMission, toggleStarred }: {
+  m: Mission; mission: Mission; starredMissions: Set<string>;
+  onSelectMission: (m: Mission) => void; toggleStarred: (id: string, e: React.MouseEvent) => void;
+}) => {
+  const mSteps = (m.steps || []) as Step[];
+  const mCompleted = mSteps.filter(s => s.done).length;
+  const mProgress = mSteps.length > 0 ? (mCompleted / mSteps.length) * 100 : 0;
+  const isSelected = m.id === mission.id;
+
+  return (
+    <button
+      onClick={() => onSelectMission(m)}
+      className={cn(
+        "w-full text-left p-3 border-b border-border hover:bg-secondary/50 transition-colors",
+        isSelected && "bg-primary/10 border-l-2 border-l-primary"
+      )}
+    >
+      <div className="flex items-center gap-3">
+        <ProgressRing progress={mProgress} size={40} strokeWidth={3}>
+          <span className="text-sm">{AREA_ICONS[m.area || ""] || "🎯"}</span>
+        </ProgressRing>
+        <div className="flex-1 min-w-0">
+          <p className={cn("text-sm font-medium line-clamp-1", isSelected && "text-primary")}>
+            {m.title}
+          </p>
+          <div className="flex items-center gap-2 mt-0.5">
+            <Badge variant={m.status === "active" ? "default" : "secondary"} className="text-[9px]">
+              {m.status === "active" ? "Activa" : "Pausada"}
+            </Badge>
+            <span className="text-[10px] text-muted-foreground">{mCompleted}/{mSteps.length}</span>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 flex-shrink-0"
+          onClick={(e) => toggleStarred(m.id, e)}
+        >
+          <Star className={cn("w-4 h-4", starredMissions.has(m.id) && "fill-warning text-warning")} />
+        </Button>
+      </div>
+    </button>
+  );
+};
+
+// Collapsible area group for sidebar
+const CollapsibleArea = ({ area, missions, selectedMissionId, starredMissions, onSelectMission, toggleStarred }: {
+  area: string; missions: Mission[]; selectedMissionId: string; starredMissions: Set<string>;
+  onSelectMission: (m: Mission) => void; toggleStarred: (id: string, e: React.MouseEvent) => void;
+}) => {
+  const hasSelected = missions.some(m => m.id === selectedMissionId);
+  const [open, setOpen] = useState<boolean>(true);
+  const icon = AREA_ICONS[area] || "🎯";
+  const activeCount = missions.filter(m => m.status === "active").length;
+
+  return (
+    <div className="border-b border-border">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-secondary/50 transition-colors"
+      >
+        <span className="text-sm">{icon}</span>
+        <span className="text-xs font-semibold text-foreground flex-1 text-left">{area}</span>
+        <Badge variant="secondary" className="text-[9px] px-1.5">{activeCount}/{missions.length}</Badge>
+        <ChevronDown className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div>
+          {missions.map((m) => (
+            <SidebarMissionItem key={m.id} m={m} mission={{ id: selectedMissionId } as Mission} starredMissions={starredMissions} onSelectMission={onSelectMission} toggleStarred={toggleStarred} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
 // Cache
@@ -516,48 +595,27 @@ export const MissionLLMMode = ({
 
         {/* Missions list */}
         <div className="flex-1 overflow-y-auto">
-          {filteredMissions.map((m) => {
-            const mSteps = (m.steps || []) as Step[];
-            const mCompleted = mSteps.filter(s => s.done).length;
-            const mProgress = mSteps.length > 0 ? (mCompleted / mSteps.length) * 100 : 0;
-            const isSelected = m.id === mission.id;
+          {(() => {
+            // Group missions by area
+            const grouped = filteredMissions.reduce<Record<string, typeof filteredMissions>>((acc, m) => {
+              const area = m.area || "General";
+              if (!acc[area]) acc[area] = [];
+              acc[area].push(m);
+              return acc;
+            }, {});
+            const areaKeys = Object.keys(grouped);
 
-            return (
-              <button
-                key={m.id}
-                onClick={() => onSelectMission(m)}
-                className={cn(
-                  "w-full text-left p-3 border-b border-border hover:bg-secondary/50 transition-colors",
-                  isSelected && "bg-primary/10 border-l-2 border-l-primary"
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <ProgressRing progress={mProgress} size={40} strokeWidth={3}>
-                    <span className="text-sm">{AREA_ICONS[m.area || ""] || "🎯"}</span>
-                  </ProgressRing>
-                  <div className="flex-1 min-w-0">
-                    <p className={cn("text-sm font-medium line-clamp-1", isSelected && "text-primary")}>
-                      {m.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <Badge variant={m.status === "active" ? "default" : "secondary"} className="text-[9px]">
-                        {m.status === "active" ? "Activa" : "Pausada"}
-                      </Badge>
-                      <span className="text-[10px] text-muted-foreground">{mCompleted}/{mSteps.length}</span>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 flex-shrink-0"
-                    onClick={(e) => toggleStarred(m.id, e)}
-                  >
-                    <Star className={cn("w-4 h-4", starredMissions.has(m.id) && "fill-warning text-warning")} />
-                  </Button>
-                </div>
-              </button>
-            );
-          })}
+            // If only 1 group or filter active, show flat list
+            if (areaKeys.length <= 1) {
+              return filteredMissions.map((m) => (
+                <SidebarMissionItem key={m.id} m={m} mission={mission} starredMissions={starredMissions} onSelectMission={onSelectMission} toggleStarred={toggleStarred} />
+              ));
+            }
+
+            return areaKeys.map((area) => (
+              <CollapsibleArea key={area} area={area} missions={grouped[area]} selectedMissionId={mission.id} starredMissions={starredMissions} onSelectMission={onSelectMission} toggleStarred={toggleStarred} />
+            ));
+          })()}
         </div>
       </aside>
 

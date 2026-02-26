@@ -134,18 +134,18 @@ GoogleStarRating.displayName = "GoogleStarRating";
 const VerifiedReviews = memo(() => {
   // Calculate reviews: starts at 2961 on 2026-02-06, +3 per week
   const reviewCount = useMemo(() => {
-    const startDate = new Date('2026-02-06');
+    const startDate = new Date('2026-02-26');
     const now = new Date();
-    const weeksDiff = Math.floor((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-    return 2961 + Math.max(0, weeksDiff * 3);
+    const periodsDiff = Math.floor((now.getTime() - startDate.getTime()) / (15 * 24 * 60 * 60 * 1000));
+    return 1094 + Math.max(0, periodsDiff * 7);
   }, []);
 
   const reviewers = [reviewer1, reviewer2, reviewer3];
 
   return (
     <div className="flex items-center justify-center gap-3 flex-wrap">
-      <GoogleStarRating rating={4.91} fillPercentage={91} />
-      <span className="text-lg font-bold text-foreground">4.91/5</span>
+      <GoogleStarRating rating={4.8} fillPercentage={80} />
+      <span className="text-lg font-bold text-foreground">4.8/5</span>
       <div className="flex -space-x-2">
         {reviewers.map((img, i) => (
           <img
@@ -207,7 +207,7 @@ export const HeroSection = memo(() => {
             >
               <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" aria-hidden="true" />
               <span className="text-xs font-medium">
-                +5.000 negocios en LATAM · <span className="inline-flex items-center gap-1"><span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" /></span>{activeUsers} activos ahora</span>
+                +5.000 proyectos en LATAM · <span className="inline-flex items-center gap-1"><span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" /></span>{activeUsers} activos ahora</span>
               </span>
             </Badge>
           </div>
@@ -215,7 +215,7 @@ export const HeroSection = memo(() => {
           {/* Main Headline */}
             <div className="mb-5 animate-fade-in-up-delay-2">
              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-normal tracking-tight">
-              Tu negocio merece un
+              Tu próximo nivel empieza con un
             </h1>
             <div className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-normal tracking-tight pb-2">
               <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
@@ -225,10 +225,10 @@ export const HeroSection = memo(() => {
           {/* Subtitle - Only 2 lines, removed "Tu CEO digital..." */}
           <div className="mb-6 max-w-2xl mx-auto animate-fade-in-up-delay-3">
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center">
-              Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu negocio.
+          Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu proyecto, negocio o emprendimiento.
             </p>
             <p className="hidden sm:block text-lg md:text-xl text-muted-foreground leading-relaxed text-center mt-2">
-              Un <span className="text-foreground font-semibold">cerebro estratégico</span> e inteligente en tiempo real.
+              Un <span className="text-foreground font-semibold">cerebro estratégico</span> para profesionales, empresas y equipos.
             </p>
           </div>
           
@@ -256,8 +256,8 @@ export const HeroSection = memo(() => {
         {/* Business Types Carousel - CSS animation only */}
         <div className="max-w-6xl mx-auto animate-fade-in-up-delay-6">
           <div className="text-center mb-3">
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              +180 tipos de negocio • Resultados reales
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              +180 tipos de proyecto • Resultados reales
             </span>
           </div>
 
