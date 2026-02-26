@@ -212,13 +212,13 @@ export const HeroSection = memo(() => {
             </Badge>
           </div>
           
-          {/* Main Headline - always 2 lines, second line is colorful typewriter */}
+          {/* Main Headline - 2 lines: static top, colorful typewriter bottom */}
             <div className="mb-5 animate-fade-in-up-delay-2">
              <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-normal tracking-tight">
-              <TypewriterText texts={["Crecé más rápido con un", "Potenciá tu proyecto con un", "Mejorá tu empresa con un", "Aumentá tus ventas con un", "Brindá un mejor servicio con un", "Potenciá tus ingresos con un"]} />
+              Potenciá tu proyecto con un
             </h1>
             <div className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-normal tracking-tight pb-2">
-              <span className="text-gradient-primary">estratega de IA</span>
+              <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} />
             </div>
           </div>
           
