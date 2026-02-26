@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { safeLocalStorage, safeSessionStorage } from '@/lib/safe-storage';
 
 interface Props {
   children: ReactNode;
@@ -11,6 +12,19 @@ interface State {
   hasError: boolean;
   error: Error | null;
 }
+
+const resetRecoveryState = () => {
+  [
+    'setupProgress',
+    'setupUniversalProfile',
+    'pendingPlan',
+    'pendingPlanTimestamp',
+    'proPurchaseCompleted',
+    'selectedCountryCode',
+  ].forEach((key) => safeLocalStorage.removeItem(key));
+
+  safeSessionStorage.removeItem('va_session');
+};
 
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
@@ -28,11 +42,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   handleReload = () => {
     this.setState({ hasError: false, error: null });
+    resetRecoveryState();
     window.location.reload();
   };
 
   handleGoHome = () => {
     this.setState({ hasError: false, error: null });
+    resetRecoveryState();
     window.location.href = this.props.fallbackRoute || '/';
   };
 

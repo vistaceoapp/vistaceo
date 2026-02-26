@@ -2,6 +2,7 @@ import { useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { safeSessionStorage } from '@/lib/safe-storage';
 
 type EventType = 
   | 'login'
@@ -34,12 +35,12 @@ export function useActivityTracker() {
 
   // Generate session ID on mount
   useEffect(() => {
-    const existing = sessionStorage.getItem('va_session');
+    const existing = safeSessionStorage.getItem('va_session');
     if (existing) {
       sessionIdRef.current = existing;
     } else {
       const newSession = `s_${Math.random().toString(36).substr(2, 9)}${Date.now().toString(36)}`;
-      sessionStorage.setItem('va_session', newSession);
+      safeSessionStorage.setItem('va_session', newSession);
       sessionIdRef.current = newSession;
     }
   }, []);

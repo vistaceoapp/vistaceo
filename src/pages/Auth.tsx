@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, Sparkles, TrendingUp, Target, Crown, Zap, Shield, Users, Star, Clock, Brain } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
+import { safeLocalStorage } from "@/lib/safe-storage";
 import { motion } from "framer-motion";
 
 // Dynamic review count: starts at 2961 on 2026-02-06, +3 per week
@@ -44,7 +45,7 @@ const Auth = () => {
   
   // Determine if returning user based on signals (no flicker - check sync)
   const hasLoggedInBefore = useMemo(() => {
-    return localStorage.getItem("has_logged_in") === "true";
+    return safeLocalStorage.getItem("has_logged_in") === "true";
   }, []);
 
   // isLogin based on mode param or returning user signal
@@ -73,8 +74,8 @@ const Auth = () => {
   // Store pending plan in localStorage
   useEffect(() => {
     if (pendingPlan) {
-      localStorage.setItem("pendingPlan", pendingPlan);
-      localStorage.setItem("pendingPlanTimestamp", Date.now().toString());
+      safeLocalStorage.setItem("pendingPlan", pendingPlan);
+      safeLocalStorage.setItem("pendingPlanTimestamp", Date.now().toString());
     }
   }, [pendingPlan]);
 
@@ -93,7 +94,7 @@ const Auth = () => {
   const checkUserAndRedirect = async () => {
     if (!user) return;
 
-    localStorage.setItem("has_logged_in", "true");
+    safeLocalStorage.setItem("has_logged_in", "true");
 
     try {
       const { data: businesses, error } = await supabase
@@ -181,7 +182,7 @@ const Auth = () => {
 
         toast.success("¡Cuenta creada! Bienvenido");
 
-        const storedPlan = localStorage.getItem("pendingPlan");
+        const storedPlan = safeLocalStorage.getItem("pendingPlan");
         if (storedPlan === "pro_monthly" || storedPlan === "pro_yearly") {
           navigate("/checkout", { replace: true });
         } else {

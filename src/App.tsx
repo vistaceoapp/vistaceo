@@ -177,7 +177,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <BusinessProvider>
-                <ErrorBoundary fallbackRoute="/auth">
+                <ErrorBoundary fallbackRoute="/">
                   <SetupPage />
                 </ErrorBoundary>
               </BusinessProvider>
