@@ -9,8 +9,9 @@ const corsHeaders = {
 // LATAM-wide content - no country-specific targeting
 const DEFAULT_REGION = 'LATAM';
 
-// CRITICAL: Use the CANONICAL domain, never .lovable.app
+// CRITICAL: Use the CANONICAL domains, never .lovable.app
 const CANONICAL_DOMAIN = 'https://www.vistaceo.com';
+const BLOG_DOMAIN = 'https://blog.vistaceo.com';
 
 // Pillars mapping
 const PILLARS = {
@@ -1260,12 +1261,12 @@ serve(async (req) => {
       .eq('status', 'published')
       .limit(50);
 
-    const samePillarPosts = (relatedPosts || []).filter(p => p.pillar === selectedTopic!.pillar).slice(0, 4);
-    const crossPillarPosts = (relatedPosts || []).filter(p => p.pillar !== selectedTopic!.pillar).slice(0, 2);
+    const samePillarPosts = (relatedPosts || []).filter(p => p.pillar === selectedTopic!.pillar).slice(0, 6);
+    const crossPillarPosts = (relatedPosts || []).filter(p => p.pillar !== selectedTopic!.pillar).slice(0, 4);
     
-    // Build internal links for prompt
+    // Build internal links for prompt — use BLOG_DOMAIN with trailing slash
     const internalLinksForPrompt = [...samePillarPosts, ...crossPillarPosts].map(p => 
-      `- [${p.title}](/blog/${p.slug})`
+      `- [${p.title}](https://blog.vistaceo.com/${p.slug}/)`
     ).join('\n');
 
     // Get external sources for this pillar
@@ -1526,17 +1527,18 @@ Formato exacto para cada ejemplo:
 > **Error típico:** [Lo que la mayoría hace mal].
 
 ═══════════════════════════════════════════════════════════════
-REGLA 6: LINKS INTERNOS (5-10)
+REGLA 6: LINKS INTERNOS (8-12) — vInfinity CAPA 7
 ═══════════════════════════════════════════════════════════════
 
-Posts relacionados para linkear:
-${internalLinksForPrompt || '- [Ver más artículos](/blog)'}
-- [Más sobre ${pillarInfo.label}](/blog?pillar=${selectedTopic.pillar})
+Posts relacionados para linkear (USAR ESTAS URLs EXACTAS con https://blog.vistaceo.com):
+${internalLinksForPrompt || '- [Ver más artículos](https://blog.vistaceo.com/)'}
+- [Más sobre ${pillarInfo.label}](https://blog.vistaceo.com/tema/${selectedTopic.pillar}/)
 
-- 1 link a "pilar" (guía madre o categoría)
-- 3-5 links a posts relacionados (cluster)
-- 1-2 links a features/páginas relevantes de VistaCEO
+- 1 link a "pilar" (guía madre o categoría) en https://blog.vistaceo.com/tema/SLUG/
+- 5-8 links a posts relacionados (cluster) con URL completa https://blog.vistaceo.com/SLUG/
+- 1-2 links a features/páginas relevantes de VistaCEO en https://www.vistaceo.com/
 - Anclas naturales (NUNCA "clic aquí")
+- SIEMPRE usar URLs completas con https://blog.vistaceo.com/ (NUNCA /blog/slug)
 
 ═══════════════════════════════════════════════════════════════
 REGLA 7: COLOCACIÓN EXACTA DE KEYPHRASE
@@ -1622,7 +1624,7 @@ TAMBIÉN:
 3. Párrafos ultra cortos (1-3 oraciones máximo)
 4. EEAT práctico: escribí como experto que lo hace de verdad
 5. 2-4 ejemplos DETALLADOS con contexto, decisión, resultado
-6. 5-10 links internos con anclas naturales
+6. 8-12 links internos con anclas naturales usando https://blog.vistaceo.com/SLUG/ (NUNCA /blog/slug)
 7. FAQ con 4-6 preguntas reales que la gente busca
 8. Voseo natural, frases cortas, ritmo variado
 9. CTA VistaCEO sutil al final
@@ -1785,16 +1787,22 @@ TAMBIÉN:
       .find((line: string) => line.length > 50 && !line.startsWith('#') && !line.startsWith('-') && !line.startsWith('>'))
       ?.slice(0, 160) || selectedTopic.title_base;
 
-    const metaTitle = `${selectedTopic.title_base} | VistaCEO`.slice(0, 60);
+    // Smart meta_title: ensure it fits 60 chars WITH suffix
+    const suffix = ' | VistaCEO';
+    const maxTitleLen = 60 - suffix.length;
+    const trimmedTitle = selectedTopic.title_base.length > maxTitleLen
+      ? selectedTopic.title_base.slice(0, maxTitleLen - 3) + '...'
+      : selectedTopic.title_base;
+    const metaTitle = `${trimmedTitle}${suffix}`;
     const metaDescription = excerpt.slice(0, 155) + (excerpt.length > 155 ? '...' : '');
 
     // Calculate reading time
     const wordCountTotal = contentMd.split(/\s+/).length;
     const readingTimeMin = Math.max(4, Math.ceil(wordCountTotal / 200));
 
-    // Build internal links array
+    // Build internal links array — always use BLOG_DOMAIN
     const internalLinks = [...samePillarPosts, ...crossPillarPosts].map(post => ({
-      url: `/blog/${post.slug}`,
+      url: `${BLOG_DOMAIN}/${post.slug}/`,
       anchor: post.title,
       context: post.pillar === selectedTopic!.pillar ? 'same_pillar' : 'cross_pillar'
     }));
@@ -1844,7 +1852,7 @@ TAMBIÉN:
       },
       "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": `${CANONICAL_DOMAIN}/blog/${selectedTopic.slug}`
+        "@id": `${BLOG_DOMAIN}/${selectedTopic.slug}/`
       },
       "wordCount": wordCountTotal,
       "inLanguage": "es",
@@ -1894,7 +1902,9 @@ TAMBIÉN:
         author_url: `${CANONICAL_DOMAIN}/about`,
         hero_image_url: heroImageUrl,
         image_alt_text: `Imagen ilustrativa: ${selectedTopic.title_base}`,
-        canonical_url: `${CANONICAL_DOMAIN}/blog/${postSlug}`,
+        canonical_url: `${BLOG_DOMAIN}/${postSlug}/`,
+        secondary_keywords: selectedTopic.secondary_keywords || [],
+        tags: selectedTopic.required_subtopics || [],
       })
       .select()
       .single();
@@ -2017,12 +2027,73 @@ TAMBIÉN:
       }
     };
 
+    // ═══ vInfinity CAPA 7: Post-publish interlinking ═══
+    // Update 3 old high-traffic posts with links to new post
+    const triggerPostPublishInterlinking = async () => {
+      try {
+        console.log('[generate-blog-post] vInfinity CAPA 7: Post-publish interlinking...');
+        // Get 3 recent posts from same pillar that DON'T already link to this post
+        const { data: oldPosts } = await supabase
+          .from('blog_posts')
+          .select('id, slug, content_md, pillar')
+          .eq('status', 'published')
+          .eq('pillar', selectedTopic!.pillar)
+          .neq('slug', postSlug)
+          .order('publish_at', { ascending: false })
+          .limit(5);
+        
+        let linkedCount = 0;
+        for (const oldPost of (oldPosts || [])) {
+          if (linkedCount >= 3) break;
+          // Skip if already links to new post
+          if (oldPost.content_md?.includes(postSlug)) continue;
+          
+          // Find best insertion point: before "## Próximos" or "## Preguntas frecuentes" or end
+          let updatedMd = oldPost.content_md || '';
+          const insertionPatterns = [
+            /^## Próximos/m,
+            /^## Preguntas frecuentes/m,
+            /^## Para profundizar/m,
+          ];
+          
+          let inserted = false;
+          const linkBlock = `\n\n> 📖 Te puede interesar: [${selectedTopic!.title_base}](${BLOG_DOMAIN}/${postSlug}/)\n`;
+          
+          for (const pattern of insertionPatterns) {
+            const match = updatedMd.match(pattern);
+            if (match && match.index !== undefined) {
+              updatedMd = updatedMd.slice(0, match.index) + linkBlock + '\n' + updatedMd.slice(match.index);
+              inserted = true;
+              break;
+            }
+          }
+          
+          if (!inserted) {
+            updatedMd += linkBlock;
+          }
+          
+          await supabase.from('blog_posts').update({ 
+            content_md: updatedMd,
+            updated_at: new Date().toISOString()
+          }).eq('id', oldPost.id);
+          
+          linkedCount++;
+          console.log(`[generate-blog-post] Added interlink in: ${oldPost.slug} → ${postSlug}`);
+        }
+        
+        console.log(`[generate-blog-post] vInfinity CAPA 7: Added ${linkedCount} interlinks from old posts`);
+      } catch (error) {
+        console.error('[generate-blog-post] Interlinking error:', error);
+      }
+    };
+
     // Fire all tasks in parallel - don't await
     Promise.all([
       triggerOGGeneration().catch(err => console.error('[generate-blog-post] OG background error:', err)),
       triggerLinkedInPublish().catch(err => console.error('[generate-blog-post] LinkedIn background error:', err)),
       triggerSiteDeploy().catch(err => console.error('[generate-blog-post] Deploy background error:', err)),
-      triggerSEOIndexer().catch(err => console.error('[generate-blog-post] SEO background error:', err))
+      triggerSEOIndexer().catch(err => console.error('[generate-blog-post] SEO background error:', err)),
+      triggerPostPublishInterlinking().catch(err => console.error('[generate-blog-post] Interlinking background error:', err))
     ]);
 
     return new Response(JSON.stringify({
