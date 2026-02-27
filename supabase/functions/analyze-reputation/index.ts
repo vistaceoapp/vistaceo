@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface ReputationAnalysis {
-  overall_score: number; // 0-100
+  overall_score: number;
   sentiment_breakdown: {
     positive: number;
     neutral: number;
@@ -53,7 +53,7 @@ serve(async (req) => {
     // Get business info
     const { data: business } = await supabase
       .from("businesses")
-      .select("*, business_brains(*)")
+      .select("*")
       .eq("id", businessId)
       .single();
 
@@ -64,7 +64,14 @@ serve(async (req) => {
       );
     }
 
-    // Get all external reviews data - check multiple data_type values
+    // Get brain separately (one-to-one relation)
+    const { data: brain } = await supabase
+      .from("business_brains")
+      .select("id, dynamic_memory, factual_memory")
+      .eq("business_id", businessId)
+      .maybeSingle();
+
+    // Get all external reviews data
     const { data: reviewsData, error: reviewsError } = await supabase
       .from("external_data")
       .select("*")
@@ -79,50 +86,31 @@ serve(async (req) => {
       console.error("Error fetching reviews:", reviewsError);
     }
 
-    // Also get Google Business integration metadata with actual reviews
+    // Get Google Places integration metadata
     const { data: googleIntegration } = await supabase
       .from("business_integrations")
       .select("metadata, last_sync_at")
       .eq("business_id", businessId)
-      .eq("integration_type", "google_business")
+      .in("integration_type", ["google_places", "google_business", "google_reviews"])
       .maybeSingle();
 
-    // Get YouTube comments if available
-    const { data: youtubeData } = await supabase
-      .from("business_integrations")
-      .select("metadata")
-      .eq("business_id", businessId)
-      .eq("integration_type", "youtube")
-      .maybeSingle();
-
-    // Combine reviews from external_data
-    let reviews = reviewsData || [];
-    const youtubeMetadata = youtubeData?.metadata as Record<string, any> | null;
     const googleMetadata = googleIntegration?.metadata as Record<string, any> | null;
+    const reviews = reviewsData || [];
 
-    // If we have reviews from Google integration metadata, add them too
-    if (googleMetadata?.reviews && Array.isArray(googleMetadata.reviews)) {
-      console.log(`Found ${googleMetadata.reviews.length} reviews in Google integration metadata`);
-      // These are already in the correct format
-    }
-
-    console.log(`Found ${reviews.length} reviews in external_data to analyze`);
-
-    // Build context for AI analysis - normalize different formats
+    // Build review texts from external_data
     const reviewTexts = reviews.map(r => {
       const content = r.content as Record<string, any>;
-      // Handle different content formats
       const rating = content.rating || content.starRating || "THREE";
-      const comment = content.text || content.comment || "";
+      const comment = content.text || content.comment || content.original_text || "";
       return {
         rating: typeof rating === "number" ? ["ONE", "TWO", "THREE", "FOUR", "FIVE"][rating - 1] || "THREE" : rating,
-        comment: comment,
-        date: content.date || content.create_time || content.createTime,
+        comment,
+        date: content.date || content.create_time || content.publish_time,
         hasReply: !!content.reply || !!content.reviewReply,
-        author: content.author || content.reviewer?.displayName || "Anónimo",
+        author: content.author || content.reviewer_name || "Anónimo",
       };
     });
-    
+
     // Add reviews from Google metadata if available
     if (googleMetadata?.reviews && Array.isArray(googleMetadata.reviews)) {
       for (const gReview of googleMetadata.reviews) {
@@ -142,7 +130,7 @@ serve(async (req) => {
     const starDistribution: Record<string, number> = {
       "FIVE": 0, "FOUR": 0, "THREE": 0, "TWO": 0, "ONE": 0
     };
-    
+
     let totalSentiment = 0;
     let positiveCount = 0;
     let neutralCount = 0;
@@ -152,7 +140,7 @@ serve(async (req) => {
     for (const review of reviewTexts) {
       const rating = review.rating || "THREE";
       starDistribution[rating] = (starDistribution[rating] || 0) + 1;
-      
+
       if (["FIVE", "FOUR"].includes(rating)) {
         positiveCount++;
         totalSentiment += rating === "FIVE" ? 1 : 0.5;
@@ -162,7 +150,7 @@ serve(async (req) => {
         negativeCount++;
         totalSentiment += rating === "TWO" ? -0.5 : -1;
       }
-      
+
       if (review.hasReply) repliedCount++;
     }
 
@@ -170,13 +158,14 @@ serve(async (req) => {
     const avgSentiment = totalSentiment / totalReviews;
     const responseRate = (repliedCount / totalReviews) * 100;
 
-    // Prepare AI analysis context
+    // Build context for AI
     const analysisContext = `
 NEGOCIO: ${business.name}
 TIPO: ${business.category || "General"}
-RATING ACTUAL: ${business.avg_rating || "N/A"}/5
+RATING ACTUAL: ${business.avg_rating || googleMetadata?.rating || "N/A"}/5
+TOTAL RESEÑAS EN GOOGLE: ${googleMetadata?.review_count || reviewTexts.length}
 
-RESUMEN DE RESEÑAS (${reviewTexts.length} total):
+RESUMEN DE RESEÑAS (${reviewTexts.length} analizadas):
 - 5 estrellas: ${starDistribution["FIVE"]}
 - 4 estrellas: ${starDistribution["FOUR"]}
 - 3 estrellas: ${starDistribution["THREE"]}
@@ -190,13 +179,6 @@ ${reviewTexts
   .slice(0, 30)
   .map((r, i) => `[${r.rating}] "${r.comment}"`)
   .join("\n")}
-
-${youtubeMetadata ? `
-YOUTUBE:
-- Suscriptores: ${youtubeMetadata.subscriber_count}
-- Engagement: ${youtubeMetadata.engagement_rate}%
-- Videos: ${youtubeMetadata.video_count}
-` : ""}
 `;
 
     let aiAnalysis: Partial<ReputationAnalysis> = {};
@@ -217,14 +199,14 @@ YOUTUBE:
             messages: [
               {
                 role: "system",
-                content: `Eres un experto en análisis de reputación online y gestión de marca. Analizas reseñas de negocios y generas insights accionables.
+                content: `Eres un experto en análisis de reputación online. Analizas reseñas y generas insights accionables.
 
 REGLAS:
 - Responde SOLO en JSON válido
-- Identifica palabras clave REALES de las reseñas (no inventes)
+- Identifica palabras clave REALES de las reseñas
 - Los temas deben ser específicos del negocio
 - Las recomendaciones deben ser ultra-accionables
-- El resumen debe ser en primera persona dirigido al dueño ("Tu negocio...")
+- El resumen debe ser dirigido al dueño ("Tu negocio...")
 - Detecta patrones y tendencias reales
 - Sé directo y conciso`
               },
@@ -239,8 +221,8 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
   "top_positive_words": [{"word": "palabra", "count": 5, "sentiment": 0.9}],
   "top_negative_words": [{"word": "palabra", "count": 2, "sentiment": -0.8}],
   "key_themes": [{"theme": "tema específico", "sentiment": "positive", "frequency": 10}],
-  "urgent_issues": ["problema urgente 1", "problema 2"],
-  "highlights": ["punto fuerte 1", "punto 2"],
+  "urgent_issues": ["problema urgente 1"],
+  "highlights": ["punto fuerte 1"],
   "trend": "improving|stable|declining",
   "ai_summary": "Resumen de 2-3 oraciones sobre el estado de reputación",
   "recommendations": ["recomendación accionable 1", "recomendación 2", "recomendación 3"]
@@ -253,8 +235,7 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
         if (aiResponse.ok) {
           const aiData = await aiResponse.json();
           const content = aiData.choices?.[0]?.message?.content || "";
-          
-          // Extract JSON from response
+
           const jsonMatch = content.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             try {
@@ -264,19 +245,20 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
               console.error("Failed to parse AI JSON:", e);
             }
           }
+        } else {
+          console.error("AI response not ok:", aiResponse.status, await aiResponse.text());
         }
       } catch (aiError) {
         console.error("AI analysis error:", aiError);
       }
     }
 
-    // Calculate overall score (0-100) - NO FALLBACK, only real AI data
-    const baseScore = ((avgSentiment + 1) / 2) * 100; // Normalize from -1,1 to 0-100
+    // Calculate overall score (0-100)
+    const baseScore = ((avgSentiment + 1) / 2) * 100;
     const responseBonus = responseRate > 80 ? 5 : responseRate > 50 ? 2 : 0;
     const volumeBonus = reviewTexts.length > 50 ? 5 : reviewTexts.length > 20 ? 2 : 0;
-    const overallScore = reviewTexts.length === 0 ? 50 : Math.min(100, Math.round(baseScore + responseBonus + volumeBonus));
+    const overallScore = reviewTexts.length === 0 ? 50 : Math.min(95, Math.round(baseScore + responseBonus + volumeBonus));
 
-    // Build final analysis - ONLY real data, no invented fallbacks
     const analysis: ReputationAnalysis = {
       overall_score: overallScore,
       sentiment_breakdown: {
@@ -293,18 +275,17 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
       response_rate: Math.round(responseRate),
       avg_response_time_hours: null,
       trend: aiAnalysis.trend || "stable",
-      ai_summary: aiAnalysis.ai_summary || `Análisis basado en ${reviewTexts.length} reseñas reales. Ejecuta el análisis con IA para obtener insights detallados.`,
+      ai_summary: aiAnalysis.ai_summary || `Análisis basado en ${reviewTexts.length} reseñas reales.`,
       recommendations: aiAnalysis.recommendations || [],
       analyzed_reviews_count: reviewTexts.length,
       last_analysis: new Date().toISOString(),
     };
 
-    // Save analysis to brain
-    const brain = business.business_brains?.[0];
+    // Save analysis to brain (query separately, not via join)
     if (brain) {
       const existingDynamic = (brain.dynamic_memory || {}) as Record<string, any>;
-      
-      await supabase
+
+      const { error: brainUpdateError } = await supabase
         .from("business_brains")
         .update({
           dynamic_memory: {
@@ -318,27 +299,34 @@ RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
         })
         .eq("id", brain.id);
 
-      console.log("Reputation analysis saved to brain");
+      if (brainUpdateError) {
+        console.error("Error saving to brain:", brainUpdateError);
+      } else {
+        console.log("Reputation analysis saved to brain successfully");
+      }
+    } else {
+      console.warn("No brain found for business, creating one");
+      // Create brain if missing
+      const { error: createError } = await supabase
+        .from("business_brains")
+        .insert({
+          business_id: businessId,
+          dynamic_memory: {
+            reputation_analysis: analysis,
+            reputation_score: overallScore,
+            reputation_trend: analysis.trend,
+            last_reputation_scan: new Date().toISOString(),
+          },
+        });
+      if (createError) {
+        console.error("Error creating brain:", createError);
+      }
     }
-
-    // Record signal for tracking
-    await supabase.from("signals").insert({
-      business_id: businessId,
-      signal_type: "reputation_analysis",
-      source: "ai_analysis",
-      content: {
-        score: overallScore,
-        trend: analysis.trend,
-        reviews_analyzed: reviewTexts.length,
-        positive_pct: analysis.sentiment_breakdown.positive,
-        negative_pct: analysis.sentiment_breakdown.negative,
-      },
-    });
 
     console.log(`Reputation analysis complete for ${businessId}: Score ${overallScore}/100`);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
         analysis,
       }),

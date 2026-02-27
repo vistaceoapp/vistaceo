@@ -202,6 +202,8 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
 
       if (data?.analysis) {
         setAnalysis(data.analysis);
+        // Also refresh platforms data
+        fetchPlatforms();
         toast({
           title: "✨ Análisis completado",
           description: `Score de reputación: ${data.analysis.overall_score}/100`,
