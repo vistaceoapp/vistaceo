@@ -29,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { PlatformReputationCard, PlatformType } from "./PlatformReputationCard";
 import { GoogleReviewsCard } from "./GoogleReviewsCard";
+import { GooglePlacesInlineEditor } from "./GooglePlacesInlineEditor";
 
 interface ReputationAnalysis {
   overall_score: number;
@@ -306,21 +307,30 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
   // Solo Google Reviews
   const mainPlatforms = platforms;
 
-  // No analysis yet - show platforms + CTA
+  // No analysis yet - show platforms + CTA + inline editor
   if (!analysis) {
+    const hasGooglePlace = !!currentBusiness?.google_place_id;
     return (
       <div className={cn("space-y-6", className)}>
-        {/* Main Platforms */}
+        {/* Google Maps Connection */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Star className="w-4 h-4 text-primary" />
               Google Reviews
             </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Análisis automático cada 24 horas · El Brain procesa reseñas continuamente
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Solo Google Maps Card */}
-            {mainPlatforms.map((platform) => (
+            {/* Inline editor to add/change/remove Google place */}
+            <GooglePlacesInlineEditor 
+              onPlaceChanged={() => { fetchPlatforms(); fetchAnalysis(); }} 
+            />
+
+            {/* Show reviews card if connected */}
+            {hasGooglePlace && mainPlatforms.map((platform) => (
               <GoogleReviewsCard
                 key="google"
                 connected={platform.connected}
@@ -343,13 +353,16 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
               <Brain className="w-8 h-8 text-primary" />
             </div>
             <h3 className="text-lg font-bold text-foreground mb-2">Análisis de Reputación IA</h3>
-            <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+            <p className="text-sm text-muted-foreground mb-2 max-w-md mx-auto">
               Analiza todas tus reseñas con inteligencia artificial para descubrir patrones, 
               palabras clave y oportunidades de mejora.
             </p>
+            <p className="text-xs text-muted-foreground mb-6">
+              Se ejecuta automáticamente 1 vez al día. También podés ejecutarlo manualmente.
+            </p>
             <Button 
               onClick={runAnalysis} 
-              disabled={analyzing}
+              disabled={analyzing || !hasGooglePlace}
               className="gradient-primary"
             >
               {analyzing ? (
@@ -364,6 +377,11 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                 </>
               )}
             </Button>
+            {!hasGooglePlace && (
+              <p className="text-xs text-warning mt-3">
+                Vinculá tu negocio en Google Maps arriba para poder ejecutar el análisis
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
