@@ -169,7 +169,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
         .from("business_brains")
         .select("dynamic_memory")
         .eq("business_id", currentBusiness.id)
-        .single();
+        .maybeSingle();
 
       const dynamicMemory = brain?.dynamic_memory as Record<string, any> | null;
       const cachedAnalysis = dynamicMemory?.reputation_analysis as ReputationAnalysis | null;
@@ -415,6 +415,11 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
 
       {/* Tab: Vista General */}
       <TabsContent value="general" className="space-y-6">
+      {/* Inline editor - always visible to change/remove Google Place */}
+      <GooglePlacesInlineEditor 
+        onPlaceChanged={() => { fetchPlatforms(); fetchAnalysis(); }} 
+      />
+
       <Card className="overflow-hidden">
         <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 p-6">
           <div className="flex items-start justify-between">
