@@ -178,7 +178,7 @@ export const SocialRatingsPanel = ({ variant = "full" }: SocialRatingsPanelProps
     setSyncing(true);
     
     try {
-      await supabase.functions.invoke("google-sync-reviews", {
+      await supabase.functions.invoke("google-sync-public-reviews", {
         body: { businessId: currentBusiness.id }
       });
       

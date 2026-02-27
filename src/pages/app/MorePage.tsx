@@ -49,7 +49,7 @@ import { GlassCard } from "@/components/app/GlassCard";
 import { AutopilotModeSelector } from "@/components/app/AutopilotModeSelector";
 import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
 import { FocusSelector } from "@/components/app/FocusSelector";
-import { GoogleBusinessProfileSection } from "@/components/app/GoogleBusinessProfileSection";
+import { GooglePlacesReputationSection } from "@/components/app/GooglePlacesReputationSection";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -334,17 +334,17 @@ const MorePage = () => {
             {/* Brain Status */}
             <BrainStatusWidget variant="full" />
 
-            {/* Google Business Profile */}
+            {/* Google Maps Reputation */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Star className="w-4 h-4 text-warning" />
-                  Google Business Profile
+                  Google Maps
                 </CardTitle>
-                <CardDescription>Conectá tu perfil para leer reseñas y alimentar el Cerebro</CardDescription>
+                <CardDescription>Datos públicos de reseñas y reputación desde Google Maps</CardDescription>
               </CardHeader>
               <CardContent>
-                <GoogleBusinessProfileSection />
+                <GooglePlacesReputationSection />
               </CardContent>
             </Card>
 
@@ -833,12 +833,12 @@ const MorePage = () => {
         </GlassCard>
       </div>
 
-      {/* Google Business Profile */}
+      {/* Google Maps Reputation */}
       <div>
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
-          Google Business Profile
+          Google Maps
         </h3>
-        <GoogleBusinessProfileSection />
+        <GooglePlacesReputationSection />
       </div>
 
       {/* System Section */}

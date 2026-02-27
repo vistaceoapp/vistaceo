@@ -3,7 +3,8 @@ import { BusinessHealthAnalytics } from "@/components/analytics/BusinessHealthAn
 import { SmartInsightsPanel } from "@/components/analytics/SmartInsightsPanel";
 import { EvolutionPanel } from "@/components/app/EvolutionPanel";
 import { ProFeatureGate } from "@/components/app/ProFeatureGate";
-import { GoogleBusinessProfileSection } from "@/components/app/GoogleBusinessProfileSection";
+import { GooglePlacesReputationSection } from "@/components/app/GooglePlacesReputationSection";
+import { ReputationAnalyticsPanel } from "@/components/app/ReputationAnalyticsPanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/use-subscription";
 import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star, Brain, Lock } from "lucide-react";
@@ -75,18 +76,23 @@ const AnalyticsPage = () => {
         </TabsContent>
 
         <TabsContent value="reputacion" className="space-y-6">
-          <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-secondary/50 border border-border/50">
-              <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
-                <Star className="w-4 h-4 text-primary" />
-                Reputación Online
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Conecta tu Google Business Profile para sincronizar reseñas, analizar sentimiento y alimentar el Cerebro de tu negocio.
-              </p>
+          {isPro ? (
+            <ReputationAnalyticsPanel />
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-secondary/50 border border-border/50">
+                <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
+                  <Star className="w-4 h-4 text-primary" />
+                  Reputación Online
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Desbloquea análisis completo de reputación con VISTACEO Pro.
+                  Reseñas, sentimiento, palabras clave y más, todo automático desde Google Maps.
+                </p>
+              </div>
+              <GooglePlacesReputationSection />
             </div>
-            <GoogleBusinessProfileSection />
-          </div>
+          )}
         </TabsContent>
 
         {/* Pro tabs - show content if Pro, gate if Free */}

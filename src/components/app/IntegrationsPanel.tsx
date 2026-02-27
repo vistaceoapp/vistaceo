@@ -24,7 +24,7 @@ import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@/components/ui/progress";
-import { GoogleLocationSelector } from "./GoogleLocationSelector";
+
 
 interface Integration {
   id: string;
@@ -44,15 +44,15 @@ interface Integration {
 
 const AVAILABLE_INTEGRATIONS: Integration[] = [
   {
-    id: "google_reviews",
-    type: "google_reviews",
-    name: "Google Reviews",
-    description: "Monitorea tus reseñas y responde a clientes",
-    icon: Star,
-    category: "reviews",
+    id: "youtube",
+    type: "youtube",
+    name: "YouTube",
+    description: "Suscriptores, vistas y engagement de tu canal",
+    icon: Youtube,
+    category: "social",
     status: "pending",
-    color: "text-warning",
-    oauthEnabled: true,
+    color: "text-destructive",
+    comingSoon: true,
   },
   {
     id: "youtube",
@@ -251,47 +251,6 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
     setConnecting(integration.type);
 
     try {
-      // For Google Reviews or YouTube, use Google OAuth
-      if ((integration.type === "google_reviews" || integration.type === "youtube") && integration.oauthEnabled) {
-        // YouTube uses the same Google OAuth - check if Google is already connected
-        if (integration.type === "youtube") {
-          const googleIntegration = integrations.find(i => i.type === "google_reviews" && i.status === "connected");
-          if (googleIntegration) {
-            // Google already connected, just sync YouTube data
-            const { data, error } = await supabase.functions.invoke("google-sync-youtube", {
-              body: { businessId: currentBusiness.id }
-            });
-            
-            if (error) throw error;
-            
-            toast({
-              title: "✅ YouTube conectado",
-              description: data?.channel ? `Canal "${data.channel}" sincronizado.` : "Datos de YouTube sincronizados.",
-            });
-            
-            fetchIntegrations();
-            setConnecting(null);
-            return;
-          }
-        }
-        
-        // Start Google OAuth flow
-        const { data, error } = await supabase.functions.invoke("google-oauth-start", {
-          body: { 
-            businessId: currentBusiness.id,
-            userId: user.id
-          }
-        });
-
-        if (error) throw error;
-
-        if (data?.url) {
-          // Redirect to Google OAuth
-          window.location.href = data.url;
-          return;
-        }
-      }
-
       // For other integrations (simulation for now)
       const { error } = await supabase
         .from("business_integrations")
@@ -357,7 +316,7 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
     
     setSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("google-sync-reviews", {
+      const { data, error } = await supabase.functions.invoke("google-sync-public-reviews", {
         body: { businessId: currentBusiness.id }
       });
 
@@ -658,15 +617,6 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
         </Button>
       </div>
 
-      {/* Google Location Selector Modal */}
-      {currentBusiness && (
-        <GoogleLocationSelector
-          businessId={currentBusiness.id}
-          open={showLocationSelector}
-          onOpenChange={setShowLocationSelector}
-          onLocationSelected={fetchIntegrations}
-        />
-      )}
     </div>
   );
 };
