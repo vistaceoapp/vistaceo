@@ -112,10 +112,14 @@ export const GooglePlacesInlineEditor = ({
 
       if (updateErr) throw updateErr;
 
-      // Fire sync in background
-      supabase.functions.invoke("google-sync-public-reviews", {
-        body: { businessId: currentBusiness.id, placeId: prediction.placeId },
-      }).catch(console.warn);
+      // Fire sync (which auto-triggers analysis) and wait for it
+      try {
+        await supabase.functions.invoke("google-sync-public-reviews", {
+          body: { businessId: currentBusiness.id, placeId: prediction.placeId },
+        });
+      } catch (syncErr) {
+        console.warn("Sync warning:", syncErr);
+      }
 
       sessionTokenRef.current = createSessionToken();
       await refreshBusinesses();

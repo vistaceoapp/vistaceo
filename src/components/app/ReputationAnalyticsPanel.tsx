@@ -101,12 +101,12 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
         .select("integration_type, status, metadata, last_sync_at")
         .eq("business_id", currentBusiness.id);
       
-      // Fetch reviews for Google
+      // Fetch reviews for Google (all review types)
       const { data: reviews } = await supabase
         .from("external_data")
         .select("content")
         .eq("business_id", currentBusiness.id)
-        .eq("data_type", "review");
+        .in("data_type", ["review", "google_review", "google_places_review"]);
       
       // Calculate review stats from external_data
       let reviewCount = 0;
@@ -136,7 +136,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
         for (const integration of integrations) {
           const meta = integration.metadata as Record<string, any>;
           
-          if (integration.integration_type === "google_business" || integration.integration_type === "google_reviews") {
+          if (integration.integration_type === "google_business" || integration.integration_type === "google_reviews" || integration.integration_type === "google_places") {
             platformMap.google = {
               platform: "google",
               connected: hasGoogleFromSetup || isConnectedStatus(integration.status),

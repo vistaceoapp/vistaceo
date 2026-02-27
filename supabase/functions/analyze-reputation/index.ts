@@ -69,9 +69,11 @@ serve(async (req) => {
       .from("external_data")
       .select("*")
       .eq("business_id", businessId)
-      .in("data_type", ["review", "google_review"])
+      .in("data_type", ["review", "google_review", "google_places_review"])
       .order("synced_at", { ascending: false })
       .limit(500);
+
+    console.log(`Found ${reviewsData?.length || 0} reviews in external_data`);
 
     if (reviewsError) {
       console.error("Error fetching reviews:", reviewsError);
@@ -202,7 +204,7 @@ YOUTUBE:
     // Call AI for deep analysis
     if (lovableApiKey && reviewTexts.length > 0) {
       try {
-        const aiResponse = await fetch("https://ai-gateway.lovable.dev/v1/chat/completions", {
+        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${lovableApiKey}`,

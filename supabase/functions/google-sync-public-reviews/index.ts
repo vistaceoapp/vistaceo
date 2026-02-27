@@ -280,11 +280,37 @@ serve(async (req) => {
       console.warn("Could not update brain (non-fatal):", e);
     }
 
+    // Always trigger reputation analysis after sync
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
+      await fetch(`${supabaseUrl}/functions/v1/analyze-reputation`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabaseKey}`,
+          "apikey": supabaseAnonKey,
+        },
+        body: JSON.stringify({ businessId, forceRefresh: true }),
+      });
+      console.log("Triggered reputation analysis");
+    } catch (e) {
+      console.warn("Could not trigger reputation analysis:", e);
+    }
+
     // Trigger signal processing if we have reviews
     if (syncedCount > 0) {
       try {
-        await supabase.functions.invoke("brain-process-signals", {
-          body: { businessId },
+        const supabaseUrl2 = Deno.env.get("SUPABASE_URL")!;
+        const supabaseAnonKey2 = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "";
+        await fetch(`${supabaseUrl2}/functions/v1/brain-process-signals`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${supabaseKey}`,
+            "apikey": supabaseAnonKey2,
+          },
+          body: JSON.stringify({ businessId }),
         });
         console.log("Triggered brain signal processing");
       } catch (e) {
