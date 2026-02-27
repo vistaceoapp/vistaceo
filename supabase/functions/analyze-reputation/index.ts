@@ -199,33 +199,36 @@ ${reviewTexts
             messages: [
               {
                 role: "system",
-                content: `Eres un experto en análisis de reputación online. Analizas reseñas y generas insights accionables.
+                content: `Eres un experto en análisis de reputación online para negocios en Latinoamérica. Analizás reseñas y generás insights accionables.
 
-REGLAS:
+REGLAS ESTRICTAS:
 - Responde SOLO en JSON válido
-- Identifica palabras clave REALES de las reseñas
-- Los temas deben ser específicos del negocio
-- Las recomendaciones deben ser ultra-accionables
+- TODO el contenido DEBE estar en ESPAÑOL (palabras clave, temas, resumen, recomendaciones, problemas, puntos fuertes). NUNCA uses inglés.
+- Si las reseñas están en inglés, TRADUCE las palabras clave y temas al español
+- Las palabras clave deben ser las más frecuentes REALES de las reseñas, traducidas al español
+- Los temas deben ser específicos del negocio, en español
+- Las recomendaciones deben ser ultra-accionables y en español
 - El resumen debe ser dirigido al dueño ("Tu negocio...")
 - Detecta patrones y tendencias reales
-- Sé directo y conciso`
+- Sé directo y conciso
+- Usá un tono profesional pero cercano`
               },
               {
                 role: "user",
-                content: `Analiza la reputación de este negocio y devuelve un JSON con esta estructura exacta:
+                content: `Analiza la reputación de este negocio y devuelve un JSON con esta estructura exacta. IMPORTANTE: TODO en español.
 
 ${analysisContext}
 
-RESPONDE EXACTAMENTE EN ESTE FORMATO JSON:
+RESPONDE EXACTAMENTE EN ESTE FORMATO JSON (todo en español):
 {
-  "top_positive_words": [{"word": "palabra", "count": 5, "sentiment": 0.9}],
-  "top_negative_words": [{"word": "palabra", "count": 2, "sentiment": -0.8}],
-  "key_themes": [{"theme": "tema específico", "sentiment": "positive", "frequency": 10}],
-  "urgent_issues": ["problema urgente 1"],
-  "highlights": ["punto fuerte 1"],
+  "top_positive_words": [{"word": "palabra en español", "count": 5, "sentiment": 0.9}],
+  "top_negative_words": [{"word": "palabra en español", "count": 2, "sentiment": -0.8}],
+  "key_themes": [{"theme": "tema específico en español", "sentiment": "positive", "frequency": 10}],
+  "urgent_issues": ["problema urgente en español 1"],
+  "highlights": ["punto fuerte en español 1"],
   "trend": "improving|stable|declining",
-  "ai_summary": "Resumen de 2-3 oraciones sobre el estado de reputación",
-  "recommendations": ["recomendación accionable 1", "recomendación 2", "recomendación 3"]
+  "ai_summary": "Resumen en español de 2-3 oraciones sobre el estado de reputación dirigido al dueño",
+  "recommendations": ["recomendación accionable en español 1", "recomendación en español 2", "recomendación en español 3"]
 }`
               }
             ],
