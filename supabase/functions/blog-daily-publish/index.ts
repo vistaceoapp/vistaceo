@@ -81,20 +81,75 @@ Deno.serve(async (req) => {
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Get planned posts
+    // ═══ vInfinity CAPA 2: Category Balance Guard ═══
+    // No category should exceed 20% of total published volume
+    const { data: allPublishedCats } = await supabase
+      .from('blog_posts')
+      .select('category')
+      .eq('status', 'published')
+      .not('category', 'is', null);
+    
+    const catCounts: Record<string, number> = {};
+    const totalPublished = (allPublishedCats || []).length;
+    (allPublishedCats || []).forEach((p: any) => {
+      if (p.category) catCounts[p.category] = (catCounts[p.category] || 0) + 1;
+    });
+    
+    const MAX_CATEGORY_SHARE = 0.20;
+    const saturatedCategories = Object.entries(catCounts)
+      .filter(([_, count]) => totalPublished > 10 && count / totalPublished > MAX_CATEGORY_SHARE)
+      .map(([cat]) => cat);
+    
+    if (saturatedCategories.length > 0) {
+      console.log(`[blog-daily-publish] Saturated categories (>20%): ${saturatedCategories.join(', ')}`);
+    }
+
+    // ═══ vInfinity CAPA 9: Anti-pattern — no 2 same head_term in 72h ═══
+    const threeDaysAgo = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
+    const { data: recentPostsCheck } = await supabase
+      .from('blog_posts')
+      .select('category, quality_gate_report, primary_keyword')
+      .eq('status', 'published')
+      .gte('publish_at', threeDaysAgo)
+      .order('publish_at', { ascending: false });
+    
+    const recentKeywords = (recentPostsCheck || []).map((p: any) => p.primary_keyword?.toLowerCase()).filter(Boolean);
+    const recentCategories72h = (recentPostsCheck || []).map((p: any) => p.category).filter(Boolean);
+    const lastFormats = (recentPostsCheck || []).slice(0, 3).map((p: any) => p.quality_gate_report?.format_id).filter(Boolean);
+    
+    // Get planned posts — EXCLUDE saturated categories
     const { data: plannedPosts, error: planError } = await supabase
       .from('blog_plan')
       .select(`id, topic_id, pillar, planned_date, status, publish_attempts,
-        blog_topics (id, title_base, slug, pillar, intent, primary_keyword, secondary_keywords, required_subtopics, unique_angle_options)`)
+        blog_topics (id, title_base, slug, pillar, intent, primary_keyword, secondary_keywords, required_subtopics, unique_angle_options, category)`)
       .lte('planned_date', today)
       .eq('status', 'planned')
       .lt('publish_attempts', 3)
       .order('planned_date', { ascending: true })
-      .limit(remaining);
+      .limit(remaining + 5); // Fetch extra in case we skip some
 
     if (planError) throw planError;
 
-    let postsToGenerate = plannedPosts || [];
+    // Filter out plans from saturated categories or duplicate head_terms in 72h
+    let postsToGenerate = (plannedPosts || []).filter((plan: any) => {
+      const topic = plan.blog_topics;
+      const topicCategory = topic?.category;
+      const topicKeyword = (topic?.primary_keyword || topic?.title_base || '').toLowerCase();
+      
+      // vInfinity CAPA 2: Skip if category saturated
+      if (topicCategory && saturatedCategories.includes(topicCategory)) {
+        console.log(`[blog-daily-publish] Skipping plan ${plan.id} — category "${topicCategory}" saturated`);
+        return false;
+      }
+      
+      // vInfinity CAPA 9: No 2 same head_term in 72h
+      if (recentKeywords.some((k: string) => k && topicKeyword && (k.includes(topicKeyword) || topicKeyword.includes(k)))) {
+        console.log(`[blog-daily-publish] Skipping plan ${plan.id} — head_term "${topicKeyword}" published within 72h`);
+        return false;
+      }
+      
+      return true;
+    }).slice(0, remaining);
     
     if (postsToGenerate.length === 0) {
       const { data: pendingTopics } = await supabase

@@ -1171,23 +1171,44 @@ serve(async (req) => {
     // 3. LATAM-wide content (no country rotation)
     console.log('[generate-blog-post] Using LATAM-wide content (no country targeting)');
 
-    // 4. Anti-cannibalization check
+    // 4. vInfinity CAPA 4: Multi-signal cannibalization detection
     const { data: existingPosts } = await supabase
       .from('blog_posts')
-      .select('slug, primary_keyword, title')
+      .select('slug, primary_keyword, title, category, pillar, excerpt')
       .eq('status', 'published')
       .limit(200);
 
     const slugSimilarity = (existingPosts || []).some(post => {
-      const existingSlug = post.slug.toLowerCase();
-      const newSlug = selectedTopic!.slug.toLowerCase();
+      const newTitle = selectedTopic!.title_base.toLowerCase();
+      const existTitle = post.title.toLowerCase();
+      const newKw = (selectedTopic!.title_base || '').toLowerCase();
+      const existKw = (post.primary_keyword || '').toLowerCase();
       
-      // Check for significant overlap - relaxed to 5 words
-      const existingWords = new Set<string>(existingSlug.split('-'));
-      const newWords = new Set<string>(newSlug.split('-'));
-      const overlap = [...existingWords].filter((w: string) => newWords.has(w) && w.length > 3).length;
+      // Signal 1: slug word overlap (5+ shared words)
+      const existingWords = new Set<string>(post.slug.toLowerCase().split('-'));
+      const newWords = new Set<string>(selectedTopic!.slug.toLowerCase().split('-'));
+      const slugOverlap = [...existingWords].filter((w: string) => newWords.has(w) && w.length > 3).length;
       
-      return overlap >= 5; // Raised from 4 to 5 to avoid false positives
+      // Signal 2: title similarity (shared significant words)
+      const existTitleWords = new Set<string>(existTitle.split(/\s+/).filter((w: string) => w.length > 4));
+      const newTitleWords = new Set<string>(newTitle.split(/\s+/).filter((w: string) => w.length > 4));
+      const titleOverlap = [...existTitleWords].filter((w: string) => newTitleWords.has(w)).length;
+      
+      // Signal 3: same category + similar keyword
+      const sameCategory = post.category === selectedTopic!.pillar || post.pillar === selectedTopic!.pillar;
+      const kwOverlap = existKw && newKw && (existKw.includes(newKw) || newKw.includes(existKw));
+      
+      // vInfinity: riesgo critico if promise + intent + reader overlap
+      const isCritical = slugOverlap >= 5 || (titleOverlap >= 3 && sameCategory);
+      const isHigh = (titleOverlap >= 2 && kwOverlap) || slugOverlap >= 4;
+      
+      if (isCritical) {
+        console.log(`[generate-blog-post] CRITICAL cannibalization: "${post.title}" vs "${selectedTopic!.title_base}" (slug:${slugOverlap}, title:${titleOverlap})`);
+      } else if (isHigh) {
+        console.log(`[generate-blog-post] HIGH cannibalization risk: "${post.title}" (title:${titleOverlap}, kwOverlap:${kwOverlap})`);
+      }
+      
+      return isCritical || isHigh;
     });
 
     if (slugSimilarity && !forceRun) {
@@ -1250,11 +1271,14 @@ serve(async (req) => {
     // Get external sources for this pillar
     const pillarSources = EXTERNAL_SOURCES[selectedTopic.pillar as keyof typeof EXTERNAL_SOURCES] || EXTERNAL_SOURCES.liderazgo;
 
-    // 5.5. SELECT FORMAT for this article (variety engine)
+    // 5.5. vInfinity CAPA 9: Anti-pattern checks
+    // No 2 same head_term in 72h, no 3 consecutive same skeleton
+    const threeDaysAgoTs = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
     const { data: recentPosts3 } = await supabase
       .from('blog_posts')
-      .select('quality_gate_report')
+      .select('quality_gate_report, primary_keyword, category')
       .eq('status', 'published')
+      .gte('publish_at', threeDaysAgoTs)
       .order('publish_at', { ascending: false })
       .limit(5);
     
@@ -1262,7 +1286,39 @@ serve(async (req) => {
       .map((p: any) => p.quality_gate_report?.format_id)
       .filter(Boolean) as string[];
     
-    const selectedFormat = selectFormatForTopic(selectedTopic, recentFormats);
+    // vInfinity CAPA 9: Check 72h keyword block
+    const recentKws = (recentPosts3 || []).map((p: any) => (p.primary_keyword || '').toLowerCase()).filter(Boolean);
+    const currentKw = (selectedTopic.title_base || '').toLowerCase().slice(0, 40);
+    const headTermBlocked = recentKws.some((k: string) => k.length > 5 && currentKw.length > 5 && (k.includes(currentKw) || currentKw.includes(k)));
+    
+    if (headTermBlocked && !forceRun) {
+      console.log(`[generate-blog-post] vInfinity CAPA 9: head_term "${currentKw}" blocked — published within 72h`);
+      // Try alternative topic
+      const { data: altTopics2 } = await supabase
+        .from('blog_topics')
+        .select('*')
+        .is('last_used_at', null)
+        .neq('id', selectedTopic.id)
+        .neq('pillar', selectedTopic.pillar) // Force different pillar
+        .order('priority_score', { ascending: false })
+        .limit(5);
+      
+      if (altTopics2 && altTopics2.length > 0) {
+        selectedTopic = altTopics2[Math.floor(Math.random() * Math.min(3, altTopics2.length))];
+        selectedPlan = null;
+        console.log(`[generate-blog-post] Switched to alt topic (72h rule): ${selectedTopic.title_base}`);
+      }
+    }
+    
+    let selectedFormat = selectFormatForTopic(selectedTopic, recentFormats);
+    
+    // vInfinity CAPA 9: Block 3 consecutive same format
+    if (recentFormats.length >= 2 && recentFormats[0] === recentFormats[1] && recentFormats[0] === selectedFormat.id) {
+      console.log(`[generate-blog-post] vInfinity CAPA 9: Format "${selectedFormat.id}" used 2x consecutively, forcing different`);
+      const altFormat = ARTICLE_FORMATS.find(f => f.id !== selectedFormat.id);
+      if (altFormat) selectedFormat = altFormat;
+    }
+    
     console.log('[generate-blog-post] Selected format:', selectedFormat.id, selectedFormat.name);
 
     // 6. Generate content with Lovable AI
