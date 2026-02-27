@@ -47,20 +47,34 @@ Deno.serve(async (req) => {
 
     console.log("[SEO-Ultra-Indexer] Starting full indexing cycle for ALL engines...");
 
-    // ========== PHASE 1: FETCH ALL PUBLISHED POSTS ==========
-    const { data: posts, error: postsError } = await supabase
+    // ========== PHASE 1: FETCH RECENT/CHANGED POSTS (not all 500 every hour) ==========
+    // Only index posts published or updated in the last 48 hours for efficiency
+    // Full re-index happens weekly via the full scan
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    
+    const { data: recentPosts, error: recentError } = await supabase
       .from("blog_posts")
-      .select("id, slug, title, hero_image_url, meta_description, meta_title, content_md, publish_at, updated_at, status")
+      .select("id, slug, title, hero_image_url, meta_description, meta_title, content_md, publish_at, updated_at, status, canonical_url")
+      .eq("status", "published")
+      .or(`publish_at.gte.${fortyEightHoursAgo},updated_at.gte.${fortyEightHoursAgo}`)
+      .order("publish_at", { ascending: false })
+      .limit(50);
+
+    // Also get ALL posts for canonical URL fixes (lightweight query)
+    const { data: allPosts, error: allPostsError } = await supabase
+      .from("blog_posts")
+      .select("id, slug, title, hero_image_url, meta_description, meta_title, content_md, publish_at, updated_at, status, canonical_url")
       .eq("status", "published")
       .order("publish_at", { ascending: false })
       .limit(500);
 
-    if (postsError) {
-      console.error("[SEO-Ultra-Indexer] DB error:", postsError);
-      throw postsError;
+    if (recentError) {
+      console.error("[SEO-Ultra-Indexer] DB error:", recentError);
+      throw recentError;
     }
 
-    console.log(`[SEO-Ultra-Indexer] Found ${posts?.length || 0} published posts`);
+    const posts = recentPosts || [];
+    console.log(`[SEO-Ultra-Indexer] Found ${posts.length} recent posts to index (${(allPosts || []).length} total published)`);
 
     // ========== PHASE 2: AUTO-REPAIR BROKEN CONTENT ==========
     let repairedCount = 0;
@@ -138,25 +152,23 @@ Deno.serve(async (req) => {
     // These don't have direct APIs but benefit from fresh sitemap pings
     await pingAICrawlers();
 
-    // ========== PHASE 6: UPDATE CANONICAL URLS IN DB ==========
-    // Fix canonical URLs to always use trailing slash
-    const { data: canonicalPosts } = await supabase
-      .from("blog_posts")
-      .select("id, slug, canonical_url")
-      .eq("status", "published")
-      .or("canonical_url.is.null,canonical_url.not.like.%/");
+    // ========== PHASE 6: FIX CANONICAL URLS IN DB (use blog.vistaceo.com, not www) ==========
+    const CORRECT_BLOG_DOMAIN = "https://blog.vistaceo.com";
+    
+    const postsNeedingCanonicalFix = (allPosts || []).filter(p => {
+      const correct = `${CORRECT_BLOG_DOMAIN}/${p.slug}/`;
+      return p.canonical_url !== correct;
+    });
 
-    if (canonicalPosts && canonicalPosts.length > 0) {
-      for (const p of canonicalPosts) {
-        const correctCanonical = `${BLOG_URL}/${p.slug}/`;
-        if (p.canonical_url !== correctCanonical) {
-          await supabase
-            .from("blog_posts")
-            .update({ canonical_url: correctCanonical })
-            .eq("id", p.id);
-        }
+    if (postsNeedingCanonicalFix.length > 0) {
+      for (const p of postsNeedingCanonicalFix) {
+        const correctCanonical = `${CORRECT_BLOG_DOMAIN}/${p.slug}/`;
+        await supabase
+          .from("blog_posts")
+          .update({ canonical_url: correctCanonical })
+          .eq("id", p.id);
       }
-      console.log(`[SEO-Ultra-Indexer] Fixed ${canonicalPosts.length} canonical URLs`);
+      console.log(`[SEO-Ultra-Indexer] Fixed ${postsNeedingCanonicalFix.length} canonical URLs to blog.vistaceo.com`);
     }
 
     const successCount = indexNowResults.status === 'fulfilled'
@@ -317,7 +329,8 @@ function auditPostSEO(post: {
     allIssues.push('missing_h2_headings');
   }
 
-  const hasInternalLinks = /\[.*?\]\(\/[^)]+\)/.test(contentMd) ||
+  const hasInternalLinks = /\[.*?\]\(https?:\/\/blog\.vistaceo\.com\/[^)]+\)/.test(contentMd) ||
+    /\[.*?\]\(\/[^)]+\)/.test(contentMd) ||
     /blog\.vistaceo\.com/.test(contentMd);
   if (!hasInternalLinks) {
     score -= 3;
