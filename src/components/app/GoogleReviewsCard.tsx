@@ -2,14 +2,13 @@ import { useState } from "react";
 import { 
   RefreshCw, 
   MapPin, 
-  Settings2, 
   MessageSquare, 
   ThumbsUp, 
   Star,
   Loader2,
   Check,
   ExternalLink,
-  AlertCircle
+  Globe
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,8 +25,6 @@ interface GoogleReviewsCardProps {
   avgRating: number;
   responseRate: number;
   lastSync?: string;
-  onConnect: () => void;
-  onChangeLocation: () => void;
   onSyncComplete?: () => void;
   businessId: string;
   className?: string;
@@ -40,8 +37,6 @@ export const GoogleReviewsCard = ({
   avgRating,
   responseRate,
   lastSync,
-  onConnect,
-  onChangeLocation,
   onSyncComplete,
   businessId,
   className,
@@ -53,15 +48,15 @@ export const GoogleReviewsCard = ({
     
     setSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("google-sync-reviews", {
+      const { data, error } = await supabase.functions.invoke("google-sync-public-reviews", {
         body: { businessId }
       });
 
       if (error) throw error;
 
       toast({
-        title: "✅ Sincronización completada",
-        description: `${data?.synced || 0} reseñas sincronizadas`,
+        title: "✅ Datos actualizados",
+        description: `${data?.synced || 0} reseñas sincronizadas desde Google Maps`,
       });
       
       onSyncComplete?.();
@@ -69,7 +64,7 @@ export const GoogleReviewsCard = ({
       console.error("Error syncing reviews:", error);
       toast({
         title: "Error",
-        description: "No se pudieron sincronizar las reseñas",
+        description: "No se pudieron sincronizar los datos",
         variant: "destructive",
       });
     } finally {
@@ -92,34 +87,31 @@ export const GoogleReviewsCard = ({
     return `Hace ${diffDays} días`;
   };
 
-  // Not connected state
+  // Not connected - no google_place_id
   if (!connected) {
     return (
       <Card className={cn(
-        "relative overflow-hidden border-dashed border-2 hover:border-primary/50 transition-all cursor-pointer group",
+        "relative overflow-hidden border-dashed border-2",
         className
-      )} onClick={onConnect}>
+      )}>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center opacity-50 group-hover:opacity-100 transition-opacity">
+            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center opacity-50">
               <GoogleIcon />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-muted-foreground">Google Reviews</p>
-              <p className="text-xs text-muted-foreground/70">No conectado</p>
+              <p className="text-sm font-medium text-muted-foreground">Google Maps</p>
+              <p className="text-xs text-muted-foreground/70">
+                Agregá tu negocio en Configuraciones para ver datos
+              </p>
             </div>
-            <Button variant="outline" size="sm" className="text-xs">
-              Conectar
-            </Button>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const locationName = metadata?.google_location_name || metadata?.location_name || metadata?.locationName;
-  const accountEmail = metadata?.account_email;
-  const hasLocation = !!locationName || !!metadata?.google_location_id;
+  const locationName = metadata?.place_name || metadata?.google_location_name;
 
   return (
     <Card className={cn(
@@ -134,7 +126,7 @@ export const GoogleReviewsCard = ({
               <GoogleIcon />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">Google Reviews</p>
+              <p className="text-sm font-medium text-foreground">Google Maps</p>
               <p className="text-[10px] text-muted-foreground">
                 Sync: {formatTimeAgo(lastSync)}
               </p>
@@ -142,35 +134,19 @@ export const GoogleReviewsCard = ({
           </div>
           <Badge variant="outline" className="text-[10px] bg-background/50">
             <Check className="w-2.5 h-2.5 mr-0.5" />
-            Activo
+            Automático
           </Badge>
         </div>
 
-        {/* Location & Account Info */}
-        <div className="mb-3 p-2 rounded-lg bg-background/50 border border-border/50 space-y-1">
-          {hasLocation ? (
-            <>
-              <div className="flex items-center gap-2 text-xs">
-                <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
-                <span className="text-foreground font-medium truncate">{locationName || "Ubicación conectada"}</span>
-              </div>
-              {accountEmail && (
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-muted-foreground truncate">{accountEmail}</span>
-                </div>
-              )}
-            </>
-          ) : (
-            <button 
-              onClick={onChangeLocation}
-              className="flex items-center gap-2 text-xs w-full hover:bg-primary/5 rounded p-1 -m-1 transition-colors"
-            >
-              <AlertCircle className="w-3 h-3 text-warning flex-shrink-0" />
-              <span className="text-warning font-medium">Selecciona tu negocio de Google</span>
-              <ExternalLink className="w-3 h-3 text-muted-foreground ml-auto" />
-            </button>
-          )}
-        </div>
+        {/* Location Info */}
+        {locationName && (
+          <div className="mb-3 p-2 rounded-lg bg-background/50 border border-border/50">
+            <div className="flex items-center gap-2 text-xs">
+              <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
+              <span className="text-foreground font-medium truncate">{locationName}</span>
+            </div>
+          </div>
+        )}
 
         {/* Main Score - Rating */}
         <div className="mb-3">
@@ -194,38 +170,27 @@ export const GoogleReviewsCard = ({
             <span className="font-medium text-foreground">{reviewCount}</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs">
-            <ThumbsUp className="w-3 h-3 text-muted-foreground" />
-            <span className="text-muted-foreground">Respondidas:</span>
-            <span className="font-medium text-foreground">{responseRate}%</span>
+            <Globe className="w-3 h-3 text-muted-foreground" />
+            <span className="text-muted-foreground">Fuente:</span>
+            <span className="font-medium text-foreground">Google Maps</span>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 text-xs h-8"
-            onClick={handleResync}
-            disabled={syncing}
-          >
-            {syncing ? (
-              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-            ) : (
-              <RefreshCw className="w-3 h-3 mr-1" />
-            )}
-            {syncing ? "Sincronizando..." : "Re-sincronizar"}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs h-8"
-            onClick={onChangeLocation}
-          >
-            <Settings2 className="w-3 h-3 mr-1" />
-            Cambiar
-          </Button>
-        </div>
+        {/* Action Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full text-xs h-8"
+          onClick={handleResync}
+          disabled={syncing}
+        >
+          {syncing ? (
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+          ) : (
+            <RefreshCw className="w-3 h-3 mr-1" />
+          )}
+          {syncing ? "Sincronizando..." : "Actualizar datos"}
+        </Button>
       </CardContent>
     </Card>
   );

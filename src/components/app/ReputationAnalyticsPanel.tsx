@@ -28,9 +28,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { PlatformReputationCard, PlatformType } from "./PlatformReputationCard";
-import { PlatformConnectModal } from "./PlatformConnectModal";
 import { GoogleReviewsCard } from "./GoogleReviewsCard";
-import { GoogleLocationSelector } from "./GoogleLocationSelector";
 
 interface ReputationAnalysis {
   overall_score: number;
@@ -81,7 +79,6 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
   const [analyzing, setAnalyzing] = useState(false);
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformType | null>(null);
-  const [locationSelectorOpen, setLocationSelectorOpen] = useState(false);
 
   const handleConnectPlatform = (platform: PlatformType) => {
     setSelectedPlatform(platform);
@@ -322,7 +319,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Solo Google Reviews Card */}
+            {/* Solo Google Maps Card */}
             {mainPlatforms.map((platform) => (
               <GoogleReviewsCard
                 key="google"
@@ -332,31 +329,10 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                 avgRating={platform.avgRating || 0}
                 responseRate={analysis?.response_rate || 0}
                 lastSync={platform.lastSync}
-                onConnect={() => handleConnectPlatform("google")}
-                onChangeLocation={() => setLocationSelectorOpen(true)}
                 onSyncComplete={fetchPlatforms}
                 businessId={currentBusiness?.id || ""}
               />
             ))}
-
-            {/* Connect Modal */}
-            <PlatformConnectModal
-              open={connectModalOpen}
-              onOpenChange={setConnectModalOpen}
-              platform={selectedPlatform}
-              onSuccess={handleConnectionSuccess}
-            />
-            
-            {/* Google Location Selector */}
-            <GoogleLocationSelector
-              businessId={currentBusiness?.id || ""}
-              open={locationSelectorOpen}
-              onOpenChange={setLocationSelectorOpen}
-              onLocationSelected={() => {
-                setLocationSelectorOpen(false);
-                fetchPlatforms();
-              }}
-            />
           </CardContent>
         </Card>
 
@@ -774,8 +750,6 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
                       avgRating={platform.avgRating || 0}
                       responseRate={analysis?.response_rate || 0}
                       lastSync={platform.lastSync}
-                      onConnect={() => handleConnectPlatform("google")}
-                      onChangeLocation={() => setLocationSelectorOpen(true)}
                       onSyncComplete={fetchPlatforms}
                       businessId={currentBusiness?.id || ""}
                     />
@@ -806,13 +780,7 @@ export const ReputationAnalyticsPanel = ({ className }: ReputationAnalyticsPanel
           </Card>
         )}
 
-        {/* Connect Modal */}
-        <PlatformConnectModal
-          open={connectModalOpen}
-          onOpenChange={setConnectModalOpen}
-          platform={selectedPlatform}
-          onSuccess={handleConnectionSuccess}
-        />
+        {/* No connect modal needed - Places API is automatic */}
       </TabsContent>
     </Tabs>
   );
