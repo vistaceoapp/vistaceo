@@ -104,8 +104,8 @@ const SetupPage = () => {
       const saved = localStorage.getItem('setupProgress');
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Check if saved less than 24 hours ago
-        if (parsed.timestamp && Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+        // Check if saved less than 30 days ago (persist across sessions)
+        if (parsed.timestamp && Date.now() - parsed.timestamp < 30 * 24 * 60 * 60 * 1000) {
           return parsed;
         }
       }
@@ -663,6 +663,12 @@ const SetupPage = () => {
   const showNavButtons = stepId !== 'questionnaire' && !creatingBusiness;
 
   const handleBackToAuth = async () => {
+    if (!window.confirm(lang === 'pt' 
+      ? 'Se você sair, todo o progresso do setup será perdido. Deseja continuar?' 
+      : 'Si salís, se perderá todo el progreso del setup. ¿Querés continuar?')) {
+      return;
+    }
+    clearSavedProgress();
     await supabase.auth.signOut();
     navigate('/auth', { replace: true });
   };
