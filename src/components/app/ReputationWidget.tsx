@@ -18,6 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { GlassCard } from "./GlassCard";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { GooglePlacesInlineEditor } from "./GooglePlacesInlineEditor";
 
 interface ReputationWidgetProps {
   isPro?: boolean;
@@ -157,11 +158,18 @@ export const ReputationWidget = ({ isPro = false, className }: ReputationWidgetP
             Activo
           </Badge>
         ) : (
-          <Badge variant="outline" className="text-[10px]">
-            Sin Google Maps
+          <Badge variant="outline" className="text-[10px] text-warning border-warning/30 bg-warning/10">
+            Sin vincular
           </Badge>
         )}
       </div>
+
+      {/* If no Google Place, show inline editor */}
+      {!hasGooglePlace && (
+        <div className="mb-3">
+          <GooglePlacesInlineEditor compact onPlaceChanged={fetchData} />
+        </div>
+      )}
 
       <div className="space-y-3">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-warning/5 border border-warning/10">

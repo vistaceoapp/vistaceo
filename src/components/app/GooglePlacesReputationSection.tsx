@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useSubscription } from "@/hooks/use-subscription";
 import { toast } from "@/hooks/use-toast";
+import { GooglePlacesInlineEditor } from "./GooglePlacesInlineEditor";
 
 /**
  * Replaces GoogleBusinessProfileSection.
@@ -66,7 +67,6 @@ export const GooglePlacesReputationSection = () => {
 
   const meta = integration?.metadata as Record<string, any> | null;
   const hasGooglePlace = !!currentBusiness?.google_place_id;
-  const isActive = integration?.status === "active";
 
   const formatTimeAgo = (d?: string | null) => {
     if (!d) return "Nunca";
@@ -85,7 +85,7 @@ export const GooglePlacesReputationSection = () => {
     );
   }
 
-  // Not Pro - locked
+  // Not Pro - locked but show basic data
   if (!isPro) {
     return (
       <GlassCard className="p-4 relative overflow-hidden">
@@ -124,77 +124,48 @@ export const GooglePlacesReputationSection = () => {
     );
   }
 
-  // Pro - no google_place_id configured
-  if (!hasGooglePlace) {
-    return (
-      <GlassCard className="p-4 border-warning/30">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
-            <GoogleIcon />
-          </div>
-          <div>
-            <p className="font-semibold text-foreground">Google Maps</p>
-            <p className="text-xs text-warning font-medium flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              Agregá tu negocio en Configuraciones
-            </p>
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Buscá tu negocio en Google Maps desde la sección de Configuraciones para activar el análisis automático de reputación.
-        </p>
-      </GlassCard>
-    );
-  }
-
-  // Pro - has google_place_id - show data
+  // Pro - show inline editor + data
   return (
     <GlassCard className="p-4">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-            <GoogleIcon />
-          </div>
-          <div>
-            <p className="font-semibold text-foreground">Google Maps</p>
-            <Badge variant="outline" className="text-[10px] bg-success/10 text-success border-success/30">
-              <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
-              Activo
-            </Badge>
-          </div>
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <GoogleIcon />
+        </div>
+        <div className="flex-1">
+          <p className="font-semibold text-foreground">Google Maps</p>
+          <p className="text-xs text-muted-foreground">Datos públicos de reseñas y reputación</p>
         </div>
         <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
           <Crown className="w-2.5 h-2.5 mr-0.5" /> PRO
         </Badge>
       </div>
 
-      <div className="space-y-2 mb-3">
-        {meta?.place_name && (
-          <div className="flex items-center gap-2 text-xs p-2 rounded-lg bg-secondary/50">
-            <MapPin className="w-3 h-3 text-primary" />
-            <span className="text-foreground font-medium">{meta.place_name}</span>
-          </div>
-        )}
-        {meta?.rating && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Star className="w-3 h-3 text-warning fill-warning" />
-            <span>{meta.rating} estrellas · {meta.review_count || 0} reseñas</span>
-          </div>
-        )}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Globe className="w-3 h-3" />
-          <span>Datos públicos de Google Maps</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <RefreshCw className="w-3 h-3" />
-          <span>Última sync: {formatTimeAgo(integration?.last_sync_at)}</span>
-        </div>
-      </div>
+      {/* Inline editor - add/change/remove */}
+      <GooglePlacesInlineEditor 
+        className="mb-3" 
+        onPlaceChanged={fetchIntegration} 
+      />
 
-      <Button variant="outline" size="sm" className="w-full text-xs" onClick={handleSync} disabled={syncing}>
-        {syncing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
-        {syncing ? "Sincronizando..." : "Sincronizar datos"}
-      </Button>
+      {/* Show synced data if available */}
+      {hasGooglePlace && (
+        <div className="space-y-2 pt-2 border-t border-border/50">
+          {meta?.rating && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Star className="w-3 h-3 text-warning fill-warning" />
+              <span>{meta.rating} estrellas · {meta.review_count || 0} reseñas</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <RefreshCw className="w-3 h-3" />
+            <span>Última sync: {formatTimeAgo(integration?.last_sync_at)}</span>
+            <span className="text-[10px] text-muted-foreground/50">· Auto cada 24h</span>
+          </div>
+          <Button variant="outline" size="sm" className="w-full text-xs" onClick={handleSync} disabled={syncing}>
+            {syncing ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+            {syncing ? "Sincronizando..." : "Actualizar ahora"}
+          </Button>
+        </div>
+      )}
     </GlassCard>
   );
 };

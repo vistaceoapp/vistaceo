@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { GooglePlacesInlineEditor } from "./GooglePlacesInlineEditor";
 
 interface GoogleReviewsCardProps {
   connected: boolean;
@@ -87,25 +88,23 @@ export const GoogleReviewsCard = ({
     return `Hace ${diffDays} días`;
   };
 
-  // Not connected - no google_place_id
+  // Not connected - show inline editor to add
   if (!connected) {
     return (
-      <Card className={cn(
-        "relative overflow-hidden border-dashed border-2",
-        className
-      )}>
+      <Card className={cn("relative overflow-hidden", className)}>
         <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center opacity-50">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
               <GoogleIcon />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-muted-foreground">Google Maps</p>
-              <p className="text-xs text-muted-foreground/70">
-                Agregá tu negocio en Configuraciones para ver datos
+              <p className="text-sm font-medium text-foreground">Google Maps</p>
+              <p className="text-xs text-muted-foreground">
+                Vinculá tu negocio para activar reputación automática
               </p>
             </div>
           </div>
+          <GooglePlacesInlineEditor compact onPlaceChanged={onSyncComplete} />
         </CardContent>
       </Card>
     );
