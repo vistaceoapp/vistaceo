@@ -225,16 +225,27 @@ const SetupPage = () => {
         setManualSubStep('sector');
         return;
       }
-      // Going back from sector → return to AI mode
       setManualIdentityMode(false);
       setManualSubStep(null);
       return;
     }
-    // If going back to identity step from a later step, reset manual mode so AI shows
+    
+    // If going back to identity step (changing business type), warn about losing questions
     if (currentStep > 0 && STEPS[currentStep - 1] === 'identity') {
+      const hasAnswers = Object.keys(data.answers).length > 0;
+      if (hasAnswers) {
+        const msg = lang === 'pt' 
+          ? 'Se você mudar o tipo de negócio, as perguntas e respostas serão regeneradas. Deseja continuar?'
+          : 'Si cambiás el tipo de negocio, las preguntas y respuestas se van a regenerar. ¿Querés continuar?';
+        if (!window.confirm(msg)) return;
+        // Clear questions cache since business type will change
+        localStorage.removeItem('setupQuestionsCache');
+        setData(d => ({ ...d, answers: {}, questionIndex: 0 }));
+      }
       setManualIdentityMode(false);
       setManualSubStep(null);
     }
+    
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
     }

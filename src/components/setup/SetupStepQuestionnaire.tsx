@@ -62,13 +62,17 @@ const BATCH_CONFIG = {
 const QUESTIONS_CACHE_KEY = 'setupQuestionsCache';
 const QUESTIONS_META_KEY = 'setupQuestionsMeta';
 
-function getCachedQuestions(): UniversalQuestion[] | null {
+function getCachedQuestions(businessTypeId: string): UniversalQuestion[] | null {
   try {
     const cached = localStorage.getItem(QUESTIONS_CACHE_KEY);
     if (!cached) return null;
     const { questions, timestamp, businessTypeId: cachedType } = JSON.parse(cached);
-    // Valid for 2 hours and same business type
-    if (Date.now() - timestamp < 2 * 60 * 60 * 1000 && questions?.length > 0) {
+    // Valid for 30 days AND same business type
+    if (
+      Date.now() - timestamp < 30 * 24 * 60 * 60 * 1000 &&
+      questions?.length > 0 &&
+      cachedType === businessTypeId
+    ) {
       return questions;
     }
   } catch { /* ignore */ }
@@ -97,8 +101,8 @@ export const SetupStepQuestionnaire = ({
   onComplete,
   onBack,
 }: SetupStepQuestionnaireProps) => {
-  // Restore cached questions if returning from checkout
-  const cachedQuestions = useMemo(() => getCachedQuestions(), []);
+  // Restore cached questions if returning (validated by businessTypeId)
+  const cachedQuestions = useMemo(() => getCachedQuestions(businessTypeId), [businessTypeId]);
   const hasCache = cachedQuestions && cachedQuestions.length > 0;
 
   const [currentIndex, setCurrentIndex] = useState(questionIndex);
