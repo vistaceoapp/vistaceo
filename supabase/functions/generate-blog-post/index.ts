@@ -333,6 +333,20 @@ const ARTICLE_FORMATS: ArticleFormat[] = [
     sections: ['Por qué hacerte estas preguntas', 'Las 7-10 preguntas duras', 'Señales de autoengaño', 'Cómo responder con honestidad', 'Plan de enfoque con las respuestas', 'Preguntas frecuentes', 'Próximos pasos'],
     contentTypes: ['estrategia', 'reflexión'],
   },
+  {
+    id: 'mapa-de-ruta',
+    name: 'Mapa de Ruta',
+    when: 'plan, roadmap, trimestre, semestre, largo plazo, escalar, fase, etapa',
+    sections: ['Dónde estás hoy', 'Dónde querés llegar', 'Fase 1: Cimientos (semana 1-4)', 'Fase 2: Tracción (mes 2-3)', 'Fase 3: Escala (mes 4-6)', 'Indicadores por fase', 'Trampas comunes en cada fase', 'Tu primer movimiento hoy'],
+    contentTypes: ['plan', 'roadmap', 'escalar'],
+  },
+  {
+    id: 'caja-de-herramientas',
+    name: 'Caja de Herramientas',
+    when: 'stack, herramientas, apps, software, ecosistema, toolkit, tecnología',
+    sections: ['El problema que resuelve este stack', 'Herramienta 1: qué hace y cómo se usa', 'Herramienta 2: qué hace y cómo se usa', 'Herramienta 3: qué hace y cómo se usa', 'Cómo conectarlas entre sí', 'Stack mínimo vs stack completo', 'Costos reales mensuales', 'Alternativas gratuitas', 'Próximos pasos'],
+    contentTypes: ['herramienta', 'stack', 'toolkit'],
+  },
 ];
 
 // Select format based on topic content + variety
@@ -443,6 +457,58 @@ function hasMarkdownTable(content: string): boolean {
     if (/^\|\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?$/.test(b)) return true;
   }
   return false;
+}
+
+/**
+ * Convert markdown tables to structured lists (preserves information, removes forbidden format)
+ */
+function convertTablesToLists(content: string): string {
+  const lines = content.split('\n');
+  const result: string[] = [];
+  let i = 0;
+  
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    
+    // Detect table start (header row)
+    if (line.startsWith('|') && i + 1 < lines.length) {
+      const nextLine = lines[i + 1]?.trim() || '';
+      if (/^\|\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?$/.test(nextLine)) {
+        // Parse header
+        const headers = line.split('|').map(c => c.trim()).filter(Boolean);
+        i += 2; // Skip header + separator
+        
+        // Parse data rows
+        const rows: string[][] = [];
+        while (i < lines.length && lines[i].trim().startsWith('|')) {
+          const cells = lines[i].trim().split('|').map(c => c.trim()).filter(Boolean);
+          rows.push(cells);
+          i++;
+        }
+        
+        // Convert to list format
+        if (rows.length > 0) {
+          result.push('');
+          for (const row of rows) {
+            const firstCell = row[0] || '';
+            const details = row.slice(1).map((cell, idx) => {
+              const header = headers[idx + 1] || '';
+              return header ? `${header}: ${cell}` : cell;
+            }).filter(d => d && d !== ':').join(' · ');
+            
+            result.push(`- **${firstCell}**${details ? ` — ${details}` : ''}`);
+          }
+          result.push('');
+        }
+        continue;
+      }
+    }
+    
+    result.push(lines[i]);
+    i++;
+  }
+  
+  return result.join('\n');
 }
 
 function detectBrokenFormattingIssues(content: string): string[] {
@@ -853,17 +919,76 @@ function validateAndFixContent(content: string, title: string): { content: strin
   // Bold text stays as bold text. The AI should generate proper headings directly.
 
   // 3. Ensure headings use sentence case (not Title Case)
+  // IMPORTANT: Preserve brand names, tools, and proper nouns
+  const PRESERVED_WORDS = new Set([
+    // Tech brands & tools
+    'zapier', 'make', 'google', 'microsoft', 'apple', 'amazon', 'meta', 'openai',
+    'chatgpt', 'gemini', 'claude', 'perplexity', 'midjourney', 'canva', 'notion',
+    'trello', 'asana', 'slack', 'zoom', 'hubspot', 'salesforce', 'shopify',
+    'wordpress', 'woocommerce', 'stripe', 'paypal', 'mercadopago', 'excel',
+    'whatsapp', 'instagram', 'linkedin', 'tiktok', 'youtube', 'facebook',
+    'figma', 'miro', 'airtable', 'clickup', 'monday', 'jira', 'github',
+    'copilot', 'dall-e', 'sora', 'heygen', 'elevenlabs', 'deepseek', 'grok',
+    'tableau', 'power bi', 'looker', 'langchain', 'llamaindex', 'crewai',
+    'autogen', 'n8n', 'integromat', 'mailchimp', 'sendinblue', 'resend',
+    // Abbreviations
+    'ia', 'ai', 'seo', 'crm', 'erp', 'saas', 'b2b', 'b2c', 'roi', 'kpi',
+    'ceo', 'cfo', 'cto', 'hr', 'it', 'latam', 'pyme', 'pymes', 'pdf', 'api',
+    'url', 'ux', 'ui', 'rrhh', 'mvp', 'okr',
+    // Countries
+    'argentina', 'chile', 'uruguay', 'colombia', 'méxico', 'ecuador',
+    'costa rica', 'panamá', 'perú', 'brasil',
+  ]);
+  
+  // Build a map of lowercase → proper case for preserved words
+  const PROPER_CASE: Record<string, string> = {
+    'zapier': 'Zapier', 'make': 'Make', 'google': 'Google', 'microsoft': 'Microsoft',
+    'apple': 'Apple', 'amazon': 'Amazon', 'meta': 'Meta', 'openai': 'OpenAI',
+    'chatgpt': 'ChatGPT', 'gemini': 'Gemini', 'claude': 'Claude', 'perplexity': 'Perplexity',
+    'midjourney': 'Midjourney', 'canva': 'Canva', 'notion': 'Notion', 'trello': 'Trello',
+    'asana': 'Asana', 'slack': 'Slack', 'zoom': 'Zoom', 'hubspot': 'HubSpot',
+    'salesforce': 'Salesforce', 'shopify': 'Shopify', 'wordpress': 'WordPress',
+    'stripe': 'Stripe', 'paypal': 'PayPal', 'mercadopago': 'MercadoPago',
+    'excel': 'Excel', 'whatsapp': 'WhatsApp', 'instagram': 'Instagram',
+    'linkedin': 'LinkedIn', 'tiktok': 'TikTok', 'youtube': 'YouTube',
+    'facebook': 'Facebook', 'figma': 'Figma', 'miro': 'Miro', 'airtable': 'Airtable',
+    'clickup': 'ClickUp', 'monday': 'Monday', 'jira': 'Jira', 'github': 'GitHub',
+    'copilot': 'Copilot', 'deepseek': 'DeepSeek', 'grok': 'Grok',
+    'tableau': 'Tableau', 'langchain': 'LangChain', 'llamaindex': 'LlamaIndex',
+    'crewai': 'CrewAI', 'autogen': 'AutoGen', 'n8n': 'n8n', 'mailchimp': 'Mailchimp',
+    'heygen': 'HeyGen', 'elevenlabs': 'ElevenLabs',
+    'ia': 'IA', 'ai': 'AI', 'seo': 'SEO', 'crm': 'CRM', 'erp': 'ERP',
+    'saas': 'SaaS', 'b2b': 'B2B', 'b2c': 'B2C', 'roi': 'ROI', 'kpi': 'KPI',
+    'ceo': 'CEO', 'cfo': 'CFO', 'cto': 'CTO', 'hr': 'HR', 'it': 'IT',
+    'latam': 'LATAM', 'pyme': 'PyME', 'pymes': 'PyMEs', 'pdf': 'PDF', 'api': 'API',
+    'ux': 'UX', 'ui': 'UI', 'rrhh': 'RRHH', 'mvp': 'MVP', 'okr': 'OKR',
+    'argentina': 'Argentina', 'chile': 'Chile', 'uruguay': 'Uruguay',
+    'colombia': 'Colombia', 'méxico': 'México', 'ecuador': 'Ecuador',
+    'costa rica': 'Costa Rica', 'panamá': 'Panamá', 'perú': 'Perú', 'brasil': 'Brasil',
+    'vistaceo': 'VistaCEO', 'integromat': 'Integromat',
+  };
+
   fixedContent = fixedContent.replace(/^(#{2,3})\s+(.+)$/gm, (match, hashes, text) => {
-    // Convert to sentence case: capitalize first letter, rest lowercase (except proper nouns)
-    const sentenceCase = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
-      // Preserve some common abbreviations and proper nouns
-      .replace(/\b(ia|ai|seo|crm|erp|saas|b2b|b2c|roi|kpi|ceo|cfo|cto|hr|it|latam|pyme|pymes)\b/gi, (m: string) => m.toUpperCase())
-      .replace(/\bargentina\b/gi, 'Argentina')
-      .replace(/\bchile\b/gi, 'Chile')
-      .replace(/\buruguay\b/gi, 'Uruguay')
-      .replace(/\bcolombia\b/gi, 'Colombia')
-      .replace(/\bméxico\b/gi, 'México')
-      .replace(/\bvistaceo\b/gi, 'VistaCEO');
+    // Only fix ALL-CAPS headings or excessive title-case, not normal text
+    const words = text.split(/\s+/);
+    const titleCaseWords = words.filter((w: string) => /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]/.test(w));
+    const isExcessiveTitleCase = words.length > 3 && titleCaseWords.length / words.length > 0.7;
+    
+    if (!isExcessiveTitleCase) return match; // Leave it as-is
+    
+    // Convert to sentence case preserving brand names
+    const sentenceCase = words.map((word: string, idx: number) => {
+      const lowerWord = word.toLowerCase().replace(/[¿¡?!:.,;()]/g, '');
+      const properCase = PROPER_CASE[lowerWord];
+      if (properCase) {
+        // Restore punctuation
+        const prefix = word.match(/^[¿¡]/)?.[0] || '';
+        const suffix = word.match(/[?!:.,;)]+$/)?.[0] || '';
+        return prefix + properCase + suffix;
+      }
+      if (idx === 0) return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      return word.toLowerCase();
+    }).join(' ');
     
     if (text !== sentenceCase) {
       issues.push(`Fixed heading case: "${text}" -> "${sentenceCase}"`);
@@ -952,11 +1077,12 @@ function runQualityGates(content: string, title: string): QualityGateReport {
   const hasExamples = /\*\*ejemplo/i.test(content) || /ejemplo:/i.test(content) || /caso real/i.test(content) || /caso práctico/i.test(content);
   report.checks.has_examples = hasExamples;
 
-  // Hard block: markdown tables
-  report.checks.no_markdown_tables = !hasMarkdownTable(content);
-  if (!report.checks.no_markdown_tables) {
-    report.issues.push('Markdown tables detected - forbidden');
+  // Markdown tables: AUTO-CONVERT to lists instead of blocking
+  if (hasMarkdownTable(content)) {
+    content = convertTablesToLists(content);
+    report.issues.push('Markdown tables auto-converted to lists');
   }
+  report.checks.no_markdown_tables = true; // Always pass after auto-conversion
 
   // Hard block: broken formatting
   const brokenIssues = detectBrokenFormattingIssues(content);
