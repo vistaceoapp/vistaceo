@@ -62,30 +62,42 @@ const BATCH_CONFIG = {
 const QUESTIONS_CACHE_KEY = 'setupQuestionsCache';
 const QUESTIONS_META_KEY = 'setupQuestionsMeta';
 
-function getCachedQuestions(businessTypeId: string): UniversalQuestion[] | null {
+interface QuestionsCacheData {
+  questions: UniversalQuestion[];
+  timestamp: number;
+  businessTypeId: string;
+  setupMode: string;
+  allBatchesDone: boolean;
+}
+
+function getCachedQuestions(businessTypeId: string, setupMode: string): QuestionsCacheData | null {
   try {
     const cached = localStorage.getItem(QUESTIONS_CACHE_KEY);
     if (!cached) return null;
-    const { questions, timestamp, businessTypeId: cachedType } = JSON.parse(cached);
-    // Valid for 30 days AND same business type
+    const parsed: QuestionsCacheData = JSON.parse(cached);
+    // Valid for 30 days AND same business type AND same mode
     if (
-      Date.now() - timestamp < 30 * 24 * 60 * 60 * 1000 &&
-      questions?.length > 0 &&
-      cachedType === businessTypeId
+      Date.now() - parsed.timestamp < 30 * 24 * 60 * 60 * 1000 &&
+      parsed.questions?.length > 0 &&
+      parsed.businessTypeId === businessTypeId &&
+      parsed.setupMode === setupMode
     ) {
-      return questions;
+      return parsed;
     }
   } catch { /* ignore */ }
   return null;
 }
 
-function setCachedQuestions(questions: UniversalQuestion[], businessTypeId: string) {
+function setCachedQuestions(questions: UniversalQuestion[], businessTypeId: string, setupMode: string, allDone: boolean) {
   try {
-    localStorage.setItem(QUESTIONS_CACHE_KEY, JSON.stringify({
+    const data: QuestionsCacheData = {
       questions,
       timestamp: Date.now(),
       businessTypeId,
-    }));
+      setupMode,
+      allBatchesDone: allDone,
+    };
+    localStorage.setItem(QUESTIONS_CACHE_KEY, JSON.stringify(data));
   } catch { /* ignore */ }
 }
 
@@ -101,20 +113,22 @@ export const SetupStepQuestionnaire = ({
   onComplete,
   onBack,
 }: SetupStepQuestionnaireProps) => {
-  // Restore cached questions if returning (validated by businessTypeId)
-  const cachedQuestions = useMemo(() => getCachedQuestions(businessTypeId), [businessTypeId]);
-  const hasCache = cachedQuestions && cachedQuestions.length > 0;
+  // Restore cached questions if returning (validated by businessTypeId + setupMode)
+  const cacheData = useMemo(() => getCachedQuestions(businessTypeId, setupMode), [businessTypeId, setupMode]);
+  const hasCache = !!cacheData && cacheData.questions.length > 0;
+  const cacheComplete = !!cacheData?.allBatchesDone;
 
   const [currentIndex, setCurrentIndex] = useState(questionIndex);
-  const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cachedQuestions : []);
+  const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cacheData!.questions : []);
   const [isLoadingFirst, setIsLoadingFirst] = useState(!hasCache);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [generationError, setGenerationError] = useState(false);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
-  const backgroundFetchStarted = useRef(hasCache); // Don't re-fetch background if cached
-  const allBatchesDone = useRef(hasCache);
+  // Only skip background fetch if cache has ALL batches done
+  const backgroundFetchStarted = useRef(cacheComplete);
+  const allBatchesDone = useRef(cacheComplete);
   const latestAnswersRef = useRef(answers);
 
   const lang = COUNTRY_PACKS[countryCode]?.locale?.startsWith('pt') ? 'pt-BR' : 'es';
@@ -178,7 +192,7 @@ export const SetupStepQuestionnaire = ({
     try {
       const firstQuestions = await fetchQuestions(`${firstCount}-${firstCount + 2}`, 0);
       setQuestions(firstQuestions);
-      setCachedQuestions(firstQuestions, businessTypeId);
+      setCachedQuestions(firstQuestions, businessTypeId, setupMode, false);
       // Only reset index if we don't have a saved position
       if (questionIndex === 0) {
         setCurrentIndex(0);
@@ -215,7 +229,7 @@ export const SetupStepQuestionnaire = ({
           const existingIds = new Set(prev.map(q => q.id));
           const newQuestions = remaining.filter(q => !existingIds.has(q.id));
           const merged = [...prev, ...newQuestions];
-          setCachedQuestions(merged, businessTypeId);
+          setCachedQuestions(merged, businessTypeId, setupMode, true);
           return merged;
         });
       } else {
@@ -239,7 +253,7 @@ export const SetupStepQuestionnaire = ({
           const existingIds = new Set(prev.map(q => q.id));
           const allNew = results.flat().filter(q => q.id && !existingIds.has(q.id));
           const merged = [...prev, ...allNew];
-          setCachedQuestions(merged, businessTypeId);
+          setCachedQuestions(merged, businessTypeId, setupMode, true);
           return merged;
         });
       }
@@ -258,12 +272,19 @@ export const SetupStepQuestionnaire = ({
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Start background fetch once first batch is ready and user starts answering
+  // Start background fetch: immediately if returning with incomplete cache, or after first answer
   useEffect(() => {
-    if (!isLoadingFirst && questions.length > 0 && currentIndex >= 1 && !backgroundFetchStarted.current) {
+    if (backgroundFetchStarted.current || allBatchesDone.current) return;
+    // If we have cached questions but batches aren't done, start immediately
+    if (hasCache && !cacheComplete && questions.length > 0) {
+      generateRemainingBatches();
+      return;
+    }
+    // Otherwise wait until user answers first question
+    if (!isLoadingFirst && questions.length > 0 && currentIndex >= 1) {
       generateRemainingBatches();
     }
-  }, [isLoadingFirst, questions.length, currentIndex, generateRemainingBatches]);
+  }, [isLoadingFirst, questions.length, currentIndex, generateRemainingBatches, hasCache, cacheComplete]);
 
   // Cycle loading messages
   useEffect(() => {
