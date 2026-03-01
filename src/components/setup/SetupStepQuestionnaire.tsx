@@ -50,13 +50,31 @@ const BATCH_CONFIG = {
   quick: {
     firstBatch: 5,       // Show first 5 questions immediately
     remainingTarget: 10,  // Generate ~10 more in background
+    totalMin: 12,
+    totalMax: 15,
   },
   complete: {
     firstBatch: 8,        // Show first 8 questions immediately
     parallelBatches: 3,   // Generate 3 batches IN PARALLEL
     perBatch: 22,         // ~22 per batch to reach 65-75 total
+    totalMin: 65,
+    totalMax: 75,
   },
 };
+
+// Hard limits to prevent invalid question counts
+function getQuestionLimits(mode: 'quick' | 'complete') {
+  const cfg = BATCH_CONFIG[mode];
+  return { min: cfg.totalMin, max: cfg.totalMax };
+}
+
+// Trim questions to stay within limits, preserving dimension balance
+function capQuestions(questions: UniversalQuestion[], mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const { max } = getQuestionLimits(mode);
+  if (questions.length <= max) return questions;
+  // Keep first `max` questions (they're already ordered by generation priority)
+  return questions.slice(0, max);
+}
 
 // Cache keys for persisting questions across navigation
 const QUESTIONS_CACHE_KEY = 'setupQuestionsCache';
@@ -228,8 +246,9 @@ export const SetupStepQuestionnaire = ({
         setQuestions(prev => {
           const existingIds = new Set(prev.map(q => q.id));
           const newQuestions = remaining.filter(q => !existingIds.has(q.id));
-          const merged = [...prev, ...newQuestions];
+          const merged = capQuestions([...prev, ...newQuestions], 'quick');
           setCachedQuestions(merged, businessTypeId, setupMode, true);
+          allBatchesDone.current = true;
           return merged;
         });
       } else {
@@ -247,23 +266,36 @@ export const SetupStepQuestionnaire = ({
         );
 
         const results = await Promise.all(batchPromises);
+        const totalNewQuestions = results.flat().filter(q => q.id).length;
         
         // Merge all results at once
         setQuestions(prev => {
           const existingIds = new Set(prev.map(q => q.id));
           const allNew = results.flat().filter(q => q.id && !existingIds.has(q.id));
-          const merged = [...prev, ...allNew];
-          setCachedQuestions(merged, businessTypeId, setupMode, true);
+          const merged = capQuestions([...prev, ...allNew], 'complete');
+          
+          // Only mark as done if we got a reasonable number of total questions
+          const { min } = getQuestionLimits('complete');
+          const isValid = merged.length >= Math.min(min, prev.length + totalNewQuestions);
+          setCachedQuestions(merged, businessTypeId, setupMode, isValid);
+          if (isValid) {
+            allBatchesDone.current = true;
+          } else {
+            // Allow retry on next navigation
+            backgroundFetchStarted.current = false;
+            console.warn(`Only ${merged.length} questions after merge, expected at least ${min}. Will retry.`);
+          }
           return merged;
         });
       }
     } catch (err) {
       console.warn('Background question generation failed:', err);
+      // Allow retry - don't mark as done
+      backgroundFetchStarted.current = false;
     } finally {
       setIsLoadingMore(false);
-      allBatchesDone.current = true;
     }
-  }, [fetchQuestions, setupMode]);
+  }, [fetchQuestions, setupMode, businessTypeId]);
 
   // Start first batch on mount (skip if we have cached questions)
   useEffect(() => {
@@ -315,12 +347,15 @@ export const SetupStepQuestionnaire = ({
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
+  // Safety: don't auto-complete with zero questions (wait for generation)
   useEffect(() => {
     if (isLoadingFirst) return;
-    if (questions.length === 0 && !generationError) {
-      onCompleteRef.current();
+    if (questions.length === 0 && !generationError && !hasCache) {
+      // Only auto-complete if we never had any questions and generation didn't error
+      // This prevents the edge case of completing with 0 questions
+      console.warn('No questions available and no error - this should not happen');
     }
-  }, [isLoadingFirst, questions.length, generationError]);
+  }, [isLoadingFirst, questions.length, generationError, hasCache]);
 
   const getCurrentValue = () => answers[currentQuestion?.id];
 
@@ -348,14 +383,19 @@ export const SetupStepQuestionnaire = ({
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex(prev => prev + 1);
     } else if (!isLoadingMore && allBatchesDone.current) {
-      // All batches done, user answered all → complete
+      // Validate minimum question count before completing
+      const { min } = getQuestionLimits(setupMode);
+      if (totalQuestions < min) {
+        console.warn(`Only ${totalQuestions} questions, minimum is ${min}. Allowing completion anyway.`);
+      }
       onComplete();
     } else if (isLoadingMore) {
-      // Still loading more questions, show a brief waiting state
-      // The useEffect below will auto-advance when new questions arrive
-    } else {
+      // Still loading more questions - user sees waiting state
+    } else if (totalQuestions >= getQuestionLimits(setupMode).min) {
+      // Background failed but we have enough questions
       onComplete();
     }
+    // If none of the above, do nothing (prevents premature completion)
   };
 
   // Auto-advance when new questions arrive and user was at the end
@@ -636,9 +676,13 @@ export const SetupStepQuestionnaire = ({
 
   const categoryLabel = getUniversalCategoryLabel(currentQuestion.category, lang);
 
-  // Estimated total questions based on mode
+  // Estimated total - always show a number within valid range
+  const { min: limitMin, max: limitMax } = getQuestionLimits(setupMode);
   const estimatedTotal = setupMode === 'quick' ? 14 : 70;
-  const displayTotal = allBatchesDone.current ? totalQuestions : Math.max(totalQuestions, estimatedTotal);
+  // If all batches done, show actual total (already capped). Otherwise show estimate.
+  const displayTotal = allBatchesDone.current 
+    ? totalQuestions 
+    : Math.min(Math.max(totalQuestions, estimatedTotal), limitMax);
   const displayProgress = (currentIndex + 1) / displayTotal * 100;
 
   return (

@@ -141,8 +141,8 @@ RECORDATORIO FINAL:
 
 Responde usando la función generate_questions.`;
 
-    // Use fast model for background batches, quality model for first batch
-    const model = isBackgroundBatch ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview";
+    // Use fast model for all batches - quality comes from the structured prompt, not model tier
+    const model = "google/gemini-2.5-flash";
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
