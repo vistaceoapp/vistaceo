@@ -130,6 +130,66 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_audit_issues: {
+        Row: {
+          auto_fixable: boolean | null
+          created_at: string
+          description: string
+          fix_applied: boolean | null
+          fix_details: string | null
+          fixed_at: string | null
+          id: string
+          issue_type: string
+          location: string | null
+          post_id: string
+          registry_id: string
+          severity: string
+        }
+        Insert: {
+          auto_fixable?: boolean | null
+          created_at?: string
+          description: string
+          fix_applied?: boolean | null
+          fix_details?: string | null
+          fixed_at?: string | null
+          id?: string
+          issue_type: string
+          location?: string | null
+          post_id: string
+          registry_id: string
+          severity?: string
+        }
+        Update: {
+          auto_fixable?: boolean | null
+          created_at?: string
+          description?: string
+          fix_applied?: boolean | null
+          fix_details?: string | null
+          fixed_at?: string | null
+          id?: string
+          issue_type?: string
+          location?: string | null
+          post_id?: string
+          registry_id?: string
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_audit_issues_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_audit_issues_registry_id_fkey"
+            columns: ["registry_id"]
+            isOneToOne: false
+            referencedRelation: "blog_content_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_config: {
         Row: {
           created_at: string
@@ -150,6 +210,151 @@ export type Database = {
           value?: Json
         }
         Relationships: []
+      }
+      blog_content_registry: {
+        Row: {
+          assets_referenced: Json | null
+          category: string | null
+          cluster_assigned: string | null
+          created_at: string
+          experiment_history: Json | null
+          fault_radar: Json | null
+          fix_history: Json | null
+          id: string
+          internal_links_in: Json | null
+          internal_links_out: Json | null
+          keyword_variants: string[] | null
+          last_improved_at: string | null
+          pipeline_state: string
+          post_id: string
+          primary_keyword: string | null
+          published_at: string | null
+          score_coherence: number | null
+          score_conversion: number | null
+          score_global: number | null
+          score_interlinking: number | null
+          score_promises: number | null
+          score_seo: number | null
+          score_technical: number | null
+          score_ux: number | null
+          template_used: string | null
+          title_meta_history: Json | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          assets_referenced?: Json | null
+          category?: string | null
+          cluster_assigned?: string | null
+          created_at?: string
+          experiment_history?: Json | null
+          fault_radar?: Json | null
+          fix_history?: Json | null
+          id?: string
+          internal_links_in?: Json | null
+          internal_links_out?: Json | null
+          keyword_variants?: string[] | null
+          last_improved_at?: string | null
+          pipeline_state?: string
+          post_id: string
+          primary_keyword?: string | null
+          published_at?: string | null
+          score_coherence?: number | null
+          score_conversion?: number | null
+          score_global?: number | null
+          score_interlinking?: number | null
+          score_promises?: number | null
+          score_seo?: number | null
+          score_technical?: number | null
+          score_ux?: number | null
+          template_used?: string | null
+          title_meta_history?: Json | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          assets_referenced?: Json | null
+          category?: string | null
+          cluster_assigned?: string | null
+          created_at?: string
+          experiment_history?: Json | null
+          fault_radar?: Json | null
+          fix_history?: Json | null
+          id?: string
+          internal_links_in?: Json | null
+          internal_links_out?: Json | null
+          keyword_variants?: string[] | null
+          last_improved_at?: string | null
+          pipeline_state?: string
+          post_id?: string
+          primary_keyword?: string | null
+          published_at?: string | null
+          score_coherence?: number | null
+          score_conversion?: number | null
+          score_global?: number | null
+          score_interlinking?: number | null
+          score_promises?: number | null
+          score_seo?: number | null
+          score_technical?: number | null
+          score_ux?: number | null
+          template_used?: string | null
+          title_meta_history?: Json | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_content_registry_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_content_versions: {
+        Row: {
+          change_trigger: string
+          created_at: string
+          diff_summary: string
+          expected_result: string | null
+          id: string
+          registry_id: string
+          scores_at_version: Json | null
+          snapshot_data: Json
+          version_number: number
+        }
+        Insert: {
+          change_trigger: string
+          created_at?: string
+          diff_summary: string
+          expected_result?: string | null
+          id?: string
+          registry_id: string
+          scores_at_version?: Json | null
+          snapshot_data?: Json
+          version_number?: number
+        }
+        Update: {
+          change_trigger?: string
+          created_at?: string
+          diff_summary?: string
+          expected_result?: string | null
+          id?: string
+          registry_id?: string
+          scores_at_version?: Json | null
+          snapshot_data?: Json
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_content_versions_registry_id_fkey"
+            columns: ["registry_id"]
+            isOneToOne: false
+            referencedRelation: "blog_content_registry"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       blog_plan: {
         Row: {
@@ -327,6 +532,53 @@ export type Database = {
           },
         ]
       }
+      blog_quality_results: {
+        Row: {
+          auto_fixable: boolean | null
+          created_at: string
+          details: Json | null
+          fixed_at: string | null
+          gate_name: string
+          id: string
+          issues_found: Json | null
+          passed: boolean
+          registry_id: string
+          score: number | null
+        }
+        Insert: {
+          auto_fixable?: boolean | null
+          created_at?: string
+          details?: Json | null
+          fixed_at?: string | null
+          gate_name: string
+          id?: string
+          issues_found?: Json | null
+          passed?: boolean
+          registry_id: string
+          score?: number | null
+        }
+        Update: {
+          auto_fixable?: boolean | null
+          created_at?: string
+          details?: Json | null
+          fixed_at?: string | null
+          gate_name?: string
+          id?: string
+          issues_found?: Json | null
+          passed?: boolean
+          registry_id?: string
+          score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_quality_results_registry_id_fkey"
+            columns: ["registry_id"]
+            isOneToOne: false
+            referencedRelation: "blog_content_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_runs: {
         Row: {
           chosen_plan_id: string | null
@@ -423,6 +675,81 @@ export type Database = {
           triggered_by?: string | null
         }
         Relationships: []
+      }
+      blog_task_queue: {
+        Row: {
+          attempts: number | null
+          completed_at: string | null
+          created_at: string
+          description: string
+          id: string
+          max_attempts: number | null
+          payload: Json | null
+          post_id: string | null
+          priority: number
+          queue: string
+          registry_id: string | null
+          result: Json | null
+          scheduled_for: string | null
+          started_at: string | null
+          status: string
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          max_attempts?: number | null
+          payload?: Json | null
+          post_id?: string | null
+          priority?: number
+          queue?: string
+          registry_id?: string | null
+          result?: Json | null
+          scheduled_for?: string | null
+          started_at?: string | null
+          status?: string
+          task_type: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          max_attempts?: number | null
+          payload?: Json | null
+          post_id?: string | null
+          priority?: number
+          queue?: string
+          registry_id?: string | null
+          result?: Json | null
+          scheduled_for?: string | null
+          started_at?: string | null
+          status?: string
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_task_queue_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_task_queue_registry_id_fkey"
+            columns: ["registry_id"]
+            isOneToOne: false
+            referencedRelation: "blog_content_registry"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       blog_topics: {
         Row: {
