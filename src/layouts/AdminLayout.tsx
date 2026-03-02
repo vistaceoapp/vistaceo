@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { 
   LayoutDashboard, Newspaper, Users, BarChart3, Settings, 
-  Home, LogOut, Calendar, Database, Menu, X
+  Home, LogOut, Calendar, Database, Menu, X, Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,6 +18,7 @@ const navItems = [
   { label: 'Calendario', href: '/admin/calendario', icon: Calendar },
   { label: 'Usuarios', href: '/admin/usuarios', icon: Users },
   { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+  { label: 'Blog OS', href: '/admin/blog-os', icon: Shield },
   { label: 'Config', href: '/admin/config', icon: Settings, disabled: true },
 ];
 
