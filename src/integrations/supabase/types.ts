@@ -190,6 +190,51 @@ export type Database = {
           },
         ]
       }
+      blog_cluster_edges: {
+        Row: {
+          created_at: string | null
+          edge_type: string
+          id: string
+          metadata: Json | null
+          source_registry_id: string | null
+          target_registry_id: string | null
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          edge_type: string
+          id?: string
+          metadata?: Json | null
+          source_registry_id?: string | null
+          target_registry_id?: string | null
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          edge_type?: string
+          id?: string
+          metadata?: Json | null
+          source_registry_id?: string | null
+          target_registry_id?: string | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_cluster_edges_source_registry_id_fkey"
+            columns: ["source_registry_id"]
+            isOneToOne: false
+            referencedRelation: "blog_content_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_cluster_edges_target_registry_id_fkey"
+            columns: ["target_registry_id"]
+            isOneToOne: false
+            referencedRelation: "blog_content_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_config: {
         Row: {
           created_at: string
@@ -349,6 +394,135 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "blog_content_versions_registry_id_fkey"
+            columns: ["registry_id"]
+            isOneToOne: false
+            referencedRelation: "blog_content_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_cta_blocks: {
+        Row: {
+          block_type: string
+          content_md: string
+          conversion_rate: number | null
+          conversion_stage: string | null
+          country_match: string[] | null
+          created_at: string | null
+          id: string
+          intent_match: string[] | null
+          is_active: boolean | null
+          name: string
+          priority: number | null
+          sector_match: string[] | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          block_type: string
+          content_md: string
+          conversion_rate?: number | null
+          conversion_stage?: string | null
+          country_match?: string[] | null
+          created_at?: string | null
+          id?: string
+          intent_match?: string[] | null
+          is_active?: boolean | null
+          name: string
+          priority?: number | null
+          sector_match?: string[] | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          block_type?: string
+          content_md?: string
+          conversion_rate?: number | null
+          conversion_stage?: string | null
+          country_match?: string[] | null
+          created_at?: string | null
+          id?: string
+          intent_match?: string[] | null
+          is_active?: boolean | null
+          name?: string
+          priority?: number | null
+          sector_match?: string[] | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
+      blog_experiments: {
+        Row: {
+          active_variant: string | null
+          created_at: string | null
+          decision: string | null
+          ended_at: string | null
+          experiment_type: string
+          guardrail_reason: string | null
+          guardrail_triggered: boolean | null
+          hypothesis: string
+          id: string
+          measurement_window_hours: number | null
+          post_id: string | null
+          registry_id: string | null
+          results: Json | null
+          started_at: string | null
+          status: string | null
+          updated_at: string | null
+          variant_a: Json
+          variant_b: Json
+        }
+        Insert: {
+          active_variant?: string | null
+          created_at?: string | null
+          decision?: string | null
+          ended_at?: string | null
+          experiment_type: string
+          guardrail_reason?: string | null
+          guardrail_triggered?: boolean | null
+          hypothesis: string
+          id?: string
+          measurement_window_hours?: number | null
+          post_id?: string | null
+          registry_id?: string | null
+          results?: Json | null
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          variant_a?: Json
+          variant_b?: Json
+        }
+        Update: {
+          active_variant?: string | null
+          created_at?: string | null
+          decision?: string | null
+          ended_at?: string | null
+          experiment_type?: string
+          guardrail_reason?: string | null
+          guardrail_triggered?: boolean | null
+          hypothesis?: string
+          id?: string
+          measurement_window_hours?: number | null
+          post_id?: string | null
+          registry_id?: string | null
+          results?: Json | null
+          started_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          variant_a?: Json
+          variant_b?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_experiments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_experiments_registry_id_fkey"
             columns: ["registry_id"]
             isOneToOne: false
             referencedRelation: "blog_content_registry"
