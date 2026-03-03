@@ -11,9 +11,12 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import {
   RefreshCw, Shield, AlertTriangle, CheckCircle, XCircle,
-  Loader2, Zap, Target, FileText, Link2, Eye, TrendingUp,
-  AlertCircle, Bug, Search
+  Loader2, Zap, Target, FileText, Eye, TrendingUp,
+  AlertCircle, Bug, Search, Network, FlaskConical, Megaphone
 } from 'lucide-react';
+import BlogOSClustersTab from './blog-os/BlogOSClustersTab';
+import BlogOSExperimentsTab from './blog-os/BlogOSExperimentsTab';
+import BlogOSCTALibraryTab from './blog-os/BlogOSCTALibraryTab';
 
 export default function BlogOSPage() {
   const queryClient = useQueryClient();
@@ -21,7 +24,6 @@ export default function BlogOSPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [fixingPost, setFixingPost] = useState<string | null>(null);
 
-  // Fetch registry entries with scores
   const { data: registry, isLoading: loadingRegistry } = useQuery({
     queryKey: ['blog-os-registry'],
     queryFn: async () => {
@@ -34,7 +36,6 @@ export default function BlogOSPage() {
     },
   });
 
-  // Fetch audit issues
   const { data: issues } = useQuery({
     queryKey: ['blog-os-issues'],
     queryFn: async () => {
@@ -48,7 +49,6 @@ export default function BlogOSPage() {
     },
   });
 
-  // Fetch task queue
   const { data: tasks } = useQuery({
     queryKey: ['blog-os-tasks'],
     queryFn: async () => {
@@ -114,7 +114,6 @@ export default function BlogOSPage() {
     }
   };
 
-  // Stats
   const totalPosts = registry?.length || 0;
   const passingPosts = registry?.filter(r => r.score_global >= 94).length || 0;
   const failingPosts = totalPosts - passingPosts;
@@ -160,7 +159,7 @@ export default function BlogOSPage() {
               <Shield className="w-7 h-7 text-primary" />
               Blog OS — Modo Dios
             </h1>
-            <p className="text-muted-foreground">Registry, Quality Gates, Auditor Técnico</p>
+            <p className="text-muted-foreground">Registry · Quality Gates · Auditor · Clusters · CRO · A/B</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={syncRegistry} disabled={isSyncing}>
@@ -193,9 +192,9 @@ export default function BlogOSPage() {
           <Card>
             <CardContent className="pt-4 pb-3">
               <div className="text-sm text-muted-foreground flex items-center gap-1">
-                <XCircle className="w-3 h-3 text-red-500" /> Failing
+                <XCircle className="w-3 h-3 text-destructive" /> Failing
               </div>
-              <div className="text-2xl font-bold text-red-500">{failingPosts}</div>
+              <div className="text-2xl font-bold text-destructive">{failingPosts}</div>
             </CardContent>
           </Card>
           <Card>
@@ -208,9 +207,9 @@ export default function BlogOSPage() {
           <Card>
             <CardContent className="pt-4 pb-3">
               <div className="text-sm text-muted-foreground flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3 text-red-500" /> Críticos
+                <AlertTriangle className="w-3 h-3 text-destructive" /> Críticos
               </div>
-              <div className="text-2xl font-bold text-red-500">{criticalIssues}</div>
+              <div className="text-2xl font-bold text-destructive">{criticalIssues}</div>
               <div className="text-xs text-muted-foreground">{highIssues} altos</div>
             </CardContent>
           </Card>
@@ -219,18 +218,13 @@ export default function BlogOSPage() {
         {/* Main Tabs */}
         <Tabs defaultValue="registry" className="space-y-4">
           <TabsList className="flex-wrap">
-            <TabsTrigger value="registry">
-              <FileText className="w-4 h-4 mr-1" /> Registry
-            </TabsTrigger>
-            <TabsTrigger value="issues">
-              <Bug className="w-4 h-4 mr-1" /> Issues ({issues?.length || 0})
-            </TabsTrigger>
-            <TabsTrigger value="tasks">
-              <Target className="w-4 h-4 mr-1" /> Cola ({tasks?.length || 0})
-            </TabsTrigger>
-            <TabsTrigger value="scores">
-              <TrendingUp className="w-4 h-4 mr-1" /> Scores
-            </TabsTrigger>
+            <TabsTrigger value="registry"><FileText className="w-4 h-4 mr-1" /> Registry</TabsTrigger>
+            <TabsTrigger value="issues"><Bug className="w-4 h-4 mr-1" /> Issues ({issues?.length || 0})</TabsTrigger>
+            <TabsTrigger value="tasks"><Target className="w-4 h-4 mr-1" /> Cola ({tasks?.length || 0})</TabsTrigger>
+            <TabsTrigger value="scores"><TrendingUp className="w-4 h-4 mr-1" /> Scores</TabsTrigger>
+            <TabsTrigger value="clusters"><Network className="w-4 h-4 mr-1" /> Clusters</TabsTrigger>
+            <TabsTrigger value="experiments"><FlaskConical className="w-4 h-4 mr-1" /> A/B Tests</TabsTrigger>
+            <TabsTrigger value="cta"><Megaphone className="w-4 h-4 mr-1" /> CTAs</TabsTrigger>
           </TabsList>
 
           {/* Registry Tab */}
@@ -282,17 +276,8 @@ export default function BlogOSPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => auditSingle(entry.post_id)}
-                                disabled={fixingPost === entry.post_id}
-                              >
-                                {fixingPost === entry.post_id ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <Search className="w-3 h-3" />
-                                )}
+                              <Button size="sm" variant="ghost" onClick={() => auditSingle(entry.post_id)} disabled={fixingPost === entry.post_id}>
+                                {fixingPost === entry.post_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />}
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -309,10 +294,7 @@ export default function BlogOSPage() {
           <TabsContent value="issues">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5" />
-                  Issues Activos
-                </CardTitle>
+                <CardTitle className="flex items-center gap-2"><AlertCircle className="w-5 h-5" /> Issues Activos</CardTitle>
                 <CardDescription>Problemas detectados que requieren atención</CardDescription>
               </CardHeader>
               <CardContent>
@@ -363,13 +345,8 @@ export default function BlogOSPage() {
           <TabsContent value="tasks">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  Cola de Tareas Q1–Q5
-                </CardTitle>
-                <CardDescription>
-                  Q1 Críticas · Q2 SEO · Q3 Conversión · Q4 Editorial · Q5 Experimentación
-                </CardDescription>
+                <CardTitle className="flex items-center gap-2"><Target className="w-5 h-5" /> Cola de Tareas Q1–Q5</CardTitle>
+                <CardDescription>Q1 Críticas · Q2 SEO · Q3 Conversión · Q4 Editorial · Q5 Experimentación</CardDescription>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[500px]">
@@ -390,9 +367,7 @@ export default function BlogOSPage() {
                           <TableCell className="text-center font-mono">{task.priority}</TableCell>
                           <TableCell><Badge variant="outline" className="text-xs">{task.task_type}</Badge></TableCell>
                           <TableCell className="max-w-[300px] text-sm">{task.description}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="text-xs">{task.status}</Badge>
-                          </TableCell>
+                          <TableCell><Badge variant="outline" className="text-xs">{task.status}</Badge></TableCell>
                         </TableRow>
                       ))}
                       {(!tasks || tasks.length === 0) && (
@@ -409,33 +384,22 @@ export default function BlogOSPage() {
             </Card>
           </TabsContent>
 
-          {/* Scores Breakdown Tab */}
+          {/* Scores Tab */}
           <TabsContent value="scores">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
-                  Distribución de Scores
-                </CardTitle>
+                <CardTitle className="flex items-center gap-2"><TrendingUp className="w-5 h-5" /> Distribución de Scores</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {['coherence', 'promises', 'technical', 'seo', 'interlinking', 'ux', 'conversion'].map((dim) => {
-                    const key = `score_${dim}` as keyof typeof registry extends (infer U)[] ? keyof U : never;
                     const values = registry?.map(r => Number((r as any)[`score_${dim}`]) || 0) || [];
                     const avg = values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
                     const weight = { coherence: 20, promises: 20, technical: 15, seo: 15, interlinking: 10, ux: 10, conversion: 10 }[dim] || 0;
-                    
                     const labels: Record<string, string> = {
-                      coherence: 'Coherencia',
-                      promises: 'Promesas',
-                      technical: 'Integridad Técnica',
-                      seo: 'SEO Semántico',
-                      interlinking: 'Interlinking',
-                      ux: 'UX Humana',
-                      conversion: 'Conversión',
+                      coherence: 'Coherencia', promises: 'Promesas', technical: 'Integridad Técnica',
+                      seo: 'SEO Semántico', interlinking: 'Interlinking', ux: 'UX Humana', conversion: 'Conversión',
                     };
-
                     return (
                       <div key={dim} className="space-y-2">
                         <div className="flex justify-between items-center">
@@ -452,6 +416,21 @@ export default function BlogOSPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Clusters Tab */}
+          <TabsContent value="clusters">
+            <BlogOSClustersTab />
+          </TabsContent>
+
+          {/* Experiments Tab */}
+          <TabsContent value="experiments">
+            <BlogOSExperimentsTab />
+          </TabsContent>
+
+          {/* CTA Library Tab */}
+          <TabsContent value="cta">
+            <BlogOSCTALibraryTab />
           </TabsContent>
         </Tabs>
       </div>
