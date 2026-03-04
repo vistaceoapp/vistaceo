@@ -615,7 +615,7 @@ export const SetupStepQuestionnaire = ({
               )}
               <Input
                 type="number"
-                value={getCurrentValue() || ''}
+                value={getCurrentValue() === '__NOT_SURE__' ? '' : (getCurrentValue() || '')}
                 onChange={(e) => handleAnswer(e.target.value ? Number(e.target.value) : undefined)}
                 placeholder={lang === 'pt-BR' ? 'Digite um valor' : 'Ingresá un valor'}
                 className={cn(
@@ -624,36 +624,63 @@ export const SetupStepQuestionnaire = ({
                 )}
               />
             </div>
-            {(currentQuestion.type === 'money' || currentQuestion.id.includes('PRICE') || currentQuestion.id.includes('TICKET')) && (
+            {(currentQuestion.type === 'money' || currentQuestion.id.includes('PRICE') || currentQuestion.id.includes('TICKET')) && getCurrentValue() !== '__NOT_SURE__' && (
               <p className="text-center text-sm text-muted-foreground">
                 {currencyLabel}: {currency} {getCurrentValue()?.toLocaleString() || '---'}
               </p>
             )}
+            <button
+              onClick={() => handleAnswer('__NOT_SURE__')}
+              className={cn(
+                "w-full p-3 rounded-xl border-2 text-sm transition-all text-center",
+                getCurrentValue() === '__NOT_SURE__'
+                  ? "border-primary bg-primary/10 text-primary font-medium"
+                  : "border-border hover:border-primary/50 bg-card text-muted-foreground"
+              )}
+            >
+              {lang === 'pt-BR' ? '🤷 Não tenho certeza' : '🤷 No estoy seguro'}
+            </button>
           </div>
         );
 
       case 'slider': {
-        const sliderValue = getCurrentValue() ?? currentQuestion.min ?? 0;
+        const isNotSure = getCurrentValue() === '__NOT_SURE__';
+        const sliderValue = isNotSure ? (currentQuestion.min ?? 0) : (getCurrentValue() ?? currentQuestion.min ?? 0);
         return (
           <div className="space-y-6 py-4">
-            <div className="text-center">
-              <span className="text-4xl font-bold text-primary">{sliderValue}</span>
-              <span className="text-lg text-muted-foreground ml-2">
-                {currentQuestion.unit === '%' ? '%' : currentQuestion.unit}
-              </span>
-            </div>
-            <Slider
-              value={[sliderValue]}
-              min={currentQuestion.min || 0}
-              max={currentQuestion.max || 100}
-              step={1}
-              onValueChange={([val]) => handleAnswer(val)}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{currentQuestion.min || 0}</span>
-              <span>{currentQuestion.max || 100}</span>
-            </div>
+            {!isNotSure && (
+              <>
+                <div className="text-center">
+                  <span className="text-4xl font-bold text-primary">{sliderValue}</span>
+                  <span className="text-lg text-muted-foreground ml-2">
+                    {currentQuestion.unit === '%' ? '%' : currentQuestion.unit}
+                  </span>
+                </div>
+                <Slider
+                  value={[sliderValue]}
+                  min={currentQuestion.min || 0}
+                  max={currentQuestion.max || 100}
+                  step={1}
+                  onValueChange={([val]) => handleAnswer(val)}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{currentQuestion.min || 0}</span>
+                  <span>{currentQuestion.max || 100}</span>
+                </div>
+              </>
+            )}
+            <button
+              onClick={() => handleAnswer(isNotSure ? undefined : '__NOT_SURE__')}
+              className={cn(
+                "w-full p-3 rounded-xl border-2 text-sm transition-all text-center",
+                isNotSure
+                  ? "border-primary bg-primary/10 text-primary font-medium"
+                  : "border-border hover:border-primary/50 bg-card text-muted-foreground"
+              )}
+            >
+              {lang === 'pt-BR' ? '🤷 Não tenho certeza' : '🤷 No estoy seguro'}
+            </button>
           </div>
         );
       }

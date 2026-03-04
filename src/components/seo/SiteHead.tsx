@@ -51,8 +51,8 @@ const webSiteSchema = {
 };
 
 export function SiteHead({
-  title = "VISTACEO - Tu CEO Digital con IA",
-  description = "VISTACEO te dice qué hacer HOY en tu negocio. Un CEO digital con IA que piensa en tu empresa 24/7, cada vez más inteligente, para hacerla crecer según tus objetivos.",
+  title = "VISTACEO — IA que hace crecer tu negocio",
+  description = "Inteligencia artificial que detecta oportunidades, entrega insights estratégicos y genera misiones accionables para hacer crecer negocios, empresas y servicios profesionales.",
   path = "/",
   image = `${CANONICAL_DOMAIN}/og-default.png`,
   type = "website",

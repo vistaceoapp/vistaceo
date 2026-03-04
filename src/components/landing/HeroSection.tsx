@@ -96,9 +96,8 @@ export const HeroSection = () => {
           className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground mb-6 leading-tight tracking-tight"
         >
           <span className="block">
-            Tu próximo nivel con un <TypewriterText texts={ROTATING_TEXTS} className="text-gradient-primary" />
+            Inteligencia artificial que hace crecer tu negocio
           </span>
-          <span className="block">que piensa por vos</span>
         </motion.h1>
 
         {/* Subheadline */}
@@ -106,9 +105,9 @@ export const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-xl mx-auto"
+          className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
         >
-          Detecta oportunidades. Acciones claras. <span className="text-foreground font-medium">Resultados reales.</span>
+          VISTACEO detecta oportunidades, entrega insights estratégicos personalizados y genera misiones accionables para hacer crecer tu negocio, empresa o servicio profesional.
         </motion.p>
 
         {/* CTA */}
