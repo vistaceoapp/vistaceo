@@ -18,6 +18,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { sanitizeForUI } from "@/lib/presentationRegistry";
 import { GlassCard } from "./GlassCard";
 import {
   Tooltip,
@@ -354,7 +355,7 @@ export const BusinessHealthDashboard = () => {
               {weaknesses.slice(0, 2).map((w, i) => (
                 <p key={i} className="text-xs text-foreground flex items-start gap-2">
                   <span className="text-muted-foreground">•</span>
-                  {w}
+                  {sanitizeForUI(w)}
                 </p>
               ))}
             </div>

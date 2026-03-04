@@ -789,7 +789,7 @@ export const BusinessHealthAnalytics = () => {
             {(latestSnapshot.strengths || []).map((strength, i) => (
               <div key={i} className="flex items-start gap-2 p-3 rounded-lg bg-success/5 border border-success/20">
                 <CheckCircle2 className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-foreground">{strength}</span>
+                <span className="text-sm text-foreground">{String(strength).replace(/\(Q_[A-Z_]+\d*\)/g, '').replace(/Q_[A-Z]{2,}_\d+/g, '').trim()}</span>
               </div>
             ))}
             {(!latestSnapshot.strengths || latestSnapshot.strengths.length === 0) && (
@@ -810,7 +810,7 @@ export const BusinessHealthAnalytics = () => {
             {(latestSnapshot.weaknesses || []).map((weakness, i) => (
               <div key={i} className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
                 <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                <span className="text-sm text-foreground">{weakness}</span>
+                <span className="text-sm text-foreground">{String(weakness).replace(/\(Q_[A-Z_]+\d*\)/g, '').replace(/Q_[A-Z]{2,}_\d+/g, '').trim()}</span>
               </div>
             ))}
             {(!latestSnapshot.weaknesses || latestSnapshot.weaknesses.length === 0) && (
