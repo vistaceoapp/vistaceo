@@ -17,6 +17,7 @@ import {
 import BlogOSClustersTab from './blog-os/BlogOSClustersTab';
 import BlogOSExperimentsTab from './blog-os/BlogOSExperimentsTab';
 import BlogOSCTALibraryTab from './blog-os/BlogOSCTALibraryTab';
+import ObsessiveEditorTab from './blog-os/ObsessiveEditorTab';
 
 export default function BlogOSPage() {
   const queryClient = useQueryClient();
@@ -159,7 +160,7 @@ export default function BlogOSPage() {
               <Shield className="w-7 h-7 text-primary" />
               Blog OS — Modo Dios
             </h1>
-            <p className="text-muted-foreground">Registry · Quality Gates · Auditor · Clusters · CRO · A/B</p>
+            <p className="text-muted-foreground">Registry · Quality Gates · Auditor · Clusters · CRO · A/B · Obsessive Editor 24/7</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={syncRegistry} disabled={isSyncing}>
@@ -225,6 +226,7 @@ export default function BlogOSPage() {
             <TabsTrigger value="clusters"><Network className="w-4 h-4 mr-1" /> Clusters</TabsTrigger>
             <TabsTrigger value="experiments"><FlaskConical className="w-4 h-4 mr-1" /> A/B Tests</TabsTrigger>
             <TabsTrigger value="cta"><Megaphone className="w-4 h-4 mr-1" /> CTAs</TabsTrigger>
+            <TabsTrigger value="obsessive"><Zap className="w-4 h-4 mr-1" /> Editor 24/7</TabsTrigger>
           </TabsList>
 
           {/* Registry Tab */}
@@ -431,6 +433,11 @@ export default function BlogOSPage() {
           {/* CTA Library Tab */}
           <TabsContent value="cta">
             <BlogOSCTALibraryTab />
+          </TabsContent>
+
+          {/* Obsessive Editor 24/7 Tab */}
+          <TabsContent value="obsessive">
+            <ObsessiveEditorTab />
           </TabsContent>
         </Tabs>
       </div>

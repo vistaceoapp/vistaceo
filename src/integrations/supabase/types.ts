@@ -256,6 +256,45 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_content_blocks: {
+        Row: {
+          block_name: string
+          block_type: string
+          category_match: string[] | null
+          created_at: string | null
+          id: string
+          intent_match: string[] | null
+          is_active: boolean | null
+          template_md: string
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          block_name: string
+          block_type: string
+          category_match?: string[] | null
+          created_at?: string | null
+          id?: string
+          intent_match?: string[] | null
+          is_active?: boolean | null
+          template_md: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          block_name?: string
+          block_type?: string
+          category_match?: string[] | null
+          created_at?: string | null
+          id?: string
+          intent_match?: string[] | null
+          is_active?: boolean | null
+          template_md?: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       blog_content_registry: {
         Row: {
           assets_referenced: Json | null
@@ -2591,6 +2630,68 @@ export type Database = {
             columns: ["source_opportunity_id"]
             isOneToOne: false
             referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      obsessive_editor_runs: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          completed_at: string | null
+          created_at: string
+          cycle_id: string
+          error_message: string | null
+          id: string
+          phase: string
+          priority: string
+          result: Json | null
+          rollback_snapshot: Json | null
+          started_at: string | null
+          status: string
+          target_post_id: string | null
+          target_slug: string | null
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          completed_at?: string | null
+          created_at?: string
+          cycle_id: string
+          error_message?: string | null
+          id?: string
+          phase?: string
+          priority?: string
+          result?: Json | null
+          rollback_snapshot?: Json | null
+          started_at?: string | null
+          status?: string
+          target_post_id?: string | null
+          target_slug?: string | null
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          completed_at?: string | null
+          created_at?: string
+          cycle_id?: string
+          error_message?: string | null
+          id?: string
+          phase?: string
+          priority?: string
+          result?: Json | null
+          rollback_snapshot?: Json | null
+          started_at?: string | null
+          status?: string
+          target_post_id?: string | null
+          target_slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "obsessive_editor_runs_target_post_id_fkey"
+            columns: ["target_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
             referencedColumns: ["id"]
           },
         ]
