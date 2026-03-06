@@ -14,11 +14,11 @@ import { useState } from 'react';
 
 const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { label: 'Centro de Control', href: '/admin/centro-control', icon: Shield },
   { label: 'Blog Factory', href: '/admin/blog', icon: Newspaper },
   { label: 'Calendario', href: '/admin/calendario', icon: Calendar },
   { label: 'Usuarios', href: '/admin/usuarios', icon: Users },
   { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-  { label: 'Blog OS', href: '/admin/blog-os', icon: Shield },
   { label: 'Config', href: '/admin/config', icon: Settings, disabled: true },
 ];
 

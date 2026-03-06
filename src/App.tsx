@@ -38,6 +38,7 @@ const AdminCalendarPage = lazy(() => import("./pages/admin/AdminCalendarPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage"));
 const BlogOSPage = lazy(() => import("./pages/admin/BlogOSPage"));
+const CentroControlPage = lazy(() => import("./pages/admin/CentroControlPage"));
 
 // App pages - lazy loaded
 const AppLayout = lazy(() => import("./layouts/AppLayout"));
@@ -157,6 +158,7 @@ const AppRoutes = () => {
           <Route path="usuarios" element={<AdminUsersPage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
           <Route path="blog-os" element={<BlogOSPage />} />
+          <Route path="centro-control" element={<CentroControlPage />} />
           <Route path="config" element={<div className="p-6"><h1 className="text-2xl font-bold">Configuración - Próximamente</h1></div>} />
         </Route>
         
