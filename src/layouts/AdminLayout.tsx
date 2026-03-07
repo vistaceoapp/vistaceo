@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { 
-  LayoutDashboard, Newspaper, Users, BarChart3, Settings, 
+  LayoutDashboard, Users, BarChart3, Settings, 
   Home, LogOut, Calendar, Database, Menu, X, Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,6 @@ import { useState } from 'react';
 const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Centro de Control', href: '/admin/centro-control', icon: Shield },
-  { label: 'Blog Factory', href: '/admin/blog', icon: Newspaper },
   { label: 'Calendario', href: '/admin/calendario', icon: Calendar },
   { label: 'Usuarios', href: '/admin/usuarios', icon: Users },
   { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },

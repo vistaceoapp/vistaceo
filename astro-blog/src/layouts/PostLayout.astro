@@ -92,10 +92,10 @@ const schemas = [
         </div>
       )}
       
-      {post.excerpt && (
+      {post.excerpt && !post.excerpt.startsWith('![') && !/^\s*!\[/.test(post.excerpt) && post.excerpt.length > 20 && (
         <div class="post-takeaways">
           <h2>📌 Puntos Clave</h2>
-          <p>{post.excerpt}</p>
+          <p>{post.excerpt.replace(/!\[[^\]]*\]\([^)]*\)/g, '').trim()}</p>
         </div>
       )}
       
