@@ -317,8 +317,8 @@ async function phaseFix(supabase: any, cycleId: string) {
       // Clean up artifacts
       content = content.replace(/\n{3,}/g, "\n\n").trim();
       
-      await supabase.from("blog_posts").update({ content_md: content, updated_at: new Date().toISOString() }).eq("id", postId);
-      await logRun(supabase, cycleId, `fix_${actionType}`, "P0", "fixed", postId, post.slug, {}, { changes: "auto_repaired" }, snapshot);
+      await supabase.from("blog_posts").update({ content_md: content, updated_at: new Date().toISOString(), ...updateFields }).eq("id", postId);
+      await logRun(supabase, cycleId, `fix_${actionType}`, "P0", "fixed", postId, post.slug, {}, { changes: "auto_repaired", fields_updated: Object.keys(updateFields) }, snapshot);
       fixed++;
     } else {
       await supabase.from("obsessive_editor_runs").update({ status: "skipped" }).eq("id", issue.id);
