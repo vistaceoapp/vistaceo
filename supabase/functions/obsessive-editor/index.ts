@@ -249,21 +249,43 @@ async function phaseFix(supabase: any, cycleId: string) {
 
     const { data: post } = await supabase
       .from("blog_posts")
-      .select("id, slug, content_md, title, meta_title, meta_description")
+      .select("id, slug, content_md, excerpt, title, meta_title, meta_description")
       .eq("id", postId)
       .maybeSingle();
 
     if (!post) continue;
 
     // Save rollback snapshot
-    const snapshot = { content_md: post.content_md, meta_title: post.meta_title, meta_description: post.meta_description };
+    const snapshot = { content_md: post.content_md, excerpt: post.excerpt, meta_title: post.meta_title, meta_description: post.meta_description };
     let content = post.content_md || "";
+    let excerpt = post.excerpt || "";
     let wasFixed = false;
+    let updateFields: Record<string, any> = {};
     const actionType = issue.action_details?.issue_type;
+
+    // Fix: Broken excerpt (raw markdown image)
+    if (actionType === "broken_excerpt") {
+      // Generate a clean excerpt from the first paragraph of content
+      const firstPara = content.split(/\n\n/)[0]?.replace(/[#*_\[\]()!]/g, '').trim() || "";
+      const cleanExcerpt = firstPara.slice(0, 200).trim();
+      if (cleanExcerpt.length > 20) {
+        updateFields.excerpt = cleanExcerpt;
+        wasFixed = true;
+      }
+    }
+
+    // Fix: Remove broken/truncated inline images
+    if (actionType === "broken_inline_image" || actionType === "truncated_image_url") {
+      // Remove broken image markdown where URL is truncated
+      content = content.replace(/!\[[^\]]*\]\([^)]*supabase\.co\/storage[^)]*$/gm, "");
+      // Remove orphaned image references with incomplete URLs
+      content = content.replace(/!\[[^\]]*\]\(https?:\/\/[^\s)]*\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s)]*[^.)\s"']\)?/g, "");
+      wasFixed = true;
+    }
 
     // Fix: Remove placeholders
     if (actionType === "visible_placeholder") {
-      content = content.replace(/\[TODO\]|\[PLACEHOLDER\]|\[INSERT\]|\[ENLACE\]|\[LINK\]/gi, "");
+      content = content.replace(/\[TODO\]|\[PLACEHOLDER\]|\[INSERT\]|\[ENLACE\]|\[LINK\]|\[Tu título aquí\]|\[Insertar[^\]]*\]/gi, "");
       content = content.replace(/{{.*?}}/g, "");
       wasFixed = true;
     }
@@ -283,9 +305,8 @@ async function phaseFix(supabase: any, cycleId: string) {
       wasFixed = true;
     }
 
-    // Fix: Remove broken promise headings (no table/checklist/download exists)
+    // Fix: Remove broken promise headings
     if (actionType === "promised_table_missing" || actionType === "promised_checklist_missing" || actionType === "promised_download_missing") {
-      // Remove the heading that promises something that doesn't exist
       if (actionType === "promised_download_missing") {
         content = content.replace(/^##\s*(Descarga|Plantilla descargable)[^\n]*\n[^#]*/gim, "");
       }
