@@ -103,7 +103,7 @@ async function phaseScan(supabase: any, cycleId: string) {
 
   const { data: posts } = await supabase
     .from("blog_posts")
-    .select("id, slug, title, content_md, hero_image_url, meta_title, meta_description, internal_links, external_sources, category, primary_keyword, publish_at, updated_at")
+    .select("id, slug, title, content_md, excerpt, hero_image_url, meta_title, meta_description, internal_links, external_sources, category, primary_keyword, publish_at, updated_at")
     .eq("status", "published")
     .order("publish_at", { ascending: false });
 
@@ -111,11 +111,8 @@ async function phaseScan(supabase: any, cycleId: string) {
 
   let issuesFound = 0;
 
-  // Scan newest 10 + random sample of 5 older posts
-  const newest = posts.slice(0, 10);
-  const older = posts.slice(10);
-  const sampleOlder = older.sort(() => Math.random() - 0.5).slice(0, 5);
-  const toScan = [...newest, ...sampleOlder];
+  // Scan ALL posts for P0 issues, not just a sample
+  const toScan = posts;
 
   for (const post of toScan) {
     const issues = scanPost(post);
@@ -134,14 +131,35 @@ async function phaseScan(supabase: any, cycleId: string) {
 function scanPost(post: any): Array<{ type: string; priority: string; description: string }> {
   const issues: Array<{ type: string; priority: string; description: string }> = [];
   const content = post.content_md || "";
+  const excerpt = post.excerpt || "";
+
+  // P0: Broken excerpt (raw markdown image or truncated URL)
+  if (excerpt && (/^!\[/.test(excerpt) || /\]\(https?:\/\//.test(excerpt) || /supabase\.co\/storage/i.test(excerpt))) {
+    issues.push({ type: "broken_excerpt", priority: "P0", description: "Excerpt contains raw markdown image or broken URL" });
+  }
 
   // P0: Broken trust indicators
   if (!post.hero_image_url || !post.hero_image_url.startsWith("https://")) {
     issues.push({ type: "missing_hero_image", priority: "P0", description: "No hero image or invalid URL" });
   }
 
+  // P0: Raw markdown image syntax visible in content (not rendered)
+  const rawImgPatterns = content.match(/!\[[^\]]*\]\([^)]*supabase\.co\/storage[^)]*$/gm);
+  if (rawImgPatterns) {
+    issues.push({ type: "broken_inline_image", priority: "P0", description: `${rawImgPatterns.length} broken/truncated image references` });
+  }
+
+  // P0: Truncated URLs (ending abruptly)
+  const truncatedUrls = content.match(/https?:\/\/[^\s)"']*\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s)"']*[^.)\s"']/g);
+  if (truncatedUrls) {
+    const broken = truncatedUrls.filter(u => !u.match(/\.(png|jpg|jpeg|gif|webp|svg)$/i));
+    if (broken.length > 0) {
+      issues.push({ type: "truncated_image_url", priority: "P0", description: `${broken.length} truncated image URLs` });
+    }
+  }
+
   // P0: Placeholder text visible
-  const placeholders = content.match(/\[TODO\]|\[PLACEHOLDER\]|\[INSERT\]|Lorem ipsum|{{.*?}}|\[ENLACE\]|\[LINK\]/gi);
+  const placeholders = content.match(/\[TODO\]|\[PLACEHOLDER\]|\[INSERT\]|Lorem ipsum|{{.*?}}|\[ENLACE\]|\[LINK\]|\[Tu título aquí\]|\[Insertar/gi);
   if (placeholders) {
     issues.push({ type: "visible_placeholder", priority: "P0", description: `Found ${placeholders.length} placeholders` });
   }
@@ -163,7 +181,6 @@ function scanPost(post: any): Array<{ type: string; priority: string; descriptio
     issues.push({ type: "promised_table_missing", priority: "P0", description: "Mentions table but none exists" });
   }
   if (/checklist|lista de verificación/i.test(content) && !/- \[[ x]\]/i.test(content)) {
-    // Only flag if it's clearly promising a checklist in the title/headings
     if (/^##.*checklist/im.test(content)) {
       issues.push({ type: "promised_checklist_missing", priority: "P0", description: "Heading promises checklist but none found" });
     }
