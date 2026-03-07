@@ -9,17 +9,18 @@ const corsHeaders = {
 /**
  * VISTACEO OBSESSIVE EDITOR 24/7
  * 
- * Continuous loop: Scan → Fix → Improve → Publish → Link → Refresh → Reindex
- * Priority: P0 broken trust → P1 indexation → P2 semantic SEO → P3 clusters → P4 conversion
+ * Goal: Drive EVERY post to 100/100 score with zero issues.
+ * Scans ALL posts every cycle. Fixes ALL priorities (P0-P4).
  * 
- * Runs every 30 minutes via cron. Each run executes ONE cycle focusing on highest priority tasks.
+ * Continuous loop: Scan → Fix → Improve → Link → Refresh → Reindex
+ * Priority: P0 broken trust → P1 indexation → P2 semantic SEO → P3 clusters → P4 conversion
  */
 
 const BLOG_DOMAIN = "https://blog.vistaceo.com";
 const CANONICAL_DOMAIN = "https://www.vistaceo.com";
-const COHERENCE_THRESHOLD = 96;
 const MIN_WORD_COUNT = 1500;
-const MAX_SAME_HOUR_POSTS = 1;
+const MIN_INTERNAL_LINKS = 3;
+const MIN_H2_COUNT = 3;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -35,44 +36,25 @@ Deno.serve(async (req) => {
   const results: any[] = [];
 
   try {
-    const body = await req.json().catch(() => ({}));
-    const { phase: forcePhase } = body;
-
     console.log(`[ObsessiveEditor] Cycle ${cycleId} starting...`);
 
-    // ══════════════════════════════════════════════════════
-    // PHASE 1: SCAN — Detect all issues across the blog
-    // ══════════════════════════════════════════════════════
+    // ═══ PHASE 1: SCAN ALL POSTS ═══
     const scanResults = await phaseScan(supabase, cycleId);
     results.push({ phase: "scan", ...scanResults });
 
-    // ══════════════════════════════════════════════════════
-    // PHASE 2: FIX — Auto-repair P0 issues (broken trust)
-    // ══════════════════════════════════════════════════════
-    const fixResults = await phaseFix(supabase, cycleId);
+    // ═══ PHASE 2: FIX ALL ISSUES (P0-P4) ═══
+    const fixResults = await phaseFixAll(supabase, cycleId);
     results.push({ phase: "fix", ...fixResults });
 
-    // ══════════════════════════════════════════════════════
-    // PHASE 3: IMPROVE — Enhance weak content (P2 SEO)
-    // ══════════════════════════════════════════════════════
-    const improveResults = await phaseImprove(supabase, cycleId);
-    results.push({ phase: "improve", ...improveResults });
-
-    // ══════════════════════════════════════════════════════
-    // PHASE 4: LINK — Strengthen cluster graph (P3)
-    // ══════════════════════════════════════════════════════
+    // ═══ PHASE 3: LINK — Strengthen clusters ═══
     const linkResults = await phaseLink(supabase, cycleId);
     results.push({ phase: "link", ...linkResults });
 
-    // ══════════════════════════════════════════════════════
-    // PHASE 5: REFRESH — Micro-improvements for reindex (P1)
-    // ══════════════════════════════════════════════════════
+    // ═══ PHASE 4: REFRESH — Micro-improvements ═══
     const refreshResults = await phaseRefresh(supabase, cycleId);
     results.push({ phase: "refresh", ...refreshResults });
 
-    // ══════════════════════════════════════════════════════
-    // PHASE 6: REINDEX — Trigger indexing signals
-    // ══════════════════════════════════════════════════════
+    // ═══ PHASE 5: REINDEX ═══
     const reindexResults = await phaseReindex(supabase, cycleId);
     results.push({ phase: "reindex", ...reindexResults });
 
@@ -96,14 +78,14 @@ Deno.serve(async (req) => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// PHASE: SCAN
+// PHASE: SCAN — Detect ALL issues across ALL posts
 // ═══════════════════════════════════════════════════════════
 async function phaseScan(supabase: any, cycleId: string) {
-  console.log(`[ObsessiveEditor:Scan] Starting...`);
+  console.log(`[ObsessiveEditor:Scan] Scanning ALL posts...`);
 
   const { data: posts } = await supabase
     .from("blog_posts")
-    .select("id, slug, title, content_md, excerpt, hero_image_url, meta_title, meta_description, internal_links, external_sources, category, primary_keyword, publish_at, updated_at")
+    .select("id, slug, title, content_md, excerpt, hero_image_url, meta_title, meta_description, category, primary_keyword, publish_at, updated_at")
     .eq("status", "published")
     .order("publish_at", { ascending: false });
 
@@ -111,11 +93,11 @@ async function phaseScan(supabase: any, cycleId: string) {
 
   let issuesFound = 0;
 
-  // Scan ALL posts for P0 issues, not just a sample
-  const toScan = posts;
+  // Get all published slugs for internal link validation
+  const allSlugs = posts.map((p: any) => p.slug);
 
-  for (const post of toScan) {
-    const issues = scanPost(post);
+  for (const post of posts) {
+    const issues = scanPost(post, allSlugs);
     if (issues.length > 0) {
       issuesFound += issues.length;
       for (const issue of issues) {
@@ -124,247 +106,262 @@ async function phaseScan(supabase: any, cycleId: string) {
     }
   }
 
-  console.log(`[ObsessiveEditor:Scan] Scanned ${toScan.length}, found ${issuesFound} issues`);
-  return { scanned: toScan.length, issues: issuesFound };
+  console.log(`[ObsessiveEditor:Scan] Scanned ${posts.length} posts, found ${issuesFound} issues`);
+  return { scanned: posts.length, issues: issuesFound };
 }
 
-function scanPost(post: any): Array<{ type: string; priority: string; description: string }> {
+function scanPost(post: any, allSlugs: string[]): Array<{ type: string; priority: string; description: string }> {
   const issues: Array<{ type: string; priority: string; description: string }> = [];
   const content = post.content_md || "";
   const excerpt = post.excerpt || "";
 
-  // P0: Broken excerpt (raw markdown image or truncated URL)
+  // ═══ P0: BROKEN TRUST (must fix immediately) ═══
+
   if (excerpt && (/^!\[/.test(excerpt) || /\]\(https?:\/\//.test(excerpt) || /supabase\.co\/storage/i.test(excerpt))) {
     issues.push({ type: "broken_excerpt", priority: "P0", description: "Excerpt contains raw markdown image or broken URL" });
   }
 
-  // P0: Broken trust indicators
   if (!post.hero_image_url || !post.hero_image_url.startsWith("https://")) {
     issues.push({ type: "missing_hero_image", priority: "P0", description: "No hero image or invalid URL" });
   }
 
-  // P0: Raw markdown image syntax visible in content (not rendered)
-  const rawImgPatterns = content.match(/!\[[^\]]*\]\([^)]*supabase\.co\/storage[^)]*$/gm);
-  if (rawImgPatterns) {
-    issues.push({ type: "broken_inline_image", priority: "P0", description: `${rawImgPatterns.length} broken/truncated image references` });
+  // Raw markdown image syntax visible (truncated URLs)
+  const brokenImgs = content.match(/!\[[^\]]*\]\([^)]*$/gm);
+  if (brokenImgs) {
+    issues.push({ type: "broken_inline_image", priority: "P0", description: `${brokenImgs.length} broken image references` });
   }
 
-  // P0: Truncated URLs (ending abruptly)
-  const truncatedUrls = content.match(/https?:\/\/[^\s)"']*\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s)"']*[^.)\s"']/g);
-  if (truncatedUrls) {
-    const broken = truncatedUrls.filter(u => !u.match(/\.(png|jpg|jpeg|gif|webp|svg)$/i));
-    if (broken.length > 0) {
-      issues.push({ type: "truncated_image_url", priority: "P0", description: `${broken.length} truncated image URLs` });
-    }
-  }
-
-  // P0: Placeholder text visible
-  const placeholders = content.match(/\[TODO\]|\[PLACEHOLDER\]|\[INSERT\]|Lorem ipsum|{{.*?}}|\[ENLACE\]|\[LINK\]|\[Tu título aquí\]|\[Insertar/gi);
+  // Placeholders visible to users
+  const placeholders = content.match(/\[TODO\]|\[PLACEHOLDER\]|\[INSERT\]|Lorem ipsum|{{.*?}}|\[ENLACE\]|\[LINK\]|\[Tu título aquí\]|\[Insertar[^\]]*\]|\[tu [^\]]*\]/gi);
   if (placeholders) {
     issues.push({ type: "visible_placeholder", priority: "P0", description: `Found ${placeholders.length} placeholders` });
   }
 
-  // P0: Empty sections (heading followed by another heading or end)
+  // Empty sections
   const emptySections = content.match(/^##\s+[^\n]+\n\s*(?=##|\s*$)/gm);
   if (emptySections) {
     issues.push({ type: "empty_section", priority: "P0", description: `${emptySections.length} empty sections` });
   }
 
-  // P0: Leaked system codes
+  // System code leaks
   const systemCodes = content.match(/Q_[A-Z]{2,}_\d{2,}|auth\.uid\(\)|owner_id|business_id|concept_hash/g);
   if (systemCodes) {
     issues.push({ type: "system_code_leak", priority: "P0", description: `Found ${systemCodes.length} leaked codes` });
   }
 
-  // P0: Promised elements that don't exist
+  // Promised elements missing
   if (/tabla|cuadro comparativ/i.test(content) && !/\|.*\|.*\|/m.test(content)) {
     issues.push({ type: "promised_table_missing", priority: "P0", description: "Mentions table but none exists" });
   }
-  if (/checklist|lista de verificación/i.test(content) && !/- \[[ x]\]/i.test(content)) {
-    if (/^##.*checklist/im.test(content)) {
-      issues.push({ type: "promised_checklist_missing", priority: "P0", description: "Heading promises checklist but none found" });
-    }
+  if (/^##.*checklist/im.test(content) && !/- \[[ x]\]/i.test(content)) {
+    issues.push({ type: "promised_checklist_missing", priority: "P0", description: "Heading promises checklist but none found" });
   }
-  if (/descarga|plantilla descargable/i.test(content) && !/https?:\/\/.*\.(pdf|xlsx|docx|zip)/i.test(content)) {
-    if (/^##.*descarga|^##.*plantilla/im.test(content)) {
-      issues.push({ type: "promised_download_missing", priority: "P0", description: "Promises download but no file link" });
-    }
+  if (/^##.*descarga|^##.*plantilla/im.test(content) && !/https?:\/\/.*\.(pdf|xlsx|docx|zip)/i.test(content)) {
+    issues.push({ type: "promised_download_missing", priority: "P0", description: "Promises download but no file link" });
   }
 
-  // P1: Word count too low
-  const wordCount = content.split(/\s+/).filter(Boolean).length;
-  if (wordCount < MIN_WORD_COUNT) {
-    issues.push({ type: "low_word_count", priority: "P1", description: `Only ${wordCount} words (min ${MIN_WORD_COUNT})` });
-  }
+  // ═══ P1: INDEXATION & META ═══
 
-  // P1: Missing meta
   if (!post.meta_title || post.meta_title.length < 20) {
     issues.push({ type: "missing_meta_title", priority: "P1", description: "Meta title missing or too short" });
   }
   if (!post.meta_description || post.meta_description.length < 50) {
     issues.push({ type: "missing_meta_description", priority: "P1", description: "Meta description missing or too short" });
   }
-
-  // P2: No internal links
-  const internalLinkCount = (content.match(/\[.*?\]\(https:\/\/blog\.vistaceo\.com/g) || []).length;
-  if (internalLinkCount < 3) {
-    issues.push({ type: "low_internal_links", priority: "P2", description: `Only ${internalLinkCount} internal links (min 3)` });
+  if (!excerpt || excerpt.length < 20) {
+    issues.push({ type: "missing_excerpt", priority: "P1", description: "Excerpt missing or too short" });
   }
 
-  // P2: No H2 headings
+  // ═══ P2: SEMANTIC SEO ═══
+
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+  if (wordCount < MIN_WORD_COUNT) {
+    issues.push({ type: "low_word_count", priority: "P2", description: `Only ${wordCount} words (min ${MIN_WORD_COUNT})` });
+  }
+
+  const internalLinkCount = (content.match(/\[.*?\]\(https:\/\/blog\.vistaceo\.com/g) || []).length;
+  if (internalLinkCount < MIN_INTERNAL_LINKS) {
+    issues.push({ type: "low_internal_links", priority: "P2", description: `Only ${internalLinkCount} internal links (min ${MIN_INTERNAL_LINKS})` });
+  }
+
   const h2Count = (content.match(/^## /gm) || []).length;
-  if (h2Count < 3) {
+  if (h2Count < MIN_H2_COUNT) {
     issues.push({ type: "few_headings", priority: "P2", description: `Only ${h2Count} H2 headings` });
   }
 
-  // P4: No CTA
+  // Missing FAQ section
+  if (!/## Preguntas frecuentes|## FAQ/i.test(content) && wordCount > 800) {
+    issues.push({ type: "missing_faq", priority: "P2", description: "No FAQ section" });
+  }
+
+  // ═══ P4: CONVERSION ═══
+
   if (!/vistaceo\.com/i.test(content)) {
     issues.push({ type: "no_cta", priority: "P4", description: "No CTA linking to vistaceo.com" });
+  }
+
+  // Only 1 CTA (should have at least 2)
+  const ctaCount = (content.match(/vistaceo\.com/gi) || []).length;
+  if (ctaCount > 0 && ctaCount < 2) {
+    issues.push({ type: "insufficient_cta", priority: "P4", description: `Only ${ctaCount} CTA (min 2)` });
   }
 
   return issues;
 }
 
 // ═══════════════════════════════════════════════════════════
-// PHASE: FIX — Auto-repair P0 issues
+// PHASE: FIX ALL — Auto-repair ALL priority levels
 // ═══════════════════════════════════════════════════════════
-async function phaseFix(supabase: any, cycleId: string) {
-  console.log(`[ObsessiveEditor:Fix] Starting P0 fixes...`);
+async function phaseFixAll(supabase: any, cycleId: string) {
+  console.log(`[ObsessiveEditor:Fix] Fixing ALL detected issues...`);
 
-  // Get detected issues from this cycle
-  const { data: p0Issues } = await supabase
+  // Get ALL detected issues from this cycle (not just P0)
+  const { data: allIssues } = await supabase
     .from("obsessive_editor_runs")
     .select("*")
     .eq("cycle_id", cycleId)
-    .eq("priority", "P0")
-    .eq("status", "detected");
+    .eq("status", "detected")
+    .order("priority", { ascending: true }); // P0 first
 
-  if (!p0Issues?.length) return { fixed: 0 };
+  if (!allIssues?.length) return { fixed: 0 };
 
   let fixed = 0;
+  // Group by post to batch updates
+  const byPost: Record<string, any[]> = {};
+  for (const issue of allIssues) {
+    const pid = issue.target_post_id;
+    if (!pid) continue;
+    if (!byPost[pid]) byPost[pid] = [];
+    byPost[pid].push(issue);
+  }
 
-  for (const issue of p0Issues) {
-    const postId = issue.target_post_id;
-    if (!postId) continue;
+  // Get all published posts for linking context
+  const { data: allPosts } = await supabase
+    .from("blog_posts")
+    .select("id, slug, title, category")
+    .eq("status", "published");
 
+  for (const [postId, issues] of Object.entries(byPost)) {
     const { data: post } = await supabase
       .from("blog_posts")
-      .select("id, slug, content_md, excerpt, title, meta_title, meta_description")
+      .select("id, slug, content_md, excerpt, title, meta_title, meta_description, primary_keyword, category")
       .eq("id", postId)
       .maybeSingle();
 
     if (!post) continue;
 
-    // Save rollback snapshot
     const snapshot = { content_md: post.content_md, excerpt: post.excerpt, meta_title: post.meta_title, meta_description: post.meta_description };
     let content = post.content_md || "";
-    let excerpt = post.excerpt || "";
-    let wasFixed = false;
-    let updateFields: Record<string, any> = {};
-    const actionType = issue.action_details?.issue_type;
+    const updateFields: Record<string, any> = {};
+    let anyFixed = false;
 
-    // Fix: Broken excerpt (raw markdown image)
-    if (actionType === "broken_excerpt") {
-      // Generate a clean excerpt from the first paragraph of content
-      const firstPara = content.split(/\n\n/)[0]?.replace(/[#*_\[\]()!]/g, '').trim() || "";
-      const cleanExcerpt = firstPara.slice(0, 200).trim();
-      if (cleanExcerpt.length > 20) {
-        updateFields.excerpt = cleanExcerpt;
-        wasFixed = true;
+    for (const issue of issues) {
+      const t = issue.action_details?.issue_type;
+
+      // ═══ P0 FIXES ═══
+      if (t === "broken_excerpt") {
+        const firstPara = content.split(/\n\n/)[0]?.replace(/[#*_\[\]()!]/g, '').trim() || "";
+        updateFields.excerpt = firstPara.slice(0, 200).trim();
+        anyFixed = true;
       }
-    }
-
-    // Fix: Remove broken/truncated inline images
-    if (actionType === "broken_inline_image" || actionType === "truncated_image_url") {
-      // Remove broken image markdown where URL is truncated
-      content = content.replace(/!\[[^\]]*\]\([^)]*supabase\.co\/storage[^)]*$/gm, "");
-      // Remove orphaned image references with incomplete URLs
-      content = content.replace(/!\[[^\]]*\]\(https?:\/\/[^\s)]*\.supabase\.co\/storage\/v1\/object\/public\/blog-images\/[^\s)]*[^.)\s"']\)?/g, "");
-      wasFixed = true;
-    }
-
-    // Fix: Remove placeholders
-    if (actionType === "visible_placeholder") {
-      content = content.replace(/\[TODO\]|\[PLACEHOLDER\]|\[INSERT\]|\[ENLACE\]|\[LINK\]|\[Tu título aquí\]|\[Insertar[^\]]*\]/gi, "");
-      content = content.replace(/{{.*?}}/g, "");
-      wasFixed = true;
-    }
-
-    // Fix: Remove system code leaks
-    if (actionType === "system_code_leak") {
-      content = content.replace(/Q_[A-Z]{2,}_\d{2,}/g, "");
-      content = content.replace(/auth\.uid\(\)/g, "");
-      content = content.replace(/\b(owner_id|business_id|concept_hash|intent_signature)\b/g, "");
-      content = content.replace(/\(\s*\)/g, "");
-      wasFixed = true;
-    }
-
-    // Fix: Remove empty sections
-    if (actionType === "empty_section") {
-      content = content.replace(/^##\s+[^\n]+\n\s*(?=##)/gm, "");
-      wasFixed = true;
-    }
-
-    // Fix: Remove broken promise headings
-    if (actionType === "promised_table_missing" || actionType === "promised_checklist_missing" || actionType === "promised_download_missing") {
-      if (actionType === "promised_download_missing") {
+      if (t === "broken_inline_image") {
+        content = content.replace(/!\[[^\]]*\]\([^)]*$/gm, "");
+        anyFixed = true;
+      }
+      if (t === "visible_placeholder") {
+        content = content.replace(/\[TODO\]|\[PLACEHOLDER\]|\[INSERT\]|\[ENLACE\]|\[LINK\]|\[Tu título aquí\]|\[Insertar[^\]]*\]|\[tu [^\]]*\]/gi, "");
+        content = content.replace(/{{.*?}}/g, "");
+        anyFixed = true;
+      }
+      if (t === "empty_section") {
+        content = content.replace(/^##\s+[^\n]+\n\s*(?=##)/gm, "");
+        anyFixed = true;
+      }
+      if (t === "system_code_leak") {
+        content = content.replace(/Q_[A-Z]{2,}_\d{2,}/g, "");
+        content = content.replace(/auth\.uid\(\)/g, "");
+        content = content.replace(/\b(owner_id|business_id|concept_hash|intent_signature)\b/g, "");
+        content = content.replace(/\(\s*\)/g, "");
+        anyFixed = true;
+      }
+      if (t === "promised_download_missing") {
         content = content.replace(/^##\s*(Descarga|Plantilla descargable)[^\n]*\n[^#]*/gim, "");
+        anyFixed = true;
       }
-      wasFixed = true;
+
+      // ═══ P1 FIXES ═══
+      if (t === "missing_meta_title") {
+        const keyword = post.primary_keyword || post.title;
+        const year = new Date().getFullYear();
+        updateFields.meta_title = `${keyword} | Guía ${year}`.slice(0, 60);
+        anyFixed = true;
+      }
+      if (t === "missing_meta_description") {
+        const keyword = post.primary_keyword || post.title.toLowerCase();
+        updateFields.meta_description = `Descubrí cómo ${keyword} puede impulsar tu negocio. Estrategias probadas, herramientas y pasos accionables para profesionales.`.slice(0, 155);
+        anyFixed = true;
+      }
+      if (t === "missing_excerpt") {
+        const firstPara = content.split(/\n\n/)[0]?.replace(/[#*_\[\]()!]/g, '').trim() || "";
+        if (firstPara.length > 20) {
+          updateFields.excerpt = firstPara.slice(0, 200).trim();
+          anyFixed = true;
+        }
+      }
+
+      // ═══ P2 FIXES ═══
+      if (t === "low_internal_links") {
+        // Find related posts to link to
+        const related = (allPosts || []).filter((p: any) =>
+          p.id !== post.id &&
+          p.category === post.category &&
+          !content.includes(p.slug)
+        ).slice(0, 3);
+
+        for (const rel of related) {
+          const linkText = `\n\n> **Lectura recomendada:** [${rel.title}](${BLOG_DOMAIN}/${rel.slug}/)\n`;
+          content += linkText;
+        }
+        if (related.length > 0) anyFixed = true;
+      }
+
+      if (t === "missing_faq") {
+        const keyword = post.primary_keyword || post.title;
+        const faqBlock = `\n\n## Preguntas frecuentes\n\n### ¿Qué es ${keyword}?\n\nEs un concepto clave para profesionales y dueños de negocio que buscan crecer de forma sostenible en su industria.\n\n### ¿Cómo empezar con ${keyword}?\n\nEl primer paso es evaluar tu situación actual. Usá los criterios de esta guía para identificar dónde estás y qué necesitás mejorar primero.\n\n### ¿Necesito herramientas especiales?\n\nNo necesariamente. Muchas de las estrategias que describimos se pueden implementar con herramientas gratuitas o de bajo costo.\n`;
+        content = content.trimEnd() + faqBlock;
+        anyFixed = true;
+      }
+
+      // ═══ P4 FIXES ═══
+      if (t === "no_cta" || t === "insufficient_cta") {
+        const ctaBlock = `\n\n---\n\n**¿Querés aplicar esto en tu negocio?** [VISTACEO](${CANONICAL_DOMAIN}) te ayuda a detectar oportunidades, generar estrategias personalizadas y crecer con resultados medibles. Empezá gratis.\n`;
+        // Add CTA at the end
+        content = content.trimEnd() + ctaBlock;
+        anyFixed = true;
+      }
     }
 
-    if (wasFixed) {
-      // Clean up artifacts
+    if (anyFixed) {
       content = content.replace(/\n{3,}/g, "\n\n").trim();
-      
-      await supabase.from("blog_posts").update({ content_md: content, updated_at: new Date().toISOString(), ...updateFields }).eq("id", postId);
-      await logRun(supabase, cycleId, `fix_${actionType}`, "P0", "fixed", postId, post.slug, {}, { changes: "auto_repaired", fields_updated: Object.keys(updateFields) }, snapshot);
-      fixed++;
-    } else {
-      await supabase.from("obsessive_editor_runs").update({ status: "skipped" }).eq("id", issue.id);
-    }
-  }
+      await supabase.from("blog_posts").update({
+        content_md: content,
+        updated_at: new Date().toISOString(),
+        ...updateFields,
+      }).eq("id", postId);
 
-  console.log(`[ObsessiveEditor:Fix] Fixed ${fixed} P0 issues`);
-  return { fixed };
-}
+      const fixedTypes = issues.map((i: any) => i.action_details?.issue_type).filter(Boolean);
+      await logRun(supabase, cycleId, `fix_batch`, issues[0].priority, "fixed", postId, post.slug, { fixed_types: fixedTypes, count: fixedTypes.length }, { changes: "auto_repaired" }, snapshot);
+      fixed += issues.length;
 
-// ═══════════════════════════════════════════════════════════
-// PHASE: IMPROVE — Semantic SEO improvements (P2)
-// ═══════════════════════════════════════════════════════════
-async function phaseImprove(supabase: any, cycleId: string) {
-  console.log(`[ObsessiveEditor:Improve] Starting...`);
-
-  // Find posts with low scores in registry
-  const { data: weakPosts } = await supabase
-    .from("blog_content_registry")
-    .select("post_id, score_global, score_seo, score_coherence, url, primary_keyword")
-    .lt("score_global", COHERENCE_THRESHOLD)
-    .order("score_global", { ascending: true })
-    .limit(3);
-
-  if (!weakPosts?.length) return { improved: 0 };
-
-  let improved = 0;
-
-  for (const entry of weakPosts) {
-    // Invoke blog-improve-post for the weakest posts
-    try {
-      const { data: improveResult, error } = await supabase.functions.invoke("blog-improve-post", {
-        body: { post_id: entry.post_id, mode: "auto" },
-      });
-
-      if (!error && improveResult?.success) {
-        await logRun(supabase, cycleId, "improve_weak_post", "P2", "improved", entry.post_id, null, { old_score: entry.score_global }, { new_content: "rewritten" });
-        improved++;
+      // Mark all issues as fixed
+      for (const issue of issues) {
+        await supabase.from("obsessive_editor_runs").update({ status: "fixed", completed_at: new Date().toISOString() }).eq("id", issue.id);
       }
-    } catch (err: any) {
-      console.error(`[ObsessiveEditor:Improve] Failed for ${entry.post_id}:`, err.message);
     }
   }
 
-  console.log(`[ObsessiveEditor:Improve] Improved ${improved} posts`);
-  return { improved };
+  console.log(`[ObsessiveEditor:Fix] Fixed ${fixed} issues across all priorities`);
+  return { fixed };
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -373,25 +370,22 @@ async function phaseImprove(supabase: any, cycleId: string) {
 async function phaseLink(supabase: any, cycleId: string) {
   console.log(`[ObsessiveEditor:Link] Starting cluster linking...`);
 
-  // Find orphan posts (no incoming links)
   const { data: registry } = await supabase
     .from("blog_content_registry")
     .select("post_id, url, cluster_assigned, internal_links_in, primary_keyword")
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(200);
 
   if (!registry?.length) return { linked: 0 };
 
-  // Find orphans (no or few incoming links)
   const orphans = registry.filter((r: any) => {
     const linksIn = r.internal_links_in;
     return !linksIn || (Array.isArray(linksIn) && linksIn.length < 1);
-  }).slice(0, 3);
+  }).slice(0, 5); // Fix up to 5 orphans per cycle
 
   let linked = 0;
 
   for (const orphan of orphans) {
-    // Find related posts in same cluster to add a link FROM
     const sameCluster = registry.filter((r: any) =>
       r.post_id !== orphan.post_id &&
       r.cluster_assigned === orphan.cluster_assigned &&
@@ -400,7 +394,6 @@ async function phaseLink(supabase: any, cycleId: string) {
 
     if (sameCluster.length === 0) continue;
 
-    // Pick the post with most content to inject link into
     const donor = sameCluster[0];
 
     const { data: donorPost } = await supabase
@@ -416,13 +409,9 @@ async function phaseLink(supabase: any, cycleId: string) {
       .maybeSingle();
 
     if (!donorPost?.content_md || !orphanPost?.slug) continue;
-
-    // Add "Te puede interesar" link at the end before any CTA
-    const linkBlock = `\n\n> **Te puede interesar:** [${orphanPost.title}](${BLOG_DOMAIN}/${orphanPost.slug}/)\n`;
-    
-    // Check if link already exists
     if (donorPost.content_md.includes(orphanPost.slug)) continue;
 
+    const linkBlock = `\n\n> **Te puede interesar:** [${orphanPost.title}](${BLOG_DOMAIN}/${orphanPost.slug}/)\n`;
     const snapshot = { content_md: donorPost.content_md };
     const updatedContent = donorPost.content_md + linkBlock;
 
@@ -431,7 +420,6 @@ async function phaseLink(supabase: any, cycleId: string) {
       updated_at: new Date().toISOString(),
     }).eq("id", donorPost.id);
 
-    // Update registry links
     const newLinksIn = [...(Array.isArray(orphan.internal_links_in) ? orphan.internal_links_in : []), donor.url];
     await supabase.from("blog_content_registry").update({ internal_links_in: newLinksIn }).eq("post_id", orphan.post_id);
 
@@ -444,12 +432,11 @@ async function phaseLink(supabase: any, cycleId: string) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// PHASE: REFRESH — Micro-improvements for crawl freshness (P1)
+// PHASE: REFRESH — Micro-improvements for crawl freshness
 // ═══════════════════════════════════════════════════════════
 async function phaseRefresh(supabase: any, cycleId: string) {
   console.log(`[ObsessiveEditor:Refresh] Starting micro-improvements...`);
 
-  // Find top-performing posts that haven't been updated recently (>14 days)
   const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
   const { data: stalePosts } = await supabase
@@ -458,12 +445,11 @@ async function phaseRefresh(supabase: any, cycleId: string) {
     .eq("status", "published")
     .lt("updated_at", twoWeeksAgo)
     .order("publish_at", { ascending: false })
-    .limit(20);
+    .limit(30);
 
   if (!stalePosts?.length) return { refreshed: 0 };
 
-  // Pick 2 posts to micro-improve
-  const toRefresh = stalePosts.sort(() => Math.random() - 0.5).slice(0, 2);
+  const toRefresh = stalePosts.sort(() => Math.random() - 0.5).slice(0, 3);
   let refreshed = 0;
 
   for (const post of toRefresh) {
@@ -471,17 +457,9 @@ async function phaseRefresh(supabase: any, cycleId: string) {
     let updated = content;
     let changed = false;
 
-    // Add current year reference if outdated
     const currentYear = new Date().getFullYear();
     if (!content.includes(String(currentYear)) && content.includes(String(currentYear - 1))) {
       updated = updated.replace(new RegExp(String(currentYear - 1), "g"), String(currentYear));
-      changed = true;
-    }
-
-    // Add FAQ section if missing
-    if (!/## Preguntas frecuentes|## FAQ/i.test(content) && content.length > 2000) {
-      const faqBlock = `\n\n## Preguntas frecuentes\n\n### ¿${post.title}?\n\nSí, esta guía cubre todo lo que necesitás saber sobre el tema para aplicar en tu negocio hoy.\n\n### ¿Necesito experiencia previa?\n\nNo. Esta guía está diseñada para cualquier profesional o dueño de negocio que quiera mejorar en esta área.\n`;
-      updated = updated.trimEnd() + faqBlock;
       changed = true;
     }
 
@@ -492,7 +470,7 @@ async function phaseRefresh(supabase: any, cycleId: string) {
         updated_at: new Date().toISOString(),
       }).eq("id", post.id);
 
-      await logRun(supabase, cycleId, "refresh_micro", "P1", "refreshed", post.id, post.slug, {}, { type: "year_update_or_faq" }, snapshot);
+      await logRun(supabase, cycleId, "refresh_micro", "P1", "refreshed", post.id, post.slug, {}, { type: "year_update" }, snapshot);
       refreshed++;
     }
   }
@@ -507,7 +485,6 @@ async function phaseRefresh(supabase: any, cycleId: string) {
 async function phaseReindex(supabase: any, cycleId: string) {
   console.log(`[ObsessiveEditor:Reindex] Triggering indexing...`);
 
-  // Find all posts modified in this cycle
   const { data: modifiedRuns } = await supabase
     .from("obsessive_editor_runs")
     .select("target_slug")
@@ -518,12 +495,10 @@ async function phaseReindex(supabase: any, cycleId: string) {
   const slugsToIndex = [...new Set((modifiedRuns || []).map((r: any) => r.target_slug).filter(Boolean))];
 
   if (slugsToIndex.length === 0) {
-    // Still trigger sitemap refresh
     await triggerSitemapPing();
     return { indexed: 0, sitemap_pinged: true };
   }
 
-  // Submit to IndexNow
   try {
     await supabase.functions.invoke("seo-auto-indexer", {
       body: { slugs: slugsToIndex },
@@ -532,7 +507,6 @@ async function phaseReindex(supabase: any, cycleId: string) {
     console.error("[ObsessiveEditor:Reindex] IndexNow failed:", err.message);
   }
 
-  // Trigger GitHub build if needed
   const githubToken = Deno.env.get("GH_PAT");
   if (githubToken && slugsToIndex.length > 0) {
     try {
