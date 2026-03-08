@@ -43,6 +43,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
+import { safeLocalStorage } from "@/lib/safe-storage";
 
 interface Mission {
   id: string;
