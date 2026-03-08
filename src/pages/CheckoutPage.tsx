@@ -71,7 +71,7 @@ const CheckoutPage = () => {
 
   // Get plan from URL or localStorage
   const urlPlan = searchParams.get("plan");
-  const storedPlan = localStorage.getItem("pendingPlan");
+  const storedPlan = safeLocalStorage.getItem("pendingPlan");
   const planId = urlPlan || storedPlan || "pro_yearly";
 
   // Sync isYearly with planId
