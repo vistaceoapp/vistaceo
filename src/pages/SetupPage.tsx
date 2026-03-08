@@ -147,7 +147,7 @@ const SetupPage = () => {
   // Save setup progress whenever it changes (for returning from checkout)
   useEffect(() => {
     if (currentStep > 0 || data.areaId) {
-      localStorage.setItem('setupProgress', JSON.stringify({
+      safeLocalStorage.setItem('setupProgress', JSON.stringify({
         step: currentStep,
         data: data,
         timestamp: Date.now(),
