@@ -102,7 +102,7 @@ const SetupPage = () => {
   // Restore setup progress from localStorage if returning from checkout
   const getSavedSetupState = () => {
     try {
-      const saved = localStorage.getItem('setupProgress');
+      const saved = safeLocalStorage.getItem('setupProgress');
       if (saved) {
         const parsed = JSON.parse(saved);
         // Check if saved less than 30 days ago (persist across sessions)
