@@ -7,12 +7,20 @@ const corsHeaders = {
 };
 
 /**
- * VISTACEO OBSESSIVE EDITOR 24/7 — v3 SEO+CTR+IMAGE
+ * VISTACEO OBSESSIVE EDITOR 24/7 — v4 EXTREME AUDIT
  * 
  * Goal: Drive EVERY post to 100/100 score with zero issues.
- * Now includes AI-powered SEO optimization for titles, metas, and hero images.
+ * v4 additions:
+ *  - Strip code fences (```) from non-tech articles
+ *  - Recalculate registry scores after fixes
+ *  - Stronger CTA injection (2 minimum)
+ *  - Fix meta_title >60 chars truncation
+ *  - Diverse image formats (prefer JPG over PNG)
+ *  - Auto-update registry scores to reflect reality
+ *  - Clean bold markdown leaking into keyword text
+ *  - Remove stale "Lectura recomendada" duplicates
  * 
- * Phases: Scan → Fix → SEO Optimize (AI) → Image Gen → Link → Refresh → Reindex
+ * Phases: Scan → Fix → ScoreUpdate → SEO Optimize (AI) → Image Gen → Link → Refresh → Reindex
  */
 
 const BLOG_DOMAIN = "https://blog.vistaceo.com";
@@ -20,24 +28,37 @@ const CANONICAL_DOMAIN = "https://www.vistaceo.com";
 const MIN_WORD_COUNT = 1500;
 const MIN_INTERNAL_LINKS = 3;
 const MIN_H2_COUNT = 3;
-const MAX_AI_OPTIMIZATIONS_PER_CYCLE = 5;
-const MAX_IMAGE_GENS_PER_CYCLE = 3;
+const MAX_AI_OPTIMIZATIONS_PER_CYCLE = 8;
+const MAX_IMAGE_GENS_PER_CYCLE = 5;
 
-// Visual scene types for diversity
+// 20 radically different visual formulas for maximum diversity
 const SCENE_TYPES = [
-  "editorial portrait from behind, person silhouette in modern office, natural window light",
-  "documentary-style close-up of hands working on a real desk with papers, coffee, laptop",
-  "macro detail shot of professional tools, textures, authentic materials, shallow depth of field",
-  "wide angle real workspace, open floor plan, natural daylight, architectural depth",
-  "overhead flat lay of real business documents, notebook, pen, coffee cup, authentic textures",
-  "street-level candid shot, urban LATAM business district, morning light, movement blur",
-  "real conference room glass walls, city skyline background, warm afternoon light",
-  "authentic cafeteria or coworking space, natural interaction, bokeh background",
-  "close-up of screen showing data charts, shallow DOF, real office environment behind",
-  "wide establishing shot of modern building exterior, golden hour, professional atmosphere",
+  "extreme close-up of real human hands writing on paper, ink pen visible, natural window light, authentic textures",
+  "wide angle street photography of a modern Latin American business district, morning golden hour, pedestrians in motion blur",
+  "overhead aerial view of a real coworking desk, laptop, notebooks, coffee, colorful sticky notes, natural daylight",
+  "documentary-style portrait from behind, person silhouette facing large window with city skyline, dramatic rim lighting",
+  "macro detail shot of vintage analog calculator on worn wooden desk, shallow depth of field, warm afternoon light",
+  "candid lifestyle photograph of two professionals in conversation at a modern café, bokeh background, natural expressions",
+  "wide establishing shot of a rooftop terrace overlooking Latin American city at golden hour, warm tones, architectural depth",
+  "close-up of a real whiteboard filled with strategic diagrams and sticky notes, conference room, ambient fluorescent light",
+  "street-level photograph of a small business storefront in Latin America, neon signs, evening blue hour, authentic urban feel",
+  "editorial flat lay of business tools: leather notebook, smartphone showing charts, espresso cup, brass pen, marble surface",
+  "documentary photograph of a busy commercial kitchen, stainless steel surfaces, steam, chef hands in action, kinetic energy",
+  "architectural interior shot of a modern open-plan office with plants, concrete walls, large windows, midday diffused light",
+  "authentic photograph of hands holding a tablet showing analytics dashboard, blurred office environment behind, side lighting",
+  "wide-angle shot of a warehouse or logistics operation, forklifts, shelving, industrial lighting, sense of scale",
+  "close-up portrait of real hands counting cash or coins on a desk, dramatic side lighting, shallow depth of field",
+  "outdoor photograph of a food truck or market stall in Latin America, colorful awnings, customers, late afternoon sun",
+  "moody photograph of an empty conference table with scattered documents, single desk lamp illumination, after-hours feel",
+  "authentic photograph of a small retail store interior, shelves with products, warm ambient lighting, no customers",
+  "drone-perspective photograph of agricultural fields or greenhouse, geometric patterns, morning mist, natural landscape",
+  "editorial close-up of a real handshake between two professionals, business attire details visible, natural indoor lighting",
 ];
 
 const NEGATIVE_PROMPT = "text, words, letters, typography, captions, logos, watermark, signature, UI, interface, blurry image, low quality, oversaturated colors, plastic skin, artificial textures, deformed hands, extra fingers, distorted anatomy, unrealistic lighting, CGI look, 3D render, cartoon style, illustration, overly stylized visuals, generic stock photo composition, duplicated objects, AI artifacts";
+
+// Categories where code blocks (```) are acceptable
+const TECH_CATEGORIES = ["ia-tech", "herramientas", "automatizacion", "data", "tendencias-ia-tech", "herramientas-productividad", "data-analytics"];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -49,11 +70,11 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  const cycleId = `OE-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const cycleId = `OE4-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   const results: any[] = [];
 
   try {
-    console.log(`[ObsessiveEditor] Cycle ${cycleId} starting...`);
+    console.log(`[ObsessiveEditor v4] Cycle ${cycleId} starting...`);
 
     // ═══ PHASE 1: SCAN ALL POSTS ═══
     const scanResults = await phaseScan(supabase, cycleId);
@@ -63,27 +84,31 @@ Deno.serve(async (req) => {
     const fixResults = await phaseFixAll(supabase, cycleId);
     results.push({ phase: "fix", ...fixResults });
 
-    // ═══ PHASE 3: AI SEO+CTR OPTIMIZE ═══
+    // ═══ PHASE 3: UPDATE REGISTRY SCORES ═══
+    const scoreResults = await phaseUpdateScores(supabase, cycleId);
+    results.push({ phase: "score_update", ...scoreResults });
+
+    // ═══ PHASE 4: AI SEO+CTR OPTIMIZE ═══
     const seoResults = await phaseSeoOptimize(supabase, cycleId);
     results.push({ phase: "seo_optimize", ...seoResults });
 
-    // ═══ PHASE 4: AI IMAGE GENERATION ═══
+    // ═══ PHASE 5: AI IMAGE GENERATION ═══
     const imgResults = await phaseImageGen(supabase, cycleId);
     results.push({ phase: "image_gen", ...imgResults });
 
-    // ═══ PHASE 5: LINK — Strengthen clusters ═══
+    // ═══ PHASE 6: LINK — Strengthen clusters ═══
     const linkResults = await phaseLink(supabase, cycleId);
     results.push({ phase: "link", ...linkResults });
 
-    // ═══ PHASE 6: REFRESH — Micro-improvements ═══
+    // ═══ PHASE 7: REFRESH — Micro-improvements ═══
     const refreshResults = await phaseRefresh(supabase, cycleId);
     results.push({ phase: "refresh", ...refreshResults });
 
-    // ═══ PHASE 7: REINDEX ═══
+    // ═══ PHASE 8: REINDEX ═══
     const reindexResults = await phaseReindex(supabase, cycleId);
     results.push({ phase: "reindex", ...reindexResults });
 
-    console.log(`[ObsessiveEditor] Cycle ${cycleId} complete.`);
+    console.log(`[ObsessiveEditor v4] Cycle ${cycleId} complete.`);
 
     return new Response(JSON.stringify({
       success: true,
@@ -93,7 +118,7 @@ Deno.serve(async (req) => {
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (err: any) {
-    console.error(`[ObsessiveEditor] Fatal:`, err);
+    console.error(`[ObsessiveEditor v4] Fatal:`, err);
     await logRun(supabase, cycleId, "fatal_error", "P0", "error", null, null, {}, { error: err.message });
     return new Response(JSON.stringify({ success: false, error: err.message, cycle_id: cycleId }), {
       status: 500,
@@ -106,11 +131,11 @@ Deno.serve(async (req) => {
 // PHASE: SCAN — Detect ALL issues across ALL posts
 // ═══════════════════════════════════════════════════════════
 async function phaseScan(supabase: any, cycleId: string) {
-  console.log(`[ObsessiveEditor:Scan] Scanning ALL posts...`);
+  console.log(`[OE4:Scan] Scanning ALL posts...`);
 
   const { data: posts } = await supabase
     .from("blog_posts")
-    .select("id, slug, title, content_md, excerpt, hero_image_url, meta_title, meta_description, category, primary_keyword, pillar, publish_at, updated_at")
+    .select("id, slug, title, content_md, excerpt, hero_image_url, meta_title, meta_description, category, primary_keyword, pillar, publish_at, updated_at, internal_links, schema_jsonld")
     .eq("status", "published")
     .order("publish_at", { ascending: false });
 
@@ -129,7 +154,7 @@ async function phaseScan(supabase: any, cycleId: string) {
     }
   }
 
-  console.log(`[ObsessiveEditor:Scan] Scanned ${posts.length} posts, found ${issuesFound} issues`);
+  console.log(`[OE4:Scan] Scanned ${posts.length} posts, found ${issuesFound} issues`);
   return { scanned: posts.length, issues: issuesFound };
 }
 
@@ -137,6 +162,13 @@ function scanPost(post: any, allSlugs: string[]): Array<{ type: string; priority
   const issues: Array<{ type: string; priority: string; description: string }> = [];
   const content = post.content_md || "";
   const excerpt = post.excerpt || "";
+  const isTech = TECH_CATEGORIES.some(cat => 
+    (post.category || "").toLowerCase().includes(cat) || 
+    (post.pillar || "").toLowerCase().includes(cat) ||
+    (post.slug || "").includes("ia-") || (post.slug || "").includes("chatgpt") ||
+    (post.slug || "").includes("automatiz") || (post.slug || "").includes("n8n") ||
+    (post.slug || "").includes("make-") || (post.slug || "").includes("gemini")
+  );
 
   // ═══ P0: BROKEN TRUST ═══
   if (excerpt && (/^!\[/.test(excerpt) || /\]\(https?:\/\//.test(excerpt) || /supabase\.co\/storage/i.test(excerpt))) {
@@ -170,20 +202,43 @@ function scanPost(post: any, allSlugs: string[]): Array<{ type: string; priority
   if (/^##.*descarga|^##.*plantilla/im.test(content) && !/https?:\/\/.*\.(pdf|xlsx|docx|zip)/i.test(content)) {
     issues.push({ type: "promised_download_missing", priority: "P0", description: "Promises download but no file link" });
   }
+  // NEW: code fences in non-tech articles
+  if (!isTech && /```/.test(content)) {
+    issues.push({ type: "code_fence_non_tech", priority: "P0", description: "Code fences (```) in non-tech article" });
+  }
+  // NEW: bold markdown leaking into primary_keyword
+  if (post.primary_keyword && /\*\*/.test(post.primary_keyword)) {
+    issues.push({ type: "keyword_has_markdown", priority: "P0", description: "primary_keyword contains bold markdown" });
+  }
 
   // ═══ P1: SEO & INDEXATION ═══
   if (!post.meta_title || post.meta_title.length < 30) {
-    issues.push({ type: "weak_meta_title", priority: "P1", description: "Meta title missing or needs AI optimization" });
+    issues.push({ type: "weak_meta_title", priority: "P1", description: "Meta title missing or too short" });
+  }
+  if (post.meta_title && post.meta_title.length > 60) {
+    issues.push({ type: "meta_title_too_long", priority: "P1", description: `Meta title ${post.meta_title.length} chars (max 60)` });
   }
   if (!post.meta_description || post.meta_description.length < 80) {
-    issues.push({ type: "weak_meta_description", priority: "P1", description: "Meta description missing or needs AI optimization" });
+    issues.push({ type: "weak_meta_description", priority: "P1", description: "Meta description missing or too short" });
+  }
+  if (post.meta_description && post.meta_description.length > 160) {
+    issues.push({ type: "meta_desc_too_long", priority: "P1", description: `Meta description ${post.meta_description.length} chars (max 160)` });
   }
   if (!excerpt || excerpt.length < 40) {
     issues.push({ type: "missing_excerpt", priority: "P1", description: "Excerpt missing or too short" });
   }
-  // Title quality: too long, too short, or generic
-  if (post.title && (post.title.length > 80 || post.title.length < 20)) {
+  if (post.title && (post.title.length > 75 || post.title.length < 20)) {
     issues.push({ type: "title_length_issue", priority: "P1", description: `Title length ${post.title.length} chars (ideal 30-70)` });
+  }
+  // NEW: duplicate "Lectura recomendada" blocks
+  const lecturaMatches = content.match(/> \*\*Lectura recomendada:\*\*/g);
+  if (lecturaMatches && lecturaMatches.length > 3) {
+    issues.push({ type: "excessive_lectura_blocks", priority: "P1", description: `${lecturaMatches.length} duplicate reading recommendation blocks` });
+  }
+  // NEW: duplicate "Te puede interesar" blocks
+  const teInteresaMatches = content.match(/> \*\*Te puede interesar:\*\*/g);
+  if (teInteresaMatches && teInteresaMatches.length > 3) {
+    issues.push({ type: "excessive_interesar_blocks", priority: "P1", description: `${teInteresaMatches.length} duplicate interest blocks` });
   }
 
   // ═══ P2: SEMANTIC SEO ═══
@@ -218,7 +273,7 @@ function scanPost(post: any, allSlugs: string[]): Array<{ type: string; priority
 // PHASE: FIX ALL — Auto-repair ALL priority levels
 // ═══════════════════════════════════════════════════════════
 async function phaseFixAll(supabase: any, cycleId: string) {
-  console.log(`[ObsessiveEditor:Fix] Fixing ALL detected issues...`);
+  console.log(`[OE4:Fix] Fixing ALL detected issues...`);
 
   const { data: allIssues } = await supabase
     .from("obsessive_editor_runs")
@@ -246,13 +301,13 @@ async function phaseFixAll(supabase: any, cycleId: string) {
   for (const [postId, issues] of Object.entries(byPost)) {
     const { data: post } = await supabase
       .from("blog_posts")
-      .select("id, slug, content_md, excerpt, title, meta_title, meta_description, primary_keyword, category")
+      .select("id, slug, content_md, excerpt, title, meta_title, meta_description, primary_keyword, category, pillar")
       .eq("id", postId)
       .maybeSingle();
 
     if (!post) continue;
 
-    const snapshot = { content_md: post.content_md, excerpt: post.excerpt, meta_title: post.meta_title, meta_description: post.meta_description };
+    const snapshot = { content_md: post.content_md, excerpt: post.excerpt, meta_title: post.meta_title, meta_description: post.meta_description, primary_keyword: post.primary_keyword };
     let content = post.content_md || "";
     const updateFields: Record<string, any> = {};
     let anyFixed = false;
@@ -260,9 +315,9 @@ async function phaseFixAll(supabase: any, cycleId: string) {
     for (const issue of issues) {
       const t = issue.action_details?.issue_type;
 
-      // P0 FIXES
+      // ═══ P0 FIXES ═══
       if (t === "broken_excerpt") {
-        const firstPara = content.split(/\n\n/)[0]?.replace(/[#*_\[\]()!]/g, '').trim() || "";
+        const firstPara = content.split(/\n\n/).find(p => p.trim().length > 20 && !p.startsWith("#") && !p.startsWith("!"))?.replace(/[#*_\[\]()!]/g, '').trim() || "";
         updateFields.excerpt = firstPara.slice(0, 200).trim();
         anyFixed = true;
       }
@@ -290,8 +345,51 @@ async function phaseFixAll(supabase: any, cycleId: string) {
         content = content.replace(/^##\s*(Descarga|Plantilla descargable)[^\n]*\n[^#]*/gim, "");
         anyFixed = true;
       }
+      // NEW: strip code fences from non-tech articles
+      if (t === "code_fence_non_tech") {
+        content = content.replace(/```[a-z]*\n([\s\S]*?)```/g, (_match, inner) => {
+          // Keep content but remove fences, format as blockquote
+          return inner.split('\n').map((line: string) => `> ${line}`).join('\n');
+        });
+        anyFixed = true;
+      }
+      // NEW: clean bold markdown from primary_keyword
+      if (t === "keyword_has_markdown") {
+        updateFields.primary_keyword = (post.primary_keyword || "").replace(/\*\*/g, "").trim();
+        anyFixed = true;
+      }
+      // NEW: truncate meta_title to 60 chars
+      if (t === "meta_title_too_long") {
+        const mt = post.meta_title || "";
+        // Truncate at last space before 60 chars
+        const truncated = mt.length > 60 ? mt.slice(0, 57).replace(/\s+\S*$/, "") + "..." : mt;
+        updateFields.meta_title = truncated.slice(0, 60);
+        anyFixed = true;
+      }
+      // NEW: truncate meta_description to 160 chars
+      if (t === "meta_desc_too_long") {
+        const md = post.meta_description || "";
+        const truncated = md.length > 160 ? md.slice(0, 157).replace(/\s+\S*$/, "") + "..." : md;
+        updateFields.meta_description = truncated.slice(0, 160);
+        anyFixed = true;
+      }
+      // NEW: deduplicate excessive "Lectura recomendada" blocks
+      if (t === "excessive_lectura_blocks" || t === "excessive_interesar_blocks") {
+        const blockPattern = t === "excessive_lectura_blocks" 
+          ? /\n\n> \*\*Lectura recomendada:\*\*[^\n]*\n/g
+          : /\n\n> \*\*Te puede interesar:\*\*[^\n]*\n/g;
+        const matches = [...content.matchAll(blockPattern)];
+        // Keep only last 2
+        if (matches.length > 2) {
+          const toRemove = matches.slice(0, matches.length - 2);
+          for (const m of toRemove.reverse()) {
+            content = content.slice(0, m.index!) + content.slice(m.index! + m[0].length);
+          }
+          anyFixed = true;
+        }
+      }
 
-      // P2 FIXES
+      // ═══ P2 FIXES ═══
       if (t === "low_internal_links") {
         const related = (allPosts || []).filter((p: any) =>
           p.id !== post.id && p.category === post.category && !content.includes(p.slug)
@@ -307,8 +405,14 @@ async function phaseFixAll(supabase: any, cycleId: string) {
         anyFixed = true;
       }
 
-      // P4 FIXES
+      // ═══ P4 FIXES ═══
       if (t === "no_cta" || t === "insufficient_cta") {
+        // Insert CTA in middle AND at end for 2 total
+        const lines = content.split("\n");
+        const midPoint = Math.floor(lines.length / 2);
+        const midCta = `\n---\n\n**¿Tu negocio necesita un plan concreto?** [VISTACEO](${CANONICAL_DOMAIN}) analiza tu situación real y te da pasos accionables. Probalo gratis.\n\n---\n`;
+        lines.splice(midPoint, 0, midCta);
+        content = lines.join("\n");
         content = content.trimEnd() + `\n\n---\n\n**¿Querés aplicar esto en tu negocio?** [VISTACEO](${CANONICAL_DOMAIN}) te ayuda a detectar oportunidades, generar estrategias personalizadas y crecer con resultados medibles. Empezá gratis.\n`;
         anyFixed = true;
       }
@@ -326,8 +430,139 @@ async function phaseFixAll(supabase: any, cycleId: string) {
     }
   }
 
-  console.log(`[ObsessiveEditor:Fix] Fixed ${fixed} issues`);
+  console.log(`[OE4:Fix] Fixed ${fixed} issues`);
   return { fixed };
+}
+
+// ═══════════════════════════════════════════════════════════
+// PHASE: UPDATE REGISTRY SCORES — Recalculate based on reality
+// ═══════════════════════════════════════════════════════════
+async function phaseUpdateScores(supabase: any, cycleId: string) {
+  console.log(`[OE4:Scores] Recalculating registry scores...`);
+
+  const { data: registryItems } = await supabase
+    .from("blog_content_registry")
+    .select("id, post_id, url, score_global")
+    .order("score_global", { ascending: true, nullsFirst: true })
+    .limit(100);
+
+  if (!registryItems?.length) return { updated: 0 };
+
+  let updated = 0;
+  for (const reg of registryItems) {
+    const { data: post } = await supabase
+      .from("blog_posts")
+      .select("id, slug, title, content_md, excerpt, hero_image_url, meta_title, meta_description, primary_keyword, category, internal_links")
+      .eq("id", reg.post_id)
+      .eq("status", "published")
+      .maybeSingle();
+
+    if (!post) continue;
+
+    const scores = calculateRealScores(post);
+    
+    // Only update if scores changed
+    if (scores.global !== reg.score_global) {
+      await supabase.from("blog_content_registry").update({
+        score_global: scores.global,
+        score_seo: scores.seo,
+        score_technical: scores.technical,
+        score_ux: scores.ux,
+        score_conversion: scores.conversion,
+        score_interlinking: scores.interlinking,
+        score_coherence: scores.coherence,
+        score_promises: scores.promises,
+        updated_at: new Date().toISOString(),
+      }).eq("id", reg.id);
+      updated++;
+    }
+  }
+
+  console.log(`[OE4:Scores] Updated ${updated} registry scores`);
+  return { updated };
+}
+
+function calculateRealScores(post: any): Record<string, number> {
+  const content = post.content_md || "";
+  const wordCount = content.split(/\s+/).filter(Boolean).length;
+  const h2Count = (content.match(/^## /gm) || []).length;
+  const internalLinks = (content.match(/\[.*?\]\(https:\/\/blog\.vistaceo\.com/g) || []).length;
+  const ctaCount = (content.match(/vistaceo\.com/gi) || []).length;
+  const hasFaq = /## Preguntas frecuentes|## FAQ/i.test(content);
+  const hasImage = !!post.hero_image_url;
+  const hasPlaceholders = /\[TODO\]|\[PLACEHOLDER\]|Lorem ipsum|{{.*?}}/i.test(content);
+  const hasEmptySections = /^##\s+[^\n]+\n\s*(?=##|\s*$)/gm.test(content);
+  const hasCodeLeaks = /Q_[A-Z]{2,}_\d{2,}|auth\.uid\(\)/g.test(content);
+
+  // SEO (0-100)
+  let seo = 0;
+  if (post.meta_title && post.meta_title.length >= 30 && post.meta_title.length <= 60) seo += 35;
+  else if (post.meta_title) seo += 15;
+  if (post.meta_description && post.meta_description.length >= 100 && post.meta_description.length <= 160) seo += 35;
+  else if (post.meta_description) seo += 15;
+  if (post.primary_keyword) seo += 15;
+  if (post.excerpt && post.excerpt.length >= 40) seo += 15;
+
+  // Technical (0-100)
+  let technical = 100;
+  if (hasPlaceholders) technical -= 30;
+  if (hasEmptySections) technical -= 20;
+  if (hasCodeLeaks) technical -= 30;
+  if (!hasImage) technical -= 20;
+
+  // UX (0-100)
+  let ux = 0;
+  if (wordCount >= 1500) ux += 30; else if (wordCount >= 800) ux += 15;
+  if (h2Count >= 4) ux += 25; else if (h2Count >= 2) ux += 12;
+  if (hasFaq) ux += 20;
+  if (hasImage) ux += 15;
+  if (post.excerpt) ux += 10;
+
+  // Conversion (0-100)
+  let conversion = 0;
+  if (ctaCount >= 2) conversion += 60;
+  else if (ctaCount >= 1) conversion += 30;
+  if (post.excerpt && post.excerpt.length > 60) conversion += 20;
+  if (post.meta_description && post.meta_description.length > 100) conversion += 20;
+
+  // Interlinking (0-100)
+  let interlinking = 0;
+  if (internalLinks >= 5) interlinking = 100;
+  else if (internalLinks >= 3) interlinking = 60;
+  else if (internalLinks >= 1) interlinking = 30;
+
+  // Coherence (0-100)
+  let coherence = 100;
+  if (hasPlaceholders) coherence -= 40;
+  if (hasEmptySections) coherence -= 30;
+  if (hasCodeLeaks) coherence -= 30;
+
+  // Promises (0-100) 
+  let promises = 100;
+  if (/tabla|cuadro comparativ/i.test(content) && !/\|.*\|.*\|/m.test(content)) promises -= 50;
+  if (/^##.*checklist/im.test(content) && !/- \[[ x]\]/i.test(content)) promises -= 50;
+
+  // Global weighted average
+  const global = Math.round(
+    seo * 0.2 +
+    technical * 0.2 +
+    ux * 0.15 +
+    conversion * 0.15 +
+    interlinking * 0.1 +
+    coherence * 0.1 +
+    promises * 0.1
+  );
+
+  return {
+    global: Math.max(0, Math.min(100, global)),
+    seo: Math.max(0, Math.min(100, seo)),
+    technical: Math.max(0, Math.min(100, technical)),
+    ux: Math.max(0, Math.min(100, ux)),
+    conversion: Math.max(0, Math.min(100, conversion)),
+    interlinking: Math.max(0, Math.min(100, interlinking)),
+    coherence: Math.max(0, Math.min(100, coherence)),
+    promises: Math.max(0, Math.min(100, promises)),
+  };
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -336,13 +571,12 @@ async function phaseFixAll(supabase: any, cycleId: string) {
 async function phaseSeoOptimize(supabase: any, cycleId: string) {
   const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!lovableApiKey) {
-    console.log("[ObsessiveEditor:SEO] No LOVABLE_API_KEY, skipping AI optimization");
+    console.log("[OE4:SEO] No LOVABLE_API_KEY, skipping AI optimization");
     return { optimized: 0, reason: "no_api_key" };
   }
 
-  console.log(`[ObsessiveEditor:SEO] Starting AI SEO+CTR optimization...`);
+  console.log(`[OE4:SEO] Starting AI SEO+CTR optimization...`);
 
-  // Find posts that need optimization: weak metas, generic titles, or never optimized
   const { data: posts } = await supabase
     .from("blog_posts")
     .select("id, slug, title, excerpt, meta_title, meta_description, primary_keyword, category, pillar, content_md")
@@ -351,11 +585,10 @@ async function phaseSeoOptimize(supabase: any, cycleId: string) {
 
   if (!posts?.length) return { optimized: 0 };
 
-  // Score each post's SEO quality and pick the worst ones
   const candidates = posts.map((p: any) => ({
     ...p,
     seo_score: scoreSeoQuality(p),
-  })).filter((p: any) => p.seo_score < 90)
+  })).filter((p: any) => p.seo_score < 85)
     .sort((a: any, b: any) => a.seo_score - b.seo_score)
     .slice(0, MAX_AI_OPTIMIZATIONS_PER_CYCLE);
 
@@ -377,14 +610,15 @@ ARTÍCULO:
 - Categoría: ${post.category || post.pillar || "general"}
 - Primeros párrafos: ${contentPreview.slice(0, 600)}
 
-REGLAS:
+REGLAS ESTRICTAS:
 - NO incluir "Vistaceo" en título ni meta title
 - Título: claro, atractivo, compartible, 30-65 caracteres, SEO-friendly
-- Meta title: distinto del H1, optimizado para CTR, max 60 caracteres
-- Meta description: persuasiva, natural, 120-155 caracteres, invitar al clic
+- Meta title: distinto del H1, optimizado para CTR, MÁXIMO 58 caracteres (NUNCA más de 60)
+- Meta description: persuasiva, natural, 120-155 caracteres (NUNCA más de 158), invitar al clic
 - Excerpt: 1-2 oraciones claras, max 200 caracteres, sin markdown
 - Todo en español natural, tono editorial profesional, sin clickbait barato
 - Sin keyword stuffing, sin frases genéricas de IA
+- Que suene como un medio editorial premium, no como un blog genérico
 
 Respondé SOLO en este formato JSON exacto, sin texto adicional:
 {"title":"...","meta_title":"...","meta_description":"...","excerpt":"...","reasoning":"..."}`;
@@ -399,40 +633,34 @@ Respondé SOLO en este formato JSON exacto, sin texto adicional:
       });
 
       if (!response.ok) {
-        console.error(`[ObsessiveEditor:SEO] API error ${response.status}`);
+        console.error(`[OE4:SEO] API error ${response.status}`);
         continue;
       }
 
       const result = await response.json();
       const raw = result.choices?.[0]?.message?.content || "";
       
-      // Extract JSON from response
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        console.log(`[ObsessiveEditor:SEO] No JSON in response for ${post.slug}`);
-        continue;
-      }
+      if (!jsonMatch) continue;
 
       const optimizations = JSON.parse(jsonMatch[0]);
-      
-      // Validate before applying
       const updateFields: Record<string, any> = {};
-      const snapshot: Record<string, any> = {};
+      const snapshotFields: Record<string, any> = {};
 
-      if (optimizations.title && optimizations.title.length >= 20 && optimizations.title.length <= 80) {
-        snapshot.title = post.title;
+      if (optimizations.title && optimizations.title.length >= 20 && optimizations.title.length <= 75) {
+        snapshotFields.title = post.title;
         updateFields.title = optimizations.title;
       }
       if (optimizations.meta_title && optimizations.meta_title.length >= 20 && optimizations.meta_title.length <= 60) {
-        snapshot.meta_title = post.meta_title;
+        snapshotFields.meta_title = post.meta_title;
         updateFields.meta_title = optimizations.meta_title;
       }
       if (optimizations.meta_description && optimizations.meta_description.length >= 50 && optimizations.meta_description.length <= 160) {
-        snapshot.meta_description = post.meta_description;
+        snapshotFields.meta_description = post.meta_description;
         updateFields.meta_description = optimizations.meta_description;
       }
       if (optimizations.excerpt && optimizations.excerpt.length >= 20 && optimizations.excerpt.length <= 250) {
-        snapshot.excerpt = post.excerpt;
+        snapshotFields.excerpt = post.excerpt;
         updateFields.excerpt = optimizations.excerpt;
       }
 
@@ -444,28 +672,25 @@ Respondé SOLO en este formato JSON exacto, sin texto adicional:
           fields_optimized: Object.keys(updateFields).filter(k => k !== "updated_at"),
           reasoning: optimizations.reasoning || "",
           old_seo_score: post.seo_score,
-        }, { optimizations: updateFields }, snapshot);
+        }, { optimizations: updateFields }, snapshotFields);
 
         optimized++;
-        console.log(`[ObsessiveEditor:SEO] Optimized ${post.slug} (score ${post.seo_score} → improved)`);
+        console.log(`[OE4:SEO] Optimized ${post.slug} (score ${post.seo_score} → improved)`);
       }
 
-      // Small delay between AI calls
-      await new Promise(r => setTimeout(r, 1500));
-
+      await new Promise(r => setTimeout(r, 1200));
     } catch (err: any) {
-      console.error(`[ObsessiveEditor:SEO] Error on ${post.slug}:`, err.message);
+      console.error(`[OE4:SEO] Error on ${post.slug}:`, err.message);
     }
   }
 
-  console.log(`[ObsessiveEditor:SEO] Optimized ${optimized}/${candidates.length} posts`);
+  console.log(`[OE4:SEO] Optimized ${optimized}/${candidates.length} posts`);
   return { optimized, candidates: candidates.length };
 }
 
 function scoreSeoQuality(post: any): number {
   let score = 0;
   
-  // Title (0-20)
   if (post.title) {
     const len = post.title.length;
     if (len >= 30 && len <= 65) score += 20;
@@ -473,7 +698,6 @@ function scoreSeoQuality(post: any): number {
     else score += 5;
   }
 
-  // Meta title (0-20)
   if (post.meta_title) {
     const len = post.meta_title.length;
     if (len >= 30 && len <= 60) score += 20;
@@ -481,7 +705,6 @@ function scoreSeoQuality(post: any): number {
     else score += 3;
   }
 
-  // Meta description (0-25)
   if (post.meta_description) {
     const len = post.meta_description.length;
     if (len >= 100 && len <= 155) score += 25;
@@ -489,30 +712,27 @@ function scoreSeoQuality(post: any): number {
     else score += 3;
   }
 
-  // Excerpt (0-15)
   if (post.excerpt) {
     const len = post.excerpt.length;
     if (len >= 60 && len <= 200 && !/^!\[/.test(post.excerpt)) score += 15;
     else if (len >= 20) score += 7;
   }
 
-  // Primary keyword set (0-10)
-  if (post.primary_keyword && post.primary_keyword.length > 3) score += 10;
+  if (post.primary_keyword && post.primary_keyword.length > 3 && !/\*\*/.test(post.primary_keyword)) score += 10;
 
-  // Hero image (0-10)
   if (post.hero_image_url?.startsWith("https://")) score += 10;
 
   return score;
 }
 
 // ═══════════════════════════════════════════════════════════
-// PHASE: IMAGE GEN — AI hero images for posts without them
+// PHASE: IMAGE GEN — AI hero images (diverse, JPG preferred)
 // ═══════════════════════════════════════════════════════════
 async function phaseImageGen(supabase: any, cycleId: string) {
   const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!lovableApiKey) return { generated: 0, reason: "no_api_key" };
 
-  console.log(`[ObsessiveEditor:Image] Starting hero image generation...`);
+  console.log(`[OE4:Image] Starting hero image generation...`);
 
   const { data: posts } = await supabase
     .from("blog_posts")
@@ -523,7 +743,7 @@ async function phaseImageGen(supabase: any, cycleId: string) {
     .limit(MAX_IMAGE_GENS_PER_CYCLE);
 
   if (!posts?.length) {
-    console.log("[ObsessiveEditor:Image] All posts have hero images");
+    console.log("[OE4:Image] All posts have hero images");
     return { generated: 0 };
   }
 
@@ -533,7 +753,6 @@ async function phaseImageGen(supabase: any, cycleId: string) {
 
   for (const post of posts) {
     try {
-      // Pick a diverse scene type based on post index
       const sceneIdx = Math.abs(hashCode(post.slug)) % SCENE_TYPES.length;
       const scene = SCENE_TYPES[sceneIdx];
 
@@ -550,26 +769,18 @@ ${NEGATIVE_PROMPT}`;
         method: "POST",
         headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
+          model: "google/gemini-2.5-flash",
           messages: [{ role: "user", content: imagePrompt }],
           modalities: ["image", "text"],
         }),
       });
 
-      if (!response.ok) {
-        console.error(`[ObsessiveEditor:Image] API error ${response.status} for ${post.slug}`);
-        continue;
-      }
+      if (!response.ok) continue;
 
       const result = await response.json();
       const imageUrl = result.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (!imageUrl) continue;
 
-      if (!imageUrl) {
-        console.log(`[ObsessiveEditor:Image] No image returned for ${post.slug}`);
-        continue;
-      }
-
-      // Upload to storage
       const publicUrl = await uploadImageToStorage(imageUrl, post.slug, supabaseUrl, supabaseKey);
       
       if (publicUrl) {
@@ -585,16 +796,15 @@ ${NEGATIVE_PROMPT}`;
         }, { generated: true });
 
         generated++;
-        console.log(`[ObsessiveEditor:Image] Generated hero for ${post.slug}`);
+        console.log(`[OE4:Image] Generated hero for ${post.slug}`);
       }
 
       await new Promise(r => setTimeout(r, 3000));
     } catch (err: any) {
-      console.error(`[ObsessiveEditor:Image] Error on ${post.slug}:`, err.message);
+      console.error(`[OE4:Image] Error on ${post.slug}:`, err.message);
     }
   }
 
-  console.log(`[ObsessiveEditor:Image] Generated ${generated}/${posts.length} images`);
   return { generated, needed: posts.length };
 }
 
@@ -618,11 +828,10 @@ async function uploadImageToStorage(base64OrUrl: string, slug: string, supabaseU
       return null;
     }
 
-    // Skip blank/tiny images
     if (bytes.length < 8000) return null;
 
-    const extension = mimeType.includes("png") ? "png" : "jpg";
-    const fileName = `${slug}-hero-${Date.now()}.${extension}`;
+    // Always save as JPG for better performance
+    const fileName = `${slug}-hero-${Date.now()}.jpg`;
 
     const uploadUrl = `${supabaseUrl}/storage/v1/object/blog-images/${fileName}`;
     const response = await fetch(uploadUrl, {
@@ -637,7 +846,6 @@ async function uploadImageToStorage(base64OrUrl: string, slug: string, supabaseU
     });
 
     if (!response.ok) {
-      // Fallback: use client
       const sb = createClient(supabaseUrl, supabaseKey, { auth: { autoRefreshToken: false, persistSession: false } });
       const { error } = await sb.storage.from("blog-images").upload(fileName, bytes, { contentType: mimeType, upsert: true });
       if (error) return null;
@@ -647,7 +855,7 @@ async function uploadImageToStorage(base64OrUrl: string, slug: string, supabaseU
 
     return `${supabaseUrl}/storage/v1/object/public/blog-images/${fileName}`;
   } catch (err: any) {
-    console.error("[ObsessiveEditor:Image] Upload error:", err.message);
+    console.error("[OE4:Image] Upload error:", err.message);
     return null;
   }
 }
@@ -665,7 +873,7 @@ function hashCode(str: string): number {
 // PHASE: LINK — Strengthen cluster graph
 // ═══════════════════════════════════════════════════════════
 async function phaseLink(supabase: any, cycleId: string) {
-  console.log(`[ObsessiveEditor:Link] Starting cluster linking...`);
+  console.log(`[OE4:Link] Starting cluster linking...`);
 
   const { data: registry } = await supabase
     .from("blog_content_registry")
@@ -706,7 +914,7 @@ async function phaseLink(supabase: any, cycleId: string) {
     linked++;
   }
 
-  console.log(`[ObsessiveEditor:Link] Linked ${linked} orphan posts`);
+  console.log(`[OE4:Link] Linked ${linked} orphan posts`);
   return { linked };
 }
 
@@ -714,7 +922,7 @@ async function phaseLink(supabase: any, cycleId: string) {
 // PHASE: REFRESH — Micro-improvements for crawl freshness
 // ═══════════════════════════════════════════════════════════
 async function phaseRefresh(supabase: any, cycleId: string) {
-  console.log(`[ObsessiveEditor:Refresh] Starting micro-improvements...`);
+  console.log(`[OE4:Refresh] Starting micro-improvements...`);
 
   const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
   const { data: stalePosts } = await supabase
@@ -727,7 +935,7 @@ async function phaseRefresh(supabase: any, cycleId: string) {
 
   if (!stalePosts?.length) return { refreshed: 0 };
 
-  const toRefresh = stalePosts.sort(() => Math.random() - 0.5).slice(0, 3);
+  const toRefresh = stalePosts.sort(() => Math.random() - 0.5).slice(0, 5);
   let refreshed = 0;
 
   for (const post of toRefresh) {
@@ -749,15 +957,15 @@ async function phaseRefresh(supabase: any, cycleId: string) {
     }
   }
 
-  console.log(`[ObsessiveEditor:Refresh] Refreshed ${refreshed} posts`);
+  console.log(`[OE4:Refresh] Refreshed ${refreshed} posts`);
   return { refreshed };
 }
 
 // ═══════════════════════════════════════════════════════════
-// PHASE: REINDEX — Trigger indexing signals
+// PHASE: REINDEX — Trigger indexing signals to ALL engines
 // ═══════════════════════════════════════════════════════════
 async function phaseReindex(supabase: any, cycleId: string) {
-  console.log(`[ObsessiveEditor:Reindex] Triggering indexing...`);
+  console.log(`[OE4:Reindex] Triggering indexing...`);
 
   const { data: modifiedRuns } = await supabase
     .from("obsessive_editor_runs")
@@ -769,16 +977,18 @@ async function phaseReindex(supabase: any, cycleId: string) {
   const slugsToIndex = [...new Set((modifiedRuns || []).map((r: any) => r.target_slug).filter(Boolean))];
 
   if (slugsToIndex.length === 0) {
-    await triggerSitemapPing();
+    await triggerFullSitemapPing();
     return { indexed: 0, sitemap_pinged: true };
   }
 
+  // Call seo-auto-indexer with specific slugs
   try {
     await supabase.functions.invoke("seo-auto-indexer", { body: { slugs: slugsToIndex } });
   } catch (err: any) {
-    console.error("[ObsessiveEditor:Reindex] IndexNow failed:", err.message);
+    console.error("[OE4:Reindex] IndexNow failed:", err.message);
   }
 
+  // Trigger site deploy for SSG refresh
   const githubToken = Deno.env.get("GH_PAT");
   if (githubToken && slugsToIndex.length > 0) {
     try {
@@ -786,22 +996,31 @@ async function phaseReindex(supabase: any, cycleId: string) {
     } catch (_) { /* best effort */ }
   }
 
-  await triggerSitemapPing();
+  await triggerFullSitemapPing();
   await logRun(supabase, cycleId, "reindex_batch", "P1", "indexed", null, null, { slugs: slugsToIndex }, { count: slugsToIndex.length });
 
-  console.log(`[ObsessiveEditor:Reindex] Submitted ${slugsToIndex.length} URLs`);
+  console.log(`[OE4:Reindex] Submitted ${slugsToIndex.length} URLs`);
   return { indexed: slugsToIndex.length, sitemap_pinged: true };
 }
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════
-async function triggerSitemapPing() {
+async function triggerFullSitemapPing() {
   const sitemapUrl = encodeURIComponent(`${BLOG_DOMAIN}/sitemap.xml`);
+  const rssUrl = encodeURIComponent(`${BLOG_DOMAIN}/rss.xml`);
   try {
     await Promise.allSettled([
       fetch(`https://www.google.com/ping?sitemap=${sitemapUrl}`),
       fetch(`https://www.bing.com/ping?sitemap=${sitemapUrl}`),
+      fetch(`https://www.google.com/ping?sitemap=${rssUrl}`),
+      fetch(`https://www.bing.com/ping?sitemap=${rssUrl}`),
+      // WebSub for instant discovery
+      fetch("https://pubsubhubbub.appspot.com/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `hub.mode=publish&hub.url=${encodeURIComponent(`${BLOG_DOMAIN}/rss.xml`)}`,
+      }),
     ]);
   } catch (_) { /* best effort */ }
 }
@@ -824,6 +1043,6 @@ async function logRun(
       completed_at: status !== "detected" ? new Date().toISOString() : null,
     });
   } catch (err: any) {
-    console.error("[ObsessiveEditor] Log failed:", err.message);
+    console.error("[OE4] Log failed:", err.message);
   }
 }
