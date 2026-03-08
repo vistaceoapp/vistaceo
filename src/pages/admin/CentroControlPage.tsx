@@ -337,6 +337,14 @@ export default function CentroControlPage() {
               {running ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Zap className="w-4 h-4 mr-1" />}
               Ejecutar ciclo
             </Button>
+            <Button size="sm" variant="outline" onClick={triggerBulkImageRefresh} disabled={refreshingImages}>
+              {refreshingImages ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
+              Renovar imágenes
+            </Button>
+            <Button size="sm" variant="outline" onClick={triggerMegaIndex} disabled={indexing}>
+              {indexing ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Globe className="w-4 h-4 mr-1" />}
+              Mega indexar
+            </Button>
           </div>
         </div>
 
