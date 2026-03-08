@@ -281,8 +281,6 @@ export default function CentroControlPage() {
     } catch (err: any) { toast.error(err.message); }
   };
 
-  const [refreshingImages, setRefreshingImages] = useState(false);
-  const [indexing, setIndexing] = useState(false);
 
   const triggerBulkImageRefresh = async () => {
     setRefreshingImages(true);
