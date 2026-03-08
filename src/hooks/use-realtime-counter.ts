@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { safeLocalStorage } from "@/lib/safe-storage";
 
 const STORAGE_KEY = "vistaceo_active_users";
 const GLOBAL_MIN = 17;
