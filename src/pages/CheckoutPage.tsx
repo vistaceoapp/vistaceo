@@ -21,6 +21,7 @@ import { PayPalPaymentInfo } from "@/components/checkout/PayPalPaymentInfo";
 import { PayPalSmartButtons } from "@/components/checkout/PayPalSmartButtons";
 import { StickyPaymentButton } from "@/components/checkout/StickyPaymentButton";
 import { StickyPayPalButton } from "@/components/checkout/StickyPayPalButton";
+import { safeLocalStorage } from "@/lib/safe-storage";
 
 // Pro features list - exact match with landing + infinity symbols
 const proFeatures = [
