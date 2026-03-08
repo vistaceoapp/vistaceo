@@ -78,17 +78,24 @@ export const useFreeLimits = (): FreeLimitsState => {
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
       // Fetch usage counts in parallel — each query is isolated so one failure doesn't kill all
-      const safeCount = (p: Promise<{ count: number | null }>) => p.then(r => r.count || 0).catch(() => 0);
+      const safeCount = async (fn: () => PromiseLike<{ count: number | null }>) => {
+        try {
+          const r = await fn();
+          return r.count || 0;
+        } catch {
+          return 0;
+        }
+      };
 
       const [missionsCount, chatCount, opportunitiesCount, researchCount] = await Promise.all([
-        safeCount(
+        safeCount(() =>
           supabase
             .from("missions")
             .select("id", { count: "exact", head: true })
             .eq("business_id", currentBusiness.id)
             .gte("created_at", startOfMonth)
         ),
-        safeCount(
+        safeCount(() =>
           supabase
             .from("chat_messages")
             .select("id", { count: "exact", head: true })
@@ -96,14 +103,14 @@ export const useFreeLimits = (): FreeLimitsState => {
             .eq("role", "user")
             .gte("created_at", startOfMonth)
         ),
-        safeCount(
+        safeCount(() =>
           supabase
             .from("opportunities")
             .select("id", { count: "exact", head: true })
             .eq("business_id", currentBusiness.id)
             .gte("created_at", startOfMonth)
         ),
-        safeCount(
+        safeCount(() =>
           supabase
             .from("learning_items")
             .select("id", { count: "exact", head: true })
