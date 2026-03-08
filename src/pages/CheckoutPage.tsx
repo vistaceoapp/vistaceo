@@ -84,8 +84,8 @@ const CheckoutPage = () => {
     const urlStatus = searchParams.get("status");
     if (urlStatus === "success") {
       setStatus("success");
-      localStorage.removeItem("pendingPlan");
-      localStorage.removeItem("pendingPlanTimestamp");
+      safeLocalStorage.removeItem("pendingPlan");
+      safeLocalStorage.removeItem("pendingPlanTimestamp");
       setTimeout(() => navigate("/setup", { replace: true }), 2500);
     } else if (urlStatus === "failure") {
       setStatus("failure");
