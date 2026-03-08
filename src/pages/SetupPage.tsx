@@ -96,7 +96,7 @@ const SetupPage = () => {
   const setupStartTracked = useRef(false);
   
   // Check if user already has Pro (from pre-setup purchase stored in localStorage)
-  const hasPendingProPurchase = localStorage.getItem('proPurchaseCompleted') === 'true';
+  const hasPendingProPurchase = safeLocalStorage.getItem('proPurchaseCompleted') === 'true';
   const showUpgradeButton = !hasPendingProPurchase;
 
   // Restore setup progress from localStorage if returning from checkout
