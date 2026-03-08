@@ -436,16 +436,23 @@ async function pingAICrawlers(): Promise<void> {
   console.log("[SEO-Ultra-Indexer] Pinging AI crawler endpoints...");
 
   const crawlerPings = [
-    // Common Crawl - feeds Perplexity, C4, LLM training datasets
-    // No direct ping API - ensure robots.txt allows CCBot
-
-    // Brave Search - has its own crawler (Brave Bot) + IndexNow support (done above via api.indexnow.org)
-
-    // Google AI crawlers (Googlebot, Google-InspectionTool, AdsBot-Google) - covered by sitemap ping
-
-    // Submit fresh RSS feed URL for discovery
+    // Google RSS + Atom feed discovery
     `https://www.google.com/ping?sitemap=${encodeURIComponent(`${BLOG_URL}/rss.xml`)}`,
+    // PubSubHubbub / WebSub for instant feed notification
+    `https://pubsubhubbub.appspot.com/publish`,
+    // Pingomatic covers: Google Blog Search, Weblogs, Moreover, Syndic8, NewsGator, BlogDigger, etc.
+    `https://rpc.pingomatic.com/`,
   ];
+
+  // Also try WebSub notification for RSS
+  try {
+    await fetch("https://pubsubhubbub.appspot.com/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `hub.mode=publish&hub.url=${encodeURIComponent(`${BLOG_URL}/rss.xml`)}`,
+    });
+    console.log("[SEO-Ultra-Indexer] WebSub notification sent for RSS feed");
+  } catch (_) { /* best effort */ }
 
   try {
     await Promise.allSettled(crawlerPings.map(url => fetch(url)));
