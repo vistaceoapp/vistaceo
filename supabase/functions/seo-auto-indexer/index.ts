@@ -50,15 +50,13 @@ Deno.serve(async (req) => {
     // ========== PHASE 1: FETCH RECENT/CHANGED POSTS (not all 500 every hour) ==========
     // Only index posts published or updated in the last 48 hours for efficiency
     // Full re-index happens weekly via the full scan
-    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    
+  // Index ALL published posts — not just recent ones — to maximize impressions
     const { data: recentPosts, error: recentError } = await supabase
       .from("blog_posts")
       .select("id, slug, title, hero_image_url, meta_description, meta_title, content_md, publish_at, updated_at, status, canonical_url")
       .eq("status", "published")
-      .or(`publish_at.gte.${fortyEightHoursAgo},updated_at.gte.${fortyEightHoursAgo}`)
       .order("publish_at", { ascending: false })
-      .limit(50);
+      .limit(500);
 
     // Also get ALL posts for canonical URL fixes (lightweight query)
     const { data: allPosts, error: allPostsError } = await supabase
