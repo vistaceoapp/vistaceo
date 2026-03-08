@@ -410,7 +410,7 @@ const SetupPage = () => {
       
       // Clear saved progress since setup is complete
       clearSavedProgress();
-      localStorage.removeItem('selectedCountryCode');
+      safeLocalStorage.removeItem('selectedCountryCode');
 
       // Track setup completed
       trackSetupCompleted({
