@@ -410,8 +410,11 @@ async function pingSitemapsAllEngines(): Promise<void> {
     // Traditional search engines
     `https://www.google.com/ping?sitemap=${encoded}`,
     `https://www.bing.com/ping?sitemap=${encoded}`,
-    // Note: These ping Google/Bing which then feed AI crawlers
-    // Perplexity, ChatGPT, Gemini all crawl from Google/Bing index
+    // RSS feed pings for additional discovery
+    `https://www.google.com/ping?sitemap=${encodeURIComponent(`${BLOG_URL}/rss.xml`)}`,
+    `https://www.bing.com/ping?sitemap=${encodeURIComponent(`${BLOG_URL}/rss.xml`)}`,
+    // Webmaster ping endpoints
+    `https://rpc.pingomatic.com/`,
   ];
 
   console.log("[SEO-Ultra-Indexer] Pinging sitemaps to Google + Bing...");
