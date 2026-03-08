@@ -131,40 +131,48 @@ export const useDashboardData = () => {
 
       try {
         // Fetch setup progress, brain, integrations, signals and snapshots in parallel
+        // Use individual try/catch via .then to prevent one failure from killing all data
         const [setupRes, brainRes, menuRes, competitorsRes, snapshotRes, integrationsRes, signalsRes] = await Promise.all([
           supabase
             .from('business_setup_progress')
             .select('*')
             .eq('business_id', currentBusiness.id)
-            .maybeSingle(),
+            .maybeSingle()
+            .then(r => r, () => ({ data: null, error: null, count: null })),
           supabase
             .from('business_brains')
             .select('*')
             .eq('business_id', currentBusiness.id)
-            .maybeSingle(),
+            .maybeSingle()
+            .then(r => r, () => ({ data: null, error: null, count: null })),
           supabase
             .from('business_menu_items')
             .select('id', { count: 'exact', head: true })
-            .eq('business_id', currentBusiness.id),
+            .eq('business_id', currentBusiness.id)
+            .then(r => r, () => ({ data: null, error: null, count: 0 })),
           supabase
             .from('business_competitors')
             .select('id', { count: 'exact', head: true })
-            .eq('business_id', currentBusiness.id),
+            .eq('business_id', currentBusiness.id)
+            .then(r => r, () => ({ data: null, error: null, count: 0 })),
           supabase
             .from('snapshots')
             .select('total_score, dimensions_json')
             .eq('business_id', currentBusiness.id)
             .order('created_at', { ascending: false })
-            .limit(2),
+            .limit(2)
+            .then(r => r, () => ({ data: [], error: null, count: null })),
           supabase
             .from('business_integrations')
             .select('*')
             .eq('business_id', currentBusiness.id)
-            .eq('status', 'active'),
+            .eq('status', 'active')
+            .then(r => r, () => ({ data: [], error: null, count: null })),
           supabase
             .from('signals')
             .select('id', { count: 'exact', head: true })
-            .eq('business_id', currentBusiness.id),
+            .eq('business_id', currentBusiness.id)
+            .then(r => r, () => ({ data: null, error: null, count: 0 })),
         ]);
 
         // Determine available data

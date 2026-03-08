@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { CountryCode, COUNTRY_PACKS } from '@/lib/countryPacks';
 import { analyzeHealthFromAnswers } from '@/lib/gastroQuestionsEngine';
+import { safeLocalStorage } from '@/lib/safe-storage';
 
 // Map area IDs to valid business_category enum values
 const AREA_TO_CATEGORY: Record<string, string> = {
@@ -95,13 +96,13 @@ const SetupPage = () => {
   const setupStartTracked = useRef(false);
   
   // Check if user already has Pro (from pre-setup purchase stored in localStorage)
-  const hasPendingProPurchase = localStorage.getItem('proPurchaseCompleted') === 'true';
+  const hasPendingProPurchase = safeLocalStorage.getItem('proPurchaseCompleted') === 'true';
   const showUpgradeButton = !hasPendingProPurchase;
 
   // Restore setup progress from localStorage if returning from checkout
   const getSavedSetupState = () => {
     try {
-      const saved = localStorage.getItem('setupProgress');
+      const saved = safeLocalStorage.getItem('setupProgress');
       if (saved) {
         const parsed = JSON.parse(saved);
         // Check if saved less than 30 days ago (persist across sessions)
@@ -124,7 +125,7 @@ const SetupPage = () => {
       return savedState.data;
     }
     // Check for saved country from selection
-    const savedCountry = localStorage.getItem('selectedCountryCode') as CountryCode | null;
+    const savedCountry = safeLocalStorage.getItem('selectedCountryCode') as CountryCode | null;
     return {
       countryCode: savedCountry || 'AR',
       areaId: '',
@@ -146,7 +147,7 @@ const SetupPage = () => {
   // Save setup progress whenever it changes (for returning from checkout)
   useEffect(() => {
     if (currentStep > 0 || data.areaId) {
-      localStorage.setItem('setupProgress', JSON.stringify({
+      safeLocalStorage.setItem('setupProgress', JSON.stringify({
         step: currentStep,
         data: data,
         timestamp: Date.now(),
@@ -156,9 +157,9 @@ const SetupPage = () => {
 
   // Clear saved progress on component unmount if setup is complete
   const clearSavedProgress = () => {
-    localStorage.removeItem('setupProgress');
-    localStorage.removeItem('setupQuestionsCache');
-    localStorage.removeItem('setupUniversalProfile');
+    safeLocalStorage.removeItem('setupProgress');
+    safeLocalStorage.removeItem('setupQuestionsCache');
+    safeLocalStorage.removeItem('setupUniversalProfile');
   };
 
   // Redirect if user already has a completed business
@@ -239,7 +240,7 @@ const SetupPage = () => {
           : 'Si cambiás el tipo de negocio, las preguntas y respuestas se van a regenerar. ¿Querés continuar?';
         if (!window.confirm(msg)) return;
         // Clear questions cache since business type will change
-        localStorage.removeItem('setupQuestionsCache');
+        safeLocalStorage.removeItem('setupQuestionsCache');
         setData(d => ({ ...d, answers: {}, questionIndex: 0 }));
       }
       setManualIdentityMode(false);
@@ -390,7 +391,7 @@ const SetupPage = () => {
       // Step 5b: Auto-trigger opportunity scanning (fire and forget)
       try {
         console.log('[Setup] Triggering auto radar scan for business:', business.id);
-        supabase.functions.invoke('scan-opportunities', {
+        supabase.functions.invoke('weekly-insight-scan', {
           body: { businessId: business.id, source: 'setup_auto' },
         }).then(res => {
           console.log('[Setup] Auto radar scan triggered:', res.data);
@@ -409,7 +410,7 @@ const SetupPage = () => {
       
       // Clear saved progress since setup is complete
       clearSavedProgress();
-      localStorage.removeItem('selectedCountryCode');
+      safeLocalStorage.removeItem('selectedCountryCode');
 
       // Track setup completed
       trackSetupCompleted({
@@ -521,7 +522,7 @@ const SetupPage = () => {
                 _selected_option_origin: option.origin,
                 _precision_percent: option.precision_percent,
               };
-              localStorage.setItem('setupUniversalProfile', JSON.stringify(profileToStore));
+              safeLocalStorage.setItem('setupUniversalProfile', JSON.stringify(profileToStore));
               // Auto-advance
               setTimeout(() => setCurrentStep(prev => prev + 1), 200);
             }}

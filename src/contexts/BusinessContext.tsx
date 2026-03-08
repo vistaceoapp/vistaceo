@@ -71,8 +71,8 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
       setBusinesses(businessList);
       
       // Set first business as current if none selected
-      if (businessList.length > 0 && !currentBusiness) {
-        setCurrentBusiness(businessList[0]);
+      if (businessList.length > 0) {
+        setCurrentBusiness(prev => prev ?? businessList[0]);
       }
     } catch (error) {
       console.error("Error fetching businesses:", error);

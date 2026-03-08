@@ -81,36 +81,36 @@ export function useUserLifecycle(): UserLifecycleState {
     }
 
     try {
-      // Fetch profile data
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('last_login_at, last_active_at')
-        .eq('id', user.id)
-        .maybeSingle();
+      // Fetch profile, admin role, and subscription in PARALLEL
+      const [profileRes, adminRoleRes, subscriptionsRes] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('last_login_at, last_active_at')
+          .eq('id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle(),
+        supabase
+          .from('subscriptions')
+          .select('status, expires_at, plan_id')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1),
+      ]);
 
-      // Admin: server-side source of truth (user_roles)
-      const { data: adminRole, error: adminErr } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-
-      if (adminErr) {
-        console.warn('[UserLifecycle] Could not read user role:', adminErr.message);
+      const profile = profileRes.data;
+      
+      if (adminRoleRes.error) {
+        console.warn('[UserLifecycle] Could not read user role:', adminRoleRes.error.message);
       }
 
-      const isAdmin = !!adminRole;
+      const isAdmin = !!adminRoleRes.data;
 
-      // Get subscription data (latest)
-      const { data: subscriptions } = await supabase
-        .from('subscriptions')
-        .select('status, expires_at, plan_id')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      const subscription = subscriptions?.[0];
+      const subscription = subscriptionsRes.data?.[0];
 
       // Build state data
       const data: UserStateData = {

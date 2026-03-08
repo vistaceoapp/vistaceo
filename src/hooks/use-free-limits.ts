@@ -77,43 +77,53 @@ export const useFreeLimits = (): FreeLimitsState => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-      // Fetch usage counts in parallel
-      const [missionsRes, chatRes, opportunitiesRes, researchRes] = await Promise.all([
-        // Missions created this month
-        supabase
-          .from("missions")
-          .select("id", { count: "exact", head: true })
-          .eq("business_id", currentBusiness.id)
-          .gte("created_at", startOfMonth),
-        
-        // Chat messages this month (user messages only)
-        supabase
-          .from("chat_messages")
-          .select("id", { count: "exact", head: true })
-          .eq("business_id", currentBusiness.id)
-          .eq("role", "user")
-          .gte("created_at", startOfMonth),
-        
-        // Radar opportunities (internal) viewed/converted this month
-        supabase
-          .from("opportunities")
-          .select("id", { count: "exact", head: true })
-          .eq("business_id", currentBusiness.id)
-          .gte("created_at", startOfMonth),
-        
-        // Research/I+D items (external) this month
-        supabase
-          .from("learning_items")
-          .select("id", { count: "exact", head: true })
-          .eq("business_id", currentBusiness.id)
-          .gte("created_at", startOfMonth),
+      // Fetch usage counts in parallel — each query is isolated so one failure doesn't kill all
+      const safeCount = async (fn: () => PromiseLike<{ count: number | null }>) => {
+        try {
+          const r = await fn();
+          return r.count || 0;
+        } catch {
+          return 0;
+        }
+      };
+
+      const [missionsCount, chatCount, opportunitiesCount, researchCount] = await Promise.all([
+        safeCount(() =>
+          supabase
+            .from("missions")
+            .select("id", { count: "exact", head: true })
+            .eq("business_id", currentBusiness.id)
+            .gte("created_at", startOfMonth)
+        ),
+        safeCount(() =>
+          supabase
+            .from("chat_messages")
+            .select("id", { count: "exact", head: true })
+            .eq("business_id", currentBusiness.id)
+            .eq("role", "user")
+            .gte("created_at", startOfMonth)
+        ),
+        safeCount(() =>
+          supabase
+            .from("opportunities")
+            .select("id", { count: "exact", head: true })
+            .eq("business_id", currentBusiness.id)
+            .gte("created_at", startOfMonth)
+        ),
+        safeCount(() =>
+          supabase
+            .from("learning_items")
+            .select("id", { count: "exact", head: true })
+            .eq("business_id", currentBusiness.id)
+            .gte("created_at", startOfMonth)
+        ),
       ]);
 
       setUsage({
-        missions: missionsRes.count || 0,
-        chatMessages: chatRes.count || 0,
-        radarOpportunities: opportunitiesRes.count || 0,
-        radarResearch: researchRes.count || 0,
+        missions: missionsCount,
+        chatMessages: chatCount,
+        radarOpportunities: opportunitiesCount,
+        radarResearch: researchCount,
       });
     } catch (error) {
       console.error("Error fetching usage limits:", error);

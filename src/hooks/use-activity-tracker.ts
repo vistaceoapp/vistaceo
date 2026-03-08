@@ -49,8 +49,6 @@ export function useActivityTracker() {
     if (!user) return;
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
       await supabase.functions.invoke('track-user-activity', {
         body: {
           event_type: options.eventType,
