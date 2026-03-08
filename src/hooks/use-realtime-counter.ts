@@ -39,7 +39,7 @@ const getWeightedTarget = (min: number, max: number): number => {
 
 const getInitialValue = (): number => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = safeLocalStorage.getItem(STORAGE_KEY);
     if (stored) {
       const { value, timestamp } = JSON.parse(stored);
       const elapsed = Date.now() - timestamp;
