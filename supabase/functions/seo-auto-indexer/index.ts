@@ -50,15 +50,13 @@ Deno.serve(async (req) => {
     // ========== PHASE 1: FETCH RECENT/CHANGED POSTS (not all 500 every hour) ==========
     // Only index posts published or updated in the last 48 hours for efficiency
     // Full re-index happens weekly via the full scan
-    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-    
+  // Index ALL published posts — not just recent ones — to maximize impressions
     const { data: recentPosts, error: recentError } = await supabase
       .from("blog_posts")
       .select("id, slug, title, hero_image_url, meta_description, meta_title, content_md, publish_at, updated_at, status, canonical_url")
       .eq("status", "published")
-      .or(`publish_at.gte.${fortyEightHoursAgo},updated_at.gte.${fortyEightHoursAgo}`)
       .order("publish_at", { ascending: false })
-      .limit(50);
+      .limit(500);
 
     // Also get ALL posts for canonical URL fixes (lightweight query)
     const { data: allPosts, error: allPostsError } = await supabase
@@ -353,9 +351,11 @@ async function submitToIndexNowNetwork(urlList: string[]): Promise<{ endpoint: s
 
   // IndexNow endpoints - covers Bing, Yandex, Naver, Seznam, Brave, DuckDuckGo
   const indexNowEndpoints = [
-    "https://api.indexnow.org/indexnow",  // Master - distributes to all
-    "https://www.bing.com/indexnow",       // Bing + ChatGPT AI (Copilot)
+    "https://api.indexnow.org/indexnow",  // Master - distributes to ALL IndexNow partners
+    "https://www.bing.com/indexnow",       // Bing + ChatGPT/Copilot
     "https://yandex.com/indexnow",        // Yandex
+    "https://search.seznam.cz/indexnow",  // Seznam (Czech Republic, but indexes globally)
+    "https://searchadvisor.naver.com/indexnow", // Naver (Korea, but expands reach)
   ];
 
   for (const batch of batches) {
@@ -410,8 +410,11 @@ async function pingSitemapsAllEngines(): Promise<void> {
     // Traditional search engines
     `https://www.google.com/ping?sitemap=${encoded}`,
     `https://www.bing.com/ping?sitemap=${encoded}`,
-    // Note: These ping Google/Bing which then feed AI crawlers
-    // Perplexity, ChatGPT, Gemini all crawl from Google/Bing index
+    // RSS feed pings for additional discovery
+    `https://www.google.com/ping?sitemap=${encodeURIComponent(`${BLOG_URL}/rss.xml`)}`,
+    `https://www.bing.com/ping?sitemap=${encodeURIComponent(`${BLOG_URL}/rss.xml`)}`,
+    // Webmaster ping endpoints
+    `https://rpc.pingomatic.com/`,
   ];
 
   console.log("[SEO-Ultra-Indexer] Pinging sitemaps to Google + Bing...");
@@ -433,16 +436,23 @@ async function pingAICrawlers(): Promise<void> {
   console.log("[SEO-Ultra-Indexer] Pinging AI crawler endpoints...");
 
   const crawlerPings = [
-    // Common Crawl - feeds Perplexity, C4, LLM training datasets
-    // No direct ping API - ensure robots.txt allows CCBot
-
-    // Brave Search - has its own crawler (Brave Bot) + IndexNow support (done above via api.indexnow.org)
-
-    // Google AI crawlers (Googlebot, Google-InspectionTool, AdsBot-Google) - covered by sitemap ping
-
-    // Submit fresh RSS feed URL for discovery
+    // Google RSS + Atom feed discovery
     `https://www.google.com/ping?sitemap=${encodeURIComponent(`${BLOG_URL}/rss.xml`)}`,
+    // PubSubHubbub / WebSub for instant feed notification
+    `https://pubsubhubbub.appspot.com/publish`,
+    // Pingomatic covers: Google Blog Search, Weblogs, Moreover, Syndic8, NewsGator, BlogDigger, etc.
+    `https://rpc.pingomatic.com/`,
   ];
+
+  // Also try WebSub notification for RSS
+  try {
+    await fetch("https://pubsubhubbub.appspot.com/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `hub.mode=publish&hub.url=${encodeURIComponent(`${BLOG_URL}/rss.xml`)}`,
+    });
+    console.log("[SEO-Ultra-Indexer] WebSub notification sent for RSS feed");
+  } catch (_) { /* best effort */ }
 
   try {
     await Promise.allSettled(crawlerPings.map(url => fetch(url)));

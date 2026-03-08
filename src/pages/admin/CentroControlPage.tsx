@@ -118,13 +118,23 @@ function translateAction(action: string): string {
     scan_low_word_count: 'Detectó nota con pocas palabras',
     scan_missing_meta_title: 'Detectó meta title faltante',
     scan_missing_meta_description: 'Detectó meta description faltante',
+    scan_weak_meta_title: 'Meta title débil — necesita optimización IA',
+    scan_weak_meta_description: 'Meta description débil — necesita optimización IA',
+    scan_title_length_issue: 'Título con longitud fuera de rango ideal',
     scan_low_internal_links: 'Detectó pocos enlaces internos',
     scan_few_headings: 'Detectó pocos subtítulos H2',
     scan_no_cta: 'Detectó nota sin CTA a VISTACEO',
+    scan_insufficient_cta: 'Nota con solo 1 CTA (mínimo 2)',
+    scan_missing_faq: 'Nota sin sección de preguntas frecuentes',
+    scan_broken_excerpt: 'Excerpt con markdown roto',
+    scan_broken_inline_image: 'Imagen inline rota en el contenido',
     fix_visible_placeholder: 'Eliminó placeholders visibles',
     fix_system_code_leak: 'Limpió código de sistema filtrado',
     fix_empty_section: 'Eliminó secciones vacías',
     fix_promised_download_missing: 'Corrigió promesa de descarga',
+    fix_batch: 'Reparación automática por lotes',
+    seo_ai_optimize: '🤖 Optimización SEO+CTR con IA',
+    image_generate: '🖼️ Imagen hero generada con IA',
     improve_weak_post: 'Mejoró nota con score bajo',
     link_orphan: 'Enlazó nota huérfana al cluster',
     refresh_micro: 'Micro-mejora para frescura',
@@ -179,6 +189,8 @@ export default function CentroControlPage() {
   const { data: edges } = useClusterEdges();
 
   const [running, setRunning] = useState(false);
+  const [refreshingImages, setRefreshingImages] = useState(false);
+  const [indexing, setIndexing] = useState(false);
 
   // ── Computed stats ──
   const today = todayStr();
@@ -269,6 +281,28 @@ export default function CentroControlPage() {
     } catch (err: any) { toast.error(err.message); }
   };
 
+
+  const triggerBulkImageRefresh = async () => {
+    setRefreshingImages(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('bulk-image-refresh', { body: { mode: 'oldest', limit: 8 } });
+      if (error) throw error;
+      toast.success(`🖼️ Imágenes regeneradas: ${data?.generated || 0} de ${data?.total || 0}`);
+      qc.invalidateQueries({ queryKey: ['cc-posts'] });
+    } catch (err: any) { toast.error(err.message); }
+    finally { setRefreshingImages(false); }
+  };
+
+  const triggerMegaIndex = async () => {
+    setIndexing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('seo-auto-indexer', { body: {} });
+      if (error) throw error;
+      toast.success(`🌐 Indexación: ${data?.stats?.urlsIndexed || 0} URLs enviadas a ${(data?.enginesTargeted || []).length} motores`);
+    } catch (err: any) { toast.error(err.message); }
+    finally { setIndexing(false); }
+  };
+
   // ── Realtime ──
   useEffect(() => {
     const ch = supabase.channel('cc-live')
@@ -302,6 +336,14 @@ export default function CentroControlPage() {
             <Button size="sm" onClick={triggerCycle} disabled={running}>
               {running ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Zap className="w-4 h-4 mr-1" />}
               Ejecutar ciclo
+            </Button>
+            <Button size="sm" variant="outline" onClick={triggerBulkImageRefresh} disabled={refreshingImages}>
+              {refreshingImages ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Sparkles className="w-4 h-4 mr-1" />}
+              Renovar imágenes
+            </Button>
+            <Button size="sm" variant="outline" onClick={triggerMegaIndex} disabled={indexing}>
+              {indexing ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Globe className="w-4 h-4 mr-1" />}
+              Mega indexar
             </Button>
           </div>
         </div>
