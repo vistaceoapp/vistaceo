@@ -75,7 +75,7 @@ const ChatPage = () => {
   // Load audio settings from localStorage
   const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => {
     try {
-      const saved = localStorage.getItem("vistaceo-audio-settings");
+      const saved = safeLocalStorage.getItem("vistaceo-audio-settings");
       if (saved) {
         return JSON.parse(saved);
       }
