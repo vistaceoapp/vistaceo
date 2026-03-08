@@ -351,9 +351,11 @@ async function submitToIndexNowNetwork(urlList: string[]): Promise<{ endpoint: s
 
   // IndexNow endpoints - covers Bing, Yandex, Naver, Seznam, Brave, DuckDuckGo
   const indexNowEndpoints = [
-    "https://api.indexnow.org/indexnow",  // Master - distributes to all
-    "https://www.bing.com/indexnow",       // Bing + ChatGPT AI (Copilot)
+    "https://api.indexnow.org/indexnow",  // Master - distributes to ALL IndexNow partners
+    "https://www.bing.com/indexnow",       // Bing + ChatGPT/Copilot
     "https://yandex.com/indexnow",        // Yandex
+    "https://search.seznam.cz/indexnow",  // Seznam (Czech Republic, but indexes globally)
+    "https://searchadvisor.naver.com/indexnow", // Naver (Korea, but expands reach)
   ];
 
   for (const batch of batches) {
