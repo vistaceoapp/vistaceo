@@ -157,9 +157,9 @@ const SetupPage = () => {
 
   // Clear saved progress on component unmount if setup is complete
   const clearSavedProgress = () => {
-    localStorage.removeItem('setupProgress');
-    localStorage.removeItem('setupQuestionsCache');
-    localStorage.removeItem('setupUniversalProfile');
+    safeLocalStorage.removeItem('setupProgress');
+    safeLocalStorage.removeItem('setupQuestionsCache');
+    safeLocalStorage.removeItem('setupUniversalProfile');
   };
 
   // Redirect if user already has a completed business
