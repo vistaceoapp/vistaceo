@@ -391,7 +391,7 @@ const SetupPage = () => {
       // Step 5b: Auto-trigger opportunity scanning (fire and forget)
       try {
         console.log('[Setup] Triggering auto radar scan for business:', business.id);
-        supabase.functions.invoke('scan-opportunities', {
+        supabase.functions.invoke('weekly-insight-scan', {
           body: { businessId: business.id, source: 'setup_auto' },
         }).then(res => {
           console.log('[Setup] Auto radar scan triggered:', res.data);
