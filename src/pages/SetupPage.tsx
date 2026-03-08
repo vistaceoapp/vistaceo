@@ -522,7 +522,7 @@ const SetupPage = () => {
                 _selected_option_origin: option.origin,
                 _precision_percent: option.precision_percent,
               };
-              localStorage.setItem('setupUniversalProfile', JSON.stringify(profileToStore));
+              safeLocalStorage.setItem('setupUniversalProfile', JSON.stringify(profileToStore));
               // Auto-advance
               setTimeout(() => setCurrentStep(prev => prev + 1), 200);
             }}
