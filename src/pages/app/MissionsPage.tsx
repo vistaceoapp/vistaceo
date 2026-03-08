@@ -436,7 +436,7 @@ const MissionsPage = () => {
       } else {
         next.add(missionId);
       }
-      try { localStorage.setItem('vistaceo-starred-missions', JSON.stringify([...next])); } catch {}
+      try { safeLocalStorage.setItem('vistaceo-starred-missions', JSON.stringify([...next])); } catch {}
       return next;
     });
   };
