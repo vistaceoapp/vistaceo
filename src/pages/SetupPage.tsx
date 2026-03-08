@@ -125,7 +125,7 @@ const SetupPage = () => {
       return savedState.data;
     }
     // Check for saved country from selection
-    const savedCountry = localStorage.getItem('selectedCountryCode') as CountryCode | null;
+    const savedCountry = safeLocalStorage.getItem('selectedCountryCode') as CountryCode | null;
     return {
       countryCode: savedCountry || 'AR',
       areaId: '',
