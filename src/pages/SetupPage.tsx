@@ -240,7 +240,7 @@ const SetupPage = () => {
           : 'Si cambiás el tipo de negocio, las preguntas y respuestas se van a regenerar. ¿Querés continuar?';
         if (!window.confirm(msg)) return;
         // Clear questions cache since business type will change
-        localStorage.removeItem('setupQuestionsCache');
+        safeLocalStorage.removeItem('setupQuestionsCache');
         setData(d => ({ ...d, answers: {}, questionIndex: 0 }));
       }
       setManualIdentityMode(false);
