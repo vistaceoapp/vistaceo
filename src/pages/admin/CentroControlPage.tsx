@@ -189,6 +189,8 @@ export default function CentroControlPage() {
   const { data: edges } = useClusterEdges();
 
   const [running, setRunning] = useState(false);
+  const [refreshingImages, setRefreshingImages] = useState(false);
+  const [indexing, setIndexing] = useState(false);
 
   // ── Computed stats ──
   const today = todayStr();
