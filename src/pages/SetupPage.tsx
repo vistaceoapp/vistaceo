@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { CountryCode, COUNTRY_PACKS } from '@/lib/countryPacks';
 import { analyzeHealthFromAnswers } from '@/lib/gastroQuestionsEngine';
+import { safeLocalStorage } from '@/lib/safe-storage';
 
 // Map area IDs to valid business_category enum values
 const AREA_TO_CATEGORY: Record<string, string> = {
