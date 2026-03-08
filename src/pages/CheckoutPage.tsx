@@ -98,8 +98,8 @@ const CheckoutPage = () => {
   useEffect(() => {
     if (!authLoading && !user) {
       if (planId) {
-        localStorage.setItem("pendingPlan", planId);
-        localStorage.setItem("pendingPlanTimestamp", Date.now().toString());
+        safeLocalStorage.setItem("pendingPlan", planId);
+        safeLocalStorage.setItem("pendingPlanTimestamp", Date.now().toString());
       }
       navigate(`/auth?plan=${planId}`, { replace: true });
     }

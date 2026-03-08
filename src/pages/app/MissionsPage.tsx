@@ -159,7 +159,7 @@ const MissionsPage = () => {
   const [hasEnoughData, setHasEnoughData] = useState<boolean | null>(null);
   const [starredMissions, setStarredMissions] = useState<Set<string>>(() => {
     try {
-      const saved = localStorage.getItem('vistaceo-starred-missions');
+      const saved = safeLocalStorage.getItem('vistaceo-starred-missions');
       return saved ? new Set(JSON.parse(saved)) : new Set();
     } catch { return new Set(); }
   });

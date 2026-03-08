@@ -100,7 +100,7 @@ export const useRealtimeCounter = () => {
       
       // Persistir
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify({
           value: finalValue,
           timestamp: Date.now()
         }));
