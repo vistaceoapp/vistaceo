@@ -279,6 +279,30 @@ export default function CentroControlPage() {
     } catch (err: any) { toast.error(err.message); }
   };
 
+  const [refreshingImages, setRefreshingImages] = useState(false);
+  const [indexing, setIndexing] = useState(false);
+
+  const triggerBulkImageRefresh = async () => {
+    setRefreshingImages(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('bulk-image-refresh', { body: { mode: 'oldest', limit: 8 } });
+      if (error) throw error;
+      toast.success(`🖼️ Imágenes regeneradas: ${data?.generated || 0} de ${data?.total || 0}`);
+      qc.invalidateQueries({ queryKey: ['cc-posts'] });
+    } catch (err: any) { toast.error(err.message); }
+    finally { setRefreshingImages(false); }
+  };
+
+  const triggerMegaIndex = async () => {
+    setIndexing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('seo-auto-indexer', { body: {} });
+      if (error) throw error;
+      toast.success(`🌐 Indexación: ${data?.stats?.urlsIndexed || 0} URLs enviadas a ${(data?.enginesTargeted || []).length} motores`);
+    } catch (err: any) { toast.error(err.message); }
+    finally { setIndexing(false); }
+  };
+
   // ── Realtime ──
   useEffect(() => {
     const ch = supabase.channel('cc-live')
