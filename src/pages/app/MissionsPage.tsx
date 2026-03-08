@@ -43,6 +43,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
+import { safeLocalStorage } from "@/lib/safe-storage";
 
 interface Mission {
   id: string;
@@ -158,7 +159,7 @@ const MissionsPage = () => {
   const [hasEnoughData, setHasEnoughData] = useState<boolean | null>(null);
   const [starredMissions, setStarredMissions] = useState<Set<string>>(() => {
     try {
-      const saved = localStorage.getItem('vistaceo-starred-missions');
+      const saved = safeLocalStorage.getItem('vistaceo-starred-missions');
       return saved ? new Set(JSON.parse(saved)) : new Set();
     } catch { return new Set(); }
   });
@@ -435,7 +436,7 @@ const MissionsPage = () => {
       } else {
         next.add(missionId);
       }
-      try { localStorage.setItem('vistaceo-starred-missions', JSON.stringify([...next])); } catch {}
+      try { safeLocalStorage.setItem('vistaceo-starred-missions', JSON.stringify([...next])); } catch {}
       return next;
     });
   };

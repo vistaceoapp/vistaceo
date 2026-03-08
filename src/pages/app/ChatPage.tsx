@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
+import { safeLocalStorage } from "@/lib/safe-storage";
 
 // Chat components
 import { ChatWelcome } from "@/components/chat/ChatWelcome";
@@ -74,7 +75,7 @@ const ChatPage = () => {
   // Load audio settings from localStorage
   const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => {
     try {
-      const saved = localStorage.getItem("vistaceo-audio-settings");
+      const saved = safeLocalStorage.getItem("vistaceo-audio-settings");
       if (saved) {
         return JSON.parse(saved);
       }
@@ -92,7 +93,7 @@ const ChatPage = () => {
   
   // Persist audio settings
   useEffect(() => {
-    localStorage.setItem("vistaceo-audio-settings", JSON.stringify(audioSettings));
+    safeLocalStorage.setItem("vistaceo-audio-settings", JSON.stringify(audioSettings));
     console.log("Audio settings updated:", audioSettings);
   }, [audioSettings]);
 

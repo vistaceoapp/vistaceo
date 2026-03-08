@@ -21,6 +21,7 @@ import { PayPalPaymentInfo } from "@/components/checkout/PayPalPaymentInfo";
 import { PayPalSmartButtons } from "@/components/checkout/PayPalSmartButtons";
 import { StickyPaymentButton } from "@/components/checkout/StickyPaymentButton";
 import { StickyPayPalButton } from "@/components/checkout/StickyPayPalButton";
+import { safeLocalStorage } from "@/lib/safe-storage";
 
 // Pro features list - exact match with landing + infinity symbols
 const proFeatures = [
@@ -70,7 +71,7 @@ const CheckoutPage = () => {
 
   // Get plan from URL or localStorage
   const urlPlan = searchParams.get("plan");
-  const storedPlan = localStorage.getItem("pendingPlan");
+  const storedPlan = safeLocalStorage.getItem("pendingPlan");
   const planId = urlPlan || storedPlan || "pro_yearly";
 
   // Sync isYearly with planId
@@ -83,8 +84,8 @@ const CheckoutPage = () => {
     const urlStatus = searchParams.get("status");
     if (urlStatus === "success") {
       setStatus("success");
-      localStorage.removeItem("pendingPlan");
-      localStorage.removeItem("pendingPlanTimestamp");
+      safeLocalStorage.removeItem("pendingPlan");
+      safeLocalStorage.removeItem("pendingPlanTimestamp");
       setTimeout(() => navigate("/setup", { replace: true }), 2500);
     } else if (urlStatus === "failure") {
       setStatus("failure");
@@ -97,8 +98,8 @@ const CheckoutPage = () => {
   useEffect(() => {
     if (!authLoading && !user) {
       if (planId) {
-        localStorage.setItem("pendingPlan", planId);
-        localStorage.setItem("pendingPlanTimestamp", Date.now().toString());
+        safeLocalStorage.setItem("pendingPlan", planId);
+        safeLocalStorage.setItem("pendingPlanTimestamp", Date.now().toString());
       }
       navigate(`/auth?plan=${planId}`, { replace: true });
     }

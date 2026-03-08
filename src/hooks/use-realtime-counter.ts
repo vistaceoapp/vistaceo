@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { safeLocalStorage } from "@/lib/safe-storage";
 
 const STORAGE_KEY = "vistaceo_active_users";
 const GLOBAL_MIN = 17;
@@ -38,7 +39,7 @@ const getWeightedTarget = (min: number, max: number): number => {
 
 const getInitialValue = (): number => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = safeLocalStorage.getItem(STORAGE_KEY);
     if (stored) {
       const { value, timestamp } = JSON.parse(stored);
       const elapsed = Date.now() - timestamp;
@@ -99,7 +100,7 @@ export const useRealtimeCounter = () => {
       
       // Persistir
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        safeLocalStorage.setItem(STORAGE_KEY, JSON.stringify({
           value: finalValue,
           timestamp: Date.now()
         }));
