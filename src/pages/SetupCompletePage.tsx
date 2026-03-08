@@ -16,6 +16,7 @@ import {
   Zap
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import { safeLocalStorage } from "@/lib/safe-storage";
 
 const SetupCompletePage = () => {
   const navigate = useNavigate();
