@@ -92,7 +92,14 @@ export const InboxCard = ({ variant = "full", onAnswer }: InboxCardProps) => {
       if (error) throw error;
 
       if (data?.question) {
-        setCurrentQuestion(data.question);
+        const q = data.question;
+        // Normalize: ensure all required fields exist and options are strings
+        setCurrentQuestion({
+          question: typeof q.question === 'string' ? q.question : String(q.question || ''),
+          options: Array.isArray(q.options) ? q.options.map((o: unknown) => typeof o === 'string' ? o : (o as any)?.text || (o as any)?.label || String(o)) : [],
+          category: q.category || q.type || 'general',
+          impact: q.impact || 'Mejorar las recomendaciones',
+        });
       }
     } catch (error) {
       console.error("Error fetching question:", error);

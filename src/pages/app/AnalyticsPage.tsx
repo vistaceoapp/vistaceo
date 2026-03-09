@@ -1,13 +1,15 @@
+import { useState, useEffect } from "react";
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 import { BusinessHealthAnalytics } from "@/components/analytics/BusinessHealthAnalytics";
 import { SmartInsightsPanel } from "@/components/analytics/SmartInsightsPanel";
+import { CompetitorInsightsPanel } from "@/components/analytics/CompetitorInsightsPanel";
 import { EvolutionPanel } from "@/components/app/EvolutionPanel";
 import { ProFeatureGate } from "@/components/app/ProFeatureGate";
 import { GooglePlacesReputationSection } from "@/components/app/GooglePlacesReputationSection";
 import { ReputationAnalyticsPanel } from "@/components/app/ReputationAnalyticsPanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/use-subscription";
-import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star, Brain, Lock } from "lucide-react";
+import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star, Brain, Lock, Building2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useSearchParams } from "react-router-dom";
@@ -17,11 +19,20 @@ const AnalyticsPage = () => {
   const isMobile = useIsMobile();
   const { isPro } = useSubscription();
   const [searchParams] = useSearchParams();
-  const defaultTab = searchParams.get("tab") || (isPro ? "insights" : "diagnostico");
+  const tabFromUrl = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(tabFromUrl || (isPro ? "insights" : "diagnostico"));
+
+  // Sync tab from URL changes (e.g. navigating from insights "Ver diagnóstico" button)
+  useEffect(() => {
+    if (tabFromUrl) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
 
   const tabs = [
     { value: "diagnostico", label: "Diagnóstico", mobileLabel: "Diag.", icon: Stethoscope, locked: false },
     { value: "reputacion", label: "Reputación", mobileLabel: "Reput.", icon: Star, locked: false },
+    { value: "competencia", label: "Competencia", mobileLabel: "Comp.", icon: Building2, locked: false },
     { value: "insights", label: "Insights", mobileLabel: "Insights", icon: Brain, locked: !isPro },
     { value: "evolucion", label: "Evolución", mobileLabel: "Evol.", icon: TrendingUp, locked: !isPro },
     { value: "metricas", label: "Métricas", mobileLabel: "Métr.", icon: BarChart3, locked: !isPro },
@@ -59,10 +70,10 @@ const AnalyticsPage = () => {
         </div>
       </div>
 
-      <Tabs defaultValue={defaultTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className={cn(
           "w-full mb-6 h-auto p-1",
-          isMobile ? "flex overflow-x-auto scrollbar-hide gap-0.5" : "grid grid-cols-5"
+          isMobile ? "flex overflow-x-auto scrollbar-hide gap-0.5" : "grid grid-cols-6"
         )}>
           {tabs.map((tab) => (
             <TabsTrigger
@@ -103,6 +114,10 @@ const AnalyticsPage = () => {
               <GooglePlacesReputationSection />
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="competencia" className="space-y-6 animate-fade-in">
+          <CompetitorInsightsPanel />
         </TabsContent>
 
         {/* Pro tabs */}
