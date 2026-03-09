@@ -551,6 +551,11 @@ export function isProhibitedContent(text: string): boolean {
 export function sanitizeForUI(text: string | null | undefined): string {
   if (!text || typeof text !== 'string') return '';
   
+  // Catch [object Object] leaks immediately
+  if (text === '[object Object]' || text.includes('[object Object]')) {
+    return text.replace(/\[object Object\]/g, '').trim() || '';
+  }
+  
   let result = text;
   
   // Remove prohibited code patterns
