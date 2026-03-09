@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 import { BusinessHealthAnalytics } from "@/components/analytics/BusinessHealthAnalytics";
 import { SmartInsightsPanel } from "@/components/analytics/SmartInsightsPanel";
+import { CompetitorInsightsPanel } from "@/components/analytics/CompetitorInsightsPanel";
 import { EvolutionPanel } from "@/components/app/EvolutionPanel";
 import { ProFeatureGate } from "@/components/app/ProFeatureGate";
 import { GooglePlacesReputationSection } from "@/components/app/GooglePlacesReputationSection";
