@@ -120,29 +120,26 @@ const NotifCard = ({ icon, iconBg, name, text, time, className }: {
    ═══════════════════════════════════════════════════════════════ */
 const HeroSection = () => {
   return (
-    <section className="relative pt-28 pb-20 lg:pt-32 lg:pb-28 px-6 overflow-hidden min-h-[90vh]">
-      {/* Background gradients — Kinso exact warm tones */}
+    <section className="relative pt-28 pb-12 lg:pt-32 lg:pb-20 px-6 overflow-hidden">
+      {/* Background — Kinso warm peach/blue gradient */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: "linear-gradient(180deg, rgba(255,248,245,0.7) 0%, rgba(255,255,255,1) 100%)"
-      }} />
-      <div className="absolute top-0 right-0 w-[70%] h-[70%] pointer-events-none" style={{
-        background: "radial-gradient(ellipse 80% 60% at 70% 20%, rgba(232,113,74,0.05), transparent 70%)"
+        background: "linear-gradient(160deg, rgba(255,235,220,0.55) 0%, rgba(255,255,255,0.95) 45%, rgba(235,245,255,0.4) 100%)"
       }} />
 
-      <div className="relative z-10 max-w-[1200px] mx-auto flex flex-col lg:flex-row items-start gap-12 lg:gap-8">
-        {/* Left: Text — Kinso exact */}
-        <div className="flex-shrink-0 w-full lg:w-[420px] lg:pt-8">
+      <div className="relative z-10 max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-0">
+        {/* Left: Text — Kinso exact: left-aligned, vertically centered */}
+        <div className="flex-shrink-0 w-full lg:w-[400px] lg:pr-8">
           <Reveal>
-            <h1 className="text-[clamp(2.2rem,5.5vw,3.2rem)] font-semibold text-[#1a1a1a] leading-[1.08] tracking-[-0.02em]">
+            <h1 className="text-[clamp(2.4rem,5.5vw,3.4rem)] font-semibold text-[#111] leading-[1.06] tracking-[-0.025em]">
               Un cerebro,
             </h1>
-            <h1 className="text-[clamp(2.2rem,5.5vw,3.2rem)] font-semibold text-[#1a1a1a] leading-[1.08] tracking-[-0.02em] mt-1">
+            <h1 className="text-[clamp(2.4rem,5.5vw,3.4rem)] font-semibold text-[#111] leading-[1.06] tracking-[-0.025em]">
               cada decisión.
             </h1>
           </Reveal>
 
           <Reveal delay={80}>
-            <p className="text-[15px] text-[#666] mt-7 leading-[1.75] max-w-[380px]">
+            <p className="text-[15px] text-[#666] mt-6 leading-[1.8] max-w-[360px]">
               VISTACEO reúne toda la inteligencia de tu negocio. Aprende tus objetivos, entiende qué importa más, y genera acciones que suenan como vos.
             </p>
           </Reveal>
