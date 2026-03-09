@@ -807,6 +807,11 @@ export default function CentroControlPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* LINKEDIN */}
+        <TabsContent value="linkedin">
+          <LinkedInCopyTab />
+        </TabsContent>
       </Tabs>
     </div>
   );
