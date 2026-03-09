@@ -522,47 +522,47 @@ const ChatPage = () => {
         "flex flex-col",
         isMobile ? "h-[calc(100dvh-130px)]" : "h-[calc(100vh-100px)]"
       )}>
-        {/* Header */}
+        {/* Header - premium glassmorphism */}
         <div className={cn(
-          "flex items-center justify-between border-b border-border/30 bg-background/80 backdrop-blur-sm",
-          isMobile ? "px-3 py-2" : "px-4 py-3 mb-2"
+          "flex items-center justify-between bg-background/60 backdrop-blur-xl border-b border-border/20",
+          "sticky top-0 z-10",
+          isMobile ? "px-3 py-2.5" : "px-5 py-3"
         )}>
           <div className="flex items-center gap-3">
             <CEOAvatar size={isMobile ? "sm" : "md"} isSpeaking={isPlayingAudio} isThinking={loading} />
             <div className="min-w-0">
               <h1 className={cn(
-                "font-semibold text-foreground truncate",
+                "font-bold text-foreground truncate",
                 isMobile ? "text-sm" : "text-lg"
               )}>
                 CEO Chat
               </h1>
               {!isMobile && (
-                <p className="text-xs text-muted-foreground truncate">{currentBusiness.name}</p>
+                <p className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  {currentBusiness.name} — En línea
+                </p>
               )}
             </div>
           </div>
 
           <div className="flex items-center gap-1">
-            {/* Personality Selector */}
             <CEOPersonalitySelector
               value={personality}
               onChange={handlePersonalityChange}
               compact={isMobile}
             />
             
-            {/* History Panel */}
             <ChatHistoryPanel
               businessId={currentBusiness.id}
               compact={isMobile}
             />
             
-            {/* Learning Panel */}
             <ChatLearningPanel
               businessId={currentBusiness.id}
               compact={isMobile}
             />
 
-            {/* New Conversation */}
             {messages.length > 0 && (
               <Button 
                 variant="ghost" 
@@ -584,8 +584,8 @@ const ChatPage = () => {
         <div
           ref={messagesContainerRef}
           className={cn(
-            "flex-1 overflow-y-auto",
-            isMobile ? "px-3" : "px-4 rounded-xl border border-border/30 bg-card/30"
+            "flex-1 overflow-y-auto scroll-smooth",
+            isMobile ? "px-3" : "px-5"
           )}
         >
           {messages.length === 0 ? (
