@@ -116,6 +116,10 @@ const AnalyticsPage = () => {
           )}
         </TabsContent>
 
+        <TabsContent value="competencia" className="space-y-6 animate-fade-in">
+          <CompetitorInsightsPanel />
+        </TabsContent>
+
         {/* Pro tabs */}
         <TabsContent value="insights" className="space-y-6 animate-fade-in">
           {isPro ? (
