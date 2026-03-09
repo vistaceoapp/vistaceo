@@ -644,3 +644,30 @@ export function horizonLabel(horizon: string | null | undefined): string {
   if (!horizon) return NEUTRAL_FALLBACKS.notInformed;
   return HORIZON_LABELS[horizon.toLowerCase()] || HORIZON_LABELS[horizon] || humanizeRawString(horizon);
 }
+
+/**
+ * Safely convert ANY value to a display-safe string.
+ * Prevents [object Object], undefined, null, etc from leaking into the UI.
+ */
+export function safeDisplayString(value: unknown, fallback = ''): string {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === 'string') {
+    if (value === '[object Object]') return fallback;
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value === 'object') {
+    // Try to extract common text fields from objects
+    const obj = value as Record<string, unknown>;
+    if (obj.text && typeof obj.text === 'string') return obj.text;
+    if (obj.question && typeof obj.question === 'string') return obj.question;
+    if (obj.title && typeof obj.title === 'string') return obj.title;
+    if (obj.label && typeof obj.label === 'string') return obj.label;
+    if (obj.name && typeof obj.name === 'string') return obj.name;
+    if (obj.content && typeof obj.content === 'string') return obj.content;
+    if (obj.message && typeof obj.message === 'string') return obj.message;
+    if (obj.description && typeof obj.description === 'string') return obj.description;
+    return fallback;
+  }
+  return fallback;
+}
