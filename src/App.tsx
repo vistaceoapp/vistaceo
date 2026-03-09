@@ -34,10 +34,8 @@ const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 // Admin pages - lazy loaded
 const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
-const BlogAdminPage = lazy(() => import("./pages/admin/BlogAdminPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage"));
-const BlogOSPage = lazy(() => import("./pages/admin/BlogOSPage"));
 const CentroControlPage = lazy(() => import("./pages/admin/CentroControlPage"));
 
 // App pages - lazy loaded
@@ -154,12 +152,9 @@ const AppRoutes = () => {
         {/* Admin routes - Protected by AdminAuthGuard inside AdminLayout */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
-          <Route path="blog" element={<BlogAdminPage />} />
           <Route path="usuarios" element={<AdminUsersPage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
-          <Route path="blog-os" element={<BlogOSPage />} />
           <Route path="centro-control" element={<CentroControlPage />} />
-          <Route path="config" element={<div className="p-6"><h1 className="text-2xl font-bold">Configuración - Próximamente</h1></div>} />
         </Route>
         
         {/* Checkout - standalone payment page (requires auth but not setup) */}
