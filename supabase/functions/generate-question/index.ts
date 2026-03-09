@@ -382,10 +382,29 @@ serve(async (req) => {
       if (jsonMatch) {
         questionData = JSON.parse(jsonMatch[0]);
         
+        // Normalize: AI sometimes returns 'type' instead of 'category'
+        if (!questionData.category && questionData.type) {
+          questionData.category = questionData.type;
+          delete questionData.type;
+        }
+        
         // Validate structure
         if (!questionData.question || !questionData.options || !Array.isArray(questionData.options)) {
           throw new Error("Invalid question structure");
         }
+        
+        // Ensure category and impact exist
+        if (!questionData.category) questionData.category = "general";
+        if (!questionData.impact) questionData.impact = "Mejorar las recomendaciones";
+        
+        // Ensure all options are strings (AI might return objects)
+        questionData.options = questionData.options.map((opt: unknown) => {
+          if (typeof opt === 'string') return opt;
+          if (opt && typeof opt === 'object') {
+            return (opt as any).text || (opt as any).label || (opt as any).value || String(opt);
+          }
+          return String(opt);
+        });
         
         // Ensure 4 options
         if (questionData.options.length < 4) {
