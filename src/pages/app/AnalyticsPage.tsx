@@ -68,7 +68,7 @@ const AnalyticsPage = () => {
         </div>
       </div>
 
-      <Tabs defaultValue={defaultTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className={cn(
           "w-full mb-6 h-auto p-1",
           isMobile ? "flex overflow-x-auto scrollbar-hide gap-0.5" : "grid grid-cols-5"
