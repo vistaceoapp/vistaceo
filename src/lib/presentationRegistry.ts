@@ -403,6 +403,7 @@ const ENGLISH_ALLOWLIST = new Set([
 // PROHIBITED PATTERNS (regex)
 // =============================================
 const PROHIBITED_PATTERNS = [
+  /\[object Object\]/g,               // Object stringification leak
   /\bQ_[A-Z]{2,}_\d+\b/g,           // Q_BIO_104, Q_AI_002
   /\b[a-z]+_[a-z]+_\d{3}\b/g,       // b2b_arq_finance_001
   /\b[0-9a-f]{8}-[0-9a-f]{4}-/g,    // UUID prefixes
