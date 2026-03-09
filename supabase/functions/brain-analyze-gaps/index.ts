@@ -44,24 +44,35 @@ async function analyzeGaps(supabase: any, businessId: string): Promise<{
     return { gaps: [], mvcCompletion: 0, canGenerateSpecific: false };
   }
 
-  // Get or create brain
+  // Get or create brain (upsert to avoid duplicate key errors)
   let brain = business.business_brains?.[0];
   if (!brain) {
     const { data: newBrain, error: brainError } = await supabase
       .from('business_brains')
-      .insert({
+      .upsert({
         business_id: businessId,
         primary_business_type: business.category || 'restaurant',
         current_focus: 'ventas',
-      })
+      }, { onConflict: 'business_id' })
       .select()
       .single();
     
     if (brainError) {
-      console.error('Error creating brain:', brainError);
-      return { gaps: [], mvcCompletion: 0, canGenerateSpecific: false };
+      console.error('Error creating/fetching brain:', brainError);
+      // Try fetching existing brain as fallback
+      const { data: existingBrain } = await supabase
+        .from('business_brains')
+        .select('*')
+        .eq('business_id', businessId)
+        .single();
+      if (existingBrain) {
+        brain = existingBrain;
+      } else {
+        return { gaps: [], mvcCompletion: 0, canGenerateSpecific: false };
+      }
+    } else {
+      brain = newBrain;
     }
-    brain = newBrain;
   }
 
   // Get MVC config for this business type

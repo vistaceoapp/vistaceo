@@ -528,7 +528,17 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, type } = await req.json();
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      // Handle empty or malformed body gracefully
+      return new Response(
+        JSON.stringify({ error: "Invalid or empty request body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const { businessId, type } = body;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -727,10 +737,27 @@ ${analysisContext}
       let analysis;
       try {
         const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
-        analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : { learning_items: [] };
-      } catch {
-        console.error("Failed to parse research response");
-        analysis = { learning_items: [] };
+        if (!jsonMatch) {
+          console.warn("[analyze-patterns] No JSON found in research response, length:", aiMessage.length);
+          analysis = { learning_items: [] };
+        } else {
+          analysis = JSON.parse(jsonMatch[0]);
+        }
+      } catch (parseErr) {
+        console.error("[analyze-patterns] Failed to parse research response, attempting repair...");
+        // Try to repair truncated JSON by closing brackets
+        try {
+          let raw = aiMessage.match(/\{[\s\S]*/)?.[0] || "";
+          // Close any unclosed arrays and objects
+          const openBrackets = (raw.match(/\[/g) || []).length - (raw.match(/\]/g) || []).length;
+          const openBraces = (raw.match(/\{/g) || []).length - (raw.match(/\}/g) || []).length;
+          for (let i = 0; i < openBrackets; i++) raw += "]";
+          for (let i = 0; i < openBraces; i++) raw += "}";
+          analysis = JSON.parse(raw);
+        } catch {
+          console.error("[analyze-patterns] JSON repair failed, skipping research");
+          analysis = { learning_items: [] };
+        }
       }
 
       let learningInserted = 0;
@@ -912,10 +939,25 @@ Ejemplos CORRECTOS:
     let analysis;
     try {
       const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
-      analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : { opportunities: [] };
+      if (!jsonMatch) {
+        console.warn("[analyze-patterns] No JSON found in opportunities response, length:", aiMessage.length);
+        analysis = { opportunities: [] };
+      } else {
+        analysis = JSON.parse(jsonMatch[0]);
+      }
     } catch {
-      console.error("Failed to parse opportunities response");
-      analysis = { opportunities: [] };
+      console.error("[analyze-patterns] Failed to parse opportunities response, attempting repair...");
+      try {
+        let raw = aiMessage.match(/\{[\s\S]*/)?.[0] || "";
+        const openBrackets = (raw.match(/\[/g) || []).length - (raw.match(/\]/g) || []).length;
+        const openBraces = (raw.match(/\{/g) || []).length - (raw.match(/\}/g) || []).length;
+        for (let i = 0; i < openBrackets; i++) raw += "]";
+        for (let i = 0; i < openBraces; i++) raw += "}";
+        analysis = JSON.parse(raw);
+      } catch {
+        console.error("[analyze-patterns] JSON repair failed for opportunities");
+        analysis = { opportunities: [] };
+      }
     }
 
     let opportunitiesInserted = 0;
