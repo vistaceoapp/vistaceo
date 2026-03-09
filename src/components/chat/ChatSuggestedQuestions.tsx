@@ -124,8 +124,9 @@ export const ChatSuggestedQuestions = ({
       // 2. Questions based on DATA GAPS
       if (gaps && gaps.length > 0) {
         const topGap = gaps[0];
-        const gapQuestion = Array.isArray(topGap.questions) && topGap.questions[0]
-          ? String(topGap.questions[0])
+        const rawQ = Array.isArray(topGap.questions) ? topGap.questions[0] : null;
+        const gapQuestion = rawQ
+          ? (typeof rawQ === 'string' ? rawQ : (rawQ as any)?.text || (rawQ as any)?.question || `¿Cómo puedo mejorar ${topGap.field_name}?`)
           : `¿Cómo puedo mejorar ${topGap.field_name}?`;
         personalizedQuestions.push({
           id: `gap-${topGap.id}`,
