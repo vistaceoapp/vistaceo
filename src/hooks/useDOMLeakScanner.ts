@@ -13,6 +13,7 @@ import { sanitizeForUI, NEUTRAL_FALLBACKS } from "@/lib/presentationRegistry";
 
 // Patterns that should NEVER appear in user-visible text
 const LEAK_PATTERNS = [
+  /\[object Object\]/,                             // Object stringification leak
   /\bQ_[A-Z]{2,}_\d{2,}\b/,                    // Q_BIO_104
   /\b[a-z]+_[a-z]+_\d{3}\b/,                    // b2b_arq_finance_001
   /\b[a-z]+(?:_[a-z0-9]+){1,}\b/,               // train_new, no_record, manual_agenda
