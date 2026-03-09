@@ -1,18 +1,21 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  Users, Search, ChevronRight, Crown, User, Building2, 
-  Calendar, Activity, MessageSquare, Target, CheckCircle,
-  TrendingUp, Clock, MapPin, ArrowLeft, Brain, Zap, Mail
+  Users, Search, ChevronRight, Crown, Building2, 
+  Activity, MessageSquare, Target,
+  ArrowLeft, Brain, Zap, Mail, Trash2, Shield, Edit, UserX
 } from 'lucide-react';
 import { useState } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface UserData {
   id: string;
@@ -23,21 +26,20 @@ interface UserData {
   last_login_at: string;
   last_active_at: string;
   login_count: number;
-  businesses: Array<{
-    id: string; name: string; category: string; country: string; setup_completed: boolean; created_at: string;
-  }>;
-  subscriptions: Array<{
-    id: string; plan_id: string; status: string; expires_at: string; payment_provider: string; payment_amount: number;
-  }>;
+  businesses: Array<{ id: string; name: string; category: string; country: string; setup_completed: boolean; created_at: string; }>;
+  subscriptions: Array<{ id: string; plan_id: string; status: string; expires_at: string; payment_provider: string; payment_amount: number; }>;
 }
 
-const DarkCard = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <div className={cn("rounded-xl bg-[#111118] border border-[#1a1a2e]", className)}>{children}</div>
-);
-
 export default function AdminUsersPage() {
+  const qc = useQueryClient();
   const [search, setSearch] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPlanDialog, setShowPlanDialog] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; email: string } | null>(null);
+  const [planTarget, setPlanTarget] = useState<{ id: string; email: string } | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState('pro_yearly');
+  const [planDays, setPlanDays] = useState('365');
 
   const { data: usersData, isLoading } = useQuery({
     queryKey: ['admin-users', search],
@@ -50,7 +52,7 @@ export default function AdminUsersPage() {
     },
   });
 
-  const { data: userDetail, isLoading: loadingDetail } = useQuery({
+  const { data: userDetail } = useQuery({
     queryKey: ['admin-user-detail', selectedUserId],
     queryFn: async () => {
       if (!selectedUserId) return null;
@@ -61,6 +63,40 @@ export default function AdminUsersPage() {
       return data;
     },
     enabled: !!selectedUserId,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.functions.invoke('admin-manage-users', {
+        body: { action: 'delete_user', userId },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Usuario eliminado correctamente');
+      setShowDeleteDialog(false);
+      setDeleteTarget(null);
+      setSelectedUserId(null);
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const planMutation = useMutation({
+    mutationFn: async ({ userId, planId, durationDays }: { userId: string; planId: string; durationDays: number }) => {
+      const { error } = await supabase.functions.invoke('admin-manage-users', {
+        body: { action: 'update_subscription', userId, planId, durationDays },
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Suscripción actualizada');
+      setShowPlanDialog(false);
+      setPlanTarget(null);
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      qc.invalidateQueries({ queryKey: ['admin-user-detail'] });
+    },
+    onError: (e: any) => toast.error(e.message),
   });
 
   const isPro = (user: UserData) => user.subscriptions?.some(s => s.status === 'active');
@@ -74,30 +110,30 @@ export default function AdminUsersPage() {
 
     return (
       <div className="p-4 md:p-6 lg:p-8 space-y-5 max-w-[1200px]">
-        {/* Back + header */}
-        <div className="flex items-center gap-4">
-          <button onClick={() => setSelectedUserId(null)} className="text-[#555] hover:text-white transition-colors flex items-center gap-1.5 text-[13px]">
-            <ArrowLeft className="w-4 h-4" />
-            Volver
-          </button>
-        </div>
+        <button onClick={() => setSelectedUserId(null)} className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 text-[13px]">
+          <ArrowLeft className="w-4 h-4" /> Volver
+        </button>
 
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#2692DC] to-[#746CE6] flex items-center justify-center text-white text-[18px] font-bold flex-shrink-0">
-            {(profile?.full_name || profile?.email || '?')[0].toUpperCase()}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-[22px] font-bold text-white">{profile?.full_name || 'Sin nombre'}</h1>
-              {hasPro && (
-                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-[10px] border-0">
-                  <Crown className="w-3 h-3 mr-1" /> PRO
-                </Badge>
-              )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#2692DC] to-[#746CE6] flex items-center justify-center text-white text-lg font-bold flex-shrink-0">
+              {(profile?.full_name || profile?.email || '?')[0].toUpperCase()}
             </div>
-            <p className="text-[13px] text-[#666] flex items-center gap-1.5">
-              <Mail className="w-3 h-3" /> {profile?.email}
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-foreground">{profile?.full_name || 'Sin nombre'}</h1>
+                {hasPro && <Badge className="bg-amber-100 text-amber-700 border-amber-200"><Crown className="w-3 h-3 mr-1" /> PRO</Badge>}
+              </div>
+              <p className="text-sm text-muted-foreground flex items-center gap-1.5"><Mail className="w-3 h-3" /> {profile?.email}</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => { setPlanTarget({ id: selectedUserId, email: profile?.email }); setShowPlanDialog(true); }}>
+              <Crown className="w-3 h-3 mr-1" /> Cambiar plan
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => { setDeleteTarget({ id: selectedUserId, email: profile?.email }); setShowDeleteDialog(true); }}>
+              <Trash2 className="w-3 h-3 mr-1" /> Eliminar
+            </Button>
           </div>
         </div>
 
@@ -105,15 +141,15 @@ export default function AdminUsersPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {[
             { label: 'Logins', value: profile?.login_count || 0, color: '#2692DC' },
-            { label: 'Último login', value: profile?.last_login_at ? formatDistanceToNow(new Date(profile.last_login_at), { locale: es }) : 'Nunca', color: '#4ecdc4' },
+            { label: 'Último login', value: profile?.last_login_at ? formatDistanceToNow(new Date(profile.last_login_at), { locale: es }) : 'Nunca', color: '#06b6d4' },
             { label: 'Misiones', value: userDetail.missions?.length || 0, color: '#746CE6' },
-            { label: 'Chat msgs', value: userDetail.chatMessages?.length || 0, color: '#febc2e' },
-            { label: 'Oportunidades', value: userDetail.opportunities?.length || 0, color: '#28c840' },
-            { label: 'Salud', value: userDetail.businessSnapshots?.[0]?.total_score ? `${userDetail.businessSnapshots[0].total_score}/100` : 'N/A', color: '#ff6b6b' },
+            { label: 'Chat msgs', value: userDetail.chatMessages?.length || 0, color: '#f59e0b' },
+            { label: 'Oportunidades', value: userDetail.opportunities?.length || 0, color: '#22c55e' },
+            { label: 'Salud', value: userDetail.businessSnapshots?.[0]?.total_score ? `${userDetail.businessSnapshots[0].total_score}/100` : 'N/A', color: '#ef4444' },
           ].map(s => (
-            <div key={s.label} className="rounded-xl bg-[#111118] border border-[#1a1a2e] p-3 text-center">
-              <p className="text-[18px] font-bold text-white">{s.value}</p>
-              <p className="text-[10px] text-[#555]">{s.label}</p>
+            <div key={s.label} className="rounded-xl bg-card border border-border p-3 text-center">
+              <p className="text-lg font-bold text-foreground">{s.value}</p>
+              <p className="text-[10px] text-muted-foreground">{s.label}</p>
             </div>
           ))}
         </div>
@@ -121,145 +157,116 @@ export default function AdminUsersPage() {
         {/* Business + Brain */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {biz && (
-            <DarkCard className="p-5">
+            <div className="rounded-xl bg-card border border-border p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Building2 className="w-4 h-4 text-[#2692DC]" />
-                <h3 className="text-[14px] font-semibold text-white">Negocio</h3>
-                {biz.setup_completed && <Badge className="ml-auto bg-emerald-500/20 text-emerald-400 border-0 text-[10px]">Setup ✓</Badge>}
+                <Building2 className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Negocio</h3>
+                {biz.setup_completed && <Badge className="ml-auto bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]">Setup ✓</Badge>}
               </div>
-              <div className="space-y-2 text-[13px]">
-                <div className="flex justify-between"><span className="text-[#666]">Nombre</span><span className="text-white font-medium">{biz.name}</span></div>
-                <div className="flex justify-between"><span className="text-[#666]">Categoría</span><span className="text-[#ccc]">{biz.category || '—'}</span></div>
-                <div className="flex justify-between"><span className="text-[#666]">País</span><span className="text-[#ccc]">{biz.country || '—'}</span></div>
-                <div className="flex justify-between"><span className="text-[#666]">Creado</span><span className="text-[#ccc]">{format(new Date(biz.created_at), 'dd MMM yyyy', { locale: es })}</span></div>
+              <div className="space-y-2 text-sm">
+                {[
+                  ['Nombre', biz.name],
+                  ['Categoría', biz.category || '—'],
+                  ['País', biz.country || '—'],
+                  ['Creado', format(new Date(biz.created_at), 'dd MMM yyyy', { locale: es })],
+                ].map(([label, val]) => (
+                  <div key={label} className="flex justify-between"><span className="text-muted-foreground">{label}</span><span className="text-foreground font-medium">{val}</span></div>
+                ))}
               </div>
-            </DarkCard>
+            </div>
           )}
-
           {brain && (
-            <DarkCard className="p-5">
+            <div className="rounded-xl bg-card border border-border p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Brain className="w-4 h-4 text-[#746CE6]" />
-                <h3 className="text-[14px] font-semibold text-white">Cerebro IA</h3>
+                <Brain className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Cerebro IA</h3>
               </div>
-              <div className="space-y-2 text-[13px]">
-                <div className="flex justify-between"><span className="text-[#666]">Tipo negocio</span><span className="text-white">{brain.primary_business_type}</span></div>
-                <div className="flex justify-between"><span className="text-[#666]">Foco</span><Badge variant="outline" className="text-[10px] border-[#2a2a3e] text-[#ccc]">{brain.current_focus}</Badge></div>
-                <div className="flex justify-between"><span className="text-[#666]">Confianza</span><span className="text-white font-bold">{Math.round((brain.confidence_score || 0) * 100)}%</span></div>
-                <div className="flex justify-between"><span className="text-[#666]">MVC</span><span className="text-white font-bold">{brain.mvc_completion_pct || 0}%</span></div>
-                <div className="flex justify-between"><span className="text-[#666]">Señales</span><span className="text-[#ccc]">{brain.total_signals || 0}</span></div>
+              <div className="space-y-2 text-sm">
+                {[
+                  ['Tipo negocio', brain.primary_business_type],
+                  ['Foco', brain.current_focus],
+                  ['Confianza', `${Math.round((brain.confidence_score || 0) * 100)}%`],
+                  ['MVC', `${brain.mvc_completion_pct || 0}%`],
+                  ['Señales', brain.total_signals || 0],
+                ].map(([label, val]) => (
+                  <div key={label as string} className="flex justify-between"><span className="text-muted-foreground">{label}</span><span className="text-foreground font-medium">{String(val)}</span></div>
+                ))}
               </div>
-            </DarkCard>
+            </div>
           )}
         </div>
 
         {/* Missions */}
-        <DarkCard className="p-5">
+        <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Target className="w-4 h-4 text-[#746CE6]" />
-            <h3 className="text-[14px] font-semibold text-white">Misiones ({userDetail.missions?.length || 0})</h3>
+            <Target className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">Misiones ({userDetail.missions?.length || 0})</h3>
           </div>
-          <ScrollArea className="h-[300px]">
-            {!userDetail.missions?.length && <p className="text-[13px] text-[#444] text-center py-8">Sin misiones</p>}
+          <ScrollArea className="h-[250px]">
+            {!userDetail.missions?.length && <p className="text-sm text-muted-foreground text-center py-8">Sin misiones</p>}
             <div className="space-y-1.5">
               {userDetail.missions?.map((m: any) => (
-                <div key={m.id} className="flex items-center justify-between p-3 rounded-lg bg-[#0d0d14] border border-[#1a1a2e]">
+                <div key={m.id} className="flex items-center justify-between p-3 rounded-lg bg-accent/30 border border-border">
                   <div className="min-w-0">
-                    <p className="text-[13px] text-[#ccc] truncate">{m.title}</p>
-                    <p className="text-[10px] text-[#444]">{format(new Date(m.created_at), 'dd MMM yyyy', { locale: es })}</p>
+                    <p className="text-sm text-foreground truncate">{m.title}</p>
+                    <p className="text-[10px] text-muted-foreground">{format(new Date(m.created_at), 'dd MMM yyyy', { locale: es })}</p>
                   </div>
-                  <Badge variant="outline" className={cn(
-                    "text-[10px] border-[#2a2a3e]",
-                    m.status === 'completed' ? "text-emerald-400" : m.status === 'in_progress' ? "text-[#2692DC]" : "text-[#555]"
-                  )}>
+                  <Badge variant="outline" className={cn("text-[10px]", m.status === 'completed' ? "text-emerald-600" : m.status === 'in_progress' ? "text-primary" : "")}>
                     {m.status === 'completed' ? '✓ Completada' : m.status === 'in_progress' ? 'En progreso' : m.status}
                   </Badge>
                 </div>
               ))}
             </div>
           </ScrollArea>
-        </DarkCard>
+        </div>
 
         {/* Chat */}
-        <DarkCard className="p-5">
+        <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex items-center gap-2 mb-4">
-            <MessageSquare className="w-4 h-4 text-[#2692DC]" />
-            <h3 className="text-[14px] font-semibold text-white">Chat IA ({userDetail.chatMessages?.length || 0} msgs)</h3>
+            <MessageSquare className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">Chat IA ({userDetail.chatMessages?.length || 0} msgs)</h3>
           </div>
-          <ScrollArea className="h-[400px]">
-            {!userDetail.chatMessages?.length && <p className="text-[13px] text-[#444] text-center py-8">Sin conversaciones</p>}
+          <ScrollArea className="h-[300px]">
+            {!userDetail.chatMessages?.length && <p className="text-sm text-muted-foreground text-center py-8">Sin conversaciones</p>}
             <div className="space-y-2">
               {userDetail.chatMessages?.map((msg: any) => (
                 <div key={msg.id} className={cn(
-                  "p-3 rounded-lg text-[13px]",
-                  msg.role === 'user' ? "bg-[#2692DC]/10 ml-8 text-[#ccc]" : "bg-[#0d0d14] mr-8 text-[#999] border border-[#1a1a2e]"
+                  "p-3 rounded-lg text-sm",
+                  msg.role === 'user' ? "bg-primary/5 ml-8" : "bg-accent/50 mr-8 border border-border"
                 )}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-[#555] font-medium">{msg.role === 'user' ? 'Usuario' : 'VISTACEO'}</span>
-                    <span className="text-[10px] text-[#444]">{format(new Date(msg.created_at), 'dd MMM HH:mm', { locale: es })}</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">{msg.role === 'user' ? 'Usuario' : 'VISTACEO'}</span>
+                    <span className="text-[10px] text-muted-foreground/60">{format(new Date(msg.created_at), 'dd MMM HH:mm', { locale: es })}</span>
                   </div>
-                  <p className="whitespace-pre-wrap leading-relaxed">{msg.content?.slice(0, 500)}{msg.content?.length > 500 ? '...' : ''}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed text-foreground">{msg.content?.slice(0, 500)}{msg.content?.length > 500 ? '...' : ''}</p>
                 </div>
               ))}
             </div>
           </ScrollArea>
-        </DarkCard>
+        </div>
 
         {/* Subscriptions */}
-        <DarkCard className="p-5">
+        <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Crown className="w-4 h-4 text-[#febc2e]" />
-            <h3 className="text-[14px] font-semibold text-white">Suscripciones</h3>
+            <Crown className="w-4 h-4 text-amber-500" />
+            <h3 className="text-sm font-semibold text-foreground">Suscripciones</h3>
           </div>
-          {!userDetail.subscriptions?.length && <p className="text-[13px] text-[#444] text-center py-6">Sin suscripciones</p>}
+          {!userDetail.subscriptions?.length && <p className="text-sm text-muted-foreground text-center py-6">Sin suscripciones</p>}
           <div className="space-y-2">
             {userDetail.subscriptions?.map((sub: any) => (
-              <div key={sub.id} className="flex items-center justify-between p-3 rounded-lg bg-[#0d0d14] border border-[#1a1a2e]">
+              <div key={sub.id} className="flex items-center justify-between p-3 rounded-lg bg-accent/30 border border-border">
                 <div>
-                  <p className="text-[13px] text-white font-medium">{sub.plan_id}</p>
-                  <p className="text-[11px] text-[#555]">via {sub.payment_provider} · ${sub.payment_amount}</p>
+                  <p className="text-sm text-foreground font-medium">{sub.plan_id}</p>
+                  <p className="text-[11px] text-muted-foreground">via {sub.payment_provider} · ${sub.payment_amount}</p>
                 </div>
                 <div className="text-right">
-                  <Badge variant="outline" className={cn(
-                    "text-[10px] border-[#2a2a3e]",
-                    sub.status === 'active' ? "text-emerald-400" : "text-[#555]"
-                  )}>{sub.status}</Badge>
-                  <p className="text-[10px] text-[#444] mt-1">
-                    Exp: {format(new Date(sub.expires_at), 'dd MMM yyyy', { locale: es })}
-                  </p>
+                  <Badge variant="outline" className={cn("text-[10px]", sub.status === 'active' ? "text-emerald-600" : "")}>{sub.status}</Badge>
+                  <p className="text-[10px] text-muted-foreground mt-1">Exp: {format(new Date(sub.expires_at), 'dd MMM yyyy', { locale: es })}</p>
                 </div>
               </div>
             ))}
           </div>
-        </DarkCard>
-
-        {/* Activity */}
-        <DarkCard className="p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-4 h-4 text-[#4ecdc4]" />
-            <h3 className="text-[14px] font-semibold text-white">Actividad reciente</h3>
-          </div>
-          <ScrollArea className="h-[300px]">
-            <div className="space-y-1.5">
-              {userDetail.activity?.map((act: any) => (
-                <div key={act.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[#0d0d14] transition-colors">
-                  <div className="w-6 h-6 rounded-full bg-[#1a1a2e] flex items-center justify-center flex-shrink-0">
-                    <Zap className="w-3 h-3 text-[#555]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[12px] text-[#999]">
-                      <span className="text-[#ccc] font-medium">{act.event_type}</span>
-                      {act.page_path && <span className="text-[#444]"> · {act.page_path}</span>}
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-[#444] flex-shrink-0">
-                    {formatDistanceToNow(new Date(act.created_at), { locale: es, addSuffix: true })}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </DarkCard>
+        </div>
       </div>
     );
   }
@@ -267,25 +274,27 @@ export default function AdminUsersPage() {
   // ── User List ──
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-5 max-w-[1200px]">
-      <div>
-        <h1 className="text-[24px] font-bold text-white">Usuarios</h1>
-        <p className="text-[14px] text-[#666]">Gestión y monitoreo de cuentas</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Usuarios</h1>
+          <p className="text-sm text-muted-foreground">Gestión completa de cuentas</p>
+        </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: 'Total', value: usersData?.stats?.totalUsers || 0, icon: Users, color: '#2692DC' },
-          { label: 'Pro', value: usersData?.stats?.proUsers || 0, icon: Crown, color: '#febc2e' },
-          { label: 'Activos 7d', value: usersData?.stats?.activeUsers7d || 0, icon: TrendingUp, color: '#28c840' },
+          { label: 'Pro', value: usersData?.stats?.proUsers || 0, icon: Crown, color: '#f59e0b' },
+          { label: 'Activos 7d', value: usersData?.stats?.activeUsers7d || 0, icon: Activity, color: '#22c55e' },
         ].map(s => (
-          <div key={s.label} className="rounded-xl bg-[#111118] border border-[#1a1a2e] p-4 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${s.color}15` }}>
+          <div key={s.label} className="rounded-xl bg-card border border-border p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${s.color}12` }}>
               <s.icon className="w-4 h-4" style={{ color: s.color }} />
             </div>
             <div>
-              <p className="text-[20px] font-bold text-white">{s.value}</p>
-              <p className="text-[11px] text-[#555]">{s.label}</p>
+              <p className="text-xl font-bold text-foreground">{s.value}</p>
+              <p className="text-[11px] text-muted-foreground">{s.label}</p>
             </div>
           </div>
         ))}
@@ -293,69 +302,128 @@ export default function AdminUsersPage() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#555]" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="Buscar por email o nombre..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 bg-[#111118] border-[#1a1a2e] text-white placeholder:text-[#444] focus:border-[#2692DC]/50"
+          className="pl-10"
         />
       </div>
 
       {/* Users list */}
-      <DarkCard>
+      <div className="rounded-xl bg-card border border-border">
         <ScrollArea className="h-[600px]">
-          <div className="divide-y divide-[#1a1a2e]">
-            {isLoading && (
-              <div className="p-8 text-center text-[#555] text-[13px]">Cargando usuarios...</div>
-            )}
+          <div className="divide-y divide-border">
+            {isLoading && <div className="p-8 text-center text-muted-foreground text-sm">Cargando usuarios...</div>}
             {usersData?.users?.map((user: UserData) => (
               <div
                 key={user.id}
-                className="flex items-center justify-between p-4 hover:bg-[#0d0d14] cursor-pointer transition-colors"
+                className="flex items-center justify-between p-4 hover:bg-accent/50 cursor-pointer transition-colors group"
                 onClick={() => setSelectedUserId(user.id)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#2692DC]/20 to-[#746CE6]/20 flex items-center justify-center flex-shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/10 to-[#746CE6]/10 flex items-center justify-center flex-shrink-0">
                     {user.avatar_url ? (
                       <img src={user.avatar_url} alt="" className="w-9 h-9 rounded-lg object-cover" />
                     ) : (
-                      <span className="text-[13px] font-bold text-[#888]">{(user.full_name || user.email || '?')[0].toUpperCase()}</span>
+                      <span className="text-sm font-bold text-muted-foreground">{(user.full_name || user.email || '?')[0].toUpperCase()}</span>
                     )}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-[13px] font-medium text-white truncate">{user.full_name || user.email}</p>
-                      {isPro(user) && (
-                        <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-[9px] border-0 px-1.5 py-0">
-                          PRO
-                        </Badge>
-                      )}
+                      <p className="text-sm font-medium text-foreground truncate">{user.full_name || user.email}</p>
+                      {isPro(user) && <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[9px] px-1.5 py-0">PRO</Badge>}
                     </div>
-                    <p className="text-[11px] text-[#555] truncate">{user.email}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <div className="text-right hidden sm:block">
                     {user.businesses?.length > 0 && (
-                      <p className="text-[12px] text-[#888] flex items-center gap-1 justify-end">
-                        <Building2 className="w-3 h-3" />
-                        {user.businesses[0].name}
+                      <p className="text-[12px] text-muted-foreground flex items-center gap-1 justify-end">
+                        <Building2 className="w-3 h-3" /> {user.businesses[0].name}
                       </p>
                     )}
-                    <p className="text-[10px] text-[#444]">
-                      {user.last_active_at 
-                        ? formatDistanceToNow(new Date(user.last_active_at), { locale: es, addSuffix: true })
-                        : 'Sin actividad'}
+                    <p className="text-[10px] text-muted-foreground/60">
+                      {user.last_active_at ? formatDistanceToNow(new Date(user.last_active_at), { locale: es, addSuffix: true }) : 'Sin actividad'}
                     </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-[#333]" />
+                  {/* Quick actions */}
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setPlanTarget({ id: user.id, email: user.email }); setShowPlanDialog(true); }}>
+                      <Crown className="w-3 h-3" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: user.id, email: user.email }); setShowDeleteDialog(true); }}>
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/30" />
                 </div>
               </div>
             ))}
           </div>
         </ScrollArea>
-      </DarkCard>
+      </div>
+
+      {/* Delete Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <UserX className="w-5 h-5" /> Eliminar usuario
+            </DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que querés eliminar a <strong>{deleteTarget?.email}</strong>? Esta acción es irreversible y eliminará todos sus datos.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)} disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar usuario'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Plan Dialog */}
+      <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-amber-500" /> Cambiar plan
+            </DialogTitle>
+            <DialogDescription>
+              Modificar la suscripción de <strong>{planTarget?.email}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Plan</label>
+              <Select value={selectedPlan} onValueChange={setSelectedPlan}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pro_monthly">Pro Mensual</SelectItem>
+                  <SelectItem value="pro_yearly">Pro Anual</SelectItem>
+                  <SelectItem value="free">Revocar (Free)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {selectedPlan !== 'free' && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Duración (días)</label>
+                <Input value={planDays} onChange={e => setPlanDays(e.target.value)} type="number" />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPlanDialog(false)}>Cancelar</Button>
+            <Button onClick={() => planTarget && planMutation.mutate({ userId: planTarget.id, planId: selectedPlan, durationDays: parseInt(planDays) || 365 })} disabled={planMutation.isPending}>
+              {planMutation.isPending ? 'Actualizando...' : 'Guardar cambios'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
