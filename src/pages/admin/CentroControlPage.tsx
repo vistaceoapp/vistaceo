@@ -13,8 +13,9 @@ import {
   Brain, Activity, TrendingUp, Shield, Eye, Search,
   RefreshCw, Zap, CheckCircle, AlertTriangle, XCircle,
   Loader2, FileText, Network, Megaphone, Clock,
-  BarChart3, Globe, Target, Sparkles
+  BarChart3, Globe, Target, Sparkles, Linkedin
 } from 'lucide-react';
+import LinkedInCopyTab from './blog-os/LinkedInCopyTab';
 
 // ── Data Hooks ──
 
@@ -383,6 +384,7 @@ export default function CentroControlPage() {
           <TabsTrigger value="clusters" className="text-xs"><Network className="w-3.5 h-3.5 mr-1" /> Clusters</TabsTrigger>
           <TabsTrigger value="conversion" className="text-xs"><Target className="w-3.5 h-3.5 mr-1" /> CRO</TabsTrigger>
           <TabsTrigger value="historial" className="text-xs"><Clock className="w-3.5 h-3.5 mr-1" /> Historial</TabsTrigger>
+          <TabsTrigger value="linkedin" className="text-xs"><Linkedin className="w-3.5 h-3.5 mr-1" /> LinkedIn</TabsTrigger>
         </TabsList>
 
         {/* RESUMEN */}
@@ -804,6 +806,11 @@ export default function CentroControlPage() {
               </ScrollArea>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* LINKEDIN */}
+        <TabsContent value="linkedin">
+          <LinkedInCopyTab />
         </TabsContent>
       </Tabs>
     </div>
