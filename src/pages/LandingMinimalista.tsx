@@ -117,7 +117,7 @@ Header.displayName = "Header";
 // --- Hero ---
 const HeroSection = () => {
   const navigate = useNavigate();
-  const counter = useRealtimeCounter(500);
+  const counter = useRealtimeCounter();
 
   return (
     <section className="relative min-h-[100svh] flex flex-col items-center justify-center px-6 pt-24 pb-16 overflow-hidden">
