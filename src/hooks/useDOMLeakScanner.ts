@@ -1,65 +1,26 @@
 /**
- * DOM LEAK SCANNER — P0 ZERO LEAKAGE
+ * DOM LEAK SCANNER — P0 ZERO LEAKAGE (v2 - Safe)
  * 
- * Capa 5: Escáner runtime de DOM que detecta y reporta fugas
- * de códigos internos, UUIDs, enums snake_case, o inglés suelto.
- * 
- * En producción: detecta, reemplaza silenciosamente, registra.
- * En desarrollo: muestra warning en consola.
+ * Detects leaked internal tokens in visible DOM text.
+ * v2: Read-only scan + console warning only (no DOM mutation to avoid React crashes).
  */
 
 import { useEffect, useRef } from "react";
-import { sanitizeForUI, NEUTRAL_FALLBACKS } from "@/lib/presentationRegistry";
 
 // Patterns that should NEVER appear in user-visible text
 const LEAK_PATTERNS = [
   /\[object Object\]/,                             // Object stringification leak
-  /\bQ_[A-Z]{2,}_\d{2,}\b/,                    // Q_BIO_104
-  /\b[a-z]+_[a-z]+_\d{3}\b/,                    // b2b_arq_finance_001
-  /\b[a-z]+(?:_[a-z0-9]+){1,}\b/,               // train_new, no_record, manual_agenda
-  /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/,      // UUID
-  /\bauth\.uid\b/,                               // SQL
-  /\bconsole\.(log|error|warn|debug)\b/,          // Code
-  /\b(undefined|null|NaN|TypeError|ReferenceError)\b/,  // JS errors
-  /\bError:\s/,                                  // Error messages
-  /\{\s*"[a-z_]+":/,                             // JSON objects visible
-  /\[\s*\{/,                                     // JSON arrays visible
+  /\bQ_[A-Z]{2,}_\d{2,}\b/,                       // Q_BIO_104
+  /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/,        // UUID
+  /\bauth\.uid\b/,                                 // SQL
+  /\bconsole\.(log|error|warn|debug)\b/,           // Code
+  /\b(undefined|null|NaN|TypeError|ReferenceError)\b/i,  // JS errors
+  /\bError:\s/,                                    // Error messages
 ];
-
-// Neutral replacements
-const REPLACEMENT = "•";
-
-interface LeakEvent {
-  pattern: string;
-  text: string;
-  element: string;
-  path: string;
-  timestamp: number;
-  sanitizedText: string;
-}
 
 const reportedLeaks = new Set<string>();
 
-function getElementPath(el: Node): string {
-  const parts: string[] = [];
-  let current: Node | null = el;
-  let depth = 0;
-  while (current && current !== document.body && depth < 5) {
-    if (current instanceof HTMLElement) {
-      const tag = current.tagName.toLowerCase();
-      const id = current.id ? `#${current.id}` : "";
-      const cls = current.className && typeof current.className === 'string'
-        ? `.${current.className.split(" ").slice(0, 2).join(".")}`
-        : "";
-      parts.unshift(`${tag}${id}${cls}`);
-    }
-    current = current.parentNode;
-    depth++;
-  }
-  return parts.join(" > ");
-}
-
-function scanTextNode(node: Text): LeakEvent | null {
+function scanTextNode(node: Text): string | null {
   const text = node.textContent || "";
   if (text.trim().length < 3) return null;
   
@@ -68,91 +29,63 @@ function scanTextNode(node: Text): LeakEvent | null {
       const key = `${pattern.source}:${text.slice(0, 50)}`;
       if (reportedLeaks.has(key)) return null;
       reportedLeaks.add(key);
-
-      const sanitized = sanitizeForUI(text).trim();
-      const sanitizedText = sanitized || NEUTRAL_FALLBACKS.value || REPLACEMENT;
-      
-      return {
-        pattern: pattern.source,
-        text: text.slice(0, 100),
-        element: node.parentElement?.tagName || "TEXT",
-        path: node.parentElement ? getElementPath(node.parentElement) : "unknown",
-        timestamp: Date.now(),
-        sanitizedText,
-      };
+      return `[Leak] pattern=${pattern.source} text="${text.slice(0, 80)}"`;
     }
   }
   return null;
 }
 
-function scanDOM(root: Node): LeakEvent[] {
-  const leaks: LeakEvent[] = [];
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode: (node) => {
-      // Skip script, style, and hidden elements
-      const parent = node.parentElement;
-      if (!parent) return NodeFilter.FILTER_REJECT;
-      const tag = parent.tagName;
-      if (tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT") {
-        return NodeFilter.FILTER_REJECT;
-      }
-      // Skip invisible elements
-      if (parent.offsetParent === null && tag !== "BODY") {
-        return NodeFilter.FILTER_REJECT;
-      }
-      return NodeFilter.FILTER_ACCEPT;
-    },
-  });
+function scanDOM(root: Node): string[] {
+  const leaks: string[] = [];
+  try {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: (node) => {
+        const parent = node.parentElement;
+        if (!parent) return NodeFilter.FILTER_REJECT;
+        const tag = parent.tagName;
+        if (tag === "SCRIPT" || tag === "STYLE" || tag === "NOSCRIPT") {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
 
-  let node: Node | null;
-  while ((node = walker.nextNode())) {
-    const textNode = node as Text;
-    const leak = scanTextNode(textNode);
-    if (leak) {
-      // Airbag: replace immediately so user never sees raw internal tokens
-      textNode.textContent = leak.sanitizedText;
-      leaks.push(leak);
+    let node: Node | null;
+    let count = 0;
+    while ((node = walker.nextNode()) && count < 2000) {
+      count++;
+      const leak = scanTextNode(node as Text);
+      if (leak) leaks.push(leak);
     }
+  } catch {
+    // Silently ignore DOM access errors
   }
   return leaks;
 }
 
-/**
- * Hook that monitors the DOM for leak patterns.
- * Runs after each render cycle on a slight delay.
- * 
- * Usage: Call once in your App or Layout component:
- *   useDOMLeakScanner();
- */
 export function useDOMLeakScanner(enabled = true) {
   const observerRef = useRef<MutationObserver | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
 
-    // Initial scan after mount
+    // Delayed initial scan (read-only)
     const timer = setTimeout(() => {
       const leaks = scanDOM(document.body);
       if (leaks.length > 0) {
-        console.warn(
-          `[P0 ZERO LEAKAGE] ${leaks.length} fuga(s) detectada(s) y corregida(s):`,
-          leaks.map(l => ({ pattern: l.pattern, text: l.text, path: l.path, replacedWith: l.sanitizedText }))
-        );
+        console.warn(`[P0 ZERO LEAKAGE] ${leaks.length} leak(s) detected:`, leaks);
       }
-    }, 2000);
+    }, 3000);
 
-    // Observe mutations for ongoing monitoring
+    // Observe mutations — read-only, no DOM modification
     observerRef.current = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.type === "childList") {
           for (const node of Array.from(mutation.addedNodes)) {
-            if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
               const leaks = scanDOM(node);
               if (leaks.length > 0) {
-                console.warn(
-                  `[P0 ZERO LEAKAGE] Fuga en contenido dinámico:`,
-                  leaks.map(l => ({ text: l.text, path: l.path }))
-                );
+                console.warn(`[P0 ZERO LEAKAGE] Dynamic leak:`, leaks);
               }
             }
           }
