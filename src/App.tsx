@@ -139,6 +139,7 @@ const AppRoutes = () => {
         <Route path="/v2" element={<LandingV2 />} />
         <Route path="/ultra" element={<LandingUltra />} />
         <Route path="/v3" element={<LandingV3 />} />
+        <Route path="/minimalista" element={<Suspense fallback={<PageLoader />}><LandingMinimalista /></Suspense>} />
         <Route path="/auth" element={<Auth />} />
         
         {/* Blog routes - Redirect to subdomain blog.vistaceo.com */}
