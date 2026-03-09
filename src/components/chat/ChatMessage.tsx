@@ -1,4 +1,4 @@
-import { Brain, Volume2, Loader2, Check, CheckCheck, Image as ImageIcon, FileText } from "lucide-react";
+import { Brain, Volume2, Loader2, Check, CheckCheck, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CEOAvatar } from "./CEOAvatar";
@@ -62,12 +62,11 @@ export const ChatMessage = ({
       {isUser ? (
         <div
           className={cn(
-            "w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0",
-            "bg-gradient-to-br from-primary/20 to-primary/10 text-primary",
-            "border border-primary/20 shadow-sm"
+            "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0",
+            "gradient-primary text-primary-foreground shadow-md shadow-primary/20"
           )}
         >
-          <span className="text-sm font-bold">{businessInitial}</span>
+          <span className="text-xs font-bold">{businessInitial}</span>
         </div>
       ) : (
         <CEOAvatar size="sm" isSpeaking={isSpeaking} />
@@ -81,7 +80,7 @@ export const ChatMessage = ({
             {attachments.map((file) => (
               <div
                 key={file.id}
-                className="rounded-xl overflow-hidden border border-border/50 bg-muted/30"
+                className="rounded-xl overflow-hidden border border-border/50 bg-muted/30 shadow-sm"
               >
                 {file.type === "image" && file.preview ? (
                   <img
@@ -107,8 +106,8 @@ export const ChatMessage = ({
           className={cn(
             "inline-block rounded-2xl px-4 py-3 shadow-sm relative group",
             isUser
-              ? "gradient-primary text-primary-foreground rounded-tr-md"
-              : "bg-card/90 backdrop-blur-sm border border-border/60 text-foreground rounded-tl-md",
+              ? "gradient-primary text-primary-foreground rounded-tr-sm"
+              : "bg-card/90 backdrop-blur-sm border border-border/50 text-foreground rounded-tl-sm",
             audioScript && !isUser && "cursor-pointer hover:bg-card/95 transition-colors"
           )}
           onClick={audioScript && !isUser && onReplayAudio ? onReplayAudio : undefined}
@@ -117,7 +116,7 @@ export const ChatMessage = ({
           {audioScript && !isUser && (
             <div className={cn(
               "absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity",
-              "bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg",
+              "gradient-primary text-primary-foreground rounded-full p-1.5 shadow-lg",
               isPlaying && "opacity-100 animate-pulse"
             )}>
               {isPlaying ? (
@@ -173,7 +172,7 @@ export const ChatMessage = ({
           )}
         </div>
 
-        {/* Mission Action Card - when AI suggests missions */}
+        {/* Mission Action Card */}
         {missionSuggestions && missionSuggestions.length > 0 && !isUser && (
           <MissionActionCard
             businessId={businessId}
@@ -188,7 +187,7 @@ export const ChatMessage = ({
             isUser ? "justify-end" : "justify-start"
           )}
         >
-          <span className="text-[11px] text-muted-foreground/70">
+          <span className="text-[11px] text-muted-foreground/60">
             {new Date(timestamp).toLocaleTimeString("es", {
               hour: "2-digit",
               minute: "2-digit",
@@ -197,14 +196,14 @@ export const ChatMessage = ({
 
           {isUser && (
             <span className="text-muted-foreground/50">
-              {isRecent ? <Check className="w-3 h-3" /> : <CheckCheck className="w-3 h-3" />}
+              {isRecent ? <Check className="w-3 h-3" /> : <CheckCheck className="w-3 h-3 text-primary/60" />}
             </span>
           )}
 
           {hasLearning && !isUser && (
             <Badge
               variant="secondary"
-              className="text-[10px] py-0 px-1.5 gap-1 bg-success/10 text-success border-success/30 font-medium"
+              className="text-[10px] py-0 px-1.5 gap-1 bg-primary/10 text-primary border-primary/30 font-medium"
             >
               <Brain className="w-2.5 h-2.5" />
               Aprendido

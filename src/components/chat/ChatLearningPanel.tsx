@@ -7,11 +7,12 @@ import SafeText from "@/components/ui/SafeText";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Brain, Sparkles, MessageCircle, Calendar } from "lucide-react";
+import { Brain, Sparkles, MessageCircle, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { categoryLabel, humanValue, questionLabel, sanitizeForUI } from "@/lib/presentationRegistry";
 
@@ -87,24 +88,19 @@ const parseLearningData = (data: unknown): LearningFact[] => {
       if (typeof item === "object" && item !== null) {
         const obj = item as Record<string, unknown>;
 
-        // Handle {q, a, t} format
         if (obj.q && obj.a) {
           facts.push({
             question: sanitizeForUI(String(obj.q)),
             answer: humanValue(obj.a),
             date: obj.t ? formatDate(String(obj.t)) : "",
           });
-        }
-        // Handle {question, answer} format
-        else if (obj.question && obj.answer) {
+        } else if (obj.question && obj.answer) {
           facts.push({
             question: sanitizeForUI(String(obj.question)),
             answer: humanValue(obj.answer),
             date: obj.timestamp ? formatDate(String(obj.timestamp)) : "",
           });
-        }
-        // Handle simple value objects
-        else {
+        } else {
           Object.entries(obj).forEach(([key, value]) => {
             if (value !== null && value !== undefined && typeof value !== "object") {
               facts.push({
@@ -146,10 +142,17 @@ export const ChatLearningPanel = ({
   const [categories, setCategories] = useState<LearningCategory[]>([]);
   const [totalFacts, setTotalFacts] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [expandedCats, setExpandedCats] = useState<string[]>([]);
 
   useEffect(() => {
     fetchLearnings();
   }, [businessId]);
+
+  const toggleCategory = (cat: string) => {
+    setExpandedCats(prev => 
+      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+    );
+  };
 
   const fetchLearnings = async () => {
     try {
@@ -165,7 +168,6 @@ export const ChatLearningPanel = ({
         let count = 0;
 
         Object.entries(factualMemory).forEach(([rawCategory, data]) => {
-          // Only expose user-facing categories (learning_* and answers)
           if (rawCategory !== "answers" && !rawCategory.startsWith("learning_")) {
             return;
           }
@@ -179,11 +181,16 @@ export const ChatLearningPanel = ({
               category: categoryKey,
               label: config.label || categoryLabel(categoryKey),
               icon: config.icon,
-              facts: facts.slice(0, 5), // Limit to 5 per category
+              facts: facts.slice(0, 8),
             });
             count += facts.length;
           }
         });
+
+        // Auto-expand first category
+        if (parsedCategories.length > 0) {
+          setExpandedCats([parsedCategories[0].category]);
+        }
 
         setCategories(parsedCategories);
         setTotalFacts(count);
@@ -195,34 +202,30 @@ export const ChatLearningPanel = ({
     }
   };
 
-  const TriggerButton = (
-    <Button
-      variant="ghost"
-      size={compact ? "sm" : "default"}
-      className={cn(
-        "gap-2 text-muted-foreground hover:text-foreground transition-colors",
-        compact && "h-8 px-2"
-      )}
-    >
-      <Brain className={cn("w-4 h-4", compact && "w-3.5 h-3.5")} />
-      {!compact && (
-        <>
-          <span className="text-sm">Aprendido</span>
-          <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-primary/10 text-primary">
-            {totalFacts}
-          </Badge>
-        </>
-      )}
-      {compact && (
-        <span className="text-xs font-medium">{totalFacts}</span>
-      )}
-    </Button>
-  );
-
   return (
     <Sheet>
       <SheetTrigger asChild>
-        {TriggerButton}
+        <Button
+          variant="ghost"
+          size={compact ? "sm" : "default"}
+          className={cn(
+            "gap-2 text-muted-foreground hover:text-foreground transition-colors",
+            compact && "h-8 px-2"
+          )}
+        >
+          <Brain className={cn("w-4 h-4", compact && "w-3.5 h-3.5")} />
+          {!compact && (
+            <>
+              <span className="text-sm">Aprendido</span>
+              <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-primary/10 text-primary">
+                {totalFacts}
+              </Badge>
+            </>
+          )}
+          {compact && (
+            <span className="text-xs font-medium">{totalFacts}</span>
+          )}
+        </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:w-[420px] p-0 border-border/50">
         <SheetHeader className="p-5 border-b border-border/30 bg-gradient-to-r from-primary/5 to-transparent">
@@ -232,15 +235,15 @@ export const ChatLearningPanel = ({
             </div>
             <div>
               <SheetTitle className="text-left text-lg">Lo que sé de tu negocio</SheetTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {totalFacts} datos aprendidos
-              </p>
+              <SheetDescription className="text-left text-xs mt-0.5">
+                {totalFacts} datos aprendidos de nuestras conversaciones
+              </SheetDescription>
             </div>
           </div>
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100vh-100px)]">
-          <div className="p-4 space-y-4">
+          <div className="p-4 space-y-3">
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
@@ -260,62 +263,100 @@ export const ChatLearningPanel = ({
                 </p>
               </div>
             ) : (
-              categories.map((cat, idx) => {
-                const config = categoryConfig[cat.category] || categoryConfig.general;
-                return (
-                  <div
-                    key={idx}
-                    className="rounded-xl bg-card/50 border border-border/30 overflow-hidden"
-                  >
-                    {/* Category Header */}
-                    <div className="px-4 py-3 border-b border-border/20 flex items-center gap-2">
-                      <span className="text-lg">{cat.icon}</span>
-                      <Badge 
-                        variant="outline" 
-                        className={cn("text-xs font-medium", config.color)}
+              <>
+                {/* Summary bar */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {categories.map((cat) => {
+                    const config = categoryConfig[cat.category] || categoryConfig.general;
+                    return (
+                      <button
+                        key={cat.category}
+                        onClick={() => toggleCategory(cat.category)}
+                        className={cn(
+                          "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all",
+                          "border",
+                          expandedCats.includes(cat.category)
+                            ? config.color
+                            : "border-border/30 text-muted-foreground hover:border-border/60"
+                        )}
                       >
-                        {cat.label}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        {cat.facts.length} dato{cat.facts.length !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    
-                    {/* Facts List */}
-                    <div className="divide-y divide-border/20">
-                      {cat.facts.map((fact, i) => (
-                        <div key={i} className="px-4 py-3 hover:bg-muted/30 transition-colors">
-                          {fact.question ? (
-                            <>
-                              <div className="flex items-start gap-2 mb-1.5">
-                                <MessageCircle className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                                <SafeText as="p" className="text-xs text-muted-foreground leading-relaxed" fallback="Dato del negocio">
-                                  {fact.question}
+                        <span>{cat.icon}</span>
+                        <span>{cat.label}</span>
+                        <span className="text-[10px] opacity-70">({cat.facts.length})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {categories.map((cat) => {
+                  const config = categoryConfig[cat.category] || categoryConfig.general;
+                  const isExpanded = expandedCats.includes(cat.category);
+                  
+                  return (
+                    <div
+                      key={cat.category}
+                      className="rounded-xl bg-card/50 border border-border/30 overflow-hidden"
+                    >
+                      {/* Category Header - clickable */}
+                      <button
+                        onClick={() => toggleCategory(cat.category)}
+                        className="w-full px-4 py-3 border-b border-border/20 flex items-center gap-2 hover:bg-muted/30 transition-colors"
+                      >
+                        <span className="text-lg">{cat.icon}</span>
+                        <Badge 
+                          variant="outline" 
+                          className={cn("text-xs font-medium", config.color)}
+                        >
+                          {cat.label}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground ml-auto mr-2">
+                          {cat.facts.length} dato{cat.facts.length !== 1 ? "s" : ""}
+                        </span>
+                        {isExpanded ? (
+                          <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </button>
+                      
+                      {/* Facts List - collapsible */}
+                      {isExpanded && (
+                        <div className="divide-y divide-border/20 animate-fade-in">
+                          {cat.facts.map((fact, i) => (
+                            <div key={i} className="px-4 py-3 hover:bg-muted/20 transition-colors">
+                              {fact.question ? (
+                                <>
+                                  <div className="flex items-start gap-2 mb-1.5">
+                                    <MessageCircle className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                    <SafeText as="p" className="text-xs text-muted-foreground leading-relaxed" fallback="Dato del negocio">
+                                      {fact.question}
+                                    </SafeText>
+                                  </div>
+                                  <SafeText as="p" className="text-sm text-foreground font-medium pl-5.5 leading-relaxed" fallback="Configurado">
+                                    {fact.answer}
+                                  </SafeText>
+                                </>
+                              ) : (
+                                <SafeText as="p" className="text-sm text-foreground leading-relaxed" fallback="Configurado">
+                                  {fact.answer}
                                 </SafeText>
-                              </div>
-                              <SafeText as="p" className="text-sm text-foreground font-medium pl-5.5 leading-relaxed" fallback="Configurado">
-                                {fact.answer}
-                              </SafeText>
-                            </>
-                          ) : (
-                            <SafeText as="p" className="text-sm text-foreground leading-relaxed" fallback="Configurado">
-                              {fact.answer}
-                            </SafeText>
-                          )}
-                          {fact.date && (
-                            <div className="flex items-center gap-1 mt-2 pl-5.5">
-                              <Calendar className="w-3 h-3 text-muted-foreground/60" />
-                              <span className="text-[10px] text-muted-foreground/60">
-                                {fact.date}
-                              </span>
+                              )}
+                              {fact.date && (
+                                <div className="flex items-center gap-1 mt-2 pl-5.5">
+                                  <Calendar className="w-3 h-3 text-muted-foreground/60" />
+                                  <span className="text-[10px] text-muted-foreground/60">
+                                    {fact.date}
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                          )}
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </>
             )}
           </div>
         </ScrollArea>

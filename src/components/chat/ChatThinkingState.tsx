@@ -1,11 +1,28 @@
 import { CEOAvatar } from "./CEOAvatar";
 import { cn } from "@/lib/utils";
+import { useState, useEffect } from "react";
 
 interface ChatThinkingStateProps {
   compact?: boolean;
 }
 
+const thinkingPhrases = [
+  "Analizando tu negocio...",
+  "Consultando datos...",
+  "Preparando respuesta...",
+  "Pensando estratégicamente...",
+];
+
 export const ChatThinkingState = ({ compact = false }: ChatThinkingStateProps) => {
+  const [phraseIndex, setPhraseIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setPhraseIndex(prev => (prev + 1) % thinkingPhrases.length);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className={cn(
       "flex items-start gap-3 animate-fade-in",
@@ -14,7 +31,7 @@ export const ChatThinkingState = ({ compact = false }: ChatThinkingStateProps) =
       <CEOAvatar size={compact ? "xs" : "sm"} isThinking />
       
       <div className={cn(
-        "inline-flex items-center gap-2 rounded-2xl rounded-tl-md",
+        "inline-flex items-center gap-2.5 rounded-2xl rounded-tl-md",
         "bg-card/90 backdrop-blur-sm border border-border/60 shadow-sm",
         compact ? "px-3 py-2" : "px-4 py-3"
       )}>
@@ -33,10 +50,10 @@ export const ChatThinkingState = ({ compact = false }: ChatThinkingStateProps) =
         </div>
         
         <span className={cn(
-          "font-medium bg-gradient-to-r from-[#2692DC] to-[#746CE6] bg-clip-text text-transparent ml-1",
+          "font-medium bg-gradient-to-r from-[#2692DC] to-[#746CE6] bg-clip-text text-transparent ml-1 transition-opacity duration-300",
           compact ? "text-xs" : "text-sm"
         )}>
-          Analizando...
+          {thinkingPhrases[phraseIndex]}
         </span>
       </div>
 
