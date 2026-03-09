@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 import { BusinessHealthAnalytics } from "@/components/analytics/BusinessHealthAnalytics";
 import { SmartInsightsPanel } from "@/components/analytics/SmartInsightsPanel";
@@ -17,7 +18,15 @@ const AnalyticsPage = () => {
   const isMobile = useIsMobile();
   const { isPro } = useSubscription();
   const [searchParams] = useSearchParams();
-  const defaultTab = searchParams.get("tab") || (isPro ? "insights" : "diagnostico");
+  const tabFromUrl = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(tabFromUrl || (isPro ? "insights" : "diagnostico"));
+
+  // Sync tab from URL changes (e.g. navigating from insights "Ver diagnóstico" button)
+  useEffect(() => {
+    if (tabFromUrl) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
 
   const tabs = [
     { value: "diagnostico", label: "Diagnóstico", mobileLabel: "Diag.", icon: Stethoscope, locked: false },
