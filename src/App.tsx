@@ -22,6 +22,7 @@ import BlogRedirect from "./components/blog/BlogRedirect";
 const Index = lazy(() => import("./pages/Index"));
 const LandingV2 = lazy(() => import("./pages/LandingV2"));
 const LandingUltra = lazy(() => import("./pages/LandingUltra"));
+const LandingMinimalista = lazy(() => import("./pages/LandingMinimalista"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SetupPage = lazy(() => import("./pages/SetupPage"));
 const SetupCompletePage = lazy(() => import("./pages/SetupCompletePage"));
