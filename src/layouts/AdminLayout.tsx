@@ -1,8 +1,8 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { 
-  LayoutDashboard, Users, BarChart3, Shield, Home, LogOut, 
-  Menu, X, Zap, ChevronRight, Newspaper, Settings
+  LayoutDashboard, Users, BarChart3, Brain, Home, LogOut, 
+  Menu, X, ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -12,11 +12,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
-  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, desc: 'Vista general' },
-  { label: 'Usuarios', href: '/admin/usuarios', icon: Users, desc: 'Gestión de cuentas' },
-  { label: 'Analytics', href: '/admin/analytics', icon: BarChart3, desc: 'Métricas y rendimiento' },
-  { label: 'Centro Control', href: '/admin/centro-control', icon: Shield, desc: 'Blog OS & Auto' },
-  { label: 'Blog OS', href: '/admin/blog-os', icon: Newspaper, desc: 'Registry & Quality' },
+  { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, desc: 'KPIs y resumen' },
+  { label: 'Usuarios', href: '/admin/usuarios', icon: Users, desc: 'Gestión completa' },
+  { label: 'Analytics', href: '/admin/analytics', icon: BarChart3, desc: 'Métricas web y app' },
+  { label: 'Blog Engine', href: '/admin/centro-control', icon: Brain, desc: 'Control autónomo' },
 ];
 
 export default function AdminLayout() {
@@ -41,25 +40,23 @@ export default function AdminLayout() {
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      {/* Logo */}
       <div className={cn(
         "border-b border-border/50 px-4 h-[64px] flex items-center gap-3 flex-shrink-0",
         collapsed && "justify-center px-2"
       )}>
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#2692DC] to-[#746CE6] flex items-center justify-center flex-shrink-0">
-          <Zap className="w-4 h-4 text-white" />
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center flex-shrink-0">
+          <span className="text-primary-foreground text-xs font-black">V</span>
         </div>
         {!collapsed && (
           <div>
             <p className="text-[13px] font-bold text-foreground tracking-wide">VISTACEO</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Admin</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Admin Panel</p>
           </div>
         )}
       </div>
 
-      {/* Nav */}
       <ScrollArea className="flex-1 py-4">
-        <nav className={cn("space-y-1", collapsed ? "px-2" : "px-3")}>
+        <nav className={cn("space-y-0.5", collapsed ? "px-2" : "px-3")}>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href || 
@@ -84,10 +81,9 @@ export default function AdminLayout() {
                   <>
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px]">{item.label}</p>
+                      <p className="text-[10px] text-muted-foreground/60">{item.desc}</p>
                     </div>
-                    {isActive && (
-                      <div className="w-1 h-5 rounded-full bg-primary absolute right-1" />
-                    )}
+                    {isActive && <div className="w-1 h-5 rounded-full bg-primary absolute right-1" />}
                   </>
                 )}
               </Link>
@@ -96,7 +92,6 @@ export default function AdminLayout() {
         </nav>
       </ScrollArea>
 
-      {/* Status */}
       {!collapsed && (
         <div className="px-4 py-3 border-t border-border/50">
           <div className="flex items-center gap-2 mb-1">
@@ -110,7 +105,6 @@ export default function AdminLayout() {
         </div>
       )}
 
-      {/* Actions */}
       <div className={cn(
         "border-t border-border/50 flex-shrink-0",
         collapsed ? "p-2 space-y-1" : "p-3 space-y-1"
@@ -142,11 +136,10 @@ export default function AdminLayout() {
   return (
     <AdminAuthGuard>
       <div className="min-h-screen bg-background flex">
-        {/* Mobile header */}
         <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border px-4 h-[56px] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#2692DC] to-[#746CE6] flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-white" />
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+              <span className="text-primary-foreground text-[10px] font-black">V</span>
             </div>
             <span className="font-bold text-foreground text-[14px]">Admin</span>
           </div>
@@ -155,12 +148,10 @@ export default function AdminLayout() {
           </Button>
         </div>
 
-        {/* Mobile overlay */}
         {sidebarOpen && (
           <div className="md:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
         )}
 
-        {/* Sidebar */}
         <aside className={cn(
           "bg-card flex flex-col border-r border-border z-50 transition-all duration-300",
           "hidden md:flex md:relative",
@@ -176,7 +167,6 @@ export default function AdminLayout() {
           </button>
         </aside>
 
-        {/* Main content */}
         <main className="flex-1 overflow-auto pt-14 md:pt-0 min-h-screen">
           <Outlet />
         </main>

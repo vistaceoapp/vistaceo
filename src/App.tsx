@@ -34,10 +34,8 @@ const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 // Admin pages - lazy loaded
 const AdminLayout = lazy(() => import("./layouts/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
-const BlogAdminPage = lazy(() => import("./pages/admin/BlogAdminPage"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage"));
-const BlogOSPage = lazy(() => import("./pages/admin/BlogOSPage"));
 const CentroControlPage = lazy(() => import("./pages/admin/CentroControlPage"));
 
 // App pages - lazy loaded
