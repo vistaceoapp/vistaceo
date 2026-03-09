@@ -9,7 +9,7 @@ import { GooglePlacesReputationSection } from "@/components/app/GooglePlacesRepu
 import { ReputationAnalyticsPanel } from "@/components/app/ReputationAnalyticsPanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/use-subscription";
-import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star, Brain, Lock } from "lucide-react";
+import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star, Brain, Lock, Building2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useSearchParams } from "react-router-dom";
