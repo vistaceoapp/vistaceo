@@ -1,24 +1,31 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   BarChart3, Eye, Users, TrendingUp, DollarSign, Target,
-  MessageSquare, CheckCircle, Globe, Smartphone, Monitor, Tablet,
-  ArrowUp, ArrowDown, Newspaper
+  MessageSquare, Globe, Newspaper, Activity
 } from 'lucide-react';
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+const COLORS = ['#2692DC', '#746CE6', '#28c840', '#febc2e', '#ff6b6b', '#4ecdc4'];
+
+const DarkCard = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={cn("rounded-xl bg-[#111118] border border-[#1a1a2e]", className)}>{children}</div>
+);
+
+const chartTooltipStyle = {
+  contentStyle: { background: '#111118', border: '1px solid #1a1a2e', borderRadius: '8px', fontSize: '12px', color: '#ccc' },
+  labelStyle: { color: '#666' },
+};
 
 export default function AdminAnalyticsPage() {
   const [range, setRange] = useState('7d');
   const [activeTab, setActiveTab] = useState('overview');
 
-  const { data: overviewData, isLoading: loadingOverview } = useQuery({
+  const { data: overviewData } = useQuery({
     queryKey: ['admin-analytics-overview', range],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('admin-get-analytics', {
@@ -65,311 +72,249 @@ export default function AdminAnalyticsPage() {
     enabled: activeTab === 'users',
   });
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
+  const fmt = (n: number) => {
+    if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+    return n.toString();
   };
 
+  const tabs = [
+    { id: 'overview', label: 'Resumen' },
+    { id: 'web', label: 'Web' },
+    { id: 'blog', label: 'Blog' },
+    { id: 'users', label: 'Usuarios' },
+  ];
+
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-[1400px]">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Analytics</h1>
-          <p className="text-muted-foreground">Métricas completas de VistaCEO y el Blog</p>
+          <h1 className="text-[24px] font-bold text-white">Analytics</h1>
+          <p className="text-[14px] text-[#666]">Métricas completas de VISTACEO</p>
         </div>
         <Select value={range} onValueChange={setRange}>
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-28 bg-[#111118] border-[#1a1a2e] text-white text-[13px]">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7d">7 días</SelectItem>
-            <SelectItem value="30d">30 días</SelectItem>
-            <SelectItem value="90d">90 días</SelectItem>
+          <SelectContent className="bg-[#111118] border-[#1a1a2e]">
+            <SelectItem value="7d" className="text-white">7 días</SelectItem>
+            <SelectItem value="30d" className="text-white">30 días</SelectItem>
+            <SelectItem value="90d" className="text-white">90 días</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-4 w-full max-w-lg">
-          <TabsTrigger value="overview">Resumen</TabsTrigger>
-          <TabsTrigger value="web">Web</TabsTrigger>
-          <TabsTrigger value="blog">Blog</TabsTrigger>
-          <TabsTrigger value="users">Usuarios</TabsTrigger>
-        </TabsList>
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 rounded-lg bg-[#111118] border border-[#1a1a2e] w-fit">
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={cn(
+              "px-4 py-2 rounded-md text-[13px] font-medium transition-all",
+              activeTab === t.id ? "bg-[#2692DC]/20 text-[#2692DC]" : "text-[#666] hover:text-white"
+            )}
+          >{t.label}</button>
+        ))}
+      </div>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* KPI Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Eye className="w-3 h-3" /> Pageviews
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">{formatNumber(overviewData?.pageviews || 0)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Users className="w-3 h-3" /> Nuevos usuarios
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">{formatNumber(overviewData?.newUsers || 0)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" /> Logins
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">{formatNumber(overviewData?.totalLogins || 0)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Target className="w-3 h-3" /> Misiones
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">{formatNumber(overviewData?.totalMissions || 0)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
-                  <MessageSquare className="w-3 h-3" /> Chats
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">{formatNumber(overviewData?.totalChats || 0)}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" /> Revenue
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-green-500">${formatNumber(overviewData?.totalRevenue || 0)}</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Top Pages & Blog Posts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="w-5 h-5" />
-                  Top páginas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {overviewData?.topPages?.slice(0, 8).map((page: { path: string; count: number }, i: number) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <span className="text-sm truncate max-w-[200px]">{page.path}</span>
-                      <Badge variant="secondary">{formatNumber(page.count)}</Badge>
-                    </div>
-                  ))}
+      {/* Overview */}
+      {activeTab === 'overview' && (
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { label: 'Pageviews', value: fmt(overviewData?.pageviews || 0), icon: Eye, color: '#2692DC' },
+              { label: 'Nuevos usuarios', value: fmt(overviewData?.newUsers || 0), icon: Users, color: '#746CE6' },
+              { label: 'Logins', value: fmt(overviewData?.totalLogins || 0), icon: TrendingUp, color: '#28c840' },
+              { label: 'Misiones', value: fmt(overviewData?.totalMissions || 0), icon: Target, color: '#febc2e' },
+              { label: 'Chats', value: fmt(overviewData?.totalChats || 0), icon: MessageSquare, color: '#4ecdc4' },
+              { label: 'Revenue', value: `$${fmt(overviewData?.totalRevenue || 0)}`, icon: DollarSign, color: '#ff6b6b' },
+            ].map(s => (
+              <div key={s.label} className="rounded-xl bg-[#111118] border border-[#1a1a2e] p-4">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ background: `${s.color}15` }}>
+                  <s.icon className="w-3.5 h-3.5" style={{ color: s.color }} />
                 </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Newspaper className="w-5 h-5" />
-                  Top posts del blog
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {overviewData?.topBlogPosts?.slice(0, 8).map((post: { slug: string; count: number }, i: number) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <span className="text-sm truncate max-w-[200px]">{post.slug}</span>
-                      <Badge variant="secondary">{formatNumber(post.count)}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="web" className="space-y-6">
-          {/* Daily pageviews chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Pageviews diarios</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={webData?.dailyStats || []}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="date" className="text-xs" />
-                    <YAxis className="text-xs" />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="pageviews" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.2} />
-                    <Area type="monotone" dataKey="uniqueVisitors" stroke="hsl(var(--chart-2))" fill="hsl(var(--chart-2))" fillOpacity={0.2} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <p className="text-[20px] font-bold text-white">{s.value}</p>
+                <p className="text-[11px] text-[#555]">{s.label}</p>
               </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Device breakdown */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Dispositivos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[200px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={Object.entries(webData?.deviceBreakdown || {}).map(([name, value]) => ({ name, value }))}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {Object.entries(webData?.deviceBreakdown || {}).map((_, i) => (
-                          <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Country breakdown */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Países</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {Object.entries(webData?.countryBreakdown || {})
-                    .sort((a, b) => (b[1] as number) - (a[1] as number))
-                    .slice(0, 10)
-                    .map(([country, count], i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <span className="text-sm">{country}</span>
-                        <Badge variant="secondary">{count as number}</Badge>
-                      </div>
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
+            ))}
           </div>
-        </TabsContent>
 
-        <TabsContent value="blog" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Views del blog por día</CardTitle>
-              <CardDescription>Total: {formatNumber(blogData?.totalBlogViews || 0)} views</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={blogData?.dailyBlogViews || []}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="date" className="text-xs" />
-                    <YAxis className="text-xs" />
-                    <Tooltip />
-                    <Bar dataKey="views" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DarkCard className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Globe className="w-4 h-4 text-[#2692DC]" />
+                <h3 className="text-[14px] font-semibold text-white">Top páginas</h3>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance por artículo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {blogData?.postStats?.slice(0, 15).map((post: { slug: string; views: number; avgScrollDepth: number; avgTimeOnPage: number }, i: number) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <span className="text-sm font-medium truncate max-w-[300px]">{post.slug}</span>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-sm font-bold">{formatNumber(post.views)}</p>
-                        <p className="text-xs text-muted-foreground">views</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold">{post.avgScrollDepth}%</p>
-                        <p className="text-xs text-muted-foreground">scroll</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold">{Math.round(post.avgTimeOnPage / 60)}m</p>
-                        <p className="text-xs text-muted-foreground">tiempo</p>
-                      </div>
-                    </div>
+              <div className="space-y-2">
+                {overviewData?.topPages?.slice(0, 8).map((p: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <span className="text-[12px] text-[#888] truncate max-w-[240px]">{p.path}</span>
+                    <span className="text-[12px] text-white font-medium">{fmt(p.count)}</span>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </DarkCard>
+            <DarkCard className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Newspaper className="w-4 h-4 text-[#febc2e]" />
+                <h3 className="text-[14px] font-semibold text-white">Top posts blog</h3>
+              </div>
+              <div className="space-y-2">
+                {overviewData?.topBlogPosts?.slice(0, 8).map((p: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <span className="text-[12px] text-[#888] truncate max-w-[240px]">{p.slug}</span>
+                    <span className="text-[12px] text-white font-medium">{fmt(p.count)}</span>
+                  </div>
+                ))}
+              </div>
+            </DarkCard>
+          </div>
+        </div>
+      )}
 
-        <TabsContent value="users" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Usuarios activos por día</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
+      {/* Web */}
+      {activeTab === 'web' && (
+        <div className="space-y-5">
+          <DarkCard className="p-5">
+            <h3 className="text-[14px] font-semibold text-white mb-4">Pageviews diarios</h3>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={webData?.dailyStats || []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1a1a2e" />
+                  <XAxis dataKey="date" tick={{ fill: '#555', fontSize: 11 }} />
+                  <YAxis tick={{ fill: '#555', fontSize: 11 }} />
+                  <Tooltip {...chartTooltipStyle} />
+                  <Area type="monotone" dataKey="pageviews" stroke="#2692DC" fill="#2692DC" fillOpacity={0.1} strokeWidth={2} />
+                  <Area type="monotone" dataKey="uniqueVisitors" stroke="#746CE6" fill="#746CE6" fillOpacity={0.1} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </DarkCard>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DarkCard className="p-5">
+              <h3 className="text-[14px] font-semibold text-white mb-4">Dispositivos</h3>
+              <div className="h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={usersData?.dailyActiveUsers || []}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="date" className="text-xs" />
-                    <YAxis className="text-xs" />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="activeUsers" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.3} />
-                  </AreaChart>
+                  <PieChart>
+                    <Pie
+                      data={Object.entries(webData?.deviceBreakdown || {}).map(([name, value]) => ({ name, value }))}
+                      cx="50%" cy="50%" innerRadius={40} outerRadius={80} dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {Object.entries(webData?.deviceBreakdown || {}).map((_, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip {...chartTooltipStyle} />
+                  </PieChart>
                 </ResponsiveContainer>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Eventos por tipo</CardTitle>
-              <CardDescription>Total: {formatNumber(usersData?.totalEvents || 0)} eventos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(usersData?.eventBreakdown || {})
+            </DarkCard>
+            <DarkCard className="p-5">
+              <h3 className="text-[14px] font-semibold text-white mb-4">Países</h3>
+              <div className="space-y-2">
+                {Object.entries(webData?.countryBreakdown || {})
                   .sort((a, b) => (b[1] as number) - (a[1] as number))
-                  .slice(0, 8)
-                  .map(([event, count], i) => (
-                    <div key={i} className="p-3 bg-muted/30 rounded-lg text-center">
-                      <p className="text-2xl font-bold">{formatNumber(count as number)}</p>
-                      <p className="text-xs text-muted-foreground">{event}</p>
+                  .slice(0, 10)
+                  .map(([country, count], i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className="text-[12px] text-[#888]">{country}</span>
+                      <span className="text-[12px] text-white font-medium">{count as number}</span>
                     </div>
                   ))}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </DarkCard>
+          </div>
+        </div>
+      )}
+
+      {/* Blog */}
+      {activeTab === 'blog' && (
+        <div className="space-y-5">
+          <DarkCard className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[14px] font-semibold text-white">Views del blog por día</h3>
+              <span className="text-[12px] text-[#555]">Total: {fmt(blogData?.totalBlogViews || 0)}</span>
+            </div>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={blogData?.dailyBlogViews || []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1a1a2e" />
+                  <XAxis dataKey="date" tick={{ fill: '#555', fontSize: 11 }} />
+                  <YAxis tick={{ fill: '#555', fontSize: 11 }} />
+                  <Tooltip {...chartTooltipStyle} />
+                  <Bar dataKey="views" fill="#2692DC" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </DarkCard>
+
+          <DarkCard className="p-5">
+            <h3 className="text-[14px] font-semibold text-white mb-4">Performance por artículo</h3>
+            <div className="space-y-2">
+              {blogData?.postStats?.slice(0, 15).map((p: any, i: number) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-[#0d0d14] border border-[#1a1a2e]">
+                  <span className="text-[12px] text-[#888] truncate max-w-[300px]">{p.slug}</span>
+                  <div className="flex items-center gap-4 text-[11px]">
+                    <div className="text-right">
+                      <p className="text-white font-bold">{fmt(p.views)}</p>
+                      <p className="text-[#444]">views</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white font-bold">{p.avgScrollDepth}%</p>
+                      <p className="text-[#444]">scroll</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white font-bold">{Math.round(p.avgTimeOnPage / 60)}m</p>
+                      <p className="text-[#444]">tiempo</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </DarkCard>
+        </div>
+      )}
+
+      {/* Users analytics */}
+      {activeTab === 'users' && (
+        <div className="space-y-5">
+          <DarkCard className="p-5">
+            <h3 className="text-[14px] font-semibold text-white mb-4">Usuarios activos por día</h3>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={usersData?.dailyActiveUsers || []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1a1a2e" />
+                  <XAxis dataKey="date" tick={{ fill: '#555', fontSize: 11 }} />
+                  <YAxis tick={{ fill: '#555', fontSize: 11 }} />
+                  <Tooltip {...chartTooltipStyle} />
+                  <Area type="monotone" dataKey="activeUsers" stroke="#2692DC" fill="#2692DC" fillOpacity={0.15} strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </DarkCard>
+
+          <DarkCard className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[14px] font-semibold text-white">Eventos por tipo</h3>
+              <span className="text-[12px] text-[#555]">Total: {fmt(usersData?.totalEvents || 0)}</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {Object.entries(usersData?.eventBreakdown || {})
+                .sort((a, b) => (b[1] as number) - (a[1] as number))
+                .slice(0, 8)
+                .map(([event, count], i) => (
+                  <div key={i} className="rounded-lg bg-[#0d0d14] border border-[#1a1a2e] p-3 text-center">
+                    <p className="text-[18px] font-bold text-white">{fmt(count as number)}</p>
+                    <p className="text-[10px] text-[#555] truncate">{event}</p>
+                  </div>
+                ))}
+            </div>
+          </DarkCard>
+        </div>
+      )}
     </div>
   );
 }

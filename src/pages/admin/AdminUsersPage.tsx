@@ -1,19 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Users, Search, ChevronRight, Crown, User, Building2, 
   Calendar, Activity, MessageSquare, Target, CheckCircle,
-  TrendingUp, Clock, MapPin, ArrowLeft
+  TrendingUp, Clock, MapPin, ArrowLeft, Brain, Zap, Mail
 } from 'lucide-react';
 import { useState } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface UserData {
   id: string;
@@ -25,21 +24,16 @@ interface UserData {
   last_active_at: string;
   login_count: number;
   businesses: Array<{
-    id: string;
-    name: string;
-    category: string;
-    country: string;
-    setup_completed: boolean;
-    created_at: string;
+    id: string; name: string; category: string; country: string; setup_completed: boolean; created_at: string;
   }>;
   subscriptions: Array<{
-    id: string;
-    plan_id: string;
-    status: string;
-    expires_at: string;
-    payment_provider: string;
+    id: string; plan_id: string; status: string; expires_at: string; payment_provider: string; payment_amount: number;
   }>;
 }
+
+const DarkCard = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={cn("rounded-xl bg-[#111118] border border-[#1a1a2e]", className)}>{children}</div>
+);
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
@@ -69,433 +63,299 @@ export default function AdminUsersPage() {
     enabled: !!selectedUserId,
   });
 
-  const isPro = (user: UserData) => {
-    return user.subscriptions?.some(s => s.status === 'active');
-  };
+  const isPro = (user: UserData) => user.subscriptions?.some(s => s.status === 'active');
 
+  // ── Detail View ──
   if (selectedUserId && userDetail) {
+    const profile = userDetail.profile;
+    const biz = userDetail.businesses?.[0];
+    const brain = userDetail.businessBrain;
+    const hasPro = userDetail.subscriptions?.some((s: any) => s.status === 'active');
+
     return (
-      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="p-4 md:p-6 lg:p-8 space-y-5 max-w-[1200px]">
+        {/* Back + header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => setSelectedUserId(null)}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
+          <button onClick={() => setSelectedUserId(null)} className="text-[#555] hover:text-white transition-colors flex items-center gap-1.5 text-[13px]">
+            <ArrowLeft className="w-4 h-4" />
             Volver
-          </Button>
-          <h1 className="text-2xl font-bold">{userDetail.profile?.full_name || userDetail.profile?.email}</h1>
-          {userDetail.subscriptions?.some((s: { status: string }) => s.status === 'active') && (
-            <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500">
-              <Crown className="w-3 h-3 mr-1" />
-              PRO
-            </Badge>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#2692DC] to-[#746CE6] flex items-center justify-center text-white text-[18px] font-bold flex-shrink-0">
+            {(profile?.full_name || profile?.email || '?')[0].toUpperCase()}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-[22px] font-bold text-white">{profile?.full_name || 'Sin nombre'}</h1>
+              {hasPro && (
+                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-[10px] border-0">
+                  <Crown className="w-3 h-3 mr-1" /> PRO
+                </Badge>
+              )}
+            </div>
+            <p className="text-[13px] text-[#666] flex items-center gap-1.5">
+              <Mail className="w-3 h-3" /> {profile?.email}
+            </p>
+          </div>
+        </div>
+
+        {/* Quick stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {[
+            { label: 'Logins', value: profile?.login_count || 0, color: '#2692DC' },
+            { label: 'Último login', value: profile?.last_login_at ? formatDistanceToNow(new Date(profile.last_login_at), { locale: es }) : 'Nunca', color: '#4ecdc4' },
+            { label: 'Misiones', value: userDetail.missions?.length || 0, color: '#746CE6' },
+            { label: 'Chat msgs', value: userDetail.chatMessages?.length || 0, color: '#febc2e' },
+            { label: 'Oportunidades', value: userDetail.opportunities?.length || 0, color: '#28c840' },
+            { label: 'Salud', value: userDetail.businessSnapshots?.[0]?.total_score ? `${userDetail.businessSnapshots[0].total_score}/100` : 'N/A', color: '#ff6b6b' },
+          ].map(s => (
+            <div key={s.label} className="rounded-xl bg-[#111118] border border-[#1a1a2e] p-3 text-center">
+              <p className="text-[18px] font-bold text-white">{s.value}</p>
+              <p className="text-[10px] text-[#555]">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Business + Brain */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {biz && (
+            <DarkCard className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Building2 className="w-4 h-4 text-[#2692DC]" />
+                <h3 className="text-[14px] font-semibold text-white">Negocio</h3>
+                {biz.setup_completed && <Badge className="ml-auto bg-emerald-500/20 text-emerald-400 border-0 text-[10px]">Setup ✓</Badge>}
+              </div>
+              <div className="space-y-2 text-[13px]">
+                <div className="flex justify-between"><span className="text-[#666]">Nombre</span><span className="text-white font-medium">{biz.name}</span></div>
+                <div className="flex justify-between"><span className="text-[#666]">Categoría</span><span className="text-[#ccc]">{biz.category || '—'}</span></div>
+                <div className="flex justify-between"><span className="text-[#666]">País</span><span className="text-[#ccc]">{biz.country || '—'}</span></div>
+                <div className="flex justify-between"><span className="text-[#666]">Creado</span><span className="text-[#ccc]">{format(new Date(biz.created_at), 'dd MMM yyyy', { locale: es })}</span></div>
+              </div>
+            </DarkCard>
+          )}
+
+          {brain && (
+            <DarkCard className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Brain className="w-4 h-4 text-[#746CE6]" />
+                <h3 className="text-[14px] font-semibold text-white">Cerebro IA</h3>
+              </div>
+              <div className="space-y-2 text-[13px]">
+                <div className="flex justify-between"><span className="text-[#666]">Tipo negocio</span><span className="text-white">{brain.primary_business_type}</span></div>
+                <div className="flex justify-between"><span className="text-[#666]">Foco</span><Badge variant="outline" className="text-[10px] border-[#2a2a3e] text-[#ccc]">{brain.current_focus}</Badge></div>
+                <div className="flex justify-between"><span className="text-[#666]">Confianza</span><span className="text-white font-bold">{Math.round((brain.confidence_score || 0) * 100)}%</span></div>
+                <div className="flex justify-between"><span className="text-[#666]">MVC</span><span className="text-white font-bold">{brain.mvc_completion_pct || 0}%</span></div>
+                <div className="flex justify-between"><span className="text-[#666]">Señales</span><span className="text-[#ccc]">{brain.total_signals || 0}</span></div>
+              </div>
+            </DarkCard>
           )}
         </div>
 
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex-wrap">
-            <TabsTrigger value="overview">Resumen</TabsTrigger>
-            <TabsTrigger value="business">Negocio</TabsTrigger>
-            <TabsTrigger value="missions">Misiones</TabsTrigger>
-            <TabsTrigger value="chat">Chat IA</TabsTrigger>
-            <TabsTrigger value="activity">Actividad</TabsTrigger>
-            <TabsTrigger value="payments">Pagos</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Logins totales</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{userDetail.profile?.login_count || 0}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Último login</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-medium">
-                    {userDetail.profile?.last_login_at 
-                      ? formatDistanceToNow(new Date(userDetail.profile.last_login_at), { locale: es, addSuffix: true })
-                      : 'Nunca'}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Misiones completadas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">
-                    {userDetail.metrics?.reduce((acc: number, m: { missions_completed: number }) => acc + (m.missions_completed || 0), 0) || 0}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Mensajes chat</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">
-                    {userDetail.metrics?.reduce((acc: number, m: { chat_messages_sent: number }) => acc + (m.chat_messages_sent || 0), 0) || 0}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {userDetail.businessBrain && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Cerebro del Negocio</CardTitle>
-                  <CardDescription>Estado del aprendizaje continuo</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span>Tipo de negocio:</span>
-                    <Badge variant="outline">{userDetail.businessBrain.primary_business_type}</Badge>
+        {/* Missions */}
+        <DarkCard className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Target className="w-4 h-4 text-[#746CE6]" />
+            <h3 className="text-[14px] font-semibold text-white">Misiones ({userDetail.missions?.length || 0})</h3>
+          </div>
+          <ScrollArea className="h-[300px]">
+            {!userDetail.missions?.length && <p className="text-[13px] text-[#444] text-center py-8">Sin misiones</p>}
+            <div className="space-y-1.5">
+              {userDetail.missions?.map((m: any) => (
+                <div key={m.id} className="flex items-center justify-between p-3 rounded-lg bg-[#0d0d14] border border-[#1a1a2e]">
+                  <div className="min-w-0">
+                    <p className="text-[13px] text-[#ccc] truncate">{m.title}</p>
+                    <p className="text-[10px] text-[#444]">{format(new Date(m.created_at), 'dd MMM yyyy', { locale: es })}</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Foco actual:</span>
-                    <Badge>{userDetail.businessBrain.current_focus}</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Señales totales:</span>
-                    <span className="font-bold">{userDetail.businessBrain.total_signals || 0}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Score de confianza:</span>
-                    <span className="font-bold">{Math.round((userDetail.businessBrain.confidence_score || 0) * 100)}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>MVC completado:</span>
-                    <span className="font-bold">{userDetail.businessBrain.mvc_completion_pct || 0}%</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {userDetail.businessSnapshots && userDetail.businessSnapshots.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Historial de Salud</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {userDetail.businessSnapshots.slice(0, 5).map((snap: { id: string; total_score: number; created_at: string }) => (
-                      <div key={snap.id} className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                        <span className="text-sm text-muted-foreground">
-                          {format(new Date(snap.created_at), 'dd MMM yyyy', { locale: es })}
-                        </span>
-                        <Badge variant={snap.total_score >= 70 ? 'default' : snap.total_score >= 50 ? 'secondary' : 'destructive'}>
-                          {snap.total_score} pts
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="business" className="space-y-4">
-            {userDetail.businesses?.map((biz: { id: string; name: string; category: string; country: string; setup_completed: boolean; created_at: string }) => (
-              <Card key={biz.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Building2 className="w-5 h-5" />
-                      {biz.name}
-                    </CardTitle>
-                    {biz.setup_completed && <Badge className="bg-green-500">Setup completo</Badge>}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground">Categoría:</span>
-                    <Badge variant="outline">{biz.category || 'No definida'}</Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                    <span>{biz.country || 'No especificado'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span>Creado: {format(new Date(biz.created_at), 'dd MMM yyyy', { locale: es })}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="missions" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  Misiones ({userDetail.missions?.length || 0})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[400px]">
-                  {!userDetail.missions?.length && (
-                    <p className="text-muted-foreground text-center py-4">Sin misiones</p>
-                  )}
-                  <div className="space-y-2">
-                    {userDetail.missions?.map((mission: { id: string; title: string; status: string; created_at: string; completed_at?: string }) => (
-                      <div key={mission.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{mission.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(mission.created_at), 'dd MMM yyyy', { locale: es })}
-                          </p>
-                        </div>
-                        <Badge variant={mission.status === 'completed' ? 'default' : mission.status === 'in_progress' ? 'secondary' : 'outline'}>
-                          {mission.status === 'completed' ? 'Completada' : mission.status === 'in_progress' ? 'En progreso' : mission.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Oportunidades detectadas ({userDetail.opportunities?.length || 0})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[300px]">
-                  {!userDetail.opportunities?.length && (
-                    <p className="text-muted-foreground text-center py-4">Sin oportunidades</p>
-                  )}
-                  <div className="space-y-2">
-                    {userDetail.opportunities?.map((opp: { id: string; title: string; impact_score: number; is_converted: boolean }) => (
-                      <div key={opp.id} className="flex items-center justify-between p-2 bg-muted/30 rounded">
-                        <p className="text-sm">{opp.title}</p>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">Impacto: {opp.impact_score}/10</Badge>
-                          {opp.is_converted && <CheckCircle className="w-4 h-4 text-primary" />}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="chat">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5" />
-                  Conversaciones con IA ({userDetail.chatMessages?.length || 0} mensajes)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[500px]">
-                  {!userDetail.chatMessages?.length && (
-                    <p className="text-muted-foreground text-center py-4">Sin conversaciones</p>
-                  )}
-                  <div className="space-y-3">
-                    {userDetail.chatMessages?.map((msg: { id: string; role: string; content: string; created_at: string }) => (
-                      <div 
-                        key={msg.id} 
-                        className={`p-3 rounded-lg ${msg.role === 'user' ? 'bg-primary/10 ml-8' : 'bg-muted/50 mr-8'}`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <Badge variant="outline" className="text-xs">
-                            {msg.role === 'user' ? 'Usuario' : 'VistaCEO'}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {format(new Date(msg.created_at), 'dd MMM HH:mm', { locale: es })}
-                          </span>
-                        </div>
-                        <p className="text-sm whitespace-pre-wrap">{msg.content.slice(0, 500)}{msg.content.length > 500 ? '...' : ''}</p>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="activity">
-            <Card>
-              <CardHeader>
-                <CardTitle>Actividad reciente</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[400px]">
-                  <div className="space-y-2">
-                    {userDetail.activity?.map((act: { id: string; event_type: string; page_path: string; created_at: string }) => (
-                      <div key={act.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <Activity className="w-4 h-4 text-primary" />
-                          <div>
-                            <p className="font-medium">{act.event_type}</p>
-                            <p className="text-xs text-muted-foreground">{act.page_path}</p>
-                          </div>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(act.created_at), { locale: es, addSuffix: true })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="payments">
-            <Card>
-              <CardHeader>
-                <CardTitle>Historial de suscripciones</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {userDetail.subscriptions?.length === 0 && (
-                    <p className="text-muted-foreground text-center py-4">Sin suscripciones</p>
-                  )}
-                  {userDetail.subscriptions?.map((sub: { id: string; plan_id: string; status: string; expires_at: string; payment_provider: string }) => (
-                    <div key={sub.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{sub.plan_id}</p>
-                        <p className="text-sm text-muted-foreground">via {sub.payment_provider}</p>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant={sub.status === 'active' ? 'default' : 'secondary'}>
-                          {sub.status}
-                        </Badge>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Expira: {format(new Date(sub.expires_at), 'dd MMM yyyy', { locale: es })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Usuarios</h1>
-        <p className="text-muted-foreground">Gestiona y monitorea todos los usuarios de VistaCEO</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Total usuarios
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{usersData?.stats?.totalUsers || 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Crown className="w-4 h-4 text-yellow-500" />
-              Usuarios Pro
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-yellow-500">{usersData?.stats?.proUsers || 0}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-green-500" />
-              Activos (7 días)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-green-500">{usersData?.stats?.activeUsers7d || 0}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por email o nombre..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-
-      {/* Users list */}
-      <Card>
-        <CardContent className="p-0">
-          <ScrollArea className="h-[600px]">
-            <div className="divide-y">
-              {isLoading && (
-                <div className="p-8 text-center text-muted-foreground">Cargando...</div>
-              )}
-              {usersData?.users?.map((user: UserData) => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between p-4 hover:bg-muted/50 cursor-pointer transition-colors"
-                  onClick={() => setSelectedUserId(user.id)}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      {user.avatar_url ? (
-                        <img src={user.avatar_url} alt="" className="w-10 h-10 rounded-full" />
-                      ) : (
-                        <User className="w-5 h-5 text-primary" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{user.full_name || user.email}</p>
-                        {isPro(user) && (
-                          <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-xs">
-                            <Crown className="w-3 h-3 mr-1" />
-                            PRO
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      {user.businesses?.length > 0 && (
-                        <p className="text-sm flex items-center gap-1">
-                          <Building2 className="w-3 h-3" />
-                          {user.businesses[0].name}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {user.last_active_at 
-                          ? formatDistanceToNow(new Date(user.last_active_at), { locale: es, addSuffix: true })
-                          : 'Sin actividad'}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </div>
+                  <Badge variant="outline" className={cn(
+                    "text-[10px] border-[#2a2a3e]",
+                    m.status === 'completed' ? "text-emerald-400" : m.status === 'in_progress' ? "text-[#2692DC]" : "text-[#555]"
+                  )}>
+                    {m.status === 'completed' ? '✓ Completada' : m.status === 'in_progress' ? 'En progreso' : m.status}
+                  </Badge>
                 </div>
               ))}
             </div>
           </ScrollArea>
-        </CardContent>
-      </Card>
+        </DarkCard>
+
+        {/* Chat */}
+        <DarkCard className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <MessageSquare className="w-4 h-4 text-[#2692DC]" />
+            <h3 className="text-[14px] font-semibold text-white">Chat IA ({userDetail.chatMessages?.length || 0} msgs)</h3>
+          </div>
+          <ScrollArea className="h-[400px]">
+            {!userDetail.chatMessages?.length && <p className="text-[13px] text-[#444] text-center py-8">Sin conversaciones</p>}
+            <div className="space-y-2">
+              {userDetail.chatMessages?.map((msg: any) => (
+                <div key={msg.id} className={cn(
+                  "p-3 rounded-lg text-[13px]",
+                  msg.role === 'user' ? "bg-[#2692DC]/10 ml-8 text-[#ccc]" : "bg-[#0d0d14] mr-8 text-[#999] border border-[#1a1a2e]"
+                )}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-[#555] font-medium">{msg.role === 'user' ? 'Usuario' : 'VISTACEO'}</span>
+                    <span className="text-[10px] text-[#444]">{format(new Date(msg.created_at), 'dd MMM HH:mm', { locale: es })}</span>
+                  </div>
+                  <p className="whitespace-pre-wrap leading-relaxed">{msg.content?.slice(0, 500)}{msg.content?.length > 500 ? '...' : ''}</p>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </DarkCard>
+
+        {/* Subscriptions */}
+        <DarkCard className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Crown className="w-4 h-4 text-[#febc2e]" />
+            <h3 className="text-[14px] font-semibold text-white">Suscripciones</h3>
+          </div>
+          {!userDetail.subscriptions?.length && <p className="text-[13px] text-[#444] text-center py-6">Sin suscripciones</p>}
+          <div className="space-y-2">
+            {userDetail.subscriptions?.map((sub: any) => (
+              <div key={sub.id} className="flex items-center justify-between p-3 rounded-lg bg-[#0d0d14] border border-[#1a1a2e]">
+                <div>
+                  <p className="text-[13px] text-white font-medium">{sub.plan_id}</p>
+                  <p className="text-[11px] text-[#555]">via {sub.payment_provider} · ${sub.payment_amount}</p>
+                </div>
+                <div className="text-right">
+                  <Badge variant="outline" className={cn(
+                    "text-[10px] border-[#2a2a3e]",
+                    sub.status === 'active' ? "text-emerald-400" : "text-[#555]"
+                  )}>{sub.status}</Badge>
+                  <p className="text-[10px] text-[#444] mt-1">
+                    Exp: {format(new Date(sub.expires_at), 'dd MMM yyyy', { locale: es })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DarkCard>
+
+        {/* Activity */}
+        <DarkCard className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity className="w-4 h-4 text-[#4ecdc4]" />
+            <h3 className="text-[14px] font-semibold text-white">Actividad reciente</h3>
+          </div>
+          <ScrollArea className="h-[300px]">
+            <div className="space-y-1.5">
+              {userDetail.activity?.map((act: any) => (
+                <div key={act.id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[#0d0d14] transition-colors">
+                  <div className="w-6 h-6 rounded-full bg-[#1a1a2e] flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-3 h-3 text-[#555]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[12px] text-[#999]">
+                      <span className="text-[#ccc] font-medium">{act.event_type}</span>
+                      {act.page_path && <span className="text-[#444]"> · {act.page_path}</span>}
+                    </p>
+                  </div>
+                  <span className="text-[10px] text-[#444] flex-shrink-0">
+                    {formatDistanceToNow(new Date(act.created_at), { locale: es, addSuffix: true })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </DarkCard>
+      </div>
+    );
+  }
+
+  // ── User List ──
+  return (
+    <div className="p-4 md:p-6 lg:p-8 space-y-5 max-w-[1200px]">
+      <div>
+        <h1 className="text-[24px] font-bold text-white">Usuarios</h1>
+        <p className="text-[14px] text-[#666]">Gestión y monitoreo de cuentas</p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: 'Total', value: usersData?.stats?.totalUsers || 0, icon: Users, color: '#2692DC' },
+          { label: 'Pro', value: usersData?.stats?.proUsers || 0, icon: Crown, color: '#febc2e' },
+          { label: 'Activos 7d', value: usersData?.stats?.activeUsers7d || 0, icon: TrendingUp, color: '#28c840' },
+        ].map(s => (
+          <div key={s.label} className="rounded-xl bg-[#111118] border border-[#1a1a2e] p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${s.color}15` }}>
+              <s.icon className="w-4 h-4" style={{ color: s.color }} />
+            </div>
+            <div>
+              <p className="text-[20px] font-bold text-white">{s.value}</p>
+              <p className="text-[11px] text-[#555]">{s.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#555]" />
+        <Input
+          placeholder="Buscar por email o nombre..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-10 bg-[#111118] border-[#1a1a2e] text-white placeholder:text-[#444] focus:border-[#2692DC]/50"
+        />
+      </div>
+
+      {/* Users list */}
+      <DarkCard>
+        <ScrollArea className="h-[600px]">
+          <div className="divide-y divide-[#1a1a2e]">
+            {isLoading && (
+              <div className="p-8 text-center text-[#555] text-[13px]">Cargando usuarios...</div>
+            )}
+            {usersData?.users?.map((user: UserData) => (
+              <div
+                key={user.id}
+                className="flex items-center justify-between p-4 hover:bg-[#0d0d14] cursor-pointer transition-colors"
+                onClick={() => setSelectedUserId(user.id)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#2692DC]/20 to-[#746CE6]/20 flex items-center justify-center flex-shrink-0">
+                    {user.avatar_url ? (
+                      <img src={user.avatar_url} alt="" className="w-9 h-9 rounded-lg object-cover" />
+                    ) : (
+                      <span className="text-[13px] font-bold text-[#888]">{(user.full_name || user.email || '?')[0].toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[13px] font-medium text-white truncate">{user.full_name || user.email}</p>
+                      {isPro(user) && (
+                        <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-[9px] border-0 px-1.5 py-0">
+                          PRO
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-[#555] truncate">{user.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right hidden sm:block">
+                    {user.businesses?.length > 0 && (
+                      <p className="text-[12px] text-[#888] flex items-center gap-1 justify-end">
+                        <Building2 className="w-3 h-3" />
+                        {user.businesses[0].name}
+                      </p>
+                    )}
+                    <p className="text-[10px] text-[#444]">
+                      {user.last_active_at 
+                        ? formatDistanceToNow(new Date(user.last_active_at), { locale: es, addSuffix: true })
+                        : 'Sin actividad'}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-[#333]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </DarkCard>
     </div>
   );
 }
