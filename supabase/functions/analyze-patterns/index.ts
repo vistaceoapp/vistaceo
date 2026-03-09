@@ -939,10 +939,25 @@ Ejemplos CORRECTOS:
     let analysis;
     try {
       const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
-      analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : { opportunities: [] };
+      if (!jsonMatch) {
+        console.warn("[analyze-patterns] No JSON found in opportunities response, length:", aiMessage.length);
+        analysis = { opportunities: [] };
+      } else {
+        analysis = JSON.parse(jsonMatch[0]);
+      }
     } catch {
-      console.error("Failed to parse opportunities response");
-      analysis = { opportunities: [] };
+      console.error("[analyze-patterns] Failed to parse opportunities response, attempting repair...");
+      try {
+        let raw = aiMessage.match(/\{[\s\S]*/)?.[0] || "";
+        const openBrackets = (raw.match(/\[/g) || []).length - (raw.match(/\]/g) || []).length;
+        const openBraces = (raw.match(/\{/g) || []).length - (raw.match(/\}/g) || []).length;
+        for (let i = 0; i < openBrackets; i++) raw += "]";
+        for (let i = 0; i < openBraces; i++) raw += "}";
+        analysis = JSON.parse(raw);
+      } catch {
+        console.error("[analyze-patterns] JSON repair failed for opportunities");
+        analysis = { opportunities: [] };
+      }
     }
 
     let opportunitiesInserted = 0;
