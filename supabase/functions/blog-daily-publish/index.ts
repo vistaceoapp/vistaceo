@@ -202,6 +202,46 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ═══ FILL REMAINING SLOTS from unused topics ═══
+    const publishedFromPlan = results.filter(r => r.success).length;
+    const slotsStillRemaining = remaining - publishedFromPlan;
+    
+    if (slotsStillRemaining > 0) {
+      console.log(`[blog-daily-publish] ${publishedFromPlan} from plan, filling ${slotsStillRemaining} remaining slots from unused topics...`);
+      
+      // Collect categories already used today to maximize diversity
+      const usedCategoriesToday = new Set(
+        results.filter(r => r.success && r.post?.category).map(r => (r.post as any).category)
+      );
+      
+      const { data: fillTopics } = await supabase
+        .from('blog_topics')
+        .select('*')
+        .is('last_used_at', null)
+        .order('priority_score', { ascending: false })
+        .limit(slotsStillRemaining + 10); // extra buffer for filtering
+      
+      // Filter for diversity: avoid same category as already published today
+      const diverseTopics = (fillTopics || []).filter((t: any) => {
+        if (t.category && usedCategoriesToday.has(t.category)) return false;
+        if (t.category && saturatedCategories.includes(t.category)) return false;
+        const kw = (t.primary_keyword || t.title_base || '').toLowerCase();
+        if (recentKeywords.some((k: string) => k && kw && (k.includes(kw) || kw.includes(k)))) return false;
+        return true;
+      }).slice(0, slotsStillRemaining);
+      
+      for (const topic of diverseTopics) {
+        const result = await generateAndPublishPost(supabase, null, topic.id, githubToken);
+        results.push({ topic_id: topic.id, ...result });
+        if (result.success && result.post) {
+          usedCategoriesToday.add((result.post as any).category);
+        }
+        if (!result.success) {
+          await sendFailureEmail(supabase, `Blog post generation failed for topic ${topic.title_base}`, { error: result.error, topic_id: topic.id });
+        }
+      }
+    }
+
     const successCount = results.filter(r => r.success).length;
     if (successCount > 0 && githubToken) await triggerGitHubBuild(githubToken);
     if (successCount > 0) await pingSitemaps();
