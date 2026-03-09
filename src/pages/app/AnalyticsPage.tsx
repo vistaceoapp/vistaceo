@@ -32,6 +32,7 @@ const AnalyticsPage = () => {
   const tabs = [
     { value: "diagnostico", label: "Diagnóstico", mobileLabel: "Diag.", icon: Stethoscope, locked: false },
     { value: "reputacion", label: "Reputación", mobileLabel: "Reput.", icon: Star, locked: false },
+    { value: "competencia", label: "Competencia", mobileLabel: "Comp.", icon: Building2, locked: false },
     { value: "insights", label: "Insights", mobileLabel: "Insights", icon: Brain, locked: !isPro },
     { value: "evolucion", label: "Evolución", mobileLabel: "Evol.", icon: TrendingUp, locked: !isPro },
     { value: "metricas", label: "Métricas", mobileLabel: "Métr.", icon: BarChart3, locked: !isPro },
