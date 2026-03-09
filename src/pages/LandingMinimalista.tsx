@@ -119,44 +119,42 @@ const NotifCard = ({ icon, iconBg, name, text, time, className }: {
    Hero Section — Kinso exact layout
    ═══════════════════════════════════════════════════════════════ */
 const HeroSection = () => {
-  const navigate = useNavigate();
-
   return (
-    <section className="relative min-h-screen pt-24 pb-8 px-6 overflow-hidden">
-      {/* Kinso warm gradient background */}
+    <section className="relative pt-28 pb-20 lg:pt-32 lg:pb-28 px-6 overflow-hidden min-h-[90vh]">
+      {/* Background gradients — Kinso exact warm tones */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: "linear-gradient(135deg, rgba(255,245,240,0.6) 0%, rgba(255,255,255,0.9) 50%, rgba(245,250,255,0.4) 100%)"
+        background: "linear-gradient(180deg, rgba(255,248,245,0.7) 0%, rgba(255,255,255,1) 100%)"
       }} />
-      <div className="absolute top-0 right-0 w-[60%] h-[60%] pointer-events-none" style={{
-        background: "radial-gradient(ellipse at 70% 30%, rgba(232,113,74,0.06), transparent 60%)"
+      <div className="absolute top-0 right-0 w-[70%] h-[70%] pointer-events-none" style={{
+        background: "radial-gradient(ellipse 80% 60% at 70% 20%, rgba(232,113,74,0.05), transparent 70%)"
       }} />
 
-      <div className="relative z-10 max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+      <div className="relative z-10 max-w-[1200px] mx-auto flex flex-col lg:flex-row items-start gap-12 lg:gap-8">
         {/* Left: Text — Kinso exact */}
-        <div className="flex-1 max-w-[480px] lg:pt-12">
+        <div className="flex-shrink-0 w-full lg:w-[420px] lg:pt-8">
           <Reveal>
-            <h1 className="text-[clamp(2.5rem,6vw,3.5rem)] font-semibold text-[#1a1a1a] leading-[1.05] tracking-[-0.03em]">
+            <h1 className="text-[clamp(2.2rem,5.5vw,3.2rem)] font-semibold text-[#1a1a1a] leading-[1.08] tracking-[-0.02em]">
               Un cerebro,
             </h1>
-            <h1 className="text-[clamp(2.5rem,6vw,3.5rem)] font-semibold text-[#1a1a1a] leading-[1.05] tracking-[-0.03em]">
+            <h1 className="text-[clamp(2.2rem,5.5vw,3.2rem)] font-semibold text-[#1a1a1a] leading-[1.08] tracking-[-0.02em] mt-1">
               cada decisión.
             </h1>
           </Reveal>
 
-          <Reveal delay={100}>
-            <p className="text-[16px] text-[#666] mt-6 leading-[1.7] max-w-[400px]">
+          <Reveal delay={80}>
+            <p className="text-[15px] text-[#666] mt-7 leading-[1.75] max-w-[380px]">
               VISTACEO reúne toda la inteligencia de tu negocio. Aprende tus objetivos, entiende qué importa más, y genera acciones que suenan como vos.
             </p>
           </Reveal>
         </div>
 
         {/* Right: App mockup with floating cards — Kinso style */}
-        <div className="flex-1 relative max-w-[680px] w-full">
-          <Reveal delay={150}>
-            <div className="relative">
-              {/* Back window — inbox/list style */}
-              <div className="absolute top-4 right-0 w-[85%] rounded-2xl border border-[#e5e5e5] bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden">
-                {/* Browser dots */}
+        <div className="flex-1 relative w-full max-w-[720px]">
+          <Reveal delay={100}>
+            <div className="relative h-[420px] lg:h-[480px]">
+              {/* Back window — inbox/messages list (RIGHT, larger) */}
+              <div className="absolute top-0 right-0 w-[75%] rounded-2xl border border-[#e8e8e8] bg-white shadow-[0_16px_48px_-12px_rgba(0,0,0,0.1)] overflow-hidden">
+                {/* Browser chrome */}
                 <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-[#f0f0f0] bg-[#fafafa]">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
                   <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
@@ -164,120 +162,116 @@ const HeroSection = () => {
                 </div>
                 
                 {/* Content — sidebar + inbox list */}
-                <div className="flex h-[320px]">
-                  {/* Icon sidebar — Kinso exact */}
-                  <div className="w-12 bg-[#fafafa] border-r border-[#f0f0f0] flex flex-col items-center py-3 gap-2">
-                    {["📬", "📧", "📸", "💼", "💬", "📱", "🔗"].map((e, i) => (
-                      <div key={i} className={cn(
-                        "w-7 h-7 rounded-lg flex items-center justify-center text-sm",
-                        i === 0 ? "bg-[#1a1a1a]" : "hover:bg-[#f0f0f0]"
-                      )}>
-                        {i === 0 ? "📬" : e}
+                <div className="flex h-[340px]">
+                  {/* Icon sidebar */}
+                  <div className="w-11 bg-[#fafafa] border-r border-[#f0f0f0] flex flex-col items-center py-3 gap-1.5">
+                    <div className="w-6 h-6 rounded-md bg-[#1a1a1a] flex items-center justify-center mb-1">
+                      <span className="text-[10px]">💬</span>
+                    </div>
+                    {["M", "✦", "📷", "📱", "in", "📊"].map((icon, i) => (
+                      <div key={i} className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] text-[#bbb] hover:bg-[#f0f0f0]">
+                        {icon}
                       </div>
                     ))}
                   </div>
 
                   {/* Inbox list */}
-                  <div className="flex-1 p-3 overflow-hidden">
-                    <div className="flex items-center gap-2 px-2 py-1.5 mb-3 rounded-lg bg-[#f5f5f5]">
-                      <span className="text-[11px] text-[#999]">🔍 Buscar o preguntar a VISTACEO...</span>
+                  <div className="flex-1 p-3 overflow-hidden bg-white">
+                    <div className="flex items-center gap-2 px-2.5 py-2 mb-3 rounded-lg bg-[#f8f8f8] border border-[#eee]">
+                      <span className="text-[10px] text-[#bbb]">🔍</span>
+                      <span className="text-[11px] text-[#aaa]">Buscar o preguntar...</span>
                     </div>
-                    <p className="text-[10px] text-[#bbb] uppercase tracking-wider font-medium px-1 mb-2">Inbox</p>
+                    <p className="text-[9px] text-[#bbb] uppercase tracking-wider font-medium px-1 mb-2">Inbox</p>
                     
-                    {/* Contact items — Kinso style */}
                     {[
-                      { name: "Martín Gómez", msg: "Quiere coordinar la reunión de estrategia...", time: "3m", platform: "💼" },
-                      { name: "Ana Rodríguez", msg: "Compartió el reporte de ventas mensual...", time: "12m", platform: "📧" },
-                      { name: "Carlos López", msg: "Actualizó el pipeline de clientes nuevos...", time: "1h", platform: "💬" },
-                      { name: "Lucía Fernández", msg: "Envió los diseños del nuevo branding...", time: "2h", platform: "📸" },
-                      { name: "Diego Martínez", msg: "Preguntó sobre el presupuesto Q2...", time: "4h", platform: "📧" },
+                      { name: "Natasha Corwin", msg: "Quiere compartir un contrato de venta...", time: "3m", icon: "M", color: "#EA4335" },
+                      { name: "Luke Rankin", msg: "Compartió actualización del proyecto...", time: "12m", icon: "✦", color: "#611f69" },
+                      { name: "Ana Rodríguez", msg: "Envió el reporte mensual con datos...", time: "1h", icon: "📱", color: "#25D366" },
+                      { name: "Jack Callaghan", msg: "Actualizó agenda de la reunión...", time: "2h", icon: "📷", color: "#E1306C" },
+                      { name: "Diego López", msg: "Preguntó sobre el presupuesto Q3...", time: "4h", icon: "M", color: "#EA4335" },
                     ].map((c, i) => (
-                      <div key={i} className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-[#fafafa] transition-colors cursor-pointer">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#e0e0e0] to-[#ccc] flex items-center justify-center text-[10px] font-medium text-white">
+                      <div key={i} className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-[#fafafa] cursor-pointer">
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#e8e8e8] to-[#d0d0d0] flex items-center justify-center text-[9px] font-medium text-[#888]">
                           {c.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[12px] font-medium text-[#1a1a1a]">{c.name}</p>
-                            <span className="text-[10px] text-[#bbb]">{c.time}</span>
+                          <div className="flex items-center gap-2">
+                            <p className="text-[11px] font-medium text-[#1a1a1a]">{c.name}</p>
+                            <span className="text-[9px] text-[#ccc]">{c.time}</span>
                           </div>
-                          <p className="text-[11px] text-[#888] truncate">{c.msg}</p>
+                          <p className="text-[10px] text-[#999] truncate">{c.msg}</p>
                         </div>
-                        <span className="text-sm">{c.platform}</span>
+                        <span className="text-[10px]" style={{ color: c.color }}>{c.icon}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
 
-              {/* Front window — Chat/greeting — Kinso smaller overlay */}
-              <div className="relative z-10 w-[55%] rounded-2xl border border-[#e5e5e5] bg-white shadow-[0_25px_80px_-15px_rgba(0,0,0,0.15)] overflow-hidden mt-16">
-                {/* Browser dots */}
+              {/* Front window — Chat/greeting (LEFT, smaller, overlapping) */}
+              <div className="absolute left-0 top-12 w-[50%] rounded-2xl border border-[#e8e8e8] bg-white shadow-[0_20px_60px_-12px_rgba(0,0,0,0.12)] overflow-hidden z-10">
+                {/* Browser chrome */}
                 <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-[#f0f0f0] bg-[#fafafa]">
                   <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
                   <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
                   <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
                 </div>
 
-                <div className="p-5 h-[200px]">
-                  <p className="text-[15px] font-medium text-[#1a1a1a]">Buenos días, Martín.</p>
-                  <p className="text-[12px] text-[#888] mt-1">Tenés 4 nuevas y 9 conversaciones activas.</p>
+                <div className="p-5 h-[180px]">
+                  <p className="text-[14px] font-medium text-[#1a1a1a]">Buenos días, Martín.</p>
+                  <p className="text-[11px] text-[#888] mt-1">Tenés 4 nuevas y 9 conversaciones activas.</p>
                   
-                  <div className="mt-6 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#f8f8f8] border border-[#eee]">
-                    <span className="text-[12px] text-[#999]">Preguntá a VISTACEO</span>
+                  <div className="mt-8 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#f8f8f8] border border-[#eee]">
+                    <span className="text-[11px] text-[#aaa]">Preguntá a VISTACEO</span>
                     <ArrowRight className="w-3 h-3 text-[#ccc] ml-auto" />
                   </div>
                 </div>
               </div>
 
-              {/* Floating notification cards — Kinso positioned right */}
-              <div className="absolute top-2 right-[-20px] z-20">
+              {/* Floating notification cards — positioned to the right of back window */}
+              <div className="absolute -top-2 -right-3 lg:-right-6 z-20">
                 <NotifCard
-                  icon={<span className="text-[10px]">📧</span>}
+                  icon={<span className="text-[9px]">M</span>}
                   iconBg="bg-[#EA4335]"
-                  name="Ana Rodríguez"
+                  name="Natasha Corwin"
                   text="Solicitó un contrato de venta. Encontré un email relacionado."
                   time="24m"
                 />
               </div>
-              <div className="absolute top-[100px] right-[-30px] z-20">
+              <div className="absolute top-[90px] -right-4 lg:-right-8 z-20">
                 <NotifCard
-                  icon={<span className="text-[10px]">🔗</span>}
+                  icon={<span className="text-[9px]">✦</span>}
                   iconBg="bg-[#28c840]"
-                  name="Carlos López"
+                  name="Luke Rankin"
                   text="Revisar actualización del proyecto ITWA"
                   time="1h"
                 />
               </div>
-              <div className="absolute top-[180px] right-[-15px] z-20">
+              <div className="absolute top-[175px] -right-2 lg:-right-5 z-20">
                 <NotifCard
-                  icon={<span className="text-[10px]">💼</span>}
+                  icon={<span className="text-[9px]">in</span>}
                   iconBg="bg-[#0A66C2]"
-                  name="Diego Martínez"
-                  text="Enviar presupuesto para Q2"
+                  name="Ben Monroe"
+                  text="Enviar presupuesto para Q3"
                   time="2h"
                 />
               </div>
             </div>
           </Reveal>
 
-          {/* Integration icons — Kinso exact circular style */}
-          <Reveal delay={350}>
-            <div className="flex items-center justify-center gap-3 mt-10">
+          {/* Integration icons — Kinso circular style below mockup */}
+          <Reveal delay={300}>
+            <div className="flex items-center justify-center gap-3 mt-4">
               {[
-                { icon: "M", bg: "bg-white", color: "text-[#EA4335]", border: true },
-                { icon: "✦", bg: "bg-white", color: "text-[#611f69]", border: true },
-                { icon: "📷", bg: "bg-white", color: "text-[#E1306C]", border: true },
-                { icon: "📱", bg: "bg-white", color: "text-[#25D366]", border: true },
-                { icon: "in", bg: "bg-white", color: "text-[#0A66C2]", border: true },
-                { icon: "▶", bg: "bg-white", color: "text-[#FF6B35]", border: true },
+                { letter: "M", color: "#EA4335" },
+                { letter: "✦", color: "#611f69" },
+                { letter: "📷", color: "#E1306C" },
+                { letter: "📱", color: "#25D366" },
+                { letter: "in", color: "#0A66C2" },
+                { letter: "▶", color: "#FF6B35" },
               ].map((app, i) => (
-                <div key={i} className={cn(
-                  "w-11 h-11 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
-                  app.bg,
-                  app.border && "border border-[#eee]"
-                )}>
-                  <span className={cn("text-[14px] font-semibold", app.color)}>{app.icon}</span>
+                <div key={i} className="w-11 h-11 rounded-full bg-white border border-[#eee] flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-shadow">
+                  <span className="text-[13px] font-semibold" style={{ color: app.color }}>{app.letter}</span>
                 </div>
               ))}
             </div>
