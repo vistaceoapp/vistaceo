@@ -403,6 +403,7 @@ const ENGLISH_ALLOWLIST = new Set([
 // PROHIBITED PATTERNS (regex)
 // =============================================
 const PROHIBITED_PATTERNS = [
+  /\[object Object\]/g,               // Object stringification leak
   /\bQ_[A-Z]{2,}_\d+\b/g,           // Q_BIO_104, Q_AI_002
   /\b[a-z]+_[a-z]+_\d{3}\b/g,       // b2b_arq_finance_001
   /\b[0-9a-f]{8}-[0-9a-f]{4}-/g,    // UUID prefixes
@@ -551,6 +552,11 @@ export function isProhibitedContent(text: string): boolean {
 export function sanitizeForUI(text: string | null | undefined): string {
   if (!text || typeof text !== 'string') return '';
   
+  // Catch [object Object] leaks immediately
+  if (text === '[object Object]' || text.includes('[object Object]')) {
+    return text.replace(/\[object Object\]/g, '').trim() || '';
+  }
+  
   let result = text;
   
   // Remove prohibited code patterns
@@ -638,4 +644,31 @@ export function domainLabel(domain: string | null | undefined): string {
 export function horizonLabel(horizon: string | null | undefined): string {
   if (!horizon) return NEUTRAL_FALLBACKS.notInformed;
   return HORIZON_LABELS[horizon.toLowerCase()] || HORIZON_LABELS[horizon] || humanizeRawString(horizon);
+}
+
+/**
+ * Safely convert ANY value to a display-safe string.
+ * Prevents [object Object], undefined, null, etc from leaking into the UI.
+ */
+export function safeDisplayString(value: unknown, fallback = ''): string {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === 'string') {
+    if (value === '[object Object]') return fallback;
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value === 'object') {
+    // Try to extract common text fields from objects
+    const obj = value as Record<string, unknown>;
+    if (obj.text && typeof obj.text === 'string') return obj.text;
+    if (obj.question && typeof obj.question === 'string') return obj.question;
+    if (obj.title && typeof obj.title === 'string') return obj.title;
+    if (obj.label && typeof obj.label === 'string') return obj.label;
+    if (obj.name && typeof obj.name === 'string') return obj.name;
+    if (obj.content && typeof obj.content === 'string') return obj.content;
+    if (obj.message && typeof obj.message === 'string') return obj.message;
+    if (obj.description && typeof obj.description === 'string') return obj.description;
+    return fallback;
+  }
+  return fallback;
 }

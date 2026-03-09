@@ -47,6 +47,11 @@ export const SafeText: React.FC<SafeTextProps> = ({
     
     const text = String(children);
     
+    // Catch [object Object] and other object stringification leaks
+    if (text === '[object Object]' || text.includes('[object Object]')) {
+      return fallback || NEUTRAL_FALLBACKS.label;
+    }
+    
     // If treating as internal key, do full label lookup
     if (asLabel) {
       return humanLabel(text);

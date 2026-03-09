@@ -689,7 +689,25 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
   const learningExtractMatch = rawResponse.match(/<LEARNING_EXTRACT>([\s\S]*?)<\/LEARNING_EXTRACT>/);
   if (learningExtractMatch) {
     try {
-      result.learningExtract = JSON.parse(learningExtractMatch[1].trim());
+      let jsonStr = learningExtractMatch[1].trim();
+      // Try direct parse first
+      try {
+        result.learningExtract = JSON.parse(jsonStr);
+      } catch {
+        // Attempt to repair truncated JSON
+        jsonStr = jsonStr
+          .replace(/,\s*}/g, '}')
+          .replace(/,\s*]/g, ']')
+          .replace(/[\x00-\x1F\x7F]/g, '');
+        // Close unclosed brackets/braces
+        const openBraces = (jsonStr.match(/{/g) || []).length;
+        const closeBraces = (jsonStr.match(/}/g) || []).length;
+        const openBrackets = (jsonStr.match(/\[/g) || []).length;
+        const closeBrackets = (jsonStr.match(/]/g) || []).length;
+        for (let i = 0; i < openBrackets - closeBrackets; i++) jsonStr += ']';
+        for (let i = 0; i < openBraces - closeBraces; i++) jsonStr += '}';
+        result.learningExtract = JSON.parse(jsonStr);
+      }
     } catch (e) {
       console.warn("Failed to parse LEARNING_EXTRACT:", e);
     }
