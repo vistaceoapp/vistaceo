@@ -630,8 +630,8 @@ const ChatPage = () => {
         {/* Suggested Questions Button (when has messages) */}
         {messages.length > 0 && !loading && (
           <div className={cn(
-            "py-2 border-t border-border/20 flex items-center justify-center",
-            isMobile ? "px-3" : "px-4"
+            "py-2 flex items-center justify-center",
+            isMobile ? "px-3" : "px-5"
           )}>
             <SuggestedQuestionsButton
               businessId={currentBusiness.id}
@@ -644,7 +644,7 @@ const ChatPage = () => {
         {/* Free user message counter */}
         {!isPro && (
           <div className={cn(
-            "flex items-center justify-between px-4 py-2 border-t border-border/30 bg-card/50",
+            "flex items-center justify-between px-4 py-2 bg-muted/30 border-t border-border/20",
             isMobile && "px-3"
           )}>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -665,8 +665,8 @@ const ChatPage = () => {
 
         {/* Input Area */}
         <div className={cn(
-          "bg-background/90 backdrop-blur-sm",
-          isMobile ? "px-3 py-2 border-t border-border/30" : "mt-2"
+          "bg-background/80 backdrop-blur-xl border-t border-border/20",
+          isMobile ? "px-3 py-2" : "px-5 py-3"
         )}>
           <ChatInput
             value={input}
