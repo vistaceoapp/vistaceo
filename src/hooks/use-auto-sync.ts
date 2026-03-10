@@ -8,7 +8,7 @@ const BRAIN_GAPS_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
 export const useAutoSync = () => {
   const { currentBusiness } = useBusiness();
   const lastSyncRef = useRef<Date | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const brainGapsDoneRef = useRef(false);
   const healthCheckDoneRef = useRef(false);
 

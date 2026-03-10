@@ -61,7 +61,7 @@ export const GooglePlacesInlineEditor = ({
   const [suggestions, setSuggestions] = useState<PlacePrediction[]>([]);
   const [saving, setSaving] = useState(false);
   const [showConfirmRemove, setShowConfirmRemove] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const sessionTokenRef = useRef(createSessionToken());
 
   const hasPlace = !!currentBusiness?.google_place_id;

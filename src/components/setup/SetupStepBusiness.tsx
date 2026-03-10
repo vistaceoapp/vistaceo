@@ -62,7 +62,7 @@ export const SetupStepBusiness = ({
   const [suggestions, setSuggestions] = useState<PlacePrediction[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlaceData | null>(null);
   const [manualMode, setManualMode] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const sessionTokenRef = useRef(createSessionToken());
 
   // If we have a current name but no placeId, we're in manual mode

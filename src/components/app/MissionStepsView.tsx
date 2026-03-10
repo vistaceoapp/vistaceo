@@ -72,7 +72,7 @@ export const MissionStepsView = ({
   };
   
   const [undoStepIndex, setUndoStepIndex] = useState<number | null>(null);
-  const undoTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentStepIndex = steps.findIndex((s) => !s.done);
   const canGoPrevStep = expandedStep !== null && expandedStep > 0;
