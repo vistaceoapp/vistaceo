@@ -1,15 +1,33 @@
 import { useState, useEffect, useRef, memo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronDown, Menu, X, Check, TrendingUp, Target, Zap, BarChart3, Shield, Brain, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronDown, Menu, X, Check, TrendingUp, Target, Zap, BarChart3, Shield, Brain, Sparkles, Heart, MessageCircle, Eye, Radar } from "lucide-react";
 import { SiteHead } from "@/components/seo/SiteHead";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Import REAL mockup components from main landing
+import { MockupProDashboard } from "@/components/landing/mockups/MockupProDashboard";
+import { MockupProMissions } from "@/components/landing/mockups/MockupProMissions";
+import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
+import { MockupProChat } from "@/components/landing/mockups/MockupProChat";
+import { MockupProAnalytics } from "@/components/landing/mockups/MockupProAnalytics";
+import { MockupProPredictions } from "@/components/landing/mockups/MockupProPredictions";
+
+import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
+
+// Import business photos
+import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=400&format=webp";
+import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=400&format=webp";
+import marketingImg from "@/assets/business-types/marketing-digital.jpg?w=400&format=webp";
+import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg?w=400&format=webp";
 
 /* ═══════════════════════════════════════════════════════════════
-   VISTACEO Minimalist Landing — Ultra-Premium Kinso Clone
+   VISTACEO Minimalist Landing — Ultra-Premium Kinso-Grade v2
+   Real mockups · Interactive tabs · Kinso layout fidelity
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Smooth Scroll Reveal with spring easing ── */
+/* ── Scroll Reveal ── */
 const Reveal = memo(({ children, className, delay = 0, distance = 40 }: { 
   children: React.ReactNode; className?: string; delay?: number; distance?: number;
 }) => {
@@ -25,29 +43,20 @@ const Reveal = memo(({ children, className, delay = 0, distance = 40 }: {
     return () => obs.disconnect();
   }, [delay]);
   return (
-    <div 
-      ref={ref} 
-      className={cn("transition-all ease-out", className)}
+    <div ref={ref} className={cn("transition-all ease-out", className)}
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : `translateY(${distance}px)`,
         transitionDuration: "800ms",
         transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
       }}
-    >
-      {children}
-    </div>
+    >{children}</div>
   );
 });
 Reveal.displayName = "Reveal";
 
-/* ── Stagger container ── */
-const Stagger = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <div className={className}>{children}</div>
-);
-
 /* ═══════════════════════════════════════════════════════════════
-   Header — Floating pill nav like Kinso
+   Header — Floating Kinso-style pill
    ═══════════════════════════════════════════════════════════════ */
 const Header = memo(() => {
   const navigate = useNavigate();
@@ -63,12 +72,9 @@ const Header = memo(() => {
   return (
     <header className={cn(
       "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-      scrolled 
-        ? "bg-white/90 backdrop-blur-2xl shadow-[0_1px_0_rgba(0,0,0,0.04)]" 
-        : "bg-transparent"
+      scrolled ? "bg-white/90 backdrop-blur-2xl shadow-[0_1px_0_rgba(0,0,0,0.04)]" : "bg-transparent"
     )}>
       <div className="max-w-[1200px] mx-auto px-6 h-[68px] flex items-center">
-        {/* Logo + separator */}
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate("/minimalista")}>
             <img src="/favicon.png" alt="" className="w-7 h-7 object-contain" />
@@ -77,38 +83,28 @@ const Header = memo(() => {
           <div className="hidden md:block w-px h-5 bg-[#e5e5e5]" />
         </div>
 
-        {/* Center nav */}
         <nav className="hidden md:flex items-center gap-10 ml-10">
           {[
-            { label: "About", href: "#about" },
+            { label: "Producto", href: "#producto" },
             { label: "Features", href: "#features" },
             { label: "FAQs", href: "#faq" },
           ].map(link => (
-            <a 
-              key={link.label}
-              href={link.href} 
-              className="text-[13.5px] text-[#888] hover:text-[#111] transition-colors duration-300 relative group"
-            >
+            <a key={link.label} href={link.href}
+              className="text-[13.5px] text-[#888] hover:text-[#111] transition-colors duration-300 relative group">
               {link.label}
               <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#111] transition-all duration-300 group-hover:w-full" />
             </a>
           ))}
         </nav>
 
-        {/* Right side */}
         <div className="hidden md:flex items-center gap-2.5 ml-auto">
-          <button 
-            onClick={() => navigate("/auth")} 
-            className="text-[13.5px] text-[#666] hover:text-[#111] transition-colors duration-300 px-4 py-2 rounded-lg hover:bg-[#f8f8f8]"
-          >
+          <button onClick={() => navigate("/auth")}
+            className="text-[13.5px] text-[#666] hover:text-[#111] transition-colors duration-300 px-4 py-2 rounded-lg hover:bg-[#f8f8f8]">
             Login
           </button>
-          <button 
-            onClick={() => navigate("/auth?mode=signup")} 
-            className="text-[13.5px] bg-[#111] text-white px-5 py-2.5 rounded-[10px] font-medium hover:bg-[#222] transition-all duration-300 flex items-center gap-1.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] active:scale-[0.98]"
-          >
-            Get Started
-            <ArrowRight className="w-3.5 h-3.5" />
+          <button onClick={() => navigate("/auth?mode=signup")}
+            className="text-[13.5px] bg-[#111] text-white px-5 py-2.5 rounded-[10px] font-medium hover:bg-[#222] transition-all duration-300 flex items-center gap-1.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] active:scale-[0.98]">
+            Get Started <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -117,13 +113,12 @@ const Header = memo(() => {
         </button>
       </div>
 
-      {/* Mobile menu */}
       <div className={cn(
         "md:hidden overflow-hidden transition-all duration-500 bg-white/98 backdrop-blur-2xl border-t border-[#f5f5f5]",
         mobileOpen ? "max-h-[320px] opacity-100" : "max-h-0 opacity-0"
       )}>
         <div className="px-6 py-5 space-y-1">
-          {["About", "Features", "FAQs"].map(item => (
+          {["Producto", "Features", "FAQs"].map(item => (
             <a key={item} href={`#${item.toLowerCase()}`} className="block text-[15px] text-[#444] py-3 border-b border-[#f5f5f5] last:border-0" onClick={() => setMobileOpen(false)}>
               {item}
             </a>
@@ -140,7 +135,7 @@ const Header = memo(() => {
 Header.displayName = "Header";
 
 /* ═══════════════════════════════════════════════════════════════
-   Floating Notification Card — Kinso style with entrance anim
+   Notification Cards — Kinso-style floating alerts
    ═══════════════════════════════════════════════════════════════ */
 const NotifCard = ({ icon, iconBg, name, text, time, className, delay = 0 }: {
   icon: React.ReactNode; iconBg: string; name: string; text: string; time: string; className?: string; delay?: number;
@@ -159,12 +154,8 @@ const NotifCard = ({ icon, iconBg, name, text, time, className, delay = 0 }: {
   }, [delay]);
 
   return (
-    <div 
-      ref={ref}
-      className={cn(
-        "bg-white rounded-[14px] border border-[#ebebeb] shadow-[0_8px_32px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] p-3.5 w-[250px] flex gap-3 items-start transition-all",
-        className
-      )}
+    <div ref={ref}
+      className={cn("bg-white rounded-[14px] border border-[#ebebeb] shadow-[0_8px_32px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] p-3.5 w-[250px] flex gap-3 items-start transition-all", className)}
       style={{
         opacity: show ? 1 : 0,
         transform: show ? "translateX(0) translateY(0)" : "translateX(20px) translateY(10px)",
@@ -188,17 +179,16 @@ const NotifCard = ({ icon, iconBg, name, text, time, className, delay = 0 }: {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   Hero Section — Split layout with overlapping browser mockups
+   Hero — Split layout with REAL Dashboard mockup + floating notifs
    ═══════════════════════════════════════════════════════════════ */
 const HeroSection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative pt-28 pb-10 lg:pt-36 lg:pb-24 px-6 overflow-hidden">
-      {/* Background — warm peach to white to blue, very subtle */}
       <div className="absolute inset-0 pointer-events-none" style={{
         background: "linear-gradient(165deg, rgba(255,235,218,0.45) 0%, rgba(255,255,255,1) 50%, rgba(230,242,255,0.3) 100%)"
       }} />
-      
-      {/* Subtle radial glow */}
       <div className="absolute top-[20%] right-[25%] w-[700px] h-[700px] rounded-full pointer-events-none opacity-30"
         style={{ background: "radial-gradient(circle, rgba(232,113,74,0.06), transparent 70%)" }} 
       />
@@ -220,125 +210,39 @@ const HeroSection = () => {
               VISTACEO reúne toda la inteligencia de tu negocio. Aprende tus objetivos, entiende qué importa más, y genera acciones que mueven la aguja cada día.
             </p>
           </Reveal>
+
+          <Reveal delay={200} distance={20}>
+            <div className="flex items-center gap-3 mt-8">
+              <button onClick={() => navigate("/auth?mode=signup")}
+                className="bg-[#111] text-white px-7 py-3.5 rounded-[12px] text-[14px] font-medium hover:bg-[#222] transition-all duration-300 flex items-center gap-2 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] active:scale-[0.98] hover:-translate-y-0.5">
+                Empezar gratis <ArrowRight className="w-4 h-4" />
+              </button>
+              <button onClick={() => navigate("/auth")}
+                className="text-[14px] text-[#888] hover:text-[#111] px-5 py-3.5 rounded-[12px] transition-colors border border-[#eee] hover:border-[#ddd]">
+                Login
+              </button>
+            </div>
+          </Reveal>
         </div>
 
-        {/* Right: App mockup with overlapping windows */}
+        {/* Right: Real dashboard mockup in browser chrome */}
         <div className="flex-1 relative w-full max-w-[740px]">
-          <Reveal delay={200} distance={50}>
-            <div className="relative h-[380px] sm:h-[420px] lg:h-[500px]">
-              {/* Back window — Dashboard/Inbox (RIGHT, larger) */}
-              <div className="absolute top-0 right-0 w-[78%] rounded-2xl border border-[#e8e8e8] bg-white shadow-[0_24px_80px_-16px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.03)] overflow-hidden">
-                {/* Browser chrome */}
+          <Reveal delay={250} distance={50}>
+            <div className="relative">
+              {/* Browser chrome wrapper */}
+              <div className="rounded-2xl border border-[#e8e8e8] bg-white shadow-[0_24px_80px_-16px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.03)] overflow-hidden">
                 <div className="flex items-center gap-1.5 px-4 py-3 border-b border-[#f2f2f2] bg-[#fafafa]">
                   <div className="w-[10px] h-[10px] rounded-full bg-[#ff5f57]" />
                   <div className="w-[10px] h-[10px] rounded-full bg-[#febc2e]" />
                   <div className="w-[10px] h-[10px] rounded-full bg-[#28c840]" />
                   <div className="flex-1 mx-8">
-                    <div className="h-5 rounded-md bg-[#f0f0f0] max-w-[180px] mx-auto flex items-center justify-center">
-                      <span className="text-[9px] text-[#bbb]">vistaceo.com/inicio</span>
+                    <div className="h-5 rounded-md bg-[#f0f0f0] max-w-[200px] mx-auto flex items-center justify-center">
+                      <span className="text-[9px] text-[#bbb]">app.vistaceo.com/dashboard</span>
                     </div>
                   </div>
                 </div>
-                
-                {/* Content — sidebar + dashboard */}
-                <div className="flex h-[320px] lg:h-[380px]">
-                  {/* Icon sidebar */}
-                  <div className="w-12 bg-[#fafafa] border-r border-[#f2f2f2] flex flex-col items-center py-4 gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#E8714A] to-[#e85d30] flex items-center justify-center mb-2 shadow-sm">
-                      <Sparkles className="w-3.5 h-3.5 text-white" />
-                    </div>
-                    {[Brain, Target, BarChart3, Zap, Shield].map((Icon, i) => (
-                      <div key={i} className={cn(
-                        "w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer",
-                        i === 0 ? "bg-[#f0f0f0]" : "hover:bg-[#f5f5f5]"
-                      )}>
-                        <Icon className="w-3.5 h-3.5 text-[#999]" />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Main content area */}
-                  <div className="flex-1 p-4 overflow-hidden">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="text-[11px] text-[#bbb] font-medium">Buenos días, Martín</p>
-                        <p className="text-[14px] font-semibold text-[#111] mt-0.5">Dashboard</p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#E8714A] to-[#e85d30] flex items-center justify-center">
-                          <span className="text-[8px] text-white font-bold">M</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Mini stat cards */}
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      {[
-                        { label: "Salud", value: "87", color: "#28c840", trend: "+5" },
-                        { label: "Misiones", value: "4/6", color: "#E8714A", trend: "activas" },
-                        { label: "Ingresos", value: "+18%", color: "#2692DC", trend: "vs. mes ant." },
-                      ].map((s, i) => (
-                        <div key={i} className="rounded-xl bg-[#fafafa] border border-[#f0f0f0] p-2.5">
-                          <p className="text-[9px] text-[#bbb] font-medium">{s.label}</p>
-                          <p className="text-[16px] font-bold mt-0.5" style={{ color: s.color }}>{s.value}</p>
-                          <p className="text-[8px] text-[#ccc] mt-0.5">{s.trend}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Mission items */}
-                    <div className="space-y-1.5">
-                      {[
-                        { title: "Optimizar carta de precios", status: "En progreso", icon: "🎯" },
-                        { title: "Campaña retención clientes", status: "Completada", icon: "📣" },
-                        { title: "Analizar horarios pico", status: "Pendiente", icon: "⏰" },
-                      ].map((m, i) => (
-                        <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg border border-[#f2f2f2] bg-white hover:bg-[#fafafa] transition-colors">
-                          <span className="text-[12px]">{m.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[11px] font-medium text-[#333] truncate">{m.title}</p>
-                          </div>
-                          <span className={cn(
-                            "text-[9px] px-2 py-0.5 rounded-full font-medium",
-                            m.status === "Completada" ? "bg-[#e8f5e9] text-[#28c840]" : 
-                            m.status === "En progreso" ? "bg-[#fff3e0] text-[#E8714A]" :
-                            "bg-[#f5f5f5] text-[#999]"
-                          )}>
-                            {m.status}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Front window — AI Chat (LEFT, smaller, overlapping) */}
-              <div className="absolute left-0 top-16 w-[48%] rounded-2xl border border-[#e8e8e8] bg-white shadow-[0_32px_80px_-16px_rgba(0,0,0,0.12),0_4px_16px_rgba(0,0,0,0.05)] overflow-hidden z-10">
-                {/* Browser chrome */}
-                <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-[#f2f2f2] bg-[#fafafa]">
-                  <div className="w-[10px] h-[10px] rounded-full bg-[#ff5f57]" />
-                  <div className="w-[10px] h-[10px] rounded-full bg-[#febc2e]" />
-                  <div className="w-[10px] h-[10px] rounded-full bg-[#28c840]" />
-                </div>
-
-                <div className="p-5 min-h-[200px]">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#E8714A] to-[#e85d30] flex items-center justify-center">
-                      <Sparkles className="w-3 h-3 text-white" />
-                    </div>
-                    <span className="text-[12px] font-semibold text-[#111]">VISTACEO</span>
-                  </div>
-                  
-                  <p className="text-[14px] font-medium text-[#111]">Buenos días, Martín.</p>
-                  <p className="text-[11.5px] text-[#888] mt-1.5 leading-[1.6]">
-                    Tenés 4 alertas nuevas y 2 misiones pendientes. Tu salud de negocio subió a 87 puntos.
-                  </p>
-                  
-                  <div className="mt-6 flex items-center gap-2 px-3.5 py-3 rounded-xl bg-[#f8f8f8] border border-[#eee] hover:border-[#ddd] transition-colors cursor-pointer group">
-                    <span className="text-[11.5px] text-[#aaa] group-hover:text-[#888] transition-colors">Preguntá a VISTACEO...</span>
-                    <ArrowRight className="w-3 h-3 text-[#ddd] ml-auto group-hover:text-[#aaa] transition-colors" />
-                  </div>
+                <div className="max-h-[420px] overflow-hidden">
+                  <MockupProDashboard business="argentina" />
                 </div>
               </div>
 
@@ -349,7 +253,7 @@ const HeroSection = () => {
                 name="Oportunidad detectada"
                 text="Tus ventas de mediodía subieron 23%. Considerá extender el horario."
                 time="Ahora"
-                className="absolute -top-1 -right-2 lg:-right-6 z-20"
+                className="absolute -top-2 -right-4 lg:-right-8 z-20 hidden sm:flex"
                 delay={600}
               />
               <NotifCard
@@ -358,7 +262,7 @@ const HeroSection = () => {
                 name="Misión completada"
                 text="Campaña de retención: +12% clientes recurrentes este mes"
                 time="1h"
-                className="absolute top-[100px] -right-3 lg:-right-8 z-20"
+                className="absolute top-[110px] -right-6 lg:-right-10 z-20 hidden sm:flex"
                 delay={900}
               />
               <NotifCard
@@ -367,27 +271,9 @@ const HeroSection = () => {
                 name="Alerta competitiva"
                 text="Un competidor ajustó precios. Te preparamos una recomendación."
                 time="2h"
-                className="absolute top-[200px] -right-1 lg:-right-5 z-20"
+                className="absolute top-[220px] -right-3 lg:-right-6 z-20 hidden sm:flex"
                 delay={1200}
               />
-            </div>
-          </Reveal>
-
-          {/* Integration icons */}
-          <Reveal delay={500} distance={20}>
-            <div className="flex items-center justify-center gap-3.5 mt-6">
-              {[
-                { icon: Brain, color: "#E8714A" },
-                { icon: BarChart3, color: "#2692DC" },
-                { icon: Target, color: "#28c840" },
-                { icon: TrendingUp, color: "#611f69" },
-                { icon: Zap, color: "#f5a623" },
-                { icon: Shield, color: "#0A66C2" },
-              ].map((app, i) => (
-                <div key={i} className="w-11 h-11 rounded-full bg-white border border-[#eee] flex items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:border-[#ddd] hover:-translate-y-0.5 transition-all duration-300">
-                  <app.icon className="w-[18px] h-[18px]" style={{ color: app.color }} />
-                </div>
-              ))}
             </div>
           </Reveal>
         </div>
@@ -397,7 +283,7 @@ const HeroSection = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   CTA Band — "Join X others" centered
+   CTA Band — Join counter
    ═══════════════════════════════════════════════════════════════ */
 const CTABand = () => {
   const navigate = useNavigate();
@@ -410,12 +296,9 @@ const CTABand = () => {
           <p className="text-[17px] text-[#777]">
             Unite a <span className="text-[#E8714A] font-bold text-[28px] mx-1.5 tabular-nums">{counter}</span> negocios en la plataforma.
           </p>
-          <button
-            onClick={() => navigate("/auth?mode=signup")}
-            className="mt-6 bg-[#111] text-white px-9 py-4 rounded-xl text-[14px] font-medium hover:bg-[#222] transition-all duration-300 inline-flex items-center gap-2.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] active:scale-[0.98] hover:-translate-y-0.5"
-          >
-            Empezar ahora
-            <ArrowRight className="w-4 h-4" />
+          <button onClick={() => navigate("/auth?mode=signup")}
+            className="mt-6 bg-[#111] text-white px-9 py-4 rounded-xl text-[14px] font-medium hover:bg-[#222] transition-all duration-300 inline-flex items-center gap-2.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] active:scale-[0.98] hover:-translate-y-0.5">
+            Empezar ahora <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </Reveal>
@@ -424,7 +307,7 @@ const CTABand = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   Integrations Strip — Scrolling business types
+   Integration Strip — Scrolling business types
    ═══════════════════════════════════════════════════════════════ */
 const IntegrationStrip = () => (
   <section className="py-14 overflow-hidden bg-white">
@@ -472,130 +355,154 @@ const AboutBlock = () => (
 );
 
 /* ═══════════════════════════════════════════════════════════════
-   Feature Sections — Alternating layout with premium mockups
+   Interactive Product Showcase — Tabbed mockups with business selector
+   Same mockups as main landing, Kinso-grade layout
    ═══════════════════════════════════════════════════════════════ */
-const FeatureSection = ({ label, title, desc, children, reverse = false, id }: {
-  label: string; title: string; desc: string; children: React.ReactNode; reverse?: boolean; id?: string;
-}) => (
-  <section id={id} className="py-24 lg:py-28 px-6 bg-white">
-    <div className={cn(
-      "max-w-[1040px] mx-auto flex flex-col gap-12",
-      reverse ? "md:flex-row-reverse" : "md:flex-row",
-      "md:items-center md:gap-20"
-    )}>
-      <div className="flex-1 max-w-[400px]">
+const mockupTabs = [
+  { key: "salud", label: "Salud", icon: Heart, desc: "Índice multidimensional que evalúa tu negocio en tiempo real" },
+  { key: "misiones", label: "Misiones", icon: Target, desc: "Acciones concretas con pasos claros y definición de éxito" },
+  { key: "radar", label: "Radar", icon: Radar, desc: "Oportunidades, riesgos y tendencias detectadas por IA" },
+  { key: "chat", label: "Chat CEO", icon: MessageCircle, desc: "Preguntá lo que quieras sobre tu negocio en lenguaje natural" },
+  { key: "analytics", label: "Métricas", icon: BarChart3, desc: "Dashboards que se adaptan a tu industria" },
+  { key: "predictions", label: "Futuro", icon: Eye, desc: "Predicciones a 7, 14 y 30 días con niveles de certeza" },
+] as const;
+type TabKey = typeof mockupTabs[number]["key"];
+
+const businesses: { key: BusinessKey; name: string; type: string; image: string }[] = [
+  { key: "argentina", name: "Parrilla Don Martín", type: "Restaurante", image: parrillaImg },
+  { key: "odontologia", name: "Clínica Dental Sonrisa", type: "Clínica", image: clinicaDentalImg },
+  { key: "mexico", name: "Boutique Carmela", type: "Retail", image: boutiqueImg },
+  { key: "marketing", name: "Rocket Digital", type: "Agencia", image: marketingImg },
+];
+
+const ProductShowcase = () => {
+  const [activeTab, setActiveTab] = useState<TabKey>("salud");
+  const [activeBusiness, setActiveBusiness] = useState<BusinessKey>("argentina");
+
+  const renderMockup = () => {
+    const props = { business: activeBusiness };
+    switch (activeTab) {
+      case "salud": return <MockupProDashboard {...props} />;
+      case "misiones": return <MockupProMissions {...props} />;
+      case "radar": return <MockupProRadar {...props} />;
+      case "chat": return <MockupProChat {...props} />;
+      case "analytics": return <MockupProAnalytics {...props} />;
+      case "predictions": return <MockupProPredictions {...props} />;
+    }
+  };
+
+  const currentTabData = mockupTabs.find(t => t.key === activeTab);
+
+  return (
+    <section id="producto" className="py-24 lg:py-32 px-6 bg-white">
+      <div className="max-w-[1100px] mx-auto">
+        {/* Section header */}
         <Reveal>
-          <p className="text-[10.5px] uppercase tracking-[0.22em] text-[#E8714A] font-semibold mb-5">{label}</p>
-          <h2 className="text-[clamp(1.5rem,3vw,2.1rem)] font-semibold text-[#0a0a0a] leading-[1.18] tracking-[-0.025em] mb-5">{title}</h2>
-          <p className="text-[15px] text-[#888] leading-[1.8]">{desc}</p>
+          <div className="text-center mb-4">
+            <p className="text-[10.5px] uppercase tracking-[0.22em] text-[#E8714A] font-semibold mb-5">PRODUCTO</p>
+            <h2 className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em]">
+              Inteligencia que trabaja para vos
+            </h2>
+          </div>
+        </Reveal>
+        <Reveal delay={60}>
+          <p className="text-center text-[15px] text-[#999] mt-4 mb-12 max-w-[480px] mx-auto leading-[1.7]">
+            Explorá cada módulo del sistema. Cambiá de negocio para ver cómo VISTACEO se adapta a cada industria.
+          </p>
+        </Reveal>
+
+        {/* Business selector — pill row with photos */}
+        <Reveal delay={100}>
+          <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
+            {businesses.map(b => (
+              <button key={b.key} onClick={() => setActiveBusiness(b.key)}
+                className={cn(
+                  "flex items-center gap-2.5 px-4 py-2.5 rounded-full text-[12.5px] font-medium transition-all duration-300 border",
+                  activeBusiness === b.key
+                    ? "bg-[#111] text-white border-[#111] shadow-[0_4px_12px_rgba(0,0,0,0.12)]"
+                    : "bg-white text-[#777] border-[#eee] hover:border-[#ddd] hover:text-[#444]"
+                )}>
+                <img src={b.image} alt="" className="w-5 h-5 rounded-full object-cover" />
+                <span className="hidden sm:inline">{b.name}</span>
+                <span className="sm:hidden">{b.type}</span>
+              </button>
+            ))}
+          </div>
+        </Reveal>
+
+        {/* Tab bar — clean pills */}
+        <Reveal delay={140}>
+          <div className="flex items-center justify-center gap-1.5 mb-3 flex-wrap">
+            {mockupTabs.map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12.5px] font-medium transition-all duration-300",
+                    activeTab === tab.key
+                      ? "bg-[#f0f0f0] text-[#111]"
+                      : "text-[#aaa] hover:text-[#666] hover:bg-[#f8f8f8]"
+                  )}>
+                  <Icon className="w-3.5 h-3.5" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </Reveal>
+
+        {/* Tab description */}
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={activeTab}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.2 }}
+            className="text-center text-[13px] text-[#bbb] mb-8"
+          >
+            {currentTabData?.desc}
+          </motion.p>
+        </AnimatePresence>
+
+        {/* Mockup in browser chrome */}
+        <Reveal delay={180}>
+          <div className="rounded-2xl border border-[#e8e8e8] bg-white shadow-[0_24px_80px_-16px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.02)] overflow-hidden">
+            {/* Browser chrome */}
+            <div className="flex items-center gap-1.5 px-4 py-3 border-b border-[#f2f2f2] bg-[#fafafa]">
+              <div className="w-[10px] h-[10px] rounded-full bg-[#ff5f57]" />
+              <div className="w-[10px] h-[10px] rounded-full bg-[#febc2e]" />
+              <div className="w-[10px] h-[10px] rounded-full bg-[#28c840]" />
+              <div className="flex-1 mx-8">
+                <div className="h-5 rounded-md bg-[#f0f0f0] max-w-[220px] mx-auto flex items-center justify-center">
+                  <span className="text-[9px] text-[#bbb]">app.vistaceo.com/{activeTab}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Mockup content with smooth transitions */}
+            <div className="min-h-[400px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`${activeTab}-${activeBusiness}`}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  {renderMockup()}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
         </Reveal>
       </div>
-      <div className="flex-1">
-        <Reveal delay={150} distance={35}>{children}</Reveal>
-      </div>
-    </div>
-  </section>
-);
-
-/* ── Feature: Missions mockup ── */
-const FeatureMissions = () => (
-  <div className="rounded-2xl border border-[#ebebeb] bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.04),0_2px_6px_rgba(0,0,0,0.02)]">
-    <div className="flex items-center justify-between mb-4">
-      <p className="text-[13px] font-semibold text-[#111]">Misiones activas</p>
-      <span className="text-[10px] bg-[#f5f5f5] text-[#999] px-2.5 py-1 rounded-full">3 de 6</span>
-    </div>
-    <div className="space-y-2.5">
-      {[
-        { status: "active", title: "Optimizar carta de precios", impact: "+8% margen", icon: "🎯", progress: 75 },
-        { status: "completed", title: "Campaña retención clientes", impact: "+12% retención", icon: "📣", progress: 100 },
-        { status: "pending", title: "Analizar horarios pico", impact: "+15% eficiencia", icon: "⏰", progress: 0 },
-      ].map((m, i) => (
-        <div key={i} className="flex items-center gap-3.5 p-3.5 rounded-xl border border-[#f0f0f0] bg-[#fafafa] hover:bg-[#f5f5f5] transition-colors group">
-          <span className="text-[16px]">{m.icon}</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-medium text-[#1a1a1a]">{m.title}</p>
-            <div className="flex items-center gap-3 mt-1.5">
-              <div className="flex-1 h-1 rounded-full bg-[#eee] overflow-hidden">
-                <div 
-                  className="h-full rounded-full transition-all duration-1000" 
-                  style={{ 
-                    width: `${m.progress}%`,
-                    background: m.progress === 100 ? "#28c840" : m.progress > 0 ? "#E8714A" : "#ddd"
-                  }} 
-                />
-              </div>
-              <p className="text-[10px] text-[#bbb] flex-shrink-0">{m.impact}</p>
-            </div>
-          </div>
-          {m.status === "completed" && (
-            <div className="w-6 h-6 rounded-full bg-[#e8f5e9] flex items-center justify-center">
-              <Check className="w-3 h-3 text-[#28c840]" />
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-/* ── Feature: AI Search mockup ── */
-const FeatureSearch = () => (
-  <div className="rounded-2xl border border-[#ebebeb] bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.04),0_2px_6px_rgba(0,0,0,0.02)]">
-    <div className="rounded-xl bg-[#f8f8f8] border border-[#eee] px-4 py-3.5 flex items-center gap-3 mb-5 group hover:border-[#ddd] transition-colors">
-      <span className="text-[#ccc] text-sm">🔍</span>
-      <span className="text-[13px] text-[#aaa]">¿Cuánto facturé en febrero?</span>
-    </div>
-    <div className="p-5 rounded-xl bg-gradient-to-br from-[#f5f9ff] to-[#faf5ff] border border-[#e8e8e8]">
-      <div className="flex items-start gap-3">
-        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#E8714A] to-[#e85d30] flex items-center justify-center flex-shrink-0 mt-0.5">
-          <Sparkles className="w-3 h-3 text-white" />
-        </div>
-        <div>
-          <p className="text-[13px] text-[#444] leading-[1.7]">
-            Tu facturación de febrero fue <strong className="text-[#0a0a0a]">$2.340.000</strong>, un <strong className="text-[#28c840]">+18%</strong> vs enero. El mayor crecimiento vino del canal delivery (<strong className="text-[#0a0a0a]">+31%</strong>).
-          </p>
-          <div className="mt-3 flex items-center gap-2">
-            <span className="text-[10px] bg-[#e8f5e9] text-[#28c840] px-2 py-0.5 rounded-full font-medium">↑ Tendencia positiva</span>
-            <span className="text-[10px] bg-[#f5f5f5] text-[#999] px-2 py-0.5 rounded-full">3 fuentes analizadas</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-/* ── Feature: Contextual insights mockup ── */
-const FeatureContextual = () => (
-  <div className="rounded-2xl border border-[#ebebeb] bg-white p-6 shadow-[0_12px_40px_rgba(0,0,0,0.04),0_2px_6px_rgba(0,0,0,0.02)]">
-    <div className="flex items-center gap-2 mb-4">
-      <div className="w-5 h-5 rounded-full bg-[#E8714A] flex items-center justify-center">
-        <Zap className="w-3 h-3 text-white" />
-      </div>
-      <p className="text-[13px] font-semibold text-[#111]">Radar de oportunidades</p>
-    </div>
-    <div className="space-y-2.5">
-      {[
-        { type: "oportunidad", title: "Horario pico sin explotar: 15-17hs", impact: "+$120k/mes potencial", color: "#28c840", bg: "#e8f5e9" },
-        { type: "riesgo", title: "Competidor abrió a 3 cuadras", impact: "Monitorear precios", color: "#f44336", bg: "#fce4ec" },
-        { type: "tendencia", title: "Delivery creció 31% este mes", impact: "Optimizar canal", color: "#2692DC", bg: "#e3f2fd" },
-      ].map((item, i) => (
-        <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-[#f0f0f0] bg-[#fafafa] hover:bg-[#f5f5f5] transition-colors">
-          <div className="w-1 h-8 rounded-full mt-0.5" style={{ background: item.color }} />
-          <div className="flex-1">
-            <p className="text-[12px] font-medium text-[#1a1a1a]">{item.title}</p>
-            <p className="text-[10.5px] mt-0.5" style={{ color: item.color }}>{item.impact}</p>
-          </div>
-          <span className="text-[9px] px-2 py-0.5 rounded-full font-medium" style={{ background: item.bg, color: item.color }}>
-            {item.type}
-          </span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
+    </section>
+  );
+};
 
 /* ═══════════════════════════════════════════════════════════════
-   Features Grid — 6 cards with hover effects
+   Features Grid — 6 cards
    ═══════════════════════════════════════════════════════════════ */
 const FeaturesGrid = () => {
   const features = [
@@ -608,7 +515,7 @@ const FeaturesGrid = () => {
   ];
 
   return (
-    <section id="features" className="py-28 lg:py-32 px-6 bg-white">
+    <section id="features" className="py-28 lg:py-32 px-6 bg-[#fafafa]">
       <div className="max-w-[1040px] mx-auto">
         <Reveal>
           <div className="text-center mb-3">
@@ -644,7 +551,7 @@ const FeaturesGrid = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   FAQ — Smooth accordion
+   FAQ
    ═══════════════════════════════════════════════════════════════ */
 const FAQSection = () => {
   const [open, setOpen] = useState<number | null>(null);
@@ -657,13 +564,13 @@ const FAQSection = () => {
   ];
 
   return (
-    <section id="faq" className="py-28 lg:py-32 px-6 bg-[#fafafa]">
+    <section id="faq" className="py-28 lg:py-32 px-6 bg-white">
       <div className="max-w-[620px] mx-auto">
         <Reveal>
           <div className="text-center mb-12">
             <p className="text-[10.5px] uppercase tracking-[0.22em] text-[#E8714A] font-semibold mb-5">FAQs</p>
             <h2 className="text-[clamp(1.4rem,3vw,1.9rem)] font-semibold text-[#0a0a0a] tracking-[-0.02em]">
-              Frequently Asked Questions
+              Preguntas frecuentes
             </h2>
             <p className="text-[14px] text-[#999] mt-4 leading-[1.7]">
               Todo lo que necesitás saber sobre VISTACEO. ¿Algo más? Escribinos.
@@ -674,21 +581,14 @@ const FAQSection = () => {
         <div className="space-y-2.5">
           {faqs.map((faq, i) => (
             <Reveal key={i} delay={i * 50}>
-              <div className="rounded-xl border border-[#eee] bg-white overflow-hidden hover:border-[#e0e0e0] transition-colors">
-                <button
-                  onClick={() => setOpen(open === i ? null : i)}
-                  className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-[#fcfcfc] transition-colors"
-                >
+              <div className="rounded-xl border border-[#eee] bg-[#fafafa] overflow-hidden hover:border-[#e0e0e0] transition-colors">
+                <button onClick={() => setOpen(open === i ? null : i)}
+                  className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-[#f5f5f5] transition-colors">
                   <span className="text-[14px] font-medium text-[#222] pr-4">{faq.q}</span>
-                  <ChevronDown className={cn(
-                    "w-4 h-4 text-[#ccc] flex-shrink-0 transition-transform duration-400",
-                    open === i && "rotate-180 text-[#999]"
-                  )} />
+                  <ChevronDown className={cn("w-4 h-4 text-[#ccc] flex-shrink-0 transition-transform duration-400", open === i && "rotate-180 text-[#999]")} />
                 </button>
-                <div 
-                  className="overflow-hidden transition-all duration-500 ease-out"
-                  style={{ maxHeight: open === i ? "200px" : "0px" }}
-                >
+                <div className="overflow-hidden transition-all duration-500 ease-out"
+                  style={{ maxHeight: open === i ? "200px" : "0px" }}>
                   <p className="px-6 pb-5 text-[13.5px] text-[#888] leading-[1.75]">{faq.a}</p>
                 </div>
               </div>
@@ -708,21 +608,21 @@ const FinalCTA = () => {
   const counter = useRealtimeCounter();
 
   return (
-    <section className="py-28 lg:py-32 px-6 bg-white relative overflow-hidden">
+    <section className="py-28 lg:py-32 px-6 bg-[#fafafa] relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-20 pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(232,113,74,0.08), transparent 70%)" }}
       />
       <Reveal>
         <div className="text-center relative z-10">
-          <p className="text-[17px] text-[#777]">
+          <h2 className="text-[clamp(1.5rem,3vw,2.2rem)] font-semibold text-[#0a0a0a] tracking-[-0.02em] mb-4">
+            Tu negocio merece un cerebro que no duerme.
+          </h2>
+          <p className="text-[17px] text-[#777] mb-8">
             Unite a <span className="text-[#E8714A] font-bold text-[30px] mx-1.5 tabular-nums">{counter}</span> negocios en la plataforma.
           </p>
-          <button
-            onClick={() => navigate("/auth?mode=signup")}
-            className="mt-7 bg-[#111] text-white px-10 py-4 rounded-xl text-[14.5px] font-medium hover:bg-[#222] transition-all duration-300 inline-flex items-center gap-2.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.15)] active:scale-[0.98] hover:-translate-y-0.5"
-          >
-            Empezar ahora
-            <ArrowRight className="w-4 h-4" />
+          <button onClick={() => navigate("/auth?mode=signup")}
+            className="bg-[#111] text-white px-10 py-4 rounded-xl text-[14.5px] font-medium hover:bg-[#222] transition-all duration-300 inline-flex items-center gap-2.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.15)] active:scale-[0.98] hover:-translate-y-0.5">
+            Empezar ahora <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </Reveal>
@@ -731,7 +631,7 @@ const FinalCTA = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   Footer — Ultra minimal
+   Footer
    ═══════════════════════════════════════════════════════════════ */
 const Footer = memo(() => (
   <footer className="border-t border-[#f0f0f0] py-12 px-6 bg-white">
@@ -767,29 +667,7 @@ export default function LandingMinimalista() {
         <CTABand />
         <IntegrationStrip />
         <AboutBlock />
-        <FeatureSection
-          id="missions"
-          label="DAILY MISSIONS"
-          title="Acciones concretas, resultados medibles."
-          desc="Cada día, VISTACEO genera misiones específicas basadas en el análisis continuo de tu negocio. Pasos claros con progreso visible y definición de éxito."
-        >
-          <FeatureMissions />
-        </FeatureSection>
-        <FeatureSection
-          reverse
-          label="UNIVERSAL SEARCH"
-          title="Preguntá lo que quieras sobre tu negocio."
-          desc="Preguntá en lenguaje natural. VISTACEO busca en tus datos, conecta la información y responde con contexto real e insights accionables."
-        >
-          <FeatureSearch />
-        </FeatureSection>
-        <FeatureSection
-          label="CONTEXTUAL ASSISTANT"
-          title="Oportunidades que se conectan solas."
-          desc="VISTACEO conecta lo que importa. Detecta patrones, identifica riesgos y te muestra oportunidades antes de que las pierdas."
-        >
-          <FeatureContextual />
-        </FeatureSection>
+        <ProductShowcase />
         <FeaturesGrid />
         <FAQSection />
         <FinalCTA />
