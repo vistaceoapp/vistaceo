@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { 
-  ChevronUp, ChevronDown, Bookmark, Share2, 
+  Bookmark, Share2, 
   Check, Lightbulb, Target, AlertTriangle, HelpCircle,
-  List, X, ArrowUp
+  List, ArrowUp, Type, Minus, Plus, BookOpen, Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,10 +20,10 @@ interface BlogReadingToolbarProps {
   content: string;
   title: string;
   slug: string;
+  readingTime?: number;
   className?: string;
 }
 
-// Key sections - rich detection with proper emojis
 const KEY_SECTION_PATTERNS: Array<{pattern: RegExp; icon: React.ReactNode; type: QuickNavSection['type']}> = [
   { pattern: /en\s*\d+\s*(segundos?|minutos?)/i, icon: <Target className="h-3.5 w-3.5" />, type: 'key' },
   { pattern: /veredicto/i, icon: <Lightbulb className="h-3.5 w-3.5" />, type: 'key' },
@@ -47,13 +47,22 @@ const KEY_SECTION_PATTERNS: Array<{pattern: RegExp; icon: React.ReactNode; type:
   { pattern: /para\s*profundizar/i, icon: <Lightbulb className="h-3.5 w-3.5" />, type: 'key' },
   { pattern: /lo\s*que\s*prometen\s*vs/i, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning' },
   { pattern: /dificultad\s*real/i, icon: <Target className="h-3.5 w-3.5" />, type: 'key' },
+  { pattern: /conclusi[oó]n|resumen|cierre/i, icon: <Lightbulb className="h-3.5 w-3.5" />, type: 'key' },
+  { pattern: /ejemplo|caso\s*real/i, icon: <BookOpen className="h-3.5 w-3.5" />, type: 'key' },
+  { pattern: /estrategia|t[aá]ctica/i, icon: <Target className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /diagn[oó]stico/i, icon: <Target className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /gu[ií]a|tutorial/i, icon: <BookOpen className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /ventajas?\s*y\s*desventajas?|pros?\s*y\s*contras?/i, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning' },
 ];
 
-export function BlogReadingToolbar({ content, title, slug, className }: BlogReadingToolbarProps) {
+const FONT_SIZES = ['text-base', 'text-lg', 'text-xl'] as const;
+
+export function BlogReadingToolbar({ content, title, slug, readingTime, className }: BlogReadingToolbarProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [readingProgress, setReadingProgress] = useState(0);
+  const [fontSizeIdx, setFontSizeIdx] = useState(0);
 
   // Parse key sections from content
   const keySections = useMemo(() => {
@@ -67,7 +76,6 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
         const text = match[2].trim();
         const id = `heading-${headingIndex++}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
         
-        // Check if this matches any key pattern
         for (const { pattern, icon, type } of KEY_SECTION_PATTERNS) {
           if (pattern.test(text)) {
             sections.push({ id, text, icon, type });
@@ -80,7 +88,11 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
     return sections;
   }, [content]);
 
-  // Track scroll position for visibility and progress
+  // Estimate remaining time
+  const estimatedTotalTime = readingTime || Math.ceil(content.split(/\s+/).length / 220);
+  const remainingTime = Math.max(1, Math.ceil(estimatedTotalTime * (1 - readingProgress / 100)));
+
+  // Track scroll
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
@@ -90,7 +102,6 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
       setReadingProgress(progress);
       setIsVisible(scrollTop > 400);
       
-      // Find active section
       for (const section of keySections) {
         const el = document.getElementById(section.id);
         if (el) {
@@ -107,6 +118,20 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
     return () => window.removeEventListener('scroll', handleScroll);
   }, [keySections]);
 
+  // Font size control
+  const changeFontSize = useCallback((delta: number) => {
+    setFontSizeIdx(prev => {
+      const next = Math.max(0, Math.min(FONT_SIZES.length - 1, prev + delta));
+      // Apply to article element
+      const article = document.querySelector('article.prose');
+      if (article) {
+        FONT_SIZES.forEach(cls => article.classList.remove(cls));
+        article.classList.add(FONT_SIZES[next]);
+      }
+      return next;
+    });
+  }, []);
+
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
@@ -116,29 +141,19 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
     }
   };
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const shareArticle = async () => {
     const url = `https://www.vistaceo.com/blog/${slug}`;
-    
     try {
       if (navigator.share) {
-        await navigator.share({ 
-          title, 
-          url,
-          text: `Leé este artículo: ${title}`
-        });
-        toast.success('¡Compartido!');
+        await navigator.share({ title, url, text: `Leé este artículo: ${title}` });
       } else {
         await navigator.clipboard.writeText(url);
         toast.success('Link copiado al portapapeles');
       }
     } catch (error) {
-      // User cancelled share or error occurred
       if ((error as Error).name !== 'AbortError') {
-        // Fallback to clipboard
         try {
           await navigator.clipboard.writeText(url);
           toast.success('Link copiado al portapapeles');
@@ -160,54 +175,57 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
 
   return (
     <>
-      {/* Progress bar at very top */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-muted/30">
+      {/* Progress bar at top */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-transparent">
         <div 
-          className="h-full bg-primary transition-all duration-150 ease-out"
+          className="h-full bg-primary/80 transition-all duration-150 ease-out"
           style={{ width: `${readingProgress}%` }}
         />
       </div>
 
-      {/* Desktop sidebar toolbar - RIGHT side, sticky */}
+      {/* Desktop sidebar toolbar - RIGHT side */}
       <div 
         className={cn(
           "fixed right-4 xl:right-6 top-1/2 -translate-y-1/2 z-40",
           "hidden lg:block",
-          "transition-all duration-300 ease-out",
-          isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4 pointer-events-none",
+          "transition-all duration-500 ease-out",
+          isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8 pointer-events-none",
           className
         )}
       >
-        <div className="bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-2xl p-2.5 xl:p-3 w-48 xl:w-56">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-2.5 xl:mb-3 px-1">
-            <span className="text-[10px] xl:text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Navegación
-            </span>
-            <span className="text-[10px] xl:text-xs text-muted-foreground">
+        <div className="bg-background/95 backdrop-blur-xl border border-border/80 shadow-2xl rounded-2xl p-3 w-52 xl:w-56">
+          {/* Header with remaining time */}
+          <div className="flex items-center justify-between mb-2 px-1">
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3 w-3 text-muted-foreground" />
+              <span className="text-[10px] xl:text-xs text-muted-foreground font-medium">
+                {readingProgress >= 95 ? '¡Completado!' : `~${remainingTime} min restante`}
+              </span>
+            </div>
+            <span className="text-[10px] xl:text-xs font-semibold text-primary tabular-nums">
               {Math.round(readingProgress)}%
             </span>
           </div>
           
-          {/* Mini progress bar */}
-          <div className="h-1 bg-muted rounded-full mb-3 xl:mb-4 overflow-hidden">
+          {/* Progress bar */}
+          <div className="h-1 bg-muted rounded-full mb-3 overflow-hidden">
             <div 
               className="h-full bg-primary transition-all duration-150 ease-out rounded-full"
               style={{ width: `${readingProgress}%` }}
             />
           </div>
 
-          {/* Section chips - vertical layout */}
-          <div className="space-y-1 xl:space-y-1.5 max-h-[45vh] xl:max-h-[50vh] overflow-y-auto pr-1 scrollbar-thin">
+          {/* Section chips */}
+          <div className="space-y-1 max-h-[40vh] overflow-y-auto pr-1 scrollbar-thin">
             {keySections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
                 className={cn(
-                  "w-full flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-1.5 xl:py-2 rounded-lg xl:rounded-xl text-[11px] xl:text-xs font-medium transition-all text-left",
-                  "border hover:scale-[1.02]",
+                  "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[11px] xl:text-xs font-medium transition-all text-left",
+                  "border hover:scale-[1.01]",
                   typeColors[section.type],
-                  activeSection === section.id && "ring-2 ring-primary/30 scale-[1.02]"
+                  activeSection === section.id && "ring-2 ring-primary/30 scale-[1.01] shadow-sm"
                 )}
               >
                 {section.icon}
@@ -216,96 +234,97 @@ export function BlogReadingToolbar({ content, title, slug, className }: BlogRead
             ))}
           </div>
 
-          {/* Divider */}
-          <div className="h-px bg-border my-2.5 xl:my-3" />
+          <div className="h-px bg-border my-2.5" />
 
-          {/* Actions */}
-          <div className="flex items-center justify-center gap-1.5 xl:gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="rounded-full h-8 w-8 xl:h-9 xl:w-9 p-0"
-              onClick={shareArticle}
-              title="Compartir"
-            >
-              <Share2 className="h-3.5 w-3.5 xl:h-4 xl:w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="rounded-full h-8 w-8 xl:h-9 xl:w-9 p-0"
-              onClick={scrollToTop}
-              title="Ir arriba"
-            >
-              <ArrowUp className="h-3.5 w-3.5 xl:h-4 xl:w-4" />
-            </Button>
+          {/* Font size + actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-0.5">
+              <Button 
+                variant="ghost" size="sm" 
+                className="rounded-full h-7 w-7 p-0"
+                onClick={() => changeFontSize(-1)}
+                disabled={fontSizeIdx === 0}
+                title="Texto más pequeño"
+              >
+                <Minus className="h-3 w-3" />
+              </Button>
+              <Type className="h-3.5 w-3.5 text-muted-foreground mx-0.5" />
+              <Button 
+                variant="ghost" size="sm" 
+                className="rounded-full h-7 w-7 p-0"
+                onClick={() => changeFontSize(1)}
+                disabled={fontSizeIdx === FONT_SIZES.length - 1}
+                title="Texto más grande"
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" className="rounded-full h-7 w-7 p-0" onClick={shareArticle} title="Compartir">
+                <Share2 className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="ghost" size="sm" className="rounded-full h-7 w-7 p-0" onClick={scrollToTop} title="Ir arriba">
+                <ArrowUp className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile & tablet floating toolbar - bottom - ULTRA RESPONSIVE */}
+      {/* Mobile floating toolbar */}
       <div 
         className={cn(
-          "fixed bottom-3 sm:bottom-4 left-2 right-2 sm:left-4 sm:right-4 z-40",
+          "fixed bottom-3 left-2 right-2 sm:left-4 sm:right-4 z-40",
           "lg:hidden",
           "transition-all duration-300 ease-out",
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
         )}
       >
-        <div className="bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden">
-          {/* Collapsed state */}
-          {!isExpanded && (
+        <div className="bg-background/95 backdrop-blur-xl border border-border shadow-2xl rounded-xl overflow-hidden">
+          {!isExpanded ? (
             <div className="flex items-center justify-between p-2.5 sm:p-3">
               <button 
                 onClick={() => setIsExpanded(true)}
-                className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium"
+                className="flex items-center gap-2 text-xs sm:text-sm font-medium"
               >
-                <List className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                <span className="hidden xs:inline">Navegar secciones</span>
-                <span className="xs:hidden">Secciones</span>
-                <Badge variant="secondary" className="text-[10px] sm:text-xs h-5 px-1.5">{keySections.length}</Badge>
+                <List className="h-4 w-4 text-primary" />
+                <span className="hidden sm:inline">Secciones</span>
+                <Badge variant="secondary" className="text-[10px] h-5 px-1.5">{keySections.length}</Badge>
               </button>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">
-                  {Math.round(readingProgress)}%
-                </span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                  onClick={shareArticle}
-                >
-                  <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  <span>{readingProgress >= 95 ? '✓' : `${remainingTime}m`}</span>
+                </div>
+                <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${readingProgress}%` }} />
+                </div>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={shareArticle}>
+                  <Share2 className="h-3.5 w-3.5" />
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-7 w-7 sm:h-8 sm:w-8 p-0"
-                  onClick={scrollToTop}
-                >
-                  <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={scrollToTop}>
+                  <ArrowUp className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>
-          )}
-
-          {/* Expanded state */}
-          {isExpanded && (
+          ) : (
             <div className="p-3 sm:p-4">
-              <div className="flex items-center justify-between mb-2.5 sm:mb-3">
+              <div className="flex items-center justify-between mb-3">
                 <span className="text-xs sm:text-sm font-semibold">Ir a sección</span>
-                <button onClick={() => setIsExpanded(false)} className="text-muted-foreground p-1">
-                  <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-muted-foreground">{Math.round(readingProgress)}%</span>
+                  <button onClick={() => setIsExpanded(false)} className="text-muted-foreground p-1">
+                    <ArrowUp className="h-4 w-4 rotate-180" />
+                  </button>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-1.5 sm:gap-2 max-h-40 sm:max-h-48 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto">
                 {keySections.map((section) => (
                   <button
                     key={section.id}
                     onClick={() => scrollToSection(section.id)}
                     className={cn(
-                      "flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs text-left transition-all",
-                      "border",
+                      "flex items-center gap-1.5 p-2 rounded-lg text-[10px] sm:text-xs text-left transition-all border",
                       typeColors[section.type],
                       activeSection === section.id && "ring-2 ring-primary/30"
                     )}
