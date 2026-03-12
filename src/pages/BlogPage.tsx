@@ -1,19 +1,22 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { ChevronRight, TrendingUp, Lightbulb, Target, Zap } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { HeaderV3 } from '@/components/landing/HeaderV3';
 import { Footer } from '@/components/landing/Footer';
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
 import { BlogFilters } from '@/components/blog/BlogFilters';
 import { useBlogPosts, useBlogStats } from '@/hooks/use-blog';
-import { PILLARS } from '@/lib/blog/types';
+import { BLOG_CLUSTERS, type BlogClusterKey } from '@/lib/blog/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export default function BlogPage() {
   const [search, setSearch] = useState('');
   const [pillar, setPillar] = useState('all');
+  const [activeCluster, setActiveCluster] = useState<string | null>(null);
 
   const filters = useMemo(() => ({
     search: search || undefined,
@@ -24,27 +27,42 @@ export default function BlogPage() {
   const { data: posts, isLoading } = useBlogPosts(filters);
   const { data: stats } = useBlogStats();
 
-  // Value propositions for the hero
-  const valueProps = [
-    { icon: TrendingUp, text: "Estrategias probadas" },
-    { icon: Lightbulb, text: "Ideas accionables" },
-    { icon: Target, text: "Resultados medibles" },
-    { icon: Zap, text: "Implementación rápida" },
-  ];
-
   const handleReset = () => {
     setSearch('');
     setPillar('all');
+    setActiveCluster(null);
   };
+
+  // Separate featured post (first) from rest
+  const featuredPost = posts?.[0];
+  const remainingPosts = posts?.slice(1) || [];
+
+  // Filter by cluster if selected
+  const filteredPosts = activeCluster 
+    ? remainingPosts.filter(p => p.category === activeCluster)
+    : remainingPosts;
+
+  // Get unique clusters from posts for chip nav
+  const postClusters = useMemo(() => {
+    if (!posts) return [];
+    const counts = new Map<string, number>();
+    posts.forEach(p => {
+      if (p.category) counts.set(p.category, (counts.get(p.category) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, count]) => ({ key, count, info: BLOG_CLUSTERS[key as BlogClusterKey] }))
+      .filter(c => c.info);
+  }, [posts]);
 
   return (
     <>
       <Helmet>
-        <title>Blog | VISTACEO - Recursos para gestionar mejor tu negocio</title>
+        <title>Blog | VISTACEO — Recursos para gestionar mejor tu negocio</title>
         <meta name="description" content="Artículos, guías y recursos prácticos para dueños de negocios en LATAM. Liderazgo, IA aplicada, emprendimiento y más." />
         <link rel="canonical" href="https://www.vistaceo.com/blog" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Blog | VISTACEO - Recursos para gestionar mejor tu negocio" />
+        <meta property="og:title" content="Blog | VISTACEO" />
         <meta property="og:url" content="https://www.vistaceo.com/blog" />
       </Helmet>
 
@@ -54,108 +72,76 @@ export default function BlogPage() {
         <main className="pt-24 pb-16">
           <div className="container mx-auto px-4 max-w-7xl">
             {/* Breadcrumbs */}
-            <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-              <Link to="/" className="hover:text-foreground">Inicio</Link>
-              <ChevronRight className="h-4 w-4" />
-              <span className="text-foreground">Blog</span>
+            <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
+              <Link to="/" className="hover:text-foreground transition-colors">Inicio</Link>
+              <ChevronRight className="h-3.5 w-3.5" />
+              <span className="text-foreground font-medium">Blog</span>
             </nav>
 
-            {/* Hero Section - Ultra Premium */}
+            {/* Hero — Editorial style */}
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="mb-16 relative"
+              className="mb-12"
             >
-              {/* Background effects */}
-              <div className="absolute -inset-8 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-3xl blur-2xl pointer-events-none" />
-              
-              <div className="relative grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-                {/* Left: Content */}
-                <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                    <span className="text-xs font-medium text-primary">Blog VISTACEO</span>
-                    {stats && (
-                      <span className="text-xs text-muted-foreground">· {stats.total} artículos</span>
-                    )}
-                  </div>
-                  
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
-                    Tu CEO Ultra <span className="text-primary">inteligente</span> para escalar tu negocio
-                  </h1>
-                  
-                  <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
-                    Contenido estratégico diseñado para dueños de PyMEs que quieren 
-                    <span className="text-foreground font-medium"> tomar mejores decisiones</span>, 
-                    optimizar operaciones y acelerar su crecimiento.
+              <div className="max-w-3xl">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight mb-4">
+                  Recursos para dirigir{' '}
+                  <span className="text-primary">con más claridad</span>
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-2xl leading-relaxed">
+                  Ideas, estrategias y herramientas pensadas para quienes lideran negocios 
+                  y necesitan tomar mejores decisiones cada día.
+                </p>
+                {stats && (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    {stats.total} artículos publicados
                   </p>
-
-                  {/* Value props grid */}
-                  <div className="grid grid-cols-2 gap-3 pt-2">
-                    {valueProps.map((prop, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 + i * 0.1 }}
-                        className="flex items-center gap-2 text-sm text-muted-foreground"
-                      >
-                        <div className="p-1.5 rounded-lg bg-primary/10">
-                          <prop.icon className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <span>{prop.text}</span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Right: Featured visual card */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  className="relative hidden lg:block"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl blur-xl" />
-                  <div className="relative bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-6 shadow-xl">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-                          <Lightbulb className="h-5 w-5 text-primary-foreground" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-sm">Insights semanales</p>
-                          <p className="text-xs text-muted-foreground">Tendencias y análisis</p>
-                        </div>
-                      </div>
-                      
-                      <div className="h-px bg-border/50" />
-                      
-                      <div className="space-y-2">
-                        {['IA aplicada a negocios', 'Estrategia y liderazgo', 'Finanzas y operaciones'].map((topic, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm">
-                            <div className="h-1.5 w-1.5 rounded-full bg-primary/60" />
-                            <span className="text-muted-foreground">{topic}</span>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="flex items-center gap-2 pt-2">
-                        <div className="flex -space-x-2">
-                          {[...Array(3)].map((_, i) => (
-                            <div key={i} className="h-6 w-6 rounded-full bg-gradient-to-br from-primary/40 to-accent/40 border-2 border-card" />
-                          ))}
-                        </div>
-                        <span className="text-xs text-muted-foreground">+2.5K lectores mensuales</span>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+                )}
               </div>
             </motion.div>
 
-            {/* Filters */}
+            {/* Category chips — horizontal scroll */}
+            {postClusters.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="mb-8 -mx-4 px-4 overflow-x-auto scrollbar-none"
+              >
+                <div className="flex gap-2 pb-2 min-w-max">
+                  <button
+                    onClick={() => setActiveCluster(null)}
+                    className={cn(
+                      "px-4 py-2 rounded-full text-sm font-medium transition-all border",
+                      !activeCluster 
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+                        : "bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
+                    )}
+                  >
+                    Todos
+                  </button>
+                  {postClusters.map(({ key, count, info }) => (
+                    <button
+                      key={key}
+                      onClick={() => setActiveCluster(activeCluster === key ? null : key)}
+                      className={cn(
+                        "px-4 py-2 rounded-full text-sm font-medium transition-all border whitespace-nowrap",
+                        activeCluster === key 
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm" 
+                          : "bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
+                      )}
+                    >
+                      {info?.emoji} {info?.label}
+                      <span className="ml-1.5 text-xs opacity-60">{count}</span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Search & filters */}
             <div className="mb-8">
               <BlogFilters
                 search={search}
@@ -166,28 +152,51 @@ export default function BlogPage() {
               />
             </div>
 
-            {/* Posts Grid */}
+            {/* Content */}
             {isLoading ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="aspect-video w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                ))}
+              <div className="space-y-8">
+                <Skeleton className="h-64 w-full rounded-2xl" />
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="aspect-[16/10] w-full rounded-2xl" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-full" />
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : posts && posts.length > 0 ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {posts.map((post) => (
-                  <BlogPostCard key={post.id} post={post} />
-                ))}
+              <div className="space-y-10">
+                {/* Featured post — only when no cluster filter */}
+                {featuredPost && !activeCluster && !search && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <BlogPostCard post={featuredPost} variant="featured" />
+                  </motion.div>
+                )}
+
+                {/* Grid */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {(activeCluster || search ? (posts || []).filter(p => !activeCluster || p.category === activeCluster) : filteredPosts).map((post, i) => (
+                    <motion.div
+                      key={post.id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: Math.min(0.3 + i * 0.05, 0.8) }}
+                    >
+                      <BlogPostCard post={post} />
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             ) : (
-              <div className="text-center py-16">
-                <p className="text-muted-foreground">
-                  No se encontraron artículos con los filtros seleccionados.
-                </p>
+              <div className="text-center py-20">
+                <p className="text-lg text-muted-foreground mb-2">No se encontraron artículos</p>
+                <p className="text-sm text-muted-foreground">Probá con otros filtros o términos de búsqueda.</p>
               </div>
             )}
           </div>
