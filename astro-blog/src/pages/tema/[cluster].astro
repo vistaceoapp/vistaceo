@@ -6,6 +6,7 @@ import { getPostsByCluster } from '../../lib/supabase';
 import { getAllClusters, getCluster } from '../../lib/clusters';
 import { generateCollectionPageSchema, generateOrganizationSchema, generateFAQSchema } from '../../lib/seo';
 import { formatDate, truncate } from '../../lib/text';
+import { getCategoryVisual } from '../../lib/category-visuals';
 
 export async function getStaticPaths() {
   const clusters = getAllClusters();
