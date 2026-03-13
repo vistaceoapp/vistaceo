@@ -88,8 +88,8 @@ const schemas = [
           <meta itemprop="url" content={post.hero_image_url} />
         </figure>
       ) : (
-        <div class="post-hero post-hero--placeholder" aria-label="Imagen destacada no disponible">
-          <span>📝</span>
+        <div class="post-hero post-hero--placeholder" style={`background: ${getCategoryVisual(post.category).gradient};`} aria-label="Imagen destacada no disponible">
+          <span>{getCategoryVisual(post.category).emoji}</span>
         </div>
       )}
       
