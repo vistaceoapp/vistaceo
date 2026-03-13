@@ -94,10 +94,12 @@ const schemas = [
             <span>📰 Artículos ({posts.length})</span>
           </h2>
           <div class="posts-grid">
-            {posts.map((post, index) => (
+            {posts.map((post, index) => {
+              const catVis = getCategoryVisual(post.category);
+              return (
               <a href={`/${post.slug}`} class="post-card">
-                {post.hero_image_url && (
-                  <div class="post-card-image">
+                <div class="post-card-image">
+                  {post.hero_image_url ? (
                     <img 
                       src={post.hero_image_url} 
                       alt={post.image_alt_text || post.title}
@@ -105,8 +107,12 @@ const schemas = [
                       width="400"
                       height="225"
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div class="post-card-fallback" style={`background: ${catVis.gradient};`}>
+                      <span class="fallback-emoji">{catVis.emoji}</span>
+                    </div>
+                  )}
+                </div>
                 <div class="post-card-content">
                   <h3 class="post-card-title">{post.title}</h3>
                   {post.excerpt && (
@@ -120,7 +126,8 @@ const schemas = [
                   </div>
                 </div>
               </a>
-            ))}
+            )})}
+
           </div>
         </section>
       ) : (
