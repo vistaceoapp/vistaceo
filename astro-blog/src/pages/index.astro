@@ -6,6 +6,7 @@ import { getLatestPosts, getClusterStats } from '../lib/supabase';
 import { generateWebSiteSchema, generateOrganizationSchema } from '../lib/seo';
 import { getAllClusters, getCluster } from '../lib/clusters';
 import { formatDate, truncate } from '../lib/text';
+import { getCategoryVisual } from '../lib/category-visuals';
 
 const posts = await getLatestPosts(30);
 const clusterStats = await getClusterStats();
