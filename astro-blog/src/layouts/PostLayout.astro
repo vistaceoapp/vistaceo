@@ -7,6 +7,7 @@ import PostMeta from '../components/PostMeta.astro';
 import RelatedPosts from '../components/RelatedPosts.astro';
 import ReadingToolbar from '../components/ReadingToolbar.astro';
 import type { BlogPost } from '../lib/supabase';
+import { getCategoryVisual } from '../lib/category-visuals';
 import { getMetaTitle, getMetaDescription, getOgImage, getCanonicalUrl, generateBlogPostingSchema, generateBreadcrumbSchema, generateArticleSchema } from '../lib/seo';
 import { extractHeadings } from '../lib/text';
 import { parseMarkdown } from '../lib/markdown';
@@ -87,8 +88,8 @@ const schemas = [
           <meta itemprop="url" content={post.hero_image_url} />
         </figure>
       ) : (
-        <div class="post-hero post-hero--placeholder" aria-label="Imagen destacada no disponible">
-          <span>📝</span>
+        <div class="post-hero post-hero--placeholder" style={`background: ${getCategoryVisual(post.category).gradient};`} aria-label="Imagen destacada no disponible">
+          <span>{getCategoryVisual(post.category).emoji}</span>
         </div>
       )}
       
@@ -123,7 +124,7 @@ const schemas = [
         <!-- CTA -->
         <div class="post-cta">
           <h3>¿Querés tomar mejores decisiones de negocio?</h3>
-          <p>VistaCEO es tu copiloto de IA para PyMEs latinoamericanas. Probalo gratis.</p>
+          <p>VistaCEO es inteligencia ejecutiva que interpreta tu negocio y te guía con acciones concretas.</p>
           <a href={`${MAIN_SITE}/auth`} class="cta-button">
             Conocer VistaCEO
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

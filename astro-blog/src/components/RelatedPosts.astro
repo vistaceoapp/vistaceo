@@ -2,6 +2,7 @@
 import type { BlogPost } from '../lib/supabase';
 import { formatDate, truncate } from '../lib/text';
 import { getCluster } from '../lib/clusters';
+import { getCategoryVisual } from '../lib/category-visuals';
 
 interface Props {
   posts: BlogPost[];
@@ -31,8 +32,8 @@ const cluster = getCluster(currentCluster);
                   height="225"
                 />
               ) : (
-                <div class="related-card-placeholder">
-                  <span>📝</span>
+                <div class="related-card-placeholder" style={`background: ${getCategoryVisual(post.category).gradient};`}>
+                  <span>{getCategoryVisual(post.category).emoji}</span>
                 </div>
               )}
             </div>

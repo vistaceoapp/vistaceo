@@ -6,6 +6,7 @@ import { getLatestPosts, getClusterStats } from '../lib/supabase';
 import { generateWebSiteSchema, generateOrganizationSchema } from '../lib/seo';
 import { getAllClusters, getCluster } from '../lib/clusters';
 import { formatDate, truncate } from '../lib/text';
+import { getCategoryVisual } from '../lib/category-visuals';
 
 const posts = await getLatestPosts(30);
 const clusterStats = await getClusterStats();
@@ -28,8 +29,8 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
 ---
 
 <BaseLayout 
-  title="VistaCEO Blog | Insights para Escalar tu Negocio en LATAM"
-  description="Tu CEO inteligente que diagnostica tu empresa y te ayuda a crecer con resultados reales. Guías prácticas, estrategias probadas y las últimas tendencias de IA para PyMEs latinoamericanas."
+  title="Blog | VistaCEO — Recursos para gestionar mejor tu negocio"
+  description="Artículos, guías y recursos prácticos para dueños de negocios en LATAM. Liderazgo, IA aplicada, emprendimiento, finanzas y más."
   canonical="https://blog.vistaceo.com/"
   schemas={schemas}
 >
@@ -41,22 +42,22 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
       <div class="hero-glow"></div>
       <div class="hero-content">
         <h1>
-          Tu CEO Ultra inteligente para <span class="text-gradient">escalar tu negocio</span>
+          Recursos para dirigir <span class="text-gradient">con más claridad</span>
         </h1>
         <p class="hero-subtitle">
-          Inteligencia artificial que analiza tu negocio, detecta oportunidades y te guía con acciones concretas cada día para obtener resultados increíbles.
+          Ideas, estrategias y herramientas pensadas para quienes lideran negocios y necesitan tomar mejores decisiones cada día.
         </p>
         <div class="hero-actions">
-          <a href={`${MAIN_SITE}/auth`} class="btn-primary">
-            Empezar gratis
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </a>
           <a href="#explorar" class="btn-secondary">
             Explorar temas
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </a>
+          <a href={`${MAIN_SITE}/auth`} class="btn-primary">
+            Probar VistaCEO
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </a>
         </div>
@@ -67,37 +68,15 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
           </div>
           <div class="stat-divider"></div>
           <div class="stat">
-            <span class="stat-number">180+</span>
-            <span class="stat-label">Tipos de Negocio</span>
+            <span class="stat-number">12</span>
+            <span class="stat-label">Categorías</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat">
-            <span class="stat-number">10</span>
-            <span class="stat-label">Sectores</span>
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Gratuito</span>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Business Types Compact Banner -->
-    <section class="business-banner-compact">
-      <div class="banner-container-compact">
-        <div class="sectors-inline">
-          <span class="sector-tag">🍽️ Gastronomía</span>
-          <span class="sector-tag">🛍️ Retail</span>
-          <span class="sector-tag">💆 Salud</span>
-          <span class="sector-tag">🏨 Turismo</span>
-          <span class="sector-tag">💼 Servicios</span>
-          <span class="sector-tag">📚 Educación</span>
-          <span class="sector-tag">🏠 Hogar</span>
-          <span class="sector-tag">🚚 Logística</span>
-          <span class="sector-tag">🌾 Agro</span>
-          <span class="sector-tag">💻 Tech</span>
-          <span class="sector-count">+180 tipos de negocio</span>
-        </div>
-        <a href="https://www.vistaceo.com/auth" class="btn-compact">
-          Empezar gratis →
-        </a>
       </div>
     </section>
     
@@ -113,11 +92,12 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
         <div class="posts-grid featured-grid">
           {posts.slice(0, 6).map((post, index) => {
             const cluster = getCluster(post.category);
+            const catVis = getCategoryVisual(post.category);
             const isFeatured = index === 0;
             return (
               <a href={`/${post.slug}`} class={`post-card ${isFeatured ? 'featured' : ''}`}>
-                {post.hero_image_url && (
-                  <div class="post-image">
+                <div class="post-image">
+                  {post.hero_image_url ? (
                     <img 
                       src={post.hero_image_url} 
                       alt={post.image_alt_text || post.title}
@@ -125,8 +105,13 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
                       width="400"
                       height="225"
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div class="post-image-fallback" style={`background: ${catVis.gradient};`}>
+                      <span class="fallback-emoji">{catVis.emoji}</span>
+                      {cluster && <span class="fallback-label">{cluster.name}</span>}
+                    </div>
+                  )}
+                </div>
                 <div class="post-content">
                   {cluster && (
                     <span class="post-cluster">
@@ -197,10 +182,12 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
               </a>
             </div>
             <div class="posts-grid">
-              {clusterPosts.map((post) => (
+              {clusterPosts.map((post) => {
+                const catVis = getCategoryVisual(post.category);
+                return (
                 <a href={`/${post.slug}`} class="post-card">
-                  {post.hero_image_url && (
-                    <div class="post-image">
+                  <div class="post-image">
+                    {post.hero_image_url ? (
                       <img 
                         src={post.hero_image_url} 
                         alt={post.image_alt_text || post.title}
@@ -208,8 +195,12 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
                         width="400"
                         height="225"
                       />
-                    </div>
-                  )}
+                    ) : (
+                      <div class="post-image-fallback" style={`background: ${catVis.gradient};`}>
+                        <span class="fallback-emoji">{catVis.emoji}</span>
+                      </div>
+                    )}
+                  </div>
                   <div class="post-content">
                     <h3 class="post-title">{post.title}</h3>
                     {post.excerpt && (
@@ -218,7 +209,7 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
                     <span class="post-date">{formatDate(post.publish_at)}</span>
                   </div>
                 </a>
-              ))}
+              )})}
             </div>
           </section>
         );
@@ -227,15 +218,14 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
       <!-- CTA Section -->
       <section class="cta-section">
         <div class="cta-card">
-          <div class="cta-icon">🚀</div>
-          <h2>¿Listo para escalar tu negocio?</h2>
+          <div class="cta-icon">📊</div>
+          <h2>Inteligencia ejecutiva para tu negocio</h2>
           <p>
-            VistaCEO es tu CEO ultra inteligente que diagnostica tu empresa, detecta oportunidades 
-            y te guía con acciones concretas para crecer con resultados reales. 
-            Adaptado a más de 180 tipos de negocio en 10 sectores.
+            VistaCEO analiza el contexto de tu negocio, detecta prioridades y te guía con acciones concretas. 
+            Adaptado a distintas lógicas de negocio, escalas y etapas de madurez.
           </p>
           <a href={`${MAIN_SITE}/auth`} class="btn-primary">
-            Empezar gratis
+            Conocer VistaCEO
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
@@ -423,87 +413,6 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
     background: var(--border);
   }
 
-  /* Business Banner Compact */
-  .business-banner-compact {
-    background: var(--muted);
-    padding: 0.875rem 1rem;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .banner-container-compact {
-    max-width: 1280px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  @media (min-width: 768px) {
-    .banner-container-compact {
-      flex-direction: row;
-      justify-content: center;
-      gap: 1rem;
-    }
-  }
-
-  .sectors-inline {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-  }
-
-  .sector-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    color: var(--foreground-muted);
-    background: var(--card);
-    padding: 0.25rem 0.5rem;
-    border-radius: 9999px;
-    border: 1px solid var(--border);
-    white-space: nowrap;
-    transition: all 0.15s;
-  }
-
-  .sector-tag:hover {
-    border-color: var(--primary);
-    color: var(--foreground);
-  }
-
-  .sector-count {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    color: var(--primary);
-    white-space: nowrap;
-  }
-
-  .btn-compact {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.375rem 0.875rem;
-    background: linear-gradient(135deg, #2692DC, #746CE6);
-    color: white;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-decoration: none;
-    border-radius: 9999px;
-    white-space: nowrap;
-    transition: all 0.2s;
-    box-shadow: 0 2px 8px rgba(38, 146, 220, 0.2);
-  }
-
-  .btn-compact:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(38, 146, 220, 0.3);
-    color: white;
-  }
   
   /* Container */
   .container {
@@ -642,6 +551,29 @@ const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 
   
   .post-card:hover .post-image img {
     transform: scale(1.05);
+  }
+  
+  /* Fallback for posts without images */
+  .post-image-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .fallback-emoji {
+    font-size: 2.5rem;
+    line-height: 1;
+  }
+  
+  .fallback-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--foreground-muted);
+    opacity: 0.7;
   }
   
   .post-content {
