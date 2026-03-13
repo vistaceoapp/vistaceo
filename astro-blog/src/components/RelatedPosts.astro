@@ -2,6 +2,7 @@
 import type { BlogPost } from '../lib/supabase';
 import { formatDate, truncate } from '../lib/text';
 import { getCluster } from '../lib/clusters';
+import { getCategoryVisual } from '../lib/category-visuals';
 
 interface Props {
   posts: BlogPost[];
