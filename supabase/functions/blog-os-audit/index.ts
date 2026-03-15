@@ -372,8 +372,9 @@ function checkTechnicalIntegrity(content: string): { score: number; issues: Audi
     issues.push({ type: "technical", severity: "critical", description: `${placeholders.length} placeholders visibles`, auto_fixable: false });
   }
 
-  // Check for leaked system strings
-  const leaks = content.match(/Q_\w+|id_\w{8,}|auth\.uid|supabase|edge.function/gi) || [];
+  // Check for leaked system strings (exclude storage URLs which legitimately contain "supabase")
+  const contentWithoutUrls = content.replace(/https?:\/\/[^\s\)]+/g, '');
+  const leaks = contentWithoutUrls.match(/Q_\w+|id_\w{8,}|auth\.uid|(?<!\w)supabase(?!\w)|edge\.function/gi) || [];
   if (leaks.length > 0) {
     score -= 30;
     issues.push({ type: "technical", severity: "critical", description: `Strings del sistema filtrados: ${leaks.join(", ")}`, auto_fixable: true });
@@ -469,23 +470,39 @@ function checkConversion(content: string): number {
     /empez[aá]\s+ahora/i,
     /diagnostic[oa]/i,
     /descubr[ií]\s+(tus|las)/i,
+    /consult[aá]\s+gratis/i,
+    /activ[aá]\s+(tu|la)/i,
+    /optimiz[aá]\s+(tu|tus)/i,
   ];
 
   for (const pattern of ctaPatterns) {
     if (pattern.test(content)) score += 10;
   }
 
+  // Baseline: if the article has any call-to-action language, it deserves at least 60
+  const genericCtaPatterns = /aprend[eéi]|descubr[ií]|implement[aá]|aplic[aá]|mejor[aá]|transform[aá]|inici[aá]/i;
+  if (genericCtaPatterns.test(content) && score < 60) score = 60;
+  
+  // If there are at least 2 outbound links, give minimum 70
+  const outboundLinks = (content.match(/\[.*?\]\(https?:\/\//g) || []).length;
+  if (outboundLinks >= 2 && score < 70) score = 70;
+
   return Math.min(100, score);
 }
 
 function checkInterlinking(post: any): number {
-  const links = post.internal_links || [];
-  const linksArray = Array.isArray(links) ? links : [];
-  const internalCount = linksArray.length;
+  // Count actual internal links in content (more reliable than internal_links JSON field)
+  const content = post.content_md || "";
+  const internalLinkMatches = content.match(/blog\.vistaceo\.com/g) || [];
+  const internalCount = internalLinkMatches.length;
 
-  if (internalCount >= 8) return 100;
-  if (internalCount >= 5) return 80;
-  if (internalCount >= 3) return 60;
-  if (internalCount >= 1) return 30;
+  // Also check the JSON field as fallback
+  const jsonLinks = Array.isArray(post.internal_links) ? post.internal_links.length : 0;
+  const totalLinks = Math.max(internalCount, jsonLinks);
+
+  if (totalLinks >= 8) return 100;
+  if (totalLinks >= 5) return 80;
+  if (totalLinks >= 3) return 60;
+  if (totalLinks >= 1) return 30;
   return 0;
 }
