@@ -491,13 +491,18 @@ function checkConversion(content: string): number {
 }
 
 function checkInterlinking(post: any): number {
-  const links = post.internal_links || [];
-  const linksArray = Array.isArray(links) ? links : [];
-  const internalCount = linksArray.length;
+  // Count actual internal links in content (more reliable than internal_links JSON field)
+  const content = post.content_md || "";
+  const internalLinkMatches = content.match(/blog\.vistaceo\.com/g) || [];
+  const internalCount = internalLinkMatches.length;
 
-  if (internalCount >= 8) return 100;
-  if (internalCount >= 5) return 80;
-  if (internalCount >= 3) return 60;
-  if (internalCount >= 1) return 30;
+  // Also check the JSON field as fallback
+  const jsonLinks = Array.isArray(post.internal_links) ? post.internal_links.length : 0;
+  const totalLinks = Math.max(internalCount, jsonLinks);
+
+  if (totalLinks >= 8) return 100;
+  if (totalLinks >= 5) return 80;
+  if (totalLinks >= 3) return 60;
+  if (totalLinks >= 1) return 30;
   return 0;
 }
