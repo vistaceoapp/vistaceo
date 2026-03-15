@@ -152,7 +152,8 @@ Deno.serve(async (req) => {
     }).slice(0, remaining);
     
     if (postsToGenerate.length === 0) {
-      const { data: pendingTopics } = await supabase
+      // First try unused topics, then fallback to oldest-used topics (recycling)
+      let { data: pendingTopics } = await supabase
         .from('blog_topics')
         .select('*')
         .is('last_used_at', null)
@@ -160,7 +161,23 @@ Deno.serve(async (req) => {
         .limit(remaining);
 
       if (!pendingTopics || pendingTopics.length === 0) {
-        return new Response(JSON.stringify({ success: true, message: 'No posts to publish', published: 0 }),
+        // Recycle: pick oldest-used topics not in saturated categories or recent 72h keywords
+        const { data: recycledTopics } = await supabase
+          .from('blog_topics')
+          .select('*')
+          .not('category', 'in', `(${saturatedCategories.join(',')})`)
+          .order('last_used_at', { ascending: true })
+          .limit(remaining + 10);
+        
+        // Filter out topics whose primary_keyword was used in last 72h
+        pendingTopics = (recycledTopics || []).filter((t: any) => {
+          const kw = (t.primary_keyword || t.title_base || '').toLowerCase();
+          return !recentKeywords.some((k: string) => k && kw && (k.includes(kw) || kw.includes(k)));
+        }).slice(0, remaining);
+      }
+
+      if (!pendingTopics || pendingTopics.length === 0) {
+        return new Response(JSON.stringify({ success: true, message: 'No eligible topics to publish', published: 0 }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
