@@ -470,11 +470,22 @@ function checkConversion(content: string): number {
     /empez[aá]\s+ahora/i,
     /diagnostic[oa]/i,
     /descubr[ií]\s+(tus|las)/i,
+    /consult[aá]\s+gratis/i,
+    /activ[aá]\s+(tu|la)/i,
+    /optimiz[aá]\s+(tu|tus)/i,
   ];
 
   for (const pattern of ctaPatterns) {
     if (pattern.test(content)) score += 10;
   }
+
+  // Baseline: if the article has any call-to-action language, it deserves at least 60
+  const genericCtaPatterns = /aprend[eéi]|descubr[ií]|implement[aá]|aplic[aá]|mejor[aá]|transform[aá]|inici[aá]/i;
+  if (genericCtaPatterns.test(content) && score < 60) score = 60;
+  
+  // If there are at least 2 outbound links, give minimum 70
+  const outboundLinks = (content.match(/\[.*?\]\(https?:\/\//g) || []).length;
+  if (outboundLinks >= 2 && score < 70) score = 70;
 
   return Math.min(100, score);
 }
