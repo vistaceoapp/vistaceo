@@ -372,8 +372,9 @@ function checkTechnicalIntegrity(content: string): { score: number; issues: Audi
     issues.push({ type: "technical", severity: "critical", description: `${placeholders.length} placeholders visibles`, auto_fixable: false });
   }
 
-  // Check for leaked system strings
-  const leaks = content.match(/Q_\w+|id_\w{8,}|auth\.uid|supabase|edge.function/gi) || [];
+  // Check for leaked system strings (exclude storage URLs which legitimately contain "supabase")
+  const contentWithoutUrls = content.replace(/https?:\/\/[^\s\)]+/g, '');
+  const leaks = contentWithoutUrls.match(/Q_\w+|id_\w{8,}|auth\.uid|(?<!\w)supabase(?!\w)|edge\.function/gi) || [];
   if (leaks.length > 0) {
     score -= 30;
     issues.push({ type: "technical", severity: "critical", description: `Strings del sistema filtrados: ${leaks.join(", ")}`, auto_fixable: true });
