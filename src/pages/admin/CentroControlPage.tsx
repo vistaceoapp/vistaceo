@@ -199,7 +199,9 @@ export default function CentroControlPage() {
   const todayIndexed = todayRuns.filter(r => r.status === 'indexed').length;
 
   const totalPosts = registry?.length || 0;
-  const passingPosts = registry?.filter(r => (r.score_global ?? 0) >= 94).length || 0;
+  const passingPosts = registry?.filter(r => (r.score_global ?? 0) >= 90).length || 0;
+  const premiumPosts = registry?.filter(r => (r.score_global ?? 0) >= 94).length || 0;
+  const flagshipPosts = registry?.filter(r => (r.score_global ?? 0) >= 97).length || 0;
   const avgScore = totalPosts > 0 ? Math.round(registry!.reduce((a, r) => a + (Number(r.score_global) || 0), 0) / totalPosts) : 0;
   const criticalIssues = issues?.filter(i => i.severity === 'critical').length || 0;
 

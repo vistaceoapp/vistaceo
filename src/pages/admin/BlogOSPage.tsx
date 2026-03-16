@@ -116,7 +116,9 @@ export default function BlogOSPage() {
   };
 
   const totalPosts = registry?.length || 0;
-  const passingPosts = registry?.filter(r => r.score_global >= 94).length || 0;
+  const passingPosts = registry?.filter(r => (r.score_global ?? 0) >= 90).length || 0;
+  const premiumPosts = registry?.filter(r => (r.score_global ?? 0) >= 94).length || 0;
+  const flagshipPosts = registry?.filter(r => (r.score_global ?? 0) >= 97).length || 0;
   const failingPosts = totalPosts - passingPosts;
   const avgScore = totalPosts > 0
     ? Math.round(registry!.reduce((a, r) => a + (Number(r.score_global) || 0), 0) / totalPosts)
@@ -125,9 +127,11 @@ export default function BlogOSPage() {
   const highIssues = issues?.filter(i => i.severity === 'high').length || 0;
 
   const getScoreBadge = (score: number) => {
-    if (score >= 94) return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">{score}</Badge>;
-    if (score >= 75) return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">{score}</Badge>;
-    return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">{score}</Badge>;
+    if (score >= 97) return <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">🏆 {score}</Badge>;
+    if (score >= 94) return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">⭐ {score}</Badge>;
+    if (score >= 90) return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">✓ {score}</Badge>;
+    if (score >= 85) return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">⚠ {score}</Badge>;
+    return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">✗ {score}</Badge>;
   };
 
   const getSeverityBadge = (severity: string) => {
