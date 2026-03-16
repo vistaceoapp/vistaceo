@@ -484,84 +484,134 @@ async function phaseUpdateScores(supabase: any, cycleId: string) {
 
 function calculateRealScores(post: any): Record<string, number> {
   const content = post.content_md || "";
+  const contentLower = content.toLowerCase();
   const wordCount = content.split(/\s+/).filter(Boolean).length;
   const h2Count = (content.match(/^## /gm) || []).length;
+  const h3Count = (content.match(/^### /gm) || []).length;
   const internalLinks = (content.match(/\[.*?\]\(https:\/\/blog\.vistaceo\.com/g) || []).length;
   const ctaCount = (content.match(/vistaceo\.com/gi) || []).length;
   const hasFaq = /## Preguntas frecuentes|## FAQ/i.test(content);
   const hasImage = !!post.hero_image_url;
   const hasPlaceholders = /\[TODO\]|\[PLACEHOLDER\]|Lorem ipsum|{{.*?}}/i.test(content);
-  const hasEmptySections = /^##\s+[^\n]+\n\s*(?=##|\s*$)/gm.test(content);
-  const hasCodeLeaks = /Q_[A-Z]{2,}_\d{2,}|auth\.uid\(\)/g.test(content);
+  const hasTable = /\|.*\|.*\|/m.test(content);
 
-  // SEO (0-100)
+  // INTENTION (15%)
+  let intention = 60;
+  if (post.primary_keyword && contentLower.slice(0, 500).includes(post.primary_keyword.toLowerCase())) intention += 20;
+  const titleWords = (post.title || "").toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
+  const matchRatio = titleWords.length > 0 ? titleWords.filter((w: string) => contentLower.includes(w)).length / titleWords.length : 0;
+  if (matchRatio >= 0.8) intention += 15;
+  if (h2Count >= 3) intention += 5;
+  intention = Math.min(100, intention);
+
+  // ORIGINALITY (15%)
+  let originality = 50;
+  if (/latam|latinoam/i.test(content)) originality += 15;
+  if (/ejemplo real|caso\s+real|caso\s+pr[aá]ctico/i.test(content)) originality += 10;
+  if (/argentina|chile|colombia|m[eé]xico/i.test(content)) originality += 10;
+  if (hasTable) originality += 7;
+  if (/paso\s+\d|fase\s+\d/i.test(content)) originality += 8;
+  originality = Math.min(100, originality);
+
+  // DEPTH (15%)
+  let depth = 0;
+  if (wordCount >= 2500) depth += 30; else if (wordCount >= 1800) depth += 20; else if (wordCount >= 1200) depth += 12;
+  if (h2Count >= 5) depth += 20; else if (h2Count >= 3) depth += 12;
+  if (h3Count >= 4) depth += 10;
+  if (hasFaq) depth += 10;
+  if (/ejemplo|caso real/i.test(content)) depth += 10;
+  if (/paso\s+\d/i.test(content)) depth += 10;
+  if (hasTable) depth += 10;
+  depth = Math.min(100, depth);
+
+  // CTR (10%)
+  let ctr = 40;
+  const t = post.title || post.meta_title || "";
+  if (t.length >= 30 && t.length <= 65) ctr += 15;
+  if (/secreto|error|evitar|clave|paso a paso|gratis|mejor|peor|guía|comparativa|vs|plantilla|checklist/i.test(t)) ctr += 15;
+  if (/\d+/.test(t)) ctr += 10;
+  if (post.meta_description && post.meta_description.length >= 100 && post.meta_description.length <= 155) ctr += 10;
+  ctr = Math.min(100, ctr);
+
+  // SEO (10%)
   let seo = 0;
-  if (post.meta_title && post.meta_title.length >= 30 && post.meta_title.length <= 60) seo += 35;
-  else if (post.meta_title) seo += 15;
-  if (post.meta_description && post.meta_description.length >= 100 && post.meta_description.length <= 160) seo += 35;
-  else if (post.meta_description) seo += 15;
+  if (post.meta_title && post.meta_title.length >= 30 && post.meta_title.length <= 60) seo += 35; else if (post.meta_title) seo += 15;
+  if (post.meta_description && post.meta_description.length >= 100 && post.meta_description.length <= 160) seo += 35; else if (post.meta_description) seo += 15;
   if (post.primary_keyword) seo += 15;
   if (post.excerpt && post.excerpt.length >= 40) seo += 15;
+  seo = Math.min(100, seo);
 
-  // Technical (0-100)
-  let technical = 100;
-  if (hasPlaceholders) technical -= 30;
-  if (hasEmptySections) technical -= 20;
-  if (hasCodeLeaks) technical -= 30;
-  if (!hasImage) technical -= 20;
+  // STRUCTURE (8%)
+  let structure = 30;
+  if (h2Count >= 5) structure += 20; else if (h2Count >= 3) structure += 12;
+  if (h3Count >= 4) structure += 15; else if (h3Count >= 2) structure += 8;
+  if ((content.match(/^- /gm) || []).length >= 3) structure += 10;
+  if (hasFaq) structure += 10;
+  if (hasTable) structure += 10;
+  structure = Math.min(100, structure);
 
-  // UX (0-100)
-  let ux = 0;
-  if (wordCount >= 1500) ux += 30; else if (wordCount >= 800) ux += 15;
-  if (h2Count >= 4) ux += 25; else if (h2Count >= 2) ux += 12;
-  if (hasFaq) ux += 20;
-  if (hasImage) ux += 15;
-  if (post.excerpt) ux += 10;
+  // SEMANTICS (8%)
+  let semantics = 50;
+  const secondaryKws = post.secondary_keywords || [];
+  if (secondaryKws.length > 0) {
+    const found = secondaryKws.filter((sk: string) => contentLower.includes(sk.toLowerCase())).length;
+    semantics += Math.round((found / secondaryKws.length) * 20);
+  } else { semantics += 10; }
+  if (/### ¿/i.test(content)) semantics += 10;
+  if (h2Count >= 5) semantics += 15;
+  semantics = Math.min(100, semantics);
 
-  // Conversion (0-100)
-  let conversion = 0;
-  if (ctaCount >= 2) conversion += 60;
-  else if (ctaCount >= 1) conversion += 30;
-  if (post.excerpt && post.excerpt.length > 60) conversion += 20;
-  if (post.meta_description && post.meta_description.length > 100) conversion += 20;
-
-  // Interlinking (0-100)
+  // INTERLINKING (6%)
   let interlinking = 0;
-  if (internalLinks >= 5) interlinking = 100;
+  if (internalLinks >= 8) interlinking = 100;
+  else if (internalLinks >= 5) interlinking = 80;
   else if (internalLinks >= 3) interlinking = 60;
   else if (internalLinks >= 1) interlinking = 30;
 
-  // Coherence (0-100)
-  let coherence = 100;
-  if (hasPlaceholders) coherence -= 40;
-  if (hasEmptySections) coherence -= 30;
-  if (hasCodeLeaks) coherence -= 30;
+  // UX (6%)
+  let ux = 100;
+  if (!(content.match(/^- /gm) || []).length) ux -= 15;
+  if (h2Count < 3) ux -= 15;
+  if (h3Count < 2) ux -= 10;
+  ux = Math.max(0, ux);
 
-  // Promises (0-100) 
-  let promises = 100;
-  if (/tabla|cuadro comparativ/i.test(content) && !/\|.*\|.*\|/m.test(content)) promises -= 50;
-  if (/^##.*checklist/im.test(content) && !/- \[[ x]\]/i.test(content)) promises -= 50;
+  // CONVERSION (4%)
+  let conversion = 0;
+  if (ctaCount >= 2) conversion += 60; else if (ctaCount >= 1) conversion += 30;
+  if (post.excerpt && post.excerpt.length > 60) conversion += 20;
+  if (post.meta_description && post.meta_description.length > 100) conversion += 20;
+  conversion = Math.min(100, conversion);
 
-  // Global weighted average
+  // BRAND (3%)
+  let brand = 50;
+  if (contentLower.includes("vistaceo")) brand += 20;
+  if (/negocio|emprendimiento|pyme|empresa/i.test(content)) brand += 15;
+  brand = Math.min(100, brand);
+
+  // Supreme Content Score
   const global = Math.round(
-    seo * 0.2 +
-    technical * 0.2 +
-    ux * 0.15 +
-    conversion * 0.15 +
-    interlinking * 0.1 +
-    coherence * 0.1 +
-    promises * 0.1
+    intention * 0.15 +
+    originality * 0.15 +
+    depth * 0.15 +
+    ctr * 0.10 +
+    seo * 0.10 +
+    structure * 0.08 +
+    semantics * 0.08 +
+    interlinking * 0.06 +
+    ux * 0.06 +
+    conversion * 0.04 +
+    brand * 0.03
   );
 
   return {
     global: Math.max(0, Math.min(100, global)),
     seo: Math.max(0, Math.min(100, seo)),
-    technical: Math.max(0, Math.min(100, technical)),
+    technical: hasPlaceholders ? 50 : (hasImage ? 100 : 80),
     ux: Math.max(0, Math.min(100, ux)),
     conversion: Math.max(0, Math.min(100, conversion)),
     interlinking: Math.max(0, Math.min(100, interlinking)),
-    coherence: Math.max(0, Math.min(100, coherence)),
-    promises: Math.max(0, Math.min(100, promises)),
+    coherence: Math.max(0, Math.min(100, intention)),
+    promises: 100,
   };
 }
 

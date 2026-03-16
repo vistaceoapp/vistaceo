@@ -160,9 +160,11 @@ const StatusIcon = ({ status }: { status: string }) => {
 };
 
 function scoreBadge(score: number) {
-  if (score >= 94) return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/20 dark:text-emerald-400">{score}</Badge>;
-  if (score >= 75) return <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/20 dark:text-amber-400">{score}</Badge>;
-  return <Badge className="bg-destructive/15 text-destructive border-destructive/20">{score}</Badge>;
+  if (score >= 97) return <Badge className="bg-purple-500/15 text-purple-600 border-purple-500/20 dark:text-purple-400">🏆 {score}</Badge>;
+  if (score >= 94) return <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/20 dark:text-emerald-400">⭐ {score}</Badge>;
+  if (score >= 90) return <Badge className="bg-green-500/15 text-green-600 border-green-500/20 dark:text-green-400">✓ {score}</Badge>;
+  if (score >= 85) return <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/20 dark:text-amber-400">⚠ {score}</Badge>;
+  return <Badge className="bg-destructive/15 text-destructive border-destructive/20">✗ {score}</Badge>;
 }
 
 const priorityMeta: Record<string, { label: string; color: string }> = {
@@ -199,7 +201,9 @@ export default function CentroControlPage() {
   const todayIndexed = todayRuns.filter(r => r.status === 'indexed').length;
 
   const totalPosts = registry?.length || 0;
-  const passingPosts = registry?.filter(r => (r.score_global ?? 0) >= 94).length || 0;
+  const passingPosts = registry?.filter(r => (r.score_global ?? 0) >= 90).length || 0;
+  const premiumPosts = registry?.filter(r => (r.score_global ?? 0) >= 94).length || 0;
+  const flagshipPosts = registry?.filter(r => (r.score_global ?? 0) >= 97).length || 0;
   const avgScore = totalPosts > 0 ? Math.round(registry!.reduce((a, r) => a + (Number(r.score_global) || 0), 0) / totalPosts) : 0;
   const criticalIssues = issues?.filter(i => i.severity === 'critical').length || 0;
 
