@@ -525,6 +525,163 @@ interface QualityGateReport {
   issues: string[];
   timestamp: string;
   rewrite_attempts: number;
+  opportunity?: Record<string, unknown>;
+  editorial_brief?: Record<string, unknown>;
+  headline_lab?: Record<string, unknown>;
+  hypotheses?: Record<string, unknown>;
+  explainability?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+function clampScore(value: number, min = 0, max = 100): number {
+  return Math.max(min, Math.min(max, Math.round(value)));
+}
+
+function buildOpportunityModel(topic: any, samePillarPosts: any[], crossPillarPosts: any[], cannibalizationRisk: number) {
+  const demandPotential = clampScore((topic?.priority_score || 50) + Math.min((topic?.secondary_keywords || []).length * 3, 15));
+  const brandFit = clampScore(topic?.pillar ? 92 : 75);
+  const ctrPotential = clampScore(70 + (/\b(cómo|guía|vs|errores|plantilla|checklist|ejemplos|mejores)\b/i.test(topic?.title_base || '') ? 16 : 6));
+  const rankingPotential = clampScore(68 + Math.min((topic?.required_subtopics || []).length * 4, 20));
+  const engagementPotential = clampScore(70 + Math.min((topic?.unique_angle_options || []).length * 6, 18));
+  const conversionAssist = clampScore(topic?.intent === 'commercial' || topic?.intent === 'soft-transactional' ? 88 : 72);
+  const clusterPower = clampScore(64 + Math.min(samePillarPosts.length * 5 + crossPillarPosts.length * 2, 28));
+  const differentiation = clampScore(66 + Math.min((topic?.unique_angle_options || []).length * 8, 24) + (/latam|pymes|negocio|empresa/i.test(topic?.title_base || '') ? 6 : 0));
+  const freshnessPotential = clampScore(topic?.seasonality ? 82 : 71);
+  const score = clampScore(
+    demandPotential * 0.14 +
+    brandFit * 0.12 +
+    ctrPotential * 0.12 +
+    rankingPotential * 0.12 +
+    engagementPotential * 0.1 +
+    conversionAssist * 0.08 +
+    clusterPower * 0.1 +
+    differentiation * 0.14 +
+    freshnessPotential * 0.08 -
+    cannibalizationRisk * 0.12
+  );
+
+  let status = 'review';
+  if (score < 75) status = 'rejected';
+  else if (score < 85) status = 'reformulate';
+  else if (score < 92) status = 'pipeline';
+  else status = 'high_priority';
+
+  return {
+    score,
+    status,
+    reason: status === 'high_priority'
+      ? 'Alta ventaja editorial, buen potencial de cluster y click.'
+      : status === 'pipeline'
+        ? 'Tema publicable con buena oportunidad real.'
+        : status === 'reformulate'
+          ? 'Necesita mejor ángulo o promesa antes de entrar al pipeline.'
+          : 'No alcanza el umbral editorial mínimo.',
+    demand_potential: demandPotential,
+    brand_fit: brandFit,
+    ctr_potential: ctrPotential,
+    ranking_potential: rankingPotential,
+    engagement_potential: engagementPotential,
+    conversion_assist: conversionAssist,
+    cluster_power: clusterPower,
+    differentiation,
+    freshness_potential: freshnessPotential,
+    cannibalization_risk: cannibalizationRisk,
+  };
+}
+
+function generateHeadlineLab(topic: any) {
+  const base = topic?.title_base || 'Nueva guía';
+  const kw = topic?.primary_keyword || base;
+  const seoTitles = [
+    base,
+    `Cómo ${kw} sin perder tiempo ni plata`,
+    `${base}: guía práctica para LATAM`,
+    `${kw}: errores, ejemplos y pasos reales`,
+    `${base} en ${new Date().getFullYear()}`,
+  ];
+  const emotionalTitles = [
+    `Si ${kw} te está frenando, empezá por acá`,
+    `La forma más clara de entender ${kw}`,
+    `Lo que nadie te explica bien sobre ${kw}`,
+  ];
+  const specificTitles = [
+    `${kw}: qué hacer hoy, esta semana y este mes`,
+    `${kw} para PyMEs: criterios concretos para decidir`,
+    `${kw}: guía con ejemplos reales y errores comunes`,
+  ];
+  const curiosityTitles = [
+    `El cambio silencioso detrás de ${kw}`,
+    `Por qué muchas empresas fallan con ${kw}`,
+    `Qué cambia de verdad cuando mejorás ${kw}`,
+  ];
+  const businessTitles = [
+    `${kw}: impacto en ventas, tiempo y foco`,
+    `${kw}: cómo convertirlo en ventaja competitiva`,
+  ];
+  const painTitles = [
+    `¿${kw} te está costando más de lo que pensás?`,
+    `El error más caro al resolver ${kw}`,
+  ];
+  const winner = seoTitles[0];
+  return {
+    winner,
+    winner_reason: 'Combina claridad, intención explícita, promesa concreta y buen potencial de CTR sin sonar a plantilla.',
+    meta_description: `Entendé ${kw} con enfoque práctico para LATAM: criterios, errores comunes, ejemplos y próximos pasos para decidir mejor.`,
+    seo_titles: seoTitles,
+    emotional_titles: emotionalTitles,
+    specific_titles: specificTitles,
+    curiosity_titles: curiosityTitles,
+    business_titles: businessTitles,
+    pain_titles: painTitles,
+    discarded_titles: [...seoTitles.slice(1), ...emotionalTitles, ...specificTitles, ...curiosityTitles, ...businessTitles, ...painTitles],
+  };
+}
+
+function buildEditorialBrief(topic: any, format: any, samePillarPosts: any[], crossPillarPosts: any[]) {
+  const primaryKeyword = topic?.primary_keyword || topic?.title_base || '';
+  return {
+    keyword_principal: primaryKeyword,
+    keywords_secundarias: topic?.secondary_keywords || [],
+    entidades_semanticas_clave: [primaryKeyword, ...(topic?.required_subtopics || [])].filter(Boolean).slice(0, 8),
+    intencion_principal: topic?.intent || 'informational',
+    intenciones_secundarias: ['resolver dudas', 'comparar alternativas', 'profundizar criterio'],
+    perfil_lector: 'Dueños de negocio, líderes y profesionales de habla hispana en LATAM que buscan criterio práctico, no humo.',
+    problema_concreto: `La audiencia necesita entender ${primaryKeyword} con claridad, contexto y pasos accionables.`,
+    promesa_exacta: `Salir de la lectura con un criterio claro para aplicar ${primaryKeyword} mejor que el promedio del mercado.`,
+    angulo_diferencial: 'Contexto real LATAM + enfoque práctico + síntesis editorial superior.',
+    estructura_ideal: format?.sections || [],
+    nivel_profundidad: 'alto',
+    tipo_de_pieza: format?.name || 'guía',
+    cta_ideal: 'Descubrir la solución o módulo de VistaCEO más alineado al problema tratado.',
+    enlaces_a_empujar: samePillarPosts.slice(0, 3).map((post: any) => `${BLOG_DOMAIN}/${post.slug}/`),
+    enlaces_a_recibir: crossPillarPosts.slice(0, 2).map((post: any) => `${BLOG_DOMAIN}/${post.slug}/`),
+    oportunidades: {
+      snippet: true,
+      faq: true,
+      tabla: false,
+      checklist: true,
+      comparativa: /vs|compar/i.test(topic?.title_base || ''),
+      grafico_visual: true,
+    },
+  };
+}
+
+function buildHypotheses(topic: any, opportunity: any) {
+  return {
+    ctr: `El tema debería ganar clic por una promesa clara, especificidad alta y foco en ${topic?.primary_keyword || topic?.title_base}.`,
+    ranking: `La pieza puede rankear si cubre intención principal + subtemas esperables + enlaces de cluster alrededor de ${topic?.pillar}.`,
+    engagement: 'Esperamos buena profundidad de lectura si la intro confirma intención rápido y los ejemplos aterrizan el problema.',
+    next_action: opportunity?.score >= 92 ? 'Empujar interlinking y monitorear CTR inicial.' : 'Observar CTR y reforzar apertura si queda tibia.',
+  };
+}
+
+function buildExplainability(topic: any, opportunity: any, qualityGateFocus: string[]) {
+  return {
+    why_topic_chosen: `Se eligió por su score de oportunidad ${opportunity?.score || 0}/100, su encaje con ${topic?.pillar || 'el cluster'} y su potencial de resolver una intención clara.`,
+    why_rejected: opportunity?.score < 75 ? 'Tema descartado por baja oportunidad editorial.' : null,
+    expected_to_measure: ['CTR orgánico', 'tiempo de lectura', 'scroll depth', 'interlinking asistido', 'queries emergentes'],
+    gate_focus: qualityGateFocus,
+  };
 }
 
 function hashStringToInt(input: string): number {
@@ -1546,6 +1703,18 @@ serve(async (req) => {
     }
 
     const pillarInfo = PILLARS[selectedTopic.pillar as keyof typeof PILLARS] || { label: selectedTopic.pillar, emoji: '📝' };
+    const cannibalizationRisk = slugSimilarity ? 82 : 18;
+    const opportunityModel = buildOpportunityModel(selectedTopic, samePillarPosts, crossPillarPosts, cannibalizationRisk);
+    const headlineLab = generateHeadlineLab(selectedTopic);
+    const editorialBrief = buildEditorialBrief(selectedTopic, selectedFormat, samePillarPosts, crossPillarPosts);
+    const hypotheses = buildHypotheses(selectedTopic, opportunityModel);
+    const explainability = buildExplainability(selectedTopic, opportunityModel, [
+      'Intent Match Gate',
+      'Originality Gate',
+      'CTR Magnetism Gate',
+      'Interlinking Power Gate',
+      'Zero Embarrassment Gate',
+    ]);
 
     // PATCH V7 System Prompt - CONTENIDO REAL + SEO PREMIUM
     const systemPrompt = `Sos un editor senior de contenido SEO para VistaCEO. Tu objetivo es generar artículos que:
@@ -1824,12 +1993,25 @@ Respondé SOLO con el Markdown, sin H1, sin explicaciones previas.`;
 
     const userPrompt = `Escribí un artículo completo para el blog de VistaCEO.
 
-TÍTULO (ya lo renderiza la página, NO lo incluyas): ${selectedTopic.title_base}
+TÍTULO (ya lo renderiza la página, NO lo incluyas): ${headlineLab.winner}
 
-KEYPHRASE PRINCIPAL: ${selectedTopic.title_base.toLowerCase().replace(/[^a-záéíóúñü\s]/g, '').slice(0, 50)}
+KEYPHRASE PRINCIPAL: ${editorialBrief.keyword_principal}
 
 FORMATO ASIGNADO: "${selectedFormat.name}"
 Secciones obligatorias: ${selectedFormat.sections.join(' → ')}
+
+BRIEF EDITORIAL OBLIGATORIO:
+- Intención principal: ${editorialBrief.intencion_principal}
+- Perfil lector: ${editorialBrief.perfil_lector}
+- Problema concreto: ${editorialBrief.problema_concreto}
+- Promesa exacta: ${editorialBrief.promesa_exacta}
+- Ángulo diferencial: ${editorialBrief.angulo_diferencial}
+- Keywords secundarias: ${(editorialBrief.keywords_secundarias as string[]).join(', ') || 'ninguna'}
+- Entidades semánticas clave: ${(editorialBrief.entidades_semanticas_clave as string[]).join(', ') || 'ninguna'}
+- Enlaces a empujar: ${(editorialBrief.enlaces_a_empujar as string[]).join(', ') || 'ninguno'}
+- Enlaces a recibir: ${(editorialBrief.enlaces_a_recibir as string[]).join(', ') || 'ninguno'}
+- Hipótesis CTR: ${hypotheses.ctr}
+- Hipótesis ranking: ${hypotheses.ranking}
 
 RECORDÁ: REGLA 0 es la MÁS IMPORTANTE:
 - EL 70% del artículo debe ser CONTENIDO SUSTANCIAL: análisis profundo, datos reales, contexto de mercado, casos detallados, insights originales.
@@ -1916,6 +2098,11 @@ TAMBIÉN:
       qualityGateReport = runQualityGates(contentMd, selectedTopic.title_base);
       qualityGateReport.issues = [...qualityGateReport.issues, ...fixIssues];
       qualityGateReport.rewrite_attempts = rewriteAttempts;
+      qualityGateReport.opportunity = opportunityModel;
+      qualityGateReport.editorial_brief = editorialBrief;
+      qualityGateReport.headline_lab = headlineLab;
+      qualityGateReport.hypotheses = hypotheses;
+      qualityGateReport.explainability = explainability;
       (qualityGateReport as any).format_id = selectedFormat.id;
       (qualityGateReport as any).format_name = selectedFormat.name;
 
@@ -2005,14 +2192,14 @@ TAMBIÉN:
       .find((line: string) => line.length > 50 && !line.startsWith('#') && !line.startsWith('-') && !line.startsWith('>'))
       ?.slice(0, 160) || selectedTopic.title_base;
 
-    // Smart meta_title: ensure it fits 60 chars WITH suffix
     const suffix = ' | VistaCEO';
+    const baseMetaTitle = (headlineLab.winner as string) || selectedTopic.title_base;
     const maxTitleLen = 60 - suffix.length;
-    const trimmedTitle = selectedTopic.title_base.length > maxTitleLen
-      ? selectedTopic.title_base.slice(0, maxTitleLen - 3) + '...'
-      : selectedTopic.title_base;
+    const trimmedTitle = baseMetaTitle.length > maxTitleLen
+      ? baseMetaTitle.slice(0, maxTitleLen - 3) + '...'
+      : baseMetaTitle;
     const metaTitle = `${trimmedTitle}${suffix}`;
-    const metaDescription = excerpt.slice(0, 155) + (excerpt.length > 155 ? '...' : '');
+    const metaDescription = ((headlineLab.meta_description as string) || excerpt).slice(0, 155) + ((((headlineLab.meta_description as string) || excerpt).length > 155) ? '...' : '');
 
     // Calculate reading time
     const wordCountTotal = contentMd.split(/\s+/).length;

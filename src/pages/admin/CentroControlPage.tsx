@@ -70,6 +70,17 @@ function useEditorRuns() {
   });
 }
 
+function useBlogRuns() {
+  return useQuery({
+    queryKey: ['cc-blog-runs'],
+    queryFn: async () => {
+      const { data } = await supabase.from('blog_runs').select('*').order('run_at', { ascending: false }).limit(20);
+      return data || [];
+    },
+    refetchInterval: 30000,
+  });
+}
+
 function useExperiments() {
   return useQuery({
     queryKey: ['cc-experiments'],
@@ -184,6 +195,7 @@ export default function CentroControlPage() {
   const { data: issues } = useIssues();
   const { data: tasks } = useTasks();
   const { data: runs } = useEditorRuns();
+  const { data: blogRuns } = useBlogRuns();
   const { data: experiments } = useExperiments();
   const { data: ctaBlocks } = useCTABlocks();
   const { data: edges } = useClusterEdges();
@@ -435,12 +447,68 @@ export default function CentroControlPage() {
                 ].map(s => (
                   <div key={s.label} className="flex items-center justify-between py-1.5">
                     <div className="flex items-center gap-2">
-                      {s.ok ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />}
+                      {s.ok ? <CheckCircle className="w-3.5 h-3.5 text-primary" /> : <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground" />}
                       <span className="text-sm text-foreground">{s.label}</span>
                     </div>
                     <span className="text-xs text-muted-foreground">{s.detail}</span>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-sm">Decisiones editoriales recientes</CardTitle></CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(blogRuns || []).slice(0, 4).map((run: any) => {
+                    const report = run.quality_gate_report || {};
+                    const opportunity = report.opportunity || {};
+                    const explainability = report.explainability || {};
+                    const hypotheses = report.hypotheses || {};
+                    return (
+                      <div key={run.id} className="rounded-lg border border-border p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <Badge variant="outline">{run.result}</Badge>
+                          <span className="text-xs text-muted-foreground">Opportunity Score: {opportunity.score ?? '—'}</span>
+                        </div>
+                        <p className="text-sm text-foreground">{explainability.why_topic_chosen || 'Sin explicación registrada.'}</p>
+                        <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground">
+                          <span><strong className="text-foreground">Hipótesis CTR:</strong> {hypotheses.ctr || '—'}</span>
+                          <span><strong className="text-foreground">Hipótesis ranking:</strong> {hypotheses.ranking || '—'}</span>
+                          <span><strong className="text-foreground">Qué se espera medir:</strong> {(explainability.expected_to_measure || []).join(', ') || '—'}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-sm">Aprendizaje post-publicación</CardTitle></CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(runs || []).filter((run: any) => run.action_type === 'refresh_micro').slice(0, 4).map((run: any) => (
+                    <div key={run.id} className="rounded-lg border border-border p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-medium text-foreground">{run.target_slug || 'Post sin slug'}</span>
+                        <Badge variant="outline">Refresh</Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                        <span>Pageviews: {run.action_details?.pageviews ?? '—'}</span>
+                        <span>Scroll: {run.action_details?.avg_scroll_depth ?? '—'}%</span>
+                        <span>Tiempo: {run.action_details?.avg_time_on_page ?? '—'}s</span>
+                        <span>Rebote: {run.action_details?.avg_bounce_rate ?? '—'}%</span>
+                      </div>
+                      <p className="text-xs text-foreground">Próxima acción: {run.result?.next_action || 'Seguir monitoreando'}</p>
+                    </div>
+                  ))}
+                  {(!(runs || []).some((run: any) => run.action_type === 'refresh_micro')) && (
+                    <p className="text-sm text-muted-foreground">Todavía no hay aprendizajes post-publicación registrados.</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -779,37 +847,70 @@ export default function CentroControlPage() {
 
         {/* HISTORIAL */}
         <TabsContent value="historial">
-          <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Clock className="w-4 h-4" /> Historial completo de acciones</CardTitle></CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[500px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs">Estado</TableHead>
-                      <TableHead className="text-xs">Prioridad</TableHead>
-                      <TableHead className="text-xs">Acción</TableHead>
-                      <TableHead className="text-xs">Nota</TableHead>
-                      <TableHead className="text-xs">Fecha</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(runs || []).slice(0, 100).map(run => (
-                      <TableRow key={run.id}>
-                        <TableCell><StatusIcon status={run.status} /></TableCell>
-                        <TableCell><Badge className={priorityMeta[run.priority]?.color || 'bg-muted'}>{priorityMeta[run.priority]?.label || run.priority}</Badge></TableCell>
-                        <TableCell className="text-sm text-foreground">{translateAction(run.action_type)}</TableCell>
-                        <TableCell className="text-[11px] text-muted-foreground truncate max-w-[150px]">{run.target_slug || '—'}</TableCell>
-                        <TableCell className="text-[11px] text-muted-foreground font-mono">
-                          {new Date(run.created_at).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                        </TableCell>
+          <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Clock className="w-4 h-4" /> Historial completo de acciones</CardTitle></CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs">Estado</TableHead>
+                        <TableHead className="text-xs">Prioridad</TableHead>
+                        <TableHead className="text-xs">Acción</TableHead>
+                        <TableHead className="text-xs">Nota</TableHead>
+                        <TableHead className="text-xs">Fecha</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {(runs || []).slice(0, 100).map(run => (
+                        <TableRow key={run.id}>
+                          <TableCell><StatusIcon status={run.status} /></TableCell>
+                          <TableCell><Badge className={priorityMeta[run.priority]?.color || 'bg-muted'}>{priorityMeta[run.priority]?.label || run.priority}</Badge></TableCell>
+                          <TableCell className="text-sm text-foreground">{translateAction(run.action_type)}</TableCell>
+                          <TableCell className="text-[11px] text-muted-foreground truncate max-w-[150px]">{run.target_slug || '—'}</TableCell>
+                          <TableCell className="text-[11px] text-muted-foreground font-mono">
+                            {new Date(run.created_at).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-sm">Trazabilidad editorial</CardTitle></CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px] pr-2">
+                  <div className="space-y-3">
+                    {(blogRuns || []).slice(0, 6).map((run: any) => {
+                      const report = run.quality_gate_report || {};
+                      const brief = report.editorial_brief || {};
+                      const headlines = report.headline_lab || {};
+                      const opportunity = report.opportunity || {};
+                      return (
+                        <div key={run.id} className="rounded-lg border border-border p-3 space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge variant="outline">{run.result}</Badge>
+                            <span className="text-xs text-muted-foreground">Score final: {report.score ?? '—'} · Oportunidad: {opportunity.score ?? '—'}</span>
+                          </div>
+                          <p className="text-sm text-foreground">{headlines.winner || 'Sin título ganador registrado'}</p>
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            <p><strong className="text-foreground">Keyword principal:</strong> {brief.keyword_principal || '—'}</p>
+                            <p><strong className="text-foreground">Intención:</strong> {brief.intencion_principal || '—'}</p>
+                            <p><strong className="text-foreground">Ángulo:</strong> {brief.angulo_diferencial || '—'}</p>
+                            <p><strong className="text-foreground">Títulos descartados:</strong> {(headlines.discarded_titles || []).slice(0, 3).join(' · ') || '—'}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* LINKEDIN */}

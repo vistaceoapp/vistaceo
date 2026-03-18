@@ -974,35 +974,91 @@ async function phaseLink(supabase: any, cycleId: string) {
 async function phaseRefresh(supabase: any, cycleId: string) {
   console.log(`[OE4:Refresh] Starting micro-improvements...`);
 
-  const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const { data: stalePosts } = await supabase
     .from("blog_posts")
     .select("id, slug, title, content_md, updated_at, primary_keyword")
     .eq("status", "published")
-    .lt("updated_at", twoWeeksAgo)
+    .lt("updated_at", new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString())
     .order("publish_at", { ascending: false })
     .limit(30);
 
   if (!stalePosts?.length) return { refreshed: 0 };
 
-  const toRefresh = stalePosts.sort(() => Math.random() - 0.5).slice(0, 5);
   let refreshed = 0;
 
-  for (const post of toRefresh) {
+  for (const post of stalePosts.slice(0, 8)) {
+    const [{ data: dailyMetrics }, { data: eventMetrics }] = await Promise.all([
+      supabase
+        .from("blog_analytics_daily")
+        .select("pageviews, avg_time_on_page, bounce_rate, scroll_depth_avg")
+        .eq("post_slug", post.slug)
+        .gte("metric_date", thirtyDaysAgo.slice(0, 10)),
+      supabase
+        .from("web_analytics")
+        .select("duration_seconds, scroll_depth")
+        .eq("blog_post_slug", post.slug)
+        .gte("created_at", thirtyDaysAgo)
+        .limit(200),
+    ]);
+
+    const pageviews = (dailyMetrics || []).reduce((sum: number, row: any) => sum + (Number(row.pageviews) || 0), 0);
+    const avgTime = (dailyMetrics || []).length
+      ? Math.round((dailyMetrics || []).reduce((sum: number, row: any) => sum + (Number(row.avg_time_on_page) || 0), 0) / (dailyMetrics || []).length)
+      : 0;
+    const avgBounce = (dailyMetrics || []).length
+      ? Math.round((dailyMetrics || []).reduce((sum: number, row: any) => sum + (Number(row.bounce_rate) || 0), 0) / (dailyMetrics || []).length)
+      : 0;
+    const avgScroll = (eventMetrics || []).length
+      ? Math.round((eventMetrics || []).reduce((sum: number, row: any) => sum + (Number(row.scroll_depth) || 0), 0) / (eventMetrics || []).length)
+      : Math.round((dailyMetrics || []).reduce((sum: number, row: any) => sum + (Number(row.scroll_depth_avg) || 0), 0) / Math.max((dailyMetrics || []).length, 1));
+
     const content = post.content_md || "";
     let updated = content;
     let changed = false;
+    const actions: string[] = [];
+
+    if (pageviews >= 80 && avgScroll > 0 && avgScroll < 45 && !/## En 30 segundos/i.test(updated)) {
+      updated = `## En 30 segundos\n\n- Qué problema resuelve este tema\n- Qué deberías mirar primero\n- Qué error conviene evitar hoy\n- Qué acción concreta podés tomar ahora\n\n${updated}`;
+      changed = true;
+      actions.push("agregó resumen inicial");
+    }
+
+    if (pageviews >= 80 && avgTime > 0 && avgTime < 75 && !/## Preguntas frecuentes|## FAQ/i.test(updated)) {
+      const keyword = post.primary_keyword || post.title;
+      updated = `${updated.trimEnd()}\n\n## Preguntas frecuentes\n\n### ¿Qué conviene revisar primero sobre ${keyword}?\n\nEmpezá por el cuello de botella principal y evitá dispersarte en mejoras menores.\n\n### ¿Cuándo vale la pena profundizar este tema?\n\nCuando ya hay impacto en visibilidad, tiempo de lectura o conversión asistida y necesitás sostener crecimiento.\n`;
+      changed = true;
+      actions.push("agregó FAQ útil");
+    }
+
+    if (pageviews >= 80 && avgBounce >= 65 && !/## Próximos 3 pasos/i.test(updated)) {
+      updated = `${updated.trimEnd()}\n\n## Próximos 3 pasos\n\n1. Detectá el problema principal.\n2. Elegí una acción concreta para esta semana.\n3. Medí si mejoró lectura, scroll o clic.\n`;
+      changed = true;
+      actions.push("reforzó cierre accionable");
+    }
 
     const currentYear = new Date().getFullYear();
-    if (!content.includes(String(currentYear)) && content.includes(String(currentYear - 1))) {
+    if (!updated.includes(String(currentYear)) && updated.includes(String(currentYear - 1))) {
       updated = updated.replace(new RegExp(String(currentYear - 1), "g"), String(currentYear));
       changed = true;
+      actions.push("actualizó referencias temporales");
     }
 
     if (changed) {
       const snapshot = { content_md: content };
       await supabase.from("blog_posts").update({ content_md: updated, updated_at: new Date().toISOString() }).eq("id", post.id);
-      await logRun(supabase, cycleId, "refresh_micro", "P1", "refreshed", post.id, post.slug, {}, { type: "year_update" }, snapshot);
+      await logRun(
+        supabase,
+        cycleId,
+        "refresh_micro",
+        "P1",
+        "refreshed",
+        post.id,
+        post.slug,
+        { pageviews, avg_time_on_page: avgTime, avg_scroll_depth: avgScroll, avg_bounce_rate: avgBounce },
+        { actions, next_action: avgScroll < 45 ? "Mejorar apertura" : avgBounce >= 65 ? "Refinar cierre y CTA" : "Seguir monitoreando" },
+        snapshot
+      );
       refreshed++;
     }
   }
