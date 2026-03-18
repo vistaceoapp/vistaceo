@@ -2098,6 +2098,11 @@ TAMBIÉN:
       qualityGateReport = runQualityGates(contentMd, selectedTopic.title_base);
       qualityGateReport.issues = [...qualityGateReport.issues, ...fixIssues];
       qualityGateReport.rewrite_attempts = rewriteAttempts;
+      qualityGateReport.opportunity = opportunityModel;
+      qualityGateReport.editorial_brief = editorialBrief;
+      qualityGateReport.headline_lab = headlineLab;
+      qualityGateReport.hypotheses = hypotheses;
+      qualityGateReport.explainability = explainability;
       (qualityGateReport as any).format_id = selectedFormat.id;
       (qualityGateReport as any).format_name = selectedFormat.name;
 
@@ -2187,14 +2192,14 @@ TAMBIÉN:
       .find((line: string) => line.length > 50 && !line.startsWith('#') && !line.startsWith('-') && !line.startsWith('>'))
       ?.slice(0, 160) || selectedTopic.title_base;
 
-    // Smart meta_title: ensure it fits 60 chars WITH suffix
     const suffix = ' | VistaCEO';
+    const baseMetaTitle = (headlineLab.winner as string) || selectedTopic.title_base;
     const maxTitleLen = 60 - suffix.length;
-    const trimmedTitle = selectedTopic.title_base.length > maxTitleLen
-      ? selectedTopic.title_base.slice(0, maxTitleLen - 3) + '...'
-      : selectedTopic.title_base;
+    const trimmedTitle = baseMetaTitle.length > maxTitleLen
+      ? baseMetaTitle.slice(0, maxTitleLen - 3) + '...'
+      : baseMetaTitle;
     const metaTitle = `${trimmedTitle}${suffix}`;
-    const metaDescription = excerpt.slice(0, 155) + (excerpt.length > 155 ? '...' : '');
+    const metaDescription = ((headlineLab.meta_description as string) || excerpt).slice(0, 155) + ((((headlineLab.meta_description as string) || excerpt).length > 155) ? '...' : '');
 
     // Calculate reading time
     const wordCountTotal = contentMd.split(/\s+/).length;
