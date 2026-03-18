@@ -847,37 +847,70 @@ export default function CentroControlPage() {
 
         {/* HISTORIAL */}
         <TabsContent value="historial">
-          <Card>
-            <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Clock className="w-4 h-4" /> Historial completo de acciones</CardTitle></CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[500px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs">Estado</TableHead>
-                      <TableHead className="text-xs">Prioridad</TableHead>
-                      <TableHead className="text-xs">Acción</TableHead>
-                      <TableHead className="text-xs">Nota</TableHead>
-                      <TableHead className="text-xs">Fecha</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(runs || []).slice(0, 100).map(run => (
-                      <TableRow key={run.id}>
-                        <TableCell><StatusIcon status={run.status} /></TableCell>
-                        <TableCell><Badge className={priorityMeta[run.priority]?.color || 'bg-muted'}>{priorityMeta[run.priority]?.label || run.priority}</Badge></TableCell>
-                        <TableCell className="text-sm text-foreground">{translateAction(run.action_type)}</TableCell>
-                        <TableCell className="text-[11px] text-muted-foreground truncate max-w-[150px]">{run.target_slug || '—'}</TableCell>
-                        <TableCell className="text-[11px] text-muted-foreground font-mono">
-                          {new Date(run.created_at).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                        </TableCell>
+          <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-4">
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-sm flex items-center gap-2"><Clock className="w-4 h-4" /> Historial completo de acciones</CardTitle></CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs">Estado</TableHead>
+                        <TableHead className="text-xs">Prioridad</TableHead>
+                        <TableHead className="text-xs">Acción</TableHead>
+                        <TableHead className="text-xs">Nota</TableHead>
+                        <TableHead className="text-xs">Fecha</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {(runs || []).slice(0, 100).map(run => (
+                        <TableRow key={run.id}>
+                          <TableCell><StatusIcon status={run.status} /></TableCell>
+                          <TableCell><Badge className={priorityMeta[run.priority]?.color || 'bg-muted'}>{priorityMeta[run.priority]?.label || run.priority}</Badge></TableCell>
+                          <TableCell className="text-sm text-foreground">{translateAction(run.action_type)}</TableCell>
+                          <TableCell className="text-[11px] text-muted-foreground truncate max-w-[150px]">{run.target_slug || '—'}</TableCell>
+                          <TableCell className="text-[11px] text-muted-foreground font-mono">
+                            {new Date(run.created_at).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-sm">Trazabilidad editorial</CardTitle></CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[500px] pr-2">
+                  <div className="space-y-3">
+                    {(blogRuns || []).slice(0, 6).map((run: any) => {
+                      const report = run.quality_gate_report || {};
+                      const brief = report.editorial_brief || {};
+                      const headlines = report.headline_lab || {};
+                      const opportunity = report.opportunity || {};
+                      return (
+                        <div key={run.id} className="rounded-lg border border-border p-3 space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge variant="outline">{run.result}</Badge>
+                            <span className="text-xs text-muted-foreground">Score final: {report.score ?? '—'} · Oportunidad: {opportunity.score ?? '—'}</span>
+                          </div>
+                          <p className="text-sm text-foreground">{headlines.winner || 'Sin título ganador registrado'}</p>
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            <p><strong className="text-foreground">Keyword principal:</strong> {brief.keyword_principal || '—'}</p>
+                            <p><strong className="text-foreground">Intención:</strong> {brief.intencion_principal || '—'}</p>
+                            <p><strong className="text-foreground">Ángulo:</strong> {brief.angulo_diferencial || '—'}</p>
+                            <p><strong className="text-foreground">Títulos descartados:</strong> {(headlines.discarded_titles || []).slice(0, 3).join(' · ') || '—'}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* LINKEDIN */}
