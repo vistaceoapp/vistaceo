@@ -1993,12 +1993,25 @@ Respondé SOLO con el Markdown, sin H1, sin explicaciones previas.`;
 
     const userPrompt = `Escribí un artículo completo para el blog de VistaCEO.
 
-TÍTULO (ya lo renderiza la página, NO lo incluyas): ${selectedTopic.title_base}
+TÍTULO (ya lo renderiza la página, NO lo incluyas): ${headlineLab.winner}
 
-KEYPHRASE PRINCIPAL: ${selectedTopic.title_base.toLowerCase().replace(/[^a-záéíóúñü\s]/g, '').slice(0, 50)}
+KEYPHRASE PRINCIPAL: ${editorialBrief.keyword_principal}
 
 FORMATO ASIGNADO: "${selectedFormat.name}"
 Secciones obligatorias: ${selectedFormat.sections.join(' → ')}
+
+BRIEF EDITORIAL OBLIGATORIO:
+- Intención principal: ${editorialBrief.intencion_principal}
+- Perfil lector: ${editorialBrief.perfil_lector}
+- Problema concreto: ${editorialBrief.problema_concreto}
+- Promesa exacta: ${editorialBrief.promesa_exacta}
+- Ángulo diferencial: ${editorialBrief.angulo_diferencial}
+- Keywords secundarias: ${(editorialBrief.keywords_secundarias as string[]).join(', ') || 'ninguna'}
+- Entidades semánticas clave: ${(editorialBrief.entidades_semanticas_clave as string[]).join(', ') || 'ninguna'}
+- Enlaces a empujar: ${(editorialBrief.enlaces_a_empujar as string[]).join(', ') || 'ninguno'}
+- Enlaces a recibir: ${(editorialBrief.enlaces_a_recibir as string[]).join(', ') || 'ninguno'}
+- Hipótesis CTR: ${hypotheses.ctr}
+- Hipótesis ranking: ${hypotheses.ranking}
 
 RECORDÁ: REGLA 0 es la MÁS IMPORTANTE:
 - EL 70% del artículo debe ser CONTENIDO SUSTANCIAL: análisis profundo, datos reales, contexto de mercado, casos detallados, insights originales.
