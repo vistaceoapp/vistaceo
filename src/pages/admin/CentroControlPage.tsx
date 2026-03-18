@@ -70,6 +70,17 @@ function useEditorRuns() {
   });
 }
 
+function useBlogRuns() {
+  return useQuery({
+    queryKey: ['cc-blog-runs'],
+    queryFn: async () => {
+      const { data } = await supabase.from('blog_runs').select('*').order('run_at', { ascending: false }).limit(20);
+      return data || [];
+    },
+    refetchInterval: 30000,
+  });
+}
+
 function useExperiments() {
   return useQuery({
     queryKey: ['cc-experiments'],
