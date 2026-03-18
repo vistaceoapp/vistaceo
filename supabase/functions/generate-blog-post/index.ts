@@ -1703,6 +1703,18 @@ serve(async (req) => {
     }
 
     const pillarInfo = PILLARS[selectedTopic.pillar as keyof typeof PILLARS] || { label: selectedTopic.pillar, emoji: '📝' };
+    const cannibalizationRisk = slugSimilarity ? 82 : 18;
+    const opportunityModel = buildOpportunityModel(selectedTopic, samePillarPosts, crossPillarPosts, cannibalizationRisk);
+    const headlineLab = generateHeadlineLab(selectedTopic);
+    const editorialBrief = buildEditorialBrief(selectedTopic, selectedFormat, samePillarPosts, crossPillarPosts);
+    const hypotheses = buildHypotheses(selectedTopic, opportunityModel);
+    const explainability = buildExplainability(selectedTopic, opportunityModel, [
+      'Intent Match Gate',
+      'Originality Gate',
+      'CTR Magnetism Gate',
+      'Interlinking Power Gate',
+      'Zero Embarrassment Gate',
+    ]);
 
     // PATCH V7 System Prompt - CONTENIDO REAL + SEO PREMIUM
     const systemPrompt = `Sos un editor senior de contenido SEO para VistaCEO. Tu objetivo es generar artículos que:
