@@ -447,12 +447,68 @@ export default function CentroControlPage() {
                 ].map(s => (
                   <div key={s.label} className="flex items-center justify-between py-1.5">
                     <div className="flex items-center gap-2">
-                      {s.ok ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />}
+                      {s.ok ? <CheckCircle className="w-3.5 h-3.5 text-primary" /> : <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground" />}
                       <span className="text-sm text-foreground">{s.label}</span>
                     </div>
                     <span className="text-xs text-muted-foreground">{s.detail}</span>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-sm">Decisiones editoriales recientes</CardTitle></CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(blogRuns || []).slice(0, 4).map((run: any) => {
+                    const report = run.quality_gate_report || {};
+                    const opportunity = report.opportunity || {};
+                    const explainability = report.explainability || {};
+                    const hypotheses = report.hypotheses || {};
+                    return (
+                      <div key={run.id} className="rounded-lg border border-border p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <Badge variant="outline">{run.result}</Badge>
+                          <span className="text-xs text-muted-foreground">Opportunity Score: {opportunity.score ?? '—'}</span>
+                        </div>
+                        <p className="text-sm text-foreground">{explainability.why_topic_chosen || 'Sin explicación registrada.'}</p>
+                        <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground">
+                          <span><strong className="text-foreground">Hipótesis CTR:</strong> {hypotheses.ctr || '—'}</span>
+                          <span><strong className="text-foreground">Hipótesis ranking:</strong> {hypotheses.ranking || '—'}</span>
+                          <span><strong className="text-foreground">Qué se espera medir:</strong> {(explainability.expected_to_measure || []).join(', ') || '—'}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-sm">Aprendizaje post-publicación</CardTitle></CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(runs || []).filter((run: any) => run.action_type === 'refresh_micro').slice(0, 4).map((run: any) => (
+                    <div key={run.id} className="rounded-lg border border-border p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-medium text-foreground">{run.target_slug || 'Post sin slug'}</span>
+                        <Badge variant="outline">Refresh</Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                        <span>Pageviews: {run.action_details?.pageviews ?? '—'}</span>
+                        <span>Scroll: {run.action_details?.avg_scroll_depth ?? '—'}%</span>
+                        <span>Tiempo: {run.action_details?.avg_time_on_page ?? '—'}s</span>
+                        <span>Rebote: {run.action_details?.avg_bounce_rate ?? '—'}%</span>
+                      </div>
+                      <p className="text-xs text-foreground">Próxima acción: {run.result?.next_action || 'Seguir monitoreando'}</p>
+                    </div>
+                  ))}
+                  {(!(runs || []).some((run: any) => run.action_type === 'refresh_micro')) && (
+                    <p className="text-sm text-muted-foreground">Todavía no hay aprendizajes post-publicación registrados.</p>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>
