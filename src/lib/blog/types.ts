@@ -113,9 +113,69 @@ export interface QualityGateReport {
     unique_value?: boolean;
     intent_coherence?: boolean;
     editorial_review?: boolean;
+    [key: string]: boolean | undefined;
   };
   issues?: string[];
   timestamp?: string;
+  rewrite_attempts?: number;
+  opportunity?: {
+    score?: number;
+    status?: string;
+    reason?: string;
+    demand_potential?: number;
+    brand_fit?: number;
+    ctr_potential?: number;
+    ranking_potential?: number;
+    engagement_potential?: number;
+    conversion_assist?: number;
+    cluster_power?: number;
+    differentiation?: number;
+    freshness_potential?: number;
+    cannibalization_risk?: number;
+  };
+  editorial_brief?: {
+    keyword_principal?: string;
+    keywords_secundarias?: string[];
+    entidades_semanticas_clave?: string[];
+    intencion_principal?: string;
+    intenciones_secundarias?: string[];
+    perfil_lector?: string;
+    problema_concreto?: string;
+    promesa_exacta?: string;
+    angulo_diferencial?: string;
+    estructura_ideal?: string[];
+    nivel_profundidad?: string;
+    tipo_de_pieza?: string;
+    cta_ideal?: string;
+    enlaces_a_empujar?: string[];
+    enlaces_a_recibir?: string[];
+    oportunidades?: Record<string, boolean | string>;
+  };
+  headline_lab?: {
+    winner?: string;
+    winner_reason?: string;
+    meta_description?: string;
+    seo_titles?: string[];
+    emotional_titles?: string[];
+    specific_titles?: string[];
+    curiosity_titles?: string[];
+    business_titles?: string[];
+    pain_titles?: string[];
+    discarded_titles?: string[];
+  };
+  hypotheses?: {
+    ctr?: string;
+    ranking?: string;
+    engagement?: string;
+    next_action?: string;
+  };
+  explainability?: {
+    why_topic_chosen?: string;
+    why_rejected?: string | null;
+    expected_to_measure?: string[];
+    gate_focus?: string[];
+  };
+  [key: string]: unknown;
 }
 
 export const PILLARS = {
