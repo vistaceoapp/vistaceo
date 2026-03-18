@@ -195,6 +195,7 @@ export default function CentroControlPage() {
   const { data: issues } = useIssues();
   const { data: tasks } = useTasks();
   const { data: runs } = useEditorRuns();
+  const { data: blogRuns } = useBlogRuns();
   const { data: experiments } = useExperiments();
   const { data: ctaBlocks } = useCTABlocks();
   const { data: edges } = useClusterEdges();
