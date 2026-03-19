@@ -684,6 +684,217 @@ function buildExplainability(topic: any, opportunity: any, qualityGateFocus: str
   };
 }
 
+const LEGACY_UNIVERSAL_SECTIONS = [
+  'En 2 minutos',
+  'Para quién es (y para quién no)',
+  'La idea clave',
+  'Qué cambia en la práctica',
+  'Próximos 3 pasos',
+  'Para profundizar',
+];
+
+const GENERIC_FAQ_HEADING_PATTERNS = [
+  /^###\s+¿Qué es .*\?\s*$/i,
+  /^###\s+¿Cómo empezar con .*\?\s*$/i,
+  /^###\s+¿Necesito herramientas especiales\?\s*$/i,
+];
+
+function tokenizeMeaningful(text: string): string[] {
+  const stopwords = new Set(['para', 'como', 'esta', 'este', 'esto', 'desde', 'sobre', 'entre', 'porque', 'donde', 'vista', 'vistaceo', 'blog', 'guia']);
+  const matches = text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .match(/[a-z0-9]+/g) || [];
+
+  return [...new Set(matches.filter(token => token.length > 3 && !stopwords.has(token)))];
+}
+
+function computeTokenOverlap(a: string, b: string): number {
+  const aTokens = tokenizeMeaningful(a);
+  const bTokens = new Set(tokenizeMeaningful(b));
+  if (aTokens.length === 0) return 1;
+  return aTokens.filter(token => bTokens.has(token)).length / aTokens.length;
+}
+
+function buildAlignedMetaTitle(editorialTitle: string, seoCandidate?: string | null): string {
+  const cleanEditorial = editorialTitle.trim();
+  const cleanCandidate = (seoCandidate || '').trim();
+  const chosen = cleanCandidate && computeTokenOverlap(cleanEditorial, cleanCandidate) >= 0.45
+    ? cleanCandidate
+    : cleanEditorial;
+
+  if (chosen.length <= 58) return chosen;
+  return `${chosen.slice(0, 55).replace(/\s+\S*$/, '').trim()}...`;
+}
+
+function buildStrictMetaDescription(editorialTitle: string, brief: any, fallback: string): string {
+  const audience = 'PyMEs, líderes y equipos de LATAM';
+  const differentiator = /latam/i.test(brief?.angulo_diferencial || '')
+    ? 'con criterio práctico y contexto LATAM.'
+    : 'con ejemplos reales y criterio accionable.';
+
+  let description = `${editorialTitle}: guía clara para ${audience}, ${differentiator}`;
+
+  if (description.length < 140) {
+    description = `${description} Aprendé qué mirar primero, qué evitar y cómo decidir mejor.`;
+  }
+
+  if (description.length > 155) {
+    description = `${description.slice(0, 152).replace(/\s+\S*$/, '').trim()}...`;
+  }
+
+  if (description.length < 120) {
+    const cleanFallback = fallback.replace(/\s+/g, ' ').trim();
+    description = `${description} ${cleanFallback}`.slice(0, 155).trim();
+  }
+
+  return description;
+}
+
+function detectLegacyTemplateHits(content: string): string[] {
+  return LEGACY_UNIVERSAL_SECTIONS.filter(section => {
+    const escaped = section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`^##\\s+${escaped}\\s*$`, 'gim').test(content);
+  });
+}
+
+function normalizeHeadingLabel(heading: string): string {
+  return heading
+    .replace(/^#{2,3}\s+/, '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function calculateTemplateEntropyScore(content: string): number {
+  const headings = (content.match(/^##\s+.+$/gm) || []).map(normalizeHeadingLabel);
+  const headingCounts = headings.reduce<Record<string, number>>((acc, heading) => {
+    acc[heading] = (acc[heading] || 0) + 1;
+    return acc;
+  }, {});
+  const duplicateHeadingGroups = Object.values(headingCounts).filter(count => count > 1).length;
+  const legacyHits = detectLegacyTemplateHits(content).length;
+  const faqSections = (content.match(/^##\s+(?:Preguntas frecuentes|FAQ)\s*$/gim) || []).length;
+
+  return clampScore(100 - legacyHits * 14 - duplicateHeadingGroups * 18 - Math.max(0, faqSections - 1) * 18);
+}
+
+function removeMarkdownSectionByHeading(content: string, headingText: string): string {
+  const target = normalizeHeadingLabel(`## ${headingText}`);
+  const lines = content.split('\n');
+  const result: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    if (normalizeHeadingLabel(lines[i]) === target) {
+      i += 1;
+      while (i < lines.length && !/^##\s+/.test(lines[i])) {
+        i += 1;
+      }
+      i -= 1;
+      continue;
+    }
+    result.push(lines[i]);
+  }
+
+  return result.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function removeDuplicateFaqSections(content: string): string {
+  const lines = content.split('\n');
+  const result: string[] = [];
+  let faqSeen = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (/^##\s+(?:Preguntas frecuentes|FAQ)\s*$/i.test(lines[i].trim())) {
+      if (faqSeen) {
+        i += 1;
+        while (i < lines.length && !/^##\s+/.test(lines[i])) {
+          i += 1;
+        }
+        i -= 1;
+        continue;
+      }
+      faqSeen = true;
+    }
+    result.push(lines[i]);
+  }
+
+  return result.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function stripRepeatedGenericFaqBlocks(content: string): { content: string; removed: number } {
+  const lines = content.split('\n');
+  const totalGeneric = lines.filter(line => GENERIC_FAQ_HEADING_PATTERNS.some(pattern => pattern.test(line.trim()))).length;
+  if (totalGeneric <= 1) return { content, removed: 0 };
+
+  const result: string[] = [];
+  let removed = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    if (GENERIC_FAQ_HEADING_PATTERNS.some(pattern => pattern.test(trimmed))) {
+      i += 1;
+      while (i < lines.length && !/^###\s+/.test(lines[i]) && !/^##\s+/.test(lines[i])) {
+        i += 1;
+      }
+      i -= 1;
+      removed += 1;
+      continue;
+    }
+    result.push(lines[i]);
+  }
+
+  return {
+    content: result.join('\n').replace(/\n{3,}/g, '\n\n').trim(),
+    removed,
+  };
+}
+
+function removeEmptyFaqSections(content: string): string {
+  const lines = content.split('\n');
+  const result: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    if (/^##\s+(?:Preguntas frecuentes|FAQ)\s*$/i.test(lines[i].trim())) {
+      const blockLines = [lines[i]];
+      i += 1;
+      while (i < lines.length && !/^##\s+/.test(lines[i])) {
+        blockLines.push(lines[i]);
+        i += 1;
+      }
+      i -= 1;
+
+      if (blockLines.some(line => /^###\s+/.test(line.trim()))) {
+        result.push(...blockLines);
+      }
+      continue;
+    }
+
+    result.push(lines[i]);
+  }
+
+  return result.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function getJustifiedOptionalModules(topic: any, format: ArticleFormat): string[] {
+  const text = `${topic?.title_base || ''} ${topic?.intent || ''} ${format?.id || ''}`.toLowerCase();
+  const modules = new Set<string>();
+
+  if (/vs|compar|alternativ|elegir|opcion/.test(text)) modules.add('comparativa');
+  if (/problema|diagnostic|error|falla|riesgo/.test(text)) modules.add('diagnóstico');
+  if (/como|paso a paso|implementar|configurar|operacion/.test(text)) modules.add('pasos accionables');
+  if (/checklist|auditoria|verificar/.test(text)) modules.add('checklist');
+  if (/plantilla|modelo|template|recurso/.test(text)) modules.add('plantilla');
+  if (/caso|ejemplo|resultado/.test(text)) modules.add('caso práctico');
+
+  if (modules.size === 0) modules.add('ningún módulo extra fijo');
+  return [...modules];
+}
+
 function hashStringToInt(input: string): number {
   // Simple stable hash (djb2)
   let hash = 5381;
