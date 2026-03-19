@@ -1898,6 +1898,7 @@ serve(async (req) => {
     }
     
     let selectedFormat = selectFormatForTopic(selectedTopic, recentFormats);
+    const justifiedOptionalModules = getJustifiedOptionalModules(selectedTopic, selectedFormat);
     
     // vInfinity CAPA 9: Block 3 consecutive same format
     if (recentFormats.length >= 2 && recentFormats[0] === recentFormats[1] && recentFormats[0] === selectedFormat.id) {
