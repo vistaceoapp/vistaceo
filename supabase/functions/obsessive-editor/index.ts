@@ -131,24 +131,32 @@ Deno.serve(async (req) => {
 // PHASE: SCAN — Detect ALL issues across ALL posts
 // ═══════════════════════════════════════════════════════════
 async function phaseScan(supabase: any, cycleId: string) {
-  console.log(`[OE4:Scan] Scanning ALL posts...`);
+  console.log(`[OE4:Scan] Scanning recent posts (limit 25)...`);
 
   const { data: posts } = await supabase
     .from("blog_posts")
     .select("id, slug, title, content_md, excerpt, hero_image_url, meta_title, meta_description, category, primary_keyword, pillar, publish_at, updated_at, internal_links, schema_jsonld")
     .eq("status", "published")
-    .order("publish_at", { ascending: false });
+    .order("publish_at", { ascending: false })
+    .limit(25);
 
   if (!posts?.length) return { scanned: 0, issues: 0 };
 
+  // Get all slugs for link validation (lightweight query)
+  const { data: allSlugRows } = await supabase
+    .from("blog_posts")
+    .select("slug")
+    .eq("status", "published");
+  const allSlugs = (allSlugRows || []).map((p: any) => p.slug);
+
   let issuesFound = 0;
-  const allSlugs = posts.map((p: any) => p.slug);
 
   for (const post of posts) {
     const issues = scanPost(post, allSlugs);
     if (issues.length > 0) {
       issuesFound += issues.length;
-      for (const issue of issues) {
+      // Batch log — max 5 issues per post to avoid excessive writes
+      for (const issue of issues.slice(0, 5)) {
         await logRun(supabase, cycleId, `scan_${issue.type}`, issue.priority, "detected", post.id, post.slug, { issue_type: issue.type, description: issue.description }, {});
       }
     }
@@ -400,9 +408,9 @@ async function phaseFixAll(supabase: any, cycleId: string) {
         if (related.length > 0) anyFixed = true;
       }
       if (t === "missing_faq") {
-        const keyword = post.primary_keyword || post.title;
-        content = content.trimEnd() + `\n\n## Preguntas frecuentes\n\n### ¿Qué es ${keyword}?\n\nEs un concepto clave para profesionales y dueños de negocio que buscan crecer de forma sostenible en su industria.\n\n### ¿Cómo empezar con ${keyword}?\n\nEl primer paso es evaluar tu situación actual. Usá los criterios de esta guía para identificar dónde estás y qué necesitás mejorar primero.\n\n### ¿Necesito herramientas especiales?\n\nNo necesariamente. Muchas de las estrategias que describimos se pueden implementar con herramientas gratuitas o de bajo costo.\n`;
-        anyFixed = true;
+        // Skip — do NOT inject generic FAQs. AI-generated content should already have contextual FAQs.
+        // Generic FAQs like "¿Qué es X?" damage quality and create duplicate patterns.
+        anyFixed = false;
       }
 
       // ═══ P4 FIXES ═══
@@ -444,7 +452,7 @@ async function phaseUpdateScores(supabase: any, cycleId: string) {
     .from("blog_content_registry")
     .select("id, post_id, url, score_global")
     .order("score_global", { ascending: true, nullsFirst: true })
-    .limit(100);
+    .limit(25);
 
   if (!registryItems?.length) return { updated: 0 };
 
