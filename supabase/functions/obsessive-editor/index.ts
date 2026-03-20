@@ -408,9 +408,9 @@ async function phaseFixAll(supabase: any, cycleId: string) {
         if (related.length > 0) anyFixed = true;
       }
       if (t === "missing_faq") {
-        const keyword = post.primary_keyword || post.title;
-        content = content.trimEnd() + `\n\n## Preguntas frecuentes\n\n### ¿Qué es ${keyword}?\n\nEs un concepto clave para profesionales y dueños de negocio que buscan crecer de forma sostenible en su industria.\n\n### ¿Cómo empezar con ${keyword}?\n\nEl primer paso es evaluar tu situación actual. Usá los criterios de esta guía para identificar dónde estás y qué necesitás mejorar primero.\n\n### ¿Necesito herramientas especiales?\n\nNo necesariamente. Muchas de las estrategias que describimos se pueden implementar con herramientas gratuitas o de bajo costo.\n`;
-        anyFixed = true;
+        // Skip — do NOT inject generic FAQs. AI-generated content should already have contextual FAQs.
+        // Generic FAQs like "¿Qué es X?" damage quality and create duplicate patterns.
+        anyFixed = false;
       }
 
       // ═══ P4 FIXES ═══
