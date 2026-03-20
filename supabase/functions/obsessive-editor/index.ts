@@ -452,7 +452,7 @@ async function phaseUpdateScores(supabase: any, cycleId: string) {
     .from("blog_content_registry")
     .select("id, post_id, url, score_global")
     .order("score_global", { ascending: true, nullsFirst: true })
-    .limit(100);
+    .limit(25);
 
   if (!registryItems?.length) return { updated: 0 };
 
