@@ -1580,7 +1580,7 @@ function runQualityGates(content: string, title: string): QualityGateReport {
   return report;
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
