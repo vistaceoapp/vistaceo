@@ -161,7 +161,9 @@ export default function BlogAdminPage() {
   const generatePost = async () => {
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-blog-post');
+      const { data, error } = await supabase.functions.invoke('generate-blog-post', {
+        body: { force: true }
+      });
       if (error) throw error;
       
       if (data.skipped) {
