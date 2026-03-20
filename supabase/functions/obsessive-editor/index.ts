@@ -131,24 +131,32 @@ Deno.serve(async (req) => {
 // PHASE: SCAN — Detect ALL issues across ALL posts
 // ═══════════════════════════════════════════════════════════
 async function phaseScan(supabase: any, cycleId: string) {
-  console.log(`[OE4:Scan] Scanning ALL posts...`);
+  console.log(`[OE4:Scan] Scanning recent posts (limit 25)...`);
 
   const { data: posts } = await supabase
     .from("blog_posts")
     .select("id, slug, title, content_md, excerpt, hero_image_url, meta_title, meta_description, category, primary_keyword, pillar, publish_at, updated_at, internal_links, schema_jsonld")
     .eq("status", "published")
-    .order("publish_at", { ascending: false });
+    .order("publish_at", { ascending: false })
+    .limit(25);
 
   if (!posts?.length) return { scanned: 0, issues: 0 };
 
+  // Get all slugs for link validation (lightweight query)
+  const { data: allSlugRows } = await supabase
+    .from("blog_posts")
+    .select("slug")
+    .eq("status", "published");
+  const allSlugs = (allSlugRows || []).map((p: any) => p.slug);
+
   let issuesFound = 0;
-  const allSlugs = posts.map((p: any) => p.slug);
 
   for (const post of posts) {
     const issues = scanPost(post, allSlugs);
     if (issues.length > 0) {
       issuesFound += issues.length;
-      for (const issue of issues) {
+      // Batch log — max 5 issues per post to avoid excessive writes
+      for (const issue of issues.slice(0, 5)) {
         await logRun(supabase, cycleId, `scan_${issue.type}`, issue.priority, "detected", post.id, post.slug, { issue_type: issue.type, description: issue.description }, {});
       }
     }
