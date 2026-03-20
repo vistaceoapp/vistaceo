@@ -1986,7 +1986,7 @@ Entidades a mencionar (5-12):
 - Conceptos que Google entiende como "tema"
 
 ═══════════════════════════════════════════════════════════════
-REGLA 2: ESTRUCTURA WOW QUE RETIENE
+REGLA 2: ESTRUCTURA SEGÚN FORMATO ASIGNADO
 ═══════════════════════════════════════════════════════════════
 
 **INTRO (70-110 palabras):**
@@ -1995,101 +1995,27 @@ REGLA 2: ESTRUCTURA WOW QUE RETIENE
 - Keyphrase natural (1 vez)
 - 1 frase de contexto LATAM
 
----
+**CUERPO:**
+Seguí EXCLUSIVAMENTE la estructura del FORMATO ASIGNADO (indicado abajo).
+NO uses secciones genéricas como "En 2 minutos", "Para quién es", "La idea clave", "Qué cambia en la práctica" o "Próximos 3 pasos".
+Cada artículo DEBE sentirse estructuralmente DIFERENTE a los anteriores.
 
-## En 2 minutos
+El cuerpo debe tener 6-10 H2, mayoritariamente contenido sustancial:
+- Análisis profundo con datos, contexto y ejemplos
+- Cada sección con una idea clara y desarrollo real
+- Alternar párrafos cortos con secciones más detalladas
 
-5 bullets ejecutivos:
-- Bullet 1: respuesta directa al problema
-- Bullet 2: dato o insight clave
-- Bullet 3: acción inmediata posible
-- Bullet 4: beneficio claro y medible
-- Bullet 5: lo que diferencia este enfoque
+**FAQ (opcional, solo si aporta):**
+- 3-5 preguntas REALES que la gente busca sobre ESTE tema específico
+- NUNCA preguntas genéricas tipo "¿Qué es X?" o "¿Necesito herramientas especiales?"
+- Cada pregunta debe ser única y específica al tema tratado
+- Respuestas directas de 30-50 palabras
 
----
+**CIERRE:**
+- Un párrafo de cierre fuerte con acción concreta
+- CTA VistaCEO sutil si aplica
 
-## Para quién es (y para quién no)
-
-**Esto es para vos si:**
-- Criterio 1 específico
-- Criterio 2 específico
-
-**Quizás no es para vos si:**
-- Criterio negativo 1
-- Criterio negativo 2
-
----
-
-## La idea clave
-
-> Una frase memorable que resume todo el artículo. Google ama la claridad temática.
-
----
-
-**CUERPO (6-10 H2 obligatorios, MAYORITARIAMENTE contenido sustancial):**
-
-## Por qué importa ahora en LATAM
-(3-5 párrafos de CONTENIDO REAL: contexto económico, datos de mercado, cambios recientes, por qué este tema es urgente HOY en la región. Cifras, estudios, tendencias.)
-
-## El panorama completo: qué dice la evidencia
-(Análisis profundo con datos, estudios, reportes. Comparación de enfoques. Qué funciona y qué no según la experiencia de empresas reales.)
-
-## Qué cambia en la práctica
-(Con 2-3 ejemplos reales detallados: contexto, decisión, resultado, aprendizaje)
-
-## Análisis estratégico: las variables que importan
-(Profundizar en los factores clave, relaciones causa-efecto, trade-offs, decisiones difíciles. Este es el corazón del artículo.)
-
-## Cómo implementarlo: guía paso a paso
-Paso 1: Acción específica (con contexto de por qué)
-Paso 2: Acción específica
-Paso 3: Acción específica
-
-## Errores que cuestan caro (y cómo evitarlos)
-
-**Error 1:** Descripción detallada del error con contexto real
-→ **Por qué pasa:** Explicación de la causa raíz
-→ **Qué hacer:** Solución concreta
-
-**Error 2:** (mismo formato)
-
-## Herramienta práctica (elegí UNA: checklist, plantilla o autoevaluación)
-
-(Solo UNA herramienta complementaria, no las tres. Elegí la más útil para este tema específico.)
-
----
-
-## Preguntas frecuentes
-
-### ¿Pregunta 1 real que la gente busca?
-
-Respuesta directa en 30-50 palabras. Sin rodeos.
-
-### ¿Pregunta 2 real que la gente busca?
-
-Respuesta directa en 30-50 palabras. Sin rodeos.
-
-### ¿Pregunta 3 real que la gente busca?
-
-Respuesta directa en 30-50 palabras. Sin rodeos.
-
-### ¿Pregunta 4 real que la gente busca?
-
-Respuesta directa en 30-50 palabras. Sin rodeos.
-
----
-
-## Próximos 3 pasos
-
-1. **HOY:** Acción específica para hacer ahora mismo
-2. **ESTA SEMANA:** Acción de seguimiento
-3. **PROFUNDIZAR:** Recurso o herramienta recomendada
-
----
-
-## Para profundizar
-
-Links externos de autoridad:
+**LINKS EXTERNOS:**
 ${pillarSources.map(s => `- [${s.title}](${s.url})`).join('\n')}
 
 ═══════════════════════════════════════════════════════════════
