@@ -13,9 +13,24 @@ import {
   Brain, Activity, TrendingUp, Shield, Eye, Search,
   RefreshCw, Zap, CheckCircle, AlertTriangle, XCircle,
   Loader2, FileText, Network, Megaphone, Clock,
-  BarChart3, Globe, Target, Sparkles, Linkedin
+  BarChart3, Globe, Target, Sparkles, Linkedin, ShieldCheck
 } from 'lucide-react';
 import LinkedInCopyTab from './blog-os/LinkedInCopyTab';
+
+// Production Truth Audit types
+interface PTAuditResult {
+  slug: string;
+  title: string;
+  category: string | null;
+  production_truth_score: number;
+  status: string;
+  resumen: string;
+  hallazgos: string[];
+  impacto: string[];
+  accion_pendiente: string | null;
+  proximo_paso: string;
+  checks: Array<{ id: string; name: string; passed: boolean; severity: string; detail: string }>;
+}
 
 // ── Data Hooks ──
 
