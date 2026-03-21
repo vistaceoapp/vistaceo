@@ -332,6 +332,18 @@ export default function CentroControlPage() {
     finally { setIndexing(false); }
   };
 
+  const triggerProductionTruthAudit = async () => {
+    setAuditingTruth(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('production-truth-audit', { body: { limit: 20, mode: 'scan' } });
+      if (error) throw error;
+      setTruthResults(data?.results || []);
+      const avg = data?.average_score || 0;
+      toast.success(`Auditoría de producción: Score promedio ${avg} — ${data?.results?.length || 0} notas auditadas`);
+    } catch (err: any) { toast.error(err.message); }
+    finally { setAuditingTruth(false); }
+  };
+
   // Realtime
   useEffect(() => {
     const ch = supabase.channel('cc-live')
