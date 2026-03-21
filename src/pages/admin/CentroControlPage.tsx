@@ -384,6 +384,10 @@ export default function CentroControlPage() {
             {indexing ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Globe className="w-3.5 h-3.5 mr-1.5" />}
             Indexar
           </Button>
+          <Button variant="outline" size="sm" onClick={triggerProductionTruthAudit} disabled={auditingTruth}>
+            {auditingTruth ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />}
+            Verdad
+          </Button>
           <Button size="sm" onClick={triggerCycle} disabled={running}>
             {running ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 mr-1.5" />}
             Ejecutar ciclo
