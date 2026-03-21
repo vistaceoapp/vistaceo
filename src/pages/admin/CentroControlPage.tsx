@@ -218,6 +218,8 @@ export default function CentroControlPage() {
   const [running, setRunning] = useState(false);
   const [refreshingImages, setRefreshingImages] = useState(false);
   const [indexing, setIndexing] = useState(false);
+  const [auditingTruth, setAuditingTruth] = useState(false);
+  const [truthResults, setTruthResults] = useState<PTAuditResult[]>([]);
 
   const today = todayStr();
   const todayRuns = useMemo(() => (runs || []).filter(r => r.created_at?.startsWith(today)), [runs, today]);
