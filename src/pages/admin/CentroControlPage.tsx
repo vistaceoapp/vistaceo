@@ -13,9 +13,24 @@ import {
   Brain, Activity, TrendingUp, Shield, Eye, Search,
   RefreshCw, Zap, CheckCircle, AlertTriangle, XCircle,
   Loader2, FileText, Network, Megaphone, Clock,
-  BarChart3, Globe, Target, Sparkles, Linkedin
+  BarChart3, Globe, Target, Sparkles, Linkedin, ShieldCheck
 } from 'lucide-react';
 import LinkedInCopyTab from './blog-os/LinkedInCopyTab';
+
+// Production Truth Audit types
+interface PTAuditResult {
+  slug: string;
+  title: string;
+  category: string | null;
+  production_truth_score: number;
+  status: string;
+  resumen: string;
+  hallazgos: string[];
+  impacto: string[];
+  accion_pendiente: string | null;
+  proximo_paso: string;
+  checks: Array<{ id: string; name: string; passed: boolean; severity: string; detail: string }>;
+}
 
 // ── Data Hooks ──
 
@@ -203,6 +218,8 @@ export default function CentroControlPage() {
   const [running, setRunning] = useState(false);
   const [refreshingImages, setRefreshingImages] = useState(false);
   const [indexing, setIndexing] = useState(false);
+  const [auditingTruth, setAuditingTruth] = useState(false);
+  const [truthResults, setTruthResults] = useState<PTAuditResult[]>([]);
 
   const today = todayStr();
   const todayRuns = useMemo(() => (runs || []).filter(r => r.created_at?.startsWith(today)), [runs, today]);
@@ -315,6 +332,18 @@ export default function CentroControlPage() {
     finally { setIndexing(false); }
   };
 
+  const triggerProductionTruthAudit = async () => {
+    setAuditingTruth(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('production-truth-audit', { body: { limit: 20, mode: 'scan' } });
+      if (error) throw error;
+      setTruthResults(data?.results || []);
+      const avg = data?.average_score || 0;
+      toast.success(`Auditoría de producción: Score promedio ${avg} — ${data?.results?.length || 0} notas auditadas`);
+    } catch (err: any) { toast.error(err.message); }
+    finally { setAuditingTruth(false); }
+  };
+
   // Realtime
   useEffect(() => {
     const ch = supabase.channel('cc-live')
@@ -354,6 +383,10 @@ export default function CentroControlPage() {
           <Button variant="outline" size="sm" onClick={triggerMegaIndex} disabled={indexing}>
             {indexing ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Globe className="w-3.5 h-3.5 mr-1.5" />}
             Indexar
+          </Button>
+          <Button variant="outline" size="sm" onClick={triggerProductionTruthAudit} disabled={auditingTruth}>
+            {auditingTruth ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />}
+            Verdad
           </Button>
           <Button size="sm" onClick={triggerCycle} disabled={running}>
             {running ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 mr-1.5" />}
@@ -401,6 +434,7 @@ export default function CentroControlPage() {
           <TabsTrigger value="conversion" className="text-xs"><Target className="w-3.5 h-3.5 mr-1" /> CRO</TabsTrigger>
           <TabsTrigger value="historial" className="text-xs"><Clock className="w-3.5 h-3.5 mr-1" /> Historial</TabsTrigger>
           <TabsTrigger value="linkedin" className="text-xs"><Linkedin className="w-3.5 h-3.5 mr-1" /> LinkedIn</TabsTrigger>
+          <TabsTrigger value="verdad" className="text-xs"><ShieldCheck className="w-3.5 h-3.5 mr-1" /> Verdad</TabsTrigger>
         </TabsList>
 
         {/* RESUMEN */}
@@ -916,6 +950,99 @@ export default function CentroControlPage() {
         {/* LINKEDIN */}
         <TabsContent value="linkedin">
           <LinkedInCopyTab />
+        </TabsContent>
+
+        {/* VERDAD DE PRODUCCIÓN */}
+        <TabsContent value="verdad">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-primary" /> Production Truth Audit
+                </CardTitle>
+                <Button size="sm" variant="outline" onClick={triggerProductionTruthAudit} disabled={auditingTruth}>
+                  {auditingTruth ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />}
+                  Auditar producción
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Verifica la realidad publicada: repeticiones, plantillas, FAQs genéricas, canibalización, snippet risk y más.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {truthResults.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-12">
+                  Hacé clic en "Auditar producción" para verificar las notas publicadas.
+                </p>
+              ) : (
+                <ScrollArea className="h-[600px]">
+                  <div className="space-y-3">
+                    {truthResults.map((result, idx) => {
+                      const statusColors: Record<string, string> = {
+                        apta: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/20 dark:text-emerald-400',
+                        apta_con_observaciones: 'bg-blue-500/15 text-blue-600 border-blue-500/20 dark:text-blue-400',
+                        riesgo_medio: 'bg-amber-500/15 text-amber-600 border-amber-500/20 dark:text-amber-400',
+                        riesgo_alto: 'bg-orange-500/15 text-orange-600 border-orange-500/20 dark:text-orange-400',
+                        critica: 'bg-destructive/15 text-destructive border-destructive/20',
+                      };
+                      const statusLabels: Record<string, string> = {
+                        apta: '✅ Apta',
+                        apta_con_observaciones: '🔵 Apta con observaciones',
+                        riesgo_medio: '⚠️ Riesgo medio',
+                        riesgo_alto: '🟠 Riesgo alto',
+                        critica: '🔴 Crítica',
+                      };
+                      return (
+                        <div key={idx} className="rounded-xl border border-border p-4 space-y-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-foreground truncate">{result.title}</p>
+                              <p className="text-[10px] text-muted-foreground">{result.slug} · {result.category}</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Badge className={statusColors[result.status] || 'bg-muted'}>
+                                {statusLabels[result.status] || result.status}
+                              </Badge>
+                              {scoreBadge(result.production_truth_score)}
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-foreground">{result.resumen}</p>
+
+                          {result.hallazgos.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Hallazgos</p>
+                              {result.hallazgos.map((h, i) => (
+                                <p key={i} className="text-xs text-foreground pl-2 border-l-2 border-amber-500/30">{h}</p>
+                              ))}
+                            </div>
+                          )}
+
+                          {result.accion_pendiente && (
+                            <p className="text-xs text-muted-foreground"><strong className="text-foreground">Acción pendiente:</strong> {result.accion_pendiente}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground"><strong className="text-foreground">Próximo paso:</strong> {result.proximo_paso}</p>
+
+                          <div className="flex flex-wrap gap-1.5">
+                            {result.checks.map(check => (
+                              <Badge
+                                key={check.id}
+                                variant="outline"
+                                className={`text-[9px] ${check.passed ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : check.severity === 'critical' ? 'text-destructive border-destructive/20' : 'text-amber-600 dark:text-amber-400 border-amber-500/20'}`}
+                                title={check.detail}
+                              >
+                                {check.passed ? '✓' : '✗'} {check.id}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

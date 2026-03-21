@@ -2629,13 +2629,31 @@ TAMBIÉN:
       }
     };
 
+    // Trigger production truth audit on the new post
+    const triggerProductionTruthAudit = async () => {
+      try {
+        console.log('[generate-blog-post] Triggering production truth audit for:', postSlug);
+        await fetch(`${supabaseUrl}/functions/v1/production-truth-audit`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ slug: postSlug, limit: 1, mode: 'single' }),
+        });
+      } catch (error) {
+        console.error('[generate-blog-post] Production truth audit error:', error);
+      }
+    };
+
     // Fire all tasks in parallel - don't await
     Promise.all([
       triggerOGGeneration().catch(err => console.error('[generate-blog-post] OG background error:', err)),
       triggerLinkedInPublish().catch(err => console.error('[generate-blog-post] LinkedIn background error:', err)),
       triggerSiteDeploy().catch(err => console.error('[generate-blog-post] Deploy background error:', err)),
       triggerSEOIndexer().catch(err => console.error('[generate-blog-post] SEO background error:', err)),
-      triggerPostPublishInterlinking().catch(err => console.error('[generate-blog-post] Interlinking background error:', err))
+      triggerPostPublishInterlinking().catch(err => console.error('[generate-blog-post] Interlinking background error:', err)),
+      triggerProductionTruthAudit().catch(err => console.error('[generate-blog-post] Truth audit background error:', err))
     ]);
 
     return new Response(JSON.stringify({
