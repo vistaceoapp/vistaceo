@@ -951,6 +951,99 @@ export default function CentroControlPage() {
         <TabsContent value="linkedin">
           <LinkedInCopyTab />
         </TabsContent>
+
+        {/* VERDAD DE PRODUCCIÓN */}
+        <TabsContent value="verdad">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-primary" /> Production Truth Audit
+                </CardTitle>
+                <Button size="sm" variant="outline" onClick={triggerProductionTruthAudit} disabled={auditingTruth}>
+                  {auditingTruth ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />}
+                  Auditar producción
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Verifica la realidad publicada: repeticiones, plantillas, FAQs genéricas, canibalización, snippet risk y más.
+              </p>
+            </CardHeader>
+            <CardContent>
+              {truthResults.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-12">
+                  Hacé clic en "Auditar producción" para verificar las notas publicadas.
+                </p>
+              ) : (
+                <ScrollArea className="h-[600px]">
+                  <div className="space-y-3">
+                    {truthResults.map((result, idx) => {
+                      const statusColors: Record<string, string> = {
+                        apta: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/20 dark:text-emerald-400',
+                        apta_con_observaciones: 'bg-blue-500/15 text-blue-600 border-blue-500/20 dark:text-blue-400',
+                        riesgo_medio: 'bg-amber-500/15 text-amber-600 border-amber-500/20 dark:text-amber-400',
+                        riesgo_alto: 'bg-orange-500/15 text-orange-600 border-orange-500/20 dark:text-orange-400',
+                        critica: 'bg-destructive/15 text-destructive border-destructive/20',
+                      };
+                      const statusLabels: Record<string, string> = {
+                        apta: '✅ Apta',
+                        apta_con_observaciones: '🔵 Apta con observaciones',
+                        riesgo_medio: '⚠️ Riesgo medio',
+                        riesgo_alto: '🟠 Riesgo alto',
+                        critica: '🔴 Crítica',
+                      };
+                      return (
+                        <div key={idx} className="rounded-xl border border-border p-4 space-y-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-foreground truncate">{result.title}</p>
+                              <p className="text-[10px] text-muted-foreground">{result.slug} · {result.category}</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Badge className={statusColors[result.status] || 'bg-muted'}>
+                                {statusLabels[result.status] || result.status}
+                              </Badge>
+                              {scoreBadge(result.production_truth_score)}
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-foreground">{result.resumen}</p>
+
+                          {result.hallazgos.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Hallazgos</p>
+                              {result.hallazgos.map((h, i) => (
+                                <p key={i} className="text-xs text-foreground pl-2 border-l-2 border-amber-500/30">{h}</p>
+                              ))}
+                            </div>
+                          )}
+
+                          {result.accion_pendiente && (
+                            <p className="text-xs text-muted-foreground"><strong className="text-foreground">Acción pendiente:</strong> {result.accion_pendiente}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground"><strong className="text-foreground">Próximo paso:</strong> {result.proximo_paso}</p>
+
+                          <div className="flex flex-wrap gap-1.5">
+                            {result.checks.map(check => (
+                              <Badge
+                                key={check.id}
+                                variant="outline"
+                                className={`text-[9px] ${check.passed ? 'text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : check.severity === 'critical' ? 'text-destructive border-destructive/20' : 'text-amber-600 dark:text-amber-400 border-amber-500/20'}`}
+                                title={check.detail}
+                              >
+                                {check.passed ? '✓' : '✗'} {check.id}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
