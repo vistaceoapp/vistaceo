@@ -434,6 +434,7 @@ export default function CentroControlPage() {
           <TabsTrigger value="conversion" className="text-xs"><Target className="w-3.5 h-3.5 mr-1" /> CRO</TabsTrigger>
           <TabsTrigger value="historial" className="text-xs"><Clock className="w-3.5 h-3.5 mr-1" /> Historial</TabsTrigger>
           <TabsTrigger value="linkedin" className="text-xs"><Linkedin className="w-3.5 h-3.5 mr-1" /> LinkedIn</TabsTrigger>
+          <TabsTrigger value="verdad" className="text-xs"><ShieldCheck className="w-3.5 h-3.5 mr-1" /> Verdad</TabsTrigger>
         </TabsList>
 
         {/* RESUMEN */}
