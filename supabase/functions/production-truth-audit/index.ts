@@ -452,6 +452,25 @@ Deno.serve(async (req) => {
       })(),
     };
 
+    // Auto-trigger fixes for critical posts
+    const criticalSlugs = results.filter(r => r.status === "critica" || r.status === "riesgo_alto");
+    if (criticalSlugs.length > 0) {
+      try {
+        const autofixUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/production-truth-autofix`;
+        await fetch(autofixUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({ mode: "critical_only" }),
+        });
+        console.log(`[production-truth-audit] Auto-triggered fixes for ${criticalSlugs.length} critical posts`);
+      } catch (fixErr) {
+        console.error("[production-truth-audit] Autofix trigger failed:", fixErr);
+      }
+    }
+
     return new Response(JSON.stringify({ results, summary }, null, 2), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
