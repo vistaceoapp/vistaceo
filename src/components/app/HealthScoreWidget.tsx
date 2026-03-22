@@ -125,9 +125,9 @@ export const HealthScoreWidget = ({
                   <span className={cn(
                     'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium cursor-help',
                     'border bg-card',
-                    precisionPct >= 70 ? 'border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400'
-                    : precisionPct >= 40 ? 'border-amber-200 dark:border-amber-800 text-amber-500'
-                    : 'border-red-200 dark:border-red-800 text-red-500'
+                    precisionPct >= 70 ? 'border-success/30 text-success'
+                    : precisionPct >= 40 ? 'border-warning/30 text-warning'
+                    : 'border-destructive/30 text-destructive'
                   )}>
                     <CertaintyIcon className="w-3 h-3" />
                     {precisionPct}% certeza
