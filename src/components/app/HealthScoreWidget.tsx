@@ -299,7 +299,7 @@ export const HealthScoreWidget = ({
                 <div
                   className={cn(
                     'absolute inset-y-0 left-0 rounded-full transition-all duration-700',
-                    precisionPct >= 70 ? 'bg-emerald-500' : precisionPct >= 40 ? 'bg-amber-400' : 'bg-primary'
+                    precisionPct >= 70 ? 'bg-success' : precisionPct >= 40 ? 'bg-warning' : 'bg-primary'
                   )}
                   style={{ width: `${precisionPct}%` }}
                 />
