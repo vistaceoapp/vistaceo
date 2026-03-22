@@ -274,7 +274,7 @@ export const HealthScoreWidget = ({
                   )}
                   <p className="text-[10px] text-muted-foreground">
                     {hasData ? sub.description : (
-                      <span className="text-amber-500 flex items-center gap-1">
+                      <span className="text-warning flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3 inline" />
                         Sin datos — completar para mayor certeza
                       </span>
