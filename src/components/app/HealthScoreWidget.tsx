@@ -181,8 +181,8 @@ export const HealthScoreWidget = ({
                         </span>
                         {trend && (
                           <span className="ml-0.5">
-                            {trend.direction === 'up' && <TrendingUp className="w-4 h-4 text-emerald-500" />}
-                            {trend.direction === 'down' && <TrendingDown className="w-4 h-4 text-red-500" />}
+                            {trend.direction === 'up' && <TrendingUp className="w-4 h-4 text-success" />}
+                            {trend.direction === 'down' && <TrendingDown className="w-4 h-4 text-destructive" />}
                             {trend.direction === 'stable' && <Minus className="w-3 h-3 text-muted-foreground" />}
                           </span>
                         )}
