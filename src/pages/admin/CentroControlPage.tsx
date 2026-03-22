@@ -335,11 +335,26 @@ export default function CentroControlPage() {
   const triggerProductionTruthAudit = async () => {
     setAuditingTruth(true);
     try {
-      const { data, error } = await supabase.functions.invoke('production-truth-audit', { body: { limit: 20, mode: 'scan' } });
+      const { data, error } = await supabase.functions.invoke('production-truth-audit', { body: { limit: 25, mode: 'scan' } });
       if (error) throw error;
       setTruthResults(data?.results || []);
-      const avg = data?.average_score || 0;
-      toast.success(`Auditoría de producción: Score promedio ${avg} — ${data?.results?.length || 0} notas auditadas`);
+      const avg = data?.summary?.avg_score || 0;
+      const critical = data?.summary?.critica || 0;
+      toast.success(`Auditoría: Score ${avg} — ${data?.results?.length || 0} notas — ${critical} críticas (autofix disparado)`);
+    } catch (err: any) { toast.error(err.message); }
+    finally { setAuditingTruth(false); }
+  };
+
+  const triggerAutofix = async () => {
+    setAuditingTruth(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('production-truth-autofix', { body: { mode: 'all' } });
+      if (error) throw error;
+      const fixed = data?.summary?.total_fixed || 0;
+      const fixes = data?.summary?.fixes_applied || 0;
+      toast.success(`AutoFix: ${fixed} notas corregidas, ${fixes} fixes aplicados`);
+      // Re-audit after fix
+      setTimeout(() => triggerProductionTruthAudit(), 2000);
     } catch (err: any) { toast.error(err.message); }
     finally { setAuditingTruth(false); }
   };
