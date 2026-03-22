@@ -403,6 +403,10 @@ export default function CentroControlPage() {
             {auditingTruth ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />}
             Verdad
           </Button>
+          <Button variant="outline" size="sm" onClick={triggerAutofix} disabled={auditingTruth}>
+            {auditingTruth ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Wrench className="w-3.5 h-3.5 mr-1.5" />}
+            AutoFix
+          </Button>
           <Button size="sm" onClick={triggerCycle} disabled={running}>
             {running ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 mr-1.5" />}
             Ejecutar ciclo
