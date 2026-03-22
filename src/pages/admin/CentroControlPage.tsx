@@ -13,7 +13,7 @@ import {
   Brain, Activity, TrendingUp, Shield, Eye, Search,
   RefreshCw, Zap, CheckCircle, AlertTriangle, XCircle,
   Loader2, FileText, Network, Megaphone, Clock,
-  BarChart3, Globe, Target, Sparkles, Linkedin, ShieldCheck
+  BarChart3, Globe, Target, Sparkles, Linkedin, ShieldCheck, Wrench
 } from 'lucide-react';
 import LinkedInCopyTab from './blog-os/LinkedInCopyTab';
 
@@ -335,11 +335,26 @@ export default function CentroControlPage() {
   const triggerProductionTruthAudit = async () => {
     setAuditingTruth(true);
     try {
-      const { data, error } = await supabase.functions.invoke('production-truth-audit', { body: { limit: 20, mode: 'scan' } });
+      const { data, error } = await supabase.functions.invoke('production-truth-audit', { body: { limit: 25, mode: 'scan' } });
       if (error) throw error;
       setTruthResults(data?.results || []);
-      const avg = data?.average_score || 0;
-      toast.success(`Auditoría de producción: Score promedio ${avg} — ${data?.results?.length || 0} notas auditadas`);
+      const avg = data?.summary?.avg_score || 0;
+      const critical = data?.summary?.critica || 0;
+      toast.success(`Auditoría: Score ${avg} — ${data?.results?.length || 0} notas — ${critical} críticas (autofix disparado)`);
+    } catch (err: any) { toast.error(err.message); }
+    finally { setAuditingTruth(false); }
+  };
+
+  const triggerAutofix = async () => {
+    setAuditingTruth(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('production-truth-autofix', { body: { mode: 'all' } });
+      if (error) throw error;
+      const fixed = data?.summary?.total_fixed || 0;
+      const fixes = data?.summary?.fixes_applied || 0;
+      toast.success(`AutoFix: ${fixed} notas corregidas, ${fixes} fixes aplicados`);
+      // Re-audit after fix
+      setTimeout(() => triggerProductionTruthAudit(), 2000);
     } catch (err: any) { toast.error(err.message); }
     finally { setAuditingTruth(false); }
   };
@@ -387,6 +402,10 @@ export default function CentroControlPage() {
           <Button variant="outline" size="sm" onClick={triggerProductionTruthAudit} disabled={auditingTruth}>
             {auditingTruth ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />}
             Verdad
+          </Button>
+          <Button variant="outline" size="sm" onClick={triggerAutofix} disabled={auditingTruth}>
+            {auditingTruth ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Wrench className="w-3.5 h-3.5 mr-1.5" />}
+            AutoFix
           </Button>
           <Button size="sm" onClick={triggerCycle} disabled={running}>
             {running ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 mr-1.5" />}
