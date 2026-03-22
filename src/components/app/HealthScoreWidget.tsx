@@ -54,10 +54,9 @@ const getCertaintyInfo = (pct: number) => {
 /** Color-coded progress bar for each dimension */
 const DimensionBar = ({ value, className }: { value: number; className?: string }) => {
   const getBarColor = (v: number) => {
-    if (v >= 75) return 'bg-[hsl(204,79%,50%)]'; // primary blue
-    if (v >= 60) return 'bg-[hsl(204,79%,50%)]'; // primary blue
-    if (v >= 40) return 'bg-amber-400';
-    return 'bg-red-400';
+    if (v >= 60) return 'bg-primary';
+    if (v >= 40) return 'bg-warning';
+    return 'bg-destructive';
   };
 
   return (
