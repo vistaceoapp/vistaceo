@@ -213,7 +213,7 @@ export const PulseCheckinCard = ({
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
                 <h3 className="text-sm font-semibold text-foreground">
-                  Pulso diario
+                  ¿Cómo va hoy?
                 </h3>
                 <Tooltip>
                   <TooltipTrigger asChild>
