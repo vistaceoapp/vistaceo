@@ -136,6 +136,12 @@ const AREA_ICONS: Record<string, string> = {
   Equipo: "👥",
   Producto: "📦",
   Finanzas: "📊",
+  Personalizada: "✨",
+  Crecimiento: "🚀",
+  Servicio: "🤝",
+  Tecnología: "💻",
+  custom: "✨",
+  General: "🎯",
 };
 
 // Sidebar mission item - extracted for reuse

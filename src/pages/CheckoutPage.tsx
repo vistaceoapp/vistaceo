@@ -183,10 +183,10 @@ const CheckoutPage = () => {
             <Sparkles className="w-14 h-14 text-success" />
           </motion.div>
           <h1 className="text-4xl font-bold text-foreground mb-3">¡Bienvenido a Pro!</h1>
-          <p className="text-lg text-muted-foreground mb-6">Tu pago fue procesado correctamente.</p>
+          <p className="text-lg text-muted-foreground mb-6">Tu pago fue procesado correctamente. Todas las funciones Pro están activas.</p>
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Redirigiendo al setup...</span>
+            <span>Preparando tu experiencia Pro...</span>
           </div>
         </motion.div>
       </div>

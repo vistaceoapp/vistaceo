@@ -20,6 +20,10 @@ export const AREA_CATEGORIES = [
   { value: "Equipo", label: "Equipo", icon: "👥" },
   { value: "Producto", label: "Producto", icon: "📦" },
   { value: "Finanzas", label: "Finanzas", icon: "📊" },
+  { value: "Personalizada", label: "Personalizada", icon: "✨" },
+  { value: "Crecimiento", label: "Crecimiento", icon: "🚀" },
+  { value: "Servicio", label: "Servicio", icon: "🤝" },
+  { value: "Tecnología", label: "Tecnología", icon: "💻" },
 ];
 
 export const STATUS_OPTIONS = [
