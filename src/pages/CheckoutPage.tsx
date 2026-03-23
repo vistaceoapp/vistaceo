@@ -88,6 +88,8 @@ const CheckoutPage = () => {
       setStatus("success");
       safeLocalStorage.removeItem("pendingPlan");
       safeLocalStorage.removeItem("pendingPlanTimestamp");
+      // Invalidate subscription cache so Pro status is reflected immediately
+      queryClient.invalidateQueries({ queryKey: ["subscription"] });
       // Redirect to app if user already has a business, otherwise to setup
       const hasSetup = safeLocalStorage.getItem("setup_completed");
       const redirectPath = hasSetup ? "/app" : "/setup";
