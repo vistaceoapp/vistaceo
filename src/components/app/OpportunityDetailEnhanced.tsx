@@ -270,8 +270,38 @@ export const OpportunityDetailEnhanced = ({
         </DialogDescription>
       </DialogHeader>
 
-      <ScrollArea className="max-h-[65vh] pr-2">
-        <div className="space-y-5 mt-4">
+      {/* Sticky CTA - Always visible */}
+      <div className="flex gap-2 mt-4 mb-3">
+        <Button variant="ghost" size="sm" onClick={onDismiss} disabled={actionLoading} className="text-muted-foreground h-11">
+          Descartar
+        </Button>
+        {onSaveForLater && (
+          <Button variant="outline" size="sm" onClick={onSaveForLater} disabled={actionLoading} className="h-11">
+            <Bookmark className="w-4 h-4 mr-1" />
+            Guardar
+          </Button>
+        )}
+        <Button 
+          className="flex-1 h-11 text-sm font-semibold" 
+          onClick={onAccept}
+          disabled={actionLoading || !canConvert || planLoading}
+        >
+          {actionLoading ? (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              Convirtiendo...
+            </>
+          ) : (
+            <>
+              <Target className="w-4 h-4 mr-2" />
+              Convertir en misión
+            </>
+          )}
+        </Button>
+      </div>
+
+      <ScrollArea className="max-h-[55vh] pr-2">
+        <div className="space-y-5">
           {/* Qué es */}
           <div className="p-4 rounded-xl bg-secondary/30 border border-border">
             <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2 text-sm">
