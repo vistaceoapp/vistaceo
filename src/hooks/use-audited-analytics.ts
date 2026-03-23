@@ -46,7 +46,9 @@ export function useAuditedAnalytics() {
     let hasAnyReal = false;
     let lastUpdate: string | null = null;
     
-    if (!brain?.memory?.dynamic_memory) {
+    const brainDynamic = (brain as any)?.dynamic_memory as Record<string, unknown> | undefined;
+    
+    if (!brainDynamic) {
       return {
         dimensions: Object.keys(DIMENSION_LABELS).map(key => ({
           key,
@@ -64,7 +66,7 @@ export function useAuditedAnalytics() {
       };
     }
 
-    const dynamicMemory = brain.memory.dynamic_memory as Record<string, unknown>;
+    const dynamicMemory = brainDynamic as Record<string, unknown>;
     const healthData = dynamicMemory.health_scores as Record<string, unknown> | undefined;
     const trends = dynamicMemory.trends as Record<string, string> | undefined;
     
