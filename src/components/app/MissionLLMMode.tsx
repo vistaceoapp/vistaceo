@@ -741,7 +741,7 @@ export const MissionLLMMode = ({
 
       {/* Right: Steps Timeline — visible from lg */}
       {!loading && (
-      <aside className="w-64 border-l border-border bg-background overflow-y-auto hidden lg:block flex-shrink-0">
+      <aside className="w-56 xl:w-64 border-l border-border bg-background overflow-y-auto hidden lg:block flex-shrink-0">
           <div className="px-3 py-3 border-b border-border">
             <h3 className="font-semibold text-foreground text-xs flex items-center gap-2 uppercase tracking-wide">
               <FileText className="w-3.5 h-3.5 text-primary" />
