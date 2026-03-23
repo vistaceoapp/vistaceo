@@ -130,7 +130,9 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
             if (collapsed) {
               return (
                 <Tooltip key={item.path}>
-                  <TooltipTrigger asChild>{NavItem}</TooltipTrigger>
+                  <TooltipTrigger asChild>
+                    <div>{NavItem}</div>
+                  </TooltipTrigger>
                   <TooltipContent side="right" className="space-y-0.5">
                     <p className="font-medium text-xs">{item.label}</p>
                     <p className="text-[10px] text-muted-foreground">{item.subtitle}</p>
