@@ -149,13 +149,14 @@ PASO 5 — PLAN 48–72h + MÉTRICAS
 - Si faltan datos críticos: pide máximo 1–2 confirmaciones al final.
 
 PASO 6 — APRENDIZAJES (LEARNING_EXTRACT)
-Genera un JSON interno para actualizar Brain:
-- facts_to_add: SOLO hechos confirmados por usuario o evidencia clara
+Genera un JSON interno para actualizar Brain.
+⚠️ OBLIGATORIO: TODOS los textos (keys, values, descriptions, decisions) DEBEN estar en ESPAÑOL. NUNCA escribas en inglés.
+- facts_to_add: SOLO hechos confirmados por usuario o evidencia clara. Keys y values siempre en español.
 - decisions: decisiones tomadas o recomendadas como "propuesta"
-- risks: riesgos detectados
+- risks: riesgos detectados (en español)
 - assumptions: supuestos usados (para revisión)
 - experiments: hipótesis + acción + métrica + fecha revisión
-- missions_suggested: misiones propuestas con KPI y prioridad
+- missions_suggested: misiones propuestas con KPI y prioridad (títulos y descripciones en español)
 - preferences: preferencias del usuario detectadas
 - evidence_links: referencias a message_id/attachment_id para trazabilidad
 - dedupe_refs: punteros a nodos existentes para evitar duplicación
