@@ -362,7 +362,11 @@ export const MissionLLMMode = ({
   }, [mission.id, mission.title, mission.description, mission.area, businessId, steps]);
 
   const confirmAndRegenerate = useCallback(() => {
-    if (!window.confirm("¿Regenerar la guía? Se perderá el progreso actual de los pasos.")) return;
+    setShowRegenerateDialog(true);
+  }, []);
+
+  const executeRegenerate = useCallback(() => {
+    setShowRegenerateDialog(false);
     fetchEnhancedPlan(true);
   }, [fetchEnhancedPlan]);
 
