@@ -42,6 +42,7 @@ interface Message {
   audioScript?: string;
   attachments?: AttachedFile[];
   missionSuggestions?: MissionSuggestion[];
+  isNew?: boolean;
 }
 
 const ChatPage = () => {
@@ -444,11 +445,12 @@ const ChatPage = () => {
         hasLearning,
         audioScript,
         missionSuggestions: missionSuggestions && missionSuggestions.length > 0 ? missionSuggestions : undefined,
+        isNew: true,
       };
 
       setMessages((prev) => [
-        ...prev.slice(0, -1),
-        { ...tempUserMsg, id: `user-${Date.now()}` },
+        ...prev.slice(0, -1).map(m => ({ ...m, isNew: false })),
+        { ...tempUserMsg, id: `user-${Date.now()}`, isNew: false },
         newAssistantMsg,
       ]);
 
@@ -539,7 +541,7 @@ const ChatPage = () => {
               </h1>
               {!isMobile && (
                 <p className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                   {currentBusiness.name} — En línea
                 </p>
               )}
@@ -617,6 +619,7 @@ const ChatPage = () => {
                   isSpeaking={playingMessageId === message.id}
                   attachments={message.attachments}
                   missionSuggestions={message.missionSuggestions}
+                  isNew={message.isNew}
                 />
               ))}
 
