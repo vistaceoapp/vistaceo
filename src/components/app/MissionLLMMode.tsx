@@ -631,20 +631,15 @@ export const MissionLLMMode = ({
         {/* Header */}
         <header className="sticky top-0 z-20 px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4 min-w-0">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <span className="text-2xl">{areaIcon}</span>
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h1 className="text-lg font-bold text-foreground line-clamp-1">
-                    {mission.title}
-                  </h1>
-                  <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px] flex-shrink-0">
+            <div className="flex items-center gap-4 min-w-0 flex-1">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-lg font-bold text-foreground leading-snug">
+                  {mission.title}
+                </h1>
+                <div className="flex items-center gap-3 mt-1.5 text-sm text-muted-foreground">
+                  <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px]">
                     {mission.status === "active" ? "Activa" : "Pausada"}
                   </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5" />
                     {formatTime(estimatedTimeRemaining)} restante
@@ -655,7 +650,7 @@ export const MissionLLMMode = ({
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -728,9 +723,9 @@ export const MissionLLMMode = ({
             </div>
           </div>
 
-          {/* Progress */}
+          {/* Progress - subtle integrated bar */}
           <div className="mt-3">
-            <Progress value={progress} className="h-1.5" />
+            <Progress value={progress} className="h-1" />
           </div>
         </header>
 
