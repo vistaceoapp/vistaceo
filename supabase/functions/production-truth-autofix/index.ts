@@ -6,15 +6,13 @@ const corsHeaders = {
 };
 
 /**
- * PRODUCTION TRUTH AUTOFIX
- * Automatically repairs critical issues found by production-truth-audit.
+ * PRODUCTION TRUTH AUTOFIX v2
  * 
- * Fixes:
- * 1. Duplicate FAQ headings → removes all duplicated FAQ blocks
- * 2. Legacy template sections → strips "En 2 minutos", "Para quién", etc.
- * 3. Title/H1 mismatch → aligns meta_title from H1
- * 4. Category mismatch → reassigns category
- * 5. Duplicate content (date-suffixed clones) → unpublishes newer clone
+ * Self-improving autonomous system that:
+ * 1. Structural fixes (duplicate FAQs, legacy templates, title mismatches, categories)
+ * 2. AI-powered content improvement for posts still below quality threshold
+ * 3. Triggers reindexing after fixes
+ * 4. Logs everything for admin traceability
  */
 
 interface FixResult {
@@ -22,14 +20,14 @@ interface FixResult {
   title: string;
   fixes_applied: string[];
   fixes_failed: string[];
+  ai_improved: boolean;
   new_score_estimate: number;
   status: "fixed" | "partially_fixed" | "skipped" | "error";
 }
 
-// ═══ FIX FUNCTIONS ═══
+// ═══ STRUCTURAL FIX FUNCTIONS ═══
 
 function fixDuplicateFAQs(content: string): { fixed: string; applied: boolean; detail: string } {
-  // Find all heading lines
   const lines = content.split("\n");
   const headingCounts: Record<string, number[]> = {};
   
@@ -42,7 +40,6 @@ function fixDuplicateFAQs(content: string): { fixed: string; applied: boolean; d
     }
   });
   
-  // Find duplicated headings (keep first occurrence, remove subsequent blocks)
   const linesToRemove = new Set<number>();
   let duplicatesFound = 0;
   
@@ -50,10 +47,8 @@ function fixDuplicateFAQs(content: string): { fixed: string; applied: boolean; d
     if (indices.length <= 1) continue;
     duplicatesFound += indices.length - 1;
     
-    // Remove all occurrences after the first
     for (let k = 1; k < indices.length; k++) {
       const startLine = indices[k];
-      // Find the end of this section (next heading of same or higher level, or EOF)
       const headingLevel = (lines[startLine].match(/^(#+)/) || ["##"])[0].length;
       let endLine = startLine + 1;
       
@@ -70,17 +65,16 @@ function fixDuplicateFAQs(content: string): { fixed: string; applied: boolean; d
   }
   
   if (linesToRemove.size === 0) {
-    return { fixed: content, applied: false, detail: "Sin FAQs duplicadas" };
+    return { fixed: content, applied: false, detail: "" };
   }
   
   const fixedLines = lines.filter((_, i) => !linesToRemove.has(i));
-  // Clean up excessive blank lines
   const cleaned = fixedLines.join("\n").replace(/\n{4,}/g, "\n\n\n");
   
   return {
     fixed: cleaned,
     applied: true,
-    detail: `Eliminadas ${duplicatesFound} secciones FAQ duplicadas (${linesToRemove.size} líneas)`
+    detail: `Eliminadas ${duplicatesFound} secciones duplicadas (${linesToRemove.size} líneas)`
   };
 }
 
@@ -106,10 +100,9 @@ function fixLegacyTemplateSections(content: string): { fixed: string; applied: b
   }
   
   if (removedCount === 0) {
-    return { fixed: content, applied: false, detail: "Sin secciones legacy" };
+    return { fixed: content, applied: false, detail: "" };
   }
   
-  // Clean up excessive blank lines
   result = result.replace(/\n{4,}/g, "\n\n\n").trim();
   
   return {
@@ -119,15 +112,42 @@ function fixLegacyTemplateSections(content: string): { fixed: string; applied: b
   };
 }
 
+function fixGenericFAQs(content: string): { fixed: string; applied: boolean; detail: string } {
+  // Remove generic FAQ patterns like "¿Qué es [title]?", "¿Cómo empezar con [title]?", "¿Necesito herramientas especiales?"
+  const genericFaqPatterns = [
+    /^###?\s*¿(?:que|qué) es .*?\?\n[\s\S]*?(?=\n###? |\n## |\n---|\Z)/gim,
+    /^###?\s*¿(?:como|cómo) empezar .*?\?\n[\s\S]*?(?=\n###? |\n## |\n---|\Z)/gim,
+    /^###?\s*¿necesito herramientas especiales\?.*\n[\s\S]*?(?=\n###? |\n## |\n---|\Z)/gim,
+  ];
+  
+  let result = content;
+  let removedCount = 0;
+  
+  for (const pattern of genericFaqPatterns) {
+    const matches = result.match(pattern);
+    if (matches && matches.length > 1) {
+      // Keep the first, remove the rest
+      let firstFound = false;
+      result = result.replace(pattern, (match) => {
+        if (!firstFound) { firstFound = true; return match; }
+        removedCount++;
+        return "\n";
+      });
+    }
+  }
+  
+  if (removedCount === 0) {
+    return { fixed: content, applied: false, detail: "" };
+  }
+  
+  result = result.replace(/\n{4,}/g, "\n\n\n").trim();
+  return { fixed: result, applied: true, detail: `Eliminadas ${removedCount} FAQs genéricas duplicadas` };
+}
+
 function fixTitleH1Mismatch(title: string, metaTitle: string | null): { newMetaTitle: string; applied: boolean; detail: string } {
   if (!metaTitle) {
-    // Generate meta_title from H1
     const truncated = title.length > 55 ? title.slice(0, 55).replace(/\s\S*$/, "") + "…" : title;
-    return {
-      newMetaTitle: `${truncated} | VistaCEO`,
-      applied: true,
-      detail: `Meta title generado desde H1: "${truncated} | VistaCEO"`
-    };
+    return { newMetaTitle: `${truncated} | VistaCEO`, applied: true, detail: `Meta title generado desde H1` };
   }
   
   const cleanTitle = title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -139,18 +159,13 @@ function fixTitleH1Mismatch(title: string, metaTitle: string | null): { newMetaT
   const ratio = overlap / Math.max(titleTokens.size, 1);
   
   if (ratio < 0.3) {
-    // Rebuild meta_title keeping core H1 words
     const coreWords = title.split(/[:\-–—|]/).map(s => s.trim()).filter(s => s.length > 3);
     const shortTitle = coreWords[0]?.slice(0, 55) || title.slice(0, 55);
     const newMeta = `${shortTitle} | VistaCEO`;
-    return {
-      newMetaTitle: newMeta,
-      applied: true,
-      detail: `Meta title realineado: "${newMeta}" (overlap era ${Math.round(ratio * 100)}%)`
-    };
+    return { newMetaTitle: newMeta, applied: true, detail: `Meta title realineado (overlap era ${Math.round(ratio * 100)}%)` };
   }
   
-  return { newMetaTitle: metaTitle, applied: false, detail: "Title/H1 ya coherentes" };
+  return { newMetaTitle: metaTitle, applied: false, detail: "" };
 }
 
 function detectBestCategory(content: string, title: string): string | null {
@@ -181,6 +196,114 @@ function detectBestCategory(content: string, title: string): string | null {
   return bestScore >= 2 ? bestCat : null;
 }
 
+// ═══ AI CONTENT IMPROVEMENT ═══
+
+const AI_IMPROVE_PROMPT = `Sos el Editor Final del blog VistaCEO. Recibís una nota que ya pasó correcciones estructurales pero necesita mejora de calidad editorial.
+
+TU MISIÓN: Reescribir el contenido para que sea excelente, no genérico.
+
+REGLAS:
+1. Mantené TODO el contenido valioso que ya existe
+2. Eliminá cualquier sección repetida o redundante que detectes
+3. Mejorá introducciones débiles (primeros 2 párrafos deben ser magnéticos)
+4. Asegurate de que cada H2 aporte valor real y no sea relleno
+5. Agregá ejemplos concretos de LATAM donde falten
+6. Las FAQs deben ser ÚNICAS y ÚTILES, no genéricas
+7. El cierre debe tener un paso concreto, no un CTA genérico
+8. NO uses frases como "en el mundo actual", "en la era digital", "es fundamental"
+9. NO repitas la keyword principal más de 3 veces
+10. Párrafos de 1-2 oraciones máximo
+11. Tono: profesional, directo, humano, español LATAM neutral
+
+FORMATO: Solo devolvé el markdown limpio. Sin H1. Sin frontmatter. Sin explicaciones.`;
+
+async function aiImproveContent(
+  post: { id: string; title: string; content_md: string; category: string; primary_keyword: string },
+  lovableApiKey: string
+): Promise<string | null> {
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${lovableApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: AI_IMPROVE_PROMPT },
+          { role: "user", content: `NOTA: "${post.title}"\nCATEGORÍA: ${post.category}\nKEYWORD: ${post.primary_keyword}\n\nCONTENIDO:\n${post.content_md.slice(0, 12000)}` }
+        ],
+        max_tokens: 8000,
+        temperature: 0.5,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error(`[autofix-ai] AI call failed: ${response.status}`);
+      return null;
+    }
+
+    const result = await response.json();
+    let text = result.choices?.[0]?.message?.content || "";
+    text = text.trim().replace(/^```markdown\n?/i, "").replace(/\n?```$/i, "");
+    text = text.replace(/^---\n[\s\S]*?\n---\n?/m, "");
+    
+    // Validate output is substantial
+    if (text.length < post.content_md.length * 0.5) {
+      console.error(`[autofix-ai] Output too short (${text.length} vs ${post.content_md.length})`);
+      return null;
+    }
+    
+    return text;
+  } catch (err) {
+    console.error(`[autofix-ai] Error:`, err);
+    return null;
+  }
+}
+
+// ═══ QUALITY SCORING ═══
+
+function calculatePostScore(content: string, title: string, metaTitle: string | null): number {
+  let score = 100;
+  const lines = content.split("\n");
+  const wordCount = content.split(/\s+/).length;
+  
+  // Check for duplicate headings
+  const headings = lines.filter(l => /^#{2,3}\s/.test(l)).map(l => l.toLowerCase().trim());
+  const uniqueHeadings = new Set(headings);
+  if (uniqueHeadings.size < headings.length) score -= 15;
+  
+  // Check word count
+  if (wordCount < 1200) score -= 10;
+  if (wordCount < 800) score -= 10;
+  
+  // Check H2 count
+  const h2Count = lines.filter(l => /^## /.test(l)).length;
+  if (h2Count < 3) score -= 8;
+  
+  // Check for generic phrases
+  const genericPhrases = ["en el mundo actual", "en la era digital", "es fundamental", "es importante destacar"];
+  const lowerContent = content.toLowerCase();
+  for (const phrase of genericPhrases) {
+    if (lowerContent.includes(phrase)) score -= 3;
+  }
+  
+  // Check title/meta alignment
+  if (metaTitle) {
+    const cleanT = title.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+    const cleanM = metaTitle.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+    const overlap = cleanT.filter(w => cleanM.some(m => m.includes(w))).length;
+    if (overlap / Math.max(cleanT.length, 1) < 0.3) score -= 8;
+  }
+  
+  // Check internal links
+  const linkCount = (content.match(/\[.*?\]\(\/.*?\)/g) || []).length;
+  if (linkCount < 2) score -= 5;
+  
+  return Math.max(0, Math.min(100, score));
+}
+
 // ═══ MAIN HANDLER ═══
 
 Deno.serve(async (req) => {
@@ -193,20 +316,23 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY") || "";
 
-    let mode: "critical_only" | "all" | "single" = "critical_only";
+    let mode: "critical_only" | "all" | "single" = "all";
     let targetSlug: string | null = null;
     let dryRun = false;
+    let enableAI = true;
     
     try {
       const body = await req.json();
-      mode = body.mode || "critical_only";
+      mode = body.mode || "all";
       targetSlug = body.slug || null;
       dryRun = body.dry_run || false;
+      enableAI = body.enable_ai !== false;
       if (targetSlug) mode = "single";
     } catch { /* no body */ }
 
-    // Fetch posts to fix
+    // Fetch posts
     let query = supabase
       .from("blog_posts")
       .select("id, slug, title, category, meta_title, meta_description, content_md, primary_keyword, hero_image_url, status")
@@ -222,15 +348,17 @@ Deno.serve(async (req) => {
     const { data: posts, error } = await query;
     if (error) throw error;
     if (!posts || posts.length === 0) {
-      return new Response(JSON.stringify({ results: [], summary: "No posts to fix" }), {
+      return new Response(JSON.stringify({ results: [], summary: { total_scanned: 0 } }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const results: FixResult[] = [];
     let totalFixed = 0;
+    let totalAIImproved = 0;
     let totalSkipped = 0;
-    const MAX_FIXES_PER_RUN = 15; // CPU safety
+    const MAX_FIXES_PER_RUN = 20;
+    const MAX_AI_PER_RUN = 5;
 
     for (const post of posts) {
       if (totalFixed >= MAX_FIXES_PER_RUN) break;
@@ -250,7 +378,15 @@ Deno.serve(async (req) => {
         needsUpdate = true;
       }
 
-      // 2. Fix legacy template sections
+      // 2. Fix generic FAQ spam
+      const genericFix = fixGenericFAQs(currentContent);
+      if (genericFix.applied) {
+        currentContent = genericFix.fixed;
+        fixesApplied.push(genericFix.detail);
+        needsUpdate = true;
+      }
+
+      // 3. Fix legacy template sections
       const templateFix = fixLegacyTemplateSections(currentContent);
       if (templateFix.applied) {
         currentContent = templateFix.fixed;
@@ -258,7 +394,7 @@ Deno.serve(async (req) => {
         needsUpdate = true;
       }
 
-      // 3. Fix title/H1 mismatch
+      // 4. Fix title/H1 mismatch
       const titleFix = fixTitleH1Mismatch(post.title, post.meta_title);
       if (titleFix.applied) {
         updates.meta_title = titleFix.newMetaTitle;
@@ -266,12 +402,39 @@ Deno.serve(async (req) => {
         needsUpdate = true;
       }
 
-      // 4. Fix category mismatch
+      // 5. Fix category mismatch
       const bestCat = detectBestCategory(currentContent, post.title);
       if (bestCat && bestCat !== post.category) {
         updates.category = bestCat;
-        fixesApplied.push(`Categoría reasignada: "${post.category}" → "${bestCat}"`);
+        fixesApplied.push(`Categoría: "${post.category}" → "${bestCat}"`);
         needsUpdate = true;
+      }
+
+      // 6. Calculate score after structural fixes
+      const scoreAfterFixes = calculatePostScore(currentContent, post.title, (updates.meta_title as string) || post.meta_title);
+      
+      // 7. AI improvement if score is still below 90 and AI is enabled
+      let aiImproved = false;
+      if (enableAI && lovableApiKey && scoreAfterFixes < 90 && totalAIImproved < MAX_AI_PER_RUN) {
+        console.log(`[autofix] AI improving "${post.slug}" (score: ${scoreAfterFixes})`);
+        const improved = await aiImproveContent(
+          {
+            id: post.id,
+            title: post.title,
+            content_md: currentContent,
+            category: post.category || "general",
+            primary_keyword: post.primary_keyword || post.title,
+          },
+          lovableApiKey
+        );
+        
+        if (improved) {
+          currentContent = improved;
+          aiImproved = true;
+          totalAIImproved++;
+          fixesApplied.push(`Contenido mejorado por IA (score previo: ${scoreAfterFixes})`);
+          needsUpdate = true;
+        }
       }
 
       if (!needsUpdate) {
@@ -280,6 +443,8 @@ Deno.serve(async (req) => {
       }
 
       // Apply updates
+      const finalScore = calculatePostScore(currentContent, post.title, (updates.meta_title as string) || post.meta_title);
+      
       if (!dryRun) {
         if (currentContent !== content) {
           updates.content_md = currentContent;
@@ -293,6 +458,19 @@ Deno.serve(async (req) => {
 
         if (updateError) {
           fixesFailed.push(`Error DB: ${updateError.message}`);
+        } else {
+          // Update registry score
+          await supabase
+            .from("blog_content_registry")
+            .update({
+              score_global: finalScore,
+              pipeline_state: finalScore >= 90 ? "published" : "needs_improvement",
+              last_improved_at: new Date().toISOString(),
+              fix_history: [
+                { at: new Date().toISOString(), fixes: fixesApplied, ai: aiImproved, score_before: scoreAfterFixes, score_after: finalScore }
+              ],
+            })
+            .eq("post_id", post.id);
         }
       }
 
@@ -302,10 +480,9 @@ Deno.serve(async (req) => {
         title: post.title,
         fixes_applied: fixesApplied,
         fixes_failed: fixesFailed,
-        new_score_estimate: fixesFailed.length === 0 ? 90 : 80,
-        status: fixesFailed.length === 0
-          ? (fixesApplied.length > 0 ? "fixed" : "skipped")
-          : "partially_fixed",
+        ai_improved: aiImproved,
+        new_score_estimate: finalScore,
+        status: fixesFailed.length === 0 ? "fixed" : "partially_fixed",
       });
     }
 
@@ -313,12 +490,13 @@ Deno.serve(async (req) => {
     if (!dryRun && results.some(r => r.status === "fixed")) {
       await supabase.from("blog_runs").insert({
         result: "published",
-        notes: `[AutoFix] Corregidas ${totalFixed} notas. Fixes: ${results.flatMap(r => r.fixes_applied).length}`,
+        notes: `[AutoFix v2] ${totalFixed} notas corregidas, ${totalAIImproved} mejoradas con IA. ${results.flatMap(r => r.fixes_applied).length} fixes totales.`,
         quality_gate_report: {
-          autofix: true,
+          autofix_v2: true,
           fixed_count: totalFixed,
+          ai_improved_count: totalAIImproved,
           skipped_count: totalSkipped,
-          fixes: results.map(r => ({ slug: r.slug, fixes: r.fixes_applied })),
+          fixes: results.map(r => ({ slug: r.slug, fixes: r.fixes_applied, ai: r.ai_improved, score: r.new_score_estimate })),
         },
       });
     }
@@ -326,8 +504,10 @@ Deno.serve(async (req) => {
     const summary = {
       mode,
       dry_run: dryRun,
+      ai_enabled: enableAI,
       total_scanned: posts.length,
       total_fixed: totalFixed,
+      total_ai_improved: totalAIImproved,
       total_skipped: totalSkipped,
       fixes_applied: results.flatMap(r => r.fixes_applied).length,
     };
