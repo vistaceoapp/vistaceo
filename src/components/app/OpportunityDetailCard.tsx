@@ -238,8 +238,23 @@ export const OpportunityDetailCard = ({
         </DialogDescription>
       </DialogHeader>
 
-      <ScrollArea className="max-h-[60vh] pr-2">
-        <div className="space-y-5 mt-4">
+      {/* Sticky CTA - Always visible */}
+      <div className="flex flex-wrap gap-2 mt-4 mb-3">
+        <Button variant="outline" size="sm" onClick={onDismiss} className="h-11">
+          No me interesa
+        </Button>
+        <Button 
+          size="sm" 
+          className="flex-1 h-11 text-sm font-semibold" 
+          onClick={onAccept} 
+          disabled={actionLoading}
+        >
+          <Target className="w-4 h-4 mr-1" />
+          {actionLoading ? "Creando..." : "Convertir en misión"}
+        </Button>
+      </div>
+
+      <ScrollArea className="max-h-[55vh] pr-2">
           {/* Trigger - Por qué apareció */}
           <div className="p-4 rounded-xl bg-accent/5 border border-accent/20">
             <h4 className="font-semibold text-accent mb-2 flex items-center gap-2 text-sm">
