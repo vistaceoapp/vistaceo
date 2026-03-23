@@ -21,6 +21,8 @@ import PredictionsWidget from "@/components/app/PredictionsWidget";
 import { WeeklyMetricsWidget } from "@/components/app/WeeklyMetricsWidget";
 import { DashboardEditor } from "@/components/app/DashboardEditor";
 import { IntelligentQuestionPrompt } from "@/components/app/IntelligentQuestionPrompt";
+import { AIDailySummary } from "@/components/app/AIDailySummary";
+import { SmartNextSteps } from "@/components/app/SmartNextSteps";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useHealthSync } from "@/hooks/use-health-sync";
