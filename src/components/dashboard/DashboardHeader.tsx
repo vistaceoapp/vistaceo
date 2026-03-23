@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +40,6 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
     fetchProfile();
   }, [user]);
 
-
   const getInitials = () => {
     if (fullName) {
       return fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -49,92 +47,58 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
     return user?.email?.charAt(0).toUpperCase() || 'U';
   };
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Buenos días";
-    if (hour < 19) return "Buenas tardes";
-    return "Buenas noches";
-  };
-
   return (
-    <>
-      <header 
-        className={cn(
-          "fixed top-0 right-0 h-16 bg-background/80 backdrop-blur-xl border-b border-border z-40",
-          "flex items-center justify-between px-6 transition-all duration-300",
-          sidebarCollapsed ? "left-[72px]" : "left-[260px]"
-        )}
-      >
-        {/* Left side - Greeting */}
-        <div className="flex items-center gap-6 flex-1">
-          <div className="hidden lg:block">
-            <p className="text-sm text-muted-foreground">{getGreeting()},</p>
-            <h2 className="text-lg font-semibold text-foreground -mt-0.5">
-              {fullName || user?.email?.split("@")[0] || "Usuario"}
-            </h2>
-          </div>
-          {/* Business name removed - already visible in sidebar/settings */}
-        </div>
+    <header 
+      className={cn(
+        "fixed top-0 right-0 h-14 bg-background/80 backdrop-blur-xl border-b border-border/40 z-40",
+        "flex items-center justify-end px-5 transition-all duration-300",
+        sidebarCollapsed ? "left-[72px]" : "left-[240px]"
+      )}
+    >
+      <div className="flex items-center gap-1.5">
+        <InsightNotificationBell />
 
-        {/* Right side - Actions */}
-        <div className="flex items-center gap-2">
-
-          {/* Insight Notifications */}
-          <InsightNotificationBell />
-
-          {/* User Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2 px-2 hover:bg-secondary">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                    {getInitials()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-foreground leading-tight">
-                    {fullName || user?.email?.split("@")[0] || "Usuario"}
-                  </p>
-                  <p className="text-xs text-muted-foreground leading-tight">
-                    {currentBusiness?.name || "Sin negocio"}
-                  </p>
-                </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-card border-border">
-              <DropdownMenuLabel>
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                      {getInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-foreground">{fullName || "Usuario"}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
-                  </div>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/app/more")} className="cursor-pointer">
-                Configuración
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/setup")} className="cursor-pointer">
-                Editar negocio
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => signOut()}
-                className="text-destructive focus:text-destructive cursor-pointer"
-              >
-                Cerrar sesión
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
-    </>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="gap-2 px-2 hover:bg-muted/50 rounded-xl h-9">
+              <Avatar className="h-7 w-7">
+                <AvatarFallback className="bg-primary/10 text-primary text-[11px] font-semibold">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="hidden md:block text-left">
+                <p className="text-[12px] font-medium text-foreground leading-tight">
+                  {fullName || user?.email?.split("@")[0] || "Usuario"}
+                </p>
+              </div>
+              <ChevronDown className="h-3 w-3 text-muted-foreground hidden md:block" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52 bg-card border-border/60 rounded-xl">
+            <DropdownMenuLabel className="pb-2">
+              <p className="font-medium text-foreground text-sm">{fullName || "Usuario"}</p>
+              <p className="text-[11px] text-muted-foreground">{user?.email}</p>
+              {currentBusiness && (
+                <p className="text-[11px] text-primary mt-0.5">{currentBusiness.name}</p>
+              )}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/app/more")} className="cursor-pointer text-[13px] rounded-lg">
+              Configuración
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/setup")} className="cursor-pointer text-[13px] rounded-lg">
+              Editar negocio
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => signOut()}
+              className="text-destructive focus:text-destructive cursor-pointer text-[13px] rounded-lg"
+            >
+              Cerrar sesión
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
   );
 };
