@@ -541,7 +541,7 @@ const ChatPage = () => {
               </h1>
               {!isMobile && (
                 <p className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                   {currentBusiness.name} — En línea
                 </p>
               )}
