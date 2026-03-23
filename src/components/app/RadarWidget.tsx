@@ -40,6 +40,37 @@ const mapItemTypeToCategory = (itemType: string): string => {
   return mapping[itemType] || "tendencia";
 };
 
+// Clean source string: extract domain from URLs, remove technical noise
+const cleanSourceLabel = (source: string | null | undefined): string => {
+  if (!source) return "Radar I+D";
+  // If it's a URL, extract just the domain
+  try {
+    if (source.startsWith("http")) {
+      const url = new URL(source);
+      const domain = url.hostname.replace("www.", "").replace("news.", "");
+      // Map known domains to friendly names
+      const domainMap: Record<string, string> = {
+        "google.com": "Google News",
+        "reuters.com": "Reuters",
+        "bloomberg.com": "Bloomberg",
+        "forbes.com": "Forbes",
+        "bbc.com": "BBC",
+        "techcrunch.com": "TechCrunch",
+      };
+      return domainMap[domain] || domain.split(".")[0].charAt(0).toUpperCase() + domain.split(".")[0].slice(1);
+    }
+  } catch { /* not a URL */ }
+  // If it contains " | URL", strip the URL part
+  const pipeIdx = source.indexOf(" | ");
+  if (pipeIdx > 0) {
+    const label = source.substring(0, pipeIdx).trim();
+    return label || "Radar I+D";
+  }
+  // If it looks like a raw URL somehow
+  if (source.includes("http") || source.includes("rss")) return "Radar I+D";
+  return source;
+};
+
 // Generate fallback insight based on sector
 const getFallbackInsight = (businessType: string | undefined, category: string | null): MarketInsight => {
   const type = businessType?.toLowerCase() || category?.toLowerCase() || "negocio";
@@ -97,7 +128,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
           title: item.title,
           description: item.content || "",
           category: mapItemTypeToCategory(item.item_type || "insight"),
-          source: item.source || "Radar I+D",
+          source: cleanSourceLabel(item.source),
           date: formatRelativeDate(item.created_at),
           isExternal: true,
           item_type: item.item_type,
@@ -293,7 +324,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
                 <p className="font-medium text-foreground text-sm mb-0.5 line-clamp-1 group-hover:text-accent transition-colors">
                   {insight.title}
                 </p>
-                <p className="text-[10px] text-muted-foreground">{insight.date} • {insight.source?.split(" | ")[0] || "Radar I+D"}</p>
+                <p className="text-[10px] text-muted-foreground">{insight.date} • {cleanSourceLabel(insight.source)}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-accent transition-colors" />
             </div>
