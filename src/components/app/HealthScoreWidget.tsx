@@ -119,8 +119,7 @@ export const HealthScoreWidget = ({
 
   const handleScoreClick = () => {
     if (!hasScore) { onSync?.(); return; }
-    const prompt = `Explicame por qué mi Salud de Negocio está en ${score} y qué puedo hacer para mejorarlo`;
-    navigate(`/app/chat?prompt=${encodeURIComponent(prompt)}`);
+    navigate('/app/analytics?tab=diagnostico');
   };
 
   // All 7 dimensions sorted by value
