@@ -652,35 +652,6 @@ export const OpportunityDetailEnhanced = ({
         </div>
       </ScrollArea>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-        <Button variant="ghost" size="sm" onClick={onDismiss} disabled={actionLoading} className="text-muted-foreground">
-          Descartar
-        </Button>
-        {onSaveForLater && (
-          <Button variant="outline" size="sm" onClick={onSaveForLater} disabled={actionLoading}>
-            <Bookmark className="w-4 h-4 mr-1" />
-            Guardar
-          </Button>
-        )}
-        <Button 
-          className="flex-1" 
-          onClick={onAccept}
-          disabled={actionLoading || !canConvert || planLoading}
-        >
-          {actionLoading ? (
-            <>
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              Convirtiendo...
-            </>
-          ) : (
-            <>
-              <Target className="w-4 h-4 mr-2" />
-              Convertir en misión
-            </>
-          )}
-        </Button>
-      </div>
     </>
   );
 };
