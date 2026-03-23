@@ -575,35 +575,18 @@ export const MissionLLMMode = ({
   // ========== DESKTOP LAYOUT ==========
   return (
     <div className="flex h-full min-h-0">
-      {/* Left: Missions List + Filters */}
-      <aside className="w-64 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
-        <div className="p-4 border-b border-border">
-          <Button variant="ghost" size="sm" onClick={onBack} className="mb-3 -ml-2">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver a Misiones
+      {/* Left: Missions List */}
+      <aside className="w-56 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
+        <div className="px-3 py-2.5 border-b border-border flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8 flex-shrink-0">
+            <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h2 className="font-semibold text-foreground">Misiones</h2>
+          <span className="text-sm font-semibold text-foreground truncate">Misiones</span>
         </div>
-        
-        {/* Filters */}
-        <MissionFilters
-          areaFilter={localFilters.areaFilter}
-          statusFilter={localFilters.statusFilter}
-          sortBy={localFilters.sortBy}
-          showStarredOnly={localFilters.showStarredOnly}
-          starredCount={starredMissions.size}
-          onAreaFilterChange={(v) => setLocalFilters(p => ({ ...p, areaFilter: v }))}
-          onStatusFilterChange={(v) => setLocalFilters(p => ({ ...p, statusFilter: v }))}
-          onSortByChange={(v) => setLocalFilters(p => ({ ...p, sortBy: v }))}
-          onShowStarredOnlyChange={(v) => setLocalFilters(p => ({ ...p, showStarredOnly: v }))}
-          compact
-          className="border-b border-border"
-        />
 
         {/* Missions list */}
         <div className="flex-1 overflow-y-auto">
           {(() => {
-            // Group missions by area
             const grouped = filteredMissions.reduce<Record<string, typeof filteredMissions>>((acc, m) => {
               const area = m.area || "General";
               if (!acc[area]) acc[area] = [];
@@ -612,7 +595,6 @@ export const MissionLLMMode = ({
             }, {});
             const areaKeys = Object.keys(grouped);
 
-            // If only 1 group or filter active, show flat list
             if (areaKeys.length <= 1) {
               return filteredMissions.map((m) => (
                 <SidebarMissionItem key={m.id} m={m} mission={mission} starredMissions={starredMissions} onSelectMission={onSelectMission} toggleStarred={toggleStarred} />
@@ -627,106 +609,63 @@ export const MissionLLMMode = ({
       </aside>
 
       {/* Center: Main content */}
-      <main ref={containerRef} className="flex-1 overflow-y-auto">
-        {/* Header */}
-        <header className="sticky top-0 z-20 px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4 min-w-0 flex-1">
-              <div className="min-w-0 flex-1">
-                <h1 className="text-lg font-bold text-foreground leading-snug">
-                  {mission.title}
-                </h1>
-                <div className="flex items-center gap-3 mt-1.5 text-sm text-muted-foreground">
-                  <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px]">
-                    {mission.status === "active" ? "Activa" : "Pausada"}
-                  </Badge>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    {formatTime(estimatedTimeRemaining)} restante
-                  </span>
-                  <span className="text-xs">{completedSteps}/{steps.length} pasos</span>
-                </div>
+      <main ref={containerRef} className="flex-1 overflow-y-auto min-w-0">
+        {/* Header — compact */}
+        <header className="sticky top-0 z-20 px-5 py-3 border-b border-border/50 bg-background/95 backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base font-bold text-foreground leading-snug truncate">
+                {mission.title}
+              </h1>
+              <div className="flex items-center gap-2.5 mt-1 text-xs text-muted-foreground">
+                <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px] h-5">
+                  {mission.status === "active" ? "Activa" : "Pausada"}
+                </Badge>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {formatTime(estimatedTimeRemaining)}
+                </span>
+                <span>{completedSteps}/{steps.length} pasos</span>
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9"
+                    <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
                       onClick={() => {
-                        if (!window.confirm("¿Regenerar la guía? Se perderá el progreso actual de los pasos.")) return;
+                        if (!window.confirm("¿Regenerar la guía?")) return;
                         fetchEnhancedPlan(true);
                         if (currentBusiness) {
                           supabase.functions.invoke("brain-record-signal", {
-                            body: {
-                              businessId: currentBusiness.id,
-                              signalType: "mission_steps_regenerated",
-                              content: {
-                                missionId: mission.id,
-                                missionTitle: mission.title,
-                              },
-                              source: "ui",
-                            }
+                            body: { businessId: currentBusiness.id, signalType: "mission_steps_regenerated", content: { missionId: mission.id, missionTitle: mission.title }, source: "ui" }
                           }).catch(console.error);
                         }
                       }}
                       disabled={regenerating}
                     >
-                      <RefreshCw className={cn("w-4 h-4", regenerating && "animate-spin")} />
-                      <span className="ml-1.5 hidden lg:inline text-xs">Regenerar guía</span>
+                      <RefreshCw className={cn("w-3.5 h-3.5", regenerating && "animate-spin")} />
+                      <span className="hidden lg:inline">Regenerar</span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs max-w-[200px]">
-                      Generaremos una nueva Guía de Pasos con un enfoque alternativo.
-                    </p>
-                  </TooltipContent>
+                  <TooltipContent><p className="text-xs">Genera una nueva guía con enfoque alternativo</p></TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9"
-                      onClick={() => onToggleStatus(mission)}
-                    >
-                      {mission.status === "active" ? (
-                        <>
-                          <Pause className="w-4 h-4" />
-                          <span className="ml-1.5 hidden lg:inline text-xs">Pausar</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-4 h-4" />
-                          <span className="ml-1.5 hidden lg:inline text-xs">Reanudar</span>
-                        </>
-                      )}
+                    <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => onToggleStatus(mission)}>
+                      {mission.status === "active" ? <><Pause className="w-3.5 h-3.5" /><span className="hidden lg:inline">Pausar</span></> : <><Play className="w-3.5 h-3.5" /><span className="hidden lg:inline">Reanudar</span></>}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs max-w-[200px]">
-                      {mission.status === "active" 
-                        ? "Ocultar temporalmente. Podés reanudarla cuando quieras." 
-                        : "Reactivar esta misión."}
-                    </p>
-                  </TooltipContent>
+                  <TooltipContent><p className="text-xs">{mission.status === "active" ? "Pausar temporalmente" : "Reactivar misión"}</p></TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
           </div>
-
-          {/* Progress - subtle integrated bar */}
-          <div className="mt-3">
-            <Progress value={progress} className="h-1" />
-          </div>
+          <Progress value={progress} className="h-1 mt-2.5" />
         </header>
 
         {/* Loading State */}
@@ -736,30 +675,29 @@ export const MissionLLMMode = ({
             missionTitle={mission.title}
           />
         ) : (
-          <div className="p-6">
+          <div className="p-5">
             {/* Toggle between Summary and Steps */}
-            <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center gap-2 mb-5">
               <Button
                 variant={viewMode === "summary" ? "default" : "outline"}
                 onClick={() => setViewMode("summary")}
                 size="sm"
-                className="gap-2 h-9"
+                className="gap-1.5 h-8 text-xs"
               >
-                <Sparkles className="w-4 h-4" />
-                Ver resumen de misión
+                <Sparkles className="w-3.5 h-3.5" />
+                Resumen
               </Button>
               <Button
                 variant={viewMode === "steps" ? "default" : "outline"}
                 onClick={() => setViewMode("steps")}
                 size="sm"
-                className="gap-2 h-9"
+                className="gap-1.5 h-8 text-xs"
               >
-                <List className="w-4 h-4" />
-                Ver guía por pasos
+                <List className="w-3.5 h-3.5" />
+                Guía por pasos
               </Button>
             </div>
 
-            {/* Content */}
             {viewMode === "summary" ? (
               <MissionSummaryView
                 mission={mission}
@@ -783,19 +721,16 @@ export const MissionLLMMode = ({
         )}
       </main>
 
-      {/* Right: Steps Timeline */}
+      {/* Right: Steps Timeline — visible from lg */}
       {!loading && (
-      <aside className="w-72 border-l border-border bg-background overflow-y-auto hidden xl:block">
-          <div className="px-4 py-3.5 border-b border-border">
-            <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
-              <FileText className="w-4 h-4 text-primary" />
+      <aside className="w-64 border-l border-border bg-background overflow-y-auto hidden lg:block flex-shrink-0">
+          <div className="px-3 py-3 border-b border-border">
+            <h3 className="font-semibold text-foreground text-xs flex items-center gap-2 uppercase tracking-wide">
+              <FileText className="w-3.5 h-3.5 text-primary" />
               Pasos de la misión
             </h3>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
-              Tocá un paso para ver los detalles
-            </p>
           </div>
-          <div className="p-3 space-y-1.5">
+          <div className="p-2 space-y-1">
             {steps.map((step, idx) => {
               const isCurrentStep = steps.findIndex(s => !s.done) === idx;
               const isSelected = selectedStepIdx === idx;
@@ -806,44 +741,45 @@ export const MissionLLMMode = ({
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedStepIdx(idx);
+                    setViewMode("steps");
                   }}
                   className={cn(
-                    "w-full text-left p-3 rounded-xl border transition-all group",
-                    isSelected && "ring-2 ring-primary shadow-sm bg-primary/5",
+                    "w-full text-left p-2.5 rounded-lg border transition-all",
+                    isSelected && "ring-1.5 ring-primary bg-primary/5",
                     step.done
                       ? "bg-success/5 border-success/20"
                       : isCurrentStep
-                        ? "bg-primary/5 border-primary/30"
-                        : "bg-card border-border hover:border-primary/20"
+                        ? "bg-primary/5 border-primary/20"
+                        : "bg-card border-border/50 hover:border-primary/20"
                   )}
                 >
-                  <div className="flex items-start gap-2.5">
+                  <div className="flex items-start gap-2">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleStep(mission.id, idx);
                       }}
                       className={cn(
-                        "w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors mt-0.5",
+                        "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-[10px] font-bold transition-colors mt-0.5",
                         step.done
-                          ? "bg-success text-success-foreground hover:bg-success/80"
+                          ? "bg-success text-success-foreground"
                           : isCurrentStep
-                            ? "bg-primary text-primary-foreground hover:bg-primary/80"
+                            ? "bg-primary text-primary-foreground"
                             : "bg-secondary text-muted-foreground hover:bg-primary hover:text-primary-foreground"
                       )}
                     >
-                      {step.done ? <Check className="w-3.5 h-3.5" /> : idx + 1}
+                      {step.done ? <Check className="w-3 h-3" /> : idx + 1}
                     </button>
                     <div className="flex-1 min-w-0">
                       <p className={cn(
-                        "text-xs line-clamp-2 leading-relaxed font-medium",
+                        "text-[11px] line-clamp-2 leading-relaxed",
                         step.done && "line-through text-muted-foreground",
-                        isCurrentStep && !step.done && "text-primary"
+                        isCurrentStep && !step.done && "text-primary font-medium"
                       )}>
                         {step.text}
                       </p>
                       {isCurrentStep && !step.done && (
-                        <span className="text-[10px] text-primary font-semibold mt-0.5 inline-block">Siguiente →</span>
+                        <span className="text-[9px] text-primary font-semibold mt-0.5 inline-block">Siguiente →</span>
                       )}
                     </div>
                   </div>
