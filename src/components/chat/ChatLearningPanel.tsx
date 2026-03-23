@@ -67,6 +67,14 @@ const getCategoryKey = (rawCategory: string): string => {
   return rawCategory;
 };
 
+// Detect if text is predominantly English
+const isEnglishText = (text: string): boolean => {
+  const englishIndicators = /\b(the|is|are|was|were|have|has|had|been|being|will|would|could|should|can|may|might|shall|must|need|do|does|did|in|on|at|for|with|from|by|to|of|and|or|but|not|this|that|these|those|it|its|an?|suggest|revenue|stream|untapped|mentions|reviews|coffee|customer|optimize|improve|increase|decrease|growth|market|strategy|analysis|performance|engagement|conversion|retention)\b/gi;
+  const matches = text.match(englishIndicators) || [];
+  const wordCount = text.split(/\s+/).length;
+  return wordCount > 3 && matches.length / wordCount > 0.3;
+};
+
 const formatDate = (dateStr: string): string => {
   try {
     const date = new Date(dateStr);
@@ -132,7 +140,14 @@ const parseLearningData = (data: unknown): LearningFact[] => {
     });
   }
 
-  return facts.filter((fact) => fact.answer && fact.answer.trim().length > 0);
+  return facts.filter((fact) => {
+    if (!fact.answer || fact.answer.trim().length === 0) return false;
+    // Filter out English-only content
+    if (isEnglishText(fact.answer)) return false;
+    // Filter out duplicate question labels that add no value
+    if (fact.question === fact.answer) return false;
+    return true;
+  });
 };
 
 export const ChatLearningPanel = ({
@@ -164,7 +179,8 @@ export const ChatLearningPanel = ({
 
       if (brain?.factual_memory) {
         const factualMemory = brain.factual_memory as Record<string, unknown>;
-        const parsedCategories: LearningCategory[] = [];
+        // Use a map to merge duplicate category keys
+        const categoryMap = new Map<string, LearningCategory>();
         let count = 0;
 
         Object.entries(factualMemory).forEach(([rawCategory, data]) => {
@@ -177,15 +193,25 @@ export const ChatLearningPanel = ({
           const facts = parseLearningData(data);
           
           if (facts.length > 0) {
-            parsedCategories.push({
-              category: categoryKey,
-              label: config.label || categoryLabel(categoryKey),
-              icon: config.icon,
-              facts: facts.slice(0, 8),
-            });
+            const existing = categoryMap.get(categoryKey);
+            if (existing) {
+              // Merge facts into existing category, avoid duplicates
+              const existingAnswers = new Set(existing.facts.map(f => f.answer));
+              const newFacts = facts.filter(f => !existingAnswers.has(f.answer));
+              existing.facts = [...existing.facts, ...newFacts].slice(0, 10);
+            } else {
+              categoryMap.set(categoryKey, {
+                category: categoryKey,
+                label: config.label || categoryLabel(categoryKey),
+                icon: config.icon,
+                facts: facts.slice(0, 10),
+              });
+            }
             count += facts.length;
           }
         });
+
+        const parsedCategories = Array.from(categoryMap.values());
 
         // Auto-expand first category
         if (parsedCategories.length > 0) {
