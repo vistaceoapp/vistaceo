@@ -264,7 +264,7 @@ export function useIntelligentQuestions(): UseIntelligentQuestionsResult {
       
       for (const iq of industryQuestions) {
         // Check if already answered
-        const isAnswered = brain?.memory?.factual_memory?.[iq.field_name];
+        const isAnswered = factualMem?.[iq.field_name];
         if (!isAnswered) {
           generatedQuestions.push(iq);
         }
