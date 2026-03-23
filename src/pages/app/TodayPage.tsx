@@ -267,13 +267,13 @@ const TodayPage = () => {
             aiSummary: 0,
             health: 1,
             nextSteps: 2,
-            pulse: 3,
+            missions: 3,
             brain: 4,
-            weeklyMetrics: 5,
-            missions: 6,
-            focus: 7,
-            reputation: 8,
-            radar: 9,
+            focus: 5,
+            radar: 6,
+            pulse: 7,
+            weeklyMetrics: 8,
+            predictions: 9,
           };
           return (mobileOrder[a.id] ?? 99) - (mobileOrder[b.id] ?? 99);
         })
