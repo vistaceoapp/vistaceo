@@ -23,6 +23,46 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
+/** Animated arc for score visualization */
+const ScoreArc = ({ score, size = 100 }: { score: number; size?: number }) => {
+  const strokeWidth = 6;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const progress = (score / 100) * circumference;
+  const style = getScoreStyle(score);
+
+  const getStrokeColor = (s: number) => {
+    if (s >= 60) return 'hsl(var(--success))';
+    if (s >= 40) return 'hsl(var(--warning))';
+    return 'hsl(var(--destructive))';
+  };
+
+  return (
+    <svg width={size} height={size} className="transform -rotate-90">
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="hsl(var(--muted) / 0.3)"
+        strokeWidth={strokeWidth}
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke={getStrokeColor(score)}
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference}
+        strokeDashoffset={circumference - progress}
+        strokeLinecap="round"
+        className="transition-all duration-1000 ease-out"
+      />
+    </svg>
+  );
+};
+
 /** Color-coded progress bar */
 const DimensionBar = forwardRef<HTMLDivElement, { value: number; className?: string }>(
   ({ value, className }, ref) => {
@@ -33,7 +73,7 @@ const DimensionBar = forwardRef<HTMLDivElement, { value: number; className?: str
     };
 
     return (
-      <div ref={ref} className={cn('relative h-1.5 w-full rounded-full bg-muted/40 overflow-hidden', className)}>
+      <div ref={ref} className={cn('relative h-1 w-full rounded-full bg-muted/30 overflow-hidden', className)}>
         <div
           className={cn('absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out', getBarColor(value))}
           style={{ width: `${Math.max(value, 2)}%` }}
@@ -96,77 +136,66 @@ export const HealthScoreWidget = ({
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="rounded-2xl border border-border/60 bg-card overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-md)]">
+      <div className="rounded-2xl border border-border/50 bg-card overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-md)]">
         <div className="p-5">
           {/* Header row */}
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <h3 className="text-[13px] font-semibold text-foreground tracking-tight uppercase">
+              <h3 className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
                 Salud del negocio
               </h3>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/50 cursor-help" />
+                  <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/40 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="right" className="max-w-[240px] text-xs">
-                  <p>Puntaje de 0 a 100 que refleja la salud integral de tu negocio en 7 dimensiones clave. Se actualiza con cada dato que aportás.</p>
+                  <p>Puntaje de 0 a 100 basado en 7 dimensiones clave. Se actualiza con cada dato nuevo.</p>
                 </TooltipContent>
               </Tooltip>
             </div>
             <button
               onClick={() => setExpanded(!expanded)}
-              className="text-muted-foreground hover:text-foreground transition-colors p-1 -mr-1"
+              className="text-muted-foreground/60 hover:text-foreground transition-colors p-1 -mr-1"
             >
               {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
           </div>
 
-          {/* Subtitle */}
-          <p className="text-[11px] text-muted-foreground mb-4">
-            {hasScore
-              ? `Basado en ${precisionPct}% de datos recopilados`
-              : 'Respondé preguntas para obtener tu primer diagnóstico'
-            }
-          </p>
-
-          {/* Score circle + dimensions */}
-          <div className="flex items-start gap-6">
+          {/* Score + dimensions layout */}
+          <div className="flex items-start gap-5">
             {/* Score circle */}
             <button
               onClick={handleScoreClick}
               disabled={isSyncing}
-              className={cn(
-                'flex-shrink-0 w-[92px] h-[92px] rounded-full flex flex-col items-center justify-center',
-                'transition-all duration-200 cursor-pointer',
-                'hover:scale-[1.03] active:scale-[0.97]',
-                hasScore
-                  ? 'border-2 border-current'
-                  : 'border-2 border-dashed border-muted-foreground/30'
-              )}
-              style={hasScore ? { borderColor: `hsl(var(--${score >= 60 ? 'success' : score >= 40 ? 'warning' : 'destructive'}))` } : undefined}
+              className="flex-shrink-0 relative group cursor-pointer"
             >
               {hasScore ? (
-                <>
-                  <div className="flex items-baseline gap-0.5">
-                    <span className={cn('text-[34px] font-bold leading-none tracking-tighter', scoreStyle.textColor)}>
-                      {score}
-                    </span>
-                    {trend && (
-                      <span className="ml-0.5">
-                        {trend.direction === 'up' && <TrendingUp className="w-3.5 h-3.5 text-success" />}
-                        {trend.direction === 'down' && <TrendingDown className="w-3.5 h-3.5 text-destructive" />}
-                        {trend.direction === 'stable' && <Minus className="w-3 h-3 text-muted-foreground" />}
+                <div className="relative">
+                  <ScoreArc score={score} size={88} />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="flex items-baseline gap-0.5">
+                      <span className={cn('text-3xl font-bold leading-none tracking-tight', scoreStyle.textColor)}>
+                        {score}
                       </span>
-                    )}
+                      {trend && (
+                        <span className="ml-0.5">
+                          {trend.direction === 'up' && <TrendingUp className="w-3 h-3 text-success" />}
+                          {trend.direction === 'down' && <TrendingDown className="w-3 h-3 text-destructive" />}
+                          {trend.direction === 'stable' && <Minus className="w-2.5 h-2.5 text-muted-foreground" />}
+                        </span>
+                      )}
+                    </div>
+                    <span className={cn('text-[9px] font-medium mt-0.5', scoreStyle.textColor)}>
+                      {scoreStyle.label}
+                    </span>
                   </div>
-                  <span className={cn('text-[10px] font-medium mt-0.5', scoreStyle.textColor)}>
-                    {scoreStyle.label}
-                  </span>
-                </>
+                  {/* Hover ring */}
+                  <div className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-primary/20 transition-colors" />
+                </div>
               ) : (
-                <div className="flex flex-col items-center gap-1.5">
-                  <RefreshCw className={cn('w-5 h-5 text-muted-foreground', isSyncing && 'animate-spin')} />
-                  <span className="text-[9px] text-muted-foreground font-medium text-center px-2">
+                <div className="w-[88px] h-[88px] rounded-full border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-1.5 hover:border-primary/30 transition-colors">
+                  <RefreshCw className={cn('w-5 h-5 text-muted-foreground/60', isSyncing && 'animate-spin')} />
+                  <span className="text-[9px] text-muted-foreground/60 font-medium">
                     {isSyncing ? 'Analizando...' : 'Diagnosticar'}
                   </span>
                 </div>
@@ -174,17 +203,25 @@ export const HealthScoreWidget = ({
             </button>
 
             {/* Dimension bars */}
-            <div className="flex-1 space-y-2.5 pt-0.5">
+            <div className="flex-1 space-y-2 pt-0.5">
+              {/* Certainty micro-label */}
+              <p className="text-[10px] text-muted-foreground/60 mb-2">
+                {hasScore
+                  ? `Certeza: ${precisionPct}% de datos`
+                  : 'Respondé preguntas para tu primer diagnóstico'
+                }
+              </p>
+
               {visibleDimensions.map((dim) => (
                 <div key={dim.id}>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-0.5">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[11px] leading-none">{dim.icon}</span>
-                      <span className="text-[12px] text-muted-foreground font-medium">{dim.name}</span>
+                      <span className="text-[11px] text-muted-foreground">{dim.name}</span>
                     </div>
                     <span className={cn(
-                      'text-[12px] font-semibold tabular-nums',
-                      dim.value !== null ? getScoreStyle(dim.value).textColor : 'text-muted-foreground/40'
+                      'text-[11px] font-semibold tabular-nums',
+                      dim.value !== null ? getScoreStyle(dim.value).textColor : 'text-muted-foreground/30'
                     )}>
                       {dim.value !== null ? dim.value : '—'}
                     </span>
@@ -195,12 +232,12 @@ export const HealthScoreWidget = ({
             </div>
           </div>
 
-          {/* Actionable insight — always visible if we have a score */}
+          {/* Actionable insight — collapsed only */}
           {hasScore && weakest && weakest.value !== null && weakest.value < 60 && !expanded && (
-            <div className="mt-4 pt-3 border-t border-border/30">
-              <p className="text-[11px] text-muted-foreground">
+            <div className="mt-4 pt-3 border-t border-border/20">
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
                 <span className="font-medium text-foreground">💡 Prioridad:</span>{' '}
-                <span className="text-foreground/80">{weakest.name}</span> está en {weakest.value} — 
+                <span className="text-foreground/80">{weakest.name}</span> está en {weakest.value} —
                 <button 
                   onClick={() => navigate(`/app/chat?prompt=${encodeURIComponent(`Cómo puedo mejorar ${weakest.name} en mi negocio?`)}`)}
                   className="text-primary hover:underline ml-1 font-medium"
@@ -213,29 +250,19 @@ export const HealthScoreWidget = ({
 
           {/* Expanded: certainty + actions */}
           {expanded && (
-            <div className="mt-5 pt-4 border-t border-border/40 space-y-4 animate-fade-in">
-              {/* Certainty */}
+            <div className="mt-4 pt-4 border-t border-border/20 space-y-4 animate-fade-in">
+              {/* Certainty bar */}
               <div>
                 <div className="flex items-center justify-between text-[11px] mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground">Certeza del análisis</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="w-3 h-3 text-muted-foreground/40 cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[200px] text-xs">
-                        <p>Mientras más datos aportes (preguntas, check-ins, integraciones), más preciso es tu diagnóstico.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
+                  <span className="text-muted-foreground">Certeza del análisis</span>
                   <span className={cn(
-                    'font-semibold',
+                    'font-semibold tabular-nums',
                     precisionPct >= 70 ? 'text-success' : precisionPct >= 40 ? 'text-warning' : 'text-destructive'
                   )}>
                     {precisionPct}%
                   </span>
                 </div>
-                <div className="relative h-1.5 bg-muted/40 rounded-full overflow-hidden">
+                <div className="relative h-1 bg-muted/30 rounded-full overflow-hidden">
                   <div
                     className={cn(
                       'absolute inset-y-0 left-0 rounded-full transition-all duration-700',
@@ -244,12 +271,12 @@ export const HealthScoreWidget = ({
                     style={{ width: `${precisionPct}%` }}
                   />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1.5">
+                <p className="text-[10px] text-muted-foreground/60 mt-1.5">
                   {precisionPct < 40
-                    ? 'Respondé más preguntas para un análisis más preciso'
+                    ? 'Más datos = diagnóstico más preciso'
                     : precisionPct < 70
-                    ? 'Conectá integraciones para subir la certeza'
-                    : 'Análisis confiable — datos suficientes'}
+                    ? 'Conectá integraciones para mayor certeza'
+                    : 'Análisis confiable'}
                 </p>
               </div>
 
@@ -259,7 +286,7 @@ export const HealthScoreWidget = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 h-9 text-xs gap-1.5 rounded-xl"
+                    className="flex-1 h-8 text-[11px] gap-1.5 rounded-xl"
                     onClick={onSync}
                     disabled={isSyncing}
                   >
@@ -270,10 +297,10 @@ export const HealthScoreWidget = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex-1 h-9 text-xs gap-1.5 text-primary hover:text-primary rounded-xl"
+                  className="flex-1 h-8 text-[11px] gap-1.5 text-primary hover:text-primary rounded-xl"
                   onClick={() => navigate('/app/diagnostic')}
                 >
-                  Ver diagnóstico completo
+                  Diagnóstico completo
                   <ArrowRight className="w-3 h-3" />
                 </Button>
               </div>
