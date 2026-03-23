@@ -842,6 +842,14 @@ const MorePage = () => {
         <GooglePlacesReputationSection />
       </div>
 
+      {/* Business Photos */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+          Tu negocio
+        </h3>
+        <BusinessPhotosSection />
+      </div>
+
       {/* System Section */}
       <div>
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
