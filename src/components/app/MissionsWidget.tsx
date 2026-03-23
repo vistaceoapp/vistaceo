@@ -96,7 +96,7 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-primary" />
-            <h4 className="font-semibold text-foreground text-sm">Misiones activas</h4>
+            <h4 className="font-semibold text-foreground text-sm">Misiones</h4>
           </div>
         </div>
 
@@ -104,8 +104,9 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
             <Target className="w-6 h-6 text-primary" />
           </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            No tenés misiones activas
+          <p className="text-sm font-medium text-foreground mb-1">Sin misiones activas</p>
+          <p className="text-xs text-muted-foreground mb-4 max-w-[240px] mx-auto">
+            Las misiones son planes de acción paso a paso que el sistema genera para mejorar tu negocio
           </p>
           <Button 
             size="sm" 
@@ -128,8 +129,8 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
             <Target className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h4 className="font-semibold text-foreground">Misiones activas</h4>
-            <p className="text-xs text-muted-foreground">{missions.length} en progreso</p>
+            <h4 className="font-semibold text-foreground">Misiones</h4>
+            <p className="text-xs text-muted-foreground">{missions.length} plan{missions.length !== 1 ? 'es' : ''} de acción en curso</p>
           </div>
         </div>
         <Button 

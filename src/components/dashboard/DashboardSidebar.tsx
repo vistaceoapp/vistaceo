@@ -21,12 +21,12 @@ import { PlanStatusCard } from "@/components/app/PlanStatusCard";
 import { useSubscription } from "@/hooks/use-subscription";
 
 const navItems = [
-  { path: "/app", icon: Home, label: "Inicio", badge: null, isPro: false },
-  { path: "/app/chat", icon: MessageCircle, label: "Chat CEO", badge: "Pro", isPro: true },
-  { path: "/app/missions", icon: Target, label: "Misiones", badge: null, isPro: false },
-  { path: "/app/radar", icon: Radar, label: "Radar", badge: null, isPro: false },
-  { path: "/app/analytics", icon: BarChart3, label: "Analytics", badge: "Pro", isPro: true },
-  { path: "/app/predictions", icon: Orbit, label: "Predicciones", badge: "Pro", isPro: true },
+  { path: "/app", icon: Home, label: "Inicio", subtitle: "Dashboard principal", badge: null, isPro: false },
+  { path: "/app/chat", icon: MessageCircle, label: "Chat CEO", subtitle: "Tu mentor estratégico", badge: "Pro", isPro: true },
+  { path: "/app/missions", icon: Target, label: "Misiones", subtitle: "Planes de acción", badge: null, isPro: false },
+  { path: "/app/radar", icon: Radar, label: "Radar", subtitle: "Oportunidades del mercado", badge: null, isPro: false },
+  { path: "/app/analytics", icon: BarChart3, label: "Analytics", subtitle: "Métricas y evolución", badge: "Pro", isPro: true },
+  { path: "/app/predictions", icon: Orbit, label: "Predicciones", subtitle: "Simulá escenarios", badge: "Pro", isPro: true },
 ];
 
 interface DashboardSidebarProps {
@@ -88,8 +88,8 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "group flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200",
-                  collapsed ? "justify-center" : "justify-start",
+                  "group flex items-center gap-3 px-3 rounded-xl transition-all duration-200",
+                  collapsed ? "justify-center py-2" : "justify-start py-2.5",
                   isActive 
                     ? "bg-primary/10 text-primary font-semibold"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -100,23 +100,28 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
                   isActive ? "scale-105" : "group-hover:scale-105"
                 )} />
                 {!collapsed && (
-                  <>
-                    <span className="text-[13px] flex-1">{item.label}</span>
-                    {item.badge && (
-                      <Badge 
-                        variant="outline" 
-                        className={cn(
-                          "text-[9px] h-4 px-1.5 rounded-md",
-                          item.isPro && !isPro
-                            ? "border-warning/30 text-warning bg-warning/5"
-                            : "border-primary/20 text-primary/70"
-                        )}
-                      >
-                        {item.isPro && !isPro && <Crown className="w-2 h-2 mr-0.5" />}
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px]">{item.label}</span>
+                      {item.badge && (
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "text-[9px] h-4 px-1.5 rounded-md flex-shrink-0",
+                            item.isPro && !isPro
+                              ? "border-warning/30 text-warning bg-warning/5"
+                              : "border-primary/20 text-primary/70"
+                          )}
+                        >
+                          {item.isPro && !isPro && <Crown className="w-2 h-2 mr-0.5" />}
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-muted-foreground/70 block leading-tight mt-0.5">
+                      {item.subtitle}
+                    </span>
+                  </div>
                 )}
               </NavLink>
             );
@@ -125,8 +130,9 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
               return (
                 <Tooltip key={item.path}>
                   <TooltipTrigger asChild>{NavItem}</TooltipTrigger>
-                  <TooltipContent side="right">
+                  <TooltipContent side="right" className="space-y-0.5">
                     <p className="font-medium text-xs">{item.label}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.subtitle}</p>
                   </TooltipContent>
                 </Tooltip>
               );
