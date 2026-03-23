@@ -113,7 +113,7 @@ export const HealthScoreWidget = ({
     const diff = score - previousScore;
     if (diff > 2) return { direction: 'up' as const, value: diff };
     if (diff < -2) return { direction: 'down' as const, value: Math.abs(diff) };
-    return { direction: 'stable' as const, value: 0 };
+    return null;
   };
   const trend = getTrend();
 
