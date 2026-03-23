@@ -318,11 +318,11 @@ const ChatPage = () => {
   }, [stopAudio]);
 
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
     }
-  }, [isRecording]);
+    setIsRecording(false);
+  }, []);
 
   const transcribeAudio = async (audioBlob: Blob) => {
     setIsTranscribing(true);
