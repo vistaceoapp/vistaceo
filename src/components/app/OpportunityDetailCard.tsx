@@ -370,22 +370,6 @@ export const OpportunityDetailCard = ({
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={onDismiss}>
-              <ThumbsDown className="w-4 h-4 mr-1" />
-              No me interesa
-            </Button>
-            <Button 
-              size="sm" 
-              className="flex-1 gradient-primary" 
-              onClick={onAccept} 
-              disabled={actionLoading}
-            >
-              <Target className="w-4 h-4 mr-1" />
-              {actionLoading ? "Creando..." : "Convertir en Misión"}
-            </Button>
-          </div>
         </div>
       </ScrollArea>
     </>
