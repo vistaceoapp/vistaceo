@@ -47,11 +47,9 @@ const TodayPage = () => {
 
   const setupCompleted = dashboardData.setupCompleted;
   
-  // Handle sync and refresh data — navigate to force remount instead of hard reload
   const handleSync = useCallback(async () => {
     const result = await syncHealth();
     if (result.success) {
-      // Force remount by navigating away and back — avoids full page reload flash
       navigate('/app', { replace: true });
     }
   }, [syncHealth, navigate]);
@@ -69,15 +67,6 @@ const TodayPage = () => {
     return "Buenas noches";
   };
 
-  const getTimeEmoji = () => {
-    const hour = new Date().getHours();
-    if (hour < 6) return "🌙";
-    if (hour < 12) return "☀️";
-    if (hour < 18) return "🌤️";
-    if (hour < 21) return "🌅";
-    return "🌙";
-  };
-
   useEffect(() => {
     if (currentBusiness) {
       setLoading(false);
@@ -86,7 +75,6 @@ const TodayPage = () => {
     }
   }, [currentBusiness]);
 
-  // Widget renderer based on ID
   const renderWidget = (widgetId: string) => {
     switch (widgetId) {
       case "health":
@@ -164,6 +152,8 @@ const TodayPage = () => {
   const mainWidgets = getVisibleWidgets("main");
   const sidebarWidgets = getVisibleWidgets("sidebar");
 
+  const dateStr = new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" });
+
   // Desktop Layout
   if (!isMobile) {
     return (
@@ -177,7 +167,7 @@ const TodayPage = () => {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground mb-1">Completá el Setup Inteligente</h3>
-                <p className="text-sm text-muted-foreground">7-12 minutos para un dashboard personalizado</p>
+                <p className="text-sm text-muted-foreground">El sistema se personaliza a tu negocio en 7-12 min</p>
               </div>
               <Button size="sm" className="gradient-primary"><Sparkles className="w-4 h-4 mr-2" />Comenzar</Button>
             </div>
@@ -188,10 +178,10 @@ const TodayPage = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground tracking-tight">
-              {getGreeting()} {getTimeEmoji()}
+              {getGreeting()}
             </h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {currentBusiness.name} · {new Date().toLocaleDateString("es", { weekday: "long", day: "numeric", month: "long" })}
+              {currentBusiness.name} · <span className="capitalize">{dateStr}</span>
             </p>
           </div>
           
@@ -204,7 +194,7 @@ const TodayPage = () => {
           />
         </div>
 
-        {/* Intelligent Question Prompt - shows when Brain needs clarification */}
+        {/* Intelligent Question Prompt */}
         <IntelligentQuestionPrompt variant="compact" />
 
         <div className="grid grid-cols-3 gap-6">
@@ -226,16 +216,16 @@ const TodayPage = () => {
 
   // Mobile Layout
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {!setupCompleted && (
-        <GlassCard interactive className="p-5 cursor-pointer border-primary/30 bg-primary/5" onClick={() => navigate('/setup')}>
+        <GlassCard interactive className="p-4 cursor-pointer border-primary/30 bg-primary/5" onClick={() => navigate('/setup')}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
               <Brain className="w-5 h-5 text-primary-foreground" />
             </div>
             <div className="flex-1">
-              <h3 className="font-medium text-foreground text-sm">Setup Inteligente</h3>
-              <p className="text-xs text-muted-foreground">Dashboard personalizado en minutos</p>
+              <h3 className="font-medium text-foreground text-sm">Completar Setup</h3>
+              <p className="text-xs text-muted-foreground">Personalizá tu dashboard</p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground" />
           </div>
@@ -246,9 +236,11 @@ const TodayPage = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-foreground tracking-tight">
-            {getGreeting()} {getTimeEmoji()}
+            {getGreeting()}
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{currentBusiness.name}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {currentBusiness.name} · <span className="capitalize">{dateStr}</span>
+          </p>
         </div>
         
         <DashboardEditor 
@@ -260,13 +252,11 @@ const TodayPage = () => {
         />
       </div>
 
-      {/* Intelligent Question Prompt - shows when Brain needs clarification (mobile) */}
       <IntelligentQuestionPrompt variant="compact" />
 
       {/* Render all visible widgets in order */}
       {[...mainWidgets, ...sidebarWidgets]
         .sort((a, b) => {
-          // Custom mobile order: health first, then pulse, then brain, then metrics, missions
           const mobileOrder: Record<string, number> = {
             health: 0,
             pulse: 1,

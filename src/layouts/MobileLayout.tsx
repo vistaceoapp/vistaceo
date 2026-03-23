@@ -23,55 +23,43 @@ const MobileLayout = () => {
   const { currentBusiness } = useBusiness();
   const { isPro } = useSubscription();
   
-  // Auto-sync external data in background
   useAutoSync();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Ambient background effects - only in dark mode */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden dark:block hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
-      </div>
-
-      {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-card/80 dark:bg-card/60 backdrop-blur-xl border-b border-border px-4 py-3">
+    <div className="min-h-[100dvh] bg-background flex flex-col">
+      {/* Top Header — clean, minimal */}
+      <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border/40 px-4 py-2.5">
         <div className="flex items-center justify-between max-w-3xl mx-auto">
-          <div className="flex items-center gap-3">
-            <VistaceoLogo size={32} variant="icon" />
+          <div className="flex items-center gap-2.5">
+            <VistaceoLogo size={28} variant="icon" />
             {currentBusiness && (
-              <div>
-                <h1 className="text-sm font-semibold text-foreground">
+              <div className="min-w-0">
+                <h1 className="text-[13px] font-semibold text-foreground truncate">
                   {currentBusiness.name}
                 </h1>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {currentBusiness.category?.replace("_", " ")}
-                </p>
               </div>
             )}
           </div>
           
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => navigate('/app/more')}
-              className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={() => navigate('/app/more')}
+            className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-24 relative z-10">
+      <main className="flex-1 overflow-y-auto pb-20 relative z-10">
         <div className="max-w-3xl mx-auto px-4 py-4">
           <Outlet />
         </div>
       </main>
 
-      {/* Bottom Navigation - 6 buttons */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 dark:bg-card/80 backdrop-blur-xl border-t border-border safe-area-inset-bottom">
-        <div className="max-w-3xl mx-auto flex items-center justify-between h-14 px-2">
+      {/* Bottom Navigation — clean, well-spaced */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/40">
+        <div className="max-w-3xl mx-auto flex items-center justify-between h-[56px] px-1" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           {navItems.map((item) => {
             const isActive = item.path === "/app" 
               ? location.pathname === "/app"
@@ -82,7 +70,7 @@ const MobileLayout = () => {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "relative flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 rounded-lg transition-all duration-200",
+                  "relative flex flex-col items-center justify-center gap-0.5 flex-1 py-1 rounded-lg transition-all duration-200",
                   isActive 
                     ? "text-primary" 
                     : "text-muted-foreground"
@@ -90,25 +78,24 @@ const MobileLayout = () => {
               >
                 <div className="relative">
                   <item.icon className={cn(
-                    "w-5 h-5 transition-all",
+                    "w-[20px] h-[20px] transition-all",
                     isActive && "scale-110"
                   )} />
                   
-                  {/* Pro indicator */}
                   {item.isPro && !isPro && !isActive && (
                     <Crown className="absolute -top-1 -right-1.5 w-2.5 h-2.5 text-warning" />
                   )}
                 </div>
                 
                 <span className={cn(
-                  "text-[9px] font-medium",
-                  isActive && "font-semibold"
+                  "text-[10px] leading-tight",
+                  isActive ? "font-semibold" : "font-medium"
                 )}>
                   {item.label}
                 </span>
                 
                 {isActive && (
-                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-primary" />
+                  <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-[2px] rounded-full bg-primary" />
                 )}
               </NavLink>
             );

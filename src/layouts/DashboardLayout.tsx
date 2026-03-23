@@ -8,21 +8,17 @@ import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 const DashboardLayoutContent = () => {
   const { collapsed, toggleCollapsed } = useSidebar();
   
-  // Auto-sync external data in background
   useAutoSync();
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar */}
       <DashboardSidebar 
         collapsed={collapsed} 
         onToggle={toggleCollapsed} 
       />
 
-      {/* Header */}
       <DashboardHeader sidebarCollapsed={collapsed} />
 
-      {/* Main Content */}
       <main 
         className={cn(
           "pt-14 min-h-screen transition-all duration-300",
