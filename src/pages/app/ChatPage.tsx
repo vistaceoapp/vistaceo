@@ -105,6 +105,20 @@ const ChatPage = () => {
   const audioChunksRef = useRef<Blob[]>([]);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.removeAttribute('src');
+        currentAudioRef.current = null;
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (currentBusiness) {
       fetchMessages();
@@ -252,9 +266,21 @@ const ChatPage = () => {
   // Voice Recording
   const startRecording = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
-
+      // Stop any playing audio first
+      stopAudio();
+      
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: { echoCancellation: true, noiseSuppression: true } 
+      });
+      
+      // Check supported mime types
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+        ? 'audio/webm;codecs=opus' 
+        : MediaRecorder.isTypeSupported('audio/webm') 
+          ? 'audio/webm' 
+          : 'audio/mp4';
+      
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
@@ -265,34 +291,38 @@ const ChatPage = () => {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
-
         if (audioChunksRef.current.length > 0) {
-          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+          const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
           await transcribeAudio(audioBlob);
         }
       };
+      
+      mediaRecorder.onerror = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setIsRecording(false);
+        toast({ title: "Error de grabación", variant: "destructive" });
+      };
 
       mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
+      mediaRecorder.start(250); // Collect data every 250ms for reliability
       setIsRecording(true);
-
-      toast({ title: "🎤 Grabando...", description: "Habla ahora" });
     } catch (error) {
       console.error("Error starting recording:", error);
+      setIsRecording(false);
       toast({
-        title: "Error",
-        description: "No se pudo acceder al micrófono",
+        title: "Micrófono no disponible",
+        description: "Verificá los permisos del navegador",
         variant: "destructive",
       });
     }
-  }, []);
+  }, [stopAudio]);
 
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
-      setIsRecording(false);
     }
-  }, [isRecording]);
+    setIsRecording(false);
+  }, []);
 
   const transcribeAudio = async (audioBlob: Blob) => {
     setIsTranscribing(true);
