@@ -264,14 +264,16 @@ const TodayPage = () => {
       {[...mainWidgets, ...sidebarWidgets]
         .sort((a, b) => {
           const mobileOrder: Record<string, number> = {
-            health: 0,
-            pulse: 1,
-            brain: 2,
-            weeklyMetrics: 3,
-            missions: 4,
-            focus: 5,
-            reputation: 6,
-            radar: 7,
+            aiSummary: 0,
+            health: 1,
+            nextSteps: 2,
+            pulse: 3,
+            brain: 4,
+            weeklyMetrics: 5,
+            missions: 6,
+            focus: 7,
+            reputation: 8,
+            radar: 9,
           };
           return (mobileOrder[a.id] ?? 99) - (mobileOrder[b.id] ?? 99);
         })
