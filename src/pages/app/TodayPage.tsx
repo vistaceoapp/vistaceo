@@ -242,14 +242,13 @@ const TodayPage = () => {
         </GlassCard>
       )}
 
-      {/* Header with Edit Button */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl">{getTimeEmoji()}</span>
-            <h1 className="text-2xl font-bold text-foreground">{getGreeting()}</h1>
-          </div>
-          <p className="text-muted-foreground">{currentBusiness.name}</p>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">
+            {getGreeting()} {getTimeEmoji()}
+          </h1>
+          <p className="text-xs text-muted-foreground mt-0.5">{currentBusiness.name}</p>
         </div>
         
         <DashboardEditor 

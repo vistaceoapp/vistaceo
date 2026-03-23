@@ -120,7 +120,7 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
               <DropdownMenuItem onClick={() => navigate("/app/more")} className="cursor-pointer">
                 Configuración
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/onboarding")} className="cursor-pointer">
+              <DropdownMenuItem onClick={() => navigate("/setup")} className="cursor-pointer">
                 Editar negocio
               </DropdownMenuItem>
               <DropdownMenuSeparator />
