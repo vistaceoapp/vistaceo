@@ -615,7 +615,7 @@ const MissionsPage = () => {
         "flex flex-col",
         isMobile 
           ? "h-[calc(100vh-8rem)] -mx-4 -my-4" 
-          : "h-[calc(100vh-4rem)] -mx-6 -mb-6 -mt-6"
+          : "h-[calc(100vh-3rem)] -mx-5 -mb-5 -mt-5"
       )}>
         <MissionLLMMode
           mission={selectedMission}

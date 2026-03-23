@@ -295,7 +295,7 @@ export const MissionLLMMode = ({
     return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
   };
 
-  // Fetch enhanced plan with caching
+  // Fetch enhanced plan with caching — cached plans load instantly, no flash
   const fetchEnhancedPlan = useCallback(async (regenerate = false) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -309,7 +309,8 @@ export const MissionLLMMode = ({
       if (cached) {
         setEnhancedPlan(cached);
         setLoading(false);
-        return;
+        setError(null);
+        return; // Instant load — no network call
       }
       setLoading(true);
     }
@@ -353,12 +354,21 @@ export const MissionLLMMode = ({
     fetchEnhancedPlan(true);
   }, [fetchEnhancedPlan]);
 
-  // Effect for mission change
+  // Effect for mission change — preserve cached plan to avoid flash
   useEffect(() => {
-    setEnhancedPlan(null);
     setError(null);
     setMobileTab("guide");
     setViewMode("summary");
+    
+    // Check cache BEFORE resetting state to avoid loading flash
+    const cached = getCachedPlan(mission.id, businessId);
+    if (cached) {
+      setEnhancedPlan(cached);
+      setLoading(false);
+    } else {
+      setEnhancedPlan(null);
+      setLoading(true);
+    }
     
     // Reset selected step to first incomplete
     const firstIncomplete = steps.findIndex(s => !s.done);
@@ -575,10 +585,10 @@ export const MissionLLMMode = ({
   // ========== DESKTOP LAYOUT ==========
   return (
     <div className="flex h-full min-h-0">
-      {/* Left: Missions List */}
-      <aside className="w-56 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
-        <div className="px-3 py-2.5 border-b border-border flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8 flex-shrink-0">
+      {/* Left: Missions List — flush against sidebar */}
+      <aside className="w-52 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
+        <div className="px-2 py-2 border-b border-border flex items-center gap-1.5">
+          <Button variant="ghost" size="icon" onClick={onBack} className="h-7 w-7 flex-shrink-0">
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <span className="text-sm font-semibold text-foreground truncate">Misiones</span>
