@@ -210,6 +210,8 @@ const AppRoutes = () => {
           }
         >
           <Route index element={<TodayPage />} />
+          {/* Back-compat: /app/dashboard → /app */}
+          <Route path="dashboard" element={<Navigate to="/app" replace />} />
           <Route path="chat" element={<ChatPage />} />
           <Route path="missions" element={<MissionsPage />} />
           <Route path="radar" element={<RadarPage />} />
