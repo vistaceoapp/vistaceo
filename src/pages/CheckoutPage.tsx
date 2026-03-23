@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -40,6 +41,7 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
   
   // Get country override from URL (from setup) or localStorage
   const urlCountry = searchParams.get("country") as CountryCode | null;
@@ -86,7 +88,12 @@ const CheckoutPage = () => {
       setStatus("success");
       safeLocalStorage.removeItem("pendingPlan");
       safeLocalStorage.removeItem("pendingPlanTimestamp");
-      setTimeout(() => navigate("/setup", { replace: true }), 2500);
+      // Invalidate subscription cache so Pro status is reflected immediately
+      queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      // Redirect to app if user already has a business, otherwise to setup
+      const hasSetup = safeLocalStorage.getItem("setup_completed");
+      const redirectPath = hasSetup ? "/app" : "/setup";
+      setTimeout(() => navigate(redirectPath, { replace: true }), 2500);
     } else if (urlStatus === "failure") {
       setStatus("failure");
     } else if (urlStatus === "pending") {
@@ -155,7 +162,7 @@ const CheckoutPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Preparando checkout seguro...</p>
+          <p className="text-muted-foreground">Preparando pago seguro...</p>
         </div>
       </div>
     );
@@ -180,10 +187,10 @@ const CheckoutPage = () => {
             <Sparkles className="w-14 h-14 text-success" />
           </motion.div>
           <h1 className="text-4xl font-bold text-foreground mb-3">¡Bienvenido a Pro!</h1>
-          <p className="text-lg text-muted-foreground mb-6">Tu pago fue procesado correctamente.</p>
+          <p className="text-lg text-muted-foreground mb-6">Tu pago fue procesado correctamente. Todas las funciones Pro están activas.</p>
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Redirigiendo al setup...</span>
+            <span>Preparando tu experiencia Pro...</span>
           </div>
         </motion.div>
       </div>
@@ -208,8 +215,8 @@ const CheckoutPage = () => {
                 <Button className="w-full" size="lg" onClick={() => setStatus("idle")}>
                   Intentar de nuevo
                 </Button>
-                <Button variant="ghost" className="w-full" onClick={() => navigate("/setup")}>
-                  Continuar sin Pro
+                <Button variant="ghost" className="w-full" onClick={() => navigate("/app")}>
+                  Volver al inicio
                 </Button>
               </div>
             </CardContent>
@@ -262,7 +269,7 @@ const CheckoutPage = () => {
           <VistaceoLogo size={36} variant="full" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Lock className="w-4 h-4" />
-            <span className="hidden sm:inline">Checkout seguro</span>
+            <span className="hidden sm:inline">Pago seguro</span>
           </div>
         </div>
       </header>

@@ -55,7 +55,7 @@ export const MissionActionCard = ({
         status: "active",
         impact_score: suggestion.priority === "P0" ? 9 : suggestion.priority === "P1" ? 7 : 5,
         effort_score: 5,
-        area: "custom",
+        area: "Personalizada",
         steps: suggestion.definition_of_done?.map((step, i) => ({
           id: i + 1,
           title: step,
