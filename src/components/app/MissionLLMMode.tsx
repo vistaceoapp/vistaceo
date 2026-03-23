@@ -807,6 +807,40 @@ export const MissionLLMMode = ({
           </div>
         </aside>
       )}
+
+      {/* Premium Regenerate Confirmation Dialog */}
+      <AlertDialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
+        <AlertDialogContent className="sm:rounded-2xl">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-warning" />
+              </div>
+              <AlertDialogTitle className="text-lg">¿Regenerar la guía?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-sm leading-relaxed">
+              Se generará una nueva guía estratégica con un enfoque diferente. La guía actual será reemplazada, pero <span className="font-medium text-foreground">el progreso de los pasos que ya completaste se mantiene</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-10">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                executeRegenerate();
+                if (currentBusiness) {
+                  supabase.functions.invoke("brain-record-signal", {
+                    body: { businessId: currentBusiness.id, signalType: "mission_steps_regenerated", content: { missionId: mission.id, missionTitle: mission.title }, source: "ui" }
+                  }).catch(console.error);
+                }
+              }}
+              className="h-10 gap-1.5"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Regenerar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
