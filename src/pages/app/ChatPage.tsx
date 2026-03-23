@@ -619,6 +619,7 @@ const ChatPage = () => {
                   isSpeaking={playingMessageId === message.id}
                   attachments={message.attachments}
                   missionSuggestions={message.missionSuggestions}
+                  isNew={message.isNew}
                 />
               ))}
 
