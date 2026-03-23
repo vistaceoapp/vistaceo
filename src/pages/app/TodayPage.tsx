@@ -79,6 +79,8 @@ const TodayPage = () => {
 
   const renderWidget = (widgetId: string) => {
     switch (widgetId) {
+      case "aiSummary":
+        return <AIDailySummary key="aiSummary" />;
       case "health":
         return (
           <HealthScoreWidget
@@ -91,6 +93,8 @@ const TodayPage = () => {
             isSyncing={isSyncing}
           />
         );
+      case "nextSteps":
+        return <SmartNextSteps key="nextSteps" />;
       case "pulse":
         return <PulseCheckinCard key="pulse" variant={isMobile ? "compact" : "full"} />;
       case "missions":
