@@ -215,7 +215,13 @@ export function useIntelligentQuestions(): UseIntelligentQuestionsResult {
       if (gaps) {
         for (const gap of gaps) {
           const gapQuestions = Array.isArray(gap.questions) ? gap.questions : [];
-          const questionText = gapQuestions[0] as string || `¿Podés contarme más sobre ${gap.field_name}?`;
+          // data_gaps.questions can contain objects like {type, options, question} — extract the string
+          const rawQ = gapQuestions[0];
+          const questionText: string = typeof rawQ === 'string' 
+            ? rawQ 
+            : (rawQ && typeof rawQ === 'object' && 'question' in rawQ) 
+              ? String((rawQ as Record<string, unknown>).question) 
+              : `¿Podés contarme más sobre ${gap.field_name}?`;
           
           generatedQuestions.push({
             id: `gap-${gap.id}`,
@@ -233,7 +239,8 @@ export function useIntelligentQuestions(): UseIntelligentQuestionsResult {
 
       // 2. Add regional clarifications if needed
       const country = currentBusiness.country || 'default';
-      const hasRegionalData = brain?.memory?.factual_memory?.regional_terms;
+      const factualMem = (brain as any)?.factual_memory as Record<string, unknown> | undefined;
+      const hasRegionalData = factualMem?.regional_terms;
       
       if (!hasRegionalData && brain && brain.total_signals > 5) {
         const regionalQuestions = REGIONAL_CLARIFICATIONS[country] || REGIONAL_CLARIFICATIONS.default;
@@ -257,7 +264,7 @@ export function useIntelligentQuestions(): UseIntelligentQuestionsResult {
       
       for (const iq of industryQuestions) {
         // Check if already answered
-        const isAnswered = brain?.memory?.factual_memory?.[iq.field_name];
+        const isAnswered = factualMem?.[iq.field_name];
         if (!isAnswered) {
           generatedQuestions.push(iq);
         }
