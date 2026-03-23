@@ -602,7 +602,7 @@ export const MissionLLMMode = ({
   return (
     <div className="flex h-full min-h-0">
       {/* Left: Missions List — flush against sidebar */}
-      <aside className="w-52 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
+      <aside className="w-48 xl:w-52 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
         <div className="px-2 py-2 border-b border-border flex items-center gap-1.5">
           <Button variant="ghost" size="icon" onClick={onBack} className="h-7 w-7 flex-shrink-0">
             <ArrowLeft className="w-4 h-4" />
