@@ -351,7 +351,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
         variant="ghost" 
         size="sm" 
         className="w-full mt-3 text-xs"
-        onClick={() => navigate("/app/radar?tab=id")}
+        onClick={() => navigate("/app/radar")}
       >
         Ver más en I+D
         <ExternalLink className="w-3 h-3 ml-1" />
