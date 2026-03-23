@@ -42,6 +42,7 @@ interface Message {
   audioScript?: string;
   attachments?: AttachedFile[];
   missionSuggestions?: MissionSuggestion[];
+  isNew?: boolean;
 }
 
 const ChatPage = () => {
