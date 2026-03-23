@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Sparkles,
   Star,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { MissionFilters, AREA_CATEGORIES, loadFiltersFromStorage } from "@/components/app/MissionFilters";
@@ -252,6 +263,7 @@ export const MissionLLMMode = ({
   const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<string>("guide");
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   
   // View mode: "summary" or "steps"
   const [viewMode, setViewMode] = useState<"summary" | "steps">("summary");
@@ -350,7 +362,11 @@ export const MissionLLMMode = ({
   }, [mission.id, mission.title, mission.description, mission.area, businessId, steps]);
 
   const confirmAndRegenerate = useCallback(() => {
-    if (!window.confirm("¿Regenerar la guía? Se perderá el progreso actual de los pasos.")) return;
+    setShowRegenerateDialog(true);
+  }, []);
+
+  const executeRegenerate = useCallback(() => {
+    setShowRegenerateDialog(false);
     fetchEnhancedPlan(true);
   }, [fetchEnhancedPlan]);
 
@@ -586,7 +602,7 @@ export const MissionLLMMode = ({
   return (
     <div className="flex h-full min-h-0">
       {/* Left: Missions List — flush against sidebar */}
-      <aside className="w-52 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
+      <aside className="w-48 xl:w-52 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
         <div className="px-2 py-2 border-b border-border flex items-center gap-1.5">
           <Button variant="ghost" size="icon" onClick={onBack} className="h-7 w-7 flex-shrink-0">
             <ArrowLeft className="w-4 h-4" />
@@ -624,7 +640,7 @@ export const MissionLLMMode = ({
         <header className="sticky top-0 z-20 px-5 py-3 border-b border-border/50 bg-background/95 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <h1 className="text-base font-bold text-foreground leading-snug truncate">
+              <h1 className="text-base font-bold text-foreground leading-snug line-clamp-2">
                 {mission.title}
               </h1>
               <div className="flex items-center gap-2.5 mt-1 text-xs text-muted-foreground">
@@ -644,15 +660,7 @@ export const MissionLLMMode = ({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
-                      onClick={() => {
-                        if (!window.confirm("¿Regenerar la guía?")) return;
-                        fetchEnhancedPlan(true);
-                        if (currentBusiness) {
-                          supabase.functions.invoke("brain-record-signal", {
-                            body: { businessId: currentBusiness.id, signalType: "mission_steps_regenerated", content: { missionId: mission.id, missionTitle: mission.title }, source: "ui" }
-                          }).catch(console.error);
-                        }
-                      }}
+                      onClick={confirmAndRegenerate}
                       disabled={regenerating}
                     >
                       <RefreshCw className={cn("w-3.5 h-3.5", regenerating && "animate-spin")} />
@@ -733,7 +741,7 @@ export const MissionLLMMode = ({
 
       {/* Right: Steps Timeline — visible from lg */}
       {!loading && (
-      <aside className="w-64 border-l border-border bg-background overflow-y-auto hidden lg:block flex-shrink-0">
+      <aside className="w-56 xl:w-64 border-l border-border bg-background overflow-y-auto hidden lg:block flex-shrink-0">
           <div className="px-3 py-3 border-b border-border">
             <h3 className="font-semibold text-foreground text-xs flex items-center gap-2 uppercase tracking-wide">
               <FileText className="w-3.5 h-3.5 text-primary" />
@@ -799,6 +807,40 @@ export const MissionLLMMode = ({
           </div>
         </aside>
       )}
+
+      {/* Premium Regenerate Confirmation Dialog */}
+      <AlertDialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
+        <AlertDialogContent className="sm:rounded-2xl">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-warning" />
+              </div>
+              <AlertDialogTitle className="text-lg">¿Regenerar la guía?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-sm leading-relaxed">
+              Se generará una nueva guía estratégica con un enfoque diferente. La guía actual será reemplazada, pero <span className="font-medium text-foreground">el progreso de los pasos que ya completaste se mantiene</span>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="h-10">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                executeRegenerate();
+                if (currentBusiness) {
+                  supabase.functions.invoke("brain-record-signal", {
+                    body: { businessId: currentBusiness.id, signalType: "mission_steps_regenerated", content: { missionId: mission.id, missionTitle: mission.title }, source: "ui" }
+                  }).catch(console.error);
+                }
+              }}
+              className="h-10 gap-1.5"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Regenerar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
