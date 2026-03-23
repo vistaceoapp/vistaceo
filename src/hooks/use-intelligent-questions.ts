@@ -239,7 +239,8 @@ export function useIntelligentQuestions(): UseIntelligentQuestionsResult {
 
       // 2. Add regional clarifications if needed
       const country = currentBusiness.country || 'default';
-      const hasRegionalData = brain?.memory?.factual_memory?.regional_terms;
+      const factualMem = (brain as any)?.factual_memory as Record<string, unknown> | undefined;
+      const hasRegionalData = factualMem?.regional_terms;
       
       if (!hasRegionalData && brain && brain.total_signals > 5) {
         const regionalQuestions = REGIONAL_CLARIFICATIONS[country] || REGIONAL_CLARIFICATIONS.default;
