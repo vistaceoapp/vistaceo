@@ -25,7 +25,7 @@ const DashboardLayoutContent = () => {
           collapsed ? "pl-[72px]" : "pl-[240px]"
         )}
       >
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-5 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>
