@@ -67,6 +67,14 @@ const getCategoryKey = (rawCategory: string): string => {
   return rawCategory;
 };
 
+// Detect if text is predominantly English
+const isEnglishText = (text: string): boolean => {
+  const englishIndicators = /\b(the|is|are|was|were|have|has|had|been|being|will|would|could|should|can|may|might|shall|must|need|do|does|did|in|on|at|for|with|from|by|to|of|and|or|but|not|this|that|these|those|it|its|an?|suggest|revenue|stream|untapped|mentions|reviews|coffee|customer|optimize|improve|increase|decrease|growth|market|strategy|analysis|performance|engagement|conversion|retention)\b/gi;
+  const matches = text.match(englishIndicators) || [];
+  const wordCount = text.split(/\s+/).length;
+  return wordCount > 3 && matches.length / wordCount > 0.3;
+};
+
 const formatDate = (dateStr: string): string => {
   try {
     const date = new Date(dateStr);
