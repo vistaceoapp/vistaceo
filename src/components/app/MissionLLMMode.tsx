@@ -295,7 +295,7 @@ export const MissionLLMMode = ({
     return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
   };
 
-  // Fetch enhanced plan with caching
+  // Fetch enhanced plan with caching — cached plans load instantly, no flash
   const fetchEnhancedPlan = useCallback(async (regenerate = false) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -309,7 +309,8 @@ export const MissionLLMMode = ({
       if (cached) {
         setEnhancedPlan(cached);
         setLoading(false);
-        return;
+        setError(null);
+        return; // Instant load — no network call
       }
       setLoading(true);
     }
