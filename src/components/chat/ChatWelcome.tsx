@@ -1,6 +1,6 @@
 import { CEOAvatar } from "./CEOAvatar";
 import { ChatSuggestedQuestions } from "./ChatSuggestedQuestions";
-import { Sparkles, Mic, Paperclip, Brain } from "lucide-react";
+import { Sparkles, Camera, FileText, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChatWelcomeProps {
@@ -32,28 +32,33 @@ export const ChatWelcome = ({
       <h2 className="text-xl font-bold text-foreground mb-1.5 text-center">
         Hola, {firstName} 👋
       </h2>
-      <p className="text-sm text-muted-foreground text-center mb-2 max-w-md leading-relaxed">
-        Soy tu CEO virtual. Preguntame lo que necesites sobre tu negocio.
+      <p className="text-sm text-muted-foreground text-center mb-6 max-w-md leading-relaxed">
+        Soy tu CEO virtual. Preguntame, pedime análisis, subí fotos o documentos de tu negocio.
       </p>
 
-      {/* Capability badges */}
-      <div className="flex items-center gap-2 mb-8">
+      {/* Quick actions */}
+      <div className="grid grid-cols-3 gap-2 mb-6 w-full max-w-sm">
         {[
-          { icon: Brain, label: "Aprendo" },
-          { icon: Mic, label: "Voz" },
-          { icon: Paperclip, label: "Archivos" },
-        ].map(({ icon: Icon, label }) => (
-          <div
+          { icon: TrendingUp, label: "Análisis", prompt: "Haceme un análisis completo de cómo está mi negocio hoy" },
+          { icon: Camera, label: "Subir foto", prompt: "Quiero subir fotos de mi negocio para que lo conozcas mejor" },
+          { icon: FileText, label: "Estrategia", prompt: "Dame una estrategia concreta para mejorar mis ventas esta semana" },
+        ].map(({ icon: Icon, label, prompt }) => (
+          <button
             key={label}
+            onClick={() => onSelectSuggestion(prompt)}
+            disabled={disabled}
             className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1 rounded-full",
-              "bg-muted/50 border border-border/40 text-muted-foreground",
-              "text-[11px] font-medium"
+              "flex flex-col items-center gap-1.5 p-3 rounded-xl",
+              "bg-card border border-border/50 hover:border-primary/30",
+              "transition-all duration-200 hover:shadow-[var(--shadow-sm)]",
+              "disabled:opacity-50"
             )}
           >
-            <Icon className="w-3 h-3" />
-            {label}
-          </div>
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Icon className="w-4 h-4 text-primary" />
+            </div>
+            <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
+          </button>
         ))}
       </div>
 

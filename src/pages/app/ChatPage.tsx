@@ -537,12 +537,12 @@ const ChatPage = () => {
                 "font-bold text-foreground truncate",
                 isMobile ? "text-sm" : "text-lg"
               )}>
-                CEO Chat
+                Tu CEO Virtual
               </h1>
               {!isMobile && (
                 <p className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                  {currentBusiness.name} — En línea
+                  {currentBusiness.name} — Siempre disponible
                 </p>
               )}
             </div>
