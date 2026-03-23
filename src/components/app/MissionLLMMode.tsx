@@ -150,7 +150,7 @@ const SidebarMissionItem = ({ m, mission, starredMissions, onSelectMission, togg
           <span className="text-sm">{AREA_ICONS[m.area || ""] || "🎯"}</span>
         </ProgressRing>
         <div className="flex-1 min-w-0">
-          <p className={cn("text-sm font-medium line-clamp-1", isSelected && "text-primary")}>
+          <p className={cn("text-sm font-medium line-clamp-2 leading-snug", isSelected && "text-primary")}>
             {m.title}
           </p>
           <div className="flex items-center gap-2 mt-0.5">
