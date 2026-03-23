@@ -581,7 +581,7 @@ export const MissionLLMMode = ({
   return (
     <div className="flex h-full min-h-0">
       {/* Left: Missions List + Filters */}
-      <aside className="w-56 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
+      <aside className="w-64 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
         <div className="p-4 border-b border-border">
           <Button variant="ghost" size="sm" onClick={onBack} className="mb-3 -ml-2">
             <ArrowLeft className="w-4 h-4 mr-2" />
