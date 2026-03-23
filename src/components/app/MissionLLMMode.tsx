@@ -784,7 +784,7 @@ export const MissionLLMMode = ({
       </main>
 
       {/* Right: Steps Timeline */}
-      {viewMode === "steps" && !loading && (
+      {!loading && (
       <aside className="w-72 border-l border-border bg-background overflow-y-auto hidden xl:block">
           <div className="px-4 py-3.5 border-b border-border">
             <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
