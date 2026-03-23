@@ -263,6 +263,7 @@ export const MissionLLMMode = ({
   const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<string>("guide");
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   
   // View mode: "summary" or "steps"
   const [viewMode, setViewMode] = useState<"summary" | "steps">("summary");
