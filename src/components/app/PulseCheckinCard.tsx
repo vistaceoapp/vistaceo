@@ -4,21 +4,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Calendar, Clock, Check, Sparkles, ThumbsUp, AlertTriangle, 
-  ChevronDown, ChevronUp, TrendingUp, DollarSign, Hash,
-  CalendarDays
+  Check, Sparkles, ThumbsUp, AlertTriangle, 
+  ChevronDown, ChevronUp, DollarSign, Hash
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { usePulseBlueprint } from "@/hooks/use-pulse-blueprint";
-import { GlassCard } from "./GlassCard";
 import { 
   getAutoShiftTag, 
   SHIFT_LABELS, 
   getPulseScoreEmoji,
-  PulseCheckinData
 } from "@/lib/pulseBlueprints";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -29,6 +26,14 @@ interface PulseCheckinCardProps {
   showHeader?: boolean;
 }
 
+const PULSE_OPTIONS = [
+  { score: 1, emoji: "😫", label: "Muy flojo", color: "border-destructive/40 bg-destructive/5 text-destructive" },
+  { score: 2, emoji: "😕", label: "Flojo", color: "border-warning/40 bg-warning/5 text-warning" },
+  { score: 3, emoji: "😐", label: "Normal", color: "border-border bg-muted/30 text-muted-foreground" },
+  { score: 4, emoji: "😊", label: "Bien", color: "border-primary/40 bg-primary/5 text-primary" },
+  { score: 5, emoji: "🔥", label: "Excelente", color: "border-success/40 bg-success/5 text-success" },
+];
+
 export const PulseCheckinCard = ({ 
   onComplete, 
   variant = "full",
@@ -37,47 +42,38 @@ export const PulseCheckinCard = ({
   const { currentBusiness } = useBusiness();
   const { blueprint, loading: blueprintLoading, hasSpecificBlueprint } = usePulseBlueprint();
   
-  // Form state
   const [pulseScore, setPulseScore] = useState<number | null>(null);
   const [selectedShift, setSelectedShift] = useState<string | null>(getAutoShiftTag());
   const [revenueInput, setRevenueInput] = useState("");
   const [proxyValue, setProxyValue] = useState("");
   const [noteGood, setNoteGood] = useState("");
   const [noteBad, setNoteBad] = useState("");
-  const [appliesTo, setAppliesTo] = useState<Date>(new Date());
-  
-  // UI state
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [showEvents, setShowEvents] = useState(false);
+  const [appliesTo] = useState<Date>(new Date());
+  const [showMore, setShowMore] = useState(false);
   const [saving, setSaving] = useState(false);
-  
-  // Auto-detect shift on mount
+
   useEffect(() => {
     setSelectedShift(getAutoShiftTag());
   }, []);
 
-  // Get labels from blueprint
-  const labels = blueprint?.labels_1_5 || {
-    "1": "muy flojo",
-    "2": "flojo", 
-    "3": "normal",
-    "4": "bien",
-    "5": "excelente"
+  const labels: Record<string, string> = blueprint?.labels_1_5 || {
+    "1": "muy flojo", "2": "flojo", "3": "normal", "4": "bien", "5": "excelente"
   };
 
-  const handleSubmit = async () => {
-    if (!currentBusiness || pulseScore === null) return;
+  const handleSubmit = async (directScore?: number) => {
+    const finalScore = directScore ?? pulseScore;
+    if (!currentBusiness || finalScore === null) return;
     
     setSaving(true);
     try {
       const checkinData = {
         business_id: currentBusiness.id,
         applies_to_date: format(appliesTo, "yyyy-MM-dd"),
-        granularity: blueprint?.shift_mode_base === "required" ? "shift" : "daily",
+        granularity: directScore ? "daily" : (blueprint?.shift_mode_base === "required" ? "shift" : "daily"),
         shift_tag: selectedShift,
         source: revenueInput ? "mixed" : "manual_qualitative",
-        pulse_score_1_5: pulseScore,
-        pulse_label: labels[String(pulseScore)] || "",
+        pulse_score_1_5: finalScore,
+        pulse_label: labels[String(finalScore)] || "",
         revenue_local: revenueInput ? parseFloat(revenueInput) : null,
         currency_local: currentBusiness.currency || "ARS",
         volume_proxy_type: blueprint?.proxy_base || null,
@@ -87,27 +83,25 @@ export const PulseCheckinCard = ({
         metadata: {
           blueprint_type: blueprint?.business_type,
           has_specific_blueprint: hasSpecificBlueprint,
+          quick_submit: !!directScore,
         },
       };
 
-      const { error } = await supabase
-        .from("pulse_checkins")
-        .insert(checkinData);
-
+      const { error } = await supabase.from("pulse_checkins").insert(checkinData);
       if (error) throw error;
 
-      // Record signal to Brain for learning
+      // Record signal to Brain
       try {
         await supabase.functions.invoke("brain-record-signal", {
           body: {
             businessId: currentBusiness.id,
             signalType: "pulse_checkin",
-            source: "pulse_widget",
+            source: directScore ? "pulse_widget_quick" : "pulse_widget",
             content: {
               applies_to_date: format(appliesTo, "yyyy-MM-dd"),
               shift_tag: selectedShift,
-              pulse_score: pulseScore,
-              pulse_label: labels[String(pulseScore)] || "",
+              pulse_score: finalScore,
+              pulse_label: labels[String(finalScore)] || "",
               revenue_local: revenueInput ? parseFloat(revenueInput) : null,
               proxy_type: blueprint?.proxy_base || null,
               proxy_value: proxyValue ? parseFloat(proxyValue) : null,
@@ -115,37 +109,30 @@ export const PulseCheckinCard = ({
               notes_bad: noteBad.trim() || null,
               business_type: blueprint?.business_type,
             },
-            importance: pulseScore <= 2 || pulseScore >= 4 ? 8 : 5, // Higher importance for extreme scores
+            importance: finalScore <= 2 || finalScore >= 4 ? 8 : 5,
             confidence: revenueInput ? "high" : "medium",
           },
         });
       } catch (signalError) {
         console.error("Error recording pulse signal:", signalError);
-        // Don't fail the whole operation if signal recording fails
       }
 
       toast({
-        title: "✅ Pulso registrado",
-        description: `${getPulseScoreEmoji(pulseScore)} ${labels[String(pulseScore)]}. ¡El cerebro está aprendiendo!`,
+        title: "Registrado ✓",
+        description: `${getPulseScoreEmoji(finalScore)} ${labels[String(finalScore)]}`,
       });
 
-      // Reset form
+      // Reset
       setPulseScore(null);
       setRevenueInput("");
       setProxyValue("");
       setNoteGood("");
       setNoteBad("");
-      setShowAdvanced(false);
-      setShowEvents(false);
-      
+      setShowMore(false);
       onComplete?.();
     } catch (error) {
       console.error("Error saving pulse checkin:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo guardar el pulso. Intenta de nuevo.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "No se pudo guardar. Intentá de nuevo.", variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -153,381 +140,205 @@ export const PulseCheckinCard = ({
 
   if (blueprintLoading) {
     return (
-      <GlassCard className="p-6 animate-pulse">
-        <div className="h-8 bg-muted rounded mb-4 w-2/3" />
-        <div className="grid grid-cols-5 gap-2">
-          {[1,2,3,4,5].map(i => (
-            <div key={i} className="h-16 bg-muted rounded-xl" />
-          ))}
+      <div className="rounded-2xl border border-border/50 bg-card p-5 animate-pulse">
+        <div className="h-4 bg-muted rounded w-1/2 mb-4" />
+        <div className="flex gap-2">
+          {[1,2,3,4,5].map(i => <div key={i} className="flex-1 h-14 bg-muted rounded-xl" />)}
         </div>
-      </GlassCard>
+      </div>
     );
   }
 
-  // Submit handler for compact mode with direct score value
-  const handleQuickSubmit = async (directScore: number) => {
-    if (!currentBusiness) return;
-    
-    setSaving(true);
-    try {
-      const checkinData = {
-        business_id: currentBusiness.id,
-        applies_to_date: format(appliesTo, "yyyy-MM-dd"),
-        granularity: "daily" as const,
-        shift_tag: selectedShift,
-        source: "manual_qualitative" as const,
-        pulse_score_1_5: directScore,
-        pulse_label: labels[String(directScore)] || "",
-        revenue_local: null,
-        currency_local: currentBusiness.currency || "ARS",
-        volume_proxy_type: null,
-        volume_proxy_value: null,
-        notes_good: null,
-        notes_bad: null,
-        metadata: {
-          blueprint_type: blueprint?.business_type,
-          has_specific_blueprint: hasSpecificBlueprint,
-          quick_submit: true,
-        },
-      };
-
-      const { error } = await supabase
-        .from("pulse_checkins")
-        .insert(checkinData);
-
-      if (error) throw error;
-
-      // Record signal to Brain for learning
-      try {
-        await supabase.functions.invoke("brain-record-signal", {
-          body: {
-            businessId: currentBusiness.id,
-            signalType: "pulse_checkin",
-            source: "pulse_widget_quick",
-            content: {
-              applies_to_date: format(appliesTo, "yyyy-MM-dd"),
-              shift_tag: selectedShift,
-              pulse_score: directScore,
-              pulse_label: labels[String(directScore)] || "",
-              business_type: blueprint?.business_type,
-            },
-            importance: directScore <= 2 || directScore >= 4 ? 8 : 5,
-            confidence: "medium",
-          },
-        });
-      } catch (signalError) {
-        console.error("Error recording pulse signal:", signalError);
-      }
-
-      toast({
-        title: "✅ Pulso registrado",
-        description: `${getPulseScoreEmoji(directScore)} ${labels[String(directScore)]}. ¡El cerebro está aprendiendo!`,
-      });
-
-      setPulseScore(null);
-      onComplete?.();
-    } catch (error) {
-      console.error("Error saving pulse checkin:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo guardar el pulso. Intenta de nuevo.",
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Compact widget variant
+  // Compact / Widget variant — one-tap
   if (variant === "compact" || variant === "widget") {
-    const autoShift = getAutoShiftTag();
-    const shiftInfo = autoShift ? SHIFT_LABELS[autoShift] : null;
-    
     return (
-      <GlassCard className="p-4">
+      <div className="rounded-2xl border border-border/50 bg-card p-4 transition-all hover:shadow-[var(--shadow-md)]">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">{shiftInfo?.emoji || "📊"}</span>
-            <span className="text-sm font-medium text-foreground">
-              {blueprint?.pregunta_principal_base || "¿Cómo estuvo el día?"}
-            </span>
-          </div>
-          <Badge variant="outline" className="text-xs">
-            10 seg
-          </Badge>
+          <h3 className="text-sm font-semibold text-foreground">
+            ¿Cómo va hoy?
+          </h3>
+          <span className="text-[10px] text-muted-foreground">
+            {format(appliesTo, "EEE d MMM", { locale: es })}
+          </span>
         </div>
         
-        <div className="flex gap-2 flex-wrap">
-          {[1, 2, 3, 4, 5].map((score) => (
+        <div className="flex gap-1.5">
+          {PULSE_OPTIONS.map((opt) => (
             <button
-              key={score}
+              key={opt.score}
               disabled={saving}
-              onClick={() => handleQuickSubmit(score)}
+              onClick={() => handleSubmit(opt.score)}
               className={cn(
-                "flex-1 min-w-[60px] py-3 px-2 rounded-xl text-center transition-all",
-                "border hover:border-primary/30",
-                saving && "opacity-50 cursor-not-allowed",
-                pulseScore === score
-                  ? "bg-primary/10 border-primary text-primary"
-                  : "bg-card border-border text-muted-foreground hover:text-foreground"
+                "flex-1 py-2.5 px-1 rounded-xl text-center transition-all duration-200",
+                "border hover:scale-[1.03] active:scale-95",
+                saving ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
+                opt.color
               )}
             >
-              <span className="text-xl block">{getPulseScoreEmoji(score)}</span>
-              <span className="text-[10px] font-medium capitalize">{labels[String(score)]}</span>
+              <span className="text-lg block">{opt.emoji}</span>
+              <span className="text-[9px] font-medium block mt-0.5">{opt.label}</span>
             </button>
           ))}
         </div>
-      </GlassCard>
+      </div>
     );
   }
 
   // Full variant
-  const autoShift = getAutoShiftTag();
-  const shiftInfo = autoShift ? SHIFT_LABELS[autoShift] : null;
-
   return (
-    <div className="dashboard-card p-6">
+    <div className="rounded-2xl border border-border/50 bg-card overflow-hidden transition-all hover:shadow-[var(--shadow-md)]">
       {/* Header */}
       {showHeader && (
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Check-in de Pulso</h3>
-                <p className="text-sm text-muted-foreground">
-                  {shiftInfo?.emoji} {format(appliesTo, "EEEE d 'de' MMMM", { locale: es })}
-                </p>
-              </div>
-            </div>
+        <div className="px-5 pt-5 pb-0">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-sm font-semibold text-foreground">
+              ¿Cómo va el negocio hoy?
+            </h3>
+            {hasSpecificBlueprint && (
+              <Badge variant="secondary" className="text-[9px] h-5 px-1.5 gap-0.5">
+                <Sparkles className="w-2.5 h-2.5" />
+                Personalizado
+              </Badge>
+            )}
           </div>
-          {hasSpecificBlueprint && (
-            <Badge variant="secondary" className="text-xs">
-              <Sparkles className="w-3 h-3 mr-1" />
-              Personalizado
-            </Badge>
-          )}
+          <p className="text-[11px] text-muted-foreground mb-4">
+            {format(appliesTo, "EEEE d 'de' MMMM", { locale: es })} · Respondé en 5 segundos
+          </p>
         </div>
       )}
 
-      <div className="space-y-5">
-        {/* Main question */}
-        <div>
-          <label className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-            {blueprint?.pregunta_principal_base || "¿Cómo estuvo el día?"}
-          </label>
-          <div className="grid grid-cols-5 gap-2">
-            {[1, 2, 3, 4, 5].map((score) => (
-              <button
-                key={score}
-                onClick={() => setPulseScore(score)}
-                className={cn(
-                  "group relative py-4 px-2 rounded-xl text-center transition-all duration-200",
-                  "border hover:border-primary/30 hover:shadow-md",
-                  pulseScore === score
-                    ? "bg-primary/10 border-primary ring-2 ring-primary/20 shadow-lg shadow-primary/10"
-                    : "bg-card border-border"
-                )}
-              >
-                <span className="text-2xl block mb-1 group-hover:scale-110 transition-transform">
-                  {getPulseScoreEmoji(score)}
-                </span>
-                <span className={cn(
-                  "text-xs font-medium block capitalize",
-                  pulseScore === score ? "text-primary" : "text-muted-foreground"
-                )}>
-                  {labels[String(score)]}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Show more options after selecting score */}
-        {pulseScore !== null && (
-          <div className="animate-fade-in space-y-4">
-            {/* Shift selector (if optional or required) */}
-            {blueprint?.shift_mode_base !== "none" && (
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  Turno
-                </label>
-                <div className="flex gap-2 flex-wrap">
-                  {Object.entries(SHIFT_LABELS).map(([key, val]) => (
-                    <button
-                      key={key}
-                      onClick={() => setSelectedShift(key)}
-                      className={cn(
-                        "px-3 py-2 rounded-lg border transition-all text-sm flex items-center gap-2",
-                        selectedShift === key
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50 text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      <span>{val.emoji}</span>
-                      <span>{val.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Advanced toggle */}
+      <div className="px-5 pb-5 space-y-4">
+        {/* Score selector */}
+        <div className="grid grid-cols-5 gap-2">
+          {PULSE_OPTIONS.map((opt) => (
             <button
-              onClick={() => setShowAdvanced(!showAdvanced)}
+              key={opt.score}
+              onClick={() => setPulseScore(opt.score)}
               className={cn(
-                "w-full py-3 px-4 rounded-xl border transition-all text-sm flex items-center justify-between gap-2",
-                showAdvanced 
-                  ? "border-accent bg-accent/5 text-foreground"
-                  : "border-dashed border-border hover:border-accent/50 text-muted-foreground hover:text-foreground"
+                "group py-3.5 px-1 rounded-xl text-center transition-all duration-200",
+                "border hover:scale-[1.02] active:scale-95",
+                pulseScore === opt.score
+                  ? cn(opt.color, "ring-1 ring-current/20 shadow-sm")
+                  : "border-border bg-card text-muted-foreground hover:border-border/80"
               )}
             >
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
-                <span>Agregar datos numéricos (opcional)</span>
-              </div>
-              {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              <span className="text-xl block group-hover:scale-110 transition-transform">{opt.emoji}</span>
+              <span className="text-[10px] font-medium block mt-0.5">
+                {opt.label}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* After selecting a score */}
+        {pulseScore !== null && (
+          <div className="space-y-3 animate-fade-in">
+            {/* Optional details toggle */}
+            <button
+              onClick={() => setShowMore(!showMore)}
+              className={cn(
+                "w-full py-2.5 px-3 rounded-xl text-xs flex items-center justify-between",
+                "border border-dashed transition-all",
+                showMore 
+                  ? "border-primary/30 bg-primary/5 text-foreground" 
+                  : "border-border text-muted-foreground hover:border-primary/20"
+              )}
+            >
+              <span>Agregar más detalle (opcional)</span>
+              {showMore ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
 
-            {/* Advanced fields */}
-            {showAdvanced && (
-              <div className="p-4 rounded-xl bg-secondary/30 border border-border space-y-4 animate-fade-in">
-                {/* Revenue input */}
+            {showMore && (
+              <div className="space-y-3 animate-fade-in rounded-xl bg-muted/20 p-4 border border-border/30">
+                {/* Shift */}
+                {blueprint?.shift_mode_base !== "none" && (
+                  <div className="flex gap-1.5 flex-wrap">
+                    {Object.entries(SHIFT_LABELS).map(([key, val]) => (
+                      <button
+                        key={key}
+                        onClick={() => setSelectedShift(key)}
+                        className={cn(
+                          "px-2.5 py-1.5 rounded-lg border transition-all text-xs",
+                          selectedShift === key
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:border-primary/30"
+                        )}
+                      >
+                        {val.emoji} {val.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Revenue */}
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-muted-foreground" />
-                    {blueprint?.numeric_prompt_base || "Ingresos del día (opcional)"}
+                  <label className="text-[11px] font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                    <DollarSign className="w-3 h-3" />
+                    {blueprint?.numeric_prompt_base || "Ingresos del día"}
                   </label>
                   <Input
                     type="number"
                     placeholder="0"
                     value={revenueInput}
                     onChange={(e) => setRevenueInput(e.target.value)}
-                    className="bg-card"
+                    className="h-9 text-sm bg-card"
                   />
                 </div>
 
-                {/* Proxy input */}
+                {/* Proxy */}
                 {blueprint?.proxy_base && (
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                      <Hash className="w-4 h-4 text-muted-foreground" />
-                      {blueprint.proxy_base} (opcional)
+                    <label className="text-[11px] font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                      <Hash className="w-3 h-3" />
+                      {blueprint.proxy_base}
                     </label>
                     <Input
                       type="number"
                       placeholder="0"
                       value={proxyValue}
                       onChange={(e) => setProxyValue(e.target.value)}
-                      className="bg-card"
+                      className="h-9 text-sm bg-card"
                     />
                   </div>
                 )}
+
+                {/* Notes */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[11px] font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                      <ThumbsUp className="w-3 h-3 text-success" /> Lo mejor
+                    </label>
+                    <Textarea
+                      placeholder="Algo bueno..."
+                      value={noteGood}
+                      onChange={(e) => setNoteGood(e.target.value)}
+                      className="bg-card resize-none h-16 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3 text-destructive" /> A mejorar
+                    </label>
+                    <Textarea
+                      placeholder="Algo a mejorar..."
+                      value={noteBad}
+                      onChange={(e) => setNoteBad(e.target.value)}
+                      className="bg-card resize-none h-16 text-xs"
+                    />
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Events toggle */}
-            <button
-              onClick={() => setShowEvents(!showEvents)}
-              className={cn(
-                "w-full py-3 px-4 rounded-xl border transition-all text-sm flex items-center justify-between gap-2",
-                showEvents 
-                  ? "border-accent bg-accent/5 text-foreground"
-                  : "border-dashed border-border hover:border-accent/50 text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
-                <span>¿Pasó algo importante?</span>
-              </div>
-              {showEvents ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {/* Events section */}
-            {showEvents && (
-              <div className="p-4 rounded-xl bg-secondary/30 border border-border space-y-4 animate-fade-in">
-                {/* Good event */}
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                    <ThumbsUp className="w-4 h-4 text-success" />
-                    Algo MUY BUENO
-                  </label>
-                  {blueprint?.eventos_good_base && blueprint.eventos_good_base.length > 0 && (
-                    <div className="flex gap-2 flex-wrap mb-2">
-                      {blueprint.eventos_good_base.map((ev) => (
-                        <button
-                          key={ev}
-                          onClick={() => setNoteGood(ev)}
-                          className={cn(
-                            "text-xs px-2 py-1 rounded-lg border transition-all",
-                            noteGood === ev
-                              ? "border-success bg-success/10 text-success"
-                              : "border-border hover:border-success/50 text-muted-foreground"
-                          )}
-                        >
-                          {ev}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <Textarea
-                    placeholder="Ej: Un cliente nos felicitó..."
-                    value={noteGood}
-                    onChange={(e) => setNoteGood(e.target.value)}
-                    className="bg-card resize-none h-20"
-                  />
-                </div>
-
-                {/* Bad event */}
-                <div>
-                  <label className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-destructive" />
-                    Algo MUY MALO
-                  </label>
-                  {blueprint?.eventos_bad_base && blueprint.eventos_bad_base.length > 0 && (
-                    <div className="flex gap-2 flex-wrap mb-2">
-                      {blueprint.eventos_bad_base.map((ev) => (
-                        <button
-                          key={ev}
-                          onClick={() => setNoteBad(ev)}
-                          className={cn(
-                            "text-xs px-2 py-1 rounded-lg border transition-all",
-                            noteBad === ev
-                              ? "border-destructive bg-destructive/10 text-destructive"
-                              : "border-border hover:border-destructive/50 text-muted-foreground"
-                          )}
-                        >
-                          {ev}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <Textarea
-                    placeholder="Ej: Tuvimos un problema con..."
-                    value={noteBad}
-                    onChange={(e) => setNoteBad(e.target.value)}
-                    className="bg-card resize-none h-20"
-                  />
-                </div>
-
-                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  El sistema usará esto para darte mejores recomendaciones
-                </p>
-              </div>
-            )}
-
-            {/* Submit button */}
+            {/* Submit */}
             <Button
-              onClick={handleSubmit}
+              onClick={() => handleSubmit()}
               disabled={pulseScore === null || saving}
-              className="w-full gradient-primary shadow-lg shadow-primary/20 h-12"
+              size="sm"
+              className="w-full h-9 text-xs gap-1.5 gradient-primary"
             >
-              <Check className="w-4 h-4 mr-2" />
-              {saving ? "Guardando..." : "Guardar pulso"}
+              <Check className="w-3.5 h-3.5" />
+              {saving ? "Guardando..." : "Registrar"}
             </Button>
           </div>
         )}
