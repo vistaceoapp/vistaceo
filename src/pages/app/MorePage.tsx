@@ -50,6 +50,7 @@ import { AutopilotModeSelector } from "@/components/app/AutopilotModeSelector";
 import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
 import { FocusSelector } from "@/components/app/FocusSelector";
 import { GooglePlacesReputationSection } from "@/components/app/GooglePlacesReputationSection";
+import { BusinessPhotosSection } from "@/components/app/BusinessPhotosSection";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
