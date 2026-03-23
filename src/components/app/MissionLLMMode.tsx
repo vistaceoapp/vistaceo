@@ -640,7 +640,7 @@ export const MissionLLMMode = ({
         <header className="sticky top-0 z-20 px-5 py-3 border-b border-border/50 bg-background/95 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <h1 className="text-base font-bold text-foreground leading-snug truncate">
+              <h1 className="text-base font-bold text-foreground leading-snug line-clamp-2">
                 {mission.title}
               </h1>
               <div className="flex items-center gap-2.5 mt-1 text-xs text-muted-foreground">
