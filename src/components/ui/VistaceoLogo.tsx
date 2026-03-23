@@ -2,84 +2,89 @@ import * as React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/hooks/use-theme";
 
-// Brand assets
-import logoLightFull from "@/assets/brand/logo-full-text.png";
-import logoLightCompact from "@/assets/brand/logo-full-text.png";
-import logoDarkFull from "@/assets/brand/logo-full-text.png";
-import iconLight from "@/assets/brand/icon-vistaceo.webp";
-import iconDark from "@/assets/brand/icon-vistaceo.webp";
-
 interface VistaceoLogoProps {
   className?: string;
   size?: number;
   variant?: "auto" | "full" | "compact" | "icon";
 }
 
-export const VistaceoLogo = React.forwardRef<HTMLImageElement, VistaceoLogoProps>(
+/**
+ * SVG-based logo matching vistaceo.com/minimalista style.
+ * Checkmark icon + "VISTACEO" wordmark in tracking-wide uppercase.
+ * Uses currentColor so it adapts to light/dark themes.
+ */
+export const VistaceoLogo = React.forwardRef<SVGSVGElement, VistaceoLogoProps>(
   ({ className = "", size = 32, variant = "auto" }, ref) => {
     const isMobile = useIsMobile();
     const { theme } = useTheme();
     const isDark = theme === "dark";
 
-    // Determine which logo to show based on variant and screen size
-    const getLogoSrc = () => {
-      // Icon variant - always use icon
-      if (variant === "icon") {
-        return isDark ? iconDark : iconLight;
-      }
-
-      // Auto variant - responsive based on screen size
-      if (variant === "auto") {
-        if (isMobile) {
-          return isDark ? iconDark : iconLight;
-        }
-        return isDark ? logoDarkFull : logoLightFull;
-      }
-
-      // Full variant - full logo with text
-      if (variant === "full") {
-        return isDark ? logoDarkFull : logoLightFull;
-      }
-
-      // Compact variant - stacked logo
-      if (variant === "compact") {
-        return isDark ? logoDarkFull : logoLightCompact;
-      }
-
-      return isDark ? logoDarkFull : logoLightFull;
-    };
-
-    const logoSrc = getLogoSrc();
     const isIcon = variant === "icon" || (variant === "auto" && isMobile);
+    const textColor = isDark ? "#FFFFFF" : "#111111";
+    const accentColor = "hsl(204, 72%, 50%)"; // --primary blue
 
+    // Icon only — checkmark in a rounded shape
     if (isIcon) {
       return (
-        <img
+        <svg
           ref={ref}
-          src={logoSrc}
-          alt="vistaceo"
           width={size}
           height={size}
+          viewBox="0 0 40 40"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
           className={className}
-          style={{ width: size, height: size, objectFit: "contain" }}
-        />
+          aria-label="VistaCEO"
+        >
+          <rect width="40" height="40" rx="10" fill={accentColor} />
+          <path
+            d="M12 20.5L17.5 26L28 15"
+            stroke="white"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       );
     }
 
-    // Calculate approximate width based on aspect ratio (logo is ~2:1)
-    const estimatedWidth = Math.round(size * 2);
+    // Full wordmark — checkmark + "VISTACEO"
+    const wordmarkWidth = Math.round(size * 5.5);
 
     return (
-      <img
+      <svg
         ref={ref}
-        src={logoSrc}
-        alt="vistaceo"
-        width={estimatedWidth}
+        width={wordmarkWidth}
         height={size}
-        fetchPriority="high"
+        viewBox="0 0 220 40"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
         className={className}
-        style={{ height: size, width: "auto", objectFit: "contain" }}
-      />
+        aria-label="VistaCEO"
+        style={{ height: size, width: "auto" }}
+      >
+        {/* Checkmark icon */}
+        <rect width="32" height="32" x="0" y="4" rx="7" fill={accentColor} />
+        <path
+          d="M10 20L15 25L23 14"
+          stroke="white"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* VISTACEO text */}
+        <text
+          x="42"
+          y="26"
+          fill={textColor}
+          fontFamily="'Codec Pro', 'Inter', system-ui, sans-serif"
+          fontWeight="600"
+          fontSize="18"
+          letterSpacing="3"
+        >
+          VISTACEO
+        </text>
+      </svg>
     );
   }
 );
