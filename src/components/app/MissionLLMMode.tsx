@@ -660,15 +660,7 @@ export const MissionLLMMode = ({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
-                      onClick={() => {
-                        if (!window.confirm("¿Regenerar la guía?")) return;
-                        fetchEnhancedPlan(true);
-                        if (currentBusiness) {
-                          supabase.functions.invoke("brain-record-signal", {
-                            body: { businessId: currentBusiness.id, signalType: "mission_steps_regenerated", content: { missionId: mission.id, missionTitle: mission.title }, source: "ui" }
-                          }).catch(console.error);
-                        }
-                      }}
+                      onClick={confirmAndRegenerate}
                       disabled={regenerating}
                     >
                       <RefreshCw className={cn("w-3.5 h-3.5", regenerating && "animate-spin")} />
