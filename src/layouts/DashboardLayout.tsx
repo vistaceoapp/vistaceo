@@ -21,11 +21,11 @@ const DashboardLayoutContent = () => {
 
       <main 
         className={cn(
-          "pt-14 min-h-screen transition-all duration-300",
+          "pt-12 min-h-screen transition-all duration-300",
           collapsed ? "pl-[72px]" : "pl-[240px]"
         )}
       >
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-5 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>

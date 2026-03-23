@@ -88,8 +88,8 @@ export const FocusWidget = ({ className }: FocusWidgetProps) => {
             <span className="text-2xl">{currentOption.icon}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-lg font-bold text-foreground capitalize">{currentOption.label}</p>
-            <p className="text-xs text-muted-foreground truncate">{currentOption.description}</p>
+            <p className="text-base font-bold text-foreground capitalize">{currentOption.label}</p>
+            <p className="text-xs text-muted-foreground leading-snug">{currentOption.description}</p>
           </div>
         </div>
 
