@@ -949,7 +949,7 @@ const MorePage = () => {
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </button>
-          <button onClick={() => navigate("/terms")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50">
+          <button onClick={() => navigate("/condiciones")} className="w-full flex items-center gap-4 px-4 py-4 hover:bg-secondary/50">
             <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
               <FileText className="w-5 h-5 text-muted-foreground" />
             </div>
