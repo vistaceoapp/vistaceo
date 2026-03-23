@@ -140,7 +140,14 @@ const parseLearningData = (data: unknown): LearningFact[] => {
     });
   }
 
-  return facts.filter((fact) => fact.answer && fact.answer.trim().length > 0);
+  return facts.filter((fact) => {
+    if (!fact.answer || fact.answer.trim().length === 0) return false;
+    // Filter out English-only content
+    if (isEnglishText(fact.answer)) return false;
+    // Filter out duplicate question labels that add no value
+    if (fact.question === fact.answer) return false;
+    return true;
+  });
 };
 
 export const ChatLearningPanel = ({
