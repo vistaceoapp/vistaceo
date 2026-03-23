@@ -18,47 +18,58 @@ serve(async (req) => {
     const lovableKey = Deno.env.get("LOVABLE_API_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Gather business context
-    const [businessRes, brainRes, snapshotRes, missionsRes] = await Promise.all([
+    const [businessRes, brainRes, snapshotRes, missionsRes, photosRes] = await Promise.all([
       supabase.from("businesses").select("*").eq("id", businessId).single(),
-      supabase.from("business_brains").select("factual_memory, dynamic_memory, current_focus, mvc_completion_pct, confidence_score").eq("business_id", businessId).maybeSingle(),
+      supabase.from("business_brains").select("factual_memory, dynamic_memory, current_focus, mvc_completion_pct, confidence_score, primary_business_type").eq("business_id", businessId).maybeSingle(),
       supabase.from("snapshots").select("total_score, dimensions_json").eq("business_id", businessId).order("created_at", { ascending: false }).limit(1),
       supabase.from("daily_actions").select("title, status, priority").eq("business_id", businessId).in("status", ["pending", "in_progress"]).limit(5),
+      supabase.from("business_photos").select("id", { count: "exact", head: true }).eq("business_id", businessId),
     ]);
 
     const business = businessRes.data;
     const brain = brainRes.data;
     const snapshot = snapshotRes.data?.[0];
     const missions = missionsRes.data || [];
+    const photoCount = photosRes.count || 0;
 
     if (!business) throw new Error("Business not found");
 
-    const hour = new Date().getHours();
-    const greeting = hour < 12 ? "Buenos días" : hour < 18 ? "Buenas tardes" : "Buenas noches";
+    const prompt = `Sos el CEO virtual de "${business.name}".
 
-    const prompt = `Sos el CEO virtual de "${business.name}" (${business.category || "negocio"}, ${business.country || "LATAM"}).
-    
-Generá un resumen ejecutivo ULTRA personalizado para hoy. Máximo 3 oraciones, tono directo y profesional.
-
-Contexto del negocio:
-- Puntaje de salud: ${snapshot?.total_score ?? "sin datos"}
-- Dimensiones: ${JSON.stringify(snapshot?.dimensions_json ?? {})}
-- Foco actual: ${brain?.current_focus ?? "general"}
-- Completitud del cerebro: ${brain?.mvc_completion_pct ?? 0}%
-- Confianza: ${brain?.confidence_score ?? 0}
+CONTEXTO COMPLETO DEL NEGOCIO:
+- Tipo: ${brain?.primary_business_type || business.category || "negocio"}
+- País: ${business.country || "LATAM"}
+- Modelo de servicio: ${business.service_model || "no especificado"}
+- Ticket promedio: ${business.avg_ticket || "no especificado"}
+- Rating: ${business.avg_rating || "sin datos"}
+- Puntaje de salud general: ${snapshot?.total_score ?? "sin datos"}/100
+- Dimensiones de salud: ${JSON.stringify(snapshot?.dimensions_json ?? {})}
+- Foco actual del sistema: ${brain?.current_focus ?? "general"}
+- Conocimiento del sistema sobre el negocio: ${brain?.mvc_completion_pct ?? 0}%
+- Confianza del análisis: ${brain?.confidence_score ?? 0}
 - Misiones activas: ${missions.map(m => m.title).join(", ") || "ninguna"}
-- Memoria factual: ${JSON.stringify(brain?.factual_memory ?? {}).slice(0, 500)}
+- Fotos del negocio cargadas: ${photoCount}
+- Memoria factual: ${JSON.stringify(brain?.factual_memory ?? {}).slice(0, 800)}
+- Memoria dinámica: ${JSON.stringify(brain?.dynamic_memory ?? {}).slice(0, 400)}
 
-IMPORTANTE:
-- Sé específico sobre ESTE negocio, nunca genérico
-- Si hay datos bajos, mencionalo sutilmente
-- Incluí 1-3 prioridades accionables para hoy
-- Usá segunda persona (vos/tú según el país ${business.country})
-- Respondé SOLO en JSON con este formato exacto:
+INSTRUCCIONES:
+Generá un RESUMEN EJECUTIVO del estado general del negocio/servicio/empresa. NO es un resumen "del día", es una VISIÓN ESTRATÉGICA de cómo está el negocio en este momento.
+
+- Máximo 3-4 oraciones, tono de mentor ejecutivo
+- Sé MUY específico sobre ESTE negocio: mencioná su nombre, rubro, métricas reales
+- Si hay áreas débiles, mencionalo con tacto pero con claridad
+- Si hay fortalezas, reconocelas
+- Cerrá con 1 insight estratégico accionable
+- Usá segunda persona (vos/tú según ${business.country})
+- NUNCA seas genérico. Si no hay datos, decilo explícitamente
+
+Respondé SOLO en JSON:
 {
-  "summary_text": "texto del resumen",
-  "priorities": ["prioridad 1", "prioridad 2"],
-  "mood": "positive|neutral|negative"
+  "summary_text": "texto del resumen estratégico",
+  "headline": "frase corta de 4-6 palabras que resuma el estado (ej: 'Buen momento para crecer')",
+  "priorities": ["prioridad 1", "prioridad 2", "prioridad 3"],
+  "mood": "positive|neutral|negative",
+  "confidence_note": "frase sobre qué tan bien conoce el sistema al negocio"
 }`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -70,7 +81,7 @@ IMPORTANTE:
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "Sos un CEO mentor ultra-personalizado. Respondés SOLO en JSON válido." },
+          { role: "system", content: "Sos un CEO mentor ultra-personalizado. Respondés SOLO en JSON válido. Nunca usás frases genéricas." },
           { role: "user", content: prompt },
         ],
       }),
@@ -85,9 +96,8 @@ IMPORTANTE:
     const aiData = await aiResponse.json();
     let content = aiData.choices?.[0]?.message?.content || "";
 
-    // Parse JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    let summary = { summary_text: "", priorities: [] as string[], mood: "neutral" };
+    let summary = { summary_text: "", headline: "", priorities: [] as string[], mood: "neutral", confidence_note: "" };
 
     if (jsonMatch) {
       try {
@@ -99,7 +109,6 @@ IMPORTANTE:
       summary.summary_text = content.trim();
     }
 
-    // Save to database
     const today = new Date().toISOString().split("T")[0];
     await supabase.from("business_daily_summaries").upsert({
       business_id: businessId,
@@ -107,6 +116,7 @@ IMPORTANTE:
       summary_text: summary.summary_text,
       priorities: summary.priorities,
       mood: summary.mood,
+      key_metrics: { headline: summary.headline, confidence_note: summary.confidence_note },
     }, { onConflict: "business_id,summary_date" });
 
     return new Response(JSON.stringify({ summary }), {
