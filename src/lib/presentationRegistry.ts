@@ -312,7 +312,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
 export const NEUTRAL_FALLBACKS = {
   label: "Dato del negocio",
   value: "Configurado",
-  option: "Opción del servicio",
+  option: "Dato aprendido",
   preference: "Preferencia configurada",
   info: "Información adicional",
   pending: "Pendiente",
