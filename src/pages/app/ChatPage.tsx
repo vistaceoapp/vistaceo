@@ -444,11 +444,12 @@ const ChatPage = () => {
         hasLearning,
         audioScript,
         missionSuggestions: missionSuggestions && missionSuggestions.length > 0 ? missionSuggestions : undefined,
+        isNew: true,
       };
 
       setMessages((prev) => [
-        ...prev.slice(0, -1),
-        { ...tempUserMsg, id: `user-${Date.now()}` },
+        ...prev.slice(0, -1).map(m => ({ ...m, isNew: false })),
+        { ...tempUserMsg, id: `user-${Date.now()}`, isNew: false },
         newAssistantMsg,
       ]);
 
