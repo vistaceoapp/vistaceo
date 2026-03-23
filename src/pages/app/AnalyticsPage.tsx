@@ -11,7 +11,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/use-subscription";
 import { BarChart3, Stethoscope, TrendingUp, Sparkles, Star, Brain, Lock, Building2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -22,11 +21,8 @@ const AnalyticsPage = () => {
   const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabFromUrl || (isPro ? "insights" : "diagnostico"));
 
-  // Sync tab from URL changes (e.g. navigating from insights "Ver diagnóstico" button)
   useEffect(() => {
-    if (tabFromUrl) {
-      setActiveTab(tabFromUrl);
-    }
+    if (tabFromUrl) setActiveTab(tabFromUrl);
   }, [tabFromUrl]);
 
   const tabs = [
@@ -39,40 +35,20 @@ const AnalyticsPage = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className={cn(
-            "rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/30",
-            isMobile ? "w-10 h-10" : "w-12 h-12"
-          )}>
-            <Star className={cn("text-primary-foreground", isMobile ? "w-5 h-5" : "w-6 h-6")} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className={cn("font-bold text-foreground", isMobile ? "text-xl" : "text-2xl")}>
-                Analíticas
-              </h1>
-              {isPro && (
-                <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground text-[10px] px-2 py-0.5">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  Pro
-                </Badge>
-              )}
-            </div>
-            {!isMobile && (
-              <p className="text-muted-foreground text-sm">
-                {isPro ? "Inteligencia de negocio en tiempo real" : "Diagnóstico y métricas de tu negocio"}
-              </p>
-            )}
-          </div>
-        </div>
+    <div className="space-y-5">
+      {/* Clean header */}
+      <div>
+        <h1 className={cn("font-bold text-foreground tracking-tight", isMobile ? "text-xl" : "text-2xl")}>
+          Analíticas
+        </h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          {isPro ? "Inteligencia de negocio en tiempo real" : "Diagnóstico y métricas de tu negocio"}
+        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className={cn(
-          "w-full mb-6 h-auto p-1",
+          "w-full mb-5 h-auto p-1 bg-muted/30 border border-border/40",
           isMobile ? "flex overflow-x-auto scrollbar-hide gap-0.5" : "grid grid-cols-6"
         )}>
           {tabs.map((tab) => (
@@ -80,35 +56,33 @@ const AnalyticsPage = () => {
               key={tab.value}
               value={tab.value}
               className={cn(
-                "relative gap-1.5 transition-all",
-                isMobile ? "text-[11px] px-2.5 py-2 flex-shrink-0 min-w-0" : "text-sm"
+                "relative gap-1.5 transition-all rounded-lg",
+                isMobile ? "text-[11px] px-2.5 py-2 flex-shrink-0 min-w-0" : "text-[13px] py-2"
               )}
             >
-              <tab.icon className={cn(isMobile ? "w-3.5 h-3.5" : "w-4 h-4")} />
+              <tab.icon className={cn(isMobile ? "w-3.5 h-3.5" : "w-3.5 h-3.5")} />
               <span className="truncate">{isMobile ? tab.mobileLabel : tab.label}</span>
-              {tab.locked && <Lock className="w-3 h-3 text-muted-foreground flex-shrink-0" />}
+              {tab.locked && <Lock className="w-3 h-3 text-muted-foreground/50 flex-shrink-0" />}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {/* Free-accessible tabs */}
-        <TabsContent value="diagnostico" className="space-y-6 animate-fade-in">
+        <TabsContent value="diagnostico" className="space-y-5 animate-fade-in">
           <BusinessHealthAnalytics />
         </TabsContent>
 
-        <TabsContent value="reputacion" className="space-y-6 animate-fade-in">
+        <TabsContent value="reputacion" className="space-y-5 animate-fade-in">
           {isPro ? (
             <ReputationAnalyticsPanel />
           ) : (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-secondary/50 border border-border/50">
-                <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2">
+              <div className="p-4 rounded-xl bg-muted/20 border border-border/40">
+                <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2 text-sm">
                   <Star className="w-4 h-4 text-primary" />
                   Reputación Online
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Desbloquea análisis completo de reputación con VISTACEO Pro.
-                  Reseñas, sentimiento, palabras clave y más, todo automático desde Google Maps.
                 </p>
               </div>
               <GooglePlacesReputationSection />
@@ -116,42 +90,41 @@ const AnalyticsPage = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="competencia" className="space-y-6 animate-fade-in">
+        <TabsContent value="competencia" className="space-y-5 animate-fade-in">
           <CompetitorInsightsPanel />
         </TabsContent>
 
-        {/* Pro tabs */}
-        <TabsContent value="insights" className="space-y-6 animate-fade-in">
+        <TabsContent value="insights" className="space-y-5 animate-fade-in">
           {isPro ? (
             <SmartInsightsPanel />
           ) : (
-            <ProFeatureGate feature="advanced_analytics" title="Insights IA" description="Desbloquea análisis inteligente con IA y recomendaciones estratégicas con VISTACEO Pro">
+            <ProFeatureGate feature="advanced_analytics" title="Insights IA" description="Desbloquea análisis inteligente con IA y recomendaciones estratégicas">
               <div className="h-64 flex items-center justify-center text-muted-foreground">
-                <p>Insights inteligentes basados en tus datos reales</p>
+                <p className="text-sm">Insights inteligentes basados en tus datos reales</p>
               </div>
             </ProFeatureGate>
           )}
         </TabsContent>
 
-        <TabsContent value="evolucion" className="space-y-6 animate-fade-in">
+        <TabsContent value="evolucion" className="space-y-5 animate-fade-in">
           {isPro ? (
             <EvolutionPanel />
           ) : (
-            <ProFeatureGate feature="advanced_analytics" title="Evolución" description="Seguí la evolución de tus métricas clave semana a semana con VISTACEO Pro">
+            <ProFeatureGate feature="advanced_analytics" title="Evolución" description="Seguí la evolución de tus métricas clave semana a semana">
               <div className="h-64 flex items-center justify-center text-muted-foreground">
-                <p>Evolución de métricas y tendencias</p>
+                <p className="text-sm">Evolución de métricas y tendencias</p>
               </div>
             </ProFeatureGate>
           )}
         </TabsContent>
 
-        <TabsContent value="metricas" className="space-y-6 animate-fade-in">
+        <TabsContent value="metricas" className="space-y-5 animate-fade-in">
           {isPro ? (
             <AnalyticsDashboard variant={isMobile ? "compact" : "full"} />
           ) : (
-            <ProFeatureGate feature="advanced_analytics" title="Métricas Avanzadas" description="Accedé al dashboard completo de métricas y KPIs con VISTACEO Pro">
+            <ProFeatureGate feature="advanced_analytics" title="Métricas Avanzadas" description="Accedé al dashboard completo de métricas y KPIs">
               <div className="h-64 flex items-center justify-center text-muted-foreground">
-                <p>Dashboard completo de métricas</p>
+                <p className="text-sm">Dashboard completo de métricas</p>
               </div>
             </ProFeatureGate>
           )}
