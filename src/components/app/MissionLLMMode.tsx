@@ -629,7 +629,7 @@ export const MissionLLMMode = ({
       {/* Center: Main content */}
       <main ref={containerRef} className="flex-1 overflow-y-auto">
         {/* Header */}
-        <header className="sticky top-0 z-20 px-6 py-4 border-b border-border bg-background/95 backdrop-blur-sm">
+        <header className="sticky top-0 z-20 px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
