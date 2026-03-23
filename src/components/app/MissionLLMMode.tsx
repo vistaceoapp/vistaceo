@@ -795,14 +795,14 @@ export const MissionLLMMode = ({
 
       {/* Right: Steps Timeline */}
       {viewMode === "steps" && !loading && (
-        <aside className="w-72 border-l border-border bg-background overflow-y-auto hidden xl:block">
+      <aside className="w-72 border-l border-border bg-background overflow-y-auto hidden xl:block">
           <div className="px-4 py-3.5 border-b border-border">
             <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
               <FileText className="w-4 h-4 text-primary" />
-              Timeline de pasos
+              Pasos de la misión
             </h3>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              Haz clic en un paso para ver detalles
+              Tocá un paso para ver los detalles
             </p>
           </div>
           <div className="p-3 space-y-1.5">
@@ -818,23 +818,23 @@ export const MissionLLMMode = ({
                     setSelectedStepIdx(idx);
                   }}
                   className={cn(
-                    "w-full text-left p-2.5 rounded-xl border transition-all group",
-                    isSelected && "ring-2 ring-primary shadow-sm",
+                    "w-full text-left p-3 rounded-xl border transition-all group",
+                    isSelected && "ring-2 ring-primary shadow-sm bg-primary/5",
                     step.done
                       ? "bg-success/5 border-success/20"
                       : isCurrentStep
-                        ? "bg-primary/10 border-primary/30"
+                        ? "bg-primary/5 border-primary/30"
                         : "bg-card border-border hover:border-primary/20"
                   )}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-2.5">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleStep(mission.id, idx);
                       }}
                       className={cn(
-                        "w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors",
+                        "w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors mt-0.5",
                         step.done
                           ? "bg-success text-success-foreground hover:bg-success/80"
                           : isCurrentStep
@@ -844,12 +844,18 @@ export const MissionLLMMode = ({
                     >
                       {step.done ? <Check className="w-3.5 h-3.5" /> : idx + 1}
                     </button>
-                    <p className={cn(
-                      "text-[11px] line-clamp-2 flex-1 leading-snug",
-                      step.done && "line-through text-muted-foreground"
-                    )}>
-                      {step.text}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "text-xs line-clamp-2 leading-relaxed font-medium",
+                        step.done && "line-through text-muted-foreground",
+                        isCurrentStep && !step.done && "text-primary"
+                      )}>
+                        {step.text}
+                      </p>
+                      {isCurrentStep && !step.done && (
+                        <span className="text-[10px] text-primary font-semibold mt-0.5 inline-block">Siguiente →</span>
+                      )}
+                    </div>
                   </div>
                 </button>
               );
