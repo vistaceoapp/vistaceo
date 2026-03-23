@@ -354,12 +354,21 @@ export const MissionLLMMode = ({
     fetchEnhancedPlan(true);
   }, [fetchEnhancedPlan]);
 
-  // Effect for mission change
+  // Effect for mission change — preserve cached plan to avoid flash
   useEffect(() => {
-    setEnhancedPlan(null);
     setError(null);
     setMobileTab("guide");
     setViewMode("summary");
+    
+    // Check cache BEFORE resetting state to avoid loading flash
+    const cached = getCachedPlan(mission.id, businessId);
+    if (cached) {
+      setEnhancedPlan(cached);
+      setLoading(false);
+    } else {
+      setEnhancedPlan(null);
+      setLoading(true);
+    }
     
     // Reset selected step to first incomplete
     const firstIncomplete = steps.findIndex(s => !s.done);
