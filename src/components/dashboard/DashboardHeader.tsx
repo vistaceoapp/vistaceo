@@ -50,8 +50,8 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
   return (
     <header 
       className={cn(
-        "fixed top-0 right-0 h-14 bg-background/80 backdrop-blur-xl border-b border-border/40 z-40",
-        "flex items-center justify-end px-5 transition-all duration-300",
+        "fixed top-0 right-0 h-12 bg-background/90 backdrop-blur-xl border-b border-border/30 z-40",
+        "flex items-center justify-end px-4 transition-all duration-300",
         sidebarCollapsed ? "left-[72px]" : "left-[240px]"
       )}
     >
