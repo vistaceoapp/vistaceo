@@ -215,7 +215,13 @@ export function useIntelligentQuestions(): UseIntelligentQuestionsResult {
       if (gaps) {
         for (const gap of gaps) {
           const gapQuestions = Array.isArray(gap.questions) ? gap.questions : [];
-          const questionText = gapQuestions[0] as string || `¿Podés contarme más sobre ${gap.field_name}?`;
+          // data_gaps.questions can contain objects like {type, options, question} — extract the string
+          const rawQ = gapQuestions[0];
+          const questionText: string = typeof rawQ === 'string' 
+            ? rawQ 
+            : (rawQ && typeof rawQ === 'object' && 'question' in rawQ) 
+              ? String((rawQ as Record<string, unknown>).question) 
+              : `¿Podés contarme más sobre ${gap.field_name}?`;
           
           generatedQuestions.push({
             id: `gap-${gap.id}`,
