@@ -294,7 +294,7 @@ export const HealthScoreWidget = ({
                   variant="ghost"
                   size="sm"
                   className="flex-1 h-8 text-[11px] gap-1.5 text-primary hover:text-primary rounded-xl"
-                  onClick={() => navigate('/app/diagnostic')}
+                  onClick={() => navigate('/app/analytics?tab=diagnostico')}
                 >
                   Diagnóstico completo
                   <ArrowRight className="w-3 h-3" />
