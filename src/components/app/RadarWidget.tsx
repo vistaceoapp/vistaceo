@@ -233,7 +233,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
         {currentInsight && (
           <button
             className="w-full p-3 rounded-xl bg-accent/5 border border-accent/10 mb-3 text-left hover:border-accent/30 transition-colors cursor-pointer overflow-hidden"
-            onClick={() => navigate("/app/radar?tab=id")}
+            onClick={() => navigate("/app/radar")}
           >
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -262,7 +262,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
           <Button 
             size="sm" 
             className="gradient-primary w-full mt-3 h-8"
-            onClick={() => navigate("/app/more")}
+            onClick={() => navigate("/checkout")}
           >
             <Sparkles className="w-3 h-3 mr-1" />
             Desbloquear Pro
@@ -301,7 +301,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
           <button
             key={insight.id}
             className="w-full p-3 rounded-xl bg-secondary/30 border border-border hover:border-accent/30 transition-all text-left group"
-            onClick={() => navigate(`/app/radar?tab=id`)}
+            onClick={() => navigate(`/app/radar`)}
           >
             <div className="flex items-start gap-3">
               <div className={cn(
@@ -351,7 +351,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
         variant="ghost" 
         size="sm" 
         className="w-full mt-3 text-xs"
-        onClick={() => navigate("/app/radar?tab=id")}
+        onClick={() => navigate("/app/radar")}
       >
         Ver más en I+D
         <ExternalLink className="w-3 h-3 ml-1" />
