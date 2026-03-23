@@ -152,7 +152,7 @@ export default {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "vistaceo-gradient": "linear-gradient(135deg, hsl(18, 76%, 60%), hsl(20, 80%, 52%))",
+        "vistaceo-gradient": "linear-gradient(135deg, #2692DC, #746CE6)",
       },
     },
   },
