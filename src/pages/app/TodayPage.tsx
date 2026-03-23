@@ -21,6 +21,8 @@ import PredictionsWidget from "@/components/app/PredictionsWidget";
 import { WeeklyMetricsWidget } from "@/components/app/WeeklyMetricsWidget";
 import { DashboardEditor } from "@/components/app/DashboardEditor";
 import { IntelligentQuestionPrompt } from "@/components/app/IntelligentQuestionPrompt";
+import { AIDailySummary } from "@/components/app/AIDailySummary";
+import { SmartNextSteps } from "@/components/app/SmartNextSteps";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useHealthSync } from "@/hooks/use-health-sync";
@@ -77,6 +79,8 @@ const TodayPage = () => {
 
   const renderWidget = (widgetId: string) => {
     switch (widgetId) {
+      case "aiSummary":
+        return <AIDailySummary key="aiSummary" />;
       case "health":
         return (
           <HealthScoreWidget
@@ -89,6 +93,8 @@ const TodayPage = () => {
             isSyncing={isSyncing}
           />
         );
+      case "nextSteps":
+        return <SmartNextSteps key="nextSteps" />;
       case "pulse":
         return <PulseCheckinCard key="pulse" variant={isMobile ? "compact" : "full"} />;
       case "missions":
@@ -258,14 +264,16 @@ const TodayPage = () => {
       {[...mainWidgets, ...sidebarWidgets]
         .sort((a, b) => {
           const mobileOrder: Record<string, number> = {
-            health: 0,
-            pulse: 1,
-            brain: 2,
-            weeklyMetrics: 3,
-            missions: 4,
-            focus: 5,
-            reputation: 6,
-            radar: 7,
+            aiSummary: 0,
+            health: 1,
+            nextSteps: 2,
+            pulse: 3,
+            brain: 4,
+            weeklyMetrics: 5,
+            missions: 6,
+            focus: 7,
+            reputation: 8,
+            radar: 9,
           };
           return (mobileOrder[a.id] ?? 99) - (mobileOrder[b.id] ?? 99);
         })

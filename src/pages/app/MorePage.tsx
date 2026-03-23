@@ -50,6 +50,7 @@ import { AutopilotModeSelector } from "@/components/app/AutopilotModeSelector";
 import { BrainStatusWidget } from "@/components/app/BrainStatusWidget";
 import { FocusSelector } from "@/components/app/FocusSelector";
 import { GooglePlacesReputationSection } from "@/components/app/GooglePlacesReputationSection";
+import { BusinessPhotosSection } from "@/components/app/BusinessPhotosSection";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -839,6 +840,14 @@ const MorePage = () => {
           Google Maps
         </h3>
         <GooglePlacesReputationSection />
+      </div>
+
+      {/* Business Photos */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+          Tu negocio
+        </h3>
+        <BusinessPhotosSection />
       </div>
 
       {/* System Section */}

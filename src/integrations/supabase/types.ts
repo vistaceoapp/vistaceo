@@ -1214,6 +1214,47 @@ export type Database = {
           },
         ]
       }
+      business_daily_summaries: {
+        Row: {
+          business_id: string
+          created_at: string | null
+          id: string
+          key_metrics: Json | null
+          mood: string | null
+          priorities: Json | null
+          summary_date: string
+          summary_text: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string | null
+          id?: string
+          key_metrics?: Json | null
+          mood?: string | null
+          priorities?: Json | null
+          summary_date?: string
+          summary_text: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string | null
+          id?: string
+          key_metrics?: Json | null
+          mood?: string | null
+          priorities?: Json | null
+          summary_date?: string
+          summary_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_daily_summaries_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_focus_config: {
         Row: {
           auto_adjust_focus: boolean | null
@@ -1392,6 +1433,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "business_menu_items_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_photos: {
+        Row: {
+          business_id: string
+          caption: string | null
+          category: string
+          created_at: string | null
+          id: string
+          photo_url: string
+        }
+        Insert: {
+          business_id: string
+          caption?: string | null
+          category?: string
+          created_at?: string | null
+          id?: string
+          photo_url: string
+        }
+        Update: {
+          business_id?: string
+          caption?: string | null
+          category?: string
+          created_at?: string | null
+          id?: string
+          photo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_photos_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
