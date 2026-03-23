@@ -7,10 +7,6 @@ import {
   ChevronDown,
   ChevronUp,
   RefreshCw,
-  PlusCircle,
-  ShieldCheck,
-  AlertTriangle,
-  CheckCircle2,
   ArrowRight,
 } from 'lucide-react';
 import {
@@ -19,49 +15,18 @@ import {
 } from '@/lib/dashboardCards';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 
-const DIMENSION_COMPLETE_ROUTES: Record<string, { route: string; label: string }> = {
-  reputation: { route: '/app/diagnostic', label: 'Conectar Google' },
-  profitability: { route: '/app/diagnostic', label: 'Completar datos' },
-  finances: { route: '/app/diagnostic', label: 'Completar datos' },
-  efficiency: { route: '/app/diagnostic', label: 'Completar datos' },
-  traffic: { route: '/app/diagnostic', label: 'Completar datos' },
-  team: { route: '/app/diagnostic', label: 'Completar datos' },
-  growth: { route: '/app/diagnostic', label: 'Completar datos' },
-};
-
-interface HealthScoreWidgetProps {
-  subScores: Record<string, number | null>;
-  previousScore?: number | null;
-  precisionPct?: number;
-  snapshotScore?: number | null;
-  onSync?: () => Promise<void>;
-  isSyncing?: boolean;
-}
-
-const getCertaintyInfo = (pct: number) => {
-  if (pct >= 70) return { label: 'Alta', color: 'text-success', icon: CheckCircle2 };
-  if (pct >= 40) return { label: 'Media', color: 'text-warning', icon: AlertTriangle };
-  return { label: 'Baja', color: 'text-destructive', icon: AlertTriangle };
-};
-
-/** Color-coded progress bar — uses forwardRef to avoid React warnings */
+/** Color-coded progress bar */
 const DimensionBar = forwardRef<HTMLDivElement, { value: number; className?: string }>(
   ({ value, className }, ref) => {
     const getBarColor = (v: number) => {
-      if (v >= 60) return 'bg-primary';
+      if (v >= 60) return 'bg-success';
       if (v >= 40) return 'bg-warning';
       return 'bg-destructive';
     };
 
     return (
-      <div ref={ref} className={cn('relative h-1.5 w-full rounded-full bg-muted/50 overflow-hidden', className)}>
+      <div ref={ref} className={cn('relative h-1 w-full rounded-full bg-muted/40 overflow-hidden', className)}>
         <div
           className={cn('absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out', getBarColor(value))}
           style={{ width: `${Math.max(value, 2)}%` }}
@@ -71,6 +36,15 @@ const DimensionBar = forwardRef<HTMLDivElement, { value: number; className?: str
   }
 );
 DimensionBar.displayName = 'DimensionBar';
+
+interface HealthScoreWidgetProps {
+  subScores: Record<string, number | null>;
+  previousScore?: number | null;
+  precisionPct?: number;
+  snapshotScore?: number | null;
+  onSync?: () => Promise<void>;
+  isSyncing?: boolean;
+}
 
 export const HealthScoreWidget = ({
   subScores,
@@ -86,8 +60,6 @@ export const HealthScoreWidget = ({
   const score = snapshotScore ?? 0;
   const hasScore = snapshotScore !== null && snapshotScore !== undefined;
   const scoreStyle = getScoreStyle(score);
-  const certainty = getCertaintyInfo(precisionPct);
-  const CertaintyIcon = certainty.icon;
 
   const getTrend = () => {
     if (previousScore == null || !hasScore) return null;
@@ -109,27 +81,17 @@ export const HealthScoreWidget = ({
     .map(sub => ({ ...sub, value: subScores[sub.id] }))
     .sort((a, b) => (b.value ?? -1) - (a.value ?? -1));
 
+  // Show top 4 collapsed, all 7 expanded — NO duplication
   const visibleDimensions = expanded ? allDimensions : allDimensions.slice(0, 4);
 
   return (
-    <div className="rounded-2xl border border-border/50 bg-card overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-md)]">
-      <div className="p-5 pb-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-foreground tracking-tight">
-              Salud del negocio
-            </h3>
-            <span className={cn(
-              'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium',
-              'bg-muted/60',
-              certainty.color
-            )}>
-              <CertaintyIcon className="w-2.5 h-2.5" />
-              {precisionPct}%
-            </span>
-          </div>
-
+    <div className="rounded-2xl border border-border/60 bg-card overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-md)]">
+      <div className="p-5">
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-[13px] font-semibold text-foreground tracking-tight uppercase">
+            Salud del negocio
+          </h3>
           <button
             onClick={() => setExpanded(!expanded)}
             className="text-muted-foreground hover:text-foreground transition-colors p-1 -mr-1"
@@ -138,70 +100,62 @@ export const HealthScoreWidget = ({
           </button>
         </div>
 
-        {/* Score + Dimensions */}
-        <div className="flex items-start gap-5">
-          {/* Score */}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleScoreClick}
-                  disabled={isSyncing}
-                  className={cn(
-                    'flex-shrink-0 flex flex-col items-center justify-center',
-                    'w-20 h-20 rounded-2xl transition-all duration-200',
-                    'cursor-pointer hover:scale-[1.03] active:scale-[0.97]',
-                    hasScore
-                      ? [scoreStyle.bgColor, 'border border-transparent']
-                      : 'bg-muted/20 border border-dashed border-border'
+        {/* Score circle + dimensions */}
+        <div className="flex items-start gap-6">
+          {/* Score circle */}
+          <button
+            onClick={handleScoreClick}
+            disabled={isSyncing}
+            className={cn(
+              'flex-shrink-0 w-[88px] h-[88px] rounded-full flex flex-col items-center justify-center',
+              'transition-all duration-200 cursor-pointer',
+              'hover:scale-[1.03] active:scale-[0.97]',
+              hasScore
+                ? 'border-2 border-current'
+                : 'border-2 border-dashed border-muted-foreground/30'
+            )}
+            style={hasScore ? { borderColor: `hsl(var(--${score >= 60 ? 'success' : score >= 40 ? 'warning' : 'destructive'}))` } : undefined}
+          >
+            {hasScore ? (
+              <>
+                <div className="flex items-baseline gap-0.5">
+                  <span className={cn('text-[32px] font-bold leading-none tracking-tighter', scoreStyle.textColor)}>
+                    {score}
+                  </span>
+                  {trend && (
+                    <span className="ml-0.5">
+                      {trend.direction === 'up' && <TrendingUp className="w-3.5 h-3.5 text-success" />}
+                      {trend.direction === 'down' && <TrendingDown className="w-3.5 h-3.5 text-destructive" />}
+                      {trend.direction === 'stable' && <Minus className="w-3 h-3 text-muted-foreground" />}
+                    </span>
                   )}
-                >
-                  {hasScore ? (
-                    <>
-                      <div className="flex items-baseline">
-                        <span className={cn('text-3xl font-bold leading-none tracking-tighter', scoreStyle.textColor)}>
-                          {score}
-                        </span>
-                        {trend && (
-                          <span className="ml-0.5">
-                            {trend.direction === 'up' && <TrendingUp className="w-3.5 h-3.5 text-success" />}
-                            {trend.direction === 'down' && <TrendingDown className="w-3.5 h-3.5 text-destructive" />}
-                            {trend.direction === 'stable' && <Minus className="w-3 h-3 text-muted-foreground" />}
-                          </span>
-                        )}
-                      </div>
-                      <span className={cn('text-[10px] font-medium mt-0.5', scoreStyle.textColor)}>
-                        {scoreStyle.label}
-                      </span>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center gap-1">
-                      <RefreshCw className={cn('w-5 h-5 text-muted-foreground', isSyncing && 'animate-spin')} />
-                      <span className="text-[9px] text-muted-foreground font-medium">
-                        {isSyncing ? 'Analizando...' : 'Diagnosticar'}
-                      </span>
-                    </div>
-                  )}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                <p className="text-xs">{hasScore ? 'Pedí análisis detallado' : 'Generar diagnóstico'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+                </div>
+                <span className={cn('text-[10px] font-medium mt-0.5', scoreStyle.textColor)}>
+                  {scoreStyle.label}
+                </span>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-1">
+                <RefreshCw className={cn('w-5 h-5 text-muted-foreground', isSyncing && 'animate-spin')} />
+                <span className="text-[9px] text-muted-foreground font-medium">
+                  {isSyncing ? 'Analizando...' : 'Diagnosticar'}
+                </span>
+              </div>
+            )}
+          </button>
 
-          {/* Dimension bars — compact */}
-          <div className="flex-1 space-y-2.5 pt-0.5">
+          {/* Dimension bars */}
+          <div className="flex-1 space-y-3 pt-1">
             {visibleDimensions.map((dim) => (
-              <div key={dim.id} className="group">
-                <div className="flex items-center justify-between mb-0.5">
+              <div key={dim.id}>
+                <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs leading-none">{dim.icon}</span>
+                    <span className="text-[11px] leading-none">{dim.icon}</span>
                     <span className="text-[12px] text-muted-foreground font-medium">{dim.name}</span>
                   </div>
                   <span className={cn(
                     'text-[12px] font-semibold tabular-nums',
-                    dim.value !== null ? getScoreStyle(dim.value).textColor : 'text-muted-foreground/50'
+                    dim.value !== null ? getScoreStyle(dim.value).textColor : 'text-muted-foreground/40'
                   )}>
                     {dim.value !== null ? dim.value : '—'}
                   </span>
@@ -211,104 +165,66 @@ export const HealthScoreWidget = ({
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Expanded details */}
-      {expanded && (
-        <div className="px-5 pb-5 pt-0 space-y-4 animate-fade-in">
-          {/* Remaining dimensions if any */}
-          {allDimensions.length > 4 && (
-            <div className="pt-3 border-t border-border/30 space-y-3">
-              {allDimensions.slice(4).map((dim) => {
-                const hasData = dim.value !== null;
-                const completeConfig = DIMENSION_COMPLETE_ROUTES[dim.id];
-
-                return (
-                  <div key={dim.id} className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs">{dim.icon}</span>
-                        <span className="text-[12px] font-medium text-foreground">{dim.name}</span>
-                        <span className="text-[9px] text-muted-foreground bg-muted/50 px-1 py-0.5 rounded">
-                          {Math.round(dim.weight * 100)}%
-                        </span>
-                      </div>
-                      {hasData ? (
-                        <span className={cn('text-[12px] font-bold tabular-nums', getScoreStyle(dim.value).textColor)}>
-                          {dim.value}
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => navigate(completeConfig?.route || '/app/diagnostic')}
-                          className="text-[10px] text-primary hover:underline flex items-center gap-0.5"
-                        >
-                          <PlusCircle className="w-2.5 h-2.5" />
-                          {completeConfig?.label || 'Completar'}
-                        </button>
-                      )}
-                    </div>
-                    <DimensionBar value={dim.value ?? 0} className="h-1" />
-                  </div>
-                );
-              })}
+        {/* Expanded: certainty + actions */}
+        {expanded && (
+          <div className="mt-5 pt-4 border-t border-border/40 space-y-4 animate-fade-in">
+            {/* Certainty */}
+            <div>
+              <div className="flex items-center justify-between text-[11px] mb-1.5">
+                <span className="text-muted-foreground">Certeza del análisis</span>
+                <span className={cn(
+                  'font-semibold',
+                  precisionPct >= 70 ? 'text-success' : precisionPct >= 40 ? 'text-warning' : 'text-destructive'
+                )}>
+                  {precisionPct}%
+                </span>
+              </div>
+              <div className="relative h-1 bg-muted/40 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    'absolute inset-y-0 left-0 rounded-full transition-all duration-700',
+                    precisionPct >= 70 ? 'bg-success' : precisionPct >= 40 ? 'bg-warning' : 'bg-primary'
+                  )}
+                  style={{ width: `${precisionPct}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1.5">
+                {precisionPct < 40
+                  ? 'Respondé más preguntas para un análisis más preciso'
+                  : precisionPct < 70
+                  ? 'Conectá integraciones para subir la certeza'
+                  : 'Análisis confiable — datos suficientes'}
+              </p>
             </div>
-          )}
 
-          {/* Certainty bar */}
-          <div className="pt-3 border-t border-border/30">
-            <div className="flex items-center justify-between text-[11px] mb-1.5">
-              <span className="text-muted-foreground flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" />
-                Certeza del análisis
-              </span>
-              <span className={cn('font-semibold', certainty.color)}>
-                {certainty.label} · {precisionPct}%
-              </span>
-            </div>
-            <div className="relative h-1.5 bg-muted/40 rounded-full overflow-hidden">
-              <div
-                className={cn(
-                  'absolute inset-y-0 left-0 rounded-full transition-all duration-700',
-                  precisionPct >= 70 ? 'bg-success' : precisionPct >= 40 ? 'bg-warning' : 'bg-primary'
-                )}
-                style={{ width: `${precisionPct}%` }}
-              />
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1.5">
-              {precisionPct < 40
-                ? 'Respondé más preguntas para un análisis más preciso'
-                : precisionPct < 70
-                ? 'Conectá integraciones para subir la certeza'
-                : 'Análisis confiable — datos suficientes'}
-            </p>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-2">
-            {onSync && (
+            {/* Actions */}
+            <div className="flex gap-2">
+              {onSync && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 h-9 text-xs gap-1.5 rounded-xl"
+                  onClick={onSync}
+                  disabled={isSyncing}
+                >
+                  <RefreshCw className={cn('w-3 h-3', isSyncing && 'animate-spin')} />
+                  {isSyncing ? 'Analizando...' : 'Actualizar'}
+                </Button>
+              )}
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="flex-1 h-8 text-xs gap-1.5"
-                onClick={onSync}
-                disabled={isSyncing}
+                className="flex-1 h-9 text-xs gap-1.5 text-primary hover:text-primary rounded-xl"
+                onClick={() => navigate('/app/diagnostic')}
               >
-                <RefreshCw className={cn('w-3 h-3', isSyncing && 'animate-spin')} />
-                {isSyncing ? 'Analizando...' : 'Actualizar'}
+                Ver diagnóstico completo
+                <ArrowRight className="w-3 h-3" />
               </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex-1 h-8 text-xs gap-1.5 text-primary hover:text-primary"
-              onClick={() => navigate('/app/diagnostic')}
-            >
-              Ver diagnóstico completo
-              <ArrowRight className="w-3 h-3" />
-            </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
