@@ -25,7 +25,7 @@ import {
 
 /** Animated arc for score visualization */
 const ScoreArc = ({ score, size = 100 }: { score: number; size?: number }) => {
-  const strokeWidth = 6;
+  const strokeWidth = 3.5;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
