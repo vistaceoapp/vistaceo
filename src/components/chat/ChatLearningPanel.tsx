@@ -179,7 +179,8 @@ export const ChatLearningPanel = ({
 
       if (brain?.factual_memory) {
         const factualMemory = brain.factual_memory as Record<string, unknown>;
-        const parsedCategories: LearningCategory[] = [];
+        // Use a map to merge duplicate category keys
+        const categoryMap = new Map<string, LearningCategory>();
         let count = 0;
 
         Object.entries(factualMemory).forEach(([rawCategory, data]) => {
@@ -192,15 +193,25 @@ export const ChatLearningPanel = ({
           const facts = parseLearningData(data);
           
           if (facts.length > 0) {
-            parsedCategories.push({
-              category: categoryKey,
-              label: config.label || categoryLabel(categoryKey),
-              icon: config.icon,
-              facts: facts.slice(0, 8),
-            });
+            const existing = categoryMap.get(categoryKey);
+            if (existing) {
+              // Merge facts into existing category, avoid duplicates
+              const existingAnswers = new Set(existing.facts.map(f => f.answer));
+              const newFacts = facts.filter(f => !existingAnswers.has(f.answer));
+              existing.facts = [...existing.facts, ...newFacts].slice(0, 10);
+            } else {
+              categoryMap.set(categoryKey, {
+                category: categoryKey,
+                label: config.label || categoryLabel(categoryKey),
+                icon: config.icon,
+                facts: facts.slice(0, 10),
+              });
+            }
             count += facts.length;
           }
         });
+
+        const parsedCategories = Array.from(categoryMap.values());
 
         // Auto-expand first category
         if (parsedCategories.length > 0) {
