@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { startGuardian, stopGuardian } from "@/lib/self-healing-guardian";
 
 const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const BRAIN_GAPS_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
@@ -104,6 +105,9 @@ export const useAutoSync = () => {
   useEffect(() => {
     if (!currentBusiness) return;
 
+    // Start self-healing guardian
+    startGuardian(currentBusiness.id);
+
     // Initial sync on mount (delayed to not block UI)
     const initialTimeout = setTimeout(() => {
       triggerSync();
@@ -125,6 +129,7 @@ export const useAutoSync = () => {
     }, SYNC_INTERVAL_MS);
 
     return () => {
+      stopGuardian();
       clearTimeout(initialTimeout);
       clearTimeout(brainGapsTimeout);
       clearTimeout(healthTimeout);
