@@ -262,7 +262,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
           <Button 
             size="sm" 
             className="gradient-primary w-full mt-3 h-8"
-            onClick={() => navigate("/app/more")}
+            onClick={() => navigate("/checkout")}
           >
             <Sparkles className="w-3 h-3 mr-1" />
             Desbloquear Pro
