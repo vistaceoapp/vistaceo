@@ -170,27 +170,22 @@ export const HealthScoreWidget = ({
               className="flex-shrink-0 relative group cursor-pointer"
             >
               {hasScore ? (
-                <div className="relative">
-                  <ScoreArc score={score} size={88} />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <div className="flex items-baseline gap-0.5">
-                      <span className={cn('text-3xl font-bold leading-none tracking-tight', scoreStyle.textColor)}>
-                        {score}
-                      </span>
-                      {trend && (
-                        <span className="ml-0.5">
-                          {trend.direction === 'up' && <TrendingUp className="w-3 h-3 text-success" />}
-                          {trend.direction === 'down' && <TrendingDown className="w-3 h-3 text-destructive" />}
-                          {trend.direction === 'stable' && <Minus className="w-2.5 h-2.5 text-muted-foreground" />}
-                        </span>
-                      )}
-                    </div>
-                    <span className={cn('text-[9px] font-medium mt-0.5', scoreStyle.textColor)}>
-                      {scoreStyle.label}
+                <div className="w-[88px] h-[88px] rounded-2xl bg-muted/20 flex flex-col items-center justify-center gap-0.5 group-hover:bg-muted/30 transition-colors">
+                  <div className="flex items-baseline gap-0.5">
+                    <span className={cn('text-3xl font-bold leading-none tracking-tight', scoreStyle.textColor)}>
+                      {score}
                     </span>
+                    {trend && (
+                      <span className="ml-0.5">
+                        {trend.direction === 'up' && <TrendingUp className="w-3 h-3 text-success" />}
+                        {trend.direction === 'down' && <TrendingDown className="w-3 h-3 text-destructive" />}
+                        {trend.direction === 'stable' && <Minus className="w-2.5 h-2.5 text-muted-foreground" />}
+                      </span>
+                    )}
                   </div>
-                  {/* Hover ring */}
-                  <div className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-primary/20 transition-colors" />
+                  <span className={cn('text-[9px] font-medium', scoreStyle.textColor)}>
+                    {scoreStyle.label}
+                  </span>
                 </div>
               ) : (
                 <div className="w-[88px] h-[88px] rounded-full border-2 border-dashed border-muted-foreground/20 flex flex-col items-center justify-center gap-1.5 hover:border-primary/30 transition-colors">
