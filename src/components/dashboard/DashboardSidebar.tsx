@@ -182,7 +182,9 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
             if (collapsed) {
               return (
                 <Tooltip>
-                  <TooltipTrigger asChild>{SettingsItem}</TooltipTrigger>
+                  <TooltipTrigger asChild>
+                    <div>{SettingsItem}</div>
+                  </TooltipTrigger>
                   <TooltipContent side="right">
                     <p className="font-medium text-xs">Configuración</p>
                   </TooltipContent>
