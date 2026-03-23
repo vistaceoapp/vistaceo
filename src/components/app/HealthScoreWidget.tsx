@@ -113,14 +113,13 @@ export const HealthScoreWidget = ({
     const diff = score - previousScore;
     if (diff > 2) return { direction: 'up' as const, value: diff };
     if (diff < -2) return { direction: 'down' as const, value: Math.abs(diff) };
-    return { direction: 'stable' as const, value: 0 };
+    return null;
   };
   const trend = getTrend();
 
   const handleScoreClick = () => {
     if (!hasScore) { onSync?.(); return; }
-    const prompt = `Explicame por qué mi Salud de Negocio está en ${score} y qué puedo hacer para mejorarlo`;
-    navigate(`/app/chat?prompt=${encodeURIComponent(prompt)}`);
+    navigate('/app/analytics?tab=diagnostico');
   };
 
   // All 7 dimensions sorted by value
@@ -181,7 +180,6 @@ export const HealthScoreWidget = ({
                         <span className="ml-0.5">
                           {trend.direction === 'up' && <TrendingUp className="w-3 h-3 text-success" />}
                           {trend.direction === 'down' && <TrendingDown className="w-3 h-3 text-destructive" />}
-                          {trend.direction === 'stable' && <Minus className="w-2.5 h-2.5 text-muted-foreground" />}
                         </span>
                       )}
                     </div>
