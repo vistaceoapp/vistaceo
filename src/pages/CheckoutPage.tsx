@@ -86,7 +86,10 @@ const CheckoutPage = () => {
       setStatus("success");
       safeLocalStorage.removeItem("pendingPlan");
       safeLocalStorage.removeItem("pendingPlanTimestamp");
-      setTimeout(() => navigate("/setup", { replace: true }), 2500);
+      // Redirect to app if user already has a business, otherwise to setup
+      const hasSetup = safeLocalStorage.getItem("setup_completed");
+      const redirectPath = hasSetup ? "/app" : "/setup";
+      setTimeout(() => navigate(redirectPath, { replace: true }), 2500);
     } else if (urlStatus === "failure") {
       setStatus("failure");
     } else if (urlStatus === "pending") {
