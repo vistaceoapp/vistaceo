@@ -72,22 +72,7 @@ const AnalyticsPage = () => {
         </TabsContent>
 
         <TabsContent value="reputacion" className="space-y-5 animate-fade-in">
-          {isPro ? (
-            <ReputationAnalyticsPanel />
-          ) : (
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-muted/20 border border-border/40">
-                <h3 className="font-semibold text-foreground mb-1 flex items-center gap-2 text-sm">
-                  <Star className="w-4 h-4 text-primary" />
-                  Reputación Online
-                </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Desbloquea análisis completo de reputación con VISTACEO Pro.
-                </p>
-              </div>
-              <GooglePlacesReputationSection />
-            </div>
-          )}
+          <ReputationAnalyticsPanel />
         </TabsContent>
 
         <TabsContent value="competencia" className="space-y-5 animate-fade-in">
