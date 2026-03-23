@@ -114,19 +114,3 @@ export const MissionLoadingState = ({
   );
 };
 
-// Add CSS animation for loading bar
-const style = document.createElement("style");
-style.textContent = `
-  @keyframes loading-bar {
-    0% { transform: translateX(-100%); width: 30%; }
-    50% { transform: translateX(100%); width: 60%; }
-    100% { transform: translateX(300%); width: 30%; }
-  }
-  .animate-loading-bar {
-    animation: loading-bar 1.5s ease-in-out infinite;
-  }
-`;
-if (typeof document !== "undefined" && !document.getElementById("mission-loading-style")) {
-  style.id = "mission-loading-style";
-  document.head.appendChild(style);
-}

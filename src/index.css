@@ -451,6 +451,16 @@
   animation: loadingProgress 1.5s ease-out forwards;
 }
 
+/* Mission loading bar animation */
+@keyframes loading-bar {
+  0% { transform: translateX(-100%); width: 30%; }
+  50% { transform: translateX(100%); width: 60%; }
+  100% { transform: translateX(300%); width: 30%; }
+}
+.animate-loading-bar {
+  animation: loading-bar 1.5s ease-in-out infinite;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-float,

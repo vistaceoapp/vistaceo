@@ -150,7 +150,7 @@ const SidebarMissionItem = ({ m, mission, starredMissions, onSelectMission, togg
           <span className="text-sm">{AREA_ICONS[m.area || ""] || "🎯"}</span>
         </ProgressRing>
         <div className="flex-1 min-w-0">
-          <p className={cn("text-sm font-medium line-clamp-1", isSelected && "text-primary")}>
+          <p className={cn("text-sm font-medium line-clamp-2 leading-snug", isSelected && "text-primary")}>
             {m.title}
           </p>
           <div className="flex items-center gap-2 mt-0.5">
@@ -439,31 +439,26 @@ export const MissionLLMMode = ({
     return (
       <div className="flex flex-col h-full min-h-0">
         {/* Header */}
-        <header className="sticky top-0 z-20 px-4 py-3 border-b border-border bg-background/95 backdrop-blur-sm">
-          <div className="flex items-center gap-3 mb-2.5">
-            <Button variant="ghost" size="icon" onClick={onBack} className="h-10 w-10 flex-shrink-0 -ml-1">
+        <header className="sticky top-0 z-20 px-4 py-3 border-b border-border/50 bg-background/95 backdrop-blur-xl">
+          <div className="flex items-center gap-3 mb-2">
+            <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 flex-shrink-0 -ml-1">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-lg">{areaIcon}</span>
+              <h1 className="text-base font-bold text-foreground line-clamp-1">
+                {mission.title}
+              </h1>
+              <div className="flex items-center gap-2 mt-0.5">
                 <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px] h-5">
                   {mission.status === "active" ? "Activa" : "Pausada"}
                 </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {completedSteps}/{steps.length} pasos
+                </span>
               </div>
-              <h1 className="text-sm font-bold text-foreground line-clamp-1">
-                {mission.title}
-              </h1>
             </div>
           </div>
-
-          {/* Progress bar */}
-          <div className="flex items-center gap-3">
-            <Progress value={progress} className="flex-1 h-1.5" />
-            <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">
-              {completedSteps}/{steps.length} pasos
-            </span>
-          </div>
+          <Progress value={progress} className="h-1.5" />
         </header>
 
         {/* Loading State */}
@@ -581,7 +576,7 @@ export const MissionLLMMode = ({
   return (
     <div className="flex h-full min-h-0">
       {/* Left: Missions List + Filters */}
-      <aside className="w-56 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
+      <aside className="w-64 flex-shrink-0 border-r border-border flex flex-col min-h-0 bg-background">
         <div className="p-4 border-b border-border">
           <Button variant="ghost" size="sm" onClick={onBack} className="mb-3 -ml-2">
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -634,7 +629,7 @@ export const MissionLLMMode = ({
       {/* Center: Main content */}
       <main ref={containerRef} className="flex-1 overflow-y-auto">
         {/* Header */}
-        <header className="sticky top-0 z-20 px-6 py-4 border-b border-border bg-background/95 backdrop-blur-sm">
+        <header className="sticky top-0 z-20 px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -795,14 +790,14 @@ export const MissionLLMMode = ({
 
       {/* Right: Steps Timeline */}
       {viewMode === "steps" && !loading && (
-        <aside className="w-72 border-l border-border bg-background overflow-y-auto hidden xl:block">
+      <aside className="w-72 border-l border-border bg-background overflow-y-auto hidden xl:block">
           <div className="px-4 py-3.5 border-b border-border">
             <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
               <FileText className="w-4 h-4 text-primary" />
-              Timeline de pasos
+              Pasos de la misión
             </h3>
             <p className="text-[10px] text-muted-foreground mt-0.5">
-              Haz clic en un paso para ver detalles
+              Tocá un paso para ver los detalles
             </p>
           </div>
           <div className="p-3 space-y-1.5">
@@ -818,23 +813,23 @@ export const MissionLLMMode = ({
                     setSelectedStepIdx(idx);
                   }}
                   className={cn(
-                    "w-full text-left p-2.5 rounded-xl border transition-all group",
-                    isSelected && "ring-2 ring-primary shadow-sm",
+                    "w-full text-left p-3 rounded-xl border transition-all group",
+                    isSelected && "ring-2 ring-primary shadow-sm bg-primary/5",
                     step.done
                       ? "bg-success/5 border-success/20"
                       : isCurrentStep
-                        ? "bg-primary/10 border-primary/30"
+                        ? "bg-primary/5 border-primary/30"
                         : "bg-card border-border hover:border-primary/20"
                   )}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-2.5">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleStep(mission.id, idx);
                       }}
                       className={cn(
-                        "w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors",
+                        "w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold transition-colors mt-0.5",
                         step.done
                           ? "bg-success text-success-foreground hover:bg-success/80"
                           : isCurrentStep
@@ -844,12 +839,18 @@ export const MissionLLMMode = ({
                     >
                       {step.done ? <Check className="w-3.5 h-3.5" /> : idx + 1}
                     </button>
-                    <p className={cn(
-                      "text-[11px] line-clamp-2 flex-1 leading-snug",
-                      step.done && "line-through text-muted-foreground"
-                    )}>
-                      {step.text}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "text-xs line-clamp-2 leading-relaxed font-medium",
+                        step.done && "line-through text-muted-foreground",
+                        isCurrentStep && !step.done && "text-primary"
+                      )}>
+                        {step.text}
+                      </p>
+                      {isCurrentStep && !step.done && (
+                        <span className="text-[10px] text-primary font-semibold mt-0.5 inline-block">Siguiente →</span>
+                      )}
+                    </div>
                   </div>
                 </button>
               );
