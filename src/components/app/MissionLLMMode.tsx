@@ -439,31 +439,26 @@ export const MissionLLMMode = ({
     return (
       <div className="flex flex-col h-full min-h-0">
         {/* Header */}
-        <header className="sticky top-0 z-20 px-4 py-3 border-b border-border bg-background/95 backdrop-blur-sm">
-          <div className="flex items-center gap-3 mb-2.5">
-            <Button variant="ghost" size="icon" onClick={onBack} className="h-10 w-10 flex-shrink-0 -ml-1">
+        <header className="sticky top-0 z-20 px-4 py-3 border-b border-border/50 bg-background/95 backdrop-blur-xl">
+          <div className="flex items-center gap-3 mb-2">
+            <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 flex-shrink-0 -ml-1">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-lg">{areaIcon}</span>
+              <h1 className="text-base font-bold text-foreground line-clamp-1">
+                {mission.title}
+              </h1>
+              <div className="flex items-center gap-2 mt-0.5">
                 <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px] h-5">
                   {mission.status === "active" ? "Activa" : "Pausada"}
                 </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {completedSteps}/{steps.length} pasos
+                </span>
               </div>
-              <h1 className="text-sm font-bold text-foreground line-clamp-1">
-                {mission.title}
-              </h1>
             </div>
           </div>
-
-          {/* Progress bar */}
-          <div className="flex items-center gap-3">
-            <Progress value={progress} className="flex-1 h-1.5" />
-            <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">
-              {completedSteps}/{steps.length} pasos
-            </span>
-          </div>
+          <Progress value={progress} className="h-1.5" />
         </header>
 
         {/* Loading State */}
