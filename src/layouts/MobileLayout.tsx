@@ -13,7 +13,7 @@ const navItems = [
   { path: "/app/chat", icon: MessageCircle, label: "Chat", isPro: true },
   { path: "/app/missions", icon: Target, label: "Misiones", isPro: false },
   { path: "/app/radar", icon: Radar, label: "Radar", isPro: false },
-  { path: "/app/analytics", icon: BarChart3, label: "Stats", isPro: true },
+  { path: "/app/analytics", icon: BarChart3, label: "Analíticas", isPro: true },
   { path: "/app/predictions", icon: Orbit, label: "Futuro", isPro: true },
 ];
 

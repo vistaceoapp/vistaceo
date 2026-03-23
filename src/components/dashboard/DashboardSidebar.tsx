@@ -25,7 +25,7 @@ const navItems = [
   { path: "/app/chat", icon: MessageCircle, label: "Chat CEO", subtitle: "Tu mentor estratégico", badge: "Pro", isPro: true },
   { path: "/app/missions", icon: Target, label: "Misiones", subtitle: "Planes de acción", badge: null, isPro: false },
   { path: "/app/radar", icon: Radar, label: "Radar", subtitle: "Oportunidades del mercado", badge: null, isPro: false },
-  { path: "/app/analytics", icon: BarChart3, label: "Analytics", subtitle: "Métricas y evolución", badge: "Pro", isPro: true },
+  { path: "/app/analytics", icon: BarChart3, label: "Analíticas", subtitle: "Métricas y evolución", badge: "Pro", isPro: true },
   { path: "/app/predictions", icon: Orbit, label: "Predicciones", subtitle: "Simulá escenarios", badge: "Pro", isPro: true },
 ];
 
