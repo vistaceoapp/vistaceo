@@ -265,7 +265,7 @@ const CheckoutPage = () => {
           <VistaceoLogo size={36} variant="full" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Lock className="w-4 h-4" />
-            <span className="hidden sm:inline">Checkout seguro</span>
+            <span className="hidden sm:inline">Pago seguro</span>
           </div>
         </div>
       </header>
