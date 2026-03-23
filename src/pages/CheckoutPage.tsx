@@ -211,8 +211,8 @@ const CheckoutPage = () => {
                 <Button className="w-full" size="lg" onClick={() => setStatus("idle")}>
                   Intentar de nuevo
                 </Button>
-                <Button variant="ghost" className="w-full" onClick={() => navigate("/setup")}>
-                  Continuar sin Pro
+                <Button variant="ghost" className="w-full" onClick={() => navigate("/app")}>
+                  Volver al inicio
                 </Button>
               </div>
             </CardContent>
