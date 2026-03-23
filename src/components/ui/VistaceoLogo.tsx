@@ -2,6 +2,9 @@ import * as React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "@/hooks/use-theme";
 
+// Brand assets
+import iconBrand from "@/assets/brand/icon-vistaceo-new.webp";
+
 interface VistaceoLogoProps {
   className?: string;
   size?: number;
@@ -9,11 +12,11 @@ interface VistaceoLogoProps {
 }
 
 /**
- * SVG-based logo matching vistaceo.com/minimalista style.
- * Checkmark icon + "VISTACEO" wordmark in tracking-wide uppercase.
- * Uses currentColor so it adapts to light/dark themes.
+ * VistaCEO logo — uses the official brand icon + "VISTACEO" wordmark.
+ * Icon variant shows only the brand icon.
+ * Full variant shows icon + text.
  */
-export const VistaceoLogo = React.forwardRef<SVGSVGElement, VistaceoLogoProps>(
+export const VistaceoLogo = React.forwardRef<HTMLDivElement, VistaceoLogoProps>(
   ({ className = "", size = 32, variant = "auto" }, ref) => {
     const isMobile = useIsMobile();
     const { theme } = useTheme();
@@ -21,70 +24,50 @@ export const VistaceoLogo = React.forwardRef<SVGSVGElement, VistaceoLogoProps>(
 
     const isIcon = variant === "icon" || (variant === "auto" && isMobile);
     const textColor = isDark ? "#FFFFFF" : "#111111";
-    const accentColor = "hsl(204, 72%, 50%)"; // --primary blue
 
-    // Icon only — checkmark in a rounded shape
+    // Icon only
     if (isIcon) {
       return (
-        <svg
-          ref={ref}
-          width={size}
-          height={size}
-          viewBox="0 0 40 40"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className={className}
-          aria-label="VistaCEO"
-        >
-          <rect width="40" height="40" rx="10" fill={accentColor} />
-          <path
-            d="M12 20.5L17.5 26L28 15"
-            stroke="white"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div ref={ref} className={className}>
+          <img
+            src={iconBrand}
+            alt="VistaCEO"
+            width={size}
+            height={size}
+            style={{ width: size, height: size, objectFit: "contain" }}
           />
-        </svg>
+        </div>
       );
     }
 
-    // Full wordmark — checkmark + "VISTACEO"
-    const wordmarkWidth = Math.round(size * 5.5);
-
+    // Full wordmark — icon + "VISTACEO" text
     return (
-      <svg
+      <div
         ref={ref}
-        width={wordmarkWidth}
-        height={size}
-        viewBox="0 0 220 40"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
         className={className}
-        aria-label="VistaCEO"
-        style={{ height: size, width: "auto" }}
+        style={{ display: "flex", alignItems: "center", gap: size * 0.25, height: size }}
       >
-        {/* Checkmark icon */}
-        <rect width="32" height="32" x="0" y="4" rx="7" fill={accentColor} />
-        <path
-          d="M10 20L15 25L23 14"
-          stroke="white"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        <img
+          src={iconBrand}
+          alt=""
+          width={size}
+          height={size}
+          style={{ width: size, height: size, objectFit: "contain", flexShrink: 0 }}
         />
-        {/* VISTACEO text */}
-        <text
-          x="42"
-          y="26"
-          fill={textColor}
-          fontFamily="'Codec Pro', 'Inter', system-ui, sans-serif"
-          fontWeight="600"
-          fontSize="18"
-          letterSpacing="3"
+        <span
+          style={{
+            color: textColor,
+            fontFamily: "'Codec Pro', 'Inter', system-ui, sans-serif",
+            fontWeight: 600,
+            fontSize: size * 0.5,
+            letterSpacing: size * 0.08,
+            lineHeight: 1,
+            whiteSpace: "nowrap",
+          }}
         >
           VISTACEO
-        </text>
-      </svg>
+        </span>
+      </div>
     );
   }
 );
