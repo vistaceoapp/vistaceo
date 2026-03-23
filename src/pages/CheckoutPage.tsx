@@ -158,7 +158,7 @@ const CheckoutPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Preparando checkout seguro...</p>
+          <p className="text-muted-foreground">Preparando pago seguro...</p>
         </div>
       </div>
     );
