@@ -161,14 +161,14 @@ export const PulseCheckinCard = ({
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-1.5">
               <h3 className="text-sm font-semibold text-foreground">
-                Pulso diario
+                ¿Cómo va hoy?
               </h3>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/50 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="right" className="max-w-[220px] text-xs">
-                  <p>Un toque diario para registrar cómo va tu negocio. El sistema aprende de tus respuestas y mejora las recomendaciones.</p>
+                  <p>Un toque para registrar cómo fue el día. El sistema usa esto para mejorar tus recomendaciones.</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -177,7 +177,7 @@ export const PulseCheckinCard = ({
             </span>
           </div>
           <p className="text-[10px] text-muted-foreground mb-3">
-            ¿Cómo estuvo el movimiento hoy? Un toque y listo.
+            Un toque y listo — mejora tus análisis.
           </p>
           
           <div className="flex gap-1.5">
