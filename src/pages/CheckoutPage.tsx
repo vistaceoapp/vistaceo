@@ -41,6 +41,7 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
   
   // Get country override from URL (from setup) or localStorage
   const urlCountry = searchParams.get("country") as CountryCode | null;
