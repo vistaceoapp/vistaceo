@@ -583,7 +583,7 @@ const MorePage = () => {
               </CardHeader>
               <CardContent className="space-y-1">
                 <button
-                  onClick={() => navigate("/privacy")}
+                  onClick={() => navigate("/politicas")}
                   className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
                 >
                   <Shield className="w-4 h-4 text-muted-foreground" />
