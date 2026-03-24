@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { translateMissionArea } from "@/lib/presentationRegistry";
 
 interface PlanStep {
   text: string;
