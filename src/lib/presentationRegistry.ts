@@ -610,6 +610,21 @@ export function categoryLabel(category: string | null | undefined): string {
 }
 
 /**
+ * Translate mission area to Spanish display label
+ */
+export function translateMissionArea(area: string | null | undefined): string {
+  if (!area) return "General";
+  const AREA_MAP: Record<string, string> = {
+    custom: "Personalizada", research: "Investigación",
+    sales: "Ventas", marketing: "Marketing", operations: "Operaciones",
+    reputation: "Reputación", team: "Equipo", finance: "Finanzas",
+    product: "Producto", growth: "Crecimiento", service: "Servicio",
+    technology: "Tecnología", pricing: "Precios",
+  };
+  return AREA_MAP[area.toLowerCase()] || CATEGORY_LABELS[area.toLowerCase()] || CATEGORY_LABELS[area] || area;
+}
+
+/**
  * Get status label with fallback
  */
 export function statusLabel(status: string | null | undefined): string {
