@@ -696,7 +696,7 @@ const CompetitorSection = () => {
   };
 
   return (
-    <section className="py-24 lg:py-28 px-6 bg-white">
+    <section id="comparativa" className="py-24 lg:py-28 px-6 bg-white">
       <div className="max-w-[900px] mx-auto">
         <Reveal>
           <div className="text-center mb-14">
