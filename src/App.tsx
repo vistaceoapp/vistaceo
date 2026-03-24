@@ -12,7 +12,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { toast } from "sonner";
 
 // Critical path - loaded eagerly (landing + auth)
-import LandingV3 from "./pages/LandingV3";
+import LandingMinimalista from "./pages/LandingMinimalista";
 import Auth from "./pages/Auth";
 
 // Blog redirect (tiny component)
