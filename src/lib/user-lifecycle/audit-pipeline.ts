@@ -624,6 +624,17 @@ function getSectorTerms(sector: string): string[] {
   return terms[sector] || [];
 }
 
+/**
+ * Extract meaningful key terms from text (for dedup comparisons)
+ */
+export function extractKeyTerms(text: string): Set<string> {
+  const STOP = new Set(['para', 'como', 'con', 'por', 'que', 'del', 'los', 'las', 'una', 'puede', 'podria', 'deberia', 'mas', 'muy', 'bien', 'mejor', 'cada', 'todo', 'toda', 'todos', 'hacer', 'tener', 'haber', 'estar', 'este', 'negocio', 'empresa', 'estrategia', 'forma']);
+  return new Set(
+    text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/).filter(w => w.length > 2 && !STOP.has(w))
+  );
+}
+
 export function generateConceptHash(title: string, description: string): string {
   const normalize = (s: string) => s.toLowerCase()
     .normalize('NFD')
