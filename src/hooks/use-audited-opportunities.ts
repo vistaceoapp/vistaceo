@@ -16,6 +16,7 @@ import {
   AUDIT_THRESHOLDS,
   BusinessContext,
   ExistingItem,
+  extractKeyTerms,
 } from '@/lib/user-lifecycle/audit-pipeline';
 import { logger } from '@/lib/user-lifecycle/observability';
 
