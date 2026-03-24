@@ -624,6 +624,17 @@ function getSectorTerms(sector: string): string[] {
   return terms[sector] || [];
 }
 
+/**
+ * Extract meaningful key terms from text (for dedup comparisons)
+ */
+export function extractKeyTerms(text: string): Set<string> {
+  const STOP = new Set(['para', 'como', 'con', 'por', 'que', 'del', 'los', 'las', 'una', 'puede', 'podria', 'deberia', 'mas', 'muy', 'bien', 'mejor', 'cada', 'todo', 'toda', 'todos', 'hacer', 'tener', 'haber', 'estar', 'este', 'negocio', 'empresa', 'estrategia', 'forma']);
+  return new Set(
+    text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/).filter(w => w.length > 2 && !STOP.has(w))
+  );
+}
+
 export function generateConceptHash(title: string, description: string): string {
   const normalize = (s: string) => s.toLowerCase()
     .normalize('NFD')
@@ -646,36 +657,85 @@ export function generateConceptHash(title: string, description: string): string 
 export function generateIntentSignature(title: string, description: string, category?: string): string {
   const text = `${title} ${description}`.toLowerCase();
   
+  // More granular domain detection
   let domain = 'operations';
-  if (text.includes('venta') || text.includes('revenue')) domain = 'sales';
-  if (text.includes('market') || text.includes('instagram')) domain = 'marketing';
-  if (text.includes('reseña') || text.includes('review')) domain = 'reputation';
+  if (text.includes('venta') || text.includes('revenue') || text.includes('factur') || text.includes('ingreso')) domain = 'sales';
+  else if (text.includes('market') || text.includes('instagram') || text.includes('redes') || text.includes('publicidad') || text.includes('contenido') || text.includes('promoci')) domain = 'marketing';
+  else if (text.includes('reseña') || text.includes('review') || text.includes('reputaci') || text.includes('calificaci') || text.includes('rating') || text.includes('google maps')) domain = 'reputation';
+  else if (text.includes('costo') || text.includes('gasto') || text.includes('precio') || text.includes('margen') || text.includes('food cost') || text.includes('insumo')) domain = 'costs';
+  else if (text.includes('equipo') || text.includes('personal') || text.includes('capacit') || text.includes('rotaci') || text.includes('contrat')) domain = 'team';
+  else if (text.includes('menú') || text.includes('menu') || text.includes('carta') || text.includes('producto') || text.includes('oferta')) domain = 'product';
+  else if (text.includes('delivery') || text.includes('rappi') || text.includes('uber') || text.includes('pedidos ya')) domain = 'delivery';
+  else if (text.includes('client') || text.includes('fidel') || text.includes('retenci') || text.includes('experiencia')) domain = 'customer';
+  else if (text.includes('tecnolog') || text.includes('sistema') || text.includes('automat') || text.includes('software')) domain = 'tech';
   if (category) domain = category;
   
+  // More granular action detection
   let action = 'improve';
-  if (text.includes('crear') || text.includes('lanzar')) action = 'create';
-  if (text.includes('responder')) action = 'respond';
+  if (text.includes('crear') || text.includes('lanzar') || text.includes('implementar') || text.includes('diseñ') || text.includes('desarrollar')) action = 'create';
+  else if (text.includes('responder') || text.includes('reaccionar')) action = 'respond';
+  else if (text.includes('reducir') || text.includes('eliminar') || text.includes('bajar') || text.includes('minimizar')) action = 'reduce';
+  else if (text.includes('aumentar') || text.includes('incrementar') || text.includes('subir') || text.includes('duplicar') || text.includes('crecer')) action = 'increase';
+  else if (text.includes('optimizar') || text.includes('mejorar') || text.includes('refinar')) action = 'optimize';
+  else if (text.includes('analizar') || text.includes('evaluar') || text.includes('investigar') || text.includes('medir')) action = 'analyze';
   
-  return `${domain}|${action}`;
+  // Extract primary object/target for finer differentiation
+  const objectPatterns = [
+    /(?:de|del|la|el|tu|tus)\s+(\w+(?:\s+\w+)?)/g
+  ];
+  let object = '';
+  for (const pat of objectPatterns) {
+    const match = pat.exec(text);
+    if (match?.[1] && match[1].length > 3) { object = match[1].trim().slice(0, 20); break; }
+  }
+  
+  return `${domain}|${action}|${object}`;
 }
 
 function calculateSemanticSimilarity(text1: string, text2: string): number {
+  const STOPWORDS = new Set([
+    'para', 'como', 'con', 'por', 'que', 'del', 'los', 'las', 'una', 'unos',
+    'esto', 'esta', 'esos', 'esas', 'puede', 'podria', 'deberia', 'seria',
+    'más', 'mas', 'muy', 'bien', 'mejor', 'cada', 'todo', 'toda', 'todos',
+    'hacer', 'tener', 'haber', 'estar', 'este', 'ese', 'aquel',
+    'negocio', 'empresa', 'estrategia', 'forma', 'manera',
+    'the', 'and', 'for', 'with', 'your', 'you', 'that', 'this',
+  ]);
+
   const normalize = (s: string) => s.toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s]/g, ' ');
 
-  const words1 = normalize(text1).split(/\s+/).filter(w => w.length > 3);
-  const words2 = normalize(text2).split(/\s+/).filter(w => w.length > 3);
+  const getTokens = (s: string) => {
+    const words = normalize(s).split(/\s+/).filter(w => w.length > 2 && !STOPWORDS.has(w));
+    // Add bigrams for phrase-level matching
+    const bigrams: string[] = [];
+    for (let i = 0; i < words.length - 1; i++) {
+      bigrams.push(`${words[i]}_${words[i + 1]}`);
+    }
+    return [...words, ...bigrams];
+  };
 
-  if (words1.length === 0 || words2.length === 0) return 0;
+  const tokens1 = getTokens(text1);
+  const tokens2 = getTokens(text2);
 
-  const set1 = new Set(words1);
-  const set2 = new Set(words2);
+  if (tokens1.length === 0 || tokens2.length === 0) return 0;
+
+  const set1 = new Set(tokens1);
+  const set2 = new Set(tokens2);
   const intersection = [...set1].filter(w => set2.has(w)).length;
   const union = new Set([...set1, ...set2]).size;
 
-  return union > 0 ? intersection / union : 0;
+  const jaccard = union > 0 ? intersection / union : 0;
+  
+  // Also check containment: if one text's keywords are mostly in the other
+  const containment1 = set1.size > 0 ? intersection / set1.size : 0;
+  const containment2 = set2.size > 0 ? intersection / set2.size : 0;
+  const maxContainment = Math.max(containment1, containment2);
+  
+  // Weighted: Jaccard + containment bonus for subset relationships
+  return Math.min(1, jaccard * 0.6 + maxContainment * 0.4);
 }
 
 // ============================================

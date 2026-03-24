@@ -16,6 +16,7 @@ import {
   AUDIT_THRESHOLDS,
   BusinessContext,
   ExistingItem,
+  extractKeyTerms,
 } from '@/lib/user-lifecycle/audit-pipeline';
 import { logger } from '@/lib/user-lifecycle/observability';
 
@@ -127,7 +128,7 @@ export function useAuditedOpportunities(): UseAuditedOpportunitiesResult {
         createdAt: new Date(item.created_at),
       }));
 
-      // Audit each opportunity
+      // Audit each opportunity against dismissed items
       const auditedPromises = opportunities.map(async (opp) => {
         const candidate: ContentCandidate = {
           type: 'opportunity',
@@ -156,7 +157,49 @@ export function useAuditedOpportunities(): UseAuditedOpportunitiesResult {
       // Sort by audit score (highest first)
       audited.sort((a, b) => b.auditResult.averageScore - a.auditResult.averageScore);
 
-      setAuditedOpportunities(audited);
+      // ===== CROSS-BATCH DEDUP =====
+      // Remove items too similar to higher-scoring siblings
+      const dedupedAudited: typeof audited = [];
+      const acceptedTexts: string[] = [];
+      const acceptedIntents = new Set<string>();
+      
+      for (const opp of audited) {
+        const fullText = `${opp.title} ${opp.description || ''}`;
+        const intentSig = (opp.intent_signature || '').split('|').slice(0, 2).join('|');
+        
+        // Check if a higher-scoring item with same intent already accepted
+        if (intentSig && intentSig.length > 3 && acceptedIntents.has(intentSig)) {
+          // Same domain + action = likely duplicate goal
+          opp.passesAudit = false;
+          dedupedAudited.push(opp);
+          continue;
+        }
+        
+        // Check semantic similarity against already-accepted items
+        const isTooSimilar = acceptedTexts.some(existing => {
+          const tokens1 = extractKeyTerms(fullText);
+          const tokens2 = extractKeyTerms(existing);
+          if (tokens1.size === 0 || tokens2.size === 0) return false;
+          let inter = 0;
+          for (const t of tokens1) { if (tokens2.has(t)) inter++; }
+          const sim = inter / Math.min(tokens1.size, tokens2.size);
+          return sim >= 0.5; // 50% keyword overlap = too similar
+        });
+        
+        if (isTooSimilar) {
+          opp.passesAudit = false;
+          dedupedAudited.push(opp);
+          continue;
+        }
+        
+        if (opp.passesAudit) {
+          acceptedTexts.push(fullText);
+          if (intentSig && intentSig.length > 3) acceptedIntents.add(intentSig);
+        }
+        dedupedAudited.push(opp);
+      }
+
+      setAuditedOpportunities(dedupedAudited);
 
       // Log audit results
       const passed = audited.filter(o => o.passesAudit).length;
