@@ -132,11 +132,11 @@ const AppRoutes = () => {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<LandingV3 />} />
+        <Route path="/" element={<LandingMinimalista />} />
         <Route path="/v2" element={<LandingV2 />} />
         <Route path="/ultra" element={<LandingUltra />} />
-        <Route path="/v3" element={<LandingV3 />} />
-        <Route path="/minimalista" element={<Suspense fallback={<PageLoader />}><LandingMinimalista /></Suspense>} />
+        <Route path="/v3" element={<Suspense fallback={<PageLoader />}><LandingV3 /></Suspense>} />
+        <Route path="/minimalista" element={<LandingMinimalista />} />
         <Route path="/auth" element={<Auth />} />
         
         {/* Blog routes - Redirect to subdomain blog.vistaceo.com */}
