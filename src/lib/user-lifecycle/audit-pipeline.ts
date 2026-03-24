@@ -646,17 +646,39 @@ export function generateConceptHash(title: string, description: string): string 
 export function generateIntentSignature(title: string, description: string, category?: string): string {
   const text = `${title} ${description}`.toLowerCase();
   
+  // More granular domain detection
   let domain = 'operations';
-  if (text.includes('venta') || text.includes('revenue')) domain = 'sales';
-  if (text.includes('market') || text.includes('instagram')) domain = 'marketing';
-  if (text.includes('reseña') || text.includes('review')) domain = 'reputation';
+  if (text.includes('venta') || text.includes('revenue') || text.includes('factur') || text.includes('ingreso')) domain = 'sales';
+  else if (text.includes('market') || text.includes('instagram') || text.includes('redes') || text.includes('publicidad') || text.includes('contenido') || text.includes('promoci')) domain = 'marketing';
+  else if (text.includes('reseña') || text.includes('review') || text.includes('reputaci') || text.includes('calificaci') || text.includes('rating') || text.includes('google maps')) domain = 'reputation';
+  else if (text.includes('costo') || text.includes('gasto') || text.includes('precio') || text.includes('margen') || text.includes('food cost') || text.includes('insumo')) domain = 'costs';
+  else if (text.includes('equipo') || text.includes('personal') || text.includes('capacit') || text.includes('rotaci') || text.includes('contrat')) domain = 'team';
+  else if (text.includes('menú') || text.includes('menu') || text.includes('carta') || text.includes('producto') || text.includes('oferta')) domain = 'product';
+  else if (text.includes('delivery') || text.includes('rappi') || text.includes('uber') || text.includes('pedidos ya')) domain = 'delivery';
+  else if (text.includes('client') || text.includes('fidel') || text.includes('retenci') || text.includes('experiencia')) domain = 'customer';
+  else if (text.includes('tecnolog') || text.includes('sistema') || text.includes('automat') || text.includes('software')) domain = 'tech';
   if (category) domain = category;
   
+  // More granular action detection
   let action = 'improve';
-  if (text.includes('crear') || text.includes('lanzar')) action = 'create';
-  if (text.includes('responder')) action = 'respond';
+  if (text.includes('crear') || text.includes('lanzar') || text.includes('implementar') || text.includes('diseñ') || text.includes('desarrollar')) action = 'create';
+  else if (text.includes('responder') || text.includes('reaccionar')) action = 'respond';
+  else if (text.includes('reducir') || text.includes('eliminar') || text.includes('bajar') || text.includes('minimizar')) action = 'reduce';
+  else if (text.includes('aumentar') || text.includes('incrementar') || text.includes('subir') || text.includes('duplicar') || text.includes('crecer')) action = 'increase';
+  else if (text.includes('optimizar') || text.includes('mejorar') || text.includes('refinar')) action = 'optimize';
+  else if (text.includes('analizar') || text.includes('evaluar') || text.includes('investigar') || text.includes('medir')) action = 'analyze';
   
-  return `${domain}|${action}`;
+  // Extract primary object/target for finer differentiation
+  const objectPatterns = [
+    /(?:de|del|la|el|tu|tus)\s+(\w+(?:\s+\w+)?)/g
+  ];
+  let object = '';
+  for (const pat of objectPatterns) {
+    const match = pat.exec(text);
+    if (match?.[1] && match[1].length > 3) { object = match[1].trim().slice(0, 20); break; }
+  }
+  
+  return `${domain}|${action}|${object}`;
 }
 
 function calculateSemanticSimilarity(text1: string, text2: string): number {
