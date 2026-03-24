@@ -251,7 +251,7 @@ const CalibrationCard = memo(({ calibration, onAnswer }: {
               step={1}
             />
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">{sliderValue[0]} {calibration.input.unit || ''}</span>
+              <span className="text-sm font-medium">{sliderValue[0]} {calibration.input.unit === 'PERCENT' ? '%' : calibration.input.unit || ''}</span>
               <Button size="sm" onClick={() => handleSubmit(sliderValue[0])}>
                 <Send className="w-4 h-4 mr-1" />Enviar
               </Button>
