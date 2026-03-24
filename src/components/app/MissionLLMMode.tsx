@@ -42,6 +42,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { MissionFilters, AREA_CATEGORIES, loadFiltersFromStorage } from "@/components/app/MissionFilters";
+import { translateMissionArea } from "@/lib/presentationRegistry";
 import { MissionLoadingState } from "@/components/app/MissionLoadingState";
 import { MissionSummaryView } from "@/components/app/MissionSummaryView";
 import { MissionStepsView } from "@/components/app/MissionStepsView";
