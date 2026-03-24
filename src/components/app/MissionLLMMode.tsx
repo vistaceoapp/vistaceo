@@ -42,6 +42,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { MissionFilters, AREA_CATEGORIES, loadFiltersFromStorage } from "@/components/app/MissionFilters";
+import { translateMissionArea } from "@/lib/presentationRegistry";
 import { MissionLoadingState } from "@/components/app/MissionLoadingState";
 import { MissionSummaryView } from "@/components/app/MissionSummaryView";
 import { MissionStepsView } from "@/components/app/MissionStepsView";
@@ -207,7 +208,7 @@ const CollapsibleArea = ({ area, missions, selectedMissionId, starredMissions, o
         className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-secondary/50 transition-colors"
       >
         <span className="text-sm">{icon}</span>
-        <span className="text-xs font-semibold text-foreground flex-1 text-left">{area === "custom" ? "Personalizada" : area}</span>
+        <span className="text-xs font-semibold text-foreground flex-1 text-left">{translateMissionArea(area)}</span>
         <Badge variant="secondary" className="text-[9px] px-1.5">{activeCount}/{missions.length}</Badge>
         <ChevronDown className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", open && "rotate-180")} />
       </button>

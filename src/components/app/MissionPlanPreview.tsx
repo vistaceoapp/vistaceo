@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { translateMissionArea } from "@/lib/presentationRegistry";
 
 interface PlanStep {
   text: string;
@@ -103,7 +104,7 @@ export const MissionPlanPreview = ({
           </div>
           <div className="flex-1 min-w-0">
             <Badge variant="outline" className="mb-2 text-[10px]">
-              {missionArea || "General"} • Plan IA
+              {translateMissionArea(missionArea)} • Plan IA
             </Badge>
             <h3 className="font-bold text-foreground text-lg leading-tight">
               {plan.planTitle || missionTitle}

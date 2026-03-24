@@ -68,7 +68,10 @@ export const CATEGORY_LABELS: Record<string, string> = {
   general: "General",
   industria: "Industria",
   other: "Otro",
-  custom: "Personalizado",
+  custom: "Personalizada",
+  research: "Investigación",
+  personalizada: "Personalizada",
+  investigación: "Investigación",
   unknown: "Sin categoría",
   
   // Action/mission categories
@@ -604,6 +607,21 @@ export function isAllowedEnglish(word: string): boolean {
 export function categoryLabel(category: string | null | undefined): string {
   if (!category) return NEUTRAL_FALLBACKS.label;
   return CATEGORY_LABELS[category.toLowerCase()] || CATEGORY_LABELS[category] || humanizeRawString(category);
+}
+
+/**
+ * Translate mission area to Spanish display label
+ */
+export function translateMissionArea(area: string | null | undefined): string {
+  if (!area) return "General";
+  const AREA_MAP: Record<string, string> = {
+    custom: "Personalizada", research: "Investigación",
+    sales: "Ventas", marketing: "Marketing", operations: "Operaciones",
+    reputation: "Reputación", team: "Equipo", finance: "Finanzas",
+    product: "Producto", growth: "Crecimiento", service: "Servicio",
+    technology: "Tecnología", pricing: "Precios",
+  };
+  return AREA_MAP[area.toLowerCase()] || CATEGORY_LABELS[area.toLowerCase()] || CATEGORY_LABELS[area] || area;
 }
 
 /**

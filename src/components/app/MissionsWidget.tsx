@@ -68,12 +68,18 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
 
   const getAreaIcon = (area: string | null) => {
     const icons: Record<string, string> = {
-      ventas: "💰",
-      marketing: "📱",
-      reputacion: "⭐",
-      eficiencia: "⚙️",
-      equipo: "👥",
-      costos: "📊",
+      ventas: "💰", Ventas: "💰",
+      marketing: "📱", Marketing: "📱",
+      reputacion: "⭐", Reputación: "⭐", reputación: "⭐",
+      eficiencia: "⚙️", Operaciones: "⚙️", operaciones: "⚙️",
+      equipo: "👥", Equipo: "👥",
+      costos: "📊", Finanzas: "📊", finanzas: "📊",
+      Producto: "📦", producto: "📦",
+      Personalizada: "✨", personalizada: "✨", custom: "✨",
+      Crecimiento: "🚀", crecimiento: "🚀",
+      Servicio: "🤝", servicio: "🤝",
+      Tecnología: "💻", tecnología: "💻",
+      research: "🔬", Investigación: "🔬", investigación: "🔬",
     };
     return icons[area || ""] || "🎯";
   };

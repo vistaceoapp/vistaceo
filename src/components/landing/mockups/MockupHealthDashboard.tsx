@@ -257,7 +257,7 @@ export const MockupHealthDashboard = () => {
               <div className="flex flex-wrap gap-1">
                 {(dim.name === "Tráfico" 
                   ? ["Promociones", "Diversificar"] 
-                  : ["Food cost", "Optimizar"]
+                  : ["Costo insumos", "Optimizar"]
                 ).map((tip, j) => (
                   <span key={j} className="px-2 py-1 rounded-lg bg-muted text-[10px] text-muted-foreground">
                     {tip}

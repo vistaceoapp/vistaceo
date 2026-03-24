@@ -31,23 +31,34 @@ const DEFAULT_THRESHOLDS: AuditThresholds = {
 // Simple scoring function for predictions
 function scorePrediction(prediction: Prediction): number {
   let score = 50;
-  
-  // Confidence bonus
   score += prediction.confidence * 30;
-  
-  // Probability bonus
   score += prediction.probability * 20;
-  
-  // Evidence bonus
   if (prediction.evidence?.evidence_strength === 'high') score += 15;
   else if (prediction.evidence?.evidence_strength === 'medium') score += 10;
-  
-  // Check for blocked phrases
   const text = `${prediction.title} ${prediction.summary || ''}`.toLowerCase();
   const hasBlocked = GLOBAL_BLOCKED_PHRASES.some(phrase => text.includes(phrase.toLowerCase()));
   if (hasBlocked) score -= 30;
-  
   return Math.max(0, Math.min(100, score));
+}
+
+// Extract key terms for semantic similarity
+function extractKeyTerms(text: string): Set<string> {
+  const stopwords = new Set(['tu', 'de', 'en', 'el', 'la', 'los', 'las', 'un', 'una', 'es', 'por', 'del', 'al', 'con', 'que', 'se', 'su', 'para', 'y', 'o', 'a', 'más', 'ser', 'está', 'podría', 'las', 'próximas', 'semanas']);
+  return new Set(
+    text.toLowerCase().replace(/[^\wáéíóúñü\s]/g, '').split(/\s+/)
+      .filter(w => w.length > 2 && !stopwords.has(w))
+  );
+}
+
+// Check if two texts are semantically similar (Jaccard similarity)
+function areSimilar(textA: string, textB: string, threshold = 0.45): boolean {
+  const setA = extractKeyTerms(textA);
+  const setB = extractKeyTerms(textB);
+  if (setA.size === 0 || setB.size === 0) return false;
+  let intersection = 0;
+  for (const term of setA) { if (setB.has(term)) intersection++; }
+  const union = new Set([...setA, ...setB]).size;
+  return union > 0 ? (intersection / union) >= threshold : false;
 }
 
 export function useAuditedPredictions(thresholds: Partial<AuditThresholds> = {}) {
@@ -67,29 +78,36 @@ export function useAuditedPredictions(thresholds: Partial<AuditThresholds> = {})
 
     const audited: AuditedPrediction[] = [];
     const seenHashes = new Set<string>();
+    const seenTexts: string[] = [];
     let filtered = 0;
     let duplicates = 0;
 
     for (const prediction of predictionsHook.predictions) {
-      // Generate concept hash for deduplication
       const conceptHash = generateConceptHash(prediction.title, prediction.summary || '');
+      const fullText = `${prediction.title} ${prediction.summary || ''}`;
       
-      // Check for duplicates
+      // Check hash-based duplicates
       if (seenHashes.has(conceptHash)) {
         duplicates++;
         continue;
       }
       
-      // Score content
+      // Check semantic similarity against all already-accepted predictions
+      const isSemDuplicate = seenTexts.some(existing => areSimilar(existing, fullText));
+      if (isSemDuplicate) {
+        duplicates++;
+        continue;
+      }
+      
       const auditScore = scorePrediction(prediction);
 
-      // Check thresholds
       const passesAudit = 
         auditScore >= finalThresholds.minAverageScore &&
         prediction.confidence >= finalThresholds.minConfidence;
 
       if (passesAudit) {
         seenHashes.add(conceptHash);
+        seenTexts.push(fullText);
         audited.push({
           ...prediction,
           auditScore,

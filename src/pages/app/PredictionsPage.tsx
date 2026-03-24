@@ -251,7 +251,7 @@ const CalibrationCard = memo(({ calibration, onAnswer }: {
               step={1}
             />
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">{sliderValue[0]} {calibration.input.unit || ''}</span>
+              <span className="text-sm font-medium">{sliderValue[0]} {calibration.input.unit === 'PERCENT' ? '%' : calibration.input.unit || ''}</span>
               <Button size="sm" onClick={() => handleSubmit(sliderValue[0])}>
                 <Send className="w-4 h-4 mr-1" />Enviar
               </Button>
@@ -264,7 +264,7 @@ const CalibrationCard = memo(({ calibration, onAnswer }: {
           <div className="flex gap-2">
             <Input 
               type={calibration.input.type === 'quick_number' ? 'number' : 'text'}
-              placeholder={`Ej: ${calibration.input.default || '...'} ${calibration.input.unit || ''}`}
+              placeholder={`Ej: ${calibration.input.default || '...'} ${calibration.input.unit === 'PERCENT' ? '%' : calibration.input.unit || ''}`}
               value={textValue}
               onChange={e => setTextValue(e.target.value)}
               className="flex-1"
@@ -511,11 +511,22 @@ export default function PredictionsPage() {
             Calibraciones pendientes ({calibrations.length})
           </h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {calibrations.slice(0, 6).map(cal => (
-              <CalibrationCard key={cal.id} calibration={cal as any}
-                onAnswer={(answer) => answerCalibration(cal.id, answer)}
-              />
-            ))}
+            {(() => {
+              // Deduplicate calibrations by question similarity
+              const seen = new Set<string>();
+              const unique = calibrations.filter(cal => {
+                const q = ((cal as any).input?.question || '').toLowerCase().trim();
+                const key = q.replace(/[^\wáéíóúñü]/g, '').slice(0, 60);
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+              });
+              return unique.slice(0, 6).map(cal => (
+                <CalibrationCard key={cal.id} calibration={cal as any}
+                  onAnswer={(answer) => answerCalibration(cal.id, answer)}
+                />
+              ));
+            })()}
           </div>
         </div>
       )}
