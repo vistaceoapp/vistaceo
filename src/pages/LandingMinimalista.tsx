@@ -985,7 +985,7 @@ export default function LandingMinimalista() {
       <SiteHead
         title="VISTACEO — Inteligencia ejecutiva para tu negocio"
         description="Centralizá la información de tu negocio, detectá prioridades y recibí acciones concretas cada día. Empezá gratis."
-        path="/minimalista"
+        path="/"
       />
 
       <div className="min-h-screen bg-white text-[#1a1a1a] antialiased" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
