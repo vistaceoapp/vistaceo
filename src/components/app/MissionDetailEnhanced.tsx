@@ -38,6 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { translateMissionArea } from "@/lib/presentationRegistry";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
