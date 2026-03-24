@@ -682,22 +682,49 @@ export function generateIntentSignature(title: string, description: string, cate
 }
 
 function calculateSemanticSimilarity(text1: string, text2: string): number {
+  const STOPWORDS = new Set([
+    'para', 'como', 'con', 'por', 'que', 'del', 'los', 'las', 'una', 'unos',
+    'esto', 'esta', 'esos', 'esas', 'puede', 'podria', 'deberia', 'seria',
+    'más', 'mas', 'muy', 'bien', 'mejor', 'cada', 'todo', 'toda', 'todos',
+    'hacer', 'tener', 'haber', 'estar', 'este', 'ese', 'aquel',
+    'negocio', 'empresa', 'estrategia', 'forma', 'manera',
+    'the', 'and', 'for', 'with', 'your', 'you', 'that', 'this',
+  ]);
+
   const normalize = (s: string) => s.toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9\s]/g, ' ');
 
-  const words1 = normalize(text1).split(/\s+/).filter(w => w.length > 3);
-  const words2 = normalize(text2).split(/\s+/).filter(w => w.length > 3);
+  const getTokens = (s: string) => {
+    const words = normalize(s).split(/\s+/).filter(w => w.length > 2 && !STOPWORDS.has(w));
+    // Add bigrams for phrase-level matching
+    const bigrams: string[] = [];
+    for (let i = 0; i < words.length - 1; i++) {
+      bigrams.push(`${words[i]}_${words[i + 1]}`);
+    }
+    return [...words, ...bigrams];
+  };
 
-  if (words1.length === 0 || words2.length === 0) return 0;
+  const tokens1 = getTokens(text1);
+  const tokens2 = getTokens(text2);
 
-  const set1 = new Set(words1);
-  const set2 = new Set(words2);
+  if (tokens1.length === 0 || tokens2.length === 0) return 0;
+
+  const set1 = new Set(tokens1);
+  const set2 = new Set(tokens2);
   const intersection = [...set1].filter(w => set2.has(w)).length;
   const union = new Set([...set1, ...set2]).size;
 
-  return union > 0 ? intersection / union : 0;
+  const jaccard = union > 0 ? intersection / union : 0;
+  
+  // Also check containment: if one text's keywords are mostly in the other
+  const containment1 = set1.size > 0 ? intersection / set1.size : 0;
+  const containment2 = set2.size > 0 ? intersection / set2.size : 0;
+  const maxContainment = Math.max(containment1, containment2);
+  
+  // Weighted: Jaccard + containment bonus for subset relationships
+  return Math.min(1, jaccard * 0.6 + maxContainment * 0.4);
 }
 
 // ============================================
