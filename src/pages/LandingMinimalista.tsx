@@ -71,6 +71,7 @@ const NAV_LINKS = [
   { label: "Producto", href: "#producto" },
   { label: "Cómo funciona", href: "#como-funciona" },
   { label: "Precios", href: "#precios" },
+  { label: "Blog", href: "https://blog.vistaceo.com", external: true },
   { label: "Preguntas frecuentes", href: "#faq" },
 ];
 
