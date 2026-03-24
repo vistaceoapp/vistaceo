@@ -78,29 +78,36 @@ export function useAuditedPredictions(thresholds: Partial<AuditThresholds> = {})
 
     const audited: AuditedPrediction[] = [];
     const seenHashes = new Set<string>();
+    const seenTexts: string[] = [];
     let filtered = 0;
     let duplicates = 0;
 
     for (const prediction of predictionsHook.predictions) {
-      // Generate concept hash for deduplication
       const conceptHash = generateConceptHash(prediction.title, prediction.summary || '');
+      const fullText = `${prediction.title} ${prediction.summary || ''}`;
       
-      // Check for duplicates
+      // Check hash-based duplicates
       if (seenHashes.has(conceptHash)) {
         duplicates++;
         continue;
       }
       
-      // Score content
+      // Check semantic similarity against all already-accepted predictions
+      const isSemDuplicate = seenTexts.some(existing => areSimilar(existing, fullText));
+      if (isSemDuplicate) {
+        duplicates++;
+        continue;
+      }
+      
       const auditScore = scorePrediction(prediction);
 
-      // Check thresholds
       const passesAudit = 
         auditScore >= finalThresholds.minAverageScore &&
         prediction.confidence >= finalThresholds.minConfidence;
 
       if (passesAudit) {
         seenHashes.add(conceptHash);
+        seenTexts.push(fullText);
         audited.push({
           ...prediction,
           auditScore,
