@@ -88,6 +88,7 @@ const Header = memo(() => {
 
   const scrollTo = (href: string) => {
     setMobileOpen(false);
+    if (href.startsWith("http")) { window.open(href, "_blank"); return; }
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
