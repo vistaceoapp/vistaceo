@@ -71,6 +71,7 @@ const NAV_LINKS = [
   { label: "Producto", href: "#producto" },
   { label: "Cómo funciona", href: "#como-funciona" },
   { label: "Precios", href: "#precios" },
+  { label: "Blog", href: "https://blog.vistaceo.com", external: true },
   { label: "Preguntas frecuentes", href: "#faq" },
 ];
 
@@ -87,6 +88,7 @@ const Header = memo(() => {
 
   const scrollTo = (href: string) => {
     setMobileOpen(false);
+    if (href.startsWith("http")) { window.open(href, "_blank"); return; }
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -673,6 +675,86 @@ const Differentiation = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
+   8b. Competencia — Análisis competitivo
+   ═══════════════════════════════════════════════════════════════ */
+const CompetitorSection = () => {
+  const rows = [
+    { feature: "Análisis personalizado por industria", vistaceo: true, generic: false, sheets: false, consultant: "partial" },
+    { feature: "Misiones accionables diarias", vistaceo: true, generic: false, sheets: false, consultant: false },
+    { feature: "Radar de oportunidades y riesgos", vistaceo: true, generic: false, sheets: false, consultant: "partial" },
+    { feature: "Predicciones a 7, 14 y 30 días", vistaceo: true, generic: false, sheets: false, consultant: false },
+    { feature: "Briefing ejecutivo automático", vistaceo: true, generic: false, sheets: false, consultant: false },
+    { feature: "Aprende de tu negocio en tiempo real", vistaceo: true, generic: false, sheets: false, consultant: "partial" },
+    { feature: "Costo mensual accesible", vistaceo: true, generic: true, sheets: true, consultant: false },
+    { feature: "Disponible 24/7 sin esperas", vistaceo: true, generic: true, sheets: true, consultant: false },
+  ];
+
+  const renderCell = (val: boolean | string) => {
+    if (val === true) return <Check className="w-4 h-4 mx-auto" style={{ color: "#2692DC" }} />;
+    if (val === "partial") return <span className="text-[11px] text-[#bbb] block text-center">Parcial</span>;
+    return <X className="w-3.5 h-3.5 mx-auto text-[#ddd]" />;
+  };
+
+  return (
+    <section id="comparativa" className="py-24 lg:py-28 px-6 bg-white">
+      <div className="max-w-[900px] mx-auto">
+        <Reveal>
+          <div className="text-center mb-14">
+            <AccentLabel>COMPARATIVA</AccentLabel>
+            <h2 className="text-[clamp(1.4rem,3vw,2rem)] font-semibold text-[#0a0a0a] tracking-[-0.02em] mt-5">
+              VISTACEO vs. las alternativas
+            </h2>
+            <p className="text-[14.5px] text-[#999] mt-4 max-w-[460px] mx-auto leading-[1.7]">
+              Descubrí por qué un sistema de inteligencia ejecutiva supera a las herramientas genéricas.
+            </p>
+          </div>
+        </Reveal>
+
+        <Reveal delay={80}>
+          <div className="rounded-2xl border border-[#eee] overflow-hidden bg-[#fafafa]">
+            {/* Header */}
+            <div className="grid grid-cols-5 gap-0 border-b border-[#eee] bg-white">
+              <div className="col-span-1 p-4" />
+              <div className="p-4 text-center border-l border-[#f0f0f0]">
+                <div className="w-5 h-5 rounded-md mx-auto mb-1.5 flex items-center justify-center" style={{ background: ACCENT_GRADIENT }}>
+                  <Sparkles className="w-3 h-3 text-white" />
+                </div>
+                <p className="text-[11px] font-bold tracking-[0.05em]" style={{ backgroundImage: ACCENT_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>VISTACEO</p>
+              </div>
+              <div className="p-4 text-center border-l border-[#f0f0f0]">
+                <p className="text-[11px] font-semibold text-[#bbb] mt-1">IA genérica</p>
+                <p className="text-[9px] text-[#ddd]">ChatGPT, etc.</p>
+              </div>
+              <div className="p-4 text-center border-l border-[#f0f0f0]">
+                <p className="text-[11px] font-semibold text-[#bbb] mt-1">Planillas</p>
+                <p className="text-[9px] text-[#ddd]">Excel, Sheets</p>
+              </div>
+              <div className="p-4 text-center border-l border-[#f0f0f0]">
+                <p className="text-[11px] font-semibold text-[#bbb] mt-1">Consultor</p>
+                <p className="text-[9px] text-[#ddd]">Tradicional</p>
+              </div>
+            </div>
+
+            {/* Rows */}
+            {rows.map((row, i) => (
+              <div key={i} className={cn("grid grid-cols-5 gap-0 border-b border-[#f0f0f0] last:border-0", i % 2 === 0 ? "bg-white" : "bg-[#fafafa]")}>
+                <div className="p-4 flex items-center">
+                  <p className="text-[12.5px] text-[#555]">{row.feature}</p>
+                </div>
+                <div className="p-4 flex items-center justify-center border-l border-[#f0f0f0]">{renderCell(row.vistaceo)}</div>
+                <div className="p-4 flex items-center justify-center border-l border-[#f0f0f0]">{renderCell(row.generic)}</div>
+                <div className="p-4 flex items-center justify-center border-l border-[#f0f0f0]">{renderCell(row.sheets)}</div>
+                <div className="p-4 flex items-center justify-center border-l border-[#f0f0f0]">{renderCell(row.consultant)}</div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════
    9. Testimonios (placeholder structure)
    ═══════════════════════════════════════════════════════════════ */
 // Testimonials section ready — will be enabled when real testimonials are available
@@ -906,6 +988,7 @@ const FinalCTA = () => {
    ═══════════════════════════════════════════════════════════════ */
 const PremiumFooter = memo(() => {
   const scrollTo = (href: string) => {
+    if (href.startsWith("http")) { window.open(href, "_blank"); return; }
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -913,7 +996,7 @@ const PremiumFooter = memo(() => {
   return (
     <footer className="border-t border-[#f0f0f0] py-16 px-6 bg-white">
       <div className="max-w-[1040px] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-10 mb-12">
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
@@ -933,6 +1016,7 @@ const PremiumFooter = memo(() => {
                 { label: "Cómo funciona", href: "#como-funciona" },
                 { label: "Funcionalidades", href: "#producto" },
                 { label: "Precios", href: "#precios" },
+                { label: "Comparativa", href: "#comparativa" },
               ].map(l => (
                 <li key={l.label}>
                   <button onClick={() => scrollTo(l.href)} className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors bg-transparent">{l.label}</button>
@@ -941,11 +1025,19 @@ const PremiumFooter = memo(() => {
             </ul>
           </div>
 
+          {/* Recursos */}
+          <div>
+            <p className="text-[11px] font-semibold text-[#999] uppercase tracking-[0.12em] mb-4">Recursos</p>
+            <ul className="space-y-2.5">
+              <li><a href="https://blog.vistaceo.com" target="_blank" rel="noopener noreferrer" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Blog</a></li>
+              <li><button onClick={() => scrollTo("#faq")} className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors bg-transparent">Preguntas frecuentes</button></li>
+            </ul>
+          </div>
+
           {/* Soporte */}
           <div>
             <p className="text-[11px] font-semibold text-[#999] uppercase tracking-[0.12em] mb-4">Soporte</p>
             <ul className="space-y-2.5">
-              <li><button onClick={() => scrollTo("#faq")} className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors bg-transparent">Preguntas frecuentes</button></li>
               <li><a href="mailto:info@vistaceo.com" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Contacto</a></li>
               <li><a href="mailto:soporte@vistaceo.com" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Soporte técnico</a></li>
             </ul>
@@ -983,7 +1075,7 @@ export default function LandingMinimalista() {
       <SiteHead
         title="VISTACEO — Inteligencia ejecutiva para tu negocio"
         description="Centralizá la información de tu negocio, detectá prioridades y recibí acciones concretas cada día. Empezá gratis."
-        path="/minimalista"
+        path="/"
       />
 
       <div className="min-h-screen bg-white text-[#1a1a1a] antialiased" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
@@ -995,6 +1087,7 @@ export default function LandingMinimalista() {
         <Industries />
         <FeaturesGrid />
         <Differentiation />
+        <CompetitorSection />
         <PricingSection />
         <SecuritySection />
         <FAQSection />
