@@ -995,7 +995,7 @@ const PremiumFooter = memo(() => {
   return (
     <footer className="border-t border-[#f0f0f0] py-16 px-6 bg-white">
       <div className="max-w-[1040px] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-10 mb-12">
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
@@ -1015,6 +1015,7 @@ const PremiumFooter = memo(() => {
                 { label: "Cómo funciona", href: "#como-funciona" },
                 { label: "Funcionalidades", href: "#producto" },
                 { label: "Precios", href: "#precios" },
+                { label: "Comparativa", href: "#comparativa" },
               ].map(l => (
                 <li key={l.label}>
                   <button onClick={() => scrollTo(l.href)} className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors bg-transparent">{l.label}</button>
@@ -1023,11 +1024,19 @@ const PremiumFooter = memo(() => {
             </ul>
           </div>
 
+          {/* Recursos */}
+          <div>
+            <p className="text-[11px] font-semibold text-[#999] uppercase tracking-[0.12em] mb-4">Recursos</p>
+            <ul className="space-y-2.5">
+              <li><a href="https://blog.vistaceo.com" target="_blank" rel="noopener noreferrer" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Blog</a></li>
+              <li><button onClick={() => scrollTo("#faq")} className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors bg-transparent">Preguntas frecuentes</button></li>
+            </ul>
+          </div>
+
           {/* Soporte */}
           <div>
             <p className="text-[11px] font-semibold text-[#999] uppercase tracking-[0.12em] mb-4">Soporte</p>
             <ul className="space-y-2.5">
-              <li><button onClick={() => scrollTo("#faq")} className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors bg-transparent">Preguntas frecuentes</button></li>
               <li><a href="mailto:info@vistaceo.com" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Contacto</a></li>
               <li><a href="mailto:soporte@vistaceo.com" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Soporte técnico</a></li>
             </ul>
