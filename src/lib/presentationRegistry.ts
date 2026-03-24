@@ -68,7 +68,10 @@ export const CATEGORY_LABELS: Record<string, string> = {
   general: "General",
   industria: "Industria",
   other: "Otro",
-  custom: "Personalizado",
+  custom: "Personalizada",
+  research: "Investigación",
+  personalizada: "Personalizada",
+  investigación: "Investigación",
   unknown: "Sin categoría",
   
   // Action/mission categories

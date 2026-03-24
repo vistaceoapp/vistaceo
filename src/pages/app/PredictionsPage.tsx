@@ -264,7 +264,7 @@ const CalibrationCard = memo(({ calibration, onAnswer }: {
           <div className="flex gap-2">
             <Input 
               type={calibration.input.type === 'quick_number' ? 'number' : 'text'}
-              placeholder={`Ej: ${calibration.input.default || '...'} ${calibration.input.unit || ''}`}
+              placeholder={`Ej: ${calibration.input.default || '...'} ${calibration.input.unit === 'PERCENT' ? '%' : calibration.input.unit || ''}`}
               value={textValue}
               onChange={e => setTextValue(e.target.value)}
               className="flex-1"

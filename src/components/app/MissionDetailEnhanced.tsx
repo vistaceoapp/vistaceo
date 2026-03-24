@@ -358,7 +358,7 @@ export const MissionDetailEnhanced = ({
               </h2>
               <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                 <Badge variant="outline" className="text-[10px] px-1.5 h-5">
-                  {mission.area || "General"}
+                  {translateMissionArea(mission.area)}
                 </Badge>
                 <Badge
                   variant={mission.status === "active" ? "default" : "secondary"}
