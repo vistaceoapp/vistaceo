@@ -1077,6 +1077,7 @@ export default function LandingMinimalista() {
         <Industries />
         <FeaturesGrid />
         <Differentiation />
+        <CompetitorSection />
         <PricingSection />
         <SecuritySection />
         <FAQSection />
