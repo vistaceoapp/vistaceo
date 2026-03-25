@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, memo, useCallback } from "react";
+import { useState, useEffect, useRef, memo, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronDown, Menu, X, Check, TrendingUp, Target, Zap, BarChart3, Shield, Brain, Sparkles, Heart, MessageCircle, Eye, Radar, Lock, Clock, Users, CheckCircle2, ArrowUpRight, Globe, Mail } from "lucide-react";
+import { ArrowRight, ChevronDown, Menu, X, Check, TrendingUp, Target, Zap, BarChart3, Shield, Brain, Sparkles, Heart, MessageCircle, Eye, Radar, Lock, Clock, Users, CheckCircle2, ArrowUpRight, Globe, Mail, Search } from "lucide-react";
 import { SiteHead } from "@/components/seo/SiteHead";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
