@@ -1200,7 +1200,7 @@ export default function LandingMinimalista() {
         <TrustStrip />
         <HowItWorks />
         <ProductShowcase />
-        <Industries />
+        <SmartFinder />
         <FeaturesGrid />
         <Differentiation />
         <CompetitorSection />
