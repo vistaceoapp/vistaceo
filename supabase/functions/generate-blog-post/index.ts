@@ -2176,7 +2176,7 @@ TAMBIÉN:
 
     let contentMd = '';
     let rewriteAttempts = 0;
-    const maxRewrites = 4;
+    const maxRewrites = 2; // Reduced from 4 to save AI costs while maintaining quality
     let qualityGateReport: QualityGateReport;
 
     // Generation loop with rewrite attempts
