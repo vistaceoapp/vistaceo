@@ -350,9 +350,9 @@ const TrustStrip = () => {
    ═══════════════════════════════════════════════════════════════ */
 const HowItWorks = () => {
   const steps = [
-    { num: "01", title: "Centralizás el contexto", desc: "Respondés preguntas sobre tu negocio: objetivos, métricas, clientes, operación. VISTACEO construye un perfil inteligente.", icon: Brain },
-    { num: "02", title: "VISTACEO detecta qué importa", desc: "El sistema analiza tu situación en tiempo real, identifica prioridades, oportunidades y riesgos específicos de tu industria.", icon: Radar },
-    { num: "03", title: "Recibís acciones concretas", desc: "Cada día, misiones accionables con pasos claros, métricas de éxito y recomendaciones que podés ejecutar de inmediato.", icon: Target },
+    { num: "01", title: "Contale tu negocio", desc: "Respondés preguntas simples. VISTACEO arma tu perfil inteligente.", icon: Brain },
+    { num: "02", title: "Detectamos prioridades", desc: "IA analiza tu situación y encuentra oportunidades y riesgos.", icon: Radar },
+    { num: "03", title: "Accionás con claridad", desc: "Misiones concretas cada día con pasos claros y métricas.", icon: Target },
   ];
 
   return (
