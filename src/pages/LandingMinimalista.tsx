@@ -697,12 +697,12 @@ const SmartFinder = () => {
    ═══════════════════════════════════════════════════════════════ */
 const FeaturesGrid = () => {
   const features = [
-    { icon: Sparkles, title: "Briefing diario", desc: "Cada mañana, un resumen con métricas clave, alertas y acciones prioritarias ordenadas por impacto.", color: "#2692DC" },
-    { icon: Target, title: "Misiones accionables", desc: "Pasos concretos con definición de éxito. No solo qué hacer, sino cómo y cuándo.", color: "#746CE6" },
-    { icon: TrendingUp, title: "Radar de oportunidades", desc: "Detecta tendencias, riesgos y oportunidades específicas para tu industria.", color: "#2692DC" },
-    { icon: BarChart3, title: "Analíticas inteligentes", desc: "Dashboards que se adaptan a tu negocio. Las métricas que importan, sin ruido.", color: "#746CE6" },
-    { icon: Brain, title: "Predicciones", desc: "Anticipá escenarios basados en patrones reales de tu negocio a 7, 14 y 30 días.", color: "#2692DC" },
-    { icon: Shield, title: "Seguridad empresarial", desc: "Encriptación de nivel empresarial. Tus datos nunca se comparten con terceros.", color: "#746CE6" },
+    { icon: Sparkles, title: "Briefing diario", desc: "Resumen con métricas, alertas y prioridades cada mañana.", color: "#2692DC" },
+    { icon: Target, title: "Misiones accionables", desc: "Pasos concretos con definición de éxito y deadline.", color: "#746CE6" },
+    { icon: TrendingUp, title: "Radar de oportunidades", desc: "Tendencias, riesgos y oportunidades de tu industria.", color: "#2692DC" },
+    { icon: BarChart3, title: "Analíticas inteligentes", desc: "Dashboards que se adaptan a tu negocio.", color: "#746CE6" },
+    { icon: Brain, title: "Predicciones", desc: "Escenarios a 7, 14 y 30 días basados en tus datos.", color: "#2692DC" },
+    { icon: Shield, title: "Seguridad empresarial", desc: "Encriptación de nivel empresarial. Datos aislados.", color: "#746CE6" },
   ];
 
   return (
