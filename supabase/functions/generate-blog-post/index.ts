@@ -1649,7 +1649,7 @@ Deno.serve(async (req) => {
 
     // Only skip if we already published 2 today (unless forced or called from blog-daily-publish)
     // When called from blog-daily-publish, pacing is already handled by the caller
-    const DAILY_POST_LIMIT = 3;
+    const DAILY_POST_LIMIT = 2;
     if (!forceRun && !calledFromDailyPublish && (publishedToday || 0) >= DAILY_POST_LIMIT) {
       console.log(`[generate-blog-post] Already published ${publishedToday} today (limit: ${DAILY_POST_LIMIT}), skipping...`);
       
@@ -2176,7 +2176,7 @@ TAMBIÉN:
 
     let contentMd = '';
     let rewriteAttempts = 0;
-    const maxRewrites = 4;
+    const maxRewrites = 2; // Reduced from 4 to save AI costs while maintaining quality
     let qualityGateReport: QualityGateReport;
 
     // Generation loop with rewrite attempts
@@ -2188,7 +2188,7 @@ TAMBIÉN:
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-2.5-flash-lite', // Optimized: use lighter model for content generation
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: rewriteAttempts === 0 ? userPrompt : `${userPrompt}\n\nIMPORTANTE: El intento anterior no pasó el quality gate. Problemas detectados:\n${qualityGateReport!.issues.join('\n')}\n\nCorregí estos problemas en esta nueva versión.` }
@@ -2291,37 +2291,8 @@ TAMBIÉN:
     const heroImageUrl = await generateHeroImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
     qualityGateReport.checks.has_hero_image = !!heroImageUrl;
     
-    // 7b. Generate INLINE image (for content body)
-    let inlineImageUrl: string | null = null;
-    if (heroImageUrl) {
-      // Only generate inline if hero succeeded (to save API calls)
-      inlineImageUrl = await generateInlineImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
-      qualityGateReport.checks.has_inline_images = !!inlineImageUrl;
-      
-      // Insert inline image into content after "En 2 minutos" or first H2
-      if (inlineImageUrl) {
-        const inlineAlt = `${selectedTopic.title_base} - concepto visual`;
-        const imageMarkdown = `\n![${inlineAlt}](${inlineImageUrl})\n`;
-        
-        // Try to insert after "En 2 minutos" section
-        const en2MinMatch = contentMd.match(/^## En 2 minutos.*?\n\n(?:[-*].*\n)+/m);
-        if (en2MinMatch && en2MinMatch.index !== undefined) {
-          const insertPos = en2MinMatch.index + en2MinMatch[0].length;
-          contentMd = contentMd.slice(0, insertPos) + imageMarkdown + contentMd.slice(insertPos);
-          console.log('[generate-blog-post] Inline image inserted after "En 2 minutos"');
-        } else {
-          // Fallback: insert after first H2
-          const firstH2Match = contentMd.match(/^## .*?\n\n/m);
-          if (firstH2Match && firstH2Match.index !== undefined) {
-            const insertPos = firstH2Match.index + firstH2Match[0].length;
-            contentMd = contentMd.slice(0, insertPos) + imageMarkdown + contentMd.slice(insertPos);
-            console.log('[generate-blog-post] Inline image inserted after first H2');
-          }
-        }
-      }
-    } else {
-      qualityGateReport.checks.has_inline_images = false;
-    }
+    // 7b. Skip inline image generation to optimize AI costs — hero image is sufficient
+    qualityGateReport.checks.has_inline_images = false;
 
     // 8. Generate metadata
     const excerpt = contentMd
