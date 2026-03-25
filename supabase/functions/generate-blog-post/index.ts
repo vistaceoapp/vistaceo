@@ -2291,37 +2291,8 @@ TAMBIÉN:
     const heroImageUrl = await generateHeroImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
     qualityGateReport.checks.has_hero_image = !!heroImageUrl;
     
-    // 7b. Generate INLINE image (for content body)
-    let inlineImageUrl: string | null = null;
-    if (heroImageUrl) {
-      // Only generate inline if hero succeeded (to save API calls)
-      inlineImageUrl = await generateInlineImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
-      qualityGateReport.checks.has_inline_images = !!inlineImageUrl;
-      
-      // Insert inline image into content after "En 2 minutos" or first H2
-      if (inlineImageUrl) {
-        const inlineAlt = `${selectedTopic.title_base} - concepto visual`;
-        const imageMarkdown = `\n![${inlineAlt}](${inlineImageUrl})\n`;
-        
-        // Try to insert after "En 2 minutos" section
-        const en2MinMatch = contentMd.match(/^## En 2 minutos.*?\n\n(?:[-*].*\n)+/m);
-        if (en2MinMatch && en2MinMatch.index !== undefined) {
-          const insertPos = en2MinMatch.index + en2MinMatch[0].length;
-          contentMd = contentMd.slice(0, insertPos) + imageMarkdown + contentMd.slice(insertPos);
-          console.log('[generate-blog-post] Inline image inserted after "En 2 minutos"');
-        } else {
-          // Fallback: insert after first H2
-          const firstH2Match = contentMd.match(/^## .*?\n\n/m);
-          if (firstH2Match && firstH2Match.index !== undefined) {
-            const insertPos = firstH2Match.index + firstH2Match[0].length;
-            contentMd = contentMd.slice(0, insertPos) + imageMarkdown + contentMd.slice(insertPos);
-            console.log('[generate-blog-post] Inline image inserted after first H2');
-          }
-        }
-      }
-    } else {
-      qualityGateReport.checks.has_inline_images = false;
-    }
+    // 7b. Skip inline image generation to optimize AI costs — hero image is sufficient
+    qualityGateReport.checks.has_inline_images = false;
 
     // 8. Generate metadata
     const excerpt = contentMd
