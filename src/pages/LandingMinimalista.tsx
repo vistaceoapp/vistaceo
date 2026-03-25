@@ -534,43 +534,159 @@ const ProductShowcase = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   6. Casos de uso / Industrias
+   6. Buscador interactivo — "¿Qué hacés?"
    ═══════════════════════════════════════════════════════════════ */
-const Industries = () => {
-  const industries = [
-    { name: "Restaurantes", benefit: "Mejorá foco operativo, ticket promedio y recurrencia de clientes." },
-    { name: "Clínicas y consultorios", benefit: "Ordená métricas de seguimiento, ocupación y satisfacción." },
-    { name: "Agencias", benefit: "Priorizá pipeline, rentabilidad por cliente y ejecución." },
-    { name: "Retail y comercios", benefit: "Entendé demanda, eficiencia y rendimiento por canal." },
-    { name: "Servicios profesionales", benefit: "Tomá decisiones con más claridad y menos intuición." },
-    { name: "Startups y freelancers", benefit: "Enfocate en lo que mueve la aguja con recursos limitados." },
-  ];
+
+const PROFESSION_MAP: Record<string, { label: string; mockup: TabKey; insight: string; icon: React.ElementType }> = {
+  restaurante: { label: "Restaurante", mockup: "salud", insight: "Controlá ticket promedio, rotación de mesas y foco operativo diario.", icon: Heart },
+  parrilla: { label: "Restaurante", mockup: "salud", insight: "Controlá ticket promedio, rotación de mesas y foco operativo diario.", icon: Heart },
+  bar: { label: "Gastronomía", mockup: "analytics", insight: "Métricas de consumo por horario, recurrencia y eficiencia de barra.", icon: BarChart3 },
+  café: { label: "Gastronomía", mockup: "analytics", insight: "Métricas de consumo por horario, recurrencia y eficiencia de barra.", icon: BarChart3 },
+  cafetería: { label: "Gastronomía", mockup: "analytics", insight: "Métricas de consumo por horario, recurrencia y eficiencia de barra.", icon: BarChart3 },
+  clínica: { label: "Clínica", mockup: "misiones", insight: "Ordená turnos, seguimiento de pacientes y ocupación por consultorio.", icon: Target },
+  consultorio: { label: "Consultorio", mockup: "misiones", insight: "Ordená turnos, seguimiento de pacientes y ocupación por consultorio.", icon: Target },
+  dentista: { label: "Consultorio dental", mockup: "misiones", insight: "Ordená turnos, seguimiento de pacientes y ocupación por consultorio.", icon: Target },
+  odontología: { label: "Consultorio dental", mockup: "misiones", insight: "Ordená turnos, seguimiento de pacientes y ocupación por consultorio.", icon: Target },
+  agencia: { label: "Agencia", mockup: "radar", insight: "Priorizá clientes, controlá rentabilidad por proyecto y detectá riesgos.", icon: Radar },
+  marketing: { label: "Agencia de marketing", mockup: "radar", insight: "Priorizá clientes, controlá rentabilidad por proyecto y detectá riesgos.", icon: Radar },
+  freelancer: { label: "Freelancer", mockup: "chat", insight: "Enfocate en lo que mueve la aguja con recomendaciones personalizadas.", icon: MessageCircle },
+  diseñador: { label: "Diseñador freelance", mockup: "chat", insight: "Enfocate en lo que mueve la aguja con recomendaciones personalizadas.", icon: MessageCircle },
+  programador: { label: "Desarrollador", mockup: "predictions", insight: "Predicciones de carga de trabajo y gestión inteligente de proyectos.", icon: Eye },
+  desarrollador: { label: "Desarrollador", mockup: "predictions", insight: "Predicciones de carga de trabajo y gestión inteligente de proyectos.", icon: Eye },
+  retail: { label: "Comercio", mockup: "analytics", insight: "Entendé demanda, estacionalidad y rendimiento por canal de venta.", icon: BarChart3 },
+  comercio: { label: "Comercio", mockup: "analytics", insight: "Entendé demanda, estacionalidad y rendimiento por canal de venta.", icon: BarChart3 },
+  tienda: { label: "Tienda", mockup: "analytics", insight: "Entendé demanda, estacionalidad y rendimiento por canal de venta.", icon: BarChart3 },
+  boutique: { label: "Boutique", mockup: "analytics", insight: "Entendé demanda, estacionalidad y rendimiento por canal de venta.", icon: BarChart3 },
+  hotel: { label: "Hotel", mockup: "salud", insight: "Monitoreá ocupación, satisfacción y eficiencia operativa en tiempo real.", icon: Heart },
+  gimnasio: { label: "Gimnasio", mockup: "misiones", insight: "Retención de socios, ocupación de clases y métricas de crecimiento.", icon: Target },
+  startup: { label: "Startup", mockup: "predictions", insight: "Proyecciones de runway, métricas de tracción y siguiente mejor acción.", icon: Eye },
+  abogado: { label: "Estudio jurídico", mockup: "chat", insight: "Gestión de casos, facturación por hora y seguimiento de clientes.", icon: MessageCircle },
+  contador: { label: "Estudio contable", mockup: "radar", insight: "Oportunidades de eficiencia, alertas fiscales y gestión de cartera.", icon: Radar },
+  ecommerce: { label: "E-commerce", mockup: "analytics", insight: "Conversión, ticket promedio, estacionalidad y rentabilidad por producto.", icon: BarChart3 },
+  inmobiliaria: { label: "Inmobiliaria", mockup: "radar", insight: "Pipeline de propiedades, seguimiento de leads y alertas de mercado.", icon: Radar },
+  salón: { label: "Salón de belleza", mockup: "misiones", insight: "Ocupación de sillas, retención de clientes y promociones inteligentes.", icon: Target },
+  peluquería: { label: "Peluquería", mockup: "misiones", insight: "Ocupación de sillas, retención de clientes y promociones inteligentes.", icon: Target },
+  arquitecto: { label: "Estudio de arquitectura", mockup: "predictions", insight: "Proyecciones de obra, gestión de presupuestos y seguimiento de hitos.", icon: Eye },
+  consultor: { label: "Consultoría", mockup: "chat", insight: "Gestión de proyectos, rentabilidad por cliente y decisiones estratégicas.", icon: MessageCircle },
+};
+
+const QUICK_PROFESSIONS = ["Restaurante", "Clínica", "Agencia", "E-commerce", "Freelancer", "Gimnasio", "Hotel", "Startup"];
+
+const SmartFinder = () => {
+  const [query, setQuery] = useState("");
+  const [matchedResult, setMatchedResult] = useState<{ label: string; mockup: TabKey; insight: string; icon: React.ElementType } | null>(null);
+  const [showResult, setShowResult] = useState(false);
+
+  const findMatch = useCallback((input: string) => {
+    const q = input.toLowerCase().trim();
+    if (!q) { setMatchedResult(null); setShowResult(false); return; }
+    
+    for (const [key, val] of Object.entries(PROFESSION_MAP)) {
+      if (q.includes(key) || key.includes(q)) {
+        setMatchedResult(val);
+        setShowResult(true);
+        return;
+      }
+    }
+    // Default fallback for any business
+    setMatchedResult({ label: input, mockup: "salud", insight: "VISTACEO analiza tu negocio, detecta prioridades y genera acciones concretas cada día.", icon: Sparkles });
+    setShowResult(true);
+  }, []);
+
+  const handleQuickClick = (profession: string) => {
+    setQuery(profession);
+    findMatch(profession);
+  };
+
+  const renderMiniMockup = () => {
+    if (!matchedResult) return null;
+    const props = { business: "argentina" as BusinessKey };
+    switch (matchedResult.mockup) {
+      case "salud": return <MockupProDashboard {...props} />;
+      case "misiones": return <MockupProMissions {...props} />;
+      case "radar": return <MockupProRadar {...props} />;
+      case "chat": return <MockupProChat {...props} />;
+      case "analytics": return <MockupProAnalytics {...props} />;
+      case "predictions": return <MockupProPredictions {...props} />;
+    }
+  };
 
   return (
-    <section className="py-24 lg:py-28 px-6 bg-[#fafafa]">
-      <div className="max-w-[1000px] mx-auto">
+    <section className="py-20 lg:py-28 px-6 bg-[#fafafa]">
+      <div className="max-w-[900px] mx-auto">
         <Reveal>
-          <div className="text-center mb-14">
-            <AccentLabel>CASOS DE USO</AccentLabel>
-            <h2 className="text-[clamp(1.5rem,3vw,2.1rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5">
-              Se adapta a tu industria
+          <div className="text-center mb-10">
+            <AccentLabel>DESCUBRÍ TU HERRAMIENTA</AccentLabel>
+            <h2 className="text-[clamp(1.5rem,3.2vw,2.2rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5">
+              ¿Qué tipo de negocio tenés?
             </h2>
-            <p className="text-[14.5px] text-[#999] mt-4 max-w-[420px] mx-auto leading-[1.7]">
-              VISTACEO entiende las particularidades de cada tipo de negocio y personaliza todo el sistema.
+            <p className="text-[14px] text-[#999] mt-3 max-w-[400px] mx-auto">
+              Escribí tu profesión o rubro y mirá cómo VISTACEO se adapta.
             </p>
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {industries.map((ind, i) => (
-            <Reveal key={ind.name} delay={i * 60}>
-              <div className="rounded-xl border border-[#eee] bg-white p-6 hover:border-[#ddd] hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)] transition-all duration-300 h-full">
-                <h3 className="text-[14.5px] font-semibold text-[#111] mb-2">{ind.name}</h3>
-                <p className="text-[13px] text-[#999] leading-[1.7]">{ind.benefit}</p>
+        <Reveal delay={80}>
+          {/* Search input */}
+          <div className="max-w-[480px] mx-auto mb-6">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#ccc]" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); findMatch(e.target.value); }}
+                placeholder="Ej: restaurante, clínica, agencia, freelancer..."
+                className="w-full pl-11 pr-4 py-4 rounded-2xl border border-[#e5e5e5] bg-white text-[14px] text-[#222] placeholder:text-[#ccc] focus:outline-none focus:border-[#2692DC] focus:shadow-[0_0_0_3px_rgba(38,146,220,0.08)] transition-all duration-300"
+              />
+            </div>
+          </div>
+
+          {/* Quick chips */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+            {QUICK_PROFESSIONS.map(p => (
+              <button key={p} onClick={() => handleQuickClick(p)}
+                className={cn(
+                  "px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all duration-300 border",
+                  query.toLowerCase() === p.toLowerCase()
+                    ? "text-white border-transparent shadow-sm"
+                    : "bg-white text-[#888] border-[#eee] hover:border-[#ddd] hover:text-[#555]"
+                )}
+                style={query.toLowerCase() === p.toLowerCase() ? { background: ACCENT_GRADIENT } : undefined}>
+                {p}
+              </button>
+            ))}
+          </div>
+        </Reveal>
+
+        {/* Result panel */}
+        <AnimatePresence mode="wait">
+          {showResult && matchedResult && (
+            <motion.div
+              key={matchedResult.label}
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.98 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="rounded-2xl border border-[#e8e8e8] bg-white shadow-[0_16px_48px_-12px_rgba(0,0,0,0.06)] overflow-hidden">
+                {/* Result header */}
+                <div className="px-6 py-5 border-b border-[#f2f2f2] flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: ACCENT_GRADIENT_SUBTLE }}>
+                    <matchedResult.icon className="w-4.5 h-4.5" style={{ color: "#2692DC" }} />
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-semibold text-[#111]">VISTACEO para {matchedResult.label}</p>
+                    <p className="text-[12.5px] text-[#999] mt-0.5">{matchedResult.insight}</p>
+                  </div>
+                </div>
+                {/* Mini mockup */}
+                <div className="max-h-[350px] overflow-hidden">
+                  {renderMiniMockup()}
+                </div>
               </div>
-            </Reveal>
-          ))}
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
