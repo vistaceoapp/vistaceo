@@ -1649,7 +1649,7 @@ Deno.serve(async (req) => {
 
     // Only skip if we already published 2 today (unless forced or called from blog-daily-publish)
     // When called from blog-daily-publish, pacing is already handled by the caller
-    const DAILY_POST_LIMIT = 3;
+    const DAILY_POST_LIMIT = 2;
     if (!forceRun && !calledFromDailyPublish && (publishedToday || 0) >= DAILY_POST_LIMIT) {
       console.log(`[generate-blog-post] Already published ${publishedToday} today (limit: ${DAILY_POST_LIMIT}), skipping...`);
       
