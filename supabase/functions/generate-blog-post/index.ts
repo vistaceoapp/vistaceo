@@ -2176,7 +2176,7 @@ TAMBIÉN:
 
     let contentMd = '';
     let rewriteAttempts = 0;
-    const maxRewrites = 2; // Reduced from 4 to save AI costs while maintaining quality
+    const maxRewrites = 3; // Restored quality: fewer posts/day allows more polish per post
     let qualityGateReport: QualityGateReport;
 
     // Generation loop with rewrite attempts
@@ -2188,7 +2188,7 @@ TAMBIÉN:
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-lite', // Optimized: use lighter model for content generation
+          model: 'google/gemini-2.5-flash', // Full quality model — fewer posts/day but each one premium
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: rewriteAttempts === 0 ? userPrompt : `${userPrompt}\n\nIMPORTANTE: El intento anterior no pasó el quality gate. Problemas detectados:\n${qualityGateReport!.issues.join('\n')}\n\nCorregí estos problemas en esta nueva versión.` }
@@ -2291,8 +2291,21 @@ TAMBIÉN:
     const heroImageUrl = await generateHeroImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
     qualityGateReport.checks.has_hero_image = !!heroImageUrl;
     
-    // 7b. Skip inline image generation to optimize AI costs — hero image is sufficient
-    qualityGateReport.checks.has_inline_images = false;
+    // 7b. Generate inline image for richer content (restored — fewer posts/day allows full quality)
+    const inlineImageUrl = await generateInlineImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
+    if (inlineImageUrl) {
+      // Insert inline image after the first major section (after second ##)
+      const sections = contentMd.split(/^(## .+)$/m);
+      if (sections.length >= 5) {
+        // Insert after the 2nd section heading + content
+        const insertPoint = sections.slice(0, 5).join('');
+        const rest = sections.slice(5).join('');
+        contentMd = insertPoint + `\n\n![Ilustración práctica sobre ${selectedTopic.title_base}](${inlineImageUrl})\n\n` + rest;
+      }
+      qualityGateReport.checks.has_inline_images = true;
+    } else {
+      qualityGateReport.checks.has_inline_images = false;
+    }
 
     // 8. Generate metadata
     const excerpt = contentMd

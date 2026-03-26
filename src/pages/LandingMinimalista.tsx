@@ -534,154 +534,282 @@ const ProductShowcase = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   6. Buscador interactivo — "¿Qué hacés?"
+   6. Buscador inteligente con IA — Insight personalizado
    ═══════════════════════════════════════════════════════════════ */
 
-const PROFESSION_MAP: Record<string, { label: string; mockup: TabKey; insight: string; icon: React.ElementType }> = {
-  restaurante: { label: "Restaurante", mockup: "salud", insight: "Controlá ticket promedio, rotación de mesas y foco operativo diario.", icon: Heart },
-  parrilla: { label: "Restaurante", mockup: "salud", insight: "Controlá ticket promedio, rotación de mesas y foco operativo diario.", icon: Heart },
-  bar: { label: "Gastronomía", mockup: "analytics", insight: "Métricas de consumo por horario, recurrencia y eficiencia de barra.", icon: BarChart3 },
-  café: { label: "Gastronomía", mockup: "analytics", insight: "Métricas de consumo por horario, recurrencia y eficiencia de barra.", icon: BarChart3 },
-  cafetería: { label: "Gastronomía", mockup: "analytics", insight: "Métricas de consumo por horario, recurrencia y eficiencia de barra.", icon: BarChart3 },
-  clínica: { label: "Clínica", mockup: "misiones", insight: "Ordená turnos, seguimiento de pacientes y ocupación por consultorio.", icon: Target },
-  consultorio: { label: "Consultorio", mockup: "misiones", insight: "Ordená turnos, seguimiento de pacientes y ocupación por consultorio.", icon: Target },
-  dentista: { label: "Consultorio dental", mockup: "misiones", insight: "Ordená turnos, seguimiento de pacientes y ocupación por consultorio.", icon: Target },
-  odontología: { label: "Consultorio dental", mockup: "misiones", insight: "Ordená turnos, seguimiento de pacientes y ocupación por consultorio.", icon: Target },
-  agencia: { label: "Agencia", mockup: "radar", insight: "Priorizá clientes, controlá rentabilidad por proyecto y detectá riesgos.", icon: Radar },
-  marketing: { label: "Agencia de marketing", mockup: "radar", insight: "Priorizá clientes, controlá rentabilidad por proyecto y detectá riesgos.", icon: Radar },
-  freelancer: { label: "Freelancer", mockup: "chat", insight: "Enfocate en lo que mueve la aguja con recomendaciones personalizadas.", icon: MessageCircle },
-  diseñador: { label: "Diseñador freelance", mockup: "chat", insight: "Enfocate en lo que mueve la aguja con recomendaciones personalizadas.", icon: MessageCircle },
-  programador: { label: "Desarrollador", mockup: "predictions", insight: "Predicciones de carga de trabajo y gestión inteligente de proyectos.", icon: Eye },
-  desarrollador: { label: "Desarrollador", mockup: "predictions", insight: "Predicciones de carga de trabajo y gestión inteligente de proyectos.", icon: Eye },
-  retail: { label: "Comercio", mockup: "analytics", insight: "Entendé demanda, estacionalidad y rendimiento por canal de venta.", icon: BarChart3 },
-  comercio: { label: "Comercio", mockup: "analytics", insight: "Entendé demanda, estacionalidad y rendimiento por canal de venta.", icon: BarChart3 },
-  tienda: { label: "Tienda", mockup: "analytics", insight: "Entendé demanda, estacionalidad y rendimiento por canal de venta.", icon: BarChart3 },
-  boutique: { label: "Boutique", mockup: "analytics", insight: "Entendé demanda, estacionalidad y rendimiento por canal de venta.", icon: BarChart3 },
-  hotel: { label: "Hotel", mockup: "salud", insight: "Monitoreá ocupación, satisfacción y eficiencia operativa en tiempo real.", icon: Heart },
-  gimnasio: { label: "Gimnasio", mockup: "misiones", insight: "Retención de socios, ocupación de clases y métricas de crecimiento.", icon: Target },
-  startup: { label: "Startup", mockup: "predictions", insight: "Proyecciones de runway, métricas de tracción y siguiente mejor acción.", icon: Eye },
-  abogado: { label: "Estudio jurídico", mockup: "chat", insight: "Gestión de casos, facturación por hora y seguimiento de clientes.", icon: MessageCircle },
-  contador: { label: "Estudio contable", mockup: "radar", insight: "Oportunidades de eficiencia, alertas fiscales y gestión de cartera.", icon: Radar },
-  ecommerce: { label: "E-commerce", mockup: "analytics", insight: "Conversión, ticket promedio, estacionalidad y rentabilidad por producto.", icon: BarChart3 },
-  inmobiliaria: { label: "Inmobiliaria", mockup: "radar", insight: "Pipeline de propiedades, seguimiento de leads y alertas de mercado.", icon: Radar },
-  salón: { label: "Salón de belleza", mockup: "misiones", insight: "Ocupación de sillas, retención de clientes y promociones inteligentes.", icon: Target },
-  peluquería: { label: "Peluquería", mockup: "misiones", insight: "Ocupación de sillas, retención de clientes y promociones inteligentes.", icon: Target },
-  arquitecto: { label: "Estudio de arquitectura", mockup: "predictions", insight: "Proyecciones de obra, gestión de presupuestos y seguimiento de hitos.", icon: Eye },
-  consultor: { label: "Consultoría", mockup: "chat", insight: "Gestión de proyectos, rentabilidad por cliente y decisiones estratégicas.", icon: MessageCircle },
-};
+const SUPPORTED_COUNTRIES = [
+  { code: "AR", name: "Argentina", flag: "🇦🇷" },
+  { code: "BO", name: "Bolivia", flag: "🇧🇴" },
+  { code: "CL", name: "Chile", flag: "🇨🇱" },
+  { code: "CO", name: "Colombia", flag: "🇨🇴" },
+  { code: "CR", name: "Costa Rica", flag: "🇨🇷" },
+  { code: "DO", name: "Rep. Dominicana", flag: "🇩🇴" },
+  { code: "EC", name: "Ecuador", flag: "🇪🇨" },
+  { code: "ES", name: "España", flag: "🇪🇸" },
+  { code: "GT", name: "Guatemala", flag: "🇬🇹" },
+  { code: "HN", name: "Honduras", flag: "🇭🇳" },
+  { code: "MX", name: "México", flag: "🇲🇽" },
+  { code: "NI", name: "Nicaragua", flag: "🇳🇮" },
+  { code: "PA", name: "Panamá", flag: "🇵🇦" },
+  { code: "PE", name: "Perú", flag: "🇵🇪" },
+  { code: "PY", name: "Paraguay", flag: "🇵🇾" },
+  { code: "SV", name: "El Salvador", flag: "🇸🇻" },
+  { code: "UY", name: "Uruguay", flag: "🇺🇾" },
+];
 
-const QUICK_PROFESSIONS = ["Restaurante", "Clínica", "Agencia", "E-commerce", "Freelancer", "Gimnasio", "Hotel", "Startup"];
+const QUICK_CHIPS = ["Restaurante", "Clínica", "Agencia", "Freelancer", "E-commerce", "Consultorio", "Gimnasio", "Startup"];
 
 const SmartFinder = () => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [matchedResult, setMatchedResult] = useState<{ label: string; mockup: TabKey; insight: string; icon: React.ElementType } | null>(null);
-  const [showResult, setShowResult] = useState(false);
+  const [country, setCountry] = useState("AR");
+  const [countryOpen, setCountryOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{
+    businessType: string;
+    suggestions: string[];
+    insight: string;
+    metric: string;
+    metricLabel: string;
+  } | null>(null);
+  const [error, setError] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const findMatch = useCallback((input: string) => {
-    const q = input.toLowerCase().trim();
-    if (!q) { setMatchedResult(null); setShowResult(false); return; }
-    
-    for (const [key, val] of Object.entries(PROFESSION_MAP)) {
-      if (q.includes(key) || key.includes(q)) {
-        setMatchedResult(val);
-        setShowResult(true);
-        return;
-      }
-    }
-    // Default fallback for any business
-    setMatchedResult({ label: input, mockup: "salud", insight: "VISTACEO analiza tu negocio, detecta prioridades y genera acciones concretas cada día.", icon: Sparkles });
-    setShowResult(true);
+  // Auto-detect country on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) });
+        if (res.ok) {
+          const data = await res.json();
+          const cc = data.country_code;
+          if (cc && SUPPORTED_COUNTRIES.some(c => c.code === cc)) {
+            setCountry(cc);
+          }
+        }
+      } catch { /* fallback AR */ }
+    })();
   }, []);
 
-  const handleQuickClick = (profession: string) => {
-    setQuery(profession);
-    findMatch(profession);
+  const fetchInsight = useCallback(async (q: string, cc: string) => {
+    if (!q.trim() || q.trim().length < 2) return;
+    setLoading(true);
+    setError("");
+    setResult(null);
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/landing-insight`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ query: q.trim(), country: cc }),
+        }
+      );
+
+      if (res.status === 429) { setError("Demasiadas consultas. Intentá en unos segundos."); return; }
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+      setResult(data);
+    } catch {
+      setError("No pudimos procesar tu consulta. Intentá de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleSubmit = (q?: string) => {
+    const input = q || query;
+    if (input.trim().length >= 2) fetchInsight(input, country);
   };
 
-  const renderMiniMockup = () => {
-    if (!matchedResult) return null;
-    const props = { business: "argentina" as BusinessKey };
-    switch (matchedResult.mockup) {
-      case "salud": return <MockupProDashboard {...props} />;
-      case "misiones": return <MockupProMissions {...props} />;
-      case "radar": return <MockupProRadar {...props} />;
-      case "chat": return <MockupProChat {...props} />;
-      case "analytics": return <MockupProAnalytics {...props} />;
-      case "predictions": return <MockupProPredictions {...props} />;
+  const handleInput = (val: string) => {
+    setQuery(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (val.trim().length >= 3) {
+      debounceRef.current = setTimeout(() => fetchInsight(val, country), 800);
     }
   };
 
+  const handleSuggestionClick = (s: string) => {
+    setQuery(s);
+    fetchInsight(s, country);
+  };
+
+  const selectedCountry = SUPPORTED_COUNTRIES.find(c => c.code === country)!;
+
   return (
-    <section className="py-20 lg:py-28 px-6 bg-[#fafafa]">
-      <div className="max-w-[900px] mx-auto">
+    <section id="finder" className="py-20 lg:py-28 px-6 relative overflow-hidden" style={{ background: "linear-gradient(180deg, #fafafa 0%, #fff 100%)" }}>
+      <div className="max-w-[680px] mx-auto relative z-10">
         <Reveal>
           <div className="text-center mb-10">
-            <AccentLabel>DESCUBRÍ TU HERRAMIENTA</AccentLabel>
-            <h2 className="text-[clamp(1.5rem,3.2vw,2.2rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5">
+            <AccentLabel>PROBALO AHORA</AccentLabel>
+            <h2 className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-semibold text-[#0a0a0a] tracking-[-0.03em] mt-5">
               ¿Qué tipo de negocio tenés?
             </h2>
-            <p className="text-[14px] text-[#999] mt-3 max-w-[400px] mx-auto">
-              Escribí tu profesión o rubro y mirá cómo VISTACEO se adapta.
+            <p className="text-[14px] text-[#aaa] mt-3">
+              Escribí tu rubro y recibí un insight estratégico personalizado al instante.
             </p>
           </div>
         </Reveal>
 
-        <Reveal delay={80}>
-          {/* Search input */}
-          <div className="max-w-[480px] mx-auto mb-6">
+        <Reveal delay={60}>
+          {/* Country + Search */}
+          <div className="flex gap-2 mb-5">
+            {/* Country selector */}
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-[#ccc]" />
+              <button onClick={() => setCountryOpen(!countryOpen)}
+                className="flex items-center gap-1.5 px-3 py-3.5 rounded-xl border border-[#e5e5e5] bg-white text-[13px] hover:border-[#ddd] transition-all min-w-[80px] justify-center"
+              >
+                <span className="text-base">{selectedCountry.flag}</span>
+                <ChevronDown className={cn("w-3 h-3 text-[#ccc] transition-transform", countryOpen && "rotate-180")} />
+              </button>
+              {countryOpen && (
+                <div className="absolute top-full mt-1 left-0 bg-white border border-[#eee] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.1)] z-50 max-h-[280px] overflow-y-auto w-[200px]">
+                  {SUPPORTED_COUNTRIES.map(c => (
+                    <button key={c.code} onClick={() => { setCountry(c.code); setCountryOpen(false); if (result) fetchInsight(query, c.code); }}
+                      className={cn(
+                        "flex items-center gap-2.5 w-full px-3 py-2.5 text-[12.5px] text-left hover:bg-[#f8f8f8] transition-colors",
+                        country === c.code ? "bg-[#f5f5f5] font-medium text-[#111]" : "text-[#666]"
+                      )}>
+                      <span>{c.flag}</span> {c.name}
+                      {country === c.code && <Check className="w-3 h-3 ml-auto" style={{ color: "#2692DC" }} />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Search input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#ccc]" />
               <input
                 type="text"
                 value={query}
-                onChange={(e) => { setQuery(e.target.value); findMatch(e.target.value); }}
-                placeholder="Ej: restaurante, clínica, agencia, freelancer..."
-                className="w-full pl-11 pr-4 py-4 rounded-2xl border border-[#e5e5e5] bg-white text-[14px] text-[#222] placeholder:text-[#ccc] focus:outline-none focus:border-[#2692DC] focus:shadow-[0_0_0_3px_rgba(38,146,220,0.08)] transition-all duration-300"
+                onChange={(e) => handleInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                placeholder="Ej: panadería, estudio contable, barbería..."
+                className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-[#e5e5e5] bg-white text-[14px] text-[#222] placeholder:text-[#ccc] focus:outline-none focus:border-[#2692DC] focus:shadow-[0_0_0_3px_rgba(38,146,220,0.08)] transition-all duration-300"
               />
             </div>
-          </div>
 
-          {/* Quick chips */}
+            <button onClick={() => handleSubmit()}
+              disabled={loading || query.trim().length < 2}
+              className="px-5 py-3.5 rounded-xl text-white text-[13px] font-medium transition-all disabled:opacity-40 hover:shadow-[0_4px_12px_rgba(38,146,220,0.2)] active:scale-[0.97] flex-shrink-0"
+              style={{ background: ACCENT_GRADIENT }}>
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <ArrowRight className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+        </Reveal>
+
+        {/* Quick chips */}
+        <Reveal delay={100}>
           <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
-            {QUICK_PROFESSIONS.map(p => (
-              <button key={p} onClick={() => handleQuickClick(p)}
-                className={cn(
-                  "px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all duration-300 border",
-                  query.toLowerCase() === p.toLowerCase()
-                    ? "text-white border-transparent shadow-sm"
-                    : "bg-white text-[#888] border-[#eee] hover:border-[#ddd] hover:text-[#555]"
-                )}
-                style={query.toLowerCase() === p.toLowerCase() ? { background: ACCENT_GRADIENT } : undefined}>
+            {QUICK_CHIPS.map(p => (
+              <button key={p} onClick={() => { setQuery(p); handleSubmit(p); }}
+                className="px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all duration-300 border bg-white text-[#888] border-[#eee] hover:border-[#ddd] hover:text-[#555]">
                 {p}
               </button>
             ))}
           </div>
         </Reveal>
 
+        {/* Error */}
+        {error && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-[13px] text-red-400 mb-4">
+            {error}
+          </motion.div>
+        )}
+
+        {/* Loading state */}
+        {loading && !result && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-[#eee] bg-white p-8 text-center">
+            <div className="w-8 h-8 border-2 border-[#eee] border-t-[#2692DC] rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-[13px] text-[#aaa]">VISTACEO está analizando tu sector...</p>
+          </motion.div>
+        )}
+
+        {/* AI Suggestions (disambiguation) */}
+        <AnimatePresence mode="wait">
+          {result && result.suggestions && result.suggestions.length > 0 && (
+            <motion.div
+              key="suggestions"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-2xl border border-[#eee] bg-white p-6 mb-4"
+            >
+              <p className="text-[13px] text-[#999] mb-3">¿Te referís a alguno de estos?</p>
+              <div className="flex flex-wrap gap-2">
+                {result.suggestions.map((s: string) => (
+                  <button key={s} onClick={() => handleSuggestionClick(s)}
+                    className="px-4 py-2 rounded-lg border border-[#eee] text-[13px] text-[#555] hover:border-[#2692DC] hover:text-[#2692DC] transition-all bg-[#fafafa] hover:bg-[#f0f8ff]">
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Result panel */}
         <AnimatePresence mode="wait">
-          {showResult && matchedResult && (
+          {result && result.insight && (
             <motion.div
-              key={matchedResult.label}
+              key={result.businessType}
               initial={{ opacity: 0, y: 20, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.98 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             >
               <div className="rounded-2xl border border-[#e8e8e8] bg-white shadow-[0_16px_48px_-12px_rgba(0,0,0,0.06)] overflow-hidden">
-                {/* Result header */}
-                <div className="px-6 py-5 border-b border-[#f2f2f2] flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: ACCENT_GRADIENT_SUBTLE }}>
-                    <matchedResult.icon className="w-4.5 h-4.5" style={{ color: "#2692DC" }} />
-                  </div>
-                  <div>
-                    <p className="text-[14px] font-semibold text-[#111]">VISTACEO para {matchedResult.label}</p>
-                    <p className="text-[12.5px] text-[#999] mt-0.5">{matchedResult.insight}</p>
+                {/* Header with business type */}
+                <div className="px-6 py-5 border-b border-[#f2f2f2]" style={{ background: ACCENT_GRADIENT_SUBTLE }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ background: ACCENT_GRADIENT }}>
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[15px] font-semibold text-[#111]">
+                        VISTACEO para {result.businessType}
+                      </p>
+                      <p className="text-[11.5px] text-[#aaa] mt-0.5">{selectedCountry.flag} {selectedCountry.name}</p>
+                    </div>
                   </div>
                 </div>
-                {/* Mini mockup */}
-                <div className="max-h-[350px] overflow-hidden">
-                  {renderMiniMockup()}
+
+                {/* Insight + Metric */}
+                <div className="px-6 py-6">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    {/* Metric */}
+                    <div className="flex-shrink-0 md:w-[140px] text-center md:text-left">
+                      <p className="text-[32px] font-bold tracking-tight"
+                        style={{ backgroundImage: ACCENT_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                        {result.metric}
+                      </p>
+                      <p className="text-[11.5px] text-[#bbb] mt-1 leading-snug">{result.metricLabel}</p>
+                    </div>
+                    
+                    {/* Insight text */}
+                    <div className="flex-1">
+                      <p className="text-[14.5px] text-[#444] leading-[1.75]">{result.insight}</p>
+                      <button onClick={() => navigate("/auth?mode=signup")}
+                        className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-white text-[13px] font-medium transition-all hover:shadow-[0_4px_12px_rgba(38,146,220,0.2)] active:scale-[0.98]"
+                        style={{ background: ACCENT_GRADIENT }}>
+                        Empezar gratis con tu {result.businessType} <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -1198,9 +1326,9 @@ export default function LandingMinimalista() {
         <Header />
         <HeroSection />
         <TrustStrip />
+        <SmartFinder />
         <HowItWorks />
         <ProductShowcase />
-        <SmartFinder />
         <FeaturesGrid />
         <Differentiation />
         <CompetitorSection />

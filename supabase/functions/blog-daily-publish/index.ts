@@ -5,8 +5,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Randomly publish 1 or 2 posts per day to optimize AI costs
-const DAILY_POST_TARGET = Math.random() < 0.5 ? 1 : 2;
+// Average ~1 post/day: 40% chance 0 posts, 40% chance 1 post, 20% chance 2 posts
+const roll = Math.random();
+const DAILY_POST_TARGET = roll < 0.40 ? 0 : roll < 0.80 ? 1 : 2;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
