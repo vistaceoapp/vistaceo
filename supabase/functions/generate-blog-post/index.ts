@@ -2176,7 +2176,7 @@ TAMBIÉN:
 
     let contentMd = '';
     let rewriteAttempts = 0;
-    const maxRewrites = 2; // Reduced from 4 to save AI costs while maintaining quality
+    const maxRewrites = 3; // Restored quality: fewer posts/day allows more polish per post
     let qualityGateReport: QualityGateReport;
 
     // Generation loop with rewrite attempts
@@ -2188,7 +2188,7 @@ TAMBIÉN:
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-lite', // Optimized: use lighter model for content generation
+          model: 'google/gemini-2.5-flash', // Full quality model — fewer posts/day but each one premium
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: rewriteAttempts === 0 ? userPrompt : `${userPrompt}\n\nIMPORTANTE: El intento anterior no pasó el quality gate. Problemas detectados:\n${qualityGateReport!.issues.join('\n')}\n\nCorregí estos problemas en esta nueva versión.` }
