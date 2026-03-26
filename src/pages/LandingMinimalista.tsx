@@ -1326,9 +1326,9 @@ export default function LandingMinimalista() {
         <Header />
         <HeroSection />
         <TrustStrip />
+        <SmartFinder />
         <HowItWorks />
         <ProductShowcase />
-        <SmartFinder />
         <FeaturesGrid />
         <Differentiation />
         <CompetitorSection />
