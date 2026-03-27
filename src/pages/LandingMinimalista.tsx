@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, memo, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronDown, Menu, X, Check, TrendingUp, Target, Zap, BarChart3, Shield, Brain, Sparkles, Heart, MessageCircle, Eye, Radar, Lock, Clock, Users, CheckCircle2, ArrowUpRight, Globe, Mail, Search } from "lucide-react";
+import { ArrowRight, ChevronDown, Menu, X, Check, TrendingUp, Target, Zap, BarChart3, Shield, Brain, Sparkles, Heart, MessageCircle, Eye, Radar, Lock, Clock, Users, CheckCircle2, ArrowUpRight, Globe, Mail, Search, Lightbulb } from "lucide-react";
 import { SiteHead } from "@/components/seo/SiteHead";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
@@ -13,6 +13,8 @@ import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
 import { MockupProChat } from "@/components/landing/mockups/MockupProChat";
 import { MockupProAnalytics } from "@/components/landing/mockups/MockupProAnalytics";
 import { MockupProPredictions } from "@/components/landing/mockups/MockupProPredictions";
+import { MockupProInsights } from "@/components/landing/mockups/MockupProInsights";
+import { MockupProCompetitors } from "@/components/landing/mockups/MockupProCompetitors";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
@@ -224,16 +226,16 @@ const HeroSection = () => {
 
           <Reveal delay={80} distance={30}>
             <h1 className="text-[clamp(2.2rem,5vw,3.2rem)] font-semibold text-[#0a0a0a] leading-[1.08] tracking-[-0.03em] mt-5">
-              Centralizá la información, detectá prioridades,{" "}
+              Tu empresa, guiada por un{" "}
               <span style={{ backgroundImage: ACCENT_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                decidí mejor cada día.
+                CEO Digital impulsado por IA.
               </span>
             </h1>
           </Reveal>
 
           <Reveal delay={150} distance={25}>
-            <p className="text-[15.5px] text-[#777] mt-7 leading-[1.85] max-w-[380px]">
-              VISTACEO reúne toda la inteligencia de tu negocio, aprende tus objetivos y genera acciones concretas que mueven la aguja. Para restaurantes, clínicas, agencias, comercios y más.
+            <p className="text-[15.5px] text-[#777] mt-7 leading-[1.85] max-w-[400px]">
+              VISTACEO aprende, se adapta y te recomienda exactamente qué hacer para escalar tu negocio con claridad y velocidad.
             </p>
           </Reveal>
 
@@ -400,6 +402,8 @@ const mockupTabs = [
   { key: "chat", label: "Chat ejecutivo", icon: MessageCircle, desc: "Preguntá lo que quieras sobre tu negocio en lenguaje natural.", benefit: "Tu consultor estratégico disponible las 24 horas." },
   { key: "analytics", label: "Métricas", icon: BarChart3, desc: "Dashboards que se adaptan a tu industria.", benefit: "Las métricas que importan, sin ruido." },
   { key: "predictions", label: "Futuro", icon: Eye, desc: "Predicciones a 7, 14 y 30 días con niveles de certeza.", benefit: "Tomá decisiones hoy con la información de mañana." },
+  { key: "insights", label: "Insights", icon: Lightbulb, desc: "Oportunidades, alertas y tendencias detectadas por IA.", benefit: "Decisiones informadas con inteligencia accionable." },
+  { key: "competencia", label: "Competencia", icon: Users, desc: "Análisis en tiempo real de tu entorno competitivo.", benefit: "Sabé quién compite con vos y dónde tenés ventaja." },
 ] as const;
 type TabKey = typeof mockupTabs[number]["key"];
 
@@ -423,6 +427,8 @@ const ProductShowcase = () => {
       case "chat": return <MockupProChat {...props} />;
       case "analytics": return <MockupProAnalytics {...props} />;
       case "predictions": return <MockupProPredictions {...props} />;
+      case "insights": return <MockupProInsights {...props} />;
+      case "competencia": return <MockupProCompetitors {...props} />;
     }
   };
 
@@ -960,9 +966,7 @@ const CompetitorSection = () => {
             <div className="grid grid-cols-5 gap-0 border-b border-[#eee] bg-white">
               <div className="col-span-1 p-4" />
               <div className="p-4 text-center border-l border-[#f0f0f0]">
-                <div className="w-5 h-5 rounded-md mx-auto mb-1.5 flex items-center justify-center" style={{ background: ACCENT_GRADIENT }}>
-                  <Sparkles className="w-3 h-3 text-white" />
-                </div>
+                <img src="/favicon.png" alt="VISTACEO" className="w-6 h-6 mx-auto mb-1.5 object-contain" />
                 <p className="text-[11px] font-bold tracking-[0.05em]" style={{ backgroundImage: ACCENT_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>VISTACEO</p>
               </div>
               <div className="p-4 text-center border-l border-[#f0f0f0]">
@@ -1326,11 +1330,9 @@ export default function LandingMinimalista() {
         <Header />
         <HeroSection />
         <TrustStrip />
-        <SmartFinder />
         <HowItWorks />
         <ProductShowcase />
         <FeaturesGrid />
-        <Differentiation />
         <CompetitorSection />
         <PricingSection />
         <SecuritySection />
