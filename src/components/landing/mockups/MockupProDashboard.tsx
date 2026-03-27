@@ -139,16 +139,14 @@ const businessData: Record<BusinessKey, {
 };
 
 const getScoreColor = (score: number) => {
-  if (score >= 80) return "text-success";
-  if (score >= 60) return "text-primary";
-  if (score >= 40) return "text-warning";
+  if (score >= 45) return "text-success";
+  if (score >= 30) return "text-warning";
   return "text-destructive";
 };
 
 const getScoreBg = (score: number) => {
-  if (score >= 80) return "bg-success/10 border-success/30";
-  if (score >= 60) return "bg-primary/10 border-primary/30";
-  if (score >= 40) return "bg-warning/10 border-warning/30";
+  if (score >= 45) return "bg-success/10 border-success/30";
+  if (score >= 30) return "bg-warning/10 border-warning/30";
   return "bg-destructive/10 border-destructive/30";
 };
 
