@@ -187,15 +187,10 @@ const HeroSection = () => {
           </p>
         </Reveal>
 
-        {/* REAL dashboard screenshot */}
+        {/* Interactive Dashboard mockup */}
         <Reveal delay={250} distance={50}>
-          <div className="mt-14 max-w-[960px] mx-auto">
-            <img
-              src={dashboardImg}
-              alt="Dashboard principal de VISTACEO — vista real de la plataforma"
-              className="w-full rounded-2xl shadow-[0_32px_80px_-16px_rgba(0,0,0,0.12)]"
-              loading="eager"
-            />
+          <div className="mt-14 max-w-[640px] mx-auto">
+            <MockupProDashboard business="argentina" />
           </div>
         </Reveal>
       </div>
@@ -441,64 +436,92 @@ const SmartFinder = () => {
   );
 };
 
-/* ═══════════ 5. Producto — Screenshots reales ═══════════ */
-const productScreens = [
-  { key: "dashboard", label: "Dashboard", icon: Heart, img: dashboardImg, desc: "Salud integral de tu negocio en un vistazo." },
-  { key: "misiones", label: "Misiones", icon: Target, img: missionsImg, desc: "Acciones concretas con pasos y deadlines." },
-  { key: "radar", label: "Radar", icon: RadarIcon, img: radarImg, desc: "Oportunidades y riesgos detectados por IA." },
+/* ═══════════ 5. Producto — Interactive Mockups por negocio ═══════════ */
+const BUSINESSES: { key: BusinessKey; name: string; type: string; country: string; flag: string }[] = [
+  { key: "argentina", name: "Parrilla Don Martín", type: "Restaurante", country: "Argentina", flag: "🇦🇷" },
+  { key: "mexico", name: "Boutique Carmela", type: "Retail Moda", country: "México", flag: "🇲🇽" },
+  { key: "marketing", name: "Rocket Digital", type: "Agencia Marketing", country: "Chile", flag: "🇨🇱" },
+  { key: "odontologia", name: "Clínica Dental Sonrisa", type: "Salud", country: "Chile", flag: "🇨🇱" },
+];
+
+const MOCKUP_TABS = [
+  { key: "dashboard", label: "Dashboard", icon: Heart },
+  { key: "misiones", label: "Misiones", icon: Target },
+  { key: "radar", label: "Radar I+D", icon: RadarIcon },
 ] as const;
 
 const ProductShowcase = () => {
-  const [active, setActive] = useState(0);
+  const [activeBusiness, setActiveBusiness] = useState<BusinessKey>("argentina");
+  const [activeTab, setActiveTab] = useState(0);
 
   return (
     <section id="producto" className="py-24 lg:py-32 px-6 bg-white">
-      <div className="max-w-[1000px] mx-auto">
+      <div className="max-w-[1100px] mx-auto">
         <Reveal>
-          <div className="text-center mb-12">
+          <div className="text-center mb-10">
             <AccentLabel>PRODUCTO</AccentLabel>
             <h2 className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5">
-              Todo lo que necesitás, en un solo lugar
+              Así se ve VISTACEO en acción
             </h2>
+            <p className="text-[14px] text-[#999] mt-3">Elegí un negocio y explorá las herramientas</p>
           </div>
         </Reveal>
 
-        {/* Tabs */}
-        <Reveal delay={80}>
-          <div className="flex items-center justify-center gap-2 mb-10">
-            {productScreens.map((s, i) => {
-              const Icon = s.icon;
+        {/* Business selector */}
+        <Reveal delay={60}>
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+            {BUSINESSES.map(b => (
+              <button key={b.key} onClick={() => { setActiveBusiness(b.key); setActiveTab(0); }}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] font-medium transition-all duration-300 border",
+                  activeBusiness === b.key
+                    ? "text-white border-transparent shadow-[0_4px_12px_rgba(38,146,220,0.2)]"
+                    : "bg-white text-[#666] border-[#eee] hover:border-[#ddd] hover:text-[#333]"
+                )}
+                style={activeBusiness === b.key ? { background: ACCENT_GRADIENT } : undefined}>
+                <span className="text-sm">{b.flag}</span>
+                <span className="hidden sm:inline">{b.name}</span>
+                <span className="sm:hidden">{b.type}</span>
+              </button>
+            ))}
+          </div>
+        </Reveal>
+
+        {/* View tabs */}
+        <Reveal delay={100}>
+          <div className="flex items-center justify-center gap-2 mb-8">
+            {MOCKUP_TABS.map((t, i) => {
+              const Icon = t.icon;
               return (
-                <button key={s.key} onClick={() => setActive(i)}
+                <button key={t.key} onClick={() => setActiveTab(i)}
                   className={cn(
-                    "flex items-center gap-2 px-5 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-300",
-                    active === i ? "text-white shadow-[0_4px_12px_rgba(38,146,220,0.2)]" : "bg-[#f5f5f5] text-[#888] hover:bg-[#eee]"
-                  )}
-                  style={active === i ? { background: ACCENT_GRADIENT } : undefined}>
-                  <Icon className="w-4 h-4" />
-                  {s.label}
+                    "flex items-center gap-1.5 px-4 py-2 rounded-lg text-[12px] font-medium transition-all",
+                    activeTab === i ? "bg-[#111] text-white" : "bg-[#f5f5f5] text-[#888] hover:bg-[#eee]"
+                  )}>
+                  <Icon className="w-3.5 h-3.5" />
+                  {t.label}
                 </button>
               );
             })}
           </div>
         </Reveal>
 
-        {/* Screenshot */}
-        <Reveal delay={120}>
+        {/* Mockup display */}
+        <Reveal delay={140}>
           <AnimatePresence mode="wait">
-            <motion.div key={active}
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+            <motion.div key={`${activeBusiness}-${activeTab}`}
+              initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              className="text-center"
+              className="max-w-[640px] mx-auto"
             >
-              <img
-                src={productScreens[active].img}
-                alt={`VISTACEO ${productScreens[active].label}`}
-                className="w-full max-w-[900px] mx-auto rounded-2xl shadow-[0_24px_64px_-16px_rgba(0,0,0,0.1)]"
-              />
-              <p className="text-[14px] text-[#999] mt-6">{productScreens[active].desc}</p>
+              {activeTab === 0 && <MockupProDashboard business={activeBusiness} />}
+              {activeTab === 1 && <MockupProMissions business={activeBusiness} />}
+              {activeTab === 2 && <MockupProRadar business={activeBusiness} />}
             </motion.div>
           </AnimatePresence>
+          <p className="text-[12px] text-[#bbb] text-center mt-5">
+            {BUSINESSES.find(b => b.key === activeBusiness)?.flag} {BUSINESSES.find(b => b.key === activeBusiness)?.name} — {BUSINESSES.find(b => b.key === activeBusiness)?.type} en {BUSINESSES.find(b => b.key === activeBusiness)?.country}
+          </p>
         </Reveal>
       </div>
     </section>
