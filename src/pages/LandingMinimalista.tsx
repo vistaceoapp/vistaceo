@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Real product screenshots
-import dashboardImg from "@/assets/screenshots/dashboard-hero.png";
-import missionsImg from "@/assets/screenshots/missions-hero.png";
-import radarImg from "@/assets/screenshots/radar-hero.png";
+// Interactive mockup components
+import { MockupProDashboard, type BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
+import { MockupProMissions } from "@/components/landing/mockups/MockupProMissions";
+import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
 
 /* ═══════════════════════════════════════════════════════════════
    VISTACEO Landing — Ultra-Premium v4 (Real Screenshots)
