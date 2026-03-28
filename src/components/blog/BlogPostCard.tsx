@@ -73,8 +73,21 @@ export function BlogPostCard({ post, variant = 'default' }: BlogPostCardProps) {
                 loading="eager"
               />
             ) : (
-              <div className={cn("h-full w-full bg-gradient-to-br", gradient, "flex items-center justify-center")}>
-                <span className="text-8xl opacity-10 select-none">{pattern}</span>
+              <div className={cn("h-full w-full bg-gradient-to-br flex items-center justify-center relative min-h-[200px]", gradient)}>
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="absolute inset-0 grid grid-cols-8 grid-rows-5 gap-4 p-8 opacity-[0.04]">
+                    {Array.from({ length: 40 }).map((_, i) => (
+                      <span key={i} className="text-2xl text-foreground flex items-center justify-center select-none rotate-12">{pattern}</span>
+                    ))}
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-card/60 to-transparent" />
+                </div>
+                <div className="relative z-10 text-center space-y-3">
+                  <div className="w-16 h-16 rounded-2xl bg-background/80 backdrop-blur-sm shadow-lg flex items-center justify-center mx-auto border border-border/50">
+                    <span className="text-4xl">{clusterInfo?.emoji || '📝'}</span>
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground/80">{clusterInfo?.label || 'Blog'}</span>
+                </div>
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -123,8 +136,10 @@ export function BlogPostCard({ post, variant = 'default' }: BlogPostCardProps) {
             {post.hero_image_url ? (
               <img src={post.hero_image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
             ) : (
-              <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center", gradient)}>
-                <span className="text-2xl opacity-20">{pattern}</span>
+              <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center relative", gradient)}>
+                <div className="w-10 h-10 rounded-xl bg-background/80 flex items-center justify-center border border-border/50">
+                  <span className="text-xl">{clusterInfo?.emoji || '📝'}</span>
+                </div>
               </div>
             )}
           </div>
