@@ -159,15 +159,20 @@ export function BlogPostCard({ post, variant = 'default' }: BlogPostCardProps) {
             />
           ) : (
             <div className={cn("h-full w-full bg-gradient-to-br flex items-center justify-center relative", gradient)}>
-              {/* Decorative pattern grid */}
-              <div className="absolute inset-0 grid grid-cols-5 grid-rows-3 gap-4 p-6 opacity-[0.06]">
-                {Array.from({ length: 15 }).map((_, i) => (
-                  <span key={i} className="text-2xl text-foreground flex items-center justify-center select-none">{pattern}</span>
-                ))}
+              {/* Premium geometric pattern */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute inset-0 grid grid-cols-6 grid-rows-4 gap-3 p-4 opacity-[0.04]">
+                  {Array.from({ length: 24 }).map((_, i) => (
+                    <span key={i} className="text-xl text-foreground flex items-center justify-center select-none rotate-12">{pattern}</span>
+                  ))}
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-card/60 to-transparent" />
               </div>
-              <div className="relative z-10 text-center">
-                <span className="text-5xl block mb-2">{clusterInfo?.emoji || '📝'}</span>
-                <span className="text-xs font-medium text-muted-foreground">{clusterInfo?.label || 'Blog'}</span>
+              <div className="relative z-10 text-center space-y-2">
+                <div className="w-14 h-14 rounded-2xl bg-background/80 backdrop-blur-sm shadow-lg flex items-center justify-center mx-auto border border-border/50">
+                  <span className="text-3xl">{clusterInfo?.emoji || '📝'}</span>
+                </div>
+                <span className="text-xs font-medium text-muted-foreground/80">{clusterInfo?.label || 'Blog'}</span>
               </div>
             </div>
           )}
