@@ -138,14 +138,17 @@ const businessData: Record<BusinessKey, {
   }
 };
 
+// Aligned with real product colors
 const getScoreColor = (score: number) => {
-  if (score >= 45) return "text-success";
+  if (score >= 70) return "text-success";
+  if (score >= 50) return "text-success"; // green for "Regular" like product
   if (score >= 30) return "text-warning";
   return "text-destructive";
 };
 
 const getScoreBg = (score: number) => {
-  if (score >= 45) return "bg-success/10 border-success/30";
+  if (score >= 70) return "bg-success/10 border-success/30";
+  if (score >= 50) return "bg-success/10 border-success/30";
   if (score >= 30) return "bg-warning/10 border-warning/30";
   return "bg-destructive/10 border-destructive/30";
 };
@@ -154,7 +157,15 @@ const getScoreLabel = (score: number) => {
   if (score >= 85) return "Excelente";
   if (score >= 70) return "Bueno";
   if (score >= 50) return "Regular";
+  if (score >= 30) return "Crítico";
   return "Crítico";
+};
+
+// Dimension bar colors: blue for high metrics, orange for medium, red for low (matching product)
+const getDimensionBarColor = (score: number) => {
+  if (score >= 65) return "bg-primary"; // blue
+  if (score >= 45) return "bg-warning"; // orange
+  return "bg-destructive"; // red
 };
 
 export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardProps>(({ business = "argentina" }, ref) => {
@@ -239,11 +250,7 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
                     initial={{ width: 0 }}
                     animate={{ width: `${dim.score}%` }}
                     transition={{ delay: 0.2 + i * 0.05, duration: 0.4 }}
-                    className={cn("h-full rounded-full", 
-                      dim.score >= 80 ? "bg-success" : 
-                      dim.score >= 60 ? "bg-primary" : 
-                      "bg-warning"
-                    )}
+                    className={cn("h-full rounded-full", getDimensionBarColor(dim.score))}
                   />
                 </div>
                 <span className={cn("text-[10px] sm:text-xs font-bold w-5 sm:w-6 text-right", getScoreColor(dim.score))}>

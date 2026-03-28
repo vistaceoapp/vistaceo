@@ -34,23 +34,27 @@ const SECTION_SIGNALS: Array<{
   type: SmartSection['type'];
   shortLabel?: string;
 }> = [
+  // MUST-HAVE: FAQ always appears if present
+  { pattern: /preguntas?\s*frecuentes?|faq|faqs|dudas?\s*(comunes?|frecuentes?)/i, score: 99, icon: <HelpCircle className="h-3.5 w-3.5" />, type: 'insight', shortLabel: 'FAQ' },
+  
   // HIGH VALUE - Actionable
   { pattern: /checklist|lista\s*de\s*verificaci[oó]n/i, score: 95, icon: <CheckSquare className="h-3.5 w-3.5" />, type: 'action', shortLabel: 'Checklist' },
-  { pattern: /paso\s*a\s*paso|pasos?\s*(para|concretos?)/i, score: 93, icon: <ListChecks className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /paso\s*a\s*paso|pasos?\s*(para|concretos?)/i, score: 93, icon: <ListChecks className="h-3.5 w-3.5" />, type: 'action', shortLabel: 'Pasos' },
   { pattern: /veredicto|conclusi[oó]n\s*(final)?/i, score: 92, icon: <Star className="h-3.5 w-3.5" />, type: 'conclusion', shortLabel: 'Veredicto' },
-  { pattern: /errores?\s*(comunes?|t[ií]picos?|graves?|cr[ií]ticos?|que\s*evitar)/i, score: 91, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning' },
-  { pattern: /c[oó]mo\s+(empezar|implementar|aplicar|usar|hacer)/i, score: 90, icon: <Compass className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /errores?\s*(comunes?|t[ií]picos?|graves?|cr[ií]ticos?|que\s*evitar)/i, score: 91, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning', shortLabel: 'Errores' },
+  { pattern: /c[oó]mo\s+(empezar|implementar|aplicar|usar|hacer|medir|crear|lograr)/i, score: 90, icon: <Compass className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /implementaci[oó]n|puesta\s*en\s*marcha|ejecuci[oó]n/i, score: 89, icon: <Zap className="h-3.5 w-3.5" />, type: 'action', shortLabel: 'Implementación' },
   
   // HIGH VALUE - Insights
-  { pattern: /ejemplo|caso\s*(real|pr[aá]ctico)|historia/i, score: 88, icon: <BookOpen className="h-3.5 w-3.5" />, type: 'example' },
+  { pattern: /ejemplo|caso\s*(real|pr[aá]ctico)|historia/i, score: 88, icon: <BookOpen className="h-3.5 w-3.5" />, type: 'example', shortLabel: 'Ejemplo' },
   { pattern: /ventajas?\s*y\s*desventajas?|pros?\s*y\s*contras?/i, score: 87, icon: <BarChart3 className="h-3.5 w-3.5" />, type: 'comparison' },
   { pattern: /vs\.?|versus|comparativa|comparaci[oó]n/i, score: 86, icon: <BarChart3 className="h-3.5 w-3.5" />, type: 'comparison' },
   { pattern: /por\s*qu[eé]\s*(importa|funciona|es\s*(clave|importante|cr[ií]tico))/i, score: 85, icon: <Lightbulb className="h-3.5 w-3.5" />, type: 'insight' },
-  { pattern: /se[ñn]ales?\s*(de\s*alerta|clave|concretas?)|red\s*flags?/i, score: 84, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning' },
+  { pattern: /se[ñn]ales?\s*(de\s*alerta|clave|concretas?)|red\s*flags?/i, score: 84, icon: <AlertTriangle className="h-3.5 w-3.5" />, type: 'warning', shortLabel: 'Alertas' },
   
   // MEDIUM VALUE
-  { pattern: /herramienta|recurso|plataforma|software/i, score: 82, icon: <Layers className="h-3.5 w-3.5" />, type: 'action' },
-  { pattern: /estrategia|t[aá]ctica|m[eé]todo|framework/i, score: 80, icon: <Crosshair className="h-3.5 w-3.5" />, type: 'insight' },
+  { pattern: /herramienta|recurso|plataforma|software/i, score: 82, icon: <Layers className="h-3.5 w-3.5" />, type: 'action', shortLabel: 'Herramientas' },
+  { pattern: /estrategia|t[aá]ctica|m[eé]todo|framework/i, score: 80, icon: <Crosshair className="h-3.5 w-3.5" />, type: 'insight', shortLabel: 'Estrategia' },
   { pattern: /resultado|impacto|beneficio|roi|retorno/i, score: 78, icon: <Zap className="h-3.5 w-3.5" />, type: 'insight' },
   { pattern: /diagn[oó]stico|evaluaci[oó]n|auditor[ií]a|an[aá]lisis/i, score: 77, icon: <Target className="h-3.5 w-3.5" />, type: 'action' },
   { pattern: /riesgo|peligro|cuidado|atenci[oó]n/i, score: 76, icon: <Shield className="h-3.5 w-3.5" />, type: 'warning' },
@@ -58,9 +62,11 @@ const SECTION_SIGNALS: Array<{
   { pattern: /gu[ií]a|tutorial|manual/i, score: 74, icon: <BookOpen className="h-3.5 w-3.5" />, type: 'action' },
   { pattern: /plantilla|template|modelo/i, score: 73, icon: <Layers className="h-3.5 w-3.5" />, type: 'action' },
   { pattern: /clave|esencial|fundamental|cr[ií]tico/i, score: 70, icon: <Lightbulb className="h-3.5 w-3.5" />, type: 'insight' },
-  { pattern: /pregunta|faq|duda/i, score: 68, icon: <HelpCircle className="h-3.5 w-3.5" />, type: 'insight' },
+  { pattern: /pregunta|duda/i, score: 68, icon: <HelpCircle className="h-3.5 w-3.5" />, type: 'insight' },
   { pattern: /resumen|s[ií]ntesis|cierre/i, score: 65, icon: <Star className="h-3.5 w-3.5" />, type: 'conclusion' },
   { pattern: /pr[oó]ximos?\s*pasos?|siguiente|acci[oó]n/i, score: 64, icon: <Compass className="h-3.5 w-3.5" />, type: 'action' },
+  { pattern: /m[eé]tricas?|kpi|indicador/i, score: 72, icon: <BarChart3 className="h-3.5 w-3.5" />, type: 'insight', shortLabel: 'Métricas' },
+  { pattern: /automatiza|automat[ií]z/i, score: 71, icon: <Zap className="h-3.5 w-3.5" />, type: 'action', shortLabel: 'Automatización' },
 ];
 
 const TYPE_COLORS: Record<SmartSection['type'], string> = {
@@ -128,29 +134,18 @@ export function BlogReadingToolbar({ content, title, slug, readingTime, classNam
   const [readingProgress, setReadingProgress] = useState(0);
   const [fontSizeIdx, setFontSizeIdx] = useState(0);
 
-  // Smart section extraction: picks the 4-6 most valuable sections
+  // Smart section extraction: picks the 4-6 most valuable sections with distribution
   const smartSections = useMemo(() => {
     const lines = content.split('\n');
-    const allH2s: Array<{ text: string; id: string; level: number }> = [];
-    let headingIndex = 0;
-
-    lines.forEach((line) => {
-      const match = line.match(/^(#{2})\s+(.+)$/);
-      if (match) {
-        const text = match[2].trim();
-        if (text.length < 4) return;
-        const id = `heading-${headingIndex}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
-        allH2s.push({ text, id, level: match[1].length });
-      }
-      // Count all headings for ID generation
-      if (line.match(/^#{2,3}\s+/)) headingIndex++;
-    });
-
-    // Score all H2s
-    const scored: SmartSection[] = [];
-    // Re-count headingIndex properly for ID matching
+    const totalLines = lines.length;
+    
+    // Score all H2s with position tracking
+    const scored: (SmartSection & { linePos: number })[] = [];
     let hIdx = 0;
+    let lineNumber = 0;
+    
     lines.forEach((line) => {
+      lineNumber++;
       const match = line.match(/^(#{2,3})\s+(.+)$/);
       if (match) {
         const level = match[1].length;
@@ -159,33 +154,63 @@ export function BlogReadingToolbar({ content, title, slug, readingTime, classNam
         const id = `heading-${hIdx}-${text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
         
         if (level === 2) {
-          const result = scoreAndClassify(text, scored.length, allH2s.length);
+          const allH2Count = scored.length;
+          const result = scoreAndClassify(text, allH2Count, 10);
           if (result) {
-            scored.push({ ...result, id, fullText: text });
+            scored.push({ ...result, id, fullText: text, linePos: lineNumber });
           }
         }
         hIdx++;
       }
     });
 
-    // Sort by score, take top 5-6
-    const sorted = [...scored].sort((a, b) => b.score - a.score);
     const MIN_SECTIONS = 4;
     const MAX_SECTIONS = 6;
     
-    // Take top N but ensure diversity of types
-    const selected: SmartSection[] = [];
+    // Sort by score
+    const sorted = [...scored].sort((a, b) => b.score - a.score);
+    
+    // Ensure FAQ is always included if present
+    const faqSection = sorted.find(s => s.label === 'FAQ');
+    
+    // Take top N with type diversity + spatial distribution
+    const selected: (SmartSection & { linePos: number })[] = [];
     const typeCounts: Record<string, number> = {};
+    
+    // Add FAQ first if exists
+    if (faqSection) {
+      selected.push(faqSection);
+      typeCounts[faqSection.type] = 1;
+    }
+    
+    // Ensure at least 1 actionable section
+    const hasAction = faqSection?.type === 'action';
+    if (!hasAction) {
+      const actionSection = sorted.find(s => s.type === 'action' && !selected.find(sel => sel.id === s.id));
+      if (actionSection) {
+        selected.push(actionSection);
+        typeCounts['action'] = (typeCounts['action'] || 0) + 1;
+      }
+    }
     
     for (const section of sorted) {
       if (selected.length >= MAX_SECTIONS) break;
+      if (selected.find(s => s.id === section.id)) continue;
+      
       const typeCount = typeCounts[section.type] || 0;
       if (typeCount >= 2 && selected.length >= MIN_SECTIONS) continue;
+      
+      // Spatial distribution: avoid clustering (sections too close together)
+      if (selected.length > 0) {
+        const tooClose = selected.some(s => Math.abs(s.linePos - section.linePos) < totalLines * 0.05);
+        if (tooClose && selected.length >= MIN_SECTIONS) continue;
+      }
+      
       selected.push(section);
       typeCounts[section.type] = typeCount + 1;
     }
 
-    // If we have fewer than MIN_SECTIONS, add remaining H2s by document order
+    // If we have fewer than MIN_SECTIONS, add remaining by document order
     if (selected.length < MIN_SECTIONS) {
       for (const section of scored) {
         if (selected.length >= MIN_SECTIONS) break;
@@ -195,12 +220,20 @@ export function BlogReadingToolbar({ content, title, slug, readingTime, classNam
       }
     }
 
-    // Re-sort by document order (by heading index in id)
+    // Re-sort by document order
     selected.sort((a, b) => {
       const idxA = parseInt(a.id.split('-')[1]) || 0;
       const idxB = parseInt(b.id.split('-')[1]) || 0;
       return idxA - idxB;
     });
+
+    // Log quality issues for admin review
+    if (selected.length < MIN_SECTIONS && typeof console !== 'undefined') {
+      console.warn(`[BlogToolbar] Nota con menos de ${MIN_SECTIONS} secciones válidas (${selected.length}). Slug puede necesitar revisión.`);
+    }
+    if (faqSection && !selected.find(s => s.label === 'FAQ')) {
+      console.warn(`[BlogToolbar] FAQ detectada pero no incluida en toolbar.`);
+    }
 
     return selected;
   }, [content]);
