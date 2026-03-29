@@ -1133,7 +1133,7 @@ Aspect ratio: 16:9. Ultra high resolution.
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.1-flash-image-preview',
+        model: 'google/gemini-2.5-flash-image',
         messages: [{ role: 'user', content: prompt }],
         modalities: ['image', 'text'],
       }),
@@ -1302,7 +1302,7 @@ Aspect ratio: 3:2. Ultra high resolution.
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3.1-flash-image-preview',
+        model: 'google/gemini-2.5-flash-image',
         messages: [{ role: 'user', content: prompt }],
         modalities: ['image', 'text'],
       }),
@@ -2188,7 +2188,7 @@ TAMBIÉN:
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash', // Full quality model — fewer posts/day but each one premium
+          model: 'google/gemini-2.5-flash-lite', // Cost-optimized: lite model with structured prompts maintains quality
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: rewriteAttempts === 0 ? userPrompt : `${userPrompt}\n\nIMPORTANTE: El intento anterior no pasó el quality gate. Problemas detectados:\n${qualityGateReport!.issues.join('\n')}\n\nCorregí estos problemas en esta nueva versión.` }

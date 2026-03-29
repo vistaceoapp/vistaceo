@@ -229,7 +229,7 @@ async function aiImproveContent(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: AI_IMPROVE_PROMPT },
           { role: "user", content: `NOTA: "${post.title}"\nCATEGORÍA: ${post.category}\nKEYWORD: ${post.primary_keyword}\n\nCONTENIDO:\n${post.content_md.slice(0, 12000)}` }
