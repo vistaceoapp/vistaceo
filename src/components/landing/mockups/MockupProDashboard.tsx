@@ -270,56 +270,17 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
           </div>
         </div>
 
-        {/* Quick Stats Row - matching real product cards */}
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
-          <div className="text-center p-2 sm:p-2.5 rounded-lg bg-primary/5 border border-primary/20">
-            <div className="flex items-center justify-center gap-1 mb-0.5 sm:mb-1">
-              <Target className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+        {/* Priority dimension callout */}
+        <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-warning/5 border border-warning/20">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
+              <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-warning" />
+              <span className="text-[10px] sm:text-xs font-semibold text-warning">Prioridad: {data.dimensions.reduce((min, d) => d.score < min.score ? d : min).name}</span>
             </div>
-            <div className="text-lg sm:text-xl font-bold text-foreground">{data.activeMissions}</div>
-            <div className="text-[9px] sm:text-[10px] text-muted-foreground">Misiones activas</div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              Esta dimensión necesita atención inmediata para mejorar tu puntaje general.
+            </p>
           </div>
-          <div className="text-center p-2 sm:p-2.5 rounded-lg bg-success/5 border border-success/20">
-            <div className="flex items-center justify-center gap-1 mb-0.5 sm:mb-1">
-              <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-success" />
-            </div>
-            <div className="text-lg sm:text-xl font-bold text-foreground">{data.completedMissions}</div>
-            <div className="text-[9px] sm:text-[10px] text-muted-foreground">Completadas</div>
-          </div>
-          <div className="text-center p-2 sm:p-2.5 rounded-lg bg-accent/5 border border-accent/20">
-            <div className="flex items-center justify-center gap-1 mb-0.5 sm:mb-1">
-              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-accent" />
-            </div>
-            <div className="text-lg sm:text-xl font-bold text-foreground">{data.radarAlerts}</div>
-            <div className="text-[9px] sm:text-[10px] text-muted-foreground">Oportunidades</div>
-          </div>
-        </div>
-
-        {/* Brain Knowledge Widget */}
-        <div className="mt-2.5 sm:mt-3 grid grid-cols-2 gap-1.5 sm:gap-2">
-          <div className="p-2 sm:p-2.5 rounded-xl bg-secondary/30 border border-border">
-            <div className="flex items-center gap-1 sm:gap-1.5 mb-0.5 sm:mb-1">
-              <Brain className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-              <span className="text-[9px] sm:text-[10px] text-muted-foreground">Conocimiento</span>
-            </div>
-            <div className="text-xs sm:text-sm font-bold text-foreground">{data.brainKnowledge} datos</div>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-secondary/30 border border-border">
-            <div className="flex items-center gap-1 sm:gap-1.5 mb-0.5 sm:mb-1">
-              <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-success" />
-              <span className="text-[9px] sm:text-[10px] text-muted-foreground">Pulso hoy</span>
-            </div>
-            <div className="text-xs sm:text-sm font-bold text-foreground">{data.pulseToday}</div>
-          </div>
-        </div>
-
-        {/* Current Action - matching real product green CTA box */}
-        <div className="mt-2.5 sm:mt-3 p-2.5 sm:p-3 rounded-xl bg-success/5 border border-success/20">
-          <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-            <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-success" />
-            <span className="text-[10px] sm:text-xs font-semibold text-success">Acción sugerida hoy</span>
-          </div>
-          <p className="text-xs sm:text-sm font-medium text-foreground line-clamp-2">{data.lastAction}</p>
         </div>
 
         {/* Footer with sync info */}
