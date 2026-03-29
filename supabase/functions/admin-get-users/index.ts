@@ -5,7 +5,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_EMAILS = ["info@vistaceo.com", "lickevinmerdinian@gmail.com"];
+async function verifyAdmin(supabase: any, req: Request) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return null;
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user } } = await supabase.auth.getUser(token);
+  if (!user) return null;
+
+  // Check admin role in user_roles table
+  const { data: role } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("role", "admin")
+    .single();
+
+  if (!role) return null;
+  return user;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -18,19 +36,8 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Verify admin
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user } } = await supabase.auth.getUser(token);
-    
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+    const user = await verifyAdmin(supabase, req);
+    if (!user) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -49,8 +56,8 @@ Deno.serve(async (req) => {
     const page = parseInt(params.page || url.searchParams.get("page") || "1");
     const limit = parseInt(params.limit || url.searchParams.get("limit") || "50");
     const search = params.search || url.searchParams.get("search") || "";
-    const filter = params.filter || url.searchParams.get("filter") || "all"; // all, pro, free, active
-    const userId = params.userId || url.searchParams.get("userId"); // For single user detail
+    const filter = params.filter || url.searchParams.get("filter") || "all";
+    const userId = params.userId || url.searchParams.get("userId");
 
     // If requesting single user detail
     if (userId) {
@@ -62,7 +69,6 @@ Deno.serve(async (req) => {
         supabase.from("user_daily_metrics").select("*").eq("user_id", userId).order("metric_date", { ascending: false }).limit(30),
       ]);
 
-      // Get business-related data if business exists
       let businessBrain = null;
       let businessSnapshots = null;
       let missions = null;
@@ -85,7 +91,6 @@ Deno.serve(async (req) => {
         chatMessages = chatRes.data;
       }
 
-      // Log admin action
       await supabase.from("admin_audit_log").insert({
         admin_user_id: user.id,
         action_type: "view_user",
@@ -109,7 +114,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // List users with comprehensive data - separate queries to avoid FK issues
     let profilesQuery = supabase
       .from("profiles")
       .select("*", { count: "exact" })
@@ -130,7 +134,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch businesses and subscriptions for each user
     const userIds = profiles?.map(p => p.id) || [];
     
     const [businessesRes, subscriptionsRes] = await Promise.all([
@@ -138,15 +141,12 @@ Deno.serve(async (req) => {
       supabase.from("subscriptions").select("*").in("user_id", userIds),
     ]);
 
-    // Map data to users
     const users = profiles?.map(profile => ({
       ...profile,
       businesses: businessesRes.data?.filter(b => b.owner_id === profile.id) || [],
       subscriptions: subscriptionsRes.data?.filter(s => s.user_id === profile.id) || [],
     })) || [];
 
-
-    // Get aggregate stats
     const [totalUsersRes, proUsersRes, activeUsersRes] = await Promise.all([
       supabase.from("profiles").select("*", { count: "exact", head: true }),
       supabase.from("subscriptions").select("*", { count: "exact", head: true }).eq("status", "active"),
@@ -156,11 +156,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({
       users,
-      pagination: {
-        page,
-        limit,
-        total: count || 0,
-      },
+      pagination: { page, limit, total: count || 0 },
       stats: {
         totalUsers: totalUsersRes.count || 0,
         proUsers: proUsersRes.count || 0,

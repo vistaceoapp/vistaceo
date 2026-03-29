@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Shield, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
-// Emails autorizados para acceder al admin
-const AUTHORIZED_EMAILS = [
-  'info@vistaceo.com',
-  'lickevinmerdinian@gmail.com',
-];
 
 interface AdminAuthGuardProps {
   children: React.ReactNode;
@@ -25,11 +20,16 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
       if (!user) {
         setIsAuthorized(false);
       } else {
-        const userEmail = user.email?.toLowerCase();
-        const authorized = AUTHORIZED_EMAILS.some(
-          email => email.toLowerCase() === userEmail
-        );
-        setIsAuthorized(authorized);
+        // Check admin role from user_roles table instead of hardcoded emails
+        supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .single()
+          .then(({ data }) => {
+            setIsAuthorized(!!data);
+          });
       }
     }
   }, [user, loading]);
@@ -102,8 +102,23 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
 
 export function useIsAdmin(): boolean {
   const { user } = useAuth();
-  if (!user?.email) return false;
-  return AUTHORIZED_EMAILS.some(
-    email => email.toLowerCase() === user.email?.toLowerCase()
-  );
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single()
+      .then(({ data }) => {
+        setIsAdmin(!!data);
+      });
+  }, [user]);
+
+  return isAdmin;
 }

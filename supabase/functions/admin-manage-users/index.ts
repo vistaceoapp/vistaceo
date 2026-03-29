@@ -5,7 +5,25 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_EMAILS = ["info@vistaceo.com", "lickevinmerdinian@gmail.com"];
+async function verifyAdmin(supabase: any, req: Request) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return null;
+
+  const token = authHeader.replace("Bearer ", "");
+  const { data: { user } } = await supabase.auth.getUser(token);
+  if (!user) return null;
+
+  // Check admin role in user_roles table instead of hardcoded emails
+  const { data: role } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("role", "admin")
+    .single();
+
+  if (!role) return null;
+  return user;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -18,18 +36,8 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user } } = await supabase.auth.getUser(token);
-
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+    const user = await verifyAdmin(supabase, req);
+    if (!user) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -44,7 +52,6 @@ Deno.serve(async (req) => {
       const { userId } = body;
       if (!userId) throw new Error("userId required");
 
-      // Delete from auth (cascades to profiles via trigger)
       const { error } = await supabase.auth.admin.deleteUser(userId);
       if (error) throw error;
 
@@ -65,7 +72,6 @@ Deno.serve(async (req) => {
       const { userId, planId, durationDays } = body;
       if (!userId) throw new Error("userId required");
 
-      // Get user's business
       const { data: businesses } = await supabase
         .from("businesses")
         .select("id")
@@ -75,7 +81,6 @@ Deno.serve(async (req) => {
       const businessId = businesses?.[0]?.id;
 
       if (planId === "free" || planId === "revoke") {
-        // Revoke: deactivate all active subscriptions
         if (businessId) {
           await supabase
             .from("subscriptions")
@@ -89,19 +94,16 @@ Deno.serve(async (req) => {
             .eq("id", businessId);
         }
       } else {
-        // Grant pro
         const days = durationDays || 365;
         const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 
         if (businessId) {
-          // Deactivate existing
           await supabase
             .from("subscriptions")
             .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
             .eq("business_id", businessId)
             .eq("status", "active");
 
-          // Create new
           await supabase.from("subscriptions").insert({
             business_id: businessId,
             user_id: userId,
