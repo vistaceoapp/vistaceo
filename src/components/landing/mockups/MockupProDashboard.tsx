@@ -138,17 +138,17 @@ const businessData: Record<BusinessKey, {
   }
 };
 
-// Aligned with real product colors
+// Color logic matching real product exactly
 const getScoreColor = (score: number) => {
   if (score >= 70) return "text-success";
-  if (score >= 50) return "text-success"; // green for "Regular" like product
+  if (score >= 45) return "text-success"; // "Regular" range - green like product
   if (score >= 30) return "text-warning";
   return "text-destructive";
 };
 
 const getScoreBg = (score: number) => {
   if (score >= 70) return "bg-success/10 border-success/30";
-  if (score >= 50) return "bg-success/10 border-success/30";
+  if (score >= 45) return "bg-success/10 border-success/30";
   if (score >= 30) return "bg-warning/10 border-warning/30";
   return "bg-destructive/10 border-destructive/30";
 };
@@ -156,25 +156,34 @@ const getScoreBg = (score: number) => {
 const getScoreLabel = (score: number) => {
   if (score >= 85) return "Excelente";
   if (score >= 70) return "Bueno";
-  if (score >= 50) return "Regular";
+  if (score >= 45) return "Regular";
   if (score >= 30) return "Crítico";
   return "Crítico";
 };
 
-// Dimension bar colors: blue for high metrics, orange for medium, red for low (matching product)
+// Dimension bar colors matching real product: blue >= 65, orange 45-64, red < 45
 const getDimensionBarColor = (score: number) => {
   if (score >= 65) return "bg-primary"; // blue
-  if (score >= 45) return "bg-warning"; // orange
+  if (score >= 45) return "bg-warning"; // orange/amber
   return "bg-destructive"; // red
+};
+
+const getDimensionTextColor = (score: number) => {
+  if (score >= 65) return "text-primary";
+  if (score >= 45) return "text-warning";
+  return "text-destructive";
 };
 
 export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardProps>(({ business = "argentina" }, ref) => {
   const data = businessData[business];
   
+  // Determine top bar color based on health score
+  const topBarColor = data.healthScore >= 45 ? "bg-success" : data.healthScore >= 30 ? "bg-warning" : "bg-destructive";
+
   return (
     <div ref={ref} className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border shadow-2xl overflow-hidden w-full">
-      {/* Color stripe based on health score */}
-      <div className="h-1.5 bg-success" />
+      {/* Color stripe based on health score - matches real product */}
+      <div className={cn("h-1.5", topBarColor)} />
       
       <div className="p-3 sm:p-4 md:p-5">
         {/* Business Header with REAL photo */}
@@ -196,7 +205,7 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
           </div>
         </div>
 
-        {/* Health Score Section */}
+        {/* Health Score Section - matching real product header */}
         <div className="flex items-center justify-between mb-3 sm:mb-4">
           <div className="flex items-center gap-2">
             <h3 className="font-bold text-foreground text-xs sm:text-sm">Salud de Negocio</h3>
@@ -208,33 +217,32 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
           <ChevronDown className="w-4 h-4 text-muted-foreground" />
         </div>
 
-        {/* Main score + dimensions */}
-        <div className="flex items-center gap-3 sm:gap-4">
-          {/* Score box */}
+        {/* Main score + dimensions - layout matching real product */}
+        <div className="flex items-start gap-3 sm:gap-4">
+          {/* Score circle - matching real product */}
           <motion.div
             whileHover={{ scale: 1.02 }}
             className={cn(
-              "flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl transition-all cursor-pointer min-w-[80px] sm:min-w-[100px]",
-              "ring-2 ring-offset-2 ring-offset-background",
-              getScoreBg(data.healthScore),
-              "ring-success/30"
+              "flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl transition-all cursor-pointer min-w-[80px] sm:min-w-[100px] aspect-square",
+              "border",
+              getScoreBg(data.healthScore)
             )}
           >
-            <div className="flex items-baseline gap-1">
+            <div className="flex items-baseline gap-0.5">
               <span className={cn("text-3xl sm:text-4xl font-bold", getScoreColor(data.healthScore))}>
                 {data.healthScore}
               </span>
-              <span className="flex items-center ml-1">
-                <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-success" />
-              </span>
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-success ml-0.5" />
             </div>
-            <span className="mt-1 px-2 py-0.5 rounded-full border text-[10px] sm:text-xs text-success border-success/30 bg-success/10">
+            <span className={cn("mt-1 px-2 py-0.5 rounded-full border text-[10px] sm:text-xs font-medium",
+              getScoreBg(data.healthScore), getScoreColor(data.healthScore)
+            )}>
               {getScoreLabel(data.healthScore)}
             </span>
           </motion.div>
 
-          {/* Mini sub-scores preview */}
-          <div className="flex-1 space-y-1.5 sm:space-y-2">
+          {/* Dimension bars - matching real product exactly */}
+          <div className="flex-1 space-y-2 sm:space-y-2.5 pt-1">
             {data.dimensions.map((dim, i) => (
               <motion.div
                 key={dim.name}
@@ -244,8 +252,9 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
                 className="flex items-center gap-1.5 sm:gap-2"
               >
                 <span className="text-xs sm:text-sm">{dim.icon}</span>
-                <span className="text-[10px] sm:text-xs text-muted-foreground w-14 sm:w-16 truncate">{dim.name}</span>
-                <div className="flex-1 h-1.5 sm:h-2 bg-secondary rounded-full overflow-hidden">
+                <span className="text-[10px] sm:text-xs text-muted-foreground w-16 sm:w-20 truncate">{dim.name}</span>
+                {/* Thicker progress bar like real product */}
+                <div className="flex-1 h-2.5 sm:h-3 bg-secondary rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${dim.score}%` }}
@@ -253,7 +262,7 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
                     className={cn("h-full rounded-full", getDimensionBarColor(dim.score))}
                   />
                 </div>
-                <span className={cn("text-[10px] sm:text-xs font-bold w-5 sm:w-6 text-right", getScoreColor(dim.score))}>
+                <span className={cn("text-[10px] sm:text-xs font-bold w-6 sm:w-7 text-right", getDimensionTextColor(dim.score))}>
                   {dim.score}
                 </span>
               </motion.div>
@@ -261,7 +270,7 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
           </div>
         </div>
 
-        {/* Quick Stats Row */}
+        {/* Quick Stats Row - matching real product cards */}
         <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-border">
           <div className="text-center p-2 sm:p-2.5 rounded-lg bg-primary/5 border border-primary/20">
             <div className="flex items-center justify-center gap-1 mb-0.5 sm:mb-1">
@@ -304,11 +313,11 @@ export const MockupProDashboard = forwardRef<HTMLDivElement, MockupProDashboardP
           </div>
         </div>
 
-        {/* Current Action */}
-        <div className="mt-2.5 sm:mt-3 p-2.5 sm:p-3 rounded-xl bg-primary/5 border border-primary/20">
+        {/* Current Action - matching real product green CTA box */}
+        <div className="mt-2.5 sm:mt-3 p-2.5 sm:p-3 rounded-xl bg-success/5 border border-success/20">
           <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-            <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
-            <span className="text-[10px] sm:text-xs font-semibold text-primary">Acción sugerida hoy</span>
+            <Brain className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-success" />
+            <span className="text-[10px] sm:text-xs font-semibold text-success">Acción sugerida hoy</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-foreground line-clamp-2">{data.lastAction}</p>
         </div>

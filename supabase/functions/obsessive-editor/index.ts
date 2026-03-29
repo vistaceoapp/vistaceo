@@ -685,7 +685,7 @@ Respondé SOLO en este formato JSON exacto, sin texto adicional:
         method: "POST",
         headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-2.5-flash-lite",
           messages: [{ role: "user", content: prompt }],
         }),
       });
@@ -827,7 +827,7 @@ ${NEGATIVE_PROMPT}`;
         method: "POST",
         headers: { Authorization: `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-2.5-flash-image",
           messages: [{ role: "user", content: imagePrompt }],
           modalities: ["image", "text"],
         }),
