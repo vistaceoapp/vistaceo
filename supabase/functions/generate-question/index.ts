@@ -342,7 +342,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite", // Cost-optimized: simple question generation
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: contextPrompt },

@@ -180,7 +180,7 @@ Si no hay suficiente información de reputación, indicá qué datos faltan y su
           method: "POST",
           headers: { "Authorization": `Bearer ${lovableApiKey}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: "google/gemini-2.5-flash-lite", // Cost-optimized: review analysis is structured extraction
             max_tokens: 4000,
             temperature: 0.3,
             messages: [
