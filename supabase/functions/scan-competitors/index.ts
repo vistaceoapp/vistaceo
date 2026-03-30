@@ -101,7 +101,7 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: "google/gemini-2.5-flash-lite", // Cost-optimized: simple JSON array generation
             messages: [{ role: "user", content: prompt }],
             temperature: 0.8,
             max_tokens: 1000,

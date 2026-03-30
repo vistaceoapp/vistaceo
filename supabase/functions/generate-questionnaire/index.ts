@@ -142,7 +142,7 @@ RECORDATORIO FINAL:
 Responde usando la función generate_questions.`;
 
     // Use fast model for all batches - quality comes from the structured prompt, not model tier
-    const model = "google/gemini-2.5-flash";
+    const model = "google/gemini-2.5-flash-lite"; // Cost-optimized: structured question generation
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -289,7 +289,7 @@ Responde usando la función generate_questions.`;
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
+            model: "google/gemini-2.5-flash-lite", // Cost-optimized: retry with same cheap model
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt },

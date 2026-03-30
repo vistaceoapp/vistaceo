@@ -314,7 +314,7 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite", // Cost-optimized: simple classification task
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Analizar esta actividad y devolver 3 opciones:\n\n"${raw_text.trim()}"` },

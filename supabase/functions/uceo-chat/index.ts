@@ -310,7 +310,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite", // Cost-optimized: simpler chat assistant
         messages: [
           { role: "system", content: systemPrompt },
           ...messages.slice(-20).map((m: { role: string; content: string }) => ({

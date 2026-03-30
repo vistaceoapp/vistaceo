@@ -79,7 +79,7 @@ Respondé SOLO en JSON:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash-lite", // Cost-optimized: summary generation is structured
         messages: [
           { role: "system", content: "Sos un CEO mentor ultra-personalizado. Respondés SOLO en JSON válido. Nunca usás frases genéricas." },
           { role: "user", content: prompt },

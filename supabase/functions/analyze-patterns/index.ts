@@ -715,7 +715,7 @@ ${analysisContext}
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-pro",
+          model: "google/gemini-2.5-flash", // Downgraded from pro: flash handles market analysis well
           messages: [
             { role: "system", content: "Sos un analista de mercado experto. Generás insights de I+D basados en fuentes reales." },
             { role: "user", content: researchPrompt }
@@ -910,7 +910,7 @@ Ejemplos CORRECTOS:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-2.5-flash", // Downgraded from pro: flash handles opportunity analysis well
         messages: [
           { role: "system", content: `Sos un asesor de negocios experto. ${locale.voice === "voseo" ? "Hablás de vos." : "Hablas de tú."}` },
           { role: "user", content: opportunitiesPrompt }

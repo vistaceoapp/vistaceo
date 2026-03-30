@@ -28,8 +28,8 @@ const CANONICAL_DOMAIN = "https://www.vistaceo.com";
 const MIN_WORD_COUNT = 1500;
 const MIN_INTERNAL_LINKS = 3;
 const MIN_H2_COUNT = 3;
-const MAX_AI_OPTIMIZATIONS_PER_CYCLE = 8;
-const MAX_IMAGE_GENS_PER_CYCLE = 5;
+const MAX_AI_OPTIMIZATIONS_PER_CYCLE = 3; // Cost-optimized: reduced from 8
+const MAX_IMAGE_GENS_PER_CYCLE = 2; // Cost-optimized: reduced from 5
 
 // 20 radically different visual formulas for maximum diversity
 const SCENE_TYPES = [
@@ -646,7 +646,7 @@ async function phaseSeoOptimize(supabase: any, cycleId: string) {
   const candidates = posts.map((p: any) => ({
     ...p,
     seo_score: scoreSeoQuality(p),
-  })).filter((p: any) => p.seo_score < 85)
+  })).filter((p: any) => p.seo_score < 70) // Cost-optimized: only optimize truly weak SEO (was 85)
     .sort((a: any, b: any) => a.seo_score - b.seo_score)
     .slice(0, MAX_AI_OPTIMIZATIONS_PER_CYCLE);
 
