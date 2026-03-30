@@ -646,7 +646,7 @@ async function phaseSeoOptimize(supabase: any, cycleId: string) {
   const candidates = posts.map((p: any) => ({
     ...p,
     seo_score: scoreSeoQuality(p),
-  })).filter((p: any) => p.seo_score < 85)
+  })).filter((p: any) => p.seo_score < 70) // Cost-optimized: only optimize truly weak SEO (was 85)
     .sort((a: any, b: any) => a.seo_score - b.seo_score)
     .slice(0, MAX_AI_OPTIMIZATIONS_PER_CYCLE);
 

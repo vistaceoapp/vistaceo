@@ -581,7 +581,7 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-lite', // Cost-optimized: prediction generation with structured output
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
