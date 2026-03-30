@@ -2291,21 +2291,8 @@ TAMBIÉN:
     const heroImageUrl = await generateHeroImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
     qualityGateReport.checks.has_hero_image = !!heroImageUrl;
     
-    // 7b. Generate inline image for richer content (restored — fewer posts/day allows full quality)
-    const inlineImageUrl = await generateInlineImage(selectedTopic.title_base, selectedTopic.pillar, selectedTopic.slug, lovableApiKey!, supabaseUrl, supabaseKey);
-    if (inlineImageUrl) {
-      // Insert inline image after the first major section (after second ##)
-      const sections = contentMd.split(/^(## .+)$/m);
-      if (sections.length >= 5) {
-        // Insert after the 2nd section heading + content
-        const insertPoint = sections.slice(0, 5).join('');
-        const rest = sections.slice(5).join('');
-        contentMd = insertPoint + `\n\n![Ilustración práctica sobre ${selectedTopic.title_base}](${inlineImageUrl})\n\n` + rest;
-      }
-      qualityGateReport.checks.has_inline_images = true;
-    } else {
-      qualityGateReport.checks.has_inline_images = false;
-    }
+    // 7b. Skip inline image generation to save AI costs — hero image is sufficient
+    qualityGateReport.checks.has_inline_images = false;
 
     // 8. Generate metadata
     const excerpt = contentMd
