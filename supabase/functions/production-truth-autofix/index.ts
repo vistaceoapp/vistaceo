@@ -415,7 +415,7 @@ Deno.serve(async (req) => {
       
       // 7. AI improvement if score is still below 90 and AI is enabled
       let aiImproved = false;
-      if (enableAI && lovableApiKey && scoreAfterFixes < 90 && totalAIImproved < MAX_AI_PER_RUN) {
+      if (enableAI && lovableApiKey && scoreAfterFixes < 75 && totalAIImproved < MAX_AI_PER_RUN) { // Cost-optimized: only AI-improve truly weak posts (was < 90)
         console.log(`[autofix] AI improving "${post.slug}" (score: ${scoreAfterFixes})`);
         const improved = await aiImproveContent(
           {
