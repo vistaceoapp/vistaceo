@@ -28,8 +28,8 @@ const CANONICAL_DOMAIN = "https://www.vistaceo.com";
 const MIN_WORD_COUNT = 1500;
 const MIN_INTERNAL_LINKS = 3;
 const MIN_H2_COUNT = 3;
-const MAX_AI_OPTIMIZATIONS_PER_CYCLE = 8;
-const MAX_IMAGE_GENS_PER_CYCLE = 5;
+const MAX_AI_OPTIMIZATIONS_PER_CYCLE = 3; // Cost-optimized: reduced from 8
+const MAX_IMAGE_GENS_PER_CYCLE = 2; // Cost-optimized: reduced from 5
 
 // 20 radically different visual formulas for maximum diversity
 const SCENE_TYPES = [

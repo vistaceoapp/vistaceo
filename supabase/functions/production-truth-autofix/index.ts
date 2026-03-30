@@ -357,8 +357,8 @@ Deno.serve(async (req) => {
     let totalFixed = 0;
     let totalAIImproved = 0;
     let totalSkipped = 0;
-    const MAX_FIXES_PER_RUN = 20;
-    const MAX_AI_PER_RUN = 5;
+    const MAX_FIXES_PER_RUN = 10; // Cost-optimized: reduced from 20
+    const MAX_AI_PER_RUN = 2; // Cost-optimized: reduced from 5
 
     for (const post of posts) {
       if (totalFixed >= MAX_FIXES_PER_RUN) break;

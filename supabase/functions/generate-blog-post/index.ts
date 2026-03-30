@@ -2176,7 +2176,7 @@ TAMBIÉN:
 
     let contentMd = '';
     let rewriteAttempts = 0;
-    const maxRewrites = 3; // Restored quality: fewer posts/day allows more polish per post
+    const maxRewrites = 1; // Cost-optimized: one rewrite max, quality comes from strong first-pass prompt
     let qualityGateReport: QualityGateReport;
 
     // Generation loop with rewrite attempts
