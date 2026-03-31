@@ -180,10 +180,12 @@ export const PrecisionRingWidget = ({
   };
 
   const getHealthColor = () => {
-    if (healthScore >= 75) return 'success';
-    if (healthScore >= 60) return 'primary';
-    if (healthScore >= 40) return 'amber';
-    return 'destructive';
+    if (healthScore >= 96) return 'health-excellent';
+    if (healthScore >= 85) return 'health-veryGood';
+    if (healthScore >= 70) return 'health-good';
+    if (healthScore >= 50) return 'health-regular';
+    if (healthScore >= 30) return 'health-critical';
+    return 'health-veryCritical';
   };
 
   const getPrecisionColor = () => {
