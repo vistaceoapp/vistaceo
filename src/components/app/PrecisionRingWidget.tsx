@@ -200,10 +200,12 @@ export const PrecisionRingWidget = ({
         {/* Color stripe based on health score */}
         <div className={cn(
           "h-1",
-          healthScore >= 75 ? "bg-success" :
-          healthScore >= 60 ? "bg-primary" :
-          healthScore >= 40 ? "bg-amber-500" :
-          "bg-destructive"
+          healthScore >= 96 ? "bg-health-excellent" :
+          healthScore >= 85 ? "bg-health-veryGood" :
+          healthScore >= 70 ? "bg-health-good" :
+          healthScore >= 50 ? "bg-health-regular" :
+          healthScore >= 30 ? "bg-health-critical" :
+          "bg-health-veryCritical"
         )} />
 
         <div className="p-5">
