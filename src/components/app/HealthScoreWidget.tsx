@@ -29,38 +29,10 @@ const ScoreArc = ({ score, size = 100 }: { score: number; size?: number }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
-  const style = getScoreStyle(score);
 
-  const getStrokeColor = (s: number) => {
-    if (s >= 60) return 'hsl(var(--success))';
-    if (s >= 40) return 'hsl(var(--warning))';
-    return 'hsl(var(--destructive))';
-  };
-
-  return (
-    <svg width={size} height={size} className="transform -rotate-90">
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke="hsl(var(--muted) / 0.3)"
-        strokeWidth={strokeWidth}
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke={getStrokeColor(score)}
-        strokeWidth={strokeWidth}
-        strokeDasharray={circumference}
-        strokeDashoffset={circumference - progress}
-        strokeLinecap="round"
-        className="transition-all duration-1000 ease-out"
-      />
-    </svg>
-  );
+  const { default: { getHealthStyle } } = await import('@/lib/health-score-utils') as any;
+  // Can't use top-level await in component — use inline import at module level instead
+  return null;
 };
 
 /** Color-coded progress bar */

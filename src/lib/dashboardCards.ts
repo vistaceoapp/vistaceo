@@ -340,47 +340,15 @@ export const calculateHealthScore = (
   };
 };
 
-// Centralized score styling used across Dashboard and Analytics
-// bgColor is for light backgrounds, bgColorSolid for stripes/accents
+// Centralized score styling — delegates to health-score-utils (single source of truth)
+import { getHealthStyle, getScoreStyleV2 } from './health-score-utils';
+
 export const getScoreStyle = (score: number | null) => {
-  if (score === null) {
-    return { 
-      label: 'Sin datos', 
-      textColor: 'text-muted-foreground',
-      bgColor: 'bg-muted/20',
-      bgColorSolid: 'bg-muted',
-      borderColor: 'border-border',
-      ringColor: 'ring-muted'
-    };
-  }
-  if (score >= 75) return { 
-    label: score >= 90 ? 'Excelente' : 'Bien', 
-    textColor: 'text-success',
-    bgColor: 'bg-success/8',
-    bgColorSolid: 'bg-success',
-    borderColor: 'border-success/30',
-    ringColor: 'ring-success/30'
-  };
-  if (score >= 40) return { 
-    label: score >= 60 ? 'Mejorable' : 'En riesgo', 
-    textColor: 'text-warning',
-    bgColor: 'bg-warning/8',
-    bgColorSolid: 'bg-warning',
-    borderColor: 'border-warning/30',
-    ringColor: 'ring-warning/30'
-  };
-  return { 
-    label: 'Crítico', 
-    textColor: 'text-destructive',
-    bgColor: 'bg-destructive/8',
-    bgColorSolid: 'bg-destructive',
-    borderColor: 'border-destructive/30',
-    ringColor: 'ring-destructive/30'
-  };
+  return getScoreStyleV2(score);
 };
 
 // Legacy function for backwards compatibility
 export const getScoreLabel = (score: number): { label: string; color: string } => {
-  const style = getScoreStyle(score);
+  const style = getHealthStyle(score);
   return { label: style.label, color: style.textColor };
 };
