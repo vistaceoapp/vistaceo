@@ -56,9 +56,12 @@ const getPrecisionLabel = (score: number, level?: 'Básica' | 'Media' | 'Alta'):
 };
 
 const getScoreLabel = (score: number): { label: string; color: string } => {
-  const { getHealthStyle } = require('@/lib/health-score-utils');
-  const style = getHealthStyle(score);
-  return { label: style.label, color: style.textColor };
+  if (score >= 96) return { label: 'Excelente', color: 'text-health-excellent' };
+  if (score >= 85) return { label: 'Muy bueno', color: 'text-health-veryGood' };
+  if (score >= 70) return { label: 'Bueno', color: 'text-health-good' };
+  if (score >= 50) return { label: 'Regular', color: 'text-health-regular' };
+  if (score >= 30) return { label: 'Crítico', color: 'text-health-critical' };
+  return { label: 'Muy crítico', color: 'text-health-veryCritical' };
 };
 
 // SVG Ring component
