@@ -73,8 +73,8 @@ export const ReputationAnalyticsPanel = ({ className }: { className?: string }) 
     } finally { setAnalyzing(false); }
   };
 
-  const getScoreColor = (s: number) => s >= 80 ? "text-success" : s >= 60 ? "text-warning" : "text-destructive";
-  const getScoreLabel = (s: number) => s >= 90 ? "Excelente" : s >= 80 ? "Muy bueno" : s >= 70 ? "Bueno" : s >= 60 ? "Regular" : s >= 40 ? "Mejorable" : "Crítico";
+  const getScoreColor = (s: number) => s >= 96 ? "text-health-excellent" : s >= 85 ? "text-health-veryGood" : s >= 70 ? "text-health-good" : s >= 50 ? "text-health-regular" : s >= 30 ? "text-health-critical" : "text-health-veryCritical";
+  const getScoreLabel = (s: number) => s >= 96 ? "Excelente" : s >= 85 ? "Muy bueno" : s >= 70 ? "Bueno" : s >= 50 ? "Regular" : s >= 30 ? "Crítico" : "Muy crítico";
   const getTrendIcon = (t: string) => t === "improving" ? <TrendingUp className="w-3.5 h-3.5 text-success" /> : t === "declining" ? <TrendingDown className="w-3.5 h-3.5 text-destructive" /> : null;
   const getTrendLabel = (t: string) => t === "improving" ? "Mejorando" : t === "declining" ? "Declinando" : "Estable";
   const formatTimeAgo = (d: string) => {
