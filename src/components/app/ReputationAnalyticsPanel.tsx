@@ -73,8 +73,8 @@ export const ReputationAnalyticsPanel = ({ className }: { className?: string }) 
     } finally { setAnalyzing(false); }
   };
 
-  const getScoreColor = (s: number) => s >= 80 ? "text-success" : s >= 60 ? "text-warning" : "text-destructive";
-  const getScoreLabel = (s: number) => s >= 90 ? "Excelente" : s >= 80 ? "Muy bueno" : s >= 70 ? "Bueno" : s >= 60 ? "Regular" : s >= 40 ? "Mejorable" : "Crítico";
+  const getScoreColor = (s: number) => s >= 96 ? "text-health-excellent" : s >= 85 ? "text-health-veryGood" : s >= 70 ? "text-health-good" : s >= 50 ? "text-health-regular" : s >= 30 ? "text-health-critical" : "text-health-veryCritical";
+  const getScoreLabel = (s: number) => s >= 96 ? "Excelente" : s >= 85 ? "Muy bueno" : s >= 70 ? "Bueno" : s >= 50 ? "Regular" : s >= 30 ? "Crítico" : "Muy crítico";
   const getTrendIcon = (t: string) => t === "improving" ? <TrendingUp className="w-3.5 h-3.5 text-success" /> : t === "declining" ? <TrendingDown className="w-3.5 h-3.5 text-destructive" /> : null;
   const getTrendLabel = (t: string) => t === "improving" ? "Mejorando" : t === "declining" ? "Declinando" : "Estable";
   const formatTimeAgo = (d: string) => {
@@ -176,7 +176,7 @@ export const ReputationAnalyticsPanel = ({ className }: { className?: string }) 
             {/* Score circle */}
             <div className={cn(
               "w-24 h-24 rounded-full flex flex-col items-center justify-center border-[3px] flex-shrink-0",
-              analysis.overall_score >= 60 ? "border-success/60" : analysis.overall_score >= 40 ? "border-warning/60" : "border-destructive/60"
+              analysis.overall_score >= 96 ? "border-health-excellent/60" : analysis.overall_score >= 85 ? "border-health-veryGood/60" : analysis.overall_score >= 70 ? "border-health-good/60" : analysis.overall_score >= 50 ? "border-health-regular/60" : "border-health-critical/60"
             )}>
               <span className={cn("text-3xl font-bold tracking-tight", getScoreColor(analysis.overall_score))}>{analysis.overall_score}</span>
               <span className={cn("text-[10px] font-medium", getScoreColor(analysis.overall_score))}>{getScoreLabel(analysis.overall_score)}</span>

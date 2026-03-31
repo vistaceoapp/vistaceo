@@ -68,6 +68,14 @@
     --info: 204 70% 50%;
     --info-foreground: 0 0% 100%;
 
+    /* Health Score Semantic Tokens — 6-tier scale */
+    --health-very-critical: 0 80% 45%;
+    --health-critical: 0 72% 51%;
+    --health-regular: 38 92% 50%;
+    --health-good: 204 72% 50%;
+    --health-very-good: 204 80% 42%;
+    --health-excellent: 220 85% 38%;
+
     /* VISTACEO Gradient - Blue to Violet */
     --gradient-start: 204 72% 50%;
     --gradient-end: 244 68% 66%;
@@ -138,6 +146,14 @@
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 10%;
+
+    /* Health Score Semantic Tokens — Dark mode */
+    --health-very-critical: 0 80% 50%;
+    --health-critical: 0 72% 55%;
+    --health-regular: 38 92% 55%;
+    --health-good: 204 72% 55%;
+    --health-very-good: 204 80% 50%;
+    --health-excellent: 220 85% 50%;
     --info: 204 70% 55%;
     --info-foreground: 0 0% 100%;
 

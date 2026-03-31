@@ -12,8 +12,8 @@ import {
 } from 'lucide-react';
 import {
   HEALTH_SUB_SCORES,
-  getScoreStyle,
 } from '@/lib/dashboardCards';
+import { getHealthStyle } from '@/lib/health-score-utils';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -29,13 +29,7 @@ const ScoreArc = ({ score, size = 100 }: { score: number; size?: number }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
-  const style = getScoreStyle(score);
-
-  const getStrokeColor = (s: number) => {
-    if (s >= 60) return 'hsl(var(--success))';
-    if (s >= 40) return 'hsl(var(--warning))';
-    return 'hsl(var(--destructive))';
-  };
+  const style = getHealthStyle(score);
 
   return (
     <svg width={size} height={size} className="transform -rotate-90">
@@ -52,7 +46,7 @@ const ScoreArc = ({ score, size = 100 }: { score: number; size?: number }) => {
         cy={size / 2}
         r={radius}
         fill="none"
-        stroke={getStrokeColor(score)}
+        stroke={style.strokeHsl}
         strokeWidth={strokeWidth}
         strokeDasharray={circumference}
         strokeDashoffset={circumference - progress}
@@ -66,16 +60,11 @@ const ScoreArc = ({ score, size = 100 }: { score: number; size?: number }) => {
 /** Color-coded progress bar */
 const DimensionBar = forwardRef<HTMLDivElement, { value: number; className?: string }>(
   ({ value, className }, ref) => {
-    const getBarColor = (v: number) => {
-      if (v >= 60) return 'bg-success';
-      if (v >= 40) return 'bg-warning';
-      return 'bg-destructive';
-    };
-
+    const style = getHealthStyle(value);
     return (
       <div ref={ref} className={cn('relative h-1 w-full rounded-full bg-muted/30 overflow-hidden', className)}>
         <div
-          className={cn('absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out', getBarColor(value))}
+          className={cn('absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out', style.bgColorSolid)}
           style={{ width: `${Math.max(value, 2)}%` }}
         />
       </div>
@@ -106,7 +95,7 @@ export const HealthScoreWidget = ({
 
   const score = snapshotScore ?? 0;
   const hasScore = snapshotScore !== null && snapshotScore !== undefined;
-  const scoreStyle = getScoreStyle(score);
+  const scoreStyle = getHealthStyle(score);
 
   const getTrend = () => {
     if (previousScore == null || !hasScore) return null;
@@ -136,6 +125,9 @@ export const HealthScoreWidget = ({
   return (
     <TooltipProvider delayDuration={200}>
       <div className="rounded-2xl border border-border/50 bg-card overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-md)]">
+        {/* Top stripe — uses health score color */}
+        <div className={cn("h-1", scoreStyle.bgColorSolid)} />
+
         <div className="p-5">
           {/* Header row */}
           <div className="flex items-center justify-between mb-4">
@@ -200,7 +192,7 @@ export const HealthScoreWidget = ({
 
             {/* Dimension bars */}
             <div className="flex-1 space-y-2 pt-0.5">
-              {/* Certainty micro-label */}
+              {/* Certainty micro-label — neutral, not health-colored */}
               <p className="text-[10px] text-muted-foreground/60 mb-2">
                 {hasScore
                   ? `Certeza: ${precisionPct}% de datos`
@@ -208,23 +200,26 @@ export const HealthScoreWidget = ({
                 }
               </p>
 
-              {visibleDimensions.map((dim) => (
-                <div key={dim.id}>
-                  <div className="flex items-center justify-between mb-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] leading-none">{dim.icon}</span>
-                      <span className="text-[11px] text-muted-foreground">{dim.name}</span>
+              {visibleDimensions.map((dim) => {
+                const dimStyle = dim.value !== null ? getHealthStyle(dim.value) : null;
+                return (
+                  <div key={dim.id}>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] leading-none">{dim.icon}</span>
+                        <span className="text-[11px] text-muted-foreground">{dim.name}</span>
+                      </div>
+                      <span className={cn(
+                        'text-[11px] font-semibold tabular-nums',
+                        dimStyle ? dimStyle.textColor : 'text-muted-foreground/30'
+                      )}>
+                        {dim.value !== null ? dim.value : '—'}
+                      </span>
                     </div>
-                    <span className={cn(
-                      'text-[11px] font-semibold tabular-nums',
-                      dim.value !== null ? getScoreStyle(dim.value).textColor : 'text-muted-foreground/30'
-                    )}>
-                      {dim.value !== null ? dim.value : '—'}
-                    </span>
+                    <DimensionBar value={dim.value ?? 0} />
                   </div>
-                  <DimensionBar value={dim.value ?? 0} />
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -253,7 +248,7 @@ export const HealthScoreWidget = ({
                   <span className="text-muted-foreground">Certeza del análisis</span>
                   <span className={cn(
                     'font-semibold tabular-nums',
-                    precisionPct >= 70 ? 'text-success' : precisionPct >= 40 ? 'text-warning' : 'text-destructive'
+                    precisionPct >= 70 ? 'text-primary' : precisionPct >= 40 ? 'text-warning' : 'text-destructive'
                   )}>
                     {precisionPct}%
                   </span>
@@ -262,7 +257,7 @@ export const HealthScoreWidget = ({
                   <div
                     className={cn(
                       'absolute inset-y-0 left-0 rounded-full transition-all duration-700',
-                      precisionPct >= 70 ? 'bg-success' : precisionPct >= 40 ? 'bg-warning' : 'bg-primary'
+                      precisionPct >= 70 ? 'bg-primary' : precisionPct >= 40 ? 'bg-warning' : 'bg-destructive'
                     )}
                     style={{ width: `${precisionPct}%` }}
                   />

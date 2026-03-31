@@ -69,6 +69,14 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
+        health: {
+          veryCritical: "hsl(var(--health-very-critical))",
+          critical: "hsl(var(--health-critical))",
+          regular: "hsl(var(--health-regular))",
+          good: "hsl(var(--health-good))",
+          veryGood: "hsl(var(--health-very-good))",
+          excellent: "hsl(var(--health-excellent))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

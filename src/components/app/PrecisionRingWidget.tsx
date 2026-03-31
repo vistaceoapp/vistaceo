@@ -56,10 +56,12 @@ const getPrecisionLabel = (score: number, level?: 'Básica' | 'Media' | 'Alta'):
 };
 
 const getScoreLabel = (score: number): { label: string; color: string } => {
-  if (score >= 75) return { label: 'Excelente', color: 'text-success' };
-  if (score >= 60) return { label: 'Bien', color: 'text-primary' };
-  if (score >= 40) return { label: 'Mejorable', color: 'text-amber-500' };
-  return { label: 'Crítico', color: 'text-destructive' };
+  if (score >= 96) return { label: 'Excelente', color: 'text-health-excellent' };
+  if (score >= 85) return { label: 'Muy bueno', color: 'text-health-veryGood' };
+  if (score >= 70) return { label: 'Bueno', color: 'text-health-good' };
+  if (score >= 50) return { label: 'Regular', color: 'text-health-regular' };
+  if (score >= 30) return { label: 'Crítico', color: 'text-health-critical' };
+  return { label: 'Muy crítico', color: 'text-health-veryCritical' };
 };
 
 // SVG Ring component
@@ -108,8 +110,14 @@ const ScoreRing = ({
           strokeLinecap="round"
           className={cn(
             "transition-all duration-700 ease-out",
-            color === 'success' && "text-success",
+            color === 'health-good' && "text-health-good",
+            color === 'health-veryGood' && "text-health-veryGood",
+            color === 'health-excellent' && "text-health-excellent",
+            color === 'health-regular' && "text-health-regular",
+            color === 'health-critical' && "text-health-critical",
+            color === 'health-veryCritical' && "text-health-veryCritical",
             color === 'primary' && "text-primary",
+            color === 'success' && "text-success",
             color === 'amber' && "text-amber-500",
             color === 'destructive' && "text-destructive",
           )}
@@ -119,8 +127,14 @@ const ScoreRing = ({
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className={cn(
           "text-2xl font-bold",
-          color === 'success' && "text-success",
+          color === 'health-good' && "text-health-good",
+          color === 'health-veryGood' && "text-health-veryGood",
+          color === 'health-excellent' && "text-health-excellent",
+          color === 'health-regular' && "text-health-regular",
+          color === 'health-critical' && "text-health-critical",
+          color === 'health-veryCritical' && "text-health-veryCritical",
           color === 'primary' && "text-primary",
+          color === 'success' && "text-success",
           color === 'amber' && "text-amber-500",
           color === 'destructive' && "text-destructive",
         )}>
@@ -169,10 +183,12 @@ export const PrecisionRingWidget = ({
   };
 
   const getHealthColor = () => {
-    if (healthScore >= 75) return 'success';
-    if (healthScore >= 60) return 'primary';
-    if (healthScore >= 40) return 'amber';
-    return 'destructive';
+    if (healthScore >= 96) return 'health-excellent';
+    if (healthScore >= 85) return 'health-veryGood';
+    if (healthScore >= 70) return 'health-good';
+    if (healthScore >= 50) return 'health-regular';
+    if (healthScore >= 30) return 'health-critical';
+    return 'health-veryCritical';
   };
 
   const getPrecisionColor = () => {
@@ -187,10 +203,12 @@ export const PrecisionRingWidget = ({
         {/* Color stripe based on health score */}
         <div className={cn(
           "h-1",
-          healthScore >= 75 ? "bg-success" :
-          healthScore >= 60 ? "bg-primary" :
-          healthScore >= 40 ? "bg-amber-500" :
-          "bg-destructive"
+          healthScore >= 96 ? "bg-health-excellent" :
+          healthScore >= 85 ? "bg-health-veryGood" :
+          healthScore >= 70 ? "bg-health-good" :
+          healthScore >= 50 ? "bg-health-regular" :
+          healthScore >= 30 ? "bg-health-critical" :
+          "bg-health-veryCritical"
         )} />
 
         <div className="p-5">

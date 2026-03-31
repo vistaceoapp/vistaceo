@@ -266,7 +266,7 @@ export const BusinessHealthAnalytics = () => {
               <div className={cn(
                 "w-28 h-28 rounded-full flex flex-col items-center justify-center",
                 "border-[3px] transition-all",
-                latestSnapshot.total_score >= 60 ? "border-success/60" : latestSnapshot.total_score >= 40 ? "border-warning/60" : "border-destructive/60"
+                scoreStyle.borderColor
               )}>
                 <div className="flex items-baseline gap-1">
                   <span className={cn('text-4xl font-bold tracking-tight', scoreStyle.textColor)}>

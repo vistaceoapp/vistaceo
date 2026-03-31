@@ -66,24 +66,30 @@ const businessData = {
 };
 
 const getScoreColor = (score: number) => {
-  if (score >= 80) return "text-success";
-  if (score >= 60) return "text-primary";
-  if (score >= 40) return "text-warning";
-  return "text-destructive";
+  if (score >= 96) return "text-health-excellent";
+  if (score >= 85) return "text-health-veryGood";
+  if (score >= 70) return "text-health-good";
+  if (score >= 50) return "text-health-regular";
+  if (score >= 30) return "text-health-critical";
+  return "text-health-veryCritical";
 };
 
 const getBarColor = (score: number) => {
-  if (score >= 80) return "bg-success";
-  if (score >= 60) return "bg-primary";
-  if (score >= 40) return "bg-warning";
-  return "bg-destructive";
+  if (score >= 96) return "bg-health-excellent";
+  if (score >= 85) return "bg-health-veryGood";
+  if (score >= 70) return "bg-health-good";
+  if (score >= 50) return "bg-health-regular";
+  if (score >= 30) return "bg-health-critical";
+  return "bg-health-veryCritical";
 };
 
 const getHealthStripe = (score: number) => {
-  if (score >= 80) return "bg-success";
-  if (score >= 60) return "bg-primary";
-  if (score >= 40) return "bg-warning";
-  return "bg-destructive";
+  if (score >= 96) return "bg-health-excellent";
+  if (score >= 85) return "bg-health-veryGood";
+  if (score >= 70) return "bg-health-good";
+  if (score >= 50) return "bg-health-regular";
+  if (score >= 30) return "bg-health-critical";
+  return "bg-health-veryCritical";
 };
 
 export const MockupFullDashboard = forwardRef<HTMLDivElement, MockupFullDashboardProps>(
