@@ -146,6 +146,14 @@
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 10%;
+
+    /* Health Score Semantic Tokens — Dark mode */
+    --health-very-critical: 0 80% 50%;
+    --health-critical: 0 72% 55%;
+    --health-regular: 38 92% 55%;
+    --health-good: 204 72% 55%;
+    --health-very-good: 204 80% 50%;
+    --health-excellent: 220 85% 50%;
     --info: 204 70% 55%;
     --info-foreground: 0 0% 100%;
 
