@@ -124,8 +124,14 @@ const ScoreRing = ({
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className={cn(
           "text-2xl font-bold",
-          color === 'success' && "text-success",
+          color === 'health-good' && "text-health-good",
+          color === 'health-veryGood' && "text-health-veryGood",
+          color === 'health-excellent' && "text-health-excellent",
+          color === 'health-regular' && "text-health-regular",
+          color === 'health-critical' && "text-health-critical",
+          color === 'health-veryCritical' && "text-health-veryCritical",
           color === 'primary' && "text-primary",
+          color === 'success' && "text-success",
           color === 'amber' && "text-amber-500",
           color === 'destructive' && "text-destructive",
         )}>
