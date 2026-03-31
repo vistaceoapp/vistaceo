@@ -107,8 +107,14 @@ const ScoreRing = ({
           strokeLinecap="round"
           className={cn(
             "transition-all duration-700 ease-out",
-            color === 'success' && "text-success",
+            color === 'health-good' && "text-health-good",
+            color === 'health-veryGood' && "text-health-veryGood",
+            color === 'health-excellent' && "text-health-excellent",
+            color === 'health-regular' && "text-health-regular",
+            color === 'health-critical' && "text-health-critical",
+            color === 'health-veryCritical' && "text-health-veryCritical",
             color === 'primary' && "text-primary",
+            color === 'success' && "text-success",
             color === 'amber' && "text-amber-500",
             color === 'destructive' && "text-destructive",
           )}
