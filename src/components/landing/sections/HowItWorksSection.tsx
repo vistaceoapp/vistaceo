@@ -20,6 +20,7 @@ import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=400&form
 import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=400&format=webp";
 import marketingImg from "@/assets/business-types/marketing-digital.jpg?w=400&format=webp";
 import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg?w=400&format=webp";
+import juridicoImg from "@/assets/business-types/estudio-juridico.jpg?w=400&format=webp";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
