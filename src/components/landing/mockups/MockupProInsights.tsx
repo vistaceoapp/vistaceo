@@ -41,6 +41,14 @@ const insightsData: Record<BusinessKey, {
       { type: 'trend', title: "IA en marketing", detail: "Agencias que ofrecen servicios IA cobran 40% más. Integrar IA generativa en tu oferta.", metric: "+40%" },
     ],
   },
+  juridico: {
+    headline: "Alertas críticas para el estudio",
+    insights: [
+      { type: 'risk', title: "Baja conversión de consultas", detail: "Solo el 40% de consultas iniciales se convierten en casos. Implementar seguimiento post-consulta.", metric: "40%" },
+      { type: 'opportunity', title: "Compliance empresarial", detail: "Las búsquedas de compliance en Ecuador crecieron 60%. Posicionarte como referente.", metric: "+60%" },
+      { type: 'trend', title: "Arbitraje comercial en auge", detail: "Nueva ley de arbitraje genera demanda. Capacitar al equipo para captar estos casos.", metric: "+45%" },
+    ],
+  },
 };
 
 const typeConfig = {

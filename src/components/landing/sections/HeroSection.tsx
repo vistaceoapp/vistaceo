@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, ChevronDown } from "lucide-react";
+import { ArrowRight, Sparkles, ChevronDown, Target, Eye, BarChart3, AlertTriangle, Lightbulb, Zap, Radar, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState, useRef, useEffect, memo, useMemo, useCallback } from "react";
 import { cn } from "@/lib/utils";
@@ -200,20 +200,14 @@ const VerifiedReviews = memo(() => {
 });
 VerifiedReviews.displayName = "VerifiedReviews";
 
-// ALL 12 business types for carousel (original)
-const businessTypes = [
-  { type: "Parrilla", business: "Don Martín", image: parrillaImg, growth: "+28%", months: 3, health: 78 },
-  { type: "Boutique", business: "Carmela", image: boutiqueImg, growth: "+45%", months: 4, health: 85 },
-  { type: "Clínica Dental", business: "Sonrisas", image: dentalImg, growth: "+52%", months: 5, health: 92 },
-  { type: "Hotel", business: "Casa Serena", image: hotelBoutiqueImg, growth: "+38%", months: 6, health: 88 },
-  { type: "Cafetería", business: "Café Origen", image: cafeImg, growth: "+150%", months: 4, health: 94 },
-  { type: "Bodega", business: "Viñedos Sol", image: bodegaVinosImg, growth: "+58%", months: 4, health: 88 },
-  { type: "Marketing", business: "Growth Lab", image: marketingDigitalImg, growth: "+85%", months: 3, health: 93 },
-  { type: "Pizzería", business: "Napolitana", image: pizzeriaImg, growth: "+42%", months: 3, health: 82 },
-  { type: "Gimnasio", business: "FitLife", image: gimnasioImg, growth: "+33%", months: 5, health: 76 },
-  { type: "Peluquería", business: "Studio Hair", image: peluqueriaImg, growth: "+48%", months: 3, health: 84 },
-  { type: "Hamburguesas", business: "Burger Lab", image: hamburgueseriaImg, growth: "+72%", months: 4, health: 87 },
-  { type: "Spa", business: "Zen Relax", image: spaImg, growth: "+55%", months: 4, health: 89 },
+// Executive intelligence signal cards
+const SIGNAL_CARDS = [
+  { icon: TrendingUp, label: "Oportunidad", title: "Ventas mediodía +23%", detail: "Extendé horario promocional de 12 a 14hs", accentBg: "bg-primary", accentText: "text-primary" },
+  { icon: Radar, label: "Radar competitivo", title: "2 competidores ajustaron precios", detail: "Te sugerimos una respuesta estratégica", accentBg: "bg-warning", accentText: "text-warning" },
+  { icon: Eye, label: "Predicción", title: "Caída de margen probable en 5 días", detail: "Revisá la estructura de costos actual", accentBg: "bg-accent", accentText: "text-accent" },
+  { icon: Target, label: "Misión prioritaria", title: "Activar campaña de recompra", detail: "+11% de clientes recuperables este mes", accentBg: "bg-primary", accentText: "text-primary" },
+  { icon: BarChart3, label: "Tendencia emergente", title: "Delivery premium en alza", detail: "+34% de demanda detectada en tu zona", accentBg: "bg-accent", accentText: "text-accent" },
+  { icon: AlertTriangle, label: "Riesgo detectado", title: "Tiempo de respuesta alto", detail: "Está afectando tu tasa de recompra en -8%", accentBg: "bg-destructive", accentText: "text-destructive" },
 ];
 
 export const HeroSection = memo(() => {
@@ -293,57 +287,37 @@ export const HeroSection = memo(() => {
           </div>
         </div>
 
-        {/* Business Types Carousel - CSS animation only */}
-        <div className="max-w-6xl mx-auto animate-fade-in-up-delay-6">
+        {/* Executive Intelligence Signal Cards */}
+        <div className="max-w-4xl mx-auto animate-fade-in-up-delay-6">
           <div className="text-center mb-3">
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              +180 tipos de proyecto • Resultados reales
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              +180 tipos de proyecto · Señales activas en tiempo real
             </span>
           </div>
 
-          <div className="relative overflow-hidden">
-            {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
-            
-            {/* CSS-only scrolling - optimized loading */}
-            <div className="flex gap-2.5 animate-scroll-left" style={{ width: 'max-content' }}>
-              {[...businessTypes, ...businessTypes].map((b, i) => {
-                // Only eager load first 6 visible images, lazy load rest
-                const isEagerLoad = i < 6;
-                
-                return (
-                  <div
-                    key={`${b.type}-${i}`}
-                    className="relative flex-shrink-0 w-[100px] md:w-[115px] rounded-xl overflow-hidden shadow-lg border border-border/30"
-                  >
-                    <div className="relative aspect-[3/4]">
-                      <img 
-                        src={b.image} 
-                        alt={`${b.type} - ${b.business}`}
-                        width={115}
-                        height={153}
-                        loading={isEagerLoad ? "eager" : "lazy"}
-                        decoding={isEagerLoad ? "sync" : "async"}
-                        fetchPriority={i === 0 ? "high" : undefined}
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10" />
-                      <div className="absolute inset-0 p-2 flex flex-col justify-between">
-                        <div className="inline-flex self-start items-center px-1.5 py-0.5 rounded bg-background/95 text-[8px] font-bold text-foreground shadow-sm">
-                          {b.type}
-                        </div>
-                        <div>
-                          <div className="text-lg md:text-xl font-black leading-none text-white drop-shadow-lg">{b.growth}</div>
-                          <div className="text-[8px] text-white/70 font-medium mt-0.5">{b.months} meses</div>
-                          <div className="text-[9px] font-semibold truncate leading-tight mt-0.5 text-white/90">{b.business}</div>
-                        </div>
-                      </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-2.5">
+            {SIGNAL_CARDS.map((card, i) => {
+              const Icon = card.icon;
+              return (
+                <div
+                  key={i}
+                  className="relative p-3 rounded-xl border border-border/50 bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-md hover:border-border transition-all duration-300"
+                  style={{ animation: `fade-in 0.4s ease-out ${1.0 + i * 0.12}s both` }}
+                >
+                  <div className={cn("absolute left-0 top-3 bottom-3 w-0.5 rounded-full", card.accentBg)} />
+                  <div className="pl-2.5">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Icon className={cn("w-3 h-3", card.accentText)} />
+                      <span className={cn("text-[9px] font-semibold uppercase tracking-wider", card.accentText)}>
+                        {card.label}
+                      </span>
                     </div>
+                    <p className="text-[11px] sm:text-xs font-medium text-foreground leading-snug">{card.title}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{card.detail}</p>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

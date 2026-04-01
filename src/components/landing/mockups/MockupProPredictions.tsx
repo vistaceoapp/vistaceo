@@ -8,8 +8,9 @@ import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=200&form
 import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=200&format=webp";
 import marketingImg from "@/assets/business-types/marketing-digital.jpg?w=200&format=webp";
 import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg?w=200&format=webp";
+import juridicoImg from "@/assets/business-types/estudio-juridico.jpg?w=200&format=webp";
 
-export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia";
+export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia" | "juridico";
 
 interface MockupProPredictionsProps {
   business?: BusinessKey;
@@ -167,6 +168,23 @@ const predictionsData: Record<BusinessKey, {
       { day: "+30d", score: 76 },
     ],
     nextAction: "Preparar propuesta renovación cliente",
+  },
+  juridico: {
+    name: "Vega & Asociados",
+    image: juridicoImg,
+    predictions: [
+      { horizon: "7 días", title: "Nueva regulación tributaria genera consultas", impact: "+15 consultas", confidence: "A", type: "opportunity" },
+      { horizon: "14 días", title: "Vencimiento de plazos procesales en 5 casos", impact: "Riesgo legal", confidence: "A", type: "risk" },
+      { horizon: "30 días", title: "Demanda creciente en compliance empresarial", impact: "Nuevo servicio", confidence: "B", type: "trend" },
+    ],
+    timeline: [
+      { day: "Hoy", score: 42 },
+      { day: "+7d", score: 50, event: "📋" },
+      { day: "+14d", score: 45 },
+      { day: "+21d", score: 52 },
+      { day: "+30d", score: 58 },
+    ],
+    nextAction: "Preparar propuesta de compliance para 3 prospects",
   },
 };
 

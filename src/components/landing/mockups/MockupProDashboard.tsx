@@ -9,8 +9,9 @@ import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=200&form
 import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=200&format=webp";
 import marketingImg from "@/assets/business-types/marketing-digital.jpg?w=200&format=webp";
 import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg?w=200&format=webp";
+import juridicoImg from "@/assets/business-types/estudio-juridico.jpg?w=200&format=webp";
 
-export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia";
+export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia" | "juridico";
 
 interface MockupProDashboardProps {
   business?: BusinessKey;
@@ -112,6 +113,27 @@ const businessData: Record<BusinessKey, {
     ],
     weeklyImprovement: "+5 pts esta semana",
     lastSync: "Hace 3 min",
+  },
+  juridico: {
+    name: "Vega & Asociados",
+    type: "Estudio Jurídico",
+    location: "Quito, Ecuador",
+    avatar: "VA",
+    image: juridicoImg,
+    healthScore: 42,
+    healthChange: +2,
+    certaintyPct: 74,
+    dimensions: [
+      { name: "Tráfico", score: 38, icon: "🚶" },
+      { name: "Rentabilidad", score: 45, icon: "📈" },
+      { name: "Equipo", score: 52, icon: "👥" },
+      { name: "Finanzas", score: 35, icon: "💰" },
+      { name: "Eficiencia", score: 40, icon: "⚡" },
+      { name: "Crecimiento", score: 28, icon: "🚀" },
+      { name: "Reputación", score: 55, icon: "⭐" },
+    ],
+    weeklyImprovement: "+2 pts esta semana",
+    lastSync: "Hace 8 min",
   }
 };
 

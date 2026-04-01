@@ -8,8 +8,9 @@ import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=200&form
 import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=200&format=webp";
 import marketingImg from "@/assets/business-types/marketing-digital.jpg?w=200&format=webp";
 import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg?w=200&format=webp";
+import juridicoImg from "@/assets/business-types/estudio-juridico.jpg?w=200&format=webp";
 
-export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia";
+export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia" | "juridico";
 
 interface MockupProMissionsProps {
   business?: BusinessKey;

@@ -20,6 +20,7 @@ import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=400&form
 import boutiqueImg from "@/assets/testimonials/boutique-moda.jpg?w=400&format=webp";
 import marketingImg from "@/assets/business-types/marketing-digital.jpg?w=400&format=webp";
 import clinicaDentalImg from "@/assets/testimonials/clinica-dental.jpg?w=400&format=webp";
+import juridicoImg from "@/assets/business-types/estudio-juridico.jpg?w=400&format=webp";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
@@ -71,6 +72,12 @@ const businesses: Record<BusinessKey, { name: string; location: string; type: st
     type: "Agencia de Marketing",
     image: marketingImg,
   },
+  juridico: {
+    name: "Vega & Asociados",
+    location: "Quito, Ecuador",
+    type: "Estudio Jurídico",
+    image: juridicoImg,
+  },
 };
 
 export const HowItWorksSection = memo(() => {
@@ -111,8 +118,8 @@ export const HowItWorksSection = memo(() => {
           viewport={{ once: true }}
           className="max-w-2xl mx-auto mb-6"
         >
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
-            {(["argentina", "odontologia", "mexico", "marketing"] as BusinessKey[]).map((key) => {
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 md:gap-3">
+            {(["argentina", "odontologia", "mexico", "marketing", "juridico"] as BusinessKey[]).map((key) => {
               const biz = businesses[key];
               const isActive = activeBusiness === key;
               return (
