@@ -200,20 +200,14 @@ const VerifiedReviews = memo(() => {
 });
 VerifiedReviews.displayName = "VerifiedReviews";
 
-// ALL 12 business types for carousel (original)
-const businessTypes = [
-  { type: "Parrilla", business: "Don Martín", image: parrillaImg, growth: "+28%", months: 3, health: 78 },
-  { type: "Boutique", business: "Carmela", image: boutiqueImg, growth: "+45%", months: 4, health: 85 },
-  { type: "Clínica Dental", business: "Sonrisas", image: dentalImg, growth: "+52%", months: 5, health: 92 },
-  { type: "Hotel", business: "Casa Serena", image: hotelBoutiqueImg, growth: "+38%", months: 6, health: 88 },
-  { type: "Cafetería", business: "Café Origen", image: cafeImg, growth: "+150%", months: 4, health: 94 },
-  { type: "Bodega", business: "Viñedos Sol", image: bodegaVinosImg, growth: "+58%", months: 4, health: 88 },
-  { type: "Marketing", business: "Growth Lab", image: marketingDigitalImg, growth: "+85%", months: 3, health: 93 },
-  { type: "Pizzería", business: "Napolitana", image: pizzeriaImg, growth: "+42%", months: 3, health: 82 },
-  { type: "Gimnasio", business: "FitLife", image: gimnasioImg, growth: "+33%", months: 5, health: 76 },
-  { type: "Peluquería", business: "Studio Hair", image: peluqueriaImg, growth: "+48%", months: 3, health: 84 },
-  { type: "Hamburguesas", business: "Burger Lab", image: hamburgueseriaImg, growth: "+72%", months: 4, health: 87 },
-  { type: "Spa", business: "Zen Relax", image: spaImg, growth: "+55%", months: 4, health: 89 },
+// Executive intelligence signal cards
+const SIGNAL_CARDS = [
+  { icon: TrendingUp, label: "Oportunidad", title: "Ventas mediodía +23%", detail: "Extendé horario promocional de 12 a 14hs", accentBg: "bg-primary", accentText: "text-primary" },
+  { icon: Radar, label: "Radar competitivo", title: "2 competidores ajustaron precios", detail: "Te sugerimos una respuesta estratégica", accentBg: "bg-warning", accentText: "text-warning" },
+  { icon: Eye, label: "Predicción", title: "Caída de margen probable en 5 días", detail: "Revisá la estructura de costos actual", accentBg: "bg-accent", accentText: "text-accent" },
+  { icon: Target, label: "Misión prioritaria", title: "Activar campaña de recompra", detail: "+11% de clientes recuperables este mes", accentBg: "bg-primary", accentText: "text-primary" },
+  { icon: BarChart3, label: "Tendencia emergente", title: "Delivery premium en alza", detail: "+34% de demanda detectada en tu zona", accentBg: "bg-accent", accentText: "text-accent" },
+  { icon: AlertTriangle, label: "Riesgo detectado", title: "Tiempo de respuesta alto", detail: "Está afectando tu tasa de recompra en -8%", accentBg: "bg-destructive", accentText: "text-destructive" },
 ];
 
 export const HeroSection = memo(() => {
