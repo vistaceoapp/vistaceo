@@ -4,7 +4,7 @@ import { Lightbulb, ExternalLink, Sparkles, Globe, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
 
-export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia";
+export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia" | "juridico";
 
 interface MockupProRadarProps {
   business?: BusinessKey;
@@ -66,7 +66,20 @@ const radarData: Record<BusinessKey, {
       { title: "Nueva clínica abrió a 3 cuadras con precios agresivos", impact: "Monitorear", source: "Google Maps", priority: "high" },
       { title: "Tendencia: Ortodoncia invisible +80% interés adultos", impact: "Oportunidad I+D", source: "Instagram", priority: "medium" },
     ],
-  }
+  },
+  juridico: {
+    name: "Vega & Asociados",
+    internal: [
+      { title: "El 40% de consultas iniciales no se convierten en casos", impact: "+12 casos/año", source: "CRM interno", priority: "high" },
+      { title: "Tiempos de respuesta a clientes superan las 48 horas", impact: "Retención crítica", source: "Análisis interno", priority: "high" },
+      { title: "Solo 2 de 8 abogados facturan arriba del objetivo", impact: "Redistribuir", source: "Reportes", priority: "medium" },
+    ],
+    external: [
+      { title: "Nueva ley de arbitraje comercial genera demanda +60%", impact: "Nuevo servicio", source: "Registro Oficial", priority: "high" },
+      { title: "Competidor 'BLP' lanzó servicio de compliance digital", impact: "Diferenciación", source: "LinkedIn", priority: "medium" },
+      { title: "Búsquedas 'abogado societario Quito' +45% este trimestre", impact: "SEO urgente", source: "Google Trends", priority: "high" },
+    ],
+  },
 };
 
 export const MockupProRadar = forwardRef<HTMLDivElement, MockupProRadarProps>(({ business = "argentina" }, ref) => {

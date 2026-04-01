@@ -46,6 +46,15 @@ const competitorData: Record<BusinessKey, {
     ],
     yourAdvantage: "Especialización en performance marketing te diferencia.",
   },
+  juridico: {
+    summary: "8 estudios jurídicos en el sector norte de Quito",
+    competitors: [
+      { name: "Pérez Bustamante & Ponce", rating: 4.7, reviews: 156, distance: "1.2 km", priceLevel: "$$$", threat: "high" },
+      { name: "Coronel & Pérez", rating: 4.3, reviews: 89, distance: "0.8 km", priceLevel: "$$", threat: "medium" },
+      { name: "Lexvalor Abogados", rating: 4.0, reviews: 45, distance: "2.1 km", priceLevel: "$$", threat: "low" },
+    ],
+    yourAdvantage: "Especialización en derecho tributario te diferencia. Oportunidad en compliance digital.",
+  },
 };
 
 const threatColors = {

@@ -169,6 +169,23 @@ const predictionsData: Record<BusinessKey, {
     ],
     nextAction: "Preparar propuesta renovación cliente",
   },
+  juridico: {
+    name: "Vega & Asociados",
+    image: juridicoImg,
+    predictions: [
+      { horizon: "7 días", title: "Nueva regulación tributaria genera consultas", impact: "+15 consultas", confidence: "A", type: "opportunity" },
+      { horizon: "14 días", title: "Vencimiento de plazos procesales en 5 casos", impact: "Riesgo legal", confidence: "A", type: "risk" },
+      { horizon: "30 días", title: "Demanda creciente en compliance empresarial", impact: "Nuevo servicio", confidence: "B", type: "trend" },
+    ],
+    timeline: [
+      { day: "Hoy", score: 42 },
+      { day: "+7d", score: 50, event: "📋" },
+      { day: "+14d", score: 45 },
+      { day: "+21d", score: 52 },
+      { day: "+30d", score: 58 },
+    ],
+    nextAction: "Preparar propuesta de compliance para 3 prospects",
+  },
 };
 
 const confidenceColors = {

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Send, Mic, Paperclip, Sparkles, Star, Brain } from "lucide-react";
 import { forwardRef } from "react";
 
-export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia";
+export type BusinessKey = "argentina" | "mexico" | "marketing" | "odontologia" | "juridico";
 
 interface MockupProChatProps {
   business?: BusinessKey;
@@ -57,7 +57,18 @@ const chatData: Record<BusinessKey, {
       action: "Agendá reuniones de revisión de resultados esta semana. Preparé un deck con sus métricas de éxito.",
       impact: "Retención $2.5M CLP en juego"
     },
-  }
+  },
+  juridico: {
+    name: "Vega & Asociados",
+    greeting: "Ricardo",
+    userMessage: "¿Cómo puedo conseguir más clientes corporativos?",
+    aiResponse: {
+      intro: "Analicé tu cartera y el mercado legal en Quito:",
+      insight: "El 85% de tus clientes llegan por referidos. Solo el 3% viene de canales digitales, pero el sector jurídico en Ecuador tiene +45% de búsquedas online este año.",
+      action: "Creá un perfil optimizado en Google Business y publicá 2 artículos mensuales sobre cambios regulatorios. Activá LinkedIn con contenido de liderazgo.",
+      impact: "+8 consultas/mes estimado"
+    },
+  },
 };
 
 export const MockupProChat = forwardRef<HTMLDivElement, MockupProChatProps>(({ business = "argentina" }, ref) => {
