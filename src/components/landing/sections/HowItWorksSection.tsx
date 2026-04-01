@@ -72,6 +72,12 @@ const businesses: Record<BusinessKey, { name: string; location: string; type: st
     type: "Agencia de Marketing",
     image: marketingImg,
   },
+  juridico: {
+    name: "Vega & Asociados",
+    location: "Quito, Ecuador",
+    type: "Estudio Jurídico",
+    image: juridicoImg,
+  },
 };
 
 export const HowItWorksSection = memo(() => {
