@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, ChevronDown } from "lucide-react";
+import { ArrowRight, Sparkles, ChevronDown, Target, Eye, BarChart3, AlertTriangle, Lightbulb, Zap, Radar, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState, useRef, useEffect, memo, useMemo, useCallback } from "react";
 import { cn } from "@/lib/utils";
