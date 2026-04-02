@@ -197,6 +197,47 @@ const missionsData: Record<BusinessKey, {
         detail: "Tu cliente 'Moda Urbana' tuvo +180% ROI"
       },
     ],
+  },
+  juridico: {
+    name: "Vega & Asociados",
+    avatar: "VA",
+    image: juridicoImg,
+    totalCompleted: 8,
+    missions: [
+      {
+        title: "Implementar seguimiento post-consulta",
+        progress: 40,
+        steps: 5,
+        completedSteps: 2,
+        impact: "+15% conversión",
+        status: "active",
+        area: "Ventas",
+        priority: "alta",
+        detail: "Solo el 40% de consultas se convierten en casos"
+      },
+      {
+        title: "Lanzar servicio de compliance empresarial",
+        progress: 100,
+        steps: 6,
+        completedSteps: 6,
+        impact: "+$4.200 USD/mes",
+        status: "completed",
+        area: "Expansión",
+        priority: "alta",
+        detail: "Demanda de compliance creció 60% en Ecuador"
+      },
+      {
+        title: "Digitalizar expedientes activos",
+        progress: 65,
+        steps: 8,
+        completedSteps: 5,
+        impact: "-8 hrs/sem",
+        status: "active",
+        area: "Eficiencia",
+        priority: "media",
+        detail: "35% del tiempo se pierde buscando documentos físicos"
+      },
+    ],
   }
 };
 
