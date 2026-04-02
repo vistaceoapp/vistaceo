@@ -206,6 +206,44 @@ const NotifCard = ({ icon, iconBg, name, text, time, className, delay = 0 }: {
   );
 };
 
+/* ── Hero Signal Card ── */
+const HeroSignalCard = ({ icon, label, title, detail, accentColor, delay = 0 }: {
+  icon: React.ReactNode; label: string; title: string; detail: string; accentColor: string; delay?: number;
+}) => {
+  const [show, setShow] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setTimeout(() => setShow(true), delay); obs.disconnect(); }
+    }, { threshold: 0.1 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [delay]);
+  return (
+    <div ref={ref}
+      className="p-3 rounded-xl border border-[#ebebeb] bg-white/90 transition-all duration-700"
+      style={{
+        opacity: show ? 1 : 0,
+        transform: show ? "translateY(0)" : "translateY(12px)",
+        transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+      }}>
+      <div className="flex items-start gap-2.5">
+        <div className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full" style={{ background: accentColor }} />
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${accentColor}12` }}>
+          <span style={{ color: accentColor }}>{icon}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <span className="text-[9px] font-semibold uppercase tracking-[0.1em]" style={{ color: accentColor }}>{label}</span>
+          <p className="text-[11.5px] font-medium text-[#1a1a1a] leading-snug mt-0.5">{title}</p>
+          <p className="text-[10px] text-[#999] leading-[1.45] mt-0.5">{detail}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ═══════════════════════════════════════════════════════════════
    2. Hero
    ═══════════════════════════════════════════════════════════════ */
