@@ -261,35 +261,72 @@ const HeroSection = () => {
           </Reveal>
         </div>
 
-        {/* Right: Dashboard mockup */}
+        {/* Right: Executive Intelligence Signals */}
         <div className="flex-1 relative w-full max-w-[740px]">
           <Reveal delay={250} distance={50}>
             <div className="relative">
-              <div className="rounded-2xl border border-[#e8e8e8] bg-white shadow-[0_24px_80px_-16px_rgba(0,0,0,0.08),0_4px_12px_rgba(0,0,0,0.03)] overflow-hidden">
-                <div className="flex items-center gap-1.5 px-4 py-3 border-b border-[#f2f2f2] bg-[#fafafa]">
-                  <div className="w-[10px] h-[10px] rounded-full bg-[#ff5f57]" />
-                  <div className="w-[10px] h-[10px] rounded-full bg-[#febc2e]" />
-                  <div className="w-[10px] h-[10px] rounded-full bg-[#28c840]" />
-                  <div className="flex-1 mx-8">
-                    <div className="h-5 rounded-md bg-[#f0f0f0] max-w-[200px] mx-auto flex items-center justify-center">
-                      <span className="text-[9px] text-[#bbb]">app.vistaceo.com</span>
+              {/* Central nucleus - subtle glass card */}
+              <div className="rounded-2xl border border-[#e8e8e8] bg-white/80 backdrop-blur-sm shadow-[0_24px_80px_-16px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.02)] p-5 lg:p-6">
+                {/* Top bar */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: ACCENT_GRADIENT_SUBTLE }}>
+                      <Sparkles className="w-4 h-4" style={{ color: "#2692DC" }} />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-semibold text-[#111]">Centro de inteligencia</p>
+                      <p className="text-[10px] text-[#bbb]">8 señales activas · Actualizado hace 3 min</p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#28c840] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#28c840]" />
+                    </span>
+                    <span className="text-[10px] text-[#999] font-medium">En vivo</span>
+                  </div>
                 </div>
-                <div className="max-h-[420px] overflow-hidden">
-                  <MockupProDashboard business="argentina" />
+
+                {/* Signal cards grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <HeroSignalCard delay={400} accentColor="#2692DC"
+                    icon={<TrendingUp className="w-3 h-3" />} label="Oportunidad"
+                    title="Ventas de mediodía +23%"
+                    detail="Extendé el horario promocional de 12 a 14hs para captar demanda." />
+                  <HeroSignalCard delay={550} accentColor="#746CE6"
+                    icon={<Radar className="w-3 h-3" />} label="Radar competitivo"
+                    title="2 competidores ajustaron precios"
+                    detail="Te preparamos una respuesta estratégica personalizada." />
+                  <HeroSignalCard delay={700} accentColor="#2692DC"
+                    icon={<Eye className="w-3 h-3" />} label="Predicción"
+                    title="Caída de margen probable en 5 días"
+                    detail="Si se mantiene el costo actual, revisá estructura de precios." />
+                  <HeroSignalCard delay={850} accentColor="#746CE6"
+                    icon={<Target className="w-3 h-3" />} label="Misión prioritaria"
+                    title="Activar campaña de recompra"
+                    detail="Podría recuperar +11% de clientes inactivos este mes." />
+                  <HeroSignalCard delay={1000} accentColor="#2692DC"
+                    icon={<BarChart3 className="w-3 h-3" />} label="Tendencia emergente"
+                    title="Delivery premium en alza en tu zona"
+                    detail="+34% de demanda detectada. Evaluá incorporar este canal." />
+                  <HeroSignalCard delay={1150} accentColor="#E53E3E"
+                    icon={<Shield className="w-3 h-3" />} label="Riesgo detectado"
+                    title="Tiempo de respuesta afecta recompra"
+                    detail="Tu tasa de retorno cayó -8%. Acción sugerida disponible." />
+                </div>
+
+                {/* Bottom subtle bar */}
+                <div className="mt-4 pt-3 border-t border-[#f0f0f0] flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <span className="text-[10px] text-[#ccc]">Adaptado a <span className="font-medium text-[#999]">tu industria</span></span>
+                    <span className="text-[10px] text-[#ccc]">·</span>
+                    <span className="text-[10px] text-[#ccc]">+180 tipos de negocio</span>
+                  </div>
+                  <span className="text-[10px] font-medium" style={{ backgroundImage: ACCENT_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                    Ver todo →
+                  </span>
                 </div>
               </div>
-
-              <NotifCard icon={<TrendingUp className="w-3 h-3" />} iconBg="bg-[#28c840]"
-                name="Oportunidad detectada" text="Tus ventas de mediodía subieron 23%. Considerá extender el horario." time="Ahora"
-                className="absolute -top-2 -right-4 lg:-right-8 z-20 hidden sm:flex" delay={600} />
-              <NotifCard icon={<Target className="w-3 h-3" />} iconBg="bg-[#746CE6]"
-                name="Misión completada" text="Campaña de retención: +12% clientes recurrentes este mes" time="1h"
-                className="absolute top-[110px] -right-6 lg:-right-10 z-20 hidden sm:flex" delay={900} />
-              <NotifCard icon={<Zap className="w-3 h-3" />} iconBg="bg-[#2692DC]"
-                name="Alerta competitiva" text="Un competidor ajustó precios. Te preparamos una recomendación." time="2h"
-                className="absolute top-[220px] -right-3 lg:-right-6 z-20 hidden sm:flex" delay={1200} />
             </div>
           </Reveal>
         </div>
