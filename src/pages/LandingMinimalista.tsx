@@ -449,6 +449,7 @@ const businesses: { key: BusinessKey; name: string; type: string; image: string 
   { key: "odontologia", name: "Clínica Dental Sonrisa", type: "Clínica", image: clinicaDentalImg },
   { key: "mexico", name: "Boutique Carmela", type: "Retail", image: boutiqueImg },
   { key: "marketing", name: "Rocket Digital", type: "Agencia", image: marketingImg },
+  { key: "juridico", name: "Vega & Asociados", type: "Estudio Jurídico", image: juridicoImg },
 ];
 
 const ProductShowcase = () => {
