@@ -95,6 +95,24 @@ const analyticsData: Record<BusinessKey, {
       { name: "Finanzas", current: 48, previous: 40, change: "+8" },
     ],
     weeklyData: [45, 50, 54, 52, 58, 56, 62],
+  },
+  juridico: {
+    name: "Vega & Asociados",
+    image: juridicoImg,
+    period: "Últimos 30 días",
+    metrics: [
+      { label: "Facturación", value: "$18.5K", change: "-8%", positive: false, icon: DollarSign },
+      { label: "Casos", value: "24", change: "+3", positive: true, icon: Users },
+      { label: "Ticket prom.", value: "$2.1K", change: "-5%", positive: false, icon: Target },
+      { label: "Rating", value: "3.8★", change: "-0.2", positive: false, icon: Star },
+    ],
+    dimensions: [
+      { name: "Casos", current: 38, previous: 42, change: "-4" },
+      { name: "Reputación", current: 45, previous: 52, change: "-7" },
+      { name: "Eficiencia", current: 35, previous: 40, change: "-5" },
+      { name: "Finanzas", current: 42, previous: 48, change: "-6" },
+    ],
+    weeklyData: [48, 45, 42, 40, 38, 36, 35],
   }
 };
 
