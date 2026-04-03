@@ -359,10 +359,31 @@ export const SetupStepQuestionnaire = ({
     }
   }, [isLoadingFirst, questions.length, generationError, hasCache]);
 
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customText, setCustomText] = useState('');
+
+  // Reset custom input when question changes
+  useEffect(() => {
+    setShowCustomInput(false);
+    setCustomText('');
+  }, [currentIndex]);
+
   const getCurrentValue = () => answers[currentQuestion?.id];
 
   const handleAnswer = (value: any) => {
     onUpdate({ ...answers, [currentQuestion.id]: value });
+  };
+
+  const handleNoneOfThese = () => {
+    setShowCustomInput(true);
+    handleAnswer('__NONE__');
+  };
+
+  const handleCustomSubmit = () => {
+    if (customText.trim()) {
+      handleAnswer({ type: '__CUSTOM__', text: customText.trim() });
+      setShowCustomInput(false);
+    }
   };
 
   const handleMultiSelect = (optionId: string) => {
