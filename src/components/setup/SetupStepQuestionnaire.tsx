@@ -569,31 +569,73 @@ export const SetupStepQuestionnaire = ({
     }
 
     switch (currentQuestion.type) {
-      case 'single':
+      case 'single': {
+        const currentVal = getCurrentValue();
+        const isNone = currentVal === '__NONE__' || (typeof currentVal === 'object' && currentVal?.type === '__CUSTOM__');
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {currentQuestion.options?.map((option) => {
-              const isSelected = getCurrentValue() === option.id;
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => handleAnswer(option.id)}
-                  className={cn(
-                    "p-4 rounded-xl border-2 text-left transition-all",
-                    isSelected
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/50 bg-card"
-                  )}
-                >
-                  {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
-                  <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
-                    {option.label[lang] || option.label.es}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {currentQuestion.options?.map((option) => {
+                const isSelected = currentVal === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => { handleAnswer(option.id); setShowCustomInput(false); }}
+                    className={cn(
+                      "p-4 rounded-xl border-2 text-left transition-all",
+                      isSelected
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50 bg-card"
+                    )}
+                  >
+                    {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
+                    <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
+                      {option.label[lang] || option.label.es}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* "Ninguna de estas" + custom text */}
+            <button
+              onClick={handleNoneOfThese}
+              className={cn(
+                "w-full p-3 rounded-xl border-2 text-sm transition-all text-center flex items-center justify-center gap-2",
+                isNone
+                  ? "border-primary bg-primary/10 text-primary font-medium"
+                  : "border-border hover:border-primary/50 bg-card text-muted-foreground"
+              )}
+            >
+              <MessageSquare className="w-4 h-4" />
+              {lang === 'pt-BR' ? 'Nenhuma dessas / Quero escrever' : 'Ninguna de estas / Quiero escribir'}
+            </button>
+            {showCustomInput && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="space-y-2"
+              >
+                <Textarea
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta aqui...' : 'Escribí tu respuesta acá...'}
+                  className="min-h-[80px] text-sm"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleCustomSubmit} disabled={!customText.trim()} className="flex-1">
+                    <Check className="w-4 h-4 mr-1" />
+                    {lang === 'pt-BR' ? 'Confirmar' : 'Confirmar'}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); handleAnswer(undefined); }}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
           </div>
         );
+      }
 
       case 'multi': {
         const selectedItems = (getCurrentValue() as string[]) || [];
