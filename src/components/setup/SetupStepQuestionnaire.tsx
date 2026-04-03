@@ -1,11 +1,13 @@
-// Step: Questionnaire v13 - Progressive AI-Generated Questions
+// Step: Questionnaire v14 - Progressive AI-Generated Questions
 // Questions load in batches so users can start answering immediately
 // Covers all 7 health dimensions with balanced distribution
+// v14: Added "Ninguna de estas" + custom text, "No tengo / No aplica" options
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { ChevronRight, ChevronLeft, Check, HelpCircle, Sparkles, Brain, RefreshCw, AlertTriangle, Loader2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, HelpCircle, Sparkles, Brain, RefreshCw, AlertTriangle, Loader2, MessageSquare, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -357,10 +359,31 @@ export const SetupStepQuestionnaire = ({
     }
   }, [isLoadingFirst, questions.length, generationError, hasCache]);
 
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customText, setCustomText] = useState('');
+
+  // Reset custom input when question changes
+  useEffect(() => {
+    setShowCustomInput(false);
+    setCustomText('');
+  }, [currentIndex]);
+
   const getCurrentValue = () => answers[currentQuestion?.id];
 
   const handleAnswer = (value: any) => {
     onUpdate({ ...answers, [currentQuestion.id]: value });
+  };
+
+  const handleNoneOfThese = () => {
+    setShowCustomInput(true);
+    handleAnswer('__NONE__');
+  };
+
+  const handleCustomSubmit = () => {
+    if (customText.trim()) {
+      handleAnswer({ type: '__CUSTOM__', text: customText.trim() });
+      setShowCustomInput(false);
+    }
   };
 
   const handleMultiSelect = (optionId: string) => {
@@ -375,6 +398,8 @@ export const SetupStepQuestionnaire = ({
     if (!currentQuestion) return true;
     const value = getCurrentValue();
     if (!currentQuestion.required) return true;
+    if (value === '__NONE__') return false; // Must write custom text
+    if (typeof value === 'object' && value?.type === '__CUSTOM__') return true;
     if (Array.isArray(value)) return value.length > 0;
     return value !== undefined && value !== '' && value !== null;
   };
@@ -546,59 +571,141 @@ export const SetupStepQuestionnaire = ({
     }
 
     switch (currentQuestion.type) {
-      case 'single':
+      case 'single': {
+        const currentVal = getCurrentValue();
+        const isNone = currentVal === '__NONE__' || (typeof currentVal === 'object' && currentVal?.type === '__CUSTOM__');
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {currentQuestion.options?.map((option) => {
-              const isSelected = getCurrentValue() === option.id;
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => handleAnswer(option.id)}
-                  className={cn(
-                    "p-4 rounded-xl border-2 text-left transition-all",
-                    isSelected
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/50 bg-card"
-                  )}
-                >
-                  {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
-                  <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
-                    {option.label[lang] || option.label.es}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {currentQuestion.options?.map((option) => {
+                const isSelected = currentVal === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => { handleAnswer(option.id); setShowCustomInput(false); }}
+                    className={cn(
+                      "p-4 rounded-xl border-2 text-left transition-all",
+                      isSelected
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50 bg-card"
+                    )}
+                  >
+                    {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
+                    <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
+                      {option.label[lang] || option.label.es}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* "Ninguna de estas" + custom text */}
+            <button
+              onClick={handleNoneOfThese}
+              className={cn(
+                "w-full p-3 rounded-xl border-2 text-sm transition-all text-center flex items-center justify-center gap-2",
+                isNone
+                  ? "border-primary bg-primary/10 text-primary font-medium"
+                  : "border-border hover:border-primary/50 bg-card text-muted-foreground"
+              )}
+            >
+              <MessageSquare className="w-4 h-4" />
+              {lang === 'pt-BR' ? 'Nenhuma dessas / Quero escrever' : 'Ninguna de estas / Quiero escribir'}
+            </button>
+            {showCustomInput && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="space-y-2"
+              >
+                <Textarea
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta aqui...' : 'Escribí tu respuesta acá...'}
+                  className="min-h-[80px] text-sm"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleCustomSubmit} disabled={!customText.trim()} className="flex-1">
+                    <Check className="w-4 h-4 mr-1" />
+                    {lang === 'pt-BR' ? 'Confirmar' : 'Confirmar'}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); handleAnswer(undefined); }}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
           </div>
         );
+      }
 
       case 'multi': {
         const selectedItems = (getCurrentValue() as string[]) || [];
+        const hasCustomMulti = typeof getCurrentValue() === 'object' && getCurrentValue()?.type === '__CUSTOM__';
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {currentQuestion.options?.map((option) => {
-              const isSelected = selectedItems.includes(option.id);
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => handleMultiSelect(option.id)}
-                  className={cn(
-                    "p-4 rounded-xl border-2 text-left transition-all relative",
-                    isSelected
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/50 bg-card"
-                  )}
-                >
-                  {isSelected && (
-                    <Check className="absolute top-2 right-2 w-4 h-4 text-primary" />
-                  )}
-                  {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
-                  <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
-                    {option.label[lang] || option.label.es}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {currentQuestion.options?.map((option) => {
+                const isSelected = selectedItems.includes(option.id);
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => handleMultiSelect(option.id)}
+                    className={cn(
+                      "p-4 rounded-xl border-2 text-left transition-all relative",
+                      isSelected
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50 bg-card"
+                    )}
+                  >
+                    {isSelected && (
+                      <Check className="absolute top-2 right-2 w-4 h-4 text-primary" />
+                    )}
+                    {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
+                    <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
+                      {option.label[lang] || option.label.es}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* "Ninguna de estas" + custom text for multi */}
+            <button
+              onClick={handleNoneOfThese}
+              className={cn(
+                "w-full p-3 rounded-xl border-2 text-sm transition-all text-center flex items-center justify-center gap-2",
+                hasCustomMulti
+                  ? "border-primary bg-primary/10 text-primary font-medium"
+                  : "border-border hover:border-primary/50 bg-card text-muted-foreground"
+              )}
+            >
+              <MessageSquare className="w-4 h-4" />
+              {lang === 'pt-BR' ? 'Outra resposta / Quero escrever' : 'Otra respuesta / Quiero escribir'}
+            </button>
+            {showCustomInput && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="space-y-2"
+              >
+                <Textarea
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta aqui...' : 'Escribí tu respuesta acá...'}
+                  className="min-h-[80px] text-sm"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleCustomSubmit} disabled={!customText.trim()} className="flex-1">
+                    <Check className="w-4 h-4 mr-1" />
+                    {lang === 'pt-BR' ? 'Confirmar' : 'Confirmar'}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); }}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
           </div>
         );
       }

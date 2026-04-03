@@ -83,7 +83,12 @@ DIMENSIONES (cobertura balanceada ${dimDist.min}-${dimDist.max} c/u): traffic, p
 TIPOS: single (3-6 opciones con emoji/impactScore 1-10), multi, number, slider, text, money.
 CATEGORÍAS: identity, operation, sales, finance, team, marketing, reputation, goals.
 
-REGLAS: 100% específico para "${businessTypeLabel}". Terminología del sector. Rangos realistas. Datos accionables.
+REGLAS ABSOLUTAS:
+1. 100% específico para "${businessTypeLabel}". Terminología del sector.
+2. TODO el texto DEBE estar en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. PROHIBIDO usar palabras en inglés. Ni en títulos, ni en opciones, ni en ayudas. Cero inglés.
+3. En opciones de tipo single donde se pregunte por cantidad de clientes, empleados, etc: SIEMPRE incluir una opción para quien NO tiene (ej: "Todavía no tengo", "No aplica", "Recién empiezo"). 
+4. Rangos realistas. Datos accionables.
+5. Las preguntas deben ser gramaticalmente perfectas, claras y profesionales. Sin cortes, sin errores de redacción.
 ${learningContext}
 
 Responde con generate_questions.`
@@ -109,6 +114,11 @@ REGLAS CRÍTICAS DE PERSONALIZACIÓN:
 3. Las opciones de respuesta deben reflejar la REALIDAD del sector con rangos y valores reales del mercado.
 4. Adapta las preguntas al PAÍS (${countryCode}).
 5. Usar ${voiceStyle} en idioma ${lang}. Tono: profesional pero cercano.
+
+REGLAS ABSOLUTAS DE IDIOMA Y CALIDAD:
+6. TODO el texto DEBE estar en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. PROHIBIDO TERMINANTEMENTE usar palabras en inglés. Ni en títulos, ni en opciones, ni en textos de ayuda. CERO inglés. Ejemplos de lo que NO debe aparecer: "feedback", "marketing mix", "target", "branding", "check-in", "delivery", "staff", etc. Siempre usar el equivalente en español.
+7. OPCIONES INCLUSIVAS PARA NEGOCIOS NUEVOS: En TODA pregunta tipo "single" donde se pregunte por cantidad de clientes, empleados, ventas, facturación o cualquier métrica operativa, SIEMPRE debe existir al menos una opción para negocios que recién arrancan o no tienen eso todavía. Ejemplos: "Todavía no tengo clientes", "Recién empiezo", "No aplica a mi caso", "Aún no lo mido". Esto es OBLIGATORIO.
+8. CALIDAD DE REDACCIÓN: Las preguntas deben ser gramaticalmente perfectas, claras, completas y profesionales. Sin frases cortadas, sin errores de sintaxis, sin ambigüedades. Cada pregunta debe leerse como escrita por un consultor senior.
 
 TIPOS DE INPUT:
 - "single": Selección única (3-6 opciones con emoji, label bilingüe, impactScore)
