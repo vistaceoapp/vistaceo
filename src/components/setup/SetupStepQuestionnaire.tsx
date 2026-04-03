@@ -1,11 +1,13 @@
-// Step: Questionnaire v13 - Progressive AI-Generated Questions
+// Step: Questionnaire v14 - Progressive AI-Generated Questions
 // Questions load in batches so users can start answering immediately
 // Covers all 7 health dimensions with balanced distribution
+// v14: Added "Ninguna de estas" + custom text, "No tengo / No aplica" options
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { ChevronRight, ChevronLeft, Check, HelpCircle, Sparkles, Brain, RefreshCw, AlertTriangle, Loader2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, HelpCircle, Sparkles, Brain, RefreshCw, AlertTriangle, Loader2, MessageSquare, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
