@@ -639,31 +639,71 @@ export const SetupStepQuestionnaire = ({
 
       case 'multi': {
         const selectedItems = (getCurrentValue() as string[]) || [];
+        const hasCustomMulti = typeof getCurrentValue() === 'object' && getCurrentValue()?.type === '__CUSTOM__';
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {currentQuestion.options?.map((option) => {
-              const isSelected = selectedItems.includes(option.id);
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => handleMultiSelect(option.id)}
-                  className={cn(
-                    "p-4 rounded-xl border-2 text-left transition-all relative",
-                    isSelected
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:border-primary/50 bg-card"
-                  )}
-                >
-                  {isSelected && (
-                    <Check className="absolute top-2 right-2 w-4 h-4 text-primary" />
-                  )}
-                  {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
-                  <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
-                    {option.label[lang] || option.label.es}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {currentQuestion.options?.map((option) => {
+                const isSelected = selectedItems.includes(option.id);
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => handleMultiSelect(option.id)}
+                    className={cn(
+                      "p-4 rounded-xl border-2 text-left transition-all relative",
+                      isSelected
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50 bg-card"
+                    )}
+                  >
+                    {isSelected && (
+                      <Check className="absolute top-2 right-2 w-4 h-4 text-primary" />
+                    )}
+                    {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
+                    <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
+                      {option.label[lang] || option.label.es}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* "Ninguna de estas" + custom text for multi */}
+            <button
+              onClick={handleNoneOfThese}
+              className={cn(
+                "w-full p-3 rounded-xl border-2 text-sm transition-all text-center flex items-center justify-center gap-2",
+                hasCustomMulti
+                  ? "border-primary bg-primary/10 text-primary font-medium"
+                  : "border-border hover:border-primary/50 bg-card text-muted-foreground"
+              )}
+            >
+              <MessageSquare className="w-4 h-4" />
+              {lang === 'pt-BR' ? 'Outra resposta / Quero escrever' : 'Otra respuesta / Quiero escribir'}
+            </button>
+            {showCustomInput && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="space-y-2"
+              >
+                <Textarea
+                  value={customText}
+                  onChange={(e) => setCustomText(e.target.value)}
+                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta aqui...' : 'Escribí tu respuesta acá...'}
+                  className="min-h-[80px] text-sm"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleCustomSubmit} disabled={!customText.trim()} className="flex-1">
+                    <Check className="w-4 h-4 mr-1" />
+                    {lang === 'pt-BR' ? 'Confirmar' : 'Confirmar'}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); }}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
           </div>
         );
       }
