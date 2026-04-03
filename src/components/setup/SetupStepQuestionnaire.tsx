@@ -398,6 +398,8 @@ export const SetupStepQuestionnaire = ({
     if (!currentQuestion) return true;
     const value = getCurrentValue();
     if (!currentQuestion.required) return true;
+    if (value === '__NONE__') return false; // Must write custom text
+    if (typeof value === 'object' && value?.type === '__CUSTOM__') return true;
     if (Array.isArray(value)) return value.length > 0;
     return value !== undefined && value !== '' && value !== null;
   };
