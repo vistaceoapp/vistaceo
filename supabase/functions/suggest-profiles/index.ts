@@ -226,13 +226,16 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { raw_text, locale } = await req.json();
+    const { raw_text, locale, clarification_answer, clarification_context } = await req.json();
     if (!raw_text || raw_text.trim().length < 3) {
       return new Response(JSON.stringify({ error: "Texto muy corto" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    // If this is a clarification response, skip clarification detection
+    const isClarificationResponse = !!clarification_answer;
 
     const systemPrompt = `Sos el Cerebro de Identidad de VistaCEO. Tu misión es entender con precisión extrema qué hace el usuario (negocio, servicio o profesión) aunque escriba mal, use jerga LATAM, mezcle conceptos o sea confuso.
 
@@ -251,6 +254,44 @@ REGLAS ABSOLUTAS:
 9. "reason" debe ser ultra corta: máximo 12 palabras, humana, sin tecnicismos. Formato: "Porque detecté X e Y en tu descripción"
 10. Las 3 opciones deben ser DIFERENTES de verdad. Diversidad por eje: cliente (empresas vs personas), canal (online vs presencial), formato (academia vs consultoría vs plataforma)
 
+DETECCIÓN DE ETAPA - PROYECTOS Y ASPIRACIONES:
+El usuario puede estar en distintas etapas:
+- "YA LO HAGO": Tiene un negocio funcionando. Ej: "Tengo una pizzería", "Soy abogado", "Mi taller tiene 5 empleados"
+- "QUIERO EMPEZAR": Planea hacerlo pero AÚN NO arrancó. Señales: "quiero abrir", "estoy pensando en", "me gustaría arrancar", "planeo poner", "voy a lanzar", "tengo la idea de", "estoy por empezar"
+- "ESTOY ESTUDIANDO": Investiga la posibilidad. Señales: "¿será rentable?", "quiero saber si", "estoy evaluando"
+
+OBLIGATORIO: Capturar la etapa en el universal_profile de CADA opción:
+- "business_stage": "active" | "planning" | "exploring"
+- Si es "planning" o "exploring", adaptar tone_and_context, primary_pains y success_metrics a esa etapa (ej: pains de arranque, métricas de validación, no de operación)
+
+DETECCIÓN DE AMBIGÜEDAD Y CLARIFICACIÓN:
+${isClarificationResponse ? 'El usuario ya respondió una pregunta de clarificación. Usar esa respuesta para generar las 3 opciones con máxima precisión.' : `Si el texto del usuario contiene DOS O MÁS caminos/actividades/objetivos claramente diferentes que llevarían a perfiles DISTINTOS, debes pedir clarificación ANTES de sugerir opciones.
+
+Ejemplos de ambigüedad:
+- "Quiero dar clases de yoga y también vender ropa deportiva" → ¿enseñanza o comercio?
+- "Soy contador pero quiero armar una app de finanzas" → ¿estudio contable o startup tech?
+- "Hago tortas y también tengo un salón de eventos" → ¿pastelería o eventos?
+- "Quiero vender muebles y hacer diseño de interiores" → ¿retail o servicio profesional?
+
+Si detectás ambigüedad clara (dos actividades que pertenecen a sectores DISTINTOS), devolvé este formato especial:
+{
+  "needs_clarification": true,
+  "clarification_question": "Pregunta clara y corta para desambiguar",
+  "clarification_options": [
+    { "id": "opt_a", "label": "Opción A clara (máx 8 palabras)", "emoji": "🎯" },
+    { "id": "opt_b", "label": "Opción B clara (máx 8 palabras)", "emoji": "🔀" },
+    { "id": "opt_both", "label": "Las dos cosas juntas", "emoji": "🤝" }
+  ],
+  "options": []
+}
+
+REGLAS de clarificación:
+- Solo pedir clarificación si hay DOS CAMINOS QUE LLEVAN A SECTORES DISTINTOS
+- NO pedir clarificación si es una sola actividad con matices
+- La pregunta debe ser CORTA, directa, en español natural con voseo
+- Siempre incluir la opción "Las dos cosas juntas"
+- Máximo 3 opciones de clarificación`}
+
 AUTO-SELECCIÓN:
 Si la opción 1 es un match PERFECTO e INDUDABLE al catálogo (por ejemplo el usuario escribió "pizzería" y el match es "Pizzería", o "abogado" y el match es "Estudio Jurídico / Abogado"), entonces agregar "auto_select": true en el JSON raíz.
 Esto SOLO aplica cuando:
@@ -258,6 +299,7 @@ Esto SOLO aplica cuando:
 - El texto del usuario describe claramente UNA sola actividad sin ambigüedad
 - El catalog_id de la opción 1 encaja perfectamente
 - NO hay información extra que sugiera un subtipo diferente al del catálogo
+- El usuario NO está en etapa "planning" o "exploring" (porque necesita ver las opciones)
 Si hay CUALQUIER duda, dejar "auto_select": false.
 IMPORTANTE: Si el usuario da info extra (ej. "quiero crecer", "más clientes", "vender en todo el país", ubicación, objetivos), NO auto-seleccionar. Esa info es valiosa y debe quedar en auto_select: false para que vea las 3 opciones.
 
@@ -269,6 +311,7 @@ Cuando el usuario escribe texto largo con más contexto (objetivos, ubicación, 
 - "detected_channels": canales que mencionó
 - "raw_context_notes": resumen de TODO lo extra que dijo el usuario, para que el Brain lo use después
 - "tone_and_context": incluir notas de personalización basadas en lo que escribió
+- "business_stage": "active" | "planning" | "exploring"
 
 Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
 {
@@ -299,6 +342,7 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
         "primary_pains": ["3-7 dolores principales"],
         "opportunity_angles": ["3-7 oportunidades"],
         "tone_and_context": "notas para el sistema",
+        "business_stage": "active o planning o exploring",
         "user_goals": ["objetivos del usuario si los mencionó"],
         "detected_location": "ubicación si la mencionó o null",
         "detected_pains": ["dolores explícitos del usuario"],
@@ -310,14 +354,18 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
   "confidence_top": "alta"
 }`;
 
+    const userContent = isClarificationResponse
+      ? `Texto original del usuario: "${raw_text.trim()}"\n\nPregunta de clarificación: "${clarification_context?.question || ''}"\nRespuesta elegida: "${clarification_answer}"\n\nAhora generá las 3 opciones basándote en esta clarificación.`
+      : `Analizar esta actividad y devolver 3 opciones (o pedir clarificación si hay ambigüedad real):\n\n"${raw_text.trim()}"`;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite", // Cost-optimized: simple classification task
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Analizar esta actividad y devolver 3 opciones:\n\n"${raw_text.trim()}"` },
+          { role: "user", content: userContent },
         ],
         temperature: 0.3,
       }),
@@ -342,8 +390,17 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
       parsed = JSON.parse(jsonStr);
     } catch (parseErr) {
       console.error("Failed to parse AI response:", content);
-      // Fallback: return basic keyword-matched options
       return new Response(JSON.stringify(buildFallbackOptions(raw_text)), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // If clarification needed, return it
+    if (parsed.needs_clarification && parsed.clarification_question && !isClarificationResponse) {
+      return new Response(JSON.stringify({
+        needs_clarification: true,
+        clarification_question: parsed.clarification_question,
+        clarification_options: parsed.clarification_options || [],
+        options: [],
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Validate we have exactly 3 options
@@ -363,14 +420,12 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
 function buildFallbackOptions(rawText: string) {
   const normalized = rawText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   
-  // Score each catalog entry
   const scored = FLAT_CATALOG.map(entry => {
     let score = 0;
     for (const kw of entry.keywords) {
       const normKw = kw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       if (normalized.includes(normKw)) score += normKw.length;
     }
-    // Also check label
     const normLabel = entry.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     if (normalized.includes(normLabel)) score += 20;
     return { ...entry, score };
@@ -404,6 +459,7 @@ function buildFallbackOptions(rawText: string) {
       primary_pains: ["Captar clientes", "Diferenciación", "Gestión del tiempo"],
       opportunity_angles: ["Presencia digital", "Fidelización", "Eficiencia operativa"],
       tone_and_context: "Perfil generado por fallback",
+      business_stage: "active",
     },
   });
 

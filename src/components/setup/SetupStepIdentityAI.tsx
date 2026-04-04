@@ -1,8 +1,8 @@
 // Setup Step: AI-First Identity Detection
-// Textarea → 3 smart options → profile selection
+// Textarea → clarification (if ambiguous) → 3 smart options → profile selection
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Brain, Loader2, Check, Wand2, ChevronRight, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Sparkles, Brain, Loader2, Check, Wand2, ChevronRight, RotateCcw, AlertTriangle, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,12 +32,21 @@ interface ProfileOption {
     primary_pains: string[];
     opportunity_angles: string[];
     tone_and_context: string;
+    business_stage?: 'active' | 'planning' | 'exploring';
   };
+}
+
+interface ClarificationOption {
+  id: string;
+  label: string;
+  emoji: string;
 }
 
 interface SuggestResponse {
   options: ProfileOption[];
   needs_clarification: boolean;
+  clarification_question?: string;
+  clarification_options?: ClarificationOption[];
   confidence_top: string;
 }
 
@@ -48,19 +57,23 @@ interface SetupStepIdentityAIProps {
 const EXAMPLE_CHIPS = [
   { text: 'Tengo una pizzería en Buenos Aires', emoji: '🍕' },
   { text: 'Soy abogado penalista', emoji: '⚖️' },
-  { text: 'Vendo cursos online de edición de video', emoji: '🎬' },
+  { text: 'Quiero abrir un local de ropa', emoji: '👗' },
   { text: 'Tengo un taller mecánico', emoji: '🔧' },
-  { text: 'Hago instalaciones solares', emoji: '☀️' },
+  { text: 'Estoy por arrancar con clases de yoga', emoji: '🧘' },
   { text: 'Coaching de negocios y consultoría', emoji: '💼' },
 ];
 
-type UIState = 'writing' | 'thinking' | 'results' | 'error';
+type UIState = 'writing' | 'thinking' | 'clarifying' | 'results' | 'error';
 
 export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
   const [text, setText] = useState('');
   const [state, setState] = useState<UIState>('writing');
   const [options, setOptions] = useState<ProfileOption[]>([]);
   const [thinkingProgress, setThinkingProgress] = useState(0);
+  const [clarification, setClarification] = useState<{
+    question: string;
+    options: ClarificationOption[];
+  } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize textarea
@@ -71,25 +84,47 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
     }
   }, [text]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (clarificationAnswer?: string) => {
     if (text.trim().length < 3) return;
     setState('thinking');
     setThinkingProgress(0);
 
-    // Simulated progress
     const progressInterval = setInterval(() => {
       setThinkingProgress(prev => Math.min(prev + Math.random() * 15, 85));
     }, 400);
 
     try {
-      const { data, error } = await supabase.functions.invoke('suggest-profiles', {
-        body: { raw_text: text.trim(), locale: 'es' },
-      });
+      const body: Record<string, any> = { raw_text: text.trim(), locale: 'es' };
+      if (clarificationAnswer && clarification) {
+        body.clarification_answer = clarificationAnswer;
+        body.clarification_context = { question: clarification.question };
+      }
+
+      const { data, error } = await supabase.functions.invoke('suggest-profiles', { body });
 
       clearInterval(progressInterval);
 
-      if (error || !data?.options || data.options.length !== 3) {
+      if (error) {
         console.error('suggest-profiles error:', error, data);
+        setState('error');
+        return;
+      }
+
+      // Handle clarification response
+      if (data?.needs_clarification && data?.clarification_question && !clarificationAnswer) {
+        setThinkingProgress(100);
+        setTimeout(() => {
+          setClarification({
+            question: data.clarification_question,
+            options: data.clarification_options || [],
+          });
+          setState('clarifying');
+        }, 300);
+        return;
+      }
+
+      if (!data?.options || data.options.length !== 3) {
+        console.error('suggest-profiles invalid data:', data);
         setState('error');
         return;
       }
@@ -115,18 +150,35 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
     }
   };
 
+  const handleClarificationSelect = (optionLabel: string) => {
+    handleSubmit(optionLabel);
+  };
+
   const handleReset = () => {
     setState('writing');
     setOptions([]);
+    setClarification(null);
     setThinkingProgress(0);
   };
 
   const handleChipClick = (chipText: string) => {
     setText(chipText);
-    // Auto-submit after short delay
     setTimeout(() => {
       if (textareaRef.current) textareaRef.current.focus();
     }, 100);
+  };
+
+  // Helper to render stage badge
+  const renderStageBadge = (stage?: string) => {
+    if (!stage || stage === 'active') return null;
+    const config = stage === 'planning' 
+      ? { label: 'Proyecto nuevo', color: 'bg-accent/10 text-accent-foreground' }
+      : { label: 'Explorando', color: 'bg-secondary text-muted-foreground' };
+    return (
+      <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold", config.color)}>
+        🚀 {config.label}
+      </span>
+    );
   };
 
   return (
@@ -145,7 +197,7 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
           ¿A qué te dedicás?
         </h2>
         <p className="text-muted-foreground max-w-md mx-auto">
-          Negocio, servicio o profesión. Escribilo como te salga. VISTACEO lo entiende y arma tu perfil.
+          Negocio, servicio, profesión o proyecto. Escribilo como te salga, incluso si recién estás planeándolo.
         </p>
       </div>
 
@@ -166,7 +218,7 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
-                placeholder="Ej: Tengo una pizzería en Bogotá, vendo por delivery y local..."
+                placeholder="Ej: Quiero abrir una cafetería de especialidad, o ya tengo un taller mecánico..."
                 className={cn(
                   "w-full min-h-[100px] max-h-[200px] resize-none rounded-2xl",
                   "border-2 border-border bg-card px-5 py-4 text-base",
@@ -208,7 +260,7 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
             {/* Buttons */}
             <div className="flex flex-col gap-3 items-center pt-2">
               <Button
-                onClick={handleSubmit}
+                onClick={() => handleSubmit()}
                 disabled={text.trim().length < 3}
                 size="lg"
                 className="w-full max-w-sm gap-2 text-base"
@@ -229,7 +281,6 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
             exit={{ opacity: 0, scale: 0.95 }}
             className="text-center space-y-6 py-8"
           >
-            {/* Animated brain */}
             <div className="relative mx-auto w-20 h-20">
               <motion.div
                 className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20"
@@ -261,7 +312,6 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
               <p className="text-sm text-muted-foreground">"{text.slice(0, 60)}{text.length > 60 ? '...' : ''}"</p>
             </div>
 
-            {/* Progress bar */}
             <div className="w-full max-w-xs mx-auto">
               <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
                 <motion.div
@@ -278,6 +328,75 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
           </motion.div>
         )}
 
+        {/* STATE: CLARIFYING */}
+        {state === 'clarifying' && clarification && (
+          <motion.div
+            key="clarifying"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-6"
+          >
+            <div className="text-center mb-2">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <HelpCircle className="w-7 h-7 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Necesito que me aclares algo
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                Detecté más de un camino posible en lo que escribiste
+              </p>
+            </div>
+
+            {/* User's original text */}
+            <div className="px-4 py-3 rounded-xl bg-secondary/50 border border-border">
+              <p className="text-sm text-muted-foreground italic">"{text.slice(0, 100)}{text.length > 100 ? '...' : ''}"</p>
+            </div>
+
+            {/* Clarification question */}
+            <h4 className="text-base font-semibold text-foreground text-center">
+              {clarification.question}
+            </h4>
+
+            {/* Clarification options */}
+            <div className="grid gap-3">
+              {clarification.options.map((opt, i) => (
+                <motion.button
+                  key={opt.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  onClick={() => handleClarificationSelect(opt.label)}
+                  className={cn(
+                    "w-full text-left rounded-2xl border-2 border-border bg-card",
+                    "p-4 pr-10 relative group",
+                    "hover:border-primary/40 hover:bg-primary/5 hover:shadow-md",
+                    "transition-all duration-200"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{opt.emoji}</span>
+                    <span className="text-sm font-medium text-foreground">{opt.label}</span>
+                  </div>
+                  <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/20 group-hover:text-primary transition-colors" />
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Back button */}
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={handleReset}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Reescribir
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {/* STATE: RESULTS - 3 Cards Premium */}
         {state === 'results' && (
           <motion.div
@@ -287,7 +406,6 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-5"
           >
-            {/* Header */}
             <div className="text-center mb-4">
               <h3 className="text-lg font-semibold text-foreground mb-1">
                 Elegí la opción que mejor te describe
@@ -297,13 +415,13 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
               </p>
             </div>
 
-            {/* 3 Cards - sorted by precision, highest first */}
             <div className="grid gap-3">
               {[...options]
                 .map((option, originalIndex) => ({ option, originalIndex }))
                 .sort((a, b) => (b.option.precision_percent ?? 0) - (a.option.precision_percent ?? 0))
                 .map(({ option, originalIndex }, displayIndex) => {
                   const isTop = displayIndex === 0;
+                  const stage = option.universal_profile?.business_stage;
                   return (
                     <motion.button
                       key={originalIndex}
@@ -334,6 +452,7 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
                             A medida
                           </span>
                         )}
+                        {renderStageBadge(stage)}
                         <span className={cn(
                           "inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold",
                           (option.precision_percent ?? 0) >= 80
@@ -346,7 +465,7 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
                         </span>
                       </div>
 
-                      {/* Title - wraps naturally */}
+                      {/* Title */}
                       <h4 className="text-sm md:text-base font-semibold text-foreground leading-snug mb-1">
                         {option.title}
                       </h4>
@@ -356,7 +475,7 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
                         {option.sector_label} · {option.subtype}
                       </p>
 
-                      {/* Reason - wraps, no truncate */}
+                      {/* Reason */}
                       <p className="text-xs text-muted-foreground/70 italic leading-relaxed mb-2">
                         {option.reason}
                       </p>
