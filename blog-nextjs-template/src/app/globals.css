@@ -28,6 +28,11 @@ body {
   font-family: "Inter", system-ui, sans-serif;
 }
 
+/* Gradient button — identical to landing */
+.gradient-primary {
+  background: linear-gradient(135deg, hsl(262 83% 58%), hsl(210 70% 50%));
+}
+
 /* Prose customization */
 .prose {
   --tw-prose-body: hsl(var(--foreground));
