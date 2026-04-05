@@ -6,8 +6,8 @@ const MAIN_SITE = process.env.NEXT_PUBLIC_MAIN_SITE_URL || "https://www.vistaceo
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border/50 bg-secondary/30 mt-16">
-      <div className="max-w-6xl mx-auto px-4 py-12">
+    <footer className="border-t mt-16" style={{ borderColor: "hsl(240 3.7% 15.9% / 0.5)", backgroundColor: "hsl(240 3.7% 15.9% / 0.3)" }}>
+      <div className="max-w-[1200px] mx-auto px-4 py-12">
         <div className="grid md:grid-cols-3 gap-8">
           {/* Brand */}
           <div>
@@ -19,27 +19,29 @@ export default function Footer() {
                 height={32}
                 className="h-8 w-8 object-contain"
               />
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-foreground tracking-wide" style={{ fontFamily: "'Codec Pro', 'Inter', system-ui, sans-serif" }}>
-                  VISTACEO
-                </span>
-                <span className="text-muted-foreground text-sm font-normal">Blog</span>
-              </div>
+              <Image
+                src="/logo-full-text.png"
+                alt="VISTACEO"
+                width={120}
+                height={32}
+                className="h-7 w-auto object-contain"
+              />
             </Link>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm leading-relaxed" style={{ color: "hsl(240 5% 64.9%)" }}>
               Inteligencia de negocios práctica para emprendedores y profesionales de Latinoamérica.
             </p>
           </div>
 
           {/* Clusters */}
           <div>
-            <h4 className="font-semibold mb-4 text-foreground">Categorías</h4>
+            <h4 className="font-semibold mb-4">Categorías</h4>
             <ul className="space-y-2">
               {Object.values(CLUSTERS).map((cluster) => (
                 <li key={cluster.slug}>
                   <Link
                     href={`/tema/${cluster.slug}`}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-sm transition-colors hover:text-[hsl(0,0%,98%)]"
+                    style={{ color: "hsl(240 5% 64.9%)" }}
                   >
                     {cluster.emoji} {cluster.name}
                   </Link>
@@ -50,12 +52,13 @@ export default function Footer() {
 
           {/* Links */}
           <div>
-            <h4 className="font-semibold mb-4 text-foreground">Enlaces</h4>
+            <h4 className="font-semibold mb-4">Enlaces</h4>
             <ul className="space-y-2">
               <li>
                 <Link
                   href={MAIN_SITE}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm transition-colors hover:text-[hsl(0,0%,98%)]"
+                  style={{ color: "hsl(240 5% 64.9%)" }}
                 >
                   Probar VISTACEO
                 </Link>
@@ -63,7 +66,8 @@ export default function Footer() {
               <li>
                 <Link
                   href={`${MAIN_SITE}/politicas`}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm transition-colors hover:text-[hsl(0,0%,98%)]"
+                  style={{ color: "hsl(240 5% 64.9%)" }}
                 >
                   Política de Privacidad
                 </Link>
@@ -71,7 +75,8 @@ export default function Footer() {
               <li>
                 <Link
                   href={`${MAIN_SITE}/condiciones`}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm transition-colors hover:text-[hsl(0,0%,98%)]"
+                  style={{ color: "hsl(240 5% 64.9%)" }}
                 >
                   Términos de Uso
                 </Link>
@@ -79,7 +84,8 @@ export default function Footer() {
               <li>
                 <Link
                   href="/rss.xml"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm transition-colors hover:text-[hsl(0,0%,98%)]"
+                  style={{ color: "hsl(240 5% 64.9%)" }}
                 >
                   RSS Feed
                 </Link>
@@ -88,7 +94,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-border/50 mt-8 pt-8 text-center text-sm text-muted-foreground">
+        <div className="border-t mt-8 pt-8 text-center text-sm" style={{ borderColor: "hsl(240 3.7% 15.9% / 0.5)", color: "hsl(240 5% 64.9%)" }}>
           © {new Date().getFullYear()} VISTACEO. Todos los derechos reservados.
         </div>
       </div>
