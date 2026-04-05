@@ -78,7 +78,7 @@ export default function RootLayout({
     <html lang="es">
       <head>
         <link rel="icon" href="/favicon.png" />
-        <link rel="alternate" type="application/rss+xml" title="VistaCEO Blog RSS" href="/rss.xml" />
+        <link rel="alternate" type="application/rss+xml" title="VISTACEO Blog RSS" href="/rss.xml" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
