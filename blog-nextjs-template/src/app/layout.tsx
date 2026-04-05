@@ -12,8 +12,8 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.vistaceo.com"
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "VistaCEO Blog | Inteligencia de Negocios para Latinoamérica",
-    template: "%s | VistaCEO Blog",
+    default: "VISTACEO Blog | Inteligencia de Negocios para Latinoamérica",
+    template: "%s | VISTACEO Blog",
   },
   description:
     "Guías prácticas de IA, liderazgo, empleo y estrategia para emprendedores y profesionales de Latinoamérica.",
@@ -43,8 +43,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_LA",
     url: SITE_URL,
-    siteName: "VistaCEO Blog",
-    title: "VistaCEO Blog | Inteligencia de Negocios para Latinoamérica",
+    siteName: "VISTACEO Blog",
+    title: "VISTACEO Blog | Inteligencia de Negocios para Latinoamérica",
     description:
       "Guías prácticas de IA, liderazgo, empleo y estrategia para emprendedores y profesionales de Latinoamérica.",
     images: [
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
         url: `${SITE_URL}/og-default.jpg`,
         width: 1200,
         height: 630,
-        alt: "VistaCEO Blog",
+        alt: "VISTACEO Blog",
       },
     ],
   },
@@ -78,7 +78,7 @@ export default function RootLayout({
     <html lang="es">
       <head>
         <link rel="icon" href="/favicon.png" />
-        <link rel="alternate" type="application/rss+xml" title="VistaCEO Blog RSS" href="/rss.xml" />
+        <link rel="alternate" type="application/rss+xml" title="VISTACEO Blog RSS" href="/rss.xml" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
