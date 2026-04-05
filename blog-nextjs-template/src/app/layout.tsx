@@ -43,8 +43,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_LA",
     url: SITE_URL,
-    siteName: "VistaCEO Blog",
-    title: "VistaCEO Blog | Inteligencia de Negocios para Latinoamérica",
+    siteName: "VISTACEO Blog",
+    title: "VISTACEO Blog | Inteligencia de Negocios para Latinoamérica",
     description:
       "Guías prácticas de IA, liderazgo, empleo y estrategia para emprendedores y profesionales de Latinoamérica.",
     images: [
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
         url: `${SITE_URL}/og-default.jpg`,
         width: 1200,
         height: 630,
-        alt: "VistaCEO Blog",
+        alt: "VISTACEO Blog",
       },
     ],
   },
