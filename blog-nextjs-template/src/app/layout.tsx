@@ -12,8 +12,8 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.vistaceo.com"
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "VistaCEO Blog | Inteligencia de Negocios para Latinoamérica",
-    template: "%s | VistaCEO Blog",
+    default: "VISTACEO Blog | Inteligencia de Negocios para Latinoamérica",
+    template: "%s | VISTACEO Blog",
   },
   description:
     "Guías prácticas de IA, liderazgo, empleo y estrategia para emprendedores y profesionales de Latinoamérica.",
