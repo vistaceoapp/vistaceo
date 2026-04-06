@@ -878,6 +878,7 @@ const LandingV2 = () => {
         </div>
       </footer>
     </div>
+    </>
   );
 };
 
