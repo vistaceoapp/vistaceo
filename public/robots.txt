@@ -1,23 +1,27 @@
-# VistaSEOOS - Robots.txt
+# VistaCEO - Robots.txt
 # Canonical domain: https://www.vistaceo.com
-# Target: LATAM, EEUU, España
 
 # ===== MAIN CRAWLERS =====
 
 User-agent: Googlebot
 Allow: /
-Allow: /blog/
+Disallow: /app/
+Disallow: /setup
+Disallow: /checkout
+Disallow: /admin/
+Disallow: /api/
+Disallow: /blog/
 Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
-Allow: /blog/
+Disallow: /app/
+Disallow: /setup
+Disallow: /checkout
+Disallow: /admin/
+Disallow: /api/
+Disallow: /blog/
 Crawl-delay: 1
-
-User-agent: Slurp
-Allow: /
-Allow: /blog/
-Crawl-delay: 2
 
 # ===== SOCIAL MEDIA BOTS =====
 
@@ -81,16 +85,12 @@ Disallow: /
 
 User-agent: *
 Allow: /
-Allow: /blog/
-
-# Block private/internal routes
 Disallow: /app/
 Disallow: /setup
 Disallow: /checkout
 Disallow: /admin/
 Disallow: /api/
-
-# Block query parameters that create duplicate content
+Disallow: /blog/
 Disallow: /*?utm_
 Disallow: /*?ref=
 Disallow: /*?source=

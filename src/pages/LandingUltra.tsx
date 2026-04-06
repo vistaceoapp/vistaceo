@@ -1,3 +1,4 @@
+import { SiteHead } from "@/components/seo/SiteHead";
 import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -326,6 +327,8 @@ const LandingUltra = () => {
   ];
 
   return (
+    <>
+    <SiteHead path="/ultra" noindex={true} />
     <div ref={containerRef} className="min-h-screen bg-background overflow-hidden">
       {/* Background effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -1098,6 +1101,7 @@ const LandingUltra = () => {
         }
       `}</style>
     </div>
+    </>
   );
 };
 

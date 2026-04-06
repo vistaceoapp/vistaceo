@@ -1,3 +1,4 @@
+import { SiteHead } from "@/components/seo/SiteHead";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -215,6 +216,8 @@ const LandingV2 = () => {
   ];
 
   return (
+    <>
+    <SiteHead path="/v2" noindex={true} />
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Navigation */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
@@ -875,6 +878,7 @@ const LandingV2 = () => {
         </div>
       </footer>
     </div>
+    </>
   );
 };
 
