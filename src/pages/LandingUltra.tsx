@@ -327,6 +327,8 @@ const LandingUltra = () => {
   ];
 
   return (
+    <>
+    <SiteHead path="/ultra" noindex={true} />
     <div ref={containerRef} className="min-h-screen bg-background overflow-hidden">
       {/* Background effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
