@@ -1,3 +1,4 @@
+import { SiteHead } from "@/components/seo/SiteHead";
 import { motion, useScroll, useTransform, useSpring, useInView, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
