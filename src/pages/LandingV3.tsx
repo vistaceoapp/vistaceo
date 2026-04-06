@@ -66,7 +66,7 @@ const LandingV3 = () => {
 
   return (
     <>
-      <SiteHead path="/" />
+      <SiteHead path="/v3" noindex={true} />
       <div className="min-h-screen bg-background overflow-x-hidden">
         {/* Background orbs */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
