@@ -10,7 +10,6 @@ Disallow: /setup
 Disallow: /checkout
 Disallow: /admin/
 Disallow: /api/
-Disallow: /blog/
 Crawl-delay: 1
 
 User-agent: Bingbot
@@ -20,7 +19,6 @@ Disallow: /setup
 Disallow: /checkout
 Disallow: /admin/
 Disallow: /api/
-Disallow: /blog/
 Crawl-delay: 1
 
 # ===== SOCIAL MEDIA BOTS =====
@@ -90,7 +88,6 @@ Disallow: /setup
 Disallow: /checkout
 Disallow: /admin/
 Disallow: /api/
-Disallow: /blog/
 Disallow: /*?utm_
 Disallow: /*?ref=
 Disallow: /*?source=

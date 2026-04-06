@@ -19,17 +19,20 @@ export default function BlogRedirect() {
   }
 
   useEffect(() => {
+    // Use 301-equivalent redirect via replace
     window.location.replace(targetUrl);
   }, [targetUrl]);
 
   return (
     <>
       <Helmet>
-        {/* Tell Google this is NOT a page to index — the real content is on the subdomain */}
+        {/* noindex: Google should NOT index this transit page */}
         <meta name="robots" content="noindex, nofollow" />
+        {/* Canonical points to the real content on the subdomain */}
         <link rel="canonical" href={targetUrl} />
         {/* HTTP-Equiv refresh as fallback for bots that don't run JS */}
         <meta httpEquiv="refresh" content={`0;url=${targetUrl}`} />
+        <title>Redirigiendo al blog de VISTACEO...</title>
       </Helmet>
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
