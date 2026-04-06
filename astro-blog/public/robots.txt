@@ -1,12 +1,7 @@
 # VistaCEO Blog - robots.txt
 # https://blog.vistaceo.com
 
-User-agent: *
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-
-# Specific bot instructions for better crawling
+# Allow all search engine crawlers
 User-agent: Googlebot
 Allow: /
 Crawl-delay: 1
@@ -15,7 +10,17 @@ User-agent: Bingbot
 Allow: /
 Crawl-delay: 1
 
-# Block aggressive/spam bots
+# Social media bots
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Block aggressive bots
 User-agent: AhrefsBot
 Disallow: /
 
@@ -28,18 +33,6 @@ Disallow: /
 User-agent: MJ12bot
 Disallow: /
 
-User-agent: BLEXBot
-Disallow: /
-
-User-agent: PetalBot
-Disallow: /
-
-User-agent: YandexBot
-Disallow: /
-
-User-agent: Bytespider
-Disallow: /
-
 User-agent: GPTBot
 Disallow: /
 
@@ -49,8 +42,14 @@ Disallow: /
 User-agent: ClaudeBot
 Disallow: /
 
-# Sitemap location
-Sitemap: https://blog.vistaceo.com/sitemap.xml
+User-agent: Bytespider
+Disallow: /
 
-# IndexNow key for instant indexing
-# Key file: https://blog.vistaceo.com/indexnow-key.txt
+# All other bots
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://blog.vistaceo.com/sitemap.xml

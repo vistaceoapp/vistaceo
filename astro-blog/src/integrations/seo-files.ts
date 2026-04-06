@@ -100,21 +100,65 @@ async function generateSitemapXml(): Promise<string> {
 
 function generateRobotsTxt(): string {
   const today = new Date().toISOString().split('T')[0];
-  return (
-    `# VistaCEO Blog - robots.txt\n` +
-    `# ${SITE_URL}\n` +
-    `# Last updated: ${today}\n\n` +
-    `User-agent: *\n` +
-    `Allow: /\n` +
-    `Disallow: /api/\n` +
-    `Disallow: /admin/\n\n` +
-    `# Crawl delay suggestions\n` +
-    `User-agent: Googlebot\n` +
-    `Allow: /\n\n` +
-    `User-agent: Bingbot\n` +
-    `Allow: /\n\n` +
-    `Sitemap: ${SITE_URL}/sitemap.xml\n`
-  );
+  return [
+    `# VistaCEO Blog - robots.txt`,
+    `# ${SITE_URL}`,
+    `# Last updated: ${today}`,
+    ``,
+    `# Allow all search engine crawlers`,
+    `User-agent: Googlebot`,
+    `Allow: /`,
+    `Crawl-delay: 1`,
+    ``,
+    `User-agent: Bingbot`,
+    `Allow: /`,
+    `Crawl-delay: 1`,
+    ``,
+    `# Social media bots`,
+    `User-agent: Twitterbot`,
+    `Allow: /`,
+    ``,
+    `User-agent: facebookexternalhit`,
+    `Allow: /`,
+    ``,
+    `User-agent: LinkedInBot`,
+    `Allow: /`,
+    ``,
+    `# Block aggressive bots`,
+    `User-agent: AhrefsBot`,
+    `Disallow: /`,
+    ``,
+    `User-agent: SemrushBot`,
+    `Disallow: /`,
+    ``,
+    `User-agent: DotBot`,
+    `Disallow: /`,
+    ``,
+    `User-agent: MJ12bot`,
+    `Disallow: /`,
+    ``,
+    `User-agent: GPTBot`,
+    `Disallow: /`,
+    ``,
+    `User-agent: CCBot`,
+    `Disallow: /`,
+    ``,
+    `User-agent: ClaudeBot`,
+    `Disallow: /`,
+    ``,
+    `User-agent: Bytespider`,
+    `Disallow: /`,
+    ``,
+    `# All other bots`,
+    `User-agent: *`,
+    `Allow: /`,
+    `Disallow: /api/`,
+    `Disallow: /admin/`,
+    ``,
+    `# Sitemap`,
+    `Sitemap: ${SITE_URL}/sitemap.xml`,
+    ``,
+  ].join('\n');
 }
 
 async function ensureFileNotDirectory(outDir: string, fileName: string) {
