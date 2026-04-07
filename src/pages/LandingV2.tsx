@@ -872,7 +872,7 @@ const LandingV2 = () => {
             </div>
             
             <div className="text-sm text-muted-foreground">
-              © 2024 VistaCEO. Todos los derechos reservados.
+              © 2026 VistaCEO. Todos los derechos reservados.
             </div>
           </div>
         </div>

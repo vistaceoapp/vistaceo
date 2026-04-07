@@ -1380,7 +1380,7 @@ const PremiumFooter = memo(() => {
 
         {/* Bottom bar */}
         <div className="pt-8 border-t border-[#f5f5f5] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <span className="text-[11.5px] text-[#ddd]">© 2025 VISTACEO. Todos los derechos reservados.</span>
+          <span className="text-[11.5px] text-[#ddd]">© 2026 VISTACEO. Todos los derechos reservados.</span>
           <a href="mailto:info@vistaceo.com" className="text-[11.5px] text-[#ddd] hover:text-[#999] transition-colors flex items-center gap-1.5">
             <Mail className="w-3 h-3" /> info@vistaceo.com
           </a>

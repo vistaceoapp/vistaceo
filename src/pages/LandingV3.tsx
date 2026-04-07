@@ -38,7 +38,7 @@ const Footer = memo(() => (
             loading="lazy"
             className="h-6 w-6 object-contain" 
           />
-          <span className="text-sm text-muted-foreground">© 2025 VistaCEO. Todos los derechos reservados.</span>
+          <span className="text-sm text-muted-foreground">© 2026 VistaCEO. Todos los derechos reservados.</span>
         </div>
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <a href="https://www.vistaceo.com/condiciones" className="hover:text-foreground transition-colors">Condiciones</a>
