@@ -4,9 +4,9 @@
 const MAIN_SITE = 'https://www.vistaceo.com';
 
 const navItems = [
-  { label: 'Producto', href: `${MAIN_SITE}/#producto` },
-  { label: 'Cómo funciona', href: `${MAIN_SITE}/#como-funciona` },
+  { label: 'Características', href: `${MAIN_SITE}/#características` },
   { label: 'Precios', href: `${MAIN_SITE}/#precios` },
+  { label: 'FAQ', href: `${MAIN_SITE}/#faq` },
   { label: 'Blog', href: '/', active: true },
 ];
 ---
@@ -49,12 +49,12 @@ const navItems = [
       <!-- Right side actions -->
       <div class="header-actions">
         <!-- Login (desktop) -->
-        <a href={`${MAIN_SITE}/auth`} class="btn-ghost">
+        <a href={`${MAIN_SITE}/auth?mode=login`} class="btn-ghost">
           Iniciar sesión
         </a>
         
         <!-- CTA Button -->
-        <a href={`${MAIN_SITE}/auth`} class="btn-cta">
+        <a href={`${MAIN_SITE}/auth?mode=signup`} class="btn-cta">
           <span class="cta-short">gratis</span>
           <span class="cta-full">Empezar gratis</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -90,7 +90,7 @@ const navItems = [
         </a>
       ))}
       <div class="mobile-divider"></div>
-      <a href={`${MAIN_SITE}/auth`} class="mobile-login">
+      <a href={`${MAIN_SITE}/auth?mode=login`} class="mobile-login">
         Iniciar sesión
       </a>
     </nav>
