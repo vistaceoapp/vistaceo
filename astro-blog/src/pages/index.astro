@@ -4,748 +4,579 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { getLatestPosts, getClusterStats } from '../lib/supabase';
 import { generateWebSiteSchema, generateOrganizationSchema } from '../lib/seo';
-import { getAllClusters, getCluster } from '../lib/clusters';
+import { getAllClusters } from '../lib/clusters';
 import { formatDate, truncate } from '../lib/text';
-import { getCategoryVisual } from '../lib/category-visuals';
 
-const posts = await getLatestPosts(30);
-const clusterStats = await getClusterStats();
+const posts = await getLatestPosts(50);
 const clusters = getAllClusters();
-const MAIN_SITE = 'https://www.vistaceo.com';
+const MAIN = 'https://www.vistaceo.com';
 
-const schemas = [
-  generateWebSiteSchema(),
-  generateOrganizationSchema()
-];
+const schemas = [generateWebSiteSchema(), generateOrganizationSchema()];
 
-// Group posts by cluster (using category field from 12-cluster system)
-const postsByCluster = clusters.reduce((acc, cluster) => {
-  acc[cluster.slug] = posts.filter(p => p.category === cluster.slug).slice(0, 4);
-  return acc;
-}, {} as Record<string, typeof posts>);
+// Count posts per cluster
+const clusterCounts: Record<string, number> = {};
+posts.forEach(p => {
+  if (p.category) clusterCounts[p.category] = (clusterCounts[p.category] || 0) + 1;
+});
+const activeClusters = clusters.filter(c => (clusterCounts[c.slug] || 0) > 0);
 
-// Get clusters with posts for display
-const clustersWithPosts = clusters.filter(c => postsByCluster[c.slug]?.length > 0).slice(0, 4);
+// Featured post = most recent
+const featured = posts[0];
+const restPosts = posts.slice(1);
 ---
 
-<BaseLayout 
-  title="Blog | VistaCEO — Recursos para gestionar mejor tu negocio"
-  description="Artículos, guías y recursos prácticos para dueños de negocios en LATAM. Liderazgo, IA aplicada, emprendimiento, finanzas y más."
+<BaseLayout
+  title="VISTACEO Blog — Recursos para hacer crecer tu negocio"
+  description="Artículos, guías y recursos prácticos sobre liderazgo, IA aplicada, emprendimiento y finanzas para dueños de negocios en Latinoamérica."
   canonical="https://blog.vistaceo.com/"
   schemas={schemas}
 >
   <Header />
-  
-  <main class="main-content">
-    <!-- Hero Section -->
+
+  <main class="blog-main">
+    <!-- Hero -->
     <section class="hero">
-      <div class="hero-glow"></div>
+      <div class="hero-bg">
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+      </div>
       <div class="hero-content">
         <h1>
-          Recursos para dirigir <span class="text-gradient">con más claridad</span>
+          Inteligencia de negocios<br/>
+          <span class="text-gradient">para quienes lideran</span>
         </h1>
-        <p class="hero-subtitle">
-          Ideas, estrategias y herramientas pensadas para quienes lideran negocios y necesitan tomar mejores decisiones cada día.
+        <p class="hero-sub">
+          Guías prácticas, estrategias y recursos para tomar mejores decisiones y hacer crecer tu negocio.
         </p>
-        <div class="hero-actions">
-          <a href="#explorar" class="btn-secondary">
-            Explorar temas
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M6 9l6 6 6-6"/>
-            </svg>
-          </a>
-          <a href={`${MAIN_SITE}/auth`} class="btn-primary">
-            Probar VistaCEO
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat">
-            <span class="stat-number">{posts.length}+</span>
-            <span class="stat-label">Artículos</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat">
-            <span class="stat-number">12</span>
-            <span class="stat-label">Categorías</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat">
-            <span class="stat-number">100%</span>
-            <span class="stat-label">Gratuito</span>
-          </div>
+
+        <!-- Search -->
+        <div class="search-wrap">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input
+            type="search"
+            id="search-input"
+            placeholder="Buscar artículos..."
+            autocomplete="off"
+          />
         </div>
       </div>
     </section>
-    
-    <div class="container">
-      <!-- Latest Posts -->
-      <section class="section">
-        <div class="section-header">
-          <h2 class="section-title">
-            <span class="section-icon">📰</span>
-            Últimos Artículos
-          </h2>
-        </div>
-        <div class="posts-grid featured-grid">
-          {posts.slice(0, 6).map((post, index) => {
-            const cluster = getCluster(post.category);
-            const catVis = getCategoryVisual(post.category);
-            const isFeatured = index === 0;
-            return (
-              <a href={`/${post.slug}`} class={`post-card ${isFeatured ? 'featured' : ''}`}>
-                <div class="post-image">
-                  {post.hero_image_url ? (
-                    <img 
-                      src={post.hero_image_url} 
-                      alt={post.image_alt_text || post.title}
-                      loading={index < 3 ? 'eager' : 'lazy'}
-                      width="400"
-                      height="225"
-                    />
-                  ) : (
-                    <div class="post-image-fallback" style={`background: ${catVis.gradient};`}>
-                      <span class="fallback-emoji">{catVis.emoji}</span>
-                      {cluster && <span class="fallback-label">{cluster.name}</span>}
-                    </div>
-                  )}
-                </div>
-                <div class="post-content">
-                  {cluster && (
-                    <span class="post-cluster">
-                      <span>{cluster.emoji}</span>
-                      {cluster.name}
-                    </span>
-                  )}
-                  <h3 class="post-title">{post.title}</h3>
-                  {post.excerpt && (
-                    <p class="post-excerpt">{truncate(post.excerpt, isFeatured ? 150 : 100)}</p>
-                  )}
-                  <div class="post-meta">
-                    <span class="post-date">{formatDate(post.publish_at)}</span>
-                    {post.reading_time_min && (
-                      <span class="post-reading">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <circle cx="12" cy="12" r="10"/>
-                          <polyline points="12 6 12 12 16 14"/>
-                        </svg>
-                        {post.reading_time_min} min
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </a>
-            );
-          })}
-        </div>
-      </section>
-      
-      <!-- Explore by Topic -->
-      <section class="section" id="explorar">
-        <div class="section-header">
-          <h2 class="section-title">
-            <span class="section-icon">🗂️</span>
-            Explorar por Tema
-          </h2>
-          <p class="section-subtitle">
-            12 categorías especializadas para PyMEs latinoamericanas
-          </p>
-        </div>
-        <div class="clusters-grid">
-          {clusters.map((cluster) => {
-            const postCount = clusterStats[cluster.slug] || 0;
-            return (
-              <a href={`/tema/${cluster.slug}`} class="cluster-card">
-                <span class="cluster-emoji">{cluster.emoji}</span>
-                <span class="cluster-name">{cluster.name}</span>
-                <span class="cluster-count">{postCount} artículos</span>
-              </a>
-            );
-          })}
-        </div>
-      </section>
-      
-      <!-- Cluster Sections -->
-      {clustersWithPosts.map((cluster) => {
-        const clusterPosts = postsByCluster[cluster.slug];
-        return (
-          <section class="section">
-            <div class="section-header">
-              <h2 class="section-title">
-                <span class="section-icon">{cluster.emoji}</span>
-                {cluster.name}
-              </h2>
-              <a href={`/tema/${cluster.slug}`} class="section-link">
-                Ver todos →
-              </a>
+
+    <!-- Category pills -->
+    <section class="filters" id="explorar">
+      <div class="filters-inner">
+        <button class="pill active" data-cat="all">Todos</button>
+        {activeClusters.map(c => (
+          <a href={`/tema/${c.slug}`} class="pill" data-cat={c.slug}>
+            {c.name}
+            <span class="pill-count">{clusterCounts[c.slug]}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- Featured post -->
+    {featured && (
+      <section class="featured-section">
+        <div class="container">
+          <a href={`/${featured.slug}`} class="featured-card">
+            {featured.hero_image_url && (
+              <div class="featured-img">
+                <img src={featured.hero_image_url} alt={featured.image_alt_text || featured.title} loading="eager" />
+              </div>
+            )}
+            <div class="featured-body">
+              {featured.category && (
+                <span class="badge">{clusters.find(c => c.slug === featured.category)?.name || featured.category}</span>
+              )}
+              <h2>{featured.title}</h2>
+              {featured.excerpt && <p class="featured-excerpt">{truncate(featured.excerpt, 180)}</p>}
+              <div class="featured-meta">
+                {featured.reading_time_min && <span>{featured.reading_time_min} min de lectura</span>}
+                <span>{formatDate(featured.publish_at || featured.created_at)}</span>
+              </div>
             </div>
-            <div class="posts-grid">
-              {clusterPosts.map((post) => {
-                const catVis = getCategoryVisual(post.category);
-                return (
-                <a href={`/${post.slug}`} class="post-card">
-                  <div class="post-image">
-                    {post.hero_image_url ? (
-                      <img 
-                        src={post.hero_image_url} 
-                        alt={post.image_alt_text || post.title}
-                        loading="lazy"
-                        width="400"
-                        height="225"
-                      />
-                    ) : (
-                      <div class="post-image-fallback" style={`background: ${catVis.gradient};`}>
-                        <span class="fallback-emoji">{catVis.emoji}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div class="post-content">
-                    <h3 class="post-title">{post.title}</h3>
-                    {post.excerpt && (
-                      <p class="post-excerpt">{truncate(post.excerpt, 100)}</p>
-                    )}
-                    <span class="post-date">{formatDate(post.publish_at)}</span>
-                  </div>
-                </a>
-              )})}
-            </div>
-          </section>
-        );
-      })}
-      
-      <!-- CTA Section -->
-      <section class="cta-section">
-        <div class="cta-card">
-          <div class="cta-icon">📊</div>
-          <h2>Inteligencia ejecutiva para tu negocio</h2>
-          <p>
-            VistaCEO analiza el contexto de tu negocio, detecta prioridades y te guía con acciones concretas. 
-            Adaptado a distintas lógicas de negocio, escalas y etapas de madurez.
-          </p>
-          <a href={`${MAIN_SITE}/auth`} class="btn-primary">
-            Conocer VistaCEO
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
           </a>
         </div>
       </section>
-    </div>
+    )}
+
+    <!-- Post grid -->
+    <section class="posts-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>Últimos artículos</h2>
+          <p class="posts-count" id="posts-count">{restPosts.length} artículos</p>
+        </div>
+        <div class="posts-grid" id="posts-grid">
+          {restPosts.map(post => (
+            <a
+              href={`/${post.slug}`}
+              class="post-card"
+              data-title={post.title.toLowerCase()}
+              data-cat={post.category || ''}
+            >
+              {post.hero_image_url ? (
+                <div class="card-img">
+                  <img src={post.hero_image_url} alt={post.image_alt_text || post.title} loading="lazy" />
+                </div>
+              ) : (
+                <div class="card-img card-img-placeholder">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                  </svg>
+                </div>
+              )}
+              <div class="card-body">
+                {post.category && (
+                  <span class="card-badge">{clusters.find(c => c.slug === post.category)?.name || post.category}</span>
+                )}
+                <h3>{post.title}</h3>
+                {post.excerpt && <p class="card-excerpt">{truncate(post.excerpt, 120)}</p>}
+                <div class="card-meta">
+                  {post.reading_time_min && <span>{post.reading_time_min} min</span>}
+                  <span>{formatDate(post.publish_at || post.created_at)}</span>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+        <p class="no-results" id="no-results" style="display:none;">
+          No se encontraron artículos. Probá con otra búsqueda.
+        </p>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-card">
+          <h2>¿Listo para hacer crecer tu negocio?</h2>
+          <p>VISTACEO detecta oportunidades y genera misiones accionables con inteligencia artificial.</p>
+          <a href={`${MAIN}/auth`} class="btn-hero-lg">
+            Empezar gratis
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
   </main>
-  
+
   <Footer />
 </BaseLayout>
 
+<script>
+  const input = document.getElementById('search-input') as HTMLInputElement;
+  const grid = document.getElementById('posts-grid');
+  const countEl = document.getElementById('posts-count');
+  const noRes = document.getElementById('no-results');
+  const cards = Array.from(document.querySelectorAll('.post-card'));
+
+  function filter() {
+    const q = (input?.value || '').toLowerCase().trim();
+    let visible = 0;
+    cards.forEach(card => {
+      const title = card.getAttribute('data-title') || '';
+      const match = !q || title.includes(q);
+      (card as HTMLElement).style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    if (countEl) countEl.textContent = `${visible} artículo${visible !== 1 ? 's' : ''}`;
+    if (noRes) (noRes as HTMLElement).style.display = visible === 0 ? '' : 'none';
+  }
+
+  input?.addEventListener('input', filter);
+</script>
+
 <style>
-  .main-content {
-    padding-top: 64px;
+  .blog-main {
+    padding-top: 5rem;
   }
-  
-  @media (min-width: 768px) {
-    .main-content {
-      padding-top: 72px;
-    }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
   }
-  
-  /* Hero */
+
+  /* ── Hero ── */
   .hero {
     position: relative;
-    padding: 4rem 1.5rem 3rem;
+    padding: 5rem 1.5rem 3rem;
     text-align: center;
     overflow: hidden;
-    background: var(--gradient-hero);
   }
-  
-  @media (min-width: 768px) {
-    .hero {
-      padding: 5rem 1.5rem 4rem;
-    }
-  }
-  
-  .hero-glow {
+  .hero-bg {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    max-width: 800px;
-    height: 400px;
-    background: var(--gradient-glow);
-    filter: blur(80px);
-    opacity: 0.5;
+    inset: 0;
     pointer-events: none;
   }
-  
+  .hero-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+  }
+  .hero-orb-1 {
+    width: 500px; height: 500px;
+    top: -10%; left: 20%;
+    background: rgba(38,146,220,0.08);
+    animation: pulse-orb 8s ease-in-out infinite;
+  }
+  .hero-orb-2 {
+    width: 400px; height: 400px;
+    bottom: -20%; right: 15%;
+    background: rgba(116,108,230,0.06);
+    animation: pulse-orb 10s ease-in-out infinite 2s;
+  }
+  @keyframes pulse-orb {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+
   .hero-content {
     position: relative;
-    max-width: 800px;
+    max-width: 680px;
     margin: 0 auto;
-    z-index: 1;
   }
-  
+
   .hero h1 {
-    font-size: 2rem;
+    font-size: clamp(1.75rem, 5vw, 3rem);
     font-weight: 800;
     line-height: 1.15;
-    margin-bottom: 1rem;
-  }
-  
-  @media (min-width: 640px) {
-    .hero h1 {
-      font-size: 2.5rem;
-    }
-  }
-  
-  @media (min-width: 768px) {
-    .hero h1 {
-      font-size: 3rem;
-    }
-  }
-  
-  .hero-subtitle {
-    font-size: 1rem;
-    color: var(--foreground-muted);
-    max-width: 600px;
-    margin: 0 auto 1.5rem;
-    line-height: 1.6;
-  }
-  
-  @media (min-width: 640px) {
-    .hero-subtitle {
-      font-size: 1.125rem;
-    }
-  }
-  
-  .hero-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 2rem;
-  }
-  
-  @media (min-width: 480px) {
-    .hero-actions {
-      flex-direction: row;
-      justify-content: center;
-    }
-  }
-  
-  .btn-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, #2692DC, #746CE6);
-    color: white;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    text-decoration: none;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 20px rgba(38, 146, 220, 0.25);
-    transition: all 0.2s;
-  }
-  
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 28px rgba(38, 146, 220, 0.35);
-    color: white;
-  }
-  
-  .btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background: var(--card);
     color: var(--foreground);
-    font-size: 0.9375rem;
-    font-weight: 600;
-    text-decoration: none;
-    border: 1px solid var(--border);
-    border-radius: 0.75rem;
-    transition: all 0.2s;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
   }
-  
-  .btn-secondary:hover {
-    background: var(--muted);
-    border-color: var(--primary);
-    color: var(--primary);
-  }
-  
-  .hero-stats {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1.25rem;
-  }
-  
-  .stat {
-    text-align: center;
-  }
-  
-  .stat-number {
-    display: block;
-    font-size: 1.25rem;
-    font-weight: 700;
+
+  .text-gradient {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
-  @media (min-width: 640px) {
-    .stat-number {
-      font-size: 1.5rem;
-    }
-  }
-  
-  .stat-label {
-    font-size: 0.75rem;
+
+  .hero-sub {
+    font-size: 1.1rem;
     color: var(--foreground-muted);
-  }
-  
-  .stat-divider {
-    width: 1px;
-    height: 32px;
-    background: var(--border);
+    line-height: 1.6;
+    margin-bottom: 2rem;
   }
 
-  
-  /* Container */
-  .container {
-    max-width: 1280px;
+  .search-wrap {
+    position: relative;
+    max-width: 440px;
     margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
   }
-  
-  /* Sections */
-  .section {
-    margin-bottom: 3rem;
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--foreground-muted);
+    pointer-events: none;
   }
-  
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.25rem;
-  }
-  
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.25rem;
-    font-weight: 700;
-  }
-  
-  @media (min-width: 640px) {
-    .section-title {
-      font-size: 1.5rem;
-    }
-  }
-  
-  .section-icon {
-    font-size: 1.125rem;
-  }
-  
-  .section-subtitle {
+  .search-wrap input {
     width: 100%;
-    font-size: 0.875rem;
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    font-size: 0.95rem;
+    color: var(--foreground);
+    outline: none;
+    transition: border-color 200ms, box-shadow 200ms;
+  }
+  .search-wrap input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(38,146,220,0.1);
+  }
+  .search-wrap input::placeholder {
     color: var(--foreground-muted);
   }
-  
-  .section-link {
-    font-size: 0.875rem;
+
+  /* ── Filters ── */
+  .filters {
+    padding: 0 1.5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .filters-inner {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  .filters-inner::-webkit-scrollbar { display: none; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    background: var(--muted);
+    color: var(--foreground-muted);
+    border: 1px solid var(--border);
+    border-radius: 2rem;
+    font-size: 0.8rem;
     font-weight: 500;
-    color: var(--primary);
+    white-space: nowrap;
     text-decoration: none;
-    transition: color 0.15s;
+    cursor: pointer;
+    transition: all 200ms;
   }
-  
-  .section-link:hover {
-    color: var(--accent);
+  .pill:hover {
+    color: var(--foreground);
+    border-color: var(--primary);
+    background: rgba(38,146,220,0.06);
   }
-  
-  /* Posts Grid */
+  .pill.active {
+    background: var(--gradient-primary);
+    color: #fff;
+    border-color: transparent;
+  }
+  .pill-count {
+    font-size: 0.7rem;
+    opacity: 0.7;
+  }
+
+  /* ── Featured ── */
+  .featured-section {
+    padding: 0 0 3rem;
+  }
+  .featured-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 300ms, box-shadow 300ms;
+  }
+  .featured-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+  @media (min-width: 768px) {
+    .featured-card {
+      grid-template-columns: 1.2fr 1fr;
+    }
+  }
+
+  .featured-img {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+  }
+  .featured-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 500ms;
+  }
+  .featured-card:hover .featured-img img {
+    transform: scale(1.03);
+  }
+
+  .featured-body {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    background: rgba(38,146,220,0.1);
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 2rem;
+    margin-bottom: 0.75rem;
+    width: fit-content;
+  }
+
+  .featured-body h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--foreground);
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+  }
+
+  .featured-excerpt {
+    color: var(--foreground-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .featured-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: var(--foreground-muted);
+  }
+
+  /* ── Post grid ── */
+  .posts-section {
+    padding: 0 0 4rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+  .section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--foreground);
+  }
+  .posts-count {
+    font-size: 0.85rem;
+    color: var(--foreground-muted);
+  }
+
   .posts-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.25rem;
+    gap: 1.5rem;
   }
-  
   @media (min-width: 640px) {
-    .posts-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+    .posts-grid { grid-template-columns: repeat(2, 1fr); }
   }
-  
   @media (min-width: 1024px) {
-    .posts-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
+    .posts-grid { grid-template-columns: repeat(3, 1fr); }
   }
-  
-  .featured-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  @media (min-width: 640px) {
-    .featured-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .featured-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-    
-    .featured-grid .featured {
-      grid-column: span 2;
-      grid-row: span 2;
-    }
-    
-    .featured-grid .featured .post-image {
-      aspect-ratio: 16/10;
-    }
-    
-    .featured-grid .featured .post-title {
-      font-size: 1.375rem;
-    }
-  }
-  
+
   .post-card {
     display: flex;
     flex-direction: column;
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 0.875rem;
+    border-radius: var(--radius-lg);
     overflow: hidden;
     text-decoration: none;
-    transition: all 0.2s;
+    color: inherit;
+    transition: transform 300ms, box-shadow 300ms, border-color 300ms;
   }
-  
   .post-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(38,146,220,0.2);
   }
-  
-  .post-image {
-    aspect-ratio: 16/9;
+
+  .card-img {
+    aspect-ratio: 16/10;
     overflow: hidden;
     background: var(--muted);
   }
-  
-  .post-image img {
-    width: 100%;
-    height: 100%;
+  .card-img img {
+    width: 100%; height: 100%;
     object-fit: cover;
-    transition: transform 0.3s;
+    transition: transform 400ms;
   }
-  
-  .post-card:hover .post-image img {
-    transform: scale(1.05);
+  .post-card:hover .card-img img {
+    transform: scale(1.04);
   }
-  
-  /* Fallback for posts without images */
-  .post-image-fallback {
-    width: 100%;
-    height: 100%;
+  .card-img-placeholder {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
   }
-  
-  .fallback-emoji {
-    font-size: 2.5rem;
-    line-height: 1;
-  }
-  
-  .fallback-label {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--foreground-muted);
-    opacity: 0.7;
-  }
-  
-  .post-content {
-    padding: 1.125rem;
-    flex: 1;
+
+  .card-body {
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
+    flex: 1;
   }
-  
-  .post-cluster {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
+
+  .card-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background: rgba(38,146,220,0.08);
     color: var(--primary);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 2rem;
+    margin-bottom: 0.5rem;
+    width: fit-content;
+  }
+
+  .card-body h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground);
+    line-height: 1.35;
     margin-bottom: 0.5rem;
   }
-  
-  .post-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--foreground);
-    margin-bottom: 0.375rem;
-    line-height: 1.35;
-  }
-  
-  .post-excerpt {
-    font-size: 0.8125rem;
+
+  .card-excerpt {
+    font-size: 0.85rem;
     color: var(--foreground-muted);
     line-height: 1.5;
     flex: 1;
-    margin-bottom: 0.625rem;
-  }
-  
-  .post-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.875rem;
-  }
-  
-  .post-date {
-    font-size: 0.75rem;
-    color: var(--muted-foreground);
-  }
-  
-  .post-reading {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.2rem;
-    font-size: 0.75rem;
-    color: var(--muted-foreground);
-  }
-  
-  /* Clusters Grid */
-  .clusters-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.875rem;
-  }
-  
-  @media (min-width: 640px) {
-    .clusters-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .clusters-grid {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-  
-  @media (min-width: 1280px) {
-    .clusters-grid {
-      grid-template-columns: repeat(6, 1fr);
-    }
-  }
-  
-  .cluster-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.25rem 0.75rem;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 0.875rem;
-    text-decoration: none;
-    text-align: center;
-    transition: all 0.2s;
-  }
-  
-  .cluster-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--primary);
-    background: var(--gradient-hero);
-  }
-  
-  .cluster-emoji {
-    font-size: 1.75rem;
-    margin-bottom: 0.375rem;
-  }
-  
-  .cluster-name {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--foreground);
-    margin-bottom: 0.125rem;
-  }
-  
-  .cluster-count {
-    font-size: 0.6875rem;
-    color: var(--foreground-muted);
-  }
-  
-  /* CTA Section */
-  .cta-section {
-    margin-top: 3rem;
-    margin-bottom: 0;
-  }
-  
-  .cta-card {
-    background: var(--gradient-primary);
-    padding: 2.5rem 1.5rem;
-    border-radius: 1.25rem;
-    text-align: center;
-    box-shadow: var(--shadow-glow);
-  }
-  
-  @media (min-width: 640px) {
-    .cta-card {
-      padding: 3rem 2rem;
-    }
-  }
-  
-  .cta-icon {
-    font-size: 2.5rem;
     margin-bottom: 0.75rem;
   }
-  
+
+  .card-meta {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--foreground-muted);
+    font-size: 1rem;
+  }
+
+  /* ── CTA ── */
+  .cta-section {
+    padding: 0 0 2rem;
+  }
+  .cta-card {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-xl);
+    color: #fff;
+  }
   .cta-card h2 {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 700;
-    color: white;
-    margin-bottom: 0.625rem;
+    margin-bottom: 0.75rem;
   }
-  
-  @media (min-width: 640px) {
-    .cta-card h2 {
-      font-size: 1.75rem;
-    }
-  }
-  
   .cta-card p {
-    color: rgba(255, 255, 255, 0.9);
-    max-width: 550px;
-    margin: 0 auto 1.25rem;
-    line-height: 1.5;
-    font-size: 0.9375rem;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
   }
-  
-  .cta-card .btn-primary {
-    background: white;
+  .btn-hero-lg {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.9rem 2rem;
+    background: #fff;
     color: var(--primary);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 1rem;
+    font-size: 1rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    transition: transform 200ms, box-shadow 200ms;
   }
-  
-  .cta-card .btn-primary:hover {
-    color: var(--primary);
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+  .btn-hero-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.2);
   }
 </style>
