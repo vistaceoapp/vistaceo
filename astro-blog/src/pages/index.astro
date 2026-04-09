@@ -49,16 +49,6 @@ const restPosts = posts.slice(1);
           Guías prácticas, estrategias y recursos para tomar mejores decisiones y hacer crecer tu negocio.
         </p>
 
-        <!-- Search -->
-        <div class="search-wrap">
-          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          <input
-            type="search"
-            id="search-input"
-            placeholder="Buscar artículos..."
-            autocomplete="off"
-          />
-        </div>
       </div>
     </section>
 
@@ -165,28 +155,6 @@ const restPosts = posts.slice(1);
   <Footer />
 </BaseLayout>
 
-<script>
-  const input = document.getElementById('search-input') as HTMLInputElement;
-  const grid = document.getElementById('posts-grid');
-  const countEl = document.getElementById('posts-count');
-  const noRes = document.getElementById('no-results');
-  const cards = Array.from(document.querySelectorAll('.post-card'));
-
-  function filter() {
-    const q = (input?.value || '').toLowerCase().trim();
-    let visible = 0;
-    cards.forEach(card => {
-      const title = card.getAttribute('data-title') || '';
-      const match = !q || title.includes(q);
-      (card as HTMLElement).style.display = match ? '' : 'none';
-      if (match) visible++;
-    });
-    if (countEl) countEl.textContent = `${visible} artículo${visible !== 1 ? 's' : ''}`;
-    if (noRes) (noRes as HTMLElement).style.display = visible === 0 ? '' : 'none';
-  }
-
-  input?.addEventListener('input', filter);
-</script>
 
 <style>
   .blog-main {
