@@ -99,12 +99,14 @@ const restPosts = posts.slice(1);
           <p class="posts-count" id="posts-count">{restPosts.length} artículos</p>
         </div>
         <div class="posts-grid" id="posts-grid">
-          {restPosts.map(post => (
+          {restPosts.map((post, i) => (
             <a
               href={`/${post.slug}`}
               class="post-card"
               data-title={post.title.toLowerCase()}
               data-cat={post.category || ''}
+              style={i >= 12 ? 'display:none' : ''}
+              data-index={i}
             >
               {post.hero_image_url ? (
                 <div class="card-img">
@@ -131,6 +133,14 @@ const restPosts = posts.slice(1);
             </a>
           ))}
         </div>
+        {restPosts.length > 12 && (
+          <div class="load-more-wrap" id="load-more-wrap">
+            <button class="btn-load-more" id="btn-load-more">
+              Ver más artículos
+              <span class="load-more-count" id="load-more-count">({restPosts.length - 12} restantes)</span>
+            </button>
+          </div>
+        )}
         <p class="no-results" id="no-results" style="display:none;">
           No se encontraron artículos. Probá con otra búsqueda.
         </p>
