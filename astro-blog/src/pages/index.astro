@@ -7,7 +7,7 @@ import { generateWebSiteSchema, generateOrganizationSchema } from '../lib/seo';
 import { getAllClusters } from '../lib/clusters';
 import { formatDate, truncate } from '../lib/text';
 
-const posts = await getLatestPosts(50);
+const posts = await getAllPublishedPosts();
 const clusters = getAllClusters();
 const MAIN = 'https://www.vistaceo.com';
 
