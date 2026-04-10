@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { getLatestPosts, getClusterStats } from '../lib/supabase';
+import { getAllPublishedPosts, getClusterStats } from '../lib/supabase';
 import { generateWebSiteSchema, generateOrganizationSchema } from '../lib/seo';
 import { getAllClusters } from '../lib/clusters';
 import { formatDate, truncate } from '../lib/text';
