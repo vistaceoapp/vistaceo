@@ -557,4 +557,65 @@ const restPosts = posts.slice(1);
     transform: translateY(-2px);
     box-shadow: 0 12px 32px rgba(0,0,0,0.2);
   }
+
+
+  /* ── Load More ── */
+  .load-more-wrap {
+    text-align: center;
+    padding: 2.5rem 0 1rem;
+  }
+  .btn-load-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    background: var(--muted);
+    color: var(--foreground);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: 2rem;
+    cursor: pointer;
+    transition: all 200ms;
+  }
+  .btn-load-more:hover {
+    background: rgba(38,146,220,0.06);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .load-more-count {
+    font-weight: 400;
+    opacity: 0.6;
+    font-size: 0.8rem;
+  }
 </style>
+
+<script>
+  // Load more posts
+  const loadMoreBtn = document.getElementById('btn-load-more');
+  const loadMoreWrap = document.getElementById('load-more-wrap');
+  const grid = document.getElementById('posts-grid');
+
+  if (loadMoreBtn && grid) {
+    let shown = 12;
+    const BATCH = 12;
+    const cards = Array.from(grid.querySelectorAll('.post-card')) as HTMLElement[];
+
+    loadMoreBtn.addEventListener('click', () => {
+      const next = Math.min(shown + BATCH, cards.length);
+      for (let i = shown; i < next; i++) {
+        cards[i].style.display = '';
+      }
+      shown = next;
+
+      const remaining = cards.length - shown;
+      const countEl = document.getElementById('load-more-count');
+      if (remaining <= 0) {
+        loadMoreWrap?.remove();
+      } else if (countEl) {
+        countEl.textContent = `(${remaining} restantes)`;
+      }
+    });
+  }
+</script>
