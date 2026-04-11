@@ -379,7 +379,7 @@ const CheckoutPage = () => {
                 {!isArgentina && (
                   <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
                     <p className="text-xs text-muted-foreground text-center">
-                       Te mostramos los precios en <strong>{country.currency}</strong>, pero siempre abonarás en <strong>USD ${isYearly ? 290 : 29}</strong>.
+                       Te mostramos los precios en <strong>{country.currency}</strong>, pero siempre abonarás en <strong>USD ${isYearly ? 290 : 49}</strong>.
                       <br />
                       <span className="text-muted-foreground/80">
                         Podés pagar con tarjeta de débito/crédito o con tu cuenta PayPal.
@@ -435,7 +435,7 @@ const CheckoutPage = () => {
                 </div>
               ) : (
                 <PayPalPaymentInfo 
-                  usdAmount={isYearly ? 290 : 29}
+                    usdAmount={isYearly ? 290 : 49}
                   planId={isYearly ? "pro_yearly" : "pro_monthly"}
                 />
               )}
@@ -538,9 +538,9 @@ const CheckoutPage = () => {
 
       {/* Sticky PayPal Button - for non-Argentina countries */}
       {status === "idle" && !isArgentina && (
-        <StickyPayPalButton
+          <StickyPayPalButton
           mainButtonRef={mainPaymentRef}
-          priceText={isYearly ? "290" : "29"}
+          priceText={isYearly ? "290" : "49"}
           currency="USD"
           isYearly={isYearly}
           onScrollToPayment={() => {

@@ -20,7 +20,8 @@ import {
   Play,
   ChevronDown,
   Sun,
-  Moon
+  Moon,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -167,30 +168,42 @@ const LandingV2 = () => {
       period: "para siempre",
       description: "Ideal para empezar a conocer tu negocio",
       features: [
-        "Dashboard completo",
-        "3 misiones/mes",
-        "5 oportunidades Radar/mes",
-        "Acciones diarias personalizadas",
-        "Diagnóstico de salud",
+        "Dashboard básico de salud",
+        "3 misiones estratégicas/mes",
+        "3 mensajes al Chat IA/mes",
+        "3 oportunidades Radar/mes",
+        "Diagnóstico de salud limitado",
       ],
       cta: "Empezar gratis",
-      popular: false
+      popular: false,
+      limitedFeatures: [
+        "Sin predicciones IA",
+        "Sin analytics avanzado",
+        "Sin integraciones premium",
+      ],
     },
     {
       name: "Pro",
-      price: "$29.999",
+      price: "$290",
+      priceMonthly: "$49",
       period: "/año",
+      periodMonthly: "/mes",
       description: "El cerebro completo para tu negocio",
       features: [
-        "Todo lo del plan Free",
-        "Chat ilimitado con VistaCEO",
-        "Análisis de fotos y documentos",
-        "Radar I+D completo",
-        "Diagnóstico inteligente avanzado",
-        "Analytics avanzado",
-        "Soporte prioritario",
+        "Dashboard de salud completo",
+        "Misiones estratégicas ilimitadas",
+        "Chat IA ilimitado",
+        "Radar de oportunidades ilimitado",
+        "Predicciones IA avanzadas",
+        "Analytics y métricas completas",
+        "Check-ins de pulso diarios",
+        "Gemelo digital de tu negocio",
+        "Análisis de competencia",
+        "Acciones diarias personalizadas",
+        "Integraciones premium",
+        "Soporte prioritario 24/7",
       ],
-      cta: "Comenzar con 2 meses gratis",
+      cta: "Comenzar ahora — 51% OFF",
       popular: true,
       badge: "Más popular"
     },
@@ -698,7 +711,7 @@ const LandingV2 = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto items-start">
             {pricingPlans.map((plan, i) => (
               <motion.div
                 key={i}
@@ -707,7 +720,7 @@ const LandingV2 = () => {
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
                 className={`relative bg-card border rounded-2xl p-6 md:p-8 ${
-                  plan.popular ? 'border-primary shadow-xl shadow-primary/10' : 'border-border'
+                  plan.popular ? 'border-primary shadow-xl shadow-primary/10 ring-1 ring-primary/20' : 'border-border'
                 }`}
               >
                 {plan.badge && (
@@ -723,15 +736,42 @@ const LandingV2 = () => {
                   <h3 className="text-xl font-semibold text-foreground mb-2">
                     {plan.name}
                   </h3>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold text-foreground">
-                      {plan.price}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {plan.period}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">
+                  {plan.popular ? (
+                    <>
+                      <div className="flex items-baseline justify-center gap-1.5">
+                        <span className="text-lg text-muted-foreground line-through">
+                          {(plan as any).priceMonthly}{(plan as any).periodMonthly}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline justify-center gap-1 mt-1">
+                        <span className="text-4xl font-bold text-foreground">
+                          {plan.price}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {plan.period}
+                        </span>
+                      </div>
+                      <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-success/10 text-success text-sm font-semibold">
+                        <Zap className="w-3.5 h-3.5" />
+                        51% de ahorro vs. mensual
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Equivale a ~$24/mes • Pagás $290 USD/año
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-4xl font-bold text-foreground">
+                          {plan.price}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {plan.period}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                  <p className="text-sm text-muted-foreground mt-3">
                     {plan.description}
                   </p>
                 </div>
@@ -739,8 +779,14 @@ const LandingV2 = () => {
                 <ul className="space-y-3 mb-8">
                   {plan.features.map((feature, j) => (
                     <li key={j} className="flex items-start gap-3">
-                      <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                      <Check className={`w-5 h-5 shrink-0 mt-0.5 ${plan.popular ? 'text-success' : 'text-primary'}`} />
                       <span className="text-muted-foreground">{feature}</span>
+                    </li>
+                  ))}
+                  {(plan as any).limitedFeatures?.map((feature: string, j: number) => (
+                    <li key={`limited-${j}`} className="flex items-start gap-3">
+                      <X className="w-5 h-5 text-destructive/50 shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground/60">{feature}</span>
                     </li>
                   ))}
                 </ul>
