@@ -16,7 +16,7 @@ interface CreateOrderRequest {
 }
 
 const USD_PRICES = {
-  pro_monthly: 29,
+  pro_monthly: 49,
   pro_yearly: 290,
 } as const;
 
