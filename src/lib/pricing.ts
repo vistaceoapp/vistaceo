@@ -10,7 +10,7 @@ import type { CountryCode } from "./countryPacks";
 
 // USD base prices
 export const USD_PRICES = {
-  monthly: 29,
+  monthly: 49,
   yearly: 290,
 } as const;
 
