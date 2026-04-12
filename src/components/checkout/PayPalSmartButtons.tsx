@@ -35,7 +35,7 @@ export const PayPalSmartButtons = ({
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const usdAmount = planId === "pro_yearly" ? 290 : 29;
+  const usdAmount = planId === "pro_yearly" ? 290 : 49;
 
   // Fetch client ID on mount
   useEffect(() => {

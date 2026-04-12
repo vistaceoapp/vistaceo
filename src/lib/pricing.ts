@@ -21,92 +21,24 @@ export const LOCAL_PRICES: Record<CountryCode | "DEFAULT", {
   currency: string;
   symbol: string;
 }> = {
-  // Argentina - pays in ARS
-  AR: {
-    monthly: 29990,
-    yearly: 299900,
-    currency: "ARS",
-    symbol: "$",
-  },
-  // Chile - displays CLP, pays USD
-  CL: {
-    monthly: 24990,
-    yearly: 249900,
-    currency: "CLP",
-    symbol: "$",
-  },
-  // Colombia - displays COP, pays USD
-  CO: {
-    monthly: 119900,
-    yearly: 1199000,
-    currency: "COP",
-    symbol: "$",
-  },
-  // Costa Rica - displays CRC, pays USD
-  CR: {
-    monthly: 14990,
-    yearly: 149900,
-    currency: "CRC",
-    symbol: "₡",
-  },
-  // Ecuador - USD (dollarized)
-  EC: {
-    monthly: 29,
-    yearly: 290,
-    currency: "USD",
-    symbol: "$",
-  },
-  // México - displays MXN, pays USD
-  MX: {
-    monthly: 499,
-    yearly: 4990,
-    currency: "MXN",
-    symbol: "$",
-  },
-  // Panamá - USD (dollarized)
-  PA: {
-    monthly: 29,
-    yearly: 290,
-    currency: "USD",
-    symbol: "$",
-  },
-  // Paraguay - displays PYG, pays USD
-  PY: {
-    monthly: 219900,
-    yearly: 2199000,
-    currency: "PYG",
-    symbol: "₲",
-  },
-  // Uruguay - displays UYU, pays USD
-  UY: {
-    monthly: 1190,
-    yearly: 11900,
-    currency: "UYU",
-    symbol: "$",
-  },
-  // Bolivia - displays BOB, pays USD
-  BO: { monthly: 199, yearly: 1990, currency: "BOB", symbol: "Bs" },
-  // República Dominicana - displays DOP, pays USD
-  DO: { monthly: 1690, yearly: 16900, currency: "DOP", symbol: "RD$" },
-  // España - displays EUR, pays USD
-  ES: { monthly: 27, yearly: 270, currency: "EUR", symbol: "€" },
-  // Guatemala - displays GTQ, pays USD
-  GT: { monthly: 225, yearly: 2250, currency: "GTQ", symbol: "Q" },
-  // Honduras - displays HNL, pays USD
-  HN: { monthly: 719, yearly: 7190, currency: "HNL", symbol: "L" },
-  // Nicaragua - displays NIO, pays USD
-  NI: { monthly: 1069, yearly: 10690, currency: "NIO", symbol: "C$" },
-  // Perú - displays PEN, pays USD
-  PE: { monthly: 109, yearly: 1090, currency: "PEN", symbol: "S/" },
-  // El Salvador - USD (dollarized)
-  SV: { monthly: 29, yearly: 290, currency: "USD", symbol: "$" },
-  // Default fallback
-  DEFAULT: {
-    monthly: 29,
-    yearly: 290,
-    currency: "USD",
-    symbol: "$",
-  },
+  AR: { monthly: 49990, yearly: 290000, currency: "ARS", symbol: "$" },
+  CL: { monthly: 42990, yearly: 249900, currency: "CLP", symbol: "$" },
+  CO: { monthly: 199900, yearly: 1199000, currency: "COP", symbol: "$" },
+  CR: { monthly: 24990, yearly: 149900, currency: "CRC", symbol: "₡" },
+  EC: { monthly: 49, yearly: 290, currency: "USD", symbol: "$" },
+  MX: { monthly: 849, yearly: 4990, currency: "MXN", symbol: "$" },
+  PA: { monthly: 49, yearly: 290, currency: "USD", symbol: "$" },
+  PY: { monthly: 369900, yearly: 2199000, currency: "PYG", symbol: "₲" },
+  UY: { monthly: 1990, yearly: 11900, currency: "UYU", symbol: "$" },
+  BO: { monthly: 339, yearly: 1990, currency: "BOB", symbol: "Bs" },
+  DO: { monthly: 2890, yearly: 16900, currency: "DOP", symbol: "RD$" },
+  ES: { monthly: 45, yearly: 270, currency: "EUR", symbol: "€" },
+  GT: { monthly: 389, yearly: 2290, currency: "GTQ", symbol: "Q" },
+  HN: { monthly: 1229, yearly: 7290, currency: "HNL", symbol: "L" },
+  NI: { monthly: 1829, yearly: 10900, currency: "NIO", symbol: "C$" },
+  PE: { monthly: 185, yearly: 1090, currency: "PEN", symbol: "S/" },
+  SV: { monthly: 49, yearly: 290, currency: "USD", symbol: "$" },
+  DEFAULT: { monthly: 49, yearly: 290, currency: "USD", symbol: "$" },
 };
 
 // Countries that pay in USD (all except AR)

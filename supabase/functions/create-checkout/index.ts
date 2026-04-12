@@ -18,14 +18,14 @@ interface CheckoutRequest {
 
 // USD base prices (what we actually charge internationally)
 const USD_PRICES = {
-  pro_monthly: 29,
+  pro_monthly: 49,
   pro_yearly: 290,
 };
 
 // ARS prices for Argentina (MercadoPago)
 const ARS_PRICES = {
-  pro_monthly: 29990,
-  pro_yearly: 299900,
+  pro_monthly: 49990,
+  pro_yearly: 290000,
 };
 
 // PayPal API URLs - Use sandbox for testing, live for production

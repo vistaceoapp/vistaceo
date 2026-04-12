@@ -31,10 +31,13 @@ const proFeatures = [
   { name: "Chat IA", detail: "Ilimitado", hasInfinity: true },
   { name: "Radar de Oportunidades", detail: "Ilimitado", hasInfinity: true },
   { name: "Check-ins de Pulso", detail: "Diarios", hasInfinity: false },
-  { name: "Analytics avanzadas", detail: "Completas", hasInfinity: false },
+  { name: "Gemelo Digital predictivo", detail: "Completo", hasInfinity: false },
+  { name: "Análisis de Competencia", detail: "Completo", hasInfinity: false },
   { name: "Predicciones IA", detail: "Ilimitadas", hasInfinity: true },
+  { name: "Insights avanzados", detail: "Completos", hasInfinity: false },
+  { name: "Métricas y Evolución", detail: "Completas", hasInfinity: false },
   { name: "Integraciones premium", detail: "Completas", hasInfinity: false },
-  { name: "Soporte prioritario", detail: "Ilimitado", hasInfinity: true },
+  { name: "Soporte prioritario 24/7", detail: "Ilimitado", hasInfinity: true },
 ];
 
 const CheckoutPage = () => {
