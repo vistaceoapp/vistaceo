@@ -1160,7 +1160,7 @@ const PricingSection = () => {
                 Pro
               </p>
               <div className="mt-3 mb-6">
-                <span className="text-[36px] font-bold text-[#111]">$29</span>
+                <span className="text-[36px] font-bold text-[#111]">$49</span>
                 <span className="text-[14px] text-[#999] ml-1">USD / mes</span>
               </div>
               <ul className="space-y-3 mb-8 flex-1">

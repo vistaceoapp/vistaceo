@@ -36,7 +36,7 @@ El sistema adapta automáticamente las preguntas, métricas y recomendaciones se
 • Check-ins de pulso diarios
 • Análisis básico de tu negocio
 
-**Plan Pro** (desde $29 USD/mes):
+**Plan Pro** (desde $49 USD/mes o $290 USD/año con 51% de descuento):
 • ✅ Misiones ilimitadas
 • ✅ Chat con IA Mentor (texto + voz)
 • ✅ Análisis de fotos y documentos

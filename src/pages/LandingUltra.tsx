@@ -912,7 +912,7 @@ const LandingUltra = () => {
                     <div className="text-center mb-8 pt-4">
                       <h3 className="text-2xl font-bold text-foreground mb-2">Pro</h3>
                       <div className="flex items-baseline justify-center gap-1 mb-2">
-                        <span className="text-5xl font-bold text-foreground">$29.999</span>
+                        <span className="text-5xl font-bold text-foreground">$49.990</span>
                         <span className="text-muted-foreground">/año</span>
                       </div>
                       <p className="text-primary font-medium">2 meses gratis incluidos</p>
