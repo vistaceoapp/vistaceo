@@ -45,15 +45,15 @@ const UpgradePage = () => {
 
   // Local prices for display (based on country)
   const localPrices: Record<string, { monthly: number; yearly: number; currency: string }> = {
-    AR: { monthly: 29990, yearly: 299900, currency: "ARS" },
-    CL: { monthly: 24990, yearly: 249900, currency: "CLP" },
-    CO: { monthly: 119900, yearly: 1199000, currency: "COP" },
-    CR: { monthly: 14990, yearly: 149900, currency: "CRC" },
-    EC: { monthly: 29, yearly: 290, currency: "USD" },
-    MX: { monthly: 499, yearly: 4990, currency: "MXN" },
-    PA: { monthly: 29, yearly: 290, currency: "USD" },
-    PY: { monthly: 219900, yearly: 2199000, currency: "PYG" },
-    UY: { monthly: 1190, yearly: 11900, currency: "UYU" },
+    AR: { monthly: 49990, yearly: 290000, currency: "ARS" },
+    CL: { monthly: 42990, yearly: 249900, currency: "CLP" },
+    CO: { monthly: 199900, yearly: 1199000, currency: "COP" },
+    CR: { monthly: 24990, yearly: 149900, currency: "CRC" },
+    EC: { monthly: 49, yearly: 290, currency: "USD" },
+    MX: { monthly: 849, yearly: 4990, currency: "MXN" },
+    PA: { monthly: 49, yearly: 290, currency: "USD" },
+    PY: { monthly: 369900, yearly: 2199000, currency: "PYG" },
+    UY: { monthly: 1990, yearly: 11900, currency: "UYU" },
   };
 
   const pricing = localPrices[countryCode] || localPrices.AR;
@@ -63,7 +63,7 @@ const UpgradePage = () => {
   const yearlySavingsAmount = (monthlyPrice * 12) - yearlyPrice;
 
   // USD prices (what PayPal actually charges)
-  const usdMonthly = 29;
+  const usdMonthly = 49;
   const usdYearly = 290;
 
   const plans = [

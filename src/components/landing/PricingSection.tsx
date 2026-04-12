@@ -257,7 +257,7 @@ export const PricingSection = () => {
                 {country.paymentProvider === "paypal" && (
                   <div className="mb-4 p-2 rounded-lg bg-primary/5 border border-primary/20">
                     <p className="text-xs text-muted-foreground text-center">
-                      💵 El pago se procesa en <strong>USD ${isYearly ? 290 : 29}</strong> vía PayPal
+                      💵 El pago se procesa en <strong>USD ${isYearly ? 290 : 49}</strong> vía PayPal
                     </p>
                   </div>
                 )}
