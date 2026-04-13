@@ -63,6 +63,49 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    let targetBusinessId = businessId || null;
+
+    if (!targetBusinessId) {
+      const { data: existingBusiness } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("owner_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingBusiness?.id) {
+        targetBusinessId = existingBusiness.id;
+      } else {
+        const placeholderName = email?.split("@")[0]?.trim() || "Mi negocio";
+        const { data: placeholderBusiness, error: placeholderError } = await supabase
+          .from("businesses")
+          .insert({
+            name: placeholderName,
+            owner_id: userId,
+            country,
+            currency: country === "AR" ? "ARS" : "USD",
+            setup_completed: false,
+            settings: {
+              pre_checkout_created: true,
+              pending_plan: planId,
+            },
+          })
+          .select("id")
+          .single();
+
+        if (placeholderError) {
+          console.error("[Checkout] Failed creating placeholder business:", placeholderError);
+          return new Response(
+            JSON.stringify({ error: "No se pudo preparar el checkout" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        targetBusinessId = placeholderBusiness.id;
+      }
+    }
+
     const APP_URL = Deno.env.get("APP_URL") || "https://vistaceo.lovable.app";
 
     // ARGENTINA = MercadoPago in ARS
@@ -104,8 +147,8 @@ serve(async (req) => {
           pending: `${APP_URL}/checkout?status=pending`,
         },
         auto_return: "approved",
-        external_reference: JSON.stringify({ 
-          businessId: businessId || null, 
+          external_reference: JSON.stringify({ 
+            businessId: targetBusinessId, 
           userId, 
           planId,
           localAmount: amount,
@@ -207,7 +250,7 @@ serve(async (req) => {
           reference_id: `${userId}_${planId}_${Date.now()}`,
           description: description,
           custom_id: JSON.stringify({ 
-            businessId: businessId || null, 
+            businessId: targetBusinessId, 
             userId, 
             planId,
             localAmount: localAmount || null,
@@ -265,7 +308,7 @@ serve(async (req) => {
       // Store the order ID for capture later (non-blocking)
       try {
         await supabase.from("business_insights").insert({
-          business_id: businessId || "00000000-0000-0000-0000-000000000000",
+          business_id: targetBusinessId || "00000000-0000-0000-0000-000000000000",
           category: "payment",
           question: "PayPal Order Created",
           answer: JSON.stringify({

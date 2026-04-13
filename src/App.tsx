@@ -157,14 +157,10 @@ const AppRoutes = () => {
           <Route path="centro-control" element={<CentroControlPage />} />
         </Route>
         
-        {/* Checkout - standalone payment page (requires auth but not setup) */}
+        {/* Checkout - standalone payment page (public; handles auth inline if needed) */}
         <Route
           path="/checkout"
-          element={
-            <ProtectedRoute>
-              <CheckoutPage />
-            </ProtectedRoute>
-          }
+          element={<CheckoutPage />}
         />
 
         {/* Back-compat redirect: onboarding was removed */}

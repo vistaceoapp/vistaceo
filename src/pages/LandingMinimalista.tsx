@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown, Menu, X, Check, TrendingUp, Target, Zap, BarCh
 import { SiteHead } from "@/components/seo/SiteHead";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
+import { useCountryDetection } from "@/hooks/use-country-detection";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Import REAL mockup components
@@ -1089,13 +1090,21 @@ const CompetitorSection = () => {
    ═══════════════════════════════════════════════════════════════ */
 const PricingSection = () => {
   const navigate = useNavigate();
+  const [isYearly, setIsYearly] = useState(true);
+  const { country, monthlyPrice, yearlyPrice, yearlySavings, formatCurrencyShort, isDetecting } = useCountryDetection();
+
+  const savings = yearlySavings();
+  const monthlyEquivalent = Math.round(yearlyPrice / 12);
+  const freeMonthsEquivalent = Math.round((savings.amount / Math.max(monthlyPrice, 1)) * 10) / 10;
 
   const freeFeatures = [
     "Dashboard de salud del negocio",
     "Briefing diario con prioridades",
-    "Misiones básicas",
-    "Radar de oportunidades",
-    "Análisis de tu industria",
+    "3 misiones estratégicas por mes",
+    "5 señales Radar por mes",
+    "Análisis base de tu industria",
+    "Sin chat IA ilimitado",
+    "Sin predicciones avanzadas",
   ];
 
   const proFeatures = [
@@ -1105,7 +1114,12 @@ const PricingSection = () => {
     "Predicciones a 7, 14 y 30 días",
     "Analíticas profundas",
     "Análisis de fotos y documentos",
-    "Soporte prioritario",
+    "Gemelo Digital predictivo",
+    "Análisis de Competencia",
+    "Insights avanzados",
+    "Métricas y evolución",
+    "Integraciones premium",
+    "Soporte prioritario 24/7",
   ];
 
   return (
@@ -1159,9 +1173,24 @@ const PricingSection = () => {
                 style={{ backgroundImage: ACCENT_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
                 Pro
               </p>
-              <div className="mt-3 mb-6">
-                <span className="text-[36px] font-bold text-[#111]">$49</span>
-                <span className="text-[14px] text-[#999] ml-1">USD / mes</span>
+              <div className="mt-4 mb-5 inline-flex rounded-xl border border-[#e8edf3] bg-[#f8fbfe] p-1">
+                <button onClick={() => setIsYearly(true)} className={cn("px-3 py-2 rounded-lg text-[12px] font-semibold transition-all", isYearly ? "bg-white text-[#111] shadow-sm" : "text-[#888]")}>Anual</button>
+                <button onClick={() => setIsYearly(false)} className={cn("px-3 py-2 rounded-lg text-[12px] font-semibold transition-all", !isYearly ? "bg-white text-[#111] shadow-sm" : "text-[#888]")}>Mensual</button>
+              </div>
+              <div className="mb-6">
+                <div className="flex items-end gap-2 flex-wrap">
+                  <span className="text-[36px] font-bold text-[#111]">{formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}</span>
+                  <span className="text-[14px] text-[#999] ml-1">{country.currency} / mes</span>
+                </div>
+                <p className="text-[12.5px] text-[#777] mt-2">
+                  {isYearly ? `Facturación anual: ${formatCurrencyShort(yearlyPrice)} ${country.currency}` : `Facturación mensual: ${formatCurrencyShort(monthlyPrice)} ${country.currency}`}
+                </p>
+                <p className="text-[12px] text-[#2692DC] mt-1 font-medium">
+                  {isYearly ? `${freeMonthsEquivalent} meses equivalentes bonificados • ${savings.percentage}% ahorro` : "Plan mensual flexible"}
+                </p>
+                <p className="text-[11.5px] text-[#999] mt-2">
+                  {isDetecting ? "Detectando tu país..." : `Detectamos ${country.flag} ${country.name}. Si seguís, el checkout usa esta moneda visible y el medio de pago correcto.`}
+                </p>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
                 {proFeatures.map(f => (
@@ -1171,10 +1200,10 @@ const PricingSection = () => {
                   </li>
                 ))}
               </ul>
-              <button onClick={() => navigate("/auth?mode=signup&plan=pro_monthly")}
+              <button onClick={() => navigate(`/checkout?plan=${isYearly ? "pro_yearly" : "pro_monthly"}&country=${country.code}`)}
                 className="w-full py-3.5 rounded-xl text-[14px] font-medium text-white transition-all duration-300 hover:shadow-[0_8px_24px_rgba(38,146,220,0.25)] active:scale-[0.98]"
                 style={{ background: ACCENT_GRADIENT }}>
-                Iniciar con Pro
+                Ir al checkout Pro
               </button>
             </div>
           </Reveal>
@@ -1182,7 +1211,7 @@ const PricingSection = () => {
 
         <Reveal delay={150}>
           <p className="text-center text-[12.5px] text-[#bbb] mt-8">
-            Facturación mensual. Podés cancelar en cualquier momento desde tu cuenta. También disponible plan anual con descuento.
+            El plan anual está preseleccionado porque maximiza el ahorro real. Si ya tenés cuenta, seguís directo; si no, la creás en el checkout y el Pro queda asociado.
           </p>
         </Reveal>
       </div>
