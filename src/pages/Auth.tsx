@@ -257,7 +257,7 @@ const Auth = () => {
                 >
                   <Crown className="w-4 h-4 text-amber-500" />
                   <span className="text-sm font-medium text-amber-500">
-                    Plan: {pendingPlan === "pro_yearly" ? "Pro Anual (-30%)" : "Pro Mensual"}
+                    Plan: {pendingPlan === "pro_yearly" ? "Pro Anual (51% ahorro)" : "Pro Mensual"}
                   </span>
                 </motion.div>
               )}

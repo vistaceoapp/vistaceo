@@ -259,27 +259,53 @@ const SetupPage = () => {
     setCreateProgress(10);
 
     try {
+      const existingIncompleteBusiness = businesses.find((business) => !business.setup_completed);
+
       // Step 1: Create business
       setCreateProgress(20);
-      const { data: business, error } = await supabase
-        .from('businesses')
-        .insert({
-          name: data.businessName.trim(),
-          category: mapAreaToCategory(data.areaId) as any,
-          country: data.countryCode,
-          owner_id: user.id,
-          setup_completed: true,
-          google_place_id: data.googlePlaceId,
-          avg_rating: data.googleRating,
-          address: data.googleAddress,
-          precision_score: precisionScore,
-          settings: {
-            setup_version: '7.0',
-            setup_mode: data.setupMode,
-          },
-        })
-        .select()
-        .single();
+      const businessMutation = existingIncompleteBusiness
+        ? supabase
+            .from('businesses')
+            .update({
+              name: data.businessName.trim(),
+              category: mapAreaToCategory(data.areaId) as any,
+              country: data.countryCode,
+              owner_id: user.id,
+              setup_completed: true,
+              google_place_id: data.googlePlaceId,
+              avg_rating: data.googleRating,
+              address: data.googleAddress,
+              precision_score: precisionScore,
+              settings: {
+                ...(existingIncompleteBusiness.settings && typeof existingIncompleteBusiness.settings === 'object' ? existingIncompleteBusiness.settings : {}),
+                setup_version: '7.0',
+                setup_mode: data.setupMode,
+              },
+            })
+            .eq('id', existingIncompleteBusiness.id)
+            .select()
+            .single()
+        : supabase
+            .from('businesses')
+            .insert({
+              name: data.businessName.trim(),
+              category: mapAreaToCategory(data.areaId) as any,
+              country: data.countryCode,
+              owner_id: user.id,
+              setup_completed: true,
+              google_place_id: data.googlePlaceId,
+              avg_rating: data.googleRating,
+              address: data.googleAddress,
+              precision_score: precisionScore,
+              settings: {
+                setup_version: '7.0',
+                setup_mode: data.setupMode,
+              },
+            })
+            .select()
+            .single();
+
+      const { data: business, error } = await businessMutation;
 
       if (error) throw error;
       setCreateProgress(40);
@@ -313,11 +339,11 @@ const SetupPage = () => {
         version: 1,
       };
 
-      await supabase.from('business_brains').insert(brainData);
+      await supabase.from('business_brains').upsert(brainData, { onConflict: 'business_id' });
       setCreateProgress(50);
 
       // Step 3: Create setup progress record
-      await supabase.from('business_setup_progress').insert({
+      await supabase.from('business_setup_progress').upsert({
         business_id: business.id,
         current_step: 'completed',
         precision_score: precisionScore,
@@ -326,7 +352,7 @@ const SetupPage = () => {
           completed_at: new Date().toISOString(),
         },
         completed_at: new Date().toISOString(),
-      });
+      }, { onConflict: 'business_id' });
       setCreateProgress(65);
 
       // Step 4: Use AI to calculate intelligent health score
@@ -411,6 +437,7 @@ const SetupPage = () => {
       // Clear saved progress since setup is complete
       clearSavedProgress();
       safeLocalStorage.removeItem('selectedCountryCode');
+      safeLocalStorage.setItem('setup_completed', 'true');
 
       // Track setup completed
       trackSetupCompleted({

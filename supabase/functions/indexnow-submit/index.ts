@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
         .select("slug")
         .eq("status", "published")
         .order("publish_at", { ascending: false })
-        .limit(500);
+        .limit(1000);
       
       if (dbError) {
         console.error("[IndexNow] DB error:", dbError);
@@ -111,10 +111,11 @@ Deno.serve(async (req) => {
     }
 
     // Format URLs for IndexNow
-    const formattedUrls = urls.map((url: string) => {
+      const formattedUrls = [...new Set(urls.map((url: string) => {
       if (url.startsWith("http")) return url;
-      return `${BLOG_URL}/${url.replace(/^\//, "")}`;
-    });
+        const normalized = url.replace(/^\//, "");
+        return `${BLOG_URL}/${normalized.endsWith("/") ? normalized : `${normalized}/`}`;
+      }))];
 
     console.log("[IndexNow] Submitting URLs:", formattedUrls);
 

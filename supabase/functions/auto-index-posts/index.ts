@@ -7,7 +7,7 @@ const corsHeaders = {
 
 const BLOG_URL = 'https://blog.vistaceo.com';
 const MAIN_URL = 'https://www.vistaceo.com';
-const INDEXNOW_KEY = 'vistaceo-indexnow-2026';
+const INDEXNOW_KEY = '8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d';
 
 /**
  * Auto-Index Posts Edge Function
@@ -30,24 +30,19 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get posts published in the last 3 days that haven't been indexed yet
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
     const { data: recentPosts, error: postsError } = await supabase
       .from('blog_posts')
       .select('slug, title, publish_at, updated_at')
       .eq('status', 'published')
-      .gte('publish_at', threeDaysAgo.toISOString())
-      .order('publish_at', { ascending: false })
-      .limit(50);
+      .order('updated_at', { ascending: false })
+      .limit(1000);
 
     if (postsError) {
       console.error('[auto-index] Error fetching posts:', postsError);
       throw postsError;
     }
 
-    const postUrls = (recentPosts || []).map(p => `${BLOG_URL}/${p.slug}`);
+    const postUrls = (recentPosts || []).map(p => `${BLOG_URL}/${p.slug}/`);
     
     // Also include key pages that should always be fresh
     const staticUrls = [
@@ -75,7 +70,7 @@ Deno.serve(async (req) => {
       const indexNowPayload = {
         host: 'blog.vistaceo.com',
         key: INDEXNOW_KEY,
-        keyLocation: `${BLOG_URL}/${INDEXNOW_KEY}.txt`,
+        keyLocation: `${BLOG_URL}/indexnow-key.txt`,
         urlList: postUrls.slice(0, 10000), // IndexNow supports up to 10k URLs
       };
 

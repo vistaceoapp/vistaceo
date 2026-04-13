@@ -43,7 +43,7 @@ const proFeatures = [
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
   const queryClient = useQueryClient();
   
   // Get country override from URL (from setup) or localStorage
@@ -63,6 +63,12 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "failure" | "pending">("idle");
   const [isYearly, setIsYearly] = useState(true);
+  const [authMode, setAuthMode] = useState<"signup" | "login">("signup");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authFullName, setAuthFullName] = useState("");
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
   
   // Ref for observing when main payment button leaves viewport
   const mainPaymentRef = useRef<HTMLDivElement>(null);
@@ -104,19 +110,58 @@ const CheckoutPage = () => {
     }
   }, [searchParams, navigate]);
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !user) {
+  const monthlyEquivalent = Math.round(yearlyPrice / 12);
+  const savings = yearlySavings();
+  const freeMonthsEquivalent = Math.round((savings.amount / Math.max(monthlyPrice, 1)) * 10) / 10;
+
+  const handleInlineAuth = async () => {
+    setAuthSubmitting(true);
+
+    try {
       if (planId) {
         safeLocalStorage.setItem("pendingPlan", planId);
         safeLocalStorage.setItem("pendingPlanTimestamp", Date.now().toString());
       }
-      navigate(`/auth?plan=${planId}`, { replace: true });
-    }
-  }, [user, authLoading, navigate, planId]);
 
-  const monthlyEquivalent = Math.round(yearlyPrice / 12);
-  const savings = yearlySavings();
+      if (authMode === "login") {
+        const { error } = await signIn(authEmail, authPassword);
+        if (error) throw error;
+        toast.success("Sesión iniciada. Ya podés pagar.");
+      } else {
+        const { error, requiresEmailConfirmation } = await signUp(authEmail, authPassword, authFullName);
+        if (error) throw error;
+
+        if (requiresEmailConfirmation) {
+          toast.success("Te enviamos un email para confirmar tu cuenta antes de pagar.");
+        } else {
+          toast.success("Cuenta creada. Ya podés pagar.");
+        }
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo continuar";
+      toast.error(message);
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
+
+  const handleGoogleInlineAuth = async () => {
+    setGoogleSubmitting(true);
+    try {
+      if (planId) {
+        safeLocalStorage.setItem("pendingPlan", planId);
+        safeLocalStorage.setItem("pendingPlanTimestamp", Date.now().toString());
+      }
+
+      const { error } = await signInWithGoogle();
+      if (error) throw error;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No se pudo continuar con Google";
+      toast.error(message);
+    } finally {
+      setGoogleSubmitting(false);
+    }
+  };
 
   const handleCheckout = async () => {
     if (!user) return;
@@ -372,8 +417,8 @@ const CheckoutPage = () => {
                     <p className="text-sm text-muted-foreground">
                       Anual: {formatCurrencyShort(yearlyPrice)} {country.currency}/año
                     </p>
-                    <Badge variant="secondary" className="bg-success/10 text-success border-success/30">
-                      2 meses gratis • {savings.percentage}% ahorro
+                      <Badge variant="secondary" className="bg-success/10 text-success border-success/30">
+                       {freeMonthsEquivalent} meses equivalentes bonificados • {savings.percentage}% ahorro
                     </Badge>
                   </div>
                 )}
@@ -466,15 +511,76 @@ const CheckoutPage = () => {
                     )}
                   </Button>
                 ) : (
-                  <PayPalSmartButtons
-                    userId={user?.id || ""}
-                    userEmail={user?.email}
-                    planId={isYearly ? "pro_yearly" : "pro_monthly"}
-                    country={country.code}
-                    localAmount={isYearly ? yearlyPrice : monthlyPrice}
-                    localCurrency={country.currency}
-                    onSuccessRedirectUrl={`${window.location.origin}/checkout?status=success&provider=paypal`}
-                  />
+                  user ? (
+                    <PayPalSmartButtons
+                      userId={user.id}
+                      userEmail={user.email}
+                      planId={isYearly ? "pro_yearly" : "pro_monthly"}
+                      country={country.code}
+                      localAmount={isYearly ? yearlyPrice : monthlyPrice}
+                      localCurrency={country.currency}
+                      onSuccessRedirectUrl={`${window.location.origin}/checkout?status=success&provider=paypal`}
+                    />
+                  ) : (
+                    <Card className="border-primary/20 bg-primary/5">
+                      <CardContent className="p-5 sm:p-6 space-y-4">
+                        <div className="text-center space-y-1">
+                          <h3 className="text-lg font-semibold text-foreground">Entrá o creá tu cuenta para pagar</h3>
+                          <p className="text-sm text-muted-foreground">El plan Pro quedará asociado automáticamente a tu perfil y a tu negocio, incluso si completás el setup después.</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 rounded-xl bg-secondary/50 p-1">
+                          <button
+                            onClick={() => setAuthMode("signup")}
+                            className={cn("rounded-lg px-3 py-2 text-sm font-medium transition-all", authMode === "signup" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}
+                          >
+                            Crear cuenta
+                          </button>
+                          <button
+                            onClick={() => setAuthMode("login")}
+                            className={cn("rounded-lg px-3 py-2 text-sm font-medium transition-all", authMode === "login" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}
+                          >
+                            Ya tengo cuenta
+                          </button>
+                        </div>
+
+                        <Button variant="outline" className="w-full" onClick={handleGoogleInlineAuth} disabled={googleSubmitting}>
+                          {googleSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                          Continuar con Google
+                        </Button>
+
+                        <div className="grid gap-3">
+                          {authMode === "signup" ? (
+                            <input
+                              value={authFullName}
+                              onChange={(e) => setAuthFullName(e.target.value)}
+                              placeholder="Tu nombre"
+                              className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
+                            />
+                          ) : null}
+                          <input
+                            type="email"
+                            value={authEmail}
+                            onChange={(e) => setAuthEmail(e.target.value)}
+                            placeholder="Email"
+                            className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
+                          />
+                          <input
+                            type="password"
+                            value={authPassword}
+                            onChange={(e) => setAuthPassword(e.target.value)}
+                            placeholder="Contraseña"
+                            className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
+                          />
+                        </div>
+
+                        <Button className="w-full" onClick={handleInlineAuth} disabled={authSubmitting || !authEmail || !authPassword || (authMode === "signup" && !authFullName.trim())}>
+                          {authSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                          {authMode === "signup" ? "Crear cuenta y continuar al pago" : "Entrar y continuar al pago"}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )
                 )}
               </div>
 
@@ -531,7 +637,7 @@ const CheckoutPage = () => {
           mainButtonRef={mainPaymentRef}
           isLoading={loading}
           onClick={handleCheckout}
-          buttonText={isYearly ? "Comenzar con 2 meses gratis" : "Comenzar con Pro"}
+          buttonText={isYearly ? "Pagar Pro anual" : "Pagar Pro mensual"}
           priceText={formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}
           currency={country.currency}
           isYearly={isYearly}
