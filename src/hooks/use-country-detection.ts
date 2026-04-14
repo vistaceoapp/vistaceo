@@ -24,7 +24,7 @@ const COUNTRY_CONFIG: Record<string, CountryInfo> = {
     currency: "ARS",
     symbol: "$",
     paymentProvider: "mercadopago",
-    prices: { monthly: 49990, yearly: 290000 },
+    prices: { monthly: 49990, yearly: 288000 },
     flag: "🇦🇷",
     locale: "es-AR",
     name: "Argentina",
