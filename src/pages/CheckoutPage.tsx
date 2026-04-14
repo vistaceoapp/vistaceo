@@ -418,7 +418,7 @@ const CheckoutPage = () => {
                       Anual: {formatCurrencyShort(yearlyPrice)} {country.currency}/año
                     </p>
                       <Badge variant="secondary" className="bg-success/10 text-success border-success/30">
-                       {freeMonthsEquivalent} meses equivalentes bonificados • {savings.percentage}% ahorro
+                       {savings.percentage}% de ahorro vs. mensual
                     </Badge>
                   </div>
                 )}
