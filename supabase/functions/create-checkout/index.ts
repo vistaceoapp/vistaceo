@@ -25,7 +25,7 @@ const USD_PRICES = {
 // ARS prices for Argentina (MercadoPago)
 const ARS_PRICES = {
   pro_monthly: 49990,
-  pro_yearly: 290000,
+  pro_yearly: 288000,
 };
 
 // PayPal API URLs - Use sandbox for testing, live for production
