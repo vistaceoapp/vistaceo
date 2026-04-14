@@ -35,7 +35,7 @@ export const LOCAL_PRICES: Record<CountryCode | "DEFAULT", {
   ES: { monthly: 45, yearly: 264, currency: "EUR", symbol: "€" },
   GT: { monthly: 389, yearly: 2268, currency: "GTQ", symbol: "Q" },
   HN: { monthly: 1190, yearly: 6948, currency: "HNL", symbol: "L" },
-  NI: { monthly: 1790, ylabel: 10680, currency: "NIO", symbol: "C$" },
+  NI: { monthly: 1790, yearly: 10680, currency: "NIO", symbol: "C$" },
   PE: { monthly: 185, yearly: 1068, currency: "PEN", symbol: "S/" },
   SV: { monthly: 49, yearly: 290, currency: "USD", symbol: "$" },
   DEFAULT: { monthly: 49, yearly: 290, currency: "USD", symbol: "$" },
