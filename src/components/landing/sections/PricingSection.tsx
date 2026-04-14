@@ -308,7 +308,7 @@ export const PricingSection = memo(() => {
             <div className="mt-auto">
               <Button
                 className="w-full rounded-full h-12 gradient-primary text-primary-foreground shadow-lg shadow-primary/25"
-                onClick={() => navigate("/auth")}
+                onClick={() => navigate(`/checkout?plan=${billingPeriod === "yearly" ? "pro_yearly" : "pro_monthly"}`)}
               >
                 Activar Pro
                 <ArrowRight className="w-4 h-4 ml-2" />
