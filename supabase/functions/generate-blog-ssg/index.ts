@@ -186,7 +186,7 @@ function generateStaticHtml(post: any): string {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   <!-- SEO Core -->
-  <title>${title} | VistaCEO Blog</title>
+  <title>${title}</title>
   <meta name="description" content="${description}">
   <link rel="canonical" href="${canonicalUrl}">
   <meta name="robots" content="index, follow, max-image-preview:large">

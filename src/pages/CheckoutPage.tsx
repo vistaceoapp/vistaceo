@@ -13,7 +13,7 @@ import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { useCountryDetection } from "@/hooks/use-country-detection";
+import { useCountryDetection, COUNTRY_CONFIG } from "@/hooks/use-country-detection";
 import type { CountryCode } from "@/lib/countryPacks";
 import mercadopagoLogo from "@/assets/payment/mercadopago-logo.png";
 import paypalLogo from "@/assets/payment/paypal-logo.png";
@@ -110,9 +110,11 @@ const CheckoutPage = () => {
     }
   }, [searchParams, navigate]);
 
-  const monthlyEquivalent = Math.round(yearlyPrice / 12);
+  const monthlyEquivalent = yearlyPrice % 12 === 0 ? yearlyPrice / 12 : Math.floor(yearlyPrice / 12);
   const savings = yearlySavings();
-  const freeMonthsEquivalent = Math.round((savings.amount / Math.max(monthlyPrice, 1)) * 10) / 10;
+  const countryOptions = Object.entries(COUNTRY_CONFIG)
+    .filter(([code]) => code !== "DEFAULT")
+    .sort(([, a], [, b]) => a.name.localeCompare(b.name));
 
   const handleInlineAuth = async () => {
     setAuthSubmitting(true);
@@ -404,6 +406,25 @@ const CheckoutPage = () => {
                   </div>
                 </div>
 
+                <div className="mb-5 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-border bg-background/70 px-3 py-2.5">
+                  <span className="text-sm">{country.flag}</span>
+                  <span className="text-sm font-medium text-foreground">
+                    {isDetecting ? "Detectando país..." : `País detectado: ${country.name}`}
+                  </span>
+                  <select
+                    aria-label="Cambiar país de precios"
+                    value={country.code === "DEFAULT" ? "AR" : country.code}
+                    onChange={(e) => setCountryOverride(e.target.value as CountryCode)}
+                    className="h-9 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none"
+                  >
+                    {countryOptions.map(([code, info]) => (
+                      <option key={code} value={code}>
+                        {info.flag} {info.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Price display */}
                 <div className="flex items-baseline justify-center gap-2">
                   <span className="text-5xl lg:text-6xl font-bold text-foreground">
@@ -505,7 +526,7 @@ const CheckoutPage = () => {
                     ) : (
                       <>
                         <CreditCard className="w-5 h-5 mr-2" />
-                        {isYearly ? "Comenzar con 2 meses gratis" : "Comenzar con Pro"}
+                        {isYearly ? "Ir al pago anual" : "Ir al pago mensual"}
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}

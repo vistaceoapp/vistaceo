@@ -1,8 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 import type { BlogPost } from '@/lib/blog/types';
 
-const CANONICAL_DOMAIN = "https://www.vistaceo.com";
-const DEFAULT_OG_IMAGE = `${CANONICAL_DOMAIN}/og-blog-default.jpg`;
+const BLOG_DOMAIN = "https://blog.vistaceo.com";
+const DEFAULT_OG_IMAGE = `${BLOG_DOMAIN}/og-blog-default.jpg`;
 
 // Check if image is a valid public URL (not base64 or local)
 function isValidPublicImageUrl(url: string | null | undefined): boolean {
@@ -22,9 +22,9 @@ interface BlogSchemaProps {
 
 export function BlogSchema({ post, url }: BlogSchemaProps) {
   // Ensure URL uses canonical domain
-  const canonicalUrl = url.startsWith(CANONICAL_DOMAIN) 
+  const canonicalUrl = url.startsWith(BLOG_DOMAIN) 
     ? url 
-    : `${CANONICAL_DOMAIN}/blog/${post.slug}`;
+    : `${BLOG_DOMAIN}/${post.slug}/`;
 
   // Use hero image only if it's a valid public URL, otherwise use default
   const ogImage = isValidPublicImageUrl(post.hero_image_url) 
@@ -49,7 +49,7 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
       name: 'VISTACEO',
       logo: {
         '@type': 'ImageObject',
-        url: `${CANONICAL_DOMAIN}/favicon.png`,
+        url: `https://www.vistaceo.com/favicon.png`,
       },
     },
     mainEntityOfPage: {
@@ -66,13 +66,13 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
         '@type': 'ListItem',
         position: 1,
         name: 'Inicio',
-        item: CANONICAL_DOMAIN,
+          item: 'https://www.vistaceo.com',
       },
       {
         '@type': 'ListItem',
         position: 2,
         name: 'Blog',
-        item: `${CANONICAL_DOMAIN}/blog`,
+          item: BLOG_DOMAIN,
       },
       {
         '@type': 'ListItem',
@@ -86,7 +86,7 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
   return (
     <Helmet>
       {/* Basic meta */}
-      <title>{post.meta_title || post.title} | VISTACEO Blog</title>
+      <title>{post.meta_title || post.title}</title>
       <meta name="description" content={post.meta_description || post.excerpt || ''} />
       <link rel="canonical" href={post.canonical_url || canonicalUrl} />
 
