@@ -147,7 +147,7 @@ function fixGenericFAQs(content: string): { fixed: string; applied: boolean; det
 function fixTitleH1Mismatch(title: string, metaTitle: string | null): { newMetaTitle: string; applied: boolean; detail: string } {
   if (!metaTitle) {
     const truncated = title.length > 55 ? title.slice(0, 55).replace(/\s\S*$/, "") + "…" : title;
-    return { newMetaTitle: `${truncated} | VistaCEO`, applied: true, detail: `Meta title generado desde H1` };
+    return { newMetaTitle: truncated, applied: true, detail: `Meta title generado desde H1` };
   }
   
   const cleanTitle = title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -161,7 +161,7 @@ function fixTitleH1Mismatch(title: string, metaTitle: string | null): { newMetaT
   if (ratio < 0.3) {
     const coreWords = title.split(/[:\-–—|]/).map(s => s.trim()).filter(s => s.length > 3);
     const shortTitle = coreWords[0]?.slice(0, 55) || title.slice(0, 55);
-    const newMeta = `${shortTitle} | VistaCEO`;
+    const newMeta = shortTitle;
     return { newMetaTitle: newMeta, applied: true, detail: `Meta title realineado (overlap era ${Math.round(ratio * 100)}%)` };
   }
   

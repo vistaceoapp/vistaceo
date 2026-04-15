@@ -119,8 +119,8 @@ serve(async (req) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!-- Primary Meta Tags -->
-  <title>${title} | VistaCEO Blog</title>
-  <meta name="title" content="${title} | VistaCEO Blog">
+  <title>${title}</title>
+  <meta name="title" content="${title}">
   <meta name="description" content="${description}">
   <link rel="canonical" href="${canonicalUrl}">
   

@@ -2300,13 +2300,12 @@ TAMBIÉN:
       .find((line: string) => line.length > 50 && !line.startsWith('#') && !line.startsWith('-') && !line.startsWith('>'))
       ?.slice(0, 160) || selectedTopic.title_base;
 
-    const suffix = ' | VistaCEO';
     const baseMetaTitle = (headlineLab.winner as string) || selectedTopic.title_base;
-    const maxTitleLen = 60 - suffix.length;
+    const maxTitleLen = 60;
     const trimmedTitle = baseMetaTitle.length > maxTitleLen
       ? baseMetaTitle.slice(0, maxTitleLen - 3) + '...'
       : baseMetaTitle;
-    const metaTitle = `${trimmedTitle}${suffix}`;
+    const metaTitle = trimmedTitle;
     const metaDescription = ((headlineLab.meta_description as string) || excerpt).slice(0, 155) + ((((headlineLab.meta_description as string) || excerpt).length > 155) ? '...' : '');
 
     // Calculate reading time

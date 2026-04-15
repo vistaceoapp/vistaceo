@@ -281,7 +281,7 @@ serve(async (req) => {
       const secondaryKw = generateSecondaryKeywords(post.title, post.content_md || '', cluster);
       
       // Generate optimized meta - keep title complete
-      const metaTitle = `${post.title} | VistaCEO Blog`;
+      const metaTitle = `${post.title}`;
       const metaDesc = post.meta_description || 
         `${post.excerpt || post.title}. Guía práctica para negocios en LATAM con checklist y plantillas.`;
       
@@ -333,7 +333,7 @@ serve(async (req) => {
           const keyphrase = generateKeyphrase(post.title);
           const secondaryKw = generateSecondaryKeywords(post.title, post.content_md || '', cluster);
           
-          const metaTitle = `${post.title} | VistaCEO Blog`;
+          const metaTitle = `${post.title}`;
           const metaDesc = post.meta_description || 
             `${post.excerpt || post.title}. Guía práctica para negocios en LATAM.`;
           

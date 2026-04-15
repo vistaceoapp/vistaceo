@@ -4,8 +4,9 @@ import { ArrowRight, ChevronDown, Menu, X, Check, TrendingUp, Target, Zap, BarCh
 import { SiteHead } from "@/components/seo/SiteHead";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
-import { useCountryDetection } from "@/hooks/use-country-detection";
+import { useCountryDetection, COUNTRY_CONFIG } from "@/hooks/use-country-detection";
 import { motion, AnimatePresence } from "framer-motion";
+import type { CountryCode } from "@/lib/countryPacks";
 
 // Import REAL mockup components
 import { MockupProDashboard } from "@/components/landing/mockups/MockupProDashboard";
@@ -1091,11 +1092,13 @@ const CompetitorSection = () => {
 const PricingSection = () => {
   const navigate = useNavigate();
   const [isYearly, setIsYearly] = useState(true);
-  const { country, monthlyPrice, yearlyPrice, yearlySavings, formatCurrencyShort, isDetecting } = useCountryDetection();
+  const { country, monthlyPrice, yearlyPrice, yearlySavings, formatCurrencyShort, isDetecting, setCountryOverride } = useCountryDetection();
 
   const savings = yearlySavings();
-  const monthlyEquivalent = Math.round(yearlyPrice / 12);
-  const freeMonthsEquivalent = Math.round((savings.amount / Math.max(monthlyPrice, 1)) * 10) / 10;
+  const monthlyEquivalent = yearlyPrice % 12 === 0 ? yearlyPrice / 12 : Math.floor(yearlyPrice / 12);
+  const countryOptions = Object.entries(COUNTRY_CONFIG)
+    .filter(([code]) => code !== "DEFAULT")
+    .sort(([, a], [, b]) => a.name.localeCompare(b.name));
 
   const freeFeatures = [
     "Dashboard de salud del negocio",
@@ -1183,14 +1186,30 @@ const PricingSection = () => {
                   <span className="text-[14px] text-[#999] ml-1">{country.currency} / mes</span>
                 </div>
                 <p className="text-[12.5px] text-[#777] mt-2">
-                  {isYearly ? `Facturación anual: ${formatCurrencyShort(yearlyPrice)} ${country.currency}` : `Facturación mensual: ${formatCurrencyShort(monthlyPrice)} ${country.currency}`}
+                  {isYearly ? `Pago anual: ${formatCurrencyShort(yearlyPrice)} ${country.currency}` : `Pago mensual: ${formatCurrencyShort(monthlyPrice)} ${country.currency}`}
                 </p>
                 <p className="text-[12px] text-[#2692DC] mt-1 font-medium">
-                  {isYearly ? `${freeMonthsEquivalent} meses equivalentes bonificados • ${savings.percentage}% ahorro` : "Plan mensual flexible"}
+                  {isYearly ? `${savings.percentage}% de ahorro frente al plan mensual` : "Plan mensual flexible"}
                 </p>
                 <p className="text-[11.5px] text-[#999] mt-2">
                   {isDetecting ? "Detectando tu país..." : `Detectamos ${country.flag} ${country.name}. Si seguís, el checkout usa esta moneda visible y el medio de pago correcto.`}
                 </p>
+                <div className="mt-3 inline-flex flex-wrap items-center gap-2 rounded-xl border border-[#e8edf3] bg-[#f8fbfe] px-3 py-2">
+                  <span className="text-[14px]">{country.flag}</span>
+                  <span className="text-[12px] font-medium text-[#333]">{country.name}</span>
+                  <select
+                    aria-label="Cambiar país"
+                    value={country.code === "DEFAULT" ? "AR" : country.code}
+                    onChange={(e) => setCountryOverride(e.target.value as CountryCode)}
+                    className="rounded-lg border border-[#dde6ef] bg-white px-2.5 py-1.5 text-[12px] font-medium text-[#333] outline-none"
+                  >
+                    {countryOptions.map(([code, info]) => (
+                      <option key={code} value={code}>
+                        {info.flag} {info.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
                 {proFeatures.map(f => (
