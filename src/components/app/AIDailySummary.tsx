@@ -1,10 +1,20 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, RefreshCw, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Sparkles, RefreshCw, ArrowRight, ChevronDown, ChevronUp,
+  TrendingUp, Target, Eye, Crosshair, BarChart3, Shield
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+
+interface Signal {
+  type: 'opportunity' | 'competitive' | 'prediction' | 'mission' | 'trend' | 'risk';
+  label: string;
+  title: string;
+  description: string;
+}
 
 interface SummaryData {
   summary_text: string;
@@ -12,7 +22,17 @@ interface SummaryData {
   priorities: string[];
   mood: string;
   confidence_note: string;
+  signals: Signal[];
 }
+
+const SIGNAL_STYLES: Record<Signal['type'], { icon: any; accent: string; iconBg: string }> = {
+  opportunity: { icon: TrendingUp, accent: 'border-l-blue-500', iconBg: 'bg-blue-500/10 text-blue-600' },
+  competitive: { icon: Crosshair, accent: 'border-l-violet-500', iconBg: 'bg-violet-500/10 text-violet-600' },
+  prediction: { icon: Eye, accent: 'border-l-blue-500', iconBg: 'bg-blue-500/10 text-blue-600' },
+  mission: { icon: Target, accent: 'border-l-blue-500', iconBg: 'bg-blue-500/10 text-blue-600' },
+  trend: { icon: BarChart3, accent: 'border-l-blue-500', iconBg: 'bg-blue-500/10 text-blue-600' },
+  risk: { icon: Shield, accent: 'border-l-red-500', iconBg: 'bg-red-500/10 text-red-600' },
+};
 
 export const AIDailySummary = () => {
   const { currentBusiness } = useBusiness();
@@ -21,6 +41,7 @@ export const AIDailySummary = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [showVision, setShowVision] = useState(false);
 
   useEffect(() => {
     if (currentBusiness) fetchOrGenerate();
@@ -42,13 +63,19 @@ export const AIDailySummary = () => {
 
       if (existing) {
         const metrics = existing.key_metrics as Record<string, any> | null;
+        const signals = Array.isArray(metrics?.signals) ? metrics!.signals : [];
         setSummary({
           summary_text: existing.summary_text,
           headline: metrics?.headline || '',
           priorities: Array.isArray(existing.priorities) ? (existing.priorities as string[]) : [],
           mood: existing.mood || 'neutral',
           confidence_note: metrics?.confidence_note || '',
+          signals,
         });
+        // Si no hay signals (resumen viejo), regenerar para la nueva versión
+        if (signals.length === 0) {
+          await generateSummary();
+        }
         setLoading(false);
         return;
       }
@@ -79,6 +106,7 @@ export const AIDailySummary = () => {
           priorities: data.summary.priorities || [],
           mood: data.summary.mood || 'neutral',
           confidence_note: data.summary.confidence_note || '',
+          signals: Array.isArray(data.summary.signals) ? data.summary.signals : [],
         });
       }
     } catch (err) {
@@ -89,6 +117,7 @@ export const AIDailySummary = () => {
         priorities: ['Completá tu perfil en el chat', 'Explorá las misiones disponibles'],
         mood: 'neutral',
         confidence_note: 'Necesitamos más información para un análisis preciso.',
+        signals: [],
       });
     } finally {
       setGenerating(false);
@@ -97,17 +126,18 @@ export const AIDailySummary = () => {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-border/40 bg-card p-5">
-        <div className="flex items-center gap-3 mb-4">
+      <div className="rounded-2xl border border-border/40 bg-card p-5 sm:p-6">
+        <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 rounded-xl bg-primary/10 animate-pulse" />
           <div className="space-y-1.5 flex-1">
-            <div className="h-4 w-40 bg-muted/40 rounded animate-pulse" />
-            <div className="h-3 w-24 bg-muted/30 rounded animate-pulse" />
+            <div className="h-4 w-44 bg-muted/40 rounded animate-pulse" />
+            <div className="h-3 w-28 bg-muted/30 rounded animate-pulse" />
           </div>
         </div>
-        <div className="space-y-2">
-          <div className="h-3 w-full bg-muted/20 rounded animate-pulse" />
-          <div className="h-3 w-4/5 bg-muted/20 rounded animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-24 rounded-xl bg-muted/20 animate-pulse" />
+          ))}
         </div>
       </div>
     );
@@ -115,38 +145,35 @@ export const AIDailySummary = () => {
 
   if (!summary) return null;
 
-  const moodConfig = {
-    positive: { emoji: '🟢', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-    negative: { emoji: '🔴', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-    neutral: { emoji: '🔵', bg: 'bg-primary/10', border: 'border-primary/20' },
-  };
-
-  const mood = moodConfig[summary.mood as keyof typeof moodConfig] || moodConfig.neutral;
+  const signalCount = summary.signals?.length || 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn("rounded-2xl border bg-card overflow-hidden", mood.border)}
+      className="rounded-2xl border border-border/50 bg-card overflow-hidden"
     >
-      <div className="p-5">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", mood.bg)}>
-              <Sparkles className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              {summary.headline && (
-                <h3 className="text-sm font-semibold text-foreground leading-tight">
-                  {mood.emoji} {summary.headline}
-                </h3>
-              )}
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Visión estratégica · {currentBusiness?.name}
-              </p>
-            </div>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 p-5 sm:p-6 pb-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <Sparkles className="w-5 h-5 text-primary" />
           </div>
+          <div className="min-w-0">
+            <h3 className="text-sm sm:text-[15px] font-semibold text-foreground leading-tight">
+              Centro de inteligencia
+            </h3>
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+              {signalCount > 0 ? `${signalCount} señales activas` : 'Visión estratégica'}
+              {currentBusiness?.name && ` · ${currentBusiness.name}`}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="hidden sm:flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            En vivo
+          </span>
           <button
             onClick={() => { setSummary(null); generateSummary(); }}
             disabled={generating}
@@ -156,55 +183,108 @@ export const AIDailySummary = () => {
             <RefreshCw className={cn('w-3.5 h-3.5', generating && 'animate-spin')} />
           </button>
         </div>
+      </div>
 
-        {/* Summary */}
-        <p className="text-[13px] text-foreground/85 leading-relaxed mb-4">
-          {summary.summary_text}
-        </p>
-
-        {/* Expandable priorities */}
-        {summary.priorities.length > 0 && (
-          <div className="mb-3">
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors mb-2"
-            >
-              {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-              {summary.priorities.length} prioridades estratégicas
-            </button>
-            {expanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                className="space-y-1.5 pl-1"
-              >
-                {summary.priorities.map((p, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                    <span className="w-4 h-4 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">
-                      {i + 1}
+      {/* Signals grid */}
+      {signalCount > 0 && (
+        <div className="px-5 sm:px-6 pb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {summary.signals.map((signal, i) => {
+              const style = SIGNAL_STYLES[signal.type] || SIGNAL_STYLES.opportunity;
+              const Icon = style.icon;
+              return (
+                <div
+                  key={i}
+                  className={cn(
+                    "rounded-xl border border-border/40 bg-background/50 p-3.5 border-l-[3px] hover:border-border/70 transition-colors",
+                    style.accent
+                  )}
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className={cn("w-5 h-5 rounded-md flex items-center justify-center shrink-0", style.iconBg)}>
+                      <Icon className="w-3 h-3" />
+                    </div>
+                    <span className="text-[10px] font-bold tracking-wider text-foreground/60 uppercase">
+                      {signal.label}
                     </span>
-                    <span className="leading-relaxed">{typeof p === 'string' ? p : String(p)}</span>
                   </div>
-                ))}
-              </motion.div>
-            )}
+                  <p className="text-[13px] font-semibold text-foreground leading-snug mb-1">
+                    {signal.title}
+                  </p>
+                  <p className="text-[11.5px] text-muted-foreground leading-relaxed">
+                    {signal.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Confidence note */}
-        {summary.confidence_note && (
-          <p className="text-[10px] text-muted-foreground/60 italic mb-3">
-            {summary.confidence_note}
-          </p>
-        )}
+      {/* Visión estratégica narrativa (colapsable) */}
+      {summary.summary_text && (
+        <div className="px-5 sm:px-6 pb-4 border-t border-border/40 pt-4">
+          <button
+            onClick={() => setShowVision(!showVision)}
+            className="flex items-center justify-between w-full text-left group"
+          >
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground group-hover:text-foreground transition-colors">
+              Visión estratégica narrativa
+            </span>
+            {showVision ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+          </button>
+          {showVision && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              className="mt-3"
+            >
+              <p className="text-[13px] text-foreground/85 leading-relaxed">
+                {summary.summary_text}
+              </p>
+              {summary.priorities.length > 0 && (
+                <div className="mt-3 space-y-1.5">
+                  <button
+                    onClick={() => setExpanded(!expanded)}
+                    className="text-[11px] font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    {expanded ? '−' : '+'} {summary.priorities.length} prioridades estratégicas
+                  </button>
+                  {expanded && (
+                    <div className="space-y-1.5 pl-1 mt-2">
+                      {summary.priorities.map((p, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
+                          <span className="w-4 h-4 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">
+                            {i + 1}
+                          </span>
+                          <span className="leading-relaxed">{typeof p === 'string' ? p : String(p)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              {summary.confidence_note && (
+                <p className="text-[10px] text-muted-foreground/60 italic mt-3">
+                  {summary.confidence_note}
+                </p>
+              )}
+            </motion.div>
+          )}
+        </div>
+      )}
 
-        {/* CTA */}
+      {/* Footer CTA */}
+      <div className="px-5 sm:px-6 py-3 border-t border-border/40 bg-muted/10 flex items-center justify-between gap-3">
+        <span className="text-[11px] text-muted-foreground truncate">
+          Adaptado a <span className="font-medium text-foreground/70">tu negocio</span>
+        </span>
         <button
           onClick={() => navigate('/app/chat?prompt=' + encodeURIComponent('Dame un análisis profundo y estratégico de mi negocio'))}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/8 hover:bg-primary/12 text-primary text-xs font-medium transition-colors"
+          className="flex items-center gap-1.5 text-[11px] font-medium text-primary hover:text-primary/80 transition-colors shrink-0"
         >
           Profundizar con la IA
-          <ArrowRight className="w-3.5 h-3.5" />
+          <ArrowRight className="w-3 h-3" />
         </button>
       </div>
     </motion.div>
