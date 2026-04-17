@@ -1092,13 +1092,20 @@ const CompetitorSection = () => {
 const PricingSection = () => {
   const navigate = useNavigate();
   const [isYearly, setIsYearly] = useState(true);
-  const { country, monthlyPrice, yearlyPrice, yearlySavings, formatCurrencyShort, isDetecting, setCountryOverride } = useCountryDetection();
+  const { country, monthlyPrice, yearlyPrice, yearlySavings, formatCurrencyShort, isDetecting, setCountryOverride, detectedCountryCode } = useCountryDetection();
+  const [userChangedCountry, setUserChangedCountry] = useState(false);
 
   const savings = yearlySavings();
   const monthlyEquivalent = yearlyPrice % 12 === 0 ? yearlyPrice / 12 : Math.floor(yearlyPrice / 12);
-  const countryOptions = Object.entries(COUNTRY_CONFIG)
-    .filter(([code]) => code !== "DEFAULT")
-    .sort(([, a], [, b]) => a.name.localeCompare(b.name));
+
+  const handleCountryChange = (code: CountryCode) => {
+    setUserChangedCountry(true);
+    setCountryOverride(code);
+  };
+
+  // Sólo mostramos mensaje "Detectamos X país" si NO ha cambiado manualmente
+  // Una vez tocado, asumimos que el usuario sabe lo que eligió
+  const showDetectionMessage = !userChangedCountry && !localStorage.getItem('selectedCountryCode');
 
   const freeFeatures = [
     "Dashboard de salud del negocio",
@@ -1126,10 +1133,10 @@ const PricingSection = () => {
   ];
 
   return (
-    <section id="precios" className="py-28 lg:py-32 px-6 bg-white">
+    <section id="precios" className="py-20 md:py-28 lg:py-32 px-4 sm:px-6 bg-white">
       <div className="max-w-[840px] mx-auto">
         <Reveal>
-          <div className="text-center mb-14">
+          <div className="text-center mb-10 md:mb-14">
             <AccentLabel>PRECIOS</AccentLabel>
             <h2 className="text-[clamp(1.5rem,3vw,2.1rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5">
               Empezá gratis. Crecé cuando lo necesites.
@@ -1140,13 +1147,13 @@ const PricingSection = () => {
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
           {/* Free */}
           <Reveal delay={0}>
-            <div className="rounded-2xl border border-[#eee] bg-[#fafafa] p-8 h-full flex flex-col">
+            <div className="rounded-2xl border border-[#eee] bg-[#fafafa] p-6 md:p-8 h-full flex flex-col">
               <p className="text-[12px] font-semibold text-[#999] uppercase tracking-[0.12em]">Gratis</p>
               <div className="mt-3 mb-6">
-                <span className="text-[36px] font-bold text-[#111]">$0</span>
+                <span className="text-[32px] md:text-[36px] font-bold text-[#111]">$0</span>
                 <span className="text-[14px] text-[#999] ml-1">/ siempre</span>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
@@ -1166,51 +1173,71 @@ const PricingSection = () => {
 
           {/* Pro */}
           <Reveal delay={100}>
-            <div className="rounded-2xl border-2 p-8 h-full flex flex-col relative overflow-hidden"
+            <div className="rounded-2xl border-2 p-6 md:p-8 h-full flex flex-col relative overflow-hidden"
               style={{ borderImage: `${ACCENT_GRADIENT} 1` }}>
               <div className="absolute top-0 right-0 px-3 py-1 rounded-bl-lg text-[10px] font-bold text-white tracking-wider"
                 style={{ background: ACCENT_GRADIENT }}>
                 RECOMENDADO
               </div>
-              <p className="text-[12px] font-semibold uppercase tracking-[0.12em]"
-                style={{ backgroundImage: ACCENT_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                Pro
-              </p>
-              <div className="mt-4 mb-5 inline-flex rounded-xl border border-[#e8edf3] bg-[#f8fbfe] p-1">
-                <button onClick={() => setIsYearly(true)} className={cn("px-3 py-2 rounded-lg text-[12px] font-semibold transition-all", isYearly ? "bg-white text-[#111] shadow-sm" : "text-[#888]")}>Anual</button>
-                <button onClick={() => setIsYearly(false)} className={cn("px-3 py-2 rounded-lg text-[12px] font-semibold transition-all", !isYearly ? "bg-white text-[#111] shadow-sm" : "text-[#888]")}>Mensual</button>
-              </div>
-              <div className="mb-6">
-                <div className="flex items-end gap-2 flex-wrap">
-                  <span className="text-[36px] font-bold text-[#111]">{formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}</span>
-                  <span className="text-[14px] text-[#999] ml-1">{country.currency} / mes</span>
-                </div>
-                <p className="text-[12.5px] text-[#777] mt-2">
-                  {isYearly ? `Pago anual: ${formatCurrencyShort(yearlyPrice)} ${country.currency}` : `Pago mensual: ${formatCurrencyShort(monthlyPrice)} ${country.currency}`}
+
+              {/* Header con label + selector de país compacto */}
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.12em] pt-1"
+                  style={{ backgroundImage: ACCENT_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  Pro
                 </p>
-                <p className="text-[12px] text-[#2692DC] mt-1 font-medium">
-                  {isYearly ? `${savings.percentage}% de ahorro frente al plan mensual` : "Plan mensual flexible"}
-                </p>
-                <p className="text-[11.5px] text-[#999] mt-2">
-                  {isDetecting ? "Detectando tu país..." : `Detectamos ${country.flag} ${country.name}. Si seguís, el checkout usa esta moneda visible y el medio de pago correcto.`}
-                </p>
-                <div className="mt-3 inline-flex flex-wrap items-center gap-2 rounded-xl border border-[#e8edf3] bg-[#f8fbfe] px-3 py-2">
-                  <span className="text-[14px]">{country.flag}</span>
-                  <span className="text-[12px] font-medium text-[#333]">{country.name}</span>
+                <div className="flex items-center gap-1.5 rounded-full border border-[#e8edf3] bg-[#f8fbfe] px-2.5 py-1.5">
+                  <span className="text-[14px] leading-none">{country.flag}</span>
                   <select
                     aria-label="Cambiar país"
                     value={country.code === "DEFAULT" ? "AR" : country.code}
-                    onChange={(e) => setCountryOverride(e.target.value as CountryCode)}
-                    className="rounded-lg border border-[#dde6ef] bg-white px-2.5 py-1.5 text-[12px] font-medium text-[#333] outline-none"
+                    onChange={(e) => handleCountryChange(e.target.value as CountryCode)}
+                    className="bg-transparent text-[11.5px] font-medium text-[#333] outline-none cursor-pointer max-w-[110px] sm:max-w-none truncate"
                   >
-                    {countryOptions.map(([code, info]) => (
-                      <option key={code} value={code}>
-                        {info.flag} {info.name}
-                      </option>
-                    ))}
+                    {Object.entries(COUNTRY_CONFIG)
+                      .filter(([c]) => c !== "DEFAULT")
+                      .sort(([, a], [, b]) => a.name.localeCompare(b.name))
+                      .map(([code, info]) => (
+                        <option key={code} value={code}>
+                          {info.name}
+                        </option>
+                      ))}
                   </select>
                 </div>
               </div>
+
+              {/* Toggle Mensual/Anual */}
+              <div className="mb-5 inline-flex rounded-xl border border-[#e8edf3] bg-[#f8fbfe] p-1 self-start">
+                <button onClick={() => setIsYearly(true)} className={cn("px-3 py-2 rounded-lg text-[12px] font-semibold transition-all", isYearly ? "bg-white text-[#111] shadow-sm" : "text-[#888]")}>Anual</button>
+                <button onClick={() => setIsYearly(false)} className={cn("px-3 py-2 rounded-lg text-[12px] font-semibold transition-all", !isYearly ? "bg-white text-[#111] shadow-sm" : "text-[#888]")}>Mensual</button>
+              </div>
+
+              {/* Precio */}
+              <div className="mb-6">
+                <div className="flex items-end gap-2 flex-wrap">
+                  <span className="text-[34px] md:text-[40px] font-bold text-[#111] leading-none">{formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}</span>
+                  <span className="text-[13.5px] text-[#999] mb-1">{country.currency} / mes</span>
+                </div>
+                {isYearly && (
+                  <p className="text-[12.5px] text-[#777] mt-2">
+                    Pago anual: <span className="font-medium text-[#444]">{formatCurrencyShort(yearlyPrice)} {country.currency}</span>
+                  </p>
+                )}
+                <p className="text-[12px] text-[#2692DC] mt-1.5 font-semibold">
+                  {isYearly ? `${savings.percentage}% de ahorro frente al plan mensual` : "Plan mensual flexible · sin permanencia"}
+                </p>
+
+                {/* Mensaje de detección — sólo si auto-detectado y no fue cambiado manualmente */}
+                {showDetectionMessage && !isDetecting && (
+                  <p className="text-[11.5px] text-[#999] mt-3 leading-[1.55]">
+                    Detectamos {country.flag} <span className="font-medium text-[#666]">{country.name}</span>. El checkout usará esta moneda y el medio de pago correcto. Podés cambiarlo arriba.
+                  </p>
+                )}
+                {isDetecting && (
+                  <p className="text-[11.5px] text-[#bbb] mt-3">Detectando tu país...</p>
+                )}
+              </div>
+
               <ul className="space-y-3 mb-8 flex-1">
                 {proFeatures.map(f => (
                   <li key={f} className="flex items-start gap-2.5 text-[13.5px] text-[#666]">
@@ -1222,14 +1249,14 @@ const PricingSection = () => {
               <button onClick={() => navigate(`/checkout?plan=${isYearly ? "pro_yearly" : "pro_monthly"}&country=${country.code}`)}
                 className="w-full py-3.5 rounded-xl text-[14px] font-medium text-white transition-all duration-300 hover:shadow-[0_8px_24px_rgba(38,146,220,0.25)] active:scale-[0.98]"
                 style={{ background: ACCENT_GRADIENT }}>
-                Ir al checkout Pro
+                Activar Pro
               </button>
             </div>
           </Reveal>
         </div>
 
         <Reveal delay={150}>
-          <p className="text-center text-[12.5px] text-[#bbb] mt-8">
+          <p className="text-center text-[12.5px] text-[#bbb] mt-8 px-4">
             El plan anual está preseleccionado porque maximiza el ahorro real. Si ya tenés cuenta, seguís directo; si no, la creás en el checkout y el Pro queda asociado.
           </p>
         </Reveal>
