@@ -58,6 +58,12 @@ export const useWidgetConfig = () => {
           const savedConfig = settings.widgetConfig as WidgetConfig[];
           const mergedConfig = DEFAULT_WIDGETS.map(defaultWidget => {
             const saved = savedConfig.find(w => w.id === defaultWidget.id);
+            // Force locked widgets to use default order/section/visible (system-managed)
+            // Esto garantiza que viejos usuarios vean el Centro de Inteligencia (aiSummary)
+            // primero, aunque tengan una config previa guardada.
+            if (defaultWidget.locked) {
+              return { ...defaultWidget, visible: true };
+            }
             return saved ? { ...defaultWidget, ...saved } : defaultWidget;
           });
           setWidgets(mergedConfig);
