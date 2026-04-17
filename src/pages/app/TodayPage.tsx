@@ -263,8 +263,6 @@ const TodayPage = () => {
         />
       </div>
 
-      <IntelligentQuestionPrompt variant="compact" />
-
       {/* Mobile: Centro de inteligencia primero, luego prompt, luego el resto */}
       {[...mainWidgets, ...sidebarWidgets]
         .sort((a, b) => {
