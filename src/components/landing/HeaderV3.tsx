@@ -3,6 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CountrySelector } from "@/components/shared/CountrySelector";
+import { useCountryDetection } from "@/hooks/use-country-detection";
 
 // Import optimized logo assets
 import logoFullText from "@/assets/brand/logo-full-text.png";
@@ -24,6 +26,7 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { country, setCountryOverride } = useCountryDetection();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -104,6 +107,12 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
 
           {/* Right side */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <CountrySelector
+              value={country.code}
+              onChange={setCountryOverride}
+              variant="light"
+            />
+
             <Button
               variant="ghost"
               size="sm"

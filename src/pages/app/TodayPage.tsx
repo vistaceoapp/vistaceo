@@ -200,13 +200,18 @@ const TodayPage = () => {
           />
         </div>
 
-        {/* Intelligent Question Prompt */}
-        <IntelligentQuestionPrompt variant="compact" />
+        {/* Intelligent Question Prompt — debajo del Centro de Inteligencia */}
 
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="col-span-2 space-y-6">
-            {mainWidgets.map(w => renderWidget(w.id))}
+            {mainWidgets.map((w, idx) => (
+              <div key={w.id}>
+                {renderWidget(w.id)}
+                {/* Insertar IntelligentQuestionPrompt justo después del primer widget (Visión Estratégica / aiSummary) */}
+                {idx === 0 && <div className="mt-6"><IntelligentQuestionPrompt variant="compact" /></div>}
+              </div>
+            ))}
           </div>
 
           {/* Sidebar */}
@@ -258,9 +263,7 @@ const TodayPage = () => {
         />
       </div>
 
-      <IntelligentQuestionPrompt variant="compact" />
-
-      {/* Render all visible widgets in order */}
+      {/* Mobile: Centro de inteligencia primero, luego prompt, luego el resto */}
       {[...mainWidgets, ...sidebarWidgets]
         .sort((a, b) => {
           const mobileOrder: Record<string, number> = {
@@ -277,7 +280,12 @@ const TodayPage = () => {
           };
           return (mobileOrder[a.id] ?? 99) - (mobileOrder[b.id] ?? 99);
         })
-        .map(w => renderWidget(w.id))}
+        .map((w, idx) => (
+          <div key={w.id}>
+            {renderWidget(w.id)}
+            {idx === 0 && <div className="mt-5"><IntelligentQuestionPrompt variant="compact" /></div>}
+          </div>
+        ))}
 
       <ActionsListPanel open={showActionsPanel} onOpenChange={setShowActionsPanel} />
       <AlertFAB />
