@@ -107,12 +107,6 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
 
           {/* Right side */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <CountrySelector
-              value={country.code}
-              onChange={setCountryOverride}
-              variant="light"
-            />
-
             <Button
               variant="ghost"
               size="sm"
@@ -122,14 +116,21 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
               Iniciar sesión
             </Button>
 
-            <Button
-              size="sm"
-              className="gradient-primary text-primary-foreground rounded-full px-4 sm:px-5 font-medium shadow-lg shadow-primary/20 text-sm"
-              onClick={() => navigate("/auth?mode=signup")}
-            >
-              <span className="hidden xs:inline">Empezar</span> gratis
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Button
+                size="sm"
+                className="gradient-primary text-primary-foreground rounded-full px-4 sm:px-5 font-medium shadow-lg shadow-primary/20 text-sm"
+                onClick={() => navigate("/auth?mode=signup")}
+              >
+                <span className="hidden xs:inline">Empezar</span> gratis
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+              <CountrySelector
+                value={country.code}
+                onChange={setCountryOverride}
+                variant="light"
+              />
+            </div>
 
             <Button
               variant="ghost"

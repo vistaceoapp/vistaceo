@@ -16,8 +16,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { InsightNotificationBell } from "@/components/app/InsightNotificationBell";
-import { CountrySelector } from "@/components/shared/CountrySelector";
-import { useCountryDetection } from "@/hooks/use-country-detection";
 
 interface DashboardHeaderProps {
   sidebarCollapsed: boolean;
@@ -28,7 +26,6 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
-  const { country, setCountryOverride } = useCountryDetection();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -59,11 +56,6 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
       )}
     >
       <div className="flex items-center gap-1.5">
-        <CountrySelector
-          value={country.code}
-          onChange={setCountryOverride}
-          variant="light"
-        />
         <InsightNotificationBell />
 
         <DropdownMenu>
