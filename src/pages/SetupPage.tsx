@@ -110,8 +110,8 @@ const SetupPage = () => {
           return parsed;
         }
       }
-    } catch (e) {
-      console.log('Could not restore setup progress');
+    } catch {
+      // Saved progress unreadable — start fresh, no need to alarm the user
     }
     return null;
   };
