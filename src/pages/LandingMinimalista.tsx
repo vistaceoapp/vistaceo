@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, memo, useCallback, useMemo, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronDown, Menu, X, Check, TrendingUp, Target, Zap, BarChart3, Shield, Brain, Sparkles, Heart, MessageCircle, Eye, Radar, Lock, Clock, Users, CheckCircle2, ArrowUpRight, Globe, Mail, Search, Lightbulb } from "lucide-react";
 import { SiteHead } from "@/components/seo/SiteHead";
@@ -34,16 +34,15 @@ const ACCENT_GRADIENT = "linear-gradient(135deg, #2692DC, #746CE6)";
 const ACCENT_GRADIENT_SUBTLE = "linear-gradient(135deg, rgba(38,146,220,0.08), rgba(116,108,230,0.08))";
 
 /* ── Scroll Reveal ── */
-const Reveal = memo(({ children, className, delay = 0, distance = 40 }: { 
-  children: React.ReactNode; className?: string; delay?: number; distance?: number;
-}) => {
+type RevealProps = { children: React.ReactNode; className?: string; delay?: number; distance?: number };
+const Reveal = memo(forwardRef<HTMLDivElement, RevealProps>(({ children, className, delay = 0, distance = 40 }, _externalRef) => {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { 
-      if (e.isIntersecting) { setTimeout(() => setVisible(true), delay); obs.disconnect(); } 
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setTimeout(() => setVisible(true), delay); obs.disconnect(); }
     }, { threshold: 0.08, rootMargin: "0px 0px -40px 0px" });
     obs.observe(el);
     return () => obs.disconnect();
@@ -58,7 +57,7 @@ const Reveal = memo(({ children, className, delay = 0, distance = 40 }: {
       }}
     >{children}</div>
   );
-});
+}));
 Reveal.displayName = "Reveal";
 
 /* ── Accent text with gradient ── */

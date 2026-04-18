@@ -110,8 +110,8 @@ const SetupPage = () => {
           return parsed;
         }
       }
-    } catch (e) {
-      console.log('Could not restore setup progress');
+    } catch {
+      // Saved progress unreadable — start fresh, no need to alarm the user
     }
     return null;
   };
@@ -380,14 +380,10 @@ const SetupPage = () => {
         
         if (aiError) {
           console.warn('AI analysis failed, using fallback:', aiError);
-          // Fallback to local calculation
           await createFallbackSnapshot(business.id, data, precisionScore);
-        } else {
-          console.log('AI health analysis complete:', aiAnalysis);
         }
       } catch (aiErr) {
         console.warn('AI analysis error, using fallback:', aiErr);
-        // Fallback to local calculation
         await createFallbackSnapshot(business.id, data, precisionScore);
       }
       
@@ -396,38 +392,31 @@ const SetupPage = () => {
       // Step 5: Auto-sync Google reviews if we have a Place ID
       if (data.googlePlaceId) {
         try {
-          console.log('Auto-syncing Google reviews for place:', data.googlePlaceId);
-          const { data: syncResult, error: syncError } = await supabase.functions.invoke('google-sync-public-reviews', {
+          const { error: syncError } = await supabase.functions.invoke('google-sync-public-reviews', {
             body: {
               businessId: business.id,
               placeId: data.googlePlaceId,
             },
           });
-          
           if (syncError) {
             console.warn('Google reviews sync failed:', syncError);
-          } else {
-            console.log('Google reviews synced:', syncResult);
           }
         } catch (syncErr) {
           console.warn('Error syncing Google reviews:', syncErr);
         }
       }
-      
+
       // Step 5b: Auto-trigger opportunity scanning (fire and forget)
       try {
-        console.log('[Setup] Triggering auto radar scan for business:', business.id);
         supabase.functions.invoke('weekly-insight-scan', {
           body: { businessId: business.id, source: 'setup_auto' },
-        }).then(res => {
-          console.log('[Setup] Auto radar scan triggered:', res.data);
         }).catch(err => {
           console.warn('[Setup] Auto radar scan failed (non-blocking):', err);
         });
       } catch (scanErr) {
         console.warn('[Setup] Error triggering auto scan:', scanErr);
       }
-      
+
       setCreateProgress(100);
 
       // Set as current business and navigate to celebration page
@@ -458,12 +447,10 @@ const SetupPage = () => {
           businessId: business.id,
           businessName: data.businessName,
         },
-      }).then(res => {
-        console.log('[Setup] Activated email sent:', res.data);
       }).catch(err => {
         console.warn('[Setup] Activated email failed (non-blocking):', err);
       });
-      
+
       toast.success(lang === 'pt' ? 'Negócio criado com sucesso!' : '¡Tu negocio está listo!');
       navigate('/setup-complete', { replace: true });
     } catch (error) {

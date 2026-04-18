@@ -228,6 +228,7 @@ const MissionsPage = () => {
       setMissions(data || []);
     } catch (error) {
       console.error("Error fetching missions:", error);
+      toast({ title: "No pudimos cargar tus misiones", description: "Verificá tu conexión y reintentá.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -383,6 +384,7 @@ const MissionsPage = () => {
       fetchMissions();
     } catch (error) {
       console.error("Error updating step:", error);
+      toast({ title: "No se pudo actualizar el paso", description: "Intentalo de nuevo en un momento.", variant: "destructive" });
     }
   };
 
@@ -423,6 +425,7 @@ const MissionsPage = () => {
       fetchMissions();
     } catch (error) {
       console.error("Error toggling mission:", error);
+      toast({ title: "No se pudo cambiar el estado", description: "Reintentá en unos segundos.", variant: "destructive" });
     }
   };
 
@@ -595,10 +598,10 @@ const MissionsPage = () => {
           </div>
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-3">
-          Misiones guiadas
+          Misiones
         </h2>
         <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
-          Configura tu negocio para desbloquear misiones personalizadas de mejora continua.
+          Planes de acción paso a paso para ejecutar lo que el Radar detecta. Configurá tu negocio para empezar.
         </p>
         <Button variant="hero" size="lg" onClick={() => navigate("/onboarding")}>
           <Sparkles className="w-5 h-5 mr-2" />

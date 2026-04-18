@@ -223,7 +223,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Radar className="w-4 h-4 text-accent" />
-            <h4 className="font-semibold text-foreground text-sm">Hoy en tu mercado</h4>
+            <h4 className="font-semibold text-foreground text-sm">Señal del mercado</h4>
           </div>
           <Badge variant="outline" className="text-[10px] bg-muted text-muted-foreground">
             Semanal
@@ -278,7 +278,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Radar className="w-4 h-4 text-accent" />
-          <h4 className="font-semibold text-foreground text-sm">Hoy en tu mercado</h4>
+          <h4 className="font-semibold text-foreground text-sm">Señales del mercado</h4>
         </div>
         <div className="flex items-center gap-2">
           <Button

@@ -44,11 +44,10 @@ const TodayPage = () => {
     resetToDefaults 
   } = useWidgetConfig();
   
-  const [loading, setLoading] = useState(true);
   const [showActionsPanel, setShowActionsPanel] = useState(false);
 
   const setupCompleted = dashboardData.setupCompleted;
-  
+
   const handleSync = useCallback(async () => {
     const result = await syncHealth();
     if (result.success) {
@@ -68,14 +67,6 @@ const TodayPage = () => {
     if (hour < 18) return "Buenas tardes";
     return "Buenas noches";
   };
-
-  useEffect(() => {
-    if (currentBusiness) {
-      setLoading(false);
-    } else {
-      setLoading(false);
-    }
-  }, [currentBusiness]);
 
   const renderWidget = (widgetId: string) => {
     switch (widgetId) {
@@ -116,7 +107,7 @@ const TodayPage = () => {
     }
   };
 
-  if (loading || widgetsLoading) {
+  if (dashboardLoading || widgetsLoading) {
     return (
       <div className={cn("space-y-6", !isMobile && "grid grid-cols-3 gap-6")}>
         {!isMobile ? (
