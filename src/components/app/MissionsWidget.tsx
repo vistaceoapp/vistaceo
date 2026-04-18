@@ -52,7 +52,8 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
       if (error) throw error;
       setMissions((data || []) as Mission[]);
     } catch (error) {
-      console.error("Error fetching missions:", error);
+      console.error("[MissionsWidget] fetch failed:", error);
+      setMissions([]);
     } finally {
       setLoading(false);
     }

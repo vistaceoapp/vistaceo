@@ -383,6 +383,7 @@ const MissionsPage = () => {
       fetchMissions();
     } catch (error) {
       console.error("Error updating step:", error);
+      toast({ title: "No se pudo actualizar el paso", description: "Intentalo de nuevo en un momento.", variant: "destructive" });
     }
   };
 
@@ -423,6 +424,7 @@ const MissionsPage = () => {
       fetchMissions();
     } catch (error) {
       console.error("Error toggling mission:", error);
+      toast({ title: "No se pudo cambiar el estado", description: "Reintentá en unos segundos.", variant: "destructive" });
     }
   };
 
