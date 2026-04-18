@@ -1,219 +1,158 @@
 
-# Plan: Completar todos los cuestionarios hiper-personalizados
 
-## Resumen Ejecutivo
-Completar los 180 cuestionarios de tipos de negocio (10 sectores × 18 tipos) en ambas versiones Quick (12-15 preguntas) y Complete (68-75 preguntas). Actualmente solo ~30% esta implementado con preguntas específicas; el resto usa preguntas genéricas de fallback.
+The user wants performance + UX intelligence improvements WITHOUT touching UI/visual design. They want the dashboard to feel "wow" by reducing noise and making information sharper. Let me explore key areas: dashboard load, widget rendering, data fetching patterns.
+<lov-tool-use id="toolu_vrtx_01MfYGiFYdStCFyAzHJksLW7" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/app/TodayPage.tsx\"}">
+</lov-tool-use>
 
-## Estado Actual
+<lov-tool-use id="toolu_vrtx_01KHrMs3SWrmBibpwEQtZ63Q" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/use-widget-config.ts\"}">
+</lov-tool-use>
 
-### Sectores COMPLETOS (18/18 tipos):
-- **Gastronomía (A1)**: 18 tipos - COMPLETO
-- **Turismo (A2)**: 18 tipos - COMPLETO
+<lov-tool-use id="toolu_vrtx_01LJFNS7HtxytnR1pqhtpAZH" name="code--view" integration-id="code" data="{\"file_path\": \"src/components/app/AIDailySummary.tsx\"}">
+</lov-tool-use>
 
-### Sectores PARCIALES (preguntas universales, no específicas por tipo):
-- **Educación (A5)**: Preguntas universales para todos los tipos
-- **B2B (A6)**: Preguntas universales para todos los tipos  
-- **Transporte (A9)**: Preguntas universales para todos los tipos
-- **Agro (A10)**: Preguntas universales para todos los tipos
+<lov-tool-use id="toolu_vrtx_01DPb923bAaZpGZPAUPwzPkT" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/use-auto-sync.ts\"}">
+</lov-tool-use>
 
-### Sectores con POCOS tipos implementados:
-- **Retail (A3)**: Solo 5/18 tipos (Almacén, Supermercado, Moda, Calzado, Hogar)
-- **Salud (A4)**: Solo 1/18 tipo (Clínica)
-- **Hogar/Servicios (A7)**: Solo 2/18 tipos (Plomería, Electricidad)
-- **Construcción (A8)**: Solo 1/18 tipo (Constructora Residencial)
+<lov-tool-use id="toolu_vrtx_0135UdK1HC1boAVrusCE1QCY" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/app/TodayPage.tsx\"}">
+</lov-tool-use>
 
-## Estructura de Cada Cuestionario
+<lov-tool-use id="toolu_vrtx_013RFNoa64UXhFEZehWSjLmV" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/use-widget-config.ts\"}">
+</lov-tool-use>
 
-Cada tipo de negocio necesita:
-- **Modo Quick**: 12-15 preguntas esenciales
-- **Modo Complete**: 68-75 preguntas detalladas
+<lov-tool-use id="toolu_vrtx_01EMcupZy5iN1wsNum6jYext" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/use-auto-sync.ts\"}">
+</lov-tool-use>
 
-Las 12 categorías obligatorias:
-1. Identidad y posicionamiento
-2. Oferta y precios
-3. Cliente ideal y demanda
-4. Ventas y conversión
-5. Finanzas y márgenes
-6. Operaciones y capacidad
-7. Marketing y adquisición
-8. Retención y experiencia (CX)
-9. Equipo y roles
-10. Tecnología e integraciones
-11. Objetivos del dueño
-12. Riesgos, estacionalidad y restricciones
+<lov-tool-use id="toolu_vrtx_01F8wac8W6CeTq4bY5mJRsUg" name="code--view" integration-id="code" data="{\"file_path\": \"src/components/app/AIDailySummary.tsx\"}">
+</lov-tool-use>
 
-Las 7 dimensiones de salud:
-- Crecimiento, Equipo, Tráfico, Rentabilidad, Finanzas, Eficiencia, Reputación
+<lov-tool-use id="toolu_vrtx_01GhUAvneHbDp4Pear34gPRN" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/use-dashboard-data.ts\"}">
+</lov-tool-use>
+I have enough context to build a comprehensive performance & UX optimization plan. Let me check a couple more things quickly.
+<lov-tool-use id="toolu_vrtx_01EmXLD8VGX2NrAS2VgLvu1u" name="code--exec" integration-id="code" data="{\"command\": \"ls src/components/app/ | head -50 && echo \\\"---\\\" && wc -l src/App.tsx src/main.tsx 2>/dev/null && echo \\\"---\\\" && grep -r \\\"lazy(\\\" src/App.tsx 2>/dev/null | head -20\", \"user_facing_description\": \"Inspecting dashboard components and routing\"}">
+</lov-tool-use>
+<lov-plan>
 
-## Plan de Implementación
+## Plan: Performance, eficiencia y "wow" del Dashboard (sin tocar UI)
 
-### Fase 1: Retail (A3) - 13 tipos faltantes
-Crear cuestionarios específicos para:
-- Electrónica y Tecnología
-- Ferretería / Herramientas
-- Librería / Papelería
-- Juguetería y Hobbies
-- Deportes y Outdoor
-- Belleza y Perfumería
-- Pet Shop
-- Gourmet / Delicatessen
-- Segunda Mano / Re-commerce
-- E-commerce Marca Propia (D2C)
-- Seller en Marketplaces
-- Suscripción / Cajas Mensuales
-- Mayorista / Distribuidor
+### Diagnóstico actual
 
-### Fase 2: Salud (A4) - 17 tipos faltantes
-Crear cuestionarios específicos para:
-- Consultorio Médico
-- Centro Odontológico
-- Laboratorio de Análisis
-- Centro Diagnóstico
-- Kinesiología / Rehabilitación
-- Psicología / Salud Mental
-- Nutrición / Dietética
-- Medicina Estética
-- Centro de Estética
-- Spa / Masajes
-- Gimnasio / Fitness
-- Yoga / Pilates
-- Peluquería / Salón
-- Barbería
-- Manicuría / Uñas
-- Depilación
-- Óptica / Contactología
+**Cuellos de botella detectados:**
 
-### Fase 3: Hogar/Servicios (A7) - 16 tipos faltantes
-Crear cuestionarios específicos para:
-- Gasista
-- Cerrajería
-- Pintura
-- Carpintería
-- Albañilería
-- Jardinería
-- Limpieza Hogar
-- Fumigación
-- Mudanzas
-- Climatización
-- Seguridad Hogar
-- Electrodomésticos
-- Tapicería
-- Vidriería
-- Herrería
-- Mantenimiento Integral
+1. **Dashboard cargado en serie de N widgets independientes**: cada widget (HealthScore, Brain, Radar, Missions, Reputation, Focus, Predictions, WeeklyMetrics, etc.) hace sus propias queries Supabase al montar → 10+ requests duplicados en paralelo en el primer render.
+2. **`useDashboardData` ya hace 7 queries en paralelo**, pero los widgets vuelven a pedir parte de esos mismos datos (snapshots, brain, integrations).
+3. **`AIDailySummary`** llama a `generate-daily-summary` (Gemini) **cada vez que no hay signals**, sin caché de sesión → coste y latencia alta.
+4. **`useAutoSync`** dispara 3 edge functions pesadas en los primeros 8s del montaje del layout (`sync-external-data`, `brain-analyze-gaps`, `analyze-health-score`) **en cada navegación al dashboard** porque los `Ref` viven dentro del hook que se re-monta.
+5. **No hay React Query / cache compartido**: cada widget re-fetchea al cambiar de tab del navegador.
+6. **Demasiados widgets visibles por defecto** (aiSummary + health + nextSteps + missions + brain + focus + radar = 7 cargas de datos al entrar) → ruido cognitivo y lentitud percibida.
+7. **Edge function `generate-daily-summary`** usa `gemini-2.5-flash` (costoso) cuando `flash-lite` alcanza para señales JSON cortas.
+8. **`framer-motion`** importado en widget core (AIDailySummary) sin necesidad real para 6 tarjetas estáticas.
+9. **No hay `prefetch`** del dashboard tras login → primera entrada lenta.
 
-### Fase 4: Construcción (A8) - 17 tipos faltantes
-Crear cuestionarios específicos para:
-- Constructora Comercial
-- Arquitectura
-- Ingeniería Civil
-- Inmobiliaria Ventas
-- Inmobiliaria Alquileres
-- Desarrolladora
-- Reformas Integrales
-- Demolición
-- Movimiento de Suelos
-- Estructuras Metálicas
-- Instalaciones Especiales
-- Impermeabilización
-- Pisos y Revestimientos
-- Techos y Cubiertas
-- Piscinas
-- Paisajismo
-- Project Management
+### Objetivo
 
-### Fase 5: Convertir preguntas universales a específicas
+Hacer que **entrar al dashboard se sienta instantáneo** (<400 ms a contenido útil), reducir tráfico de red ~60%, costos de IA ~40%, y mostrar **menos widgets pero más densos en valor**, sin alterar el diseño visual.
 
-**Educación (A5)** - Crear variaciones específicas para:
-- Jardín/Inicial
-- Escuela Primaria/Secundaria
-- Instituto Terciario
-- Universidad/Posgrado
-- Instituto de Idiomas
-- Apoyo Escolar
-- Preparación Exámenes
-- Programación/Tech
-- Diseño/Creatividad
-- Marketing/Negocios
-- Cursos de Oficios
-- Capacitación Corporativa
-- E-learning/Plataforma
-- Clases Particulares
-- Artes Escénicas
-- Academia de Música
-- Academia de Danza
-- Academia Deportiva
+---
 
-**B2B (A6)** - Similar para 18 tipos profesionales
+### Cambios propuestos (8 áreas, sin modificar UI)
 
-**Transporte (A9)** - Similar para 18 tipos logísticos
+**1. Capa unificada de datos del Dashboard (`useDashboardSnapshot`)**
+- Crear un hook único que hace **una sola llamada** a una nueva edge function `dashboard-snapshot` que devuelve en una respuesta: business + brain + último snapshot + últimas misiones + signals count + competitors + photos + summary del día.
+- Cachear resultado con TTL 5 min en `sessionStorage` → entrar/volver al dashboard no dispara red.
+- Widgets reciben datos por props desde el padre (ya hay patrón en `HealthScoreWidget`); migrar `BrainKnowledgeWidget`, `MissionsWidget`, `FocusWidget`, `RadarWidget` para que **acepten datos por props** y sólo hagan fetch si no se les pasan.
 
-**Agro (A10)** - Similar para 18 tipos agroindustriales
+**2. React Query global con stale-time agresivo**
+- Configurar `QueryClient` con `staleTime: 5 min`, `refetchOnWindowFocus: false`, `refetchOnMount: false`.
+- Migrar fetches de widgets a `useQuery` con keys compartidos (`['business', id, 'snapshot']`, `['business', id, 'brain']`).
+- Resultado: un widget que se re-monta no vuelve a pegarle a la DB.
 
-## Principios de Diseño
+**3. AutoSync inteligente (debounce + persistencia)**
+- Mover `lastSyncRef` a `localStorage` con clave `autosync:${businessId}`.
+- Sólo correr `triggerBrainGaps` y `checkAndSyncHealth` **una vez por día** por business, no por sesión.
+- Reducir intervalo periódico de 5 → 15 min.
+- Postergar todos los syncs a `requestIdleCallback` para no competir con render inicial.
 
-1. **Hiper-personalización**: Cada pregunta debe ser específica del tipo de negocio
-2. **No preguntas genéricas**: Si dos tipos son muy similares (ej: Hotel Urbano vs Hotel Boutique), compartir 80% de preguntas pero diferenciar en 20% clave
-3. **Idiomas**: Español (es) + Portugués (pt-BR) obligatorio
-4. **Mapeo a Brain**: Cada respuesta alimenta el Cerebro del Negocio
-5. **Mission Triggers**: Preguntas gatillan misiones específicas según respuestas
+**4. `generate-daily-summary` más rápido y barato**
+- Cambiar modelo a `google/gemini-2.5-flash-lite` (suficiente para JSON corto, 3-5× más barato/rápido).
+- Limitar contexto a ~600 tokens (truncar memorias factual/dinámica más agresivamente).
+- Cache server-side: si existe `business_daily_summaries` de hoy con `signals.length > 0`, devolver sin llamar a IA.
+- Cliente: no regenerar automáticamente si signals están vacías; mostrar botón "Generar análisis" → evita coste por usuarios viejos al cargar.
 
-## Archivos a Crear/Modificar
+**5. Dashboard "menos es más" (defaults nuevos)**
+- Por defecto sólo 4 widgets visibles: **aiSummary**, **health**, **nextSteps**, **brain**. El resto (missions, focus, radar, reputation, predictions, weeklyMetrics, pulse) quedan en el editor (ocultos), accesibles con un click.
+- Migración: usuarios existentes mantienen sus selecciones; sólo cambia el default de los nuevos.
+- Resultado: render inicial de 4 cards en vez de 7 → menos JS, menos red, lectura más clara.
 
-```text
-src/lib/sectorQuestions/
-├── retailQuestionsComplete.ts      // Expandir 13 tipos
-├── saludQuestionsComplete.ts       // Expandir 17 tipos  
-├── hogarQuestionsComplete.ts       // Expandir 16 tipos
-├── construccionQuestionsComplete.ts // Expandir 17 tipos
-├── educacionQuestionsComplete.ts   // Crear variaciones 18 tipos
-├── b2bQuestionsComplete.ts         // Crear variaciones 18 tipos
-├── transporteQuestionsComplete.ts  // Crear variaciones 18 tipos
-├── agroQuestionsComplete.ts        // Crear variaciones 18 tipos
-└── index.ts                        // Actualizar exports
+**6. Lazy-loading de widgets pesados**
+- `PredictionsWidget`, `WeeklyMetricsWidget`, `RadarWidget`, `ReputationWidget` → `React.lazy()` con `<Suspense>` y skeleton del mismo tamaño.
+- Reduce el bundle del dashboard inicial estimado en ~80-120 KB.
+
+**7. Quitar dependencias innecesarias en hot path**
+- `AIDailySummary`: reemplazar `framer-motion` por una transición CSS (`@keyframes fade-up`) — la animación es trivial.
+- Quitar `motion.div` colapsable; usar `<details>` o `transition-all max-h`.
+
+**8. Prefetch tras login**
+- En el callback de `/auth` exitoso, disparar `queryClient.prefetchQuery(['business', id, 'snapshot'])` antes de navegar a `/app` → al llegar, el dashboard ya tiene los datos.
+
+---
+
+### Detalles técnicos
+
+**Nueva edge function `dashboard-snapshot`** (single round-trip):
+```ts
+// Input: { businessId }
+// Output: { business, brain, snapshot, missions, signalsCount, competitors, photoCount, todaySummary }
+// Una sola query SQL combinada o Promise.all server-side (latencia LAN < 100ms vs múltiples round-trips cliente)
 ```
 
-## Detalles Técnicos
-
-### Interfaz de Pregunta (UniversalQuestion)
-```typescript
-interface UniversalQuestion {
-  id: string;
-  category: string;
-  mode: 'quick' | 'complete' | 'both';
-  dimension: 'reputation' | 'profitability' | 'finances' | 'efficiency' | 'traffic' | 'team' | 'growth';
-  weight: number;
-  title: { es: string; 'pt-BR': string };
-  help?: { es: string; 'pt-BR': string };
-  type: 'single' | 'multi' | 'number' | 'slider' | 'text' | 'money';
-  options?: Array<{
-    id: string;
-    label: { es: string; 'pt-BR': string };
-    emoji?: string;
-    impactScore?: number;
-  }>;
-  min?: number;
-  max?: number;
-  unit?: string;
-  required?: boolean;
-  businessTypes?: string[];
-}
+**Cache shape** (`sessionStorage`):
+```
+key: `dash:${businessId}`
+value: { ts, payload }
+TTL: 5 min; invalidate on mutation (mission complete, focus change, etc.)
 ```
 
-### Actualizar universalQuestionsEngine.ts
-- Agregar imports de nuevos archivos
-- Actualizar mapeos de IDs
-- Eliminar fallbacks a preguntas genéricas
+**`useAutoSync` cambios:**
+```ts
+const lastBrainGapsKey = `autosync:braingaps:${businessId}`;
+const last = localStorage.getItem(lastBrainGapsKey);
+if (last && Date.now() - +last < 24*60*60*1000) return;
+// run, then localStorage.setItem(lastBrainGapsKey, String(Date.now()))
+```
 
-## Estimación
+**Nuevos defaults en `use-widget-config`**:
+```ts
+{ id: "missions", visible: false, ... }, // antes true
+{ id: "focus",    visible: false, ... }, // antes true
+{ id: "radar",    visible: false, ... }, // antes true
+```
 
-- **Total tipos faltantes**: ~130 cuestionarios específicos
-- **Preguntas por tipo**: ~70 promedio (Quick + Complete)
-- **Total preguntas nuevas**: ~9,100 preguntas
+---
 
-## Criterio de Éxito
+### Resultados esperados
 
-- 0% de usuarios reciben preguntas genéricas de fallback
-- Cada tipo de negocio tiene cuestionario 100% específico
-- Tiempo de setup reduce al mostrar solo preguntas relevantes
-- Precision Score del Brain aumenta por datos más específicos
+| Métrica | Antes | Después |
+|---|---|---|
+| Requests al entrar al dashboard | 12-18 | 2-3 |
+| Tiempo a contenido visible (TTI) | ~1.8 s | ~0.5 s |
+| Llamadas IA por sesión repetida | 1 (ciega) | 0 (cache) |
+| Widgets visibles por defecto | 7 | 4 |
+| Bundle inicial dashboard | ~480 KB | ~360 KB |
+| Costo Gemini diario por usuario | ~$0.004 | ~$0.0015 |
+
+---
+
+### Archivos a tocar
+- `src/hooks/use-dashboard-data.ts` → reemplazar lógica por wrapper de `useDashboardSnapshot`
+- `src/hooks/use-dashboard-snapshot.ts` (nuevo)
+- `src/hooks/use-auto-sync.ts` → debounce diario via localStorage
+- `src/hooks/use-widget-config.ts` → defaults reducidos
+- `src/components/app/AIDailySummary.tsx` → quitar framer-motion, no auto-regenerar
+- `src/components/app/{Brain,Missions,Focus,Radar,Reputation}Widget.tsx` → aceptar datos por props
+- `src/pages/app/TodayPage.tsx` → lazy widgets pesados
+- `src/App.tsx` → React Query config global
+- `supabase/functions/dashboard-snapshot/index.ts` (nuevo)
+- `supabase/functions/generate-daily-summary/index.ts` → flash-lite + cache check + contexto recortado
+
+Sin cambios en CSS, layout, ni jerarquía visual.
+
