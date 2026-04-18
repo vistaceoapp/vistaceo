@@ -10,13 +10,39 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { businessId } = await req.json();
+    const { businessId, force } = await req.json();
     if (!businessId) throw new Error("businessId required");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const lovableKey = Deno.env.get("LOVABLE_API_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Cache server-side: si ya hay resumen de hoy con señales y no se forzó, devolverlo.
+    const today = new Date().toISOString().split("T")[0];
+    if (!force) {
+      const { data: cached } = await supabase
+        .from("business_daily_summaries")
+        .select("*")
+        .eq("business_id", businessId)
+        .eq("summary_date", today)
+        .maybeSingle();
+      const cachedMetrics = cached?.key_metrics as Record<string, any> | null;
+      const cachedSignals = Array.isArray(cachedMetrics?.signals) ? cachedMetrics!.signals : [];
+      if (cached && cachedSignals.length > 0) {
+        return new Response(JSON.stringify({
+          summary: {
+            summary_text: cached.summary_text,
+            headline: cachedMetrics?.headline || "",
+            priorities: cached.priorities || [],
+            mood: cached.mood || "neutral",
+            confidence_note: cachedMetrics?.confidence_note || "",
+            signals: cachedSignals,
+          },
+          cached: true,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
 
     const [businessRes, brainRes, snapshotRes, missionsRes, photosRes, competitorsRes] = await Promise.all([
       supabase.from("businesses").select("*").eq("id", businessId).single(),
@@ -53,8 +79,8 @@ CONTEXTO COMPLETO DEL NEGOCIO (ÚNICO Y EXCLUSIVO):
 - Misiones activas: ${missions.map(m => m.title).join(", ") || "ninguna"}
 - Competidores: ${competitors.map(c => c.name).join(", ") || "ninguno"}
 - Fotos cargadas: ${photoCount}
-- Memoria factual: ${JSON.stringify(brain?.factual_memory ?? {}).slice(0, 800)}
-- Memoria dinámica: ${JSON.stringify(brain?.dynamic_memory ?? {}).slice(0, 400)}
+- Memoria factual: ${JSON.stringify(brain?.factual_memory ?? {}).slice(0, 400)}
+- Memoria dinámica: ${JSON.stringify(brain?.dynamic_memory ?? {}).slice(0, 200)}
 
 INSTRUCCIONES:
 Generá un CENTRO DE INTELIGENCIA ejecutivo ULTRA-PERSONALIZADO para ESTE negocio específico. Cada señal debe ser única para "${business.name}" — un negocio de "${brain?.primary_business_type || business.category}" en "${business.country}". NO uses frases genéricas.
@@ -88,7 +114,7 @@ REGLAS:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: "Sos un CEO mentor ultra-personalizado. Respondés SOLO en JSON válido. Nunca usás frases genéricas." },
           { role: "user", content: prompt },
