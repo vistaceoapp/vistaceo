@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import {
   Sparkles, RefreshCw, ArrowRight, ChevronDown, ChevronUp,
   TrendingUp, Target, Eye, Crosshair, BarChart3, Shield
@@ -72,10 +71,7 @@ export const AIDailySummary = () => {
           confidence_note: metrics?.confidence_note || '',
           signals,
         });
-        // Si no hay signals (resumen viejo), regenerar para la nueva versión
-        if (signals.length === 0) {
-          await generateSummary();
-        }
+        // No auto-regenerar: si no hay signals, el usuario puede tocar refresh.
         setLoading(false);
         return;
       }
@@ -148,10 +144,8 @@ export const AIDailySummary = () => {
   const signalCount = summary.signals?.length || 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-border/50 bg-card overflow-hidden"
+    <div
+      className="rounded-2xl border border-border/50 bg-card overflow-hidden animate-fade-in"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 p-5 sm:p-6 pb-4">
@@ -234,10 +228,8 @@ export const AIDailySummary = () => {
             {showVision ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
           </button>
           {showVision && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              className="mt-3"
+            <div
+              className="mt-3 animate-fade-in"
             >
               <p className="text-[13px] text-foreground/85 leading-relaxed">
                 {summary.summary_text}
@@ -269,7 +261,7 @@ export const AIDailySummary = () => {
                   {summary.confidence_note}
                 </p>
               )}
-            </motion.div>
+            </div>
           )}
         </div>
       )}
@@ -287,6 +279,6 @@ export const AIDailySummary = () => {
           <ArrowRight className="w-3 h-3" />
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 };

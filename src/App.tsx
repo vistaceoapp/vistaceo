@@ -51,7 +51,17 @@ const DiagnosticPage = lazy(() => import("./pages/app/DiagnosticPage"));
 const UpgradePage = lazy(() => import("./pages/app/UpgradePage"));
 const PredictionsPage = lazy(() => import("./pages/app/PredictionsPage"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 min — evita refetch al re-montar widgets
+      gcTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      retry: 1,
+    },
+  },
+});
 
 // Loading skeleton with branding — eliminates blank screen during lazy load
 const PageLoader = () => (

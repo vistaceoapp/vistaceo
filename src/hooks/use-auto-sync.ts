@@ -3,8 +3,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { startGuardian, stopGuardian } from "@/lib/self-healing-guardian";
 
-const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-const BRAIN_GAPS_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
+const SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 min — menos presión sobre la app
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+const ranTodayKey = (kind: string, businessId: string) => `autosync:${kind}:${businessId}`;
+const ranToday = (kind: string, businessId: string) => {
+  try {
+    const last = localStorage.getItem(ranTodayKey(kind, businessId));
+    return last ? Date.now() - Number(last) < ONE_DAY_MS : false;
+  } catch { return false; }
+};
+const markRan = (kind: string, businessId: string) => {
+  try { localStorage.setItem(ranTodayKey(kind, businessId), String(Date.now())); } catch {}
+};
+const idle = (cb: () => void, delay = 0) => {
+  const w = window as any;
+  const run = () => (w.requestIdleCallback ? w.requestIdleCallback(cb, { timeout: 2000 }) : setTimeout(cb, 0));
+  return delay > 0 ? setTimeout(run, delay) : (run(), 0 as unknown as ReturnType<typeof setTimeout>);
+};
 
 export const useAutoSync = () => {
   const { currentBusiness } = useBusiness();
@@ -15,6 +31,10 @@ export const useAutoSync = () => {
 
   const triggerSync = async () => {
     if (!currentBusiness) return;
+    if (ranToday("sync", currentBusiness.id)) {
+      console.log("[auto-sync] Skipped sync (ya corrió hoy)");
+      return;
+    }
 
     try {
       console.log("[auto-sync] Triggering sync for business:", currentBusiness.id);
@@ -30,6 +50,7 @@ export const useAutoSync = () => {
 
       console.log("[auto-sync] Sync completed:", data);
       lastSyncRef.current = new Date();
+      markRan("sync", currentBusiness.id);
     } catch (error) {
       console.error("[auto-sync] Error:", error);
     }
@@ -39,6 +60,10 @@ export const useAutoSync = () => {
   const triggerBrainGaps = async () => {
     if (!currentBusiness || brainGapsDoneRef.current) return;
     brainGapsDoneRef.current = true;
+    if (ranToday("braingaps", currentBusiness.id)) {
+      console.log("[auto-sync] Skipped brain-gaps (ya corrió hoy)");
+      return;
+    }
 
     try {
       console.log("[auto-sync] Triggering brain-analyze-gaps for:", currentBusiness.id);
@@ -49,6 +74,7 @@ export const useAutoSync = () => {
         console.warn("[auto-sync] Brain gaps error (non-blocking):", error);
       } else {
         console.log("[auto-sync] Brain gaps analysis complete");
+        markRan("braingaps", currentBusiness.id);
       }
     } catch (err) {
       console.warn("[auto-sync] Brain gaps failed (non-blocking):", err);
@@ -59,6 +85,10 @@ export const useAutoSync = () => {
   const checkAndSyncHealth = async () => {
     if (!currentBusiness || healthCheckDoneRef.current) return;
     healthCheckDoneRef.current = true;
+    if (ranToday("health", currentBusiness.id)) {
+      console.log("[auto-sync] Skipped health check (ya corrió hoy)");
+      return;
+    }
 
     try {
       const { data: snapshots, error } = await supabase
@@ -95,7 +125,10 @@ export const useAutoSync = () => {
           console.warn("[auto-sync] Health sync error (non-blocking):", healthErr);
         } else {
           console.log("[auto-sync] Health snapshot created proactively");
+          markRan("health", currentBusiness.id);
         }
+      } else {
+        markRan("health", currentBusiness.id);
       }
     } catch (err) {
       console.warn("[auto-sync] Health check failed (non-blocking):", err);
@@ -108,20 +141,10 @@ export const useAutoSync = () => {
     // Start self-healing guardian
     startGuardian(currentBusiness.id);
 
-    // Initial sync on mount (delayed to not block UI)
-    const initialTimeout = setTimeout(() => {
-      triggerSync();
-    }, 3000);
-
-    // Proactive brain gaps analysis (delayed further)
-    const brainGapsTimeout = setTimeout(() => {
-      triggerBrainGaps();
-    }, 5000);
-
-    // Check health snapshot freshness
-    const healthTimeout = setTimeout(() => {
-      checkAndSyncHealth();
-    }, 8000);
+    // Diferimos a idle para no competir con el render inicial
+    const initialTimeout = idle(() => triggerSync(), 3000);
+    const brainGapsTimeout = idle(() => triggerBrainGaps(), 6000);
+    const healthTimeout = idle(() => checkAndSyncHealth(), 9000);
 
     // Set up interval for periodic sync
     intervalRef.current = setInterval(() => {
