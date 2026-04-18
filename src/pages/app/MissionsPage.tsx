@@ -228,6 +228,7 @@ const MissionsPage = () => {
       setMissions(data || []);
     } catch (error) {
       console.error("Error fetching missions:", error);
+      toast({ title: "No pudimos cargar tus misiones", description: "Verificá tu conexión y reintentá.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
