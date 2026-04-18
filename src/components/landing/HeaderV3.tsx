@@ -106,36 +106,36 @@ export const HeaderV3 = memo(({ variant = "landing", className }: HeaderV3Props)
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/auth?mode=login")}
-              className="hidden sm:flex text-sm"
+              className="hidden md:flex text-sm"
             >
               Iniciar sesión
             </Button>
 
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <Button
-                size="sm"
-                className="gradient-primary text-primary-foreground rounded-full px-4 sm:px-5 font-medium shadow-lg shadow-primary/20 text-sm"
-                onClick={() => navigate("/auth?mode=signup")}
-              >
-                <span className="hidden xs:inline">Empezar</span> gratis
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-              <CountrySelector
-                value={country.code}
-                onChange={setCountryOverride}
-                variant="light"
-              />
-            </div>
+            <Button
+              size="sm"
+              className="gradient-primary text-primary-foreground rounded-full px-3 sm:px-5 font-medium shadow-lg shadow-primary/20 text-sm whitespace-nowrap"
+              onClick={() => navigate("/auth?mode=signup")}
+            >
+              Empezar gratis
+              <ArrowRight className="w-4 h-4 ml-1 hidden sm:inline" />
+            </Button>
+
+            {/* Bandera de país detectado — visible siempre (mobile/tablet/desktop) */}
+            <CountrySelector
+              value={country.code}
+              onChange={setCountryOverride}
+              variant="light"
+            />
 
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden h-9 w-9"
+              className="lg:hidden h-9 w-9 shrink-0"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
             >
