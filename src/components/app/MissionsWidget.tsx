@@ -135,8 +135,8 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
             <Target className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h4 className="font-semibold text-foreground">Misiones</h4>
-            <p className="text-xs text-muted-foreground">{missions.length} plan{missions.length !== 1 ? 'es' : ''} de acción en curso</p>
+            <h4 className="font-semibold text-foreground">Misiones en curso</h4>
+            <p className="text-xs text-muted-foreground">{missions.length} plan{missions.length !== 1 ? 'es' : ''} de acción activos</p>
           </div>
         </div>
         <Button 

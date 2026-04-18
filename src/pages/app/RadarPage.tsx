@@ -690,10 +690,10 @@ const RadarPage = () => {
           </div>
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-3">
-          Radar de Oportunidades
+          Radar de señales
         </h2>
         <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
-          Configura tu negocio para descubrir oportunidades ocultas con IA.
+          Configurá tu negocio para detectar oportunidades, riesgos y tendencias en tiempo real.
         </p>
         <Button variant="hero" size="lg" onClick={() => navigate("/onboarding")}>
           <Sparkles className="w-5 h-5 mr-2" />
@@ -713,7 +713,7 @@ const RadarPage = () => {
               <RadarIcon className="w-6 h-6 text-accent" />
               Radar
             </h1>
-            <p className="text-muted-foreground text-sm">Oportunidades e I+D</p>
+            <p className="text-muted-foreground text-sm">Señales detectadas en tu negocio y mercado</p>
           </div>
           <Button 
             variant="outline" 
@@ -866,14 +866,15 @@ const RadarPage = () => {
                 <TooltipContent className="max-w-[280px] p-3">
                   <p className="font-semibold text-foreground mb-1 text-sm">¿Qué es el Radar?</p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Aquí encontrás oportunidades de mejora basadas en TUS datos (INTERNO) 
-                    y tendencias del mercado (EXTERNO). Mientras más conectes, más preciso será.
+                    El Radar <strong>detecta</strong> qué está pasando: señales internas de tus datos
+                    y tendencias externas del mercado. Cuando una señal vale la pena ejecutar,
+                    se convierte en una <strong>Misión</strong>.
                   </p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </h1>
-          <p className="text-muted-foreground">Oportunidades e investigación para tu negocio</p>
+          <p className="text-muted-foreground">Señales que valen la pena mirar antes de actuar</p>
         </div>
         <Button 
           onClick={generateAnalysis}
