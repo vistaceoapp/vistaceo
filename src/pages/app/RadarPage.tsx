@@ -812,27 +812,29 @@ const RadarPage = () => {
 
         {/* Opportunity Preview Dialog */}
         <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
-          <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-            {selectedOpportunity && (
-              <OpportunityDetailEnhanced 
-                opportunity={selectedOpportunity}
-                business={currentBusiness}
-                onDismiss={() => dismissOpportunity(selectedOpportunity.id)}
-                onAccept={() => convertToMission(selectedOpportunity)}
-                onSaveForLater={() => {
-                  toast({ title: "Guardado", description: "La oportunidad se guardó para después" });
-                  setSelectedOpportunity(null);
-                }}
-                actionLoading={actionLoading}
-              />
-            )}
+          <DialogContent className="max-w-xl h-[92vh] sm:h-auto sm:max-h-[90vh] p-0 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+96px)]">
+              {selectedOpportunity && (
+                <OpportunityDetailEnhanced 
+                  opportunity={selectedOpportunity}
+                  business={currentBusiness}
+                  onDismiss={() => dismissOpportunity(selectedOpportunity.id)}
+                  onAccept={() => convertToMission(selectedOpportunity)}
+                  onSaveForLater={() => {
+                    toast({ title: "Guardado", description: "La oportunidad se guardó para después" });
+                    setSelectedOpportunity(null);
+                  }}
+                  actionLoading={actionLoading}
+                />
+              )}
+            </div>
           </DialogContent>
         </Dialog>
 
-        {/* Learning Preview Dialog - Mobile */}
+        {/* Learning Preview Dialog - Mobile (scrollable + safe-area for bottom nav) */}
         <Dialog open={!!selectedLearning} onOpenChange={() => setSelectedLearning(null)}>
-          <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-hidden p-0">
-            <div className="p-4 sm:p-6 overflow-y-auto max-h-[85vh]">
+          <DialogContent className="max-w-[95vw] h-[92vh] sm:h-auto sm:max-h-[90vh] p-0 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+96px)]">
               {selectedLearning && (
                 <LearningDetailCard 
                   item={selectedLearning}

@@ -731,16 +731,36 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
     }));
 
     if (calibrationsToInsert.length > 0) {
-      await fetch(`${SUPABASE_URL}/rest/v1/prediction_calibrations`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_SERVICE_ROLE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(calibrationsToInsert),
+      // Dedupe vs calibraciones pendientes existentes (mismas preguntas no se repiten)
+      const existingRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/prediction_calibrations?business_id=eq.${business_id}&status=eq.pending&select=question`,
+        { headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` } }
+      );
+      const existing: { question: string }[] = existingRes.ok ? await existingRes.json() : [];
+      const norm = (s: string) => (s || '').toLowerCase().replace(/[¿?¡!.,;:]/g, '').replace(/\s+/g, ' ').trim();
+      const existingSet = new Set(existing.map(e => norm(e.question)));
+      const seen = new Set<string>();
+      const filtered = calibrationsToInsert.filter((c: any) => {
+        const k = norm(c.question);
+        if (!k || existingSet.has(k) || seen.has(k)) return false;
+        seen.add(k);
+        return true;
       });
-      console.log(`[generate-predictions] Inserted ${calibrationsToInsert.length} calibrations`);
+
+      if (filtered.length > 0) {
+        await fetch(`${SUPABASE_URL}/rest/v1/prediction_calibrations`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_SERVICE_ROLE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(filtered),
+        });
+        console.log(`[generate-predictions] Inserted ${filtered.length}/${calibrationsToInsert.length} calibrations (deduped)`);
+      } else {
+        console.log(`[generate-predictions] All ${calibrationsToInsert.length} calibrations were duplicates, skipped`);
+      }
     }
 
     return new Response(JSON.stringify({
