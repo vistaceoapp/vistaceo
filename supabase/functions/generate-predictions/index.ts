@@ -440,9 +440,11 @@ serve(async (req) => {
     };
 
     // Ultra-personalized system prompt
-    const systemPrompt = `Sos el "Motor de Predicciones Planetario" de VistaCEO para ${business.name}, un/a ${businessType} en ${business.country}.
+    const systemPrompt = `Sos el "Motor de Predicciones Planetario" de VistaCEO para ${business.name}, un/a ${businessTypeLabel} en ${business.country}.
 
-## CONTEXTO ESPECÍFICO DEL SECTOR: ${businessType.toUpperCase()}
+⚠️ IDIOMA OBLIGATORIO: Escribí TODO en español. NUNCA uses códigos internos como "fast_casual", "dark_kitchen", "ghost_kitchen", "fine_dining". Si necesitás referirte al tipo de negocio, decí "${businessTypeLabel}".
+
+## CONTEXTO ESPECÍFICO DEL SECTOR: ${businessTypeLabel.toUpperCase()}
 - Drivers clave: ${sectorContext.key_drivers.join(', ')}
 - Indicadores adelantados: ${sectorContext.leading_indicators.join(', ')}
 - Riesgos comunes: ${sectorContext.common_risks.join(', ')}
