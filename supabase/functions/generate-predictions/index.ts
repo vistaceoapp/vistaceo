@@ -330,6 +330,23 @@ serve(async (req) => {
     const businessType = brain?.primary_business_type || business.category || 'restaurant';
     const sectorContext = getSectorContext(businessType);
     const localeVoice = getLocaleVoice(business.country || 'AR');
+
+    // Spanish label for business type — NUNCA pasar el código snake_case a la IA
+    const BUSINESS_TYPE_ES: Record<string, string> = {
+      fast_casual: 'restaurante de comida rápida casual',
+      fine_dining: 'restaurante de alta gama',
+      casual_dining: 'restaurante casual',
+      food_truck: 'food truck',
+      dark_kitchen: 'cocina oculta',
+      ghost_kitchen: 'cocina oculta',
+      cafe: 'cafetería', bar: 'bar', bakery: 'panadería',
+      ice_cream: 'heladería', catering: 'catering', hotel: 'hotel',
+      retail: 'comercio', ecommerce: 'tienda online',
+      beauty: 'negocio de belleza', fitness: 'gimnasio',
+      consulting: 'consultora', agency: 'agencia',
+      restaurant: 'restaurante',
+    };
+    const businessTypeLabel = BUSINESS_TYPE_ES[businessType] || businessType.replace(/_/g, ' ');
     
     // Find matching blueprint
     const matchingBlueprint = blueprints?.find((bp: any) => 
