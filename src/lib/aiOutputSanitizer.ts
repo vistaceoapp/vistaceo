@@ -110,7 +110,58 @@ export function sanitizeAIOutput(text: string | null | undefined): string {
   
   // Remove multiple blank lines
   result = result.replace(/\n{3,}/g, '\n\n');
-  
+
+  result = result.trim();
+
+  // Fix common Spanish writing issues
+  result = fixSpanishWriting(result);
+
+  return result;
+}
+
+/**
+ * Fix common writing issues in Spanish AI output:
+ * - Capitalize first letter of each sentence/line
+ * - Remove leading punctuation/bullets/dashes
+ * - Fix spacing around punctuation
+ * - Ensure final punctuation when appropriate
+ */
+function capitalizeFirst(s: string): string {
+  if (!s) return s;
+  // Skip leading whitespace, quotes, parentheses, emojis-like characters
+  const match = s.match(/^([\s"'¿¡(\[«]*)(\p{L})(.*)$/u);
+  if (!match) return s;
+  const [, prefix, first, rest] = match;
+  return prefix + first.toLocaleUpperCase('es-ES') + rest;
+}
+
+export function fixSpanishWriting(text: string): string {
+  if (!text) return text;
+  let result = text;
+
+  // Strip leading bullets/dashes/numbering used by the AI as prefix
+  result = result.replace(/^[\s]*[-•·–—*]+\s*/g, '');
+  result = result.replace(/^\s*\d+[\.\)]\s+/g, '');
+
+  // Fix spacing: no space before , . ; : ! ?  — single space after
+  result = result.replace(/\s+([,.;:!?])/g, '$1');
+  result = result.replace(/([,.;:])(?=\S)/g, '$1 ');
+
+  // Collapse repeated spaces (again, after the above)
+  result = result.replace(/[ \t]{2,}/g, ' ');
+
+  // Capitalize the first letter of the whole text
+  result = capitalizeFirst(result);
+
+  // Capitalize after sentence-ending punctuation
+  result = result.replace(/([.!?]\s+)(\p{Ll})/gu, (_m, p, c) => p + c.toLocaleUpperCase('es-ES'));
+
+  // Capitalize first letter of every line (titles often arrive multi-line)
+  result = result
+    .split('\n')
+    .map(line => capitalizeFirst(line))
+    .join('\n');
+
   return result.trim();
 }
 
