@@ -661,14 +661,14 @@ export default function PredictionsPage() {
               <>
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <DomainIcon className="w-5 h-5 text-primary" />{selectedPrediction.title}
+                    <DomainIcon className="w-5 h-5 text-primary" />{sanitizeAIOutput(selectedPrediction.title)}
                   </DialogTitle>
                   <DialogDescription>
                     {PREDICTION_DOMAINS[selectedPrediction.domain].label} • {HORIZON_RINGS[selectedPrediction.horizon_ring].label}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
-                  {selectedPrediction.summary && <p className="text-muted-foreground">{selectedPrediction.summary}</p>}
+                  {selectedPrediction.summary && <p className="text-muted-foreground">{sanitizeAIOutput(selectedPrediction.summary)}</p>}
                   <div className="grid grid-cols-3 gap-3">
                     <div className="p-3 rounded-lg bg-secondary/50 text-center">
                       <p className="text-xs text-muted-foreground">Probabilidad</p>
