@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -400,12 +401,12 @@ export const BusinessHealthAnalytics = () => {
                             <Lightbulb className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
                               <p className="text-[11px] font-medium text-foreground mb-1">Análisis IA</p>
-                              <p className="text-[11px] text-muted-foreground leading-relaxed">{explanation.reason}</p>
+                              <p className="text-[11px] text-muted-foreground leading-relaxed">{sanitizeAIOutput(explanation.reason)}</p>
                               {explanation.actions && Array.isArray(explanation.actions) && explanation.actions.length > 0 && (
                                 <ul className="mt-2 space-y-1">
                                   {explanation.actions.map((action: string, i: number) => (
                                     <li key={i} className="text-[11px] text-muted-foreground flex items-start gap-1.5">
-                                      <CheckCircle2 className="w-3 h-3 text-success mt-0.5 flex-shrink-0" />{action}
+                                      <CheckCircle2 className="w-3 h-3 text-success mt-0.5 flex-shrink-0" />{sanitizeAIOutput(action)}
                                     </li>
                                   ))}
                                 </ul>
