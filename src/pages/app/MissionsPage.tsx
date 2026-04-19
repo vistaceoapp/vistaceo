@@ -25,6 +25,7 @@ import {
   loadFiltersFromStorage 
 } from "@/components/app/MissionFilters";
 import { FreeLimitsIndicator, LimitReachedBanner } from "@/components/app/FreeLimitsIndicator";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { useFreeLimits } from "@/hooks/use-free-limits";
 import {
   Dialog,
@@ -773,7 +774,7 @@ const MissionsPage = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <h4 className="font-medium text-foreground truncate">
-                                {mission.title}
+                                {sanitizeAIOutput(mission.title)}
                               </h4>
                               <Badge variant={mission.status === "active" ? "default" : "secondary"} className="text-[10px]">
                                 {mission.status === "active" ? "Activa" : "Pausada"}
@@ -783,7 +784,7 @@ const MissionsPage = () => {
                             {/* Next step preview */}
                             {nextStep && mission.status === "active" && (
                               <p className="text-sm text-muted-foreground truncate mb-1">
-                                Próximo: {nextStep.text}
+                                Próximo: {sanitizeAIOutput(nextStep.text)}
                               </p>
                             )}
                             
@@ -906,10 +907,10 @@ const MissionsPage = () => {
                       {suggestion.area}
                     </Badge>
                     <h4 className="font-medium text-foreground text-sm">
-                      {suggestion.title}
+                      {sanitizeAIOutput(suggestion.title)}
                     </h4>
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                      {suggestion.description}
+                      {sanitizeAIOutput(suggestion.description)}
                     </p>
                   </div>
                 </div>
@@ -1024,7 +1025,7 @@ const MissionsPage = () => {
                     </div>
                     
                     <h3 className="font-semibold text-foreground text-lg leading-tight">
-                      {mission.title}
+                      {sanitizeAIOutput(mission.title)}
                     </h3>
                     
                     <div className="flex items-center justify-between mt-3">
@@ -1083,7 +1084,7 @@ const MissionsPage = () => {
                     <Badge variant="outline" className="text-[10px] mb-1">
                       {suggestion.area}
                     </Badge>
-                    <h3 className="font-semibold text-foreground">{suggestion.title}</h3>
+                    <h3 className="font-semibold text-foreground">{sanitizeAIOutput(suggestion.title)}</h3>
                     <div className="flex items-center gap-4 mt-2 text-xs">
                       <span className="flex items-center gap-1 text-success">
                         <TrendingUp className="w-3 h-3" />

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { GlassCard } from "./GlassCard";
 import { useNavigate } from "react-router-dom";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 
 interface Mission {
   id: string;
@@ -171,7 +172,7 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-foreground text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                    {mission.title}
+                    {sanitizeAIOutput(mission.title)}
                   </p>
                 </div>
               </div>

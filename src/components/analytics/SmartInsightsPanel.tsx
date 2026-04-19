@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useBrain } from "@/hooks/use-brain";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 
 interface Insight {
   id: string;
@@ -607,11 +608,11 @@ export const SmartInsightsPanel = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h4 className="font-semibold text-foreground text-sm">{insight.title}</h4>
+                        <h4 className="font-semibold text-foreground text-sm">{sanitizeAIOutput(insight.title)}</h4>
                         {getImpactBadge(insight.impact)}
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        {insight.description}
+                        {sanitizeAIOutput(insight.description)}
                       </p>
                       {(insight.metric || insight.change !== undefined) && (
                         <div className="flex items-center gap-2 mt-2">
