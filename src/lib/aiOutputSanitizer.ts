@@ -79,6 +79,12 @@ export function sanitizeAIOutput(text: string | null | undefined): string {
   if (!text || typeof text !== 'string') return '';
   
   let result = text;
+
+  // Replace internal business type codes with Spanish labels (case-insensitive, word-boundary)
+  for (const [code, label] of Object.entries(BUSINESS_TYPE_LABELS)) {
+    const re = new RegExp(`\\b${code}\\b`, 'gi');
+    result = result.replace(re, label);
+  }
   
   // Remove code patterns
   for (const pattern of AI_LEAK_PATTERNS) {
