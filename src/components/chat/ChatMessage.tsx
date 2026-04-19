@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { AttachedFile } from "./ChatInput";
 import { MissionActionCard } from "./MissionActionCard";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 
 interface MissionSuggestion {
   title: string;
@@ -83,7 +84,10 @@ export const ChatMessage = ({
 }: ChatMessageProps) => {
   const isUser = role === "user";
   const isRecent = Date.now() - new Date(timestamp).getTime() < 5000;
-  const displayContent = useTypingReveal(content, isNew, role);
+  // Sanitize assistant content (strip internal codes, fix capitalization, spacing).
+  // User messages are shown as-is.
+  const safeContent = isUser ? content : sanitizeAIOutput(content);
+  const displayContent = useTypingReveal(safeContent, isNew, role);
 
   return (
     <div

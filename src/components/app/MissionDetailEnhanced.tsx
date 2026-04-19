@@ -39,6 +39,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { translateMissionArea } from "@/lib/presentationRegistry";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -355,7 +356,7 @@ export const MissionDetailEnhanced = ({
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-base md:text-lg font-bold text-foreground line-clamp-2 leading-tight">
-                {mission.title}
+                {sanitizeAIOutput(mission.title)}
               </h2>
               <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                 <Badge variant="outline" className="text-[10px] px-1.5 h-5">
@@ -533,10 +534,10 @@ export const MissionDetailEnhanced = ({
                 </div>
                 <div className="min-w-0">
                   <h3 className="font-semibold text-foreground mb-1 text-sm md:text-base">
-                    {enhancedPlan.planTitle || mission.title}
+                    {sanitizeAIOutput(enhancedPlan.planTitle || mission.title)}
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {enhancedPlan.planDescription || mission.description}
+                    {sanitizeAIOutput(enhancedPlan.planDescription || mission.description || "")}
                   </p>
                 </div>
               </div>
@@ -713,7 +714,7 @@ export const MissionDetailEnhanced = ({
                             : "text-foreground"
                         )}
                       >
-                        {step.text}
+                        {sanitizeAIOutput(step.text)}
                       </p>
 
                       {isCurrentStep && !step.done && (
@@ -766,7 +767,7 @@ export const MissionDetailEnhanced = ({
                             {stepData.howTo.map((item: string, i: number) => (
                               <li key={i} className="flex items-start gap-2 text-sm text-foreground">
                                 <ArrowRight className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                                {item}
+                                {sanitizeAIOutput(item)}
                               </li>
                             ))}
                           </ul>
@@ -778,7 +779,7 @@ export const MissionDetailEnhanced = ({
                           <h5 className="text-xs font-semibold text-muted-foreground uppercase mb-1">
                             ¿Por qué?
                           </h5>
-                          <p className="text-sm text-foreground">{stepData.why}</p>
+                          <p className="text-sm text-foreground">{sanitizeAIOutput(stepData.why)}</p>
                         </div>
                       )}
 
@@ -871,9 +872,9 @@ export const MissionDetailEnhanced = ({
                             <span className="text-xs font-bold text-primary">{milestone.week}</span>
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground">{milestone.milestone}</p>
+                            <p className="text-sm font-medium text-foreground">{sanitizeAIOutput(milestone.milestone)}</p>
                             {milestone.metric && (
-                              <p className="text-xs text-muted-foreground mt-1">📊 {milestone.metric}</p>
+                              <p className="text-xs text-muted-foreground mt-1">📊 {sanitizeAIOutput(milestone.metric)}</p>
                             )}
                           </div>
                         </div>
