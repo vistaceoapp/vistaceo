@@ -14,6 +14,7 @@ import {
   Zap, Building2, FileText, AlertCircle, Rocket
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 
 interface LearningItem {
   id: string;
@@ -361,7 +362,7 @@ export const LearningDetailCard = forwardRef<HTMLDivElement, LearningDetailCardP
               I+D | {typeInfo.category}
             </Badge>
           </div>
-          <DialogTitle className="text-lg sm:text-xl leading-tight pr-6">{item.title}</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl leading-tight pr-6">{sanitizeAIOutput(item.title)}</DialogTitle>
           <DialogDescription className="text-sm">
             Aplicable a {business?.name || "tu negocio"} • {business?.category || "Gastronomía"}
           </DialogDescription>
