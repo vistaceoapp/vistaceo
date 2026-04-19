@@ -1445,20 +1445,22 @@ const RadarPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Learning Preview Dialog - Fixed scrolling */}
+      {/* Learning Preview Dialog - Desktop (also safe on mobile fallback) */}
       <Dialog open={!!selectedLearning} onOpenChange={() => setSelectedLearning(null)}>
-        <DialogContent className="max-w-xl sm:max-w-2xl p-4 sm:p-6">
-          {selectedLearning && (
-            <LearningDetailCard 
-              item={selectedLearning}
-              business={currentBusiness}
-              onDismiss={() => dismissLearning(selectedLearning.id)}
-              onSave={() => toggleSaveLearning(selectedLearning.id)}
-              onClose={() => setSelectedLearning(null)}
-              onApply={() => convertLearningToMission(selectedLearning)}
-              applyLoading={actionLoading}
-            />
-          )}
+        <DialogContent className="max-w-xl sm:max-w-2xl h-[92vh] sm:h-auto sm:max-h-[90vh] p-0 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+96px)]">
+            {selectedLearning && (
+              <LearningDetailCard 
+                item={selectedLearning}
+                business={currentBusiness}
+                onDismiss={() => dismissLearning(selectedLearning.id)}
+                onSave={() => toggleSaveLearning(selectedLearning.id)}
+                onClose={() => setSelectedLearning(null)}
+                onApply={() => convertLearningToMission(selectedLearning)}
+                applyLoading={actionLoading}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
