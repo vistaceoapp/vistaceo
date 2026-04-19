@@ -22,6 +22,7 @@ import {
   type Prediction, type HorizonRing, type PredictionDomain 
 } from '@/lib/predictions/types';
 import { cn } from '@/lib/utils';
+import { sanitizeAIOutput } from '@/lib/aiOutputSanitizer';
 import { toast } from 'sonner';
 import { format, addDays, differenceInDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -139,7 +140,7 @@ const PredictionCard = memo(({ prediction, onView, onDismiss, onConvert }: {
               <DomainIcon className={cn("w-5 h-5", prediction.is_breakpoint ? "text-destructive" : "text-primary")} />
             </div>
             <div>
-              <CardTitle className="text-base">{prediction.title}</CardTitle>
+              <CardTitle className="text-base">{sanitizeAIOutput(prediction.title)}</CardTitle>
               <CardDescription className="text-xs">{domainInfo.label} • {horizonInfo.label}</CardDescription>
             </div>
           </div>
@@ -153,7 +154,7 @@ const PredictionCard = memo(({ prediction, onView, onDismiss, onConvert }: {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {prediction.summary && <p className="text-sm text-muted-foreground line-clamp-2">{prediction.summary}</p>}
+        {prediction.summary && <p className="text-sm text-muted-foreground line-clamp-2">{sanitizeAIOutput(prediction.summary)}</p>}
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/50">
             <span className="text-muted-foreground">Probabilidad</span>
@@ -660,14 +661,14 @@ export default function PredictionsPage() {
               <>
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
-                    <DomainIcon className="w-5 h-5 text-primary" />{selectedPrediction.title}
+                    <DomainIcon className="w-5 h-5 text-primary" />{sanitizeAIOutput(selectedPrediction.title)}
                   </DialogTitle>
                   <DialogDescription>
                     {PREDICTION_DOMAINS[selectedPrediction.domain].label} • {HORIZON_RINGS[selectedPrediction.horizon_ring].label}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
-                  {selectedPrediction.summary && <p className="text-muted-foreground">{selectedPrediction.summary}</p>}
+                  {selectedPrediction.summary && <p className="text-muted-foreground">{sanitizeAIOutput(selectedPrediction.summary)}</p>}
                   <div className="grid grid-cols-3 gap-3">
                     <div className="p-3 rounded-lg bg-secondary/50 text-center">
                       <p className="text-xs text-muted-foreground">Probabilidad</p>

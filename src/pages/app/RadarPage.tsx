@@ -237,17 +237,23 @@ const RadarPage = () => {
       const saved = learningRes.data?.filter(i => i.is_saved).map(i => i.id) || [];
       setSavedItems(prev => ({ ...prev, learning: saved }));
       
-      // Auto-generate if data is stale or empty (only once per session)
+      // Auto-generate ONLY once per day per business (persisted in localStorage)
+      // Avoids the "Nuevas oportunidades detectadas" loop on every visit
       if (!autoScanDoneRef.current) {
+        const lastScanKey = `radar:lastAutoScan:${currentBusiness.id}`;
+        const lastScan = Number(localStorage.getItem(lastScanKey) || 0);
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        const dayElapsed = Date.now() - lastScan > oneDayMs;
+
         const learningData = learningRes.data || [];
-        const shouldScanOpps = opps.length === 0 || 
-          (opps.length > 0 && (Date.now() - new Date(opps[opps.length - 1].created_at).getTime()) > 3 * 24 * 60 * 60 * 1000);
-        const shouldScanResearch = learningData.length === 0 ||
-          (learningData.length > 0 && (Date.now() - new Date(learningData[0].created_at).getTime()) > 3 * 24 * 60 * 60 * 1000);
-        
-        if (shouldScanOpps || shouldScanResearch) {
+        const oppsEmptyOrStale = opps.length === 0 ||
+          (Date.now() - new Date(opps[opps.length - 1].created_at).getTime()) > 7 * oneDayMs;
+        const learningEmptyOrStale = learningData.length === 0 ||
+          (Date.now() - new Date(learningData[0].created_at).getTime()) > 7 * oneDayMs;
+
+        if (dayElapsed && (oppsEmptyOrStale || learningEmptyOrStale)) {
           autoScanDoneRef.current = true;
-          // We'll trigger auto-scan after state is set, via a separate effect
+          localStorage.setItem(lastScanKey, String(Date.now()));
         }
       }
     } catch (error) {
@@ -337,13 +343,14 @@ const RadarPage = () => {
     }
   }, [currentBusiness, brain, generatingResearch, fetchData]);
 
-  // Auto-scan effect: triggers after initial load if data is stale
+  // Auto-scan effect: triggers ONLY if daily debounce in fetchData allowed it
   useEffect(() => {
     if (!loading && currentBusiness && autoScanDoneRef.current) {
-      const oppsStale = opportunities.length === 0 || 
-        (opportunities.length > 0 && (Date.now() - new Date(opportunities[opportunities.length - 1].created_at).getTime()) > 3 * 24 * 60 * 60 * 1000);
+      const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+      const oppsStale = opportunities.length === 0 ||
+        (Date.now() - new Date(opportunities[opportunities.length - 1].created_at).getTime()) > oneWeekMs;
       const learningStale = learningItems.length === 0 ||
-        (learningItems.length > 0 && (Date.now() - new Date(learningItems[0].created_at).getTime()) > 3 * 24 * 60 * 60 * 1000);
+        (Date.now() - new Date(learningItems[0].created_at).getTime()) > oneWeekMs;
 
       if (oppsStale && !generatingOpportunities) {
         generateOpportunities();
@@ -351,7 +358,7 @@ const RadarPage = () => {
       if (learningStale && !generatingResearch) {
         setTimeout(() => generateResearchItems(), 2000);
       }
-      autoScanDoneRef.current = false; // prevent re-trigger
+      autoScanDoneRef.current = false;
     }
   }, [loading]);
 
@@ -805,27 +812,29 @@ const RadarPage = () => {
 
         {/* Opportunity Preview Dialog */}
         <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
-          <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-            {selectedOpportunity && (
-              <OpportunityDetailEnhanced 
-                opportunity={selectedOpportunity}
-                business={currentBusiness}
-                onDismiss={() => dismissOpportunity(selectedOpportunity.id)}
-                onAccept={() => convertToMission(selectedOpportunity)}
-                onSaveForLater={() => {
-                  toast({ title: "Guardado", description: "La oportunidad se guardó para después" });
-                  setSelectedOpportunity(null);
-                }}
-                actionLoading={actionLoading}
-              />
-            )}
+          <DialogContent className="max-w-xl h-[92vh] sm:h-auto sm:max-h-[90vh] p-0 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+96px)]">
+              {selectedOpportunity && (
+                <OpportunityDetailEnhanced 
+                  opportunity={selectedOpportunity}
+                  business={currentBusiness}
+                  onDismiss={() => dismissOpportunity(selectedOpportunity.id)}
+                  onAccept={() => convertToMission(selectedOpportunity)}
+                  onSaveForLater={() => {
+                    toast({ title: "Guardado", description: "La oportunidad se guardó para después" });
+                    setSelectedOpportunity(null);
+                  }}
+                  actionLoading={actionLoading}
+                />
+              )}
+            </div>
           </DialogContent>
         </Dialog>
 
-        {/* Learning Preview Dialog - Mobile */}
+        {/* Learning Preview Dialog - Mobile (scrollable + safe-area for bottom nav) */}
         <Dialog open={!!selectedLearning} onOpenChange={() => setSelectedLearning(null)}>
-          <DialogContent className="max-w-[95vw] max-h-[90vh] overflow-hidden p-0">
-            <div className="p-4 sm:p-6 overflow-y-auto max-h-[85vh]">
+          <DialogContent className="max-w-[95vw] h-[92vh] sm:h-auto sm:max-h-[90vh] p-0 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+96px)]">
               {selectedLearning && (
                 <LearningDetailCard 
                   item={selectedLearning}
@@ -1436,20 +1445,22 @@ const RadarPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Learning Preview Dialog - Fixed scrolling */}
+      {/* Learning Preview Dialog - Desktop (also safe on mobile fallback) */}
       <Dialog open={!!selectedLearning} onOpenChange={() => setSelectedLearning(null)}>
-        <DialogContent className="max-w-xl sm:max-w-2xl p-4 sm:p-6">
-          {selectedLearning && (
-            <LearningDetailCard 
-              item={selectedLearning}
-              business={currentBusiness}
-              onDismiss={() => dismissLearning(selectedLearning.id)}
-              onSave={() => toggleSaveLearning(selectedLearning.id)}
-              onClose={() => setSelectedLearning(null)}
-              onApply={() => convertLearningToMission(selectedLearning)}
-              applyLoading={actionLoading}
-            />
-          )}
+        <DialogContent className="max-w-xl sm:max-w-2xl h-[92vh] sm:h-auto sm:max-h-[90vh] p-0 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+96px)]">
+            {selectedLearning && (
+              <LearningDetailCard 
+                item={selectedLearning}
+                business={currentBusiness}
+                onDismiss={() => dismissLearning(selectedLearning.id)}
+                onSave={() => toggleSaveLearning(selectedLearning.id)}
+                onClose={() => setSelectedLearning(null)}
+                onApply={() => convertLearningToMission(selectedLearning)}
+                applyLoading={actionLoading}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

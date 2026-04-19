@@ -48,10 +48,43 @@ const TECH_ENGLISH_MAP: Record<string, string> = {
   "retry": "reintentar",
 };
 
+// Business type internal codes → labels en español (evita "fast_casual" leakeado por la IA)
+const BUSINESS_TYPE_LABELS: Record<string, string> = {
+  fast_casual: "negocio de comida rápida casual",
+  fine_dining: "restaurante de alta gama",
+  casual_dining: "restaurante casual",
+  food_truck: "food truck",
+  dark_kitchen: "cocina oculta",
+  ghost_kitchen: "cocina oculta",
+  cafe: "cafetería",
+  bar: "bar",
+  bakery: "panadería",
+  ice_cream: "heladería",
+  catering: "catering",
+  hotel: "hotel",
+  retail: "comercio",
+  ecommerce: "tienda online",
+  beauty: "negocio de belleza",
+  fitness: "gimnasio",
+  real_estate: "inmobiliaria",
+  consulting: "consultora",
+  agency: "agencia",
+  freelance: "negocio independiente",
+  construction: "constructora",
+  professional: "estudio profesional",
+  restaurant: "restaurante",
+};
+
 export function sanitizeAIOutput(text: string | null | undefined): string {
   if (!text || typeof text !== 'string') return '';
   
   let result = text;
+
+  // Replace internal business type codes with Spanish labels (case-insensitive, word-boundary)
+  for (const [code, label] of Object.entries(BUSINESS_TYPE_LABELS)) {
+    const re = new RegExp(`\\b${code}\\b`, 'gi');
+    result = result.replace(re, label);
+  }
   
   // Remove code patterns
   for (const pattern of AI_LEAK_PATTERNS) {

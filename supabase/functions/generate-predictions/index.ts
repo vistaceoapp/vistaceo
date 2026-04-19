@@ -330,6 +330,23 @@ serve(async (req) => {
     const businessType = brain?.primary_business_type || business.category || 'restaurant';
     const sectorContext = getSectorContext(businessType);
     const localeVoice = getLocaleVoice(business.country || 'AR');
+
+    // Spanish label for business type — NUNCA pasar el código snake_case a la IA
+    const BUSINESS_TYPE_ES: Record<string, string> = {
+      fast_casual: 'restaurante de comida rápida casual',
+      fine_dining: 'restaurante de alta gama',
+      casual_dining: 'restaurante casual',
+      food_truck: 'food truck',
+      dark_kitchen: 'cocina oculta',
+      ghost_kitchen: 'cocina oculta',
+      cafe: 'cafetería', bar: 'bar', bakery: 'panadería',
+      ice_cream: 'heladería', catering: 'catering', hotel: 'hotel',
+      retail: 'comercio', ecommerce: 'tienda online',
+      beauty: 'negocio de belleza', fitness: 'gimnasio',
+      consulting: 'consultora', agency: 'agencia',
+      restaurant: 'restaurante',
+    };
+    const businessTypeLabel = BUSINESS_TYPE_ES[businessType] || businessType.replace(/_/g, ' ');
     
     // Find matching blueprint
     const matchingBlueprint = blueprints?.find((bp: any) => 
@@ -423,9 +440,11 @@ serve(async (req) => {
     };
 
     // Ultra-personalized system prompt
-    const systemPrompt = `Sos el "Motor de Predicciones Planetario" de VistaCEO para ${business.name}, un/a ${businessType} en ${business.country}.
+    const systemPrompt = `Sos el "Motor de Predicciones Planetario" de VistaCEO para ${business.name}, un/a ${businessTypeLabel} en ${business.country}.
 
-## CONTEXTO ESPECÍFICO DEL SECTOR: ${businessType.toUpperCase()}
+⚠️ IDIOMA OBLIGATORIO: Escribí TODO en español. NUNCA uses códigos internos como "fast_casual", "dark_kitchen", "ghost_kitchen", "fine_dining". Si necesitás referirte al tipo de negocio, decí "${businessTypeLabel}".
+
+## CONTEXTO ESPECÍFICO DEL SECTOR: ${businessTypeLabel.toUpperCase()}
 - Drivers clave: ${sectorContext.key_drivers.join(', ')}
 - Indicadores adelantados: ${sectorContext.leading_indicators.join(', ')}
 - Riesgos comunes: ${sectorContext.common_risks.join(', ')}
@@ -714,16 +733,36 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
     }));
 
     if (calibrationsToInsert.length > 0) {
-      await fetch(`${SUPABASE_URL}/rest/v1/prediction_calibrations`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_SERVICE_ROLE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(calibrationsToInsert),
+      // Dedupe vs calibraciones pendientes existentes (mismas preguntas no se repiten)
+      const existingRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/prediction_calibrations?business_id=eq.${business_id}&status=eq.pending&select=question`,
+        { headers: { apikey: SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` } }
+      );
+      const existing: { question: string }[] = existingRes.ok ? await existingRes.json() : [];
+      const norm = (s: string) => (s || '').toLowerCase().replace(/[¿?¡!.,;:]/g, '').replace(/\s+/g, ' ').trim();
+      const existingSet = new Set(existing.map(e => norm(e.question)));
+      const seen = new Set<string>();
+      const filtered = calibrationsToInsert.filter((c: any) => {
+        const k = norm(c.question);
+        if (!k || existingSet.has(k) || seen.has(k)) return false;
+        seen.add(k);
+        return true;
       });
-      console.log(`[generate-predictions] Inserted ${calibrationsToInsert.length} calibrations`);
+
+      if (filtered.length > 0) {
+        await fetch(`${SUPABASE_URL}/rest/v1/prediction_calibrations`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_SERVICE_ROLE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(filtered),
+        });
+        console.log(`[generate-predictions] Inserted ${filtered.length}/${calibrationsToInsert.length} calibrations (deduped)`);
+      } else {
+        console.log(`[generate-predictions] All ${calibrationsToInsert.length} calibrations were duplicates, skipped`);
+      }
     }
 
     return new Response(JSON.stringify({
