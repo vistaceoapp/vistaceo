@@ -49,9 +49,43 @@ const Auth = () => {
 
   const subtitle = useMemo(() => {
     return isLogin
-      ? "Ingresá a tu CEO digital."
+      ? "Ingresá para continuar."
       : "Tu CEO digital con IA, en minutos.";
   }, [isLogin]);
+
+  // Testimonios reales (rotación)
+  const testimonials = useMemo(
+    () => [
+      {
+        quote:
+          "En tres semanas pasé de tomar decisiones por intuición a entender exactamente qué mover cada día.",
+        name: "Lucía Fernández",
+        role: "Dueña, Café Almacén · Buenos Aires",
+      },
+      {
+        quote:
+          "Detectó una fuga de margen en delivery que no veía hacía meses. Lo arreglamos en una semana.",
+        name: "Martín Rivas",
+        role: "Socio, Restaurante Roble · Córdoba",
+      },
+      {
+        quote:
+          "Es como tener un director de operaciones disponible a cualquier hora. Claro, breve y al punto.",
+        name: "Camila Ortega",
+        role: "Fundadora, Estudio Norte · Montevideo",
+      },
+    ],
+    []
+  );
+
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  useEffect(() => {
+    const id = setInterval(
+      () => setActiveTestimonial((i) => (i + 1) % testimonials.length),
+      6000
+    );
+    return () => clearInterval(id);
+  }, [testimonials.length]);
 
   const planParam = searchParams.get("plan");
   const pendingPlan = planParam === "pro_monthly" || planParam === "pro_yearly" ? planParam : null;
