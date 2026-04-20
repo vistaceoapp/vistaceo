@@ -42,37 +42,49 @@ const Auth = () => {
 
   const welcomeMessage = useMemo(() => {
     if (modeParam === "login") return "Bienvenido de vuelta";
-    if (modeParam === "signup") return "Empezá ahora";
+    if (modeParam === "signup") return "Creá tu cuenta";
     if (hasLoggedInBefore) return "Bienvenido de vuelta";
-    return "Empezá ahora";
+    return "Creá tu cuenta";
   }, [modeParam, hasLoggedInBefore]);
 
   const subtitle = useMemo(() => {
     return isLogin
-      ? "Ingresá para continuar."
-      : "Tu CEO digital con IA, en minutos.";
+      ? "Tu CEO digital te está esperando."
+      : "Tu CEO digital con IA, listo en minutos.";
   }, [isLogin]);
 
-  // Testimonios reales (rotación)
+  // Testimonios reales — sector · ciudad · país (sin nombres de marca)
   const testimonials = useMemo(
     () => [
       {
         quote:
-          "En tres semanas pasé de tomar decisiones por intuición a entender exactamente qué mover cada día.",
-        name: "Lucía Fernández",
-        role: "Dueña, Café Almacén · Buenos Aires",
+          "En tres semanas pasé de decidir por intuición a saber exactamente qué mover cada día.",
+        name: "Lucía F.",
+        role: "Cafetería · Buenos Aires, Argentina",
       },
       {
         quote:
-          "Detectó una fuga de margen en delivery que no veía hacía meses. Lo arreglamos en una semana.",
-        name: "Martín Rivas",
-        role: "Socio, Restaurante Roble · Córdoba",
+          "Detectó una fuga de margen en delivery que no veía hace meses. Lo arreglamos en una semana.",
+        name: "Martín R.",
+        role: "Restaurante · Córdoba, Argentina",
       },
       {
         quote:
           "Es como tener un director de operaciones disponible a cualquier hora. Claro, breve y al punto.",
-        name: "Camila Ortega",
-        role: "Fundadora, Estudio Norte · Montevideo",
+        name: "Camila O.",
+        role: "Estudio de diseño · Montevideo, Uruguay",
+      },
+      {
+        quote:
+          "Subimos el ticket promedio 14% siguiendo dos misiones puntuales. Sin contratar a nadie.",
+        name: "Diego P.",
+        role: "Heladería · Santiago, Chile",
+      },
+      {
+        quote:
+          "Por fin entiendo mis números sin perderme entre planillas. Decisiones más rápidas y mejores.",
+        name: "Sofía M.",
+        role: "Boutique de ropa · Ciudad de México, México",
       },
     ],
     []
