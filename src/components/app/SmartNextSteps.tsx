@@ -38,7 +38,6 @@ export const SmartNextSteps = () => {
       .maybeSingle();
 
     const brainCompletion = brain?.mvc_completion_pct || 0;
-    const signals = brain?.total_signals || 0;
 
     // Check photos
     const { count: photoCount } = await supabase
@@ -46,19 +45,30 @@ export const SmartNextSteps = () => {
       .select('id', { count: 'exact', head: true })
       .eq('business_id', currentBusiness.id);
 
-    // Check active missions
+    // Check ANY mission ever (not just pending)
     const { count: missionCount } = await supabase
       .from('daily_actions')
       .select('id', { count: 'exact', head: true })
-      .eq('business_id', currentBusiness.id)
-      .eq('status', 'pending');
+      .eq('business_id', currentBusiness.id);
 
-    // Priority 1: If brain is low, suggest chat
-    if (brainCompletion < 50) {
+    // Check chat usage
+    const { count: chatCount } = await supabase
+      .from('chat_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('business_id', currentBusiness.id)
+      .eq('role', 'user');
+
+    // Check radar engagement
+    const { count: radarCount } = await supabase
+      .from('learning_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('business_id', currentBusiness.id);
+
+    if (brainCompletion < 60) {
       computedSteps.push({
         id: 'improve-brain',
         label: 'Contale más a la IA',
-        description: 'El sistema te conoce un ' + brainCompletion + '%. Más info = mejores consejos.',
+        description: `El sistema te conoce un ${brainCompletion}%. Más info = mejores consejos.`,
         icon: Brain,
         action: () => navigate('/app/chat?prompt=' + encodeURIComponent('Quiero contarte más sobre mi negocio para que me ayudes mejor')),
         priority: 1,
@@ -66,7 +76,6 @@ export const SmartNextSteps = () => {
       });
     }
 
-    // Priority 2: No photos uploaded
     if ((photoCount || 0) === 0) {
       computedSteps.push({
         id: 'upload-photos',
@@ -79,7 +88,6 @@ export const SmartNextSteps = () => {
       });
     }
 
-    // Priority 3: No active missions
     if ((missionCount || 0) === 0) {
       computedSteps.push({
         id: 'start-mission',
@@ -92,27 +100,29 @@ export const SmartNextSteps = () => {
       });
     }
 
-    // Always show radar
-    computedSteps.push({
-      id: 'check-radar',
-      label: 'Revisá el radar',
-      description: 'Oportunidades y tendencias de tu mercado.',
-      icon: Radar,
-      action: () => navigate('/app/radar'),
-      priority: 4,
-      color: 'text-warning',
-    });
+    if ((radarCount || 0) === 0) {
+      computedSteps.push({
+        id: 'check-radar',
+        label: 'Revisá el radar',
+        description: 'Oportunidades y tendencias de tu mercado.',
+        icon: Radar,
+        action: () => navigate('/app/radar'),
+        priority: 4,
+        color: 'text-warning',
+      });
+    }
 
-    // Always suggest chat
-    computedSteps.push({
-      id: 'ask-ai',
-      label: 'Preguntale a tu CEO',
-      description: 'Resolvé dudas y recibí estrategias en tiempo real.',
-      icon: MessageCircle,
-      action: () => navigate('/app/chat'),
-      priority: 5,
-      color: 'text-primary',
-    });
+    if ((chatCount || 0) === 0) {
+      computedSteps.push({
+        id: 'ask-ai',
+        label: 'Preguntale a tu CEO',
+        description: 'Resolvé dudas y recibí estrategias en tiempo real.',
+        icon: MessageCircle,
+        action: () => navigate('/app/chat'),
+        priority: 5,
+        color: 'text-primary',
+      });
+    }
 
     setSteps(computedSteps.sort((a, b) => a.priority - b.priority).slice(0, 3));
   };
