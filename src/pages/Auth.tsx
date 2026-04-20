@@ -7,21 +7,10 @@ import { Label } from "@/components/ui/label";
 import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { SiteHead } from "@/components/seo/SiteHead";
 import { toast } from "sonner";
-import { Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, Sparkles, TrendingUp, Target, Crown, Zap, Shield, Users, Star, Clock, Brain } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2, Crown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { safeLocalStorage } from "@/lib/safe-storage";
-import { motion } from "framer-motion";
-
-// Dynamic review count: starts at 2961 on 2026-02-06, +3 per week
-const useReviewCount = () => {
-  return useMemo(() => {
-    const startDate = new Date('2026-02-06');
-    const now = new Date();
-    const weeksDiff = Math.floor((now.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-    return 2961 + Math.max(0, weeksDiff * 3);
-  }, []);
-};
 
 // Dashboard route constant
 const DASHBOARD_ROUTE = "/app";
@@ -37,41 +26,36 @@ const Auth = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
-  const reviewCount = useReviewCount();
   const isMobile = useIsMobile();
 
-  // Capture mode intent from URL (login or signup)
   const modeParam = searchParams.get("mode");
-  
-  // Determine if returning user based on signals (no flicker - check sync)
+
   const hasLoggedInBefore = useMemo(() => {
     return safeLocalStorage.getItem("has_logged_in") === "true";
   }, []);
 
-  // isLogin based on mode param or returning user signal
   const isLogin = useMemo(() => {
     if (modeParam === "signup") return false;
     if (modeParam === "login") return true;
-    // Default: if returning user show login, else signup
     return hasLoggedInBefore;
   }, [modeParam, hasLoggedInBefore]);
 
-  // Welcome message: intelligent detection without flicker
   const welcomeMessage = useMemo(() => {
-    // Priority 1: URL mode param
     if (modeParam === "login") return "Bienvenido de vuelta";
-    if (modeParam === "signup") return "Bienvenido";
-    // Priority 2: localStorage signal
+    if (modeParam === "signup") return "Empezá ahora";
     if (hasLoggedInBefore) return "Bienvenido de vuelta";
-    // Default for new users
-    return "Bienvenido";
+    return "Empezá ahora";
   }, [modeParam, hasLoggedInBefore]);
 
-  // Capture plan intent from URL
-  const planParam = searchParams.get("plan"); // pro_monthly or pro_yearly
+  const subtitle = useMemo(() => {
+    return isLogin
+      ? "Ingresá a tu CEO digital."
+      : "Tu CEO digital con IA, en minutos.";
+  }, [isLogin]);
+
+  const planParam = searchParams.get("plan");
   const pendingPlan = planParam === "pro_monthly" || planParam === "pro_yearly" ? planParam : null;
 
-  // Store pending plan in localStorage
   useEffect(() => {
     if (pendingPlan) {
       safeLocalStorage.setItem("pendingPlan", pendingPlan);
@@ -79,23 +63,20 @@ const Auth = () => {
     }
   }, [pendingPlan]);
 
-  // Check if user already logged in and redirect
   useEffect(() => {
     if (user) {
-      // If pending plan, go directly to checkout
       if (pendingPlan) {
         navigate("/checkout", { replace: true });
         return;
       }
       checkUserAndRedirect();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, pendingPlan]);
 
   const checkUserAndRedirect = async () => {
     if (!user) return;
-
     safeLocalStorage.setItem("has_logged_in", "true");
-
     try {
       const { data: businesses, error } = await supabase
         .from("businesses")
@@ -104,9 +85,7 @@ const Auth = () => {
         .order("setup_completed", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(20);
-
       if (error) throw error;
-
       const hasCompletedBusiness = (businesses || []).some((b) => b.setup_completed === true);
       navigate(hasCompletedBusiness ? DASHBOARD_ROUTE : "/setup", { replace: true });
     } catch (error) {
@@ -119,10 +98,8 @@ const Auth = () => {
     setGoogleLoading(true);
     try {
       const { error } = await signInWithGoogle();
-      if (error) {
-        toast.error(error.message);
-      }
-    } catch (err) {
+      if (error) toast.error(error.message);
+    } catch {
       toast.error("Error al conectar con Google");
     } finally {
       setGoogleLoading(false);
@@ -148,7 +125,6 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       if (isLogin) {
         const { error } = await signIn(email, password);
@@ -171,17 +147,13 @@ const Auth = () => {
           }
           return;
         }
-
         await sendWelcomeEmail(email, fullName, 'email');
-
         if (requiresEmailConfirmation) {
           toast.success("¡Cuenta creada! Revisá tu email para confirmarla e ingresar.");
           navigate("/auth?mode=login", { replace: true });
           return;
         }
-
-        toast.success("¡Cuenta creada! Bienvenido");
-
+        toast.success("¡Cuenta creada!");
         const storedPlan = safeLocalStorage.getItem("pendingPlan");
         if (storedPlan === "pro_monthly" || storedPlan === "pro_yearly") {
           navigate("/checkout", { replace: true });
@@ -189,181 +161,146 @@ const Auth = () => {
           navigate("/setup", { replace: true });
         }
       }
-    } catch (err) {
-      toast.error("Algo salió mal. Intenta de nuevo.");
+    } catch {
+      toast.error("Algo salió mal. Intentá de nuevo.");
     } finally {
       setLoading(false);
     }
   };
 
-  const benefits = [
-    { icon: Brain, text: "IA que aprende de tu negocio", highlight: "24/7" },
-    { icon: Target, text: "1 misión diaria con resultados", highlight: "Simple" },
-    { icon: TrendingUp, text: "Radar predictivo de oportunidades", highlight: "Pro" },
-    { icon: Sparkles, text: "Consejos personalizados para vos", highlight: "Único" },
-  ];
-
-  const stats = [
-    { value: "2,847", label: "negocios" },
-    { value: "+32%", label: "crecimiento" },
-    { value: "4.9★", label: "rating" },
-    { value: "17", label: "países" },
-  ];
-
-  const testimonial = {
-    quote: "Pasamos de 12 a 28 reservas diarias. Cada mañana sé exactamente qué hacer.",
-    author: "Luciana M.",
-    role: "Dueña de café en Buenos Aires",
-    rating: 5,
-  };
-
   return (
     <>
-      <SiteHead 
+      <SiteHead
         title={isLogin ? "Iniciar Sesión | VISTACEO" : "Crear Cuenta Gratis | VISTACEO"}
-        description={`Accede a tu CEO digital con IA. Analiza tu negocio, detecta oportunidades y recibe acciones personalizadas cada día. Usado por +${reviewCount.toLocaleString()} negocios en LATAM.`}
+        description="Accede a tu CEO digital con IA. Analiza tu negocio, detecta oportunidades y recibe acciones personalizadas cada día."
         path="/auth"
         noindex={true}
       />
-      
-      <div className="min-h-screen bg-background flex">
-        {/* Left side - Form */}
-        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-          <motion.div 
-            className="w-full max-w-md space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+
+      <div className="min-h-screen w-full bg-white text-[#0a0a0a] flex flex-col">
+        {/* Subtle ambient gradient */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-0"
+          style={{
+            background:
+              "radial-gradient(60% 50% at 50% 0%, rgba(38,146,220,0.05), transparent 60%), radial-gradient(40% 40% at 100% 100%, rgba(116,108,230,0.04), transparent 70%)",
+          }}
+        />
+
+        {/* Top bar */}
+        <header className="relative z-10 w-full px-6 sm:px-8 py-5 flex items-center justify-between">
+          <Link to="/" className="inline-flex items-center group">
+            <VistaceoLogo size={isMobile ? 96 : 110} variant="full" />
+          </Link>
+          <Link
+            to="/"
+            className="text-[13px] text-[#666] hover:text-[#0a0a0a] transition-colors"
           >
-            {/* Logo */}
-            <div className="text-center">
-              <Link to="/" className="inline-flex items-center justify-center mb-6 group">
-                <div className="transition-transform duration-300 group-hover:scale-105">
-                  <VistaceoLogo size={isMobile ? 80 : 100} variant="full" />
-                </div>
-              </Link>
-              
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+            ← Volver al inicio
+          </Link>
+        </header>
+
+        {/* Centered card */}
+        <main className="relative z-10 flex-1 flex items-center justify-center px-5 sm:px-6 pb-16">
+          <div className="w-full max-w-[420px]">
+            {/* Heading */}
+            <div className="text-center mb-8">
+              <h1 className="text-[clamp(1.75rem,4vw,2.25rem)] font-semibold tracking-[-0.02em] text-[#0a0a0a] leading-[1.15]">
                 {welcomeMessage}
               </h1>
-              
-              {/* Plan badge if coming from pricing */}
+              <p className="mt-3 text-[15px] text-[#777] leading-relaxed">
+                {subtitle}
+              </p>
+
               {pendingPlan && (
-                <motion.div 
-                  className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30"
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <Crown className="w-4 h-4 text-amber-500" />
-                  <span className="text-sm font-medium text-amber-500">
-                    Plan: {pendingPlan === "pro_yearly" ? "Pro Anual (51% ahorro)" : "Pro Mensual"}
+                <div className="mt-5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200">
+                  <Crown className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="text-[12px] font-medium text-amber-700">
+                    {pendingPlan === "pro_yearly" ? "Pro Anual · 51% off" : "Pro Mensual"}
                   </span>
-                </motion.div>
+                </div>
               )}
             </div>
 
-            {/* Google Sign In - PRIMARY */}
-            <div className="space-y-3">
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="w-full h-14 text-base font-medium hover:bg-secondary transition-all border-2 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10"
-                onClick={handleGoogleSignIn}
-                disabled={googleLoading}
-              >
-                {googleLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                    </svg>
-                    {isLogin ? "Continuar con Google" : "Crear cuenta con Google"}
-                  </>
-                )}
-              </Button>
+            {/* Google */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 rounded-[12px] border-[#e5e5e5] bg-white hover:bg-[#fafafa] text-[#0a0a0a] text-[14.5px] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all"
+              onClick={handleGoogleSignIn}
+              disabled={googleLoading}
+            >
+              {googleLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <svg className="w-[18px] h-[18px] mr-2.5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                  </svg>
+                  {isLogin ? "Continuar con Google" : "Continuar con Google"}
+                </>
+              )}
+            </Button>
 
-              <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Shield className="w-3 h-3" />
-                  Seguro
-                </span>
-                <span className="flex items-center gap-1">
-                  <Zap className="w-3 h-3" />
-                  Instantáneo
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  2 min
-                </span>
-              </div>
-            </div>
-
-            {/* Divider - Clickable to expand email form */}
-            <div className="relative">
+            {/* Divider — clickable */}
+            <div className="relative my-5">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border"></div>
+                <div className="w-full border-t border-[#eee]" />
               </div>
-              <div className="relative flex justify-center text-sm">
+              <div className="relative flex justify-center">
                 <button
                   type="button"
-                  onClick={() => setShowEmailForm(!showEmailForm)}
-                  className="px-4 bg-background text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                  onClick={() => setShowEmailForm((v) => !v)}
+                  className="px-3 bg-white text-[12px] text-[#888] hover:text-[#0a0a0a] transition-colors"
                 >
-                  o con email
+                  {showEmailForm ? "ocultar email" : "o continuar con email"}
                 </button>
               </div>
             </div>
 
-            {/* Email Form - Collapsible */}
+            {/* Email form */}
             {showEmailForm && (
-              <motion.form 
-                onSubmit={handleSubmit} 
-                className="space-y-4"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-              >
+              <form onSubmit={handleSubmit} className="space-y-3.5">
                 {!isLogin && (
-                  <motion.div 
-                    className="space-y-2"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                  >
-                    <Label htmlFor="fullName" className="text-sm font-medium">Nombre completo</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="fullName" className="text-[12.5px] font-medium text-[#444]">
+                      Nombre
+                    </Label>
                     <Input
                       id="fullName"
                       type="text"
                       placeholder="Tu nombre"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="h-12 bg-secondary/50 border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                      className="h-11 rounded-[10px] bg-white border-[#e5e5e5] focus-visible:ring-1 focus-visible:ring-[#2692DC]/30 focus-visible:border-[#2692DC]/50 text-[14px]"
                       required={!isLogin}
                     />
-                  </motion.div>
+                  </div>
                 )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-[12.5px] font-medium text-[#444]">
+                    Email
+                  </Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="tu@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="h-12 bg-secondary/50 border-border focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="h-11 rounded-[10px] bg-white border-[#e5e5e5] focus-visible:ring-1 focus-visible:ring-[#2692DC]/30 focus-visible:border-[#2692DC]/50 text-[14px]"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium">Contraseña</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-[12.5px] font-medium text-[#444]">
+                    Contraseña
+                  </Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -371,209 +308,92 @@ const Auth = () => {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="h-12 bg-secondary/50 border-border pr-12 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                      className="h-11 rounded-[10px] bg-white border-[#e5e5e5] pr-11 focus-visible:ring-1 focus-visible:ring-[#2692DC]/30 focus-visible:border-[#2692DC]/50 text-[14px]"
                       required
                       minLength={6}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#999] hover:text-[#333] transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  size="lg" 
-                  className="w-full h-12 text-base font-semibold"
+                <button
+                  type="submit"
                   disabled={loading}
+                  className="w-full h-12 rounded-[12px] text-white text-[14.5px] font-medium flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-[0_8px_24px_rgba(38,146,220,0.2)] hover:-translate-y-[1px] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
+                  style={{ background: "linear-gradient(135deg, #2692DC, #746CE6)" }}
                 >
                   {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
                       {isLogin ? "Ingresar" : "Crear cuenta gratis"}
-                      <ArrowRight className="w-5 h-5 ml-2" />
+                      <ArrowRight className="w-4 h-4" />
                     </>
                   )}
-                </Button>
+                </button>
 
                 {isLogin && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!email) {
-                        toast.error("Ingresá tu email primero");
-                        return;
-                      }
-                      try {
-                        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                          redirectTo: `${window.location.origin}/reset-password`,
-                        });
-                        if (error) throw error;
-                        toast.success("Te enviamos un email para restablecer tu contraseña");
-                      } catch (err) {
-                        toast.error("Error al enviar el email de recuperación");
-                      }
-                    }}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </button>
+                  <div className="text-center pt-1">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!email) {
+                          toast.error("Ingresá tu email primero");
+                          return;
+                        }
+                        try {
+                          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                            redirectTo: `${window.location.origin}/reset-password`,
+                          });
+                          if (error) throw error;
+                          toast.success("Te enviamos un email para restablecer tu contraseña");
+                        } catch {
+                          toast.error("Error al enviar el email de recuperación");
+                        }
+                      }}
+                      className="text-[12.5px] text-[#888] hover:text-[#0a0a0a] transition-colors"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
                 )}
-              </motion.form>
+              </form>
             )}
 
-            {/* Toggle */}
-            <div className="text-center">
+            {/* Toggle login/signup */}
+            <div className="text-center mt-6">
               <button
                 type="button"
                 onClick={() => navigate(isLogin ? "/auth?mode=signup" : "/auth?mode=login", { replace: true })}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="text-[13px] text-[#777] hover:text-[#0a0a0a] transition-colors"
               >
-                {isLogin 
-                  ? "¿No tienes cuenta? " 
-                  : "¿Ya tienes cuenta? "
-                }
-                <span className="font-semibold text-primary">
-                  {isLogin ? "Empezá gratis" : "Inicia sesión"}
+                {isLogin ? "¿No tenés cuenta? " : "¿Ya tenés cuenta? "}
+                <span className="font-medium text-[#0a0a0a]">
+                  {isLogin ? "Empezá gratis" : "Iniciar sesión"}
                 </span>
               </button>
             </div>
 
-            {/* Terms acceptance */}
-            <p className="text-xs text-muted-foreground text-center">
-              Al crear una cuenta, aceptás las{" "}
-              <Link to="/condiciones" className="text-primary hover:underline">
-                Condiciones del Servicio
+            {/* Terms */}
+            <p className="mt-8 text-[11.5px] text-[#aaa] text-center leading-relaxed">
+              Al continuar aceptás nuestras{" "}
+              <Link to="/condiciones" className="text-[#666] hover:text-[#0a0a0a] underline underline-offset-2">
+                Condiciones
               </Link>{" "}
               y la{" "}
-              <Link to="/politicas" className="text-primary hover:underline">
+              <Link to="/politicas" className="text-[#666] hover:text-[#0a0a0a] underline underline-offset-2">
                 Política de Privacidad
               </Link>
               .
             </p>
-
-            {/* Mobile social proof */}
-            {isMobile && (
-              <motion.div 
-                className="pt-4 border-t border-border"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <div className="flex items-center justify-center gap-1 mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-warning fill-warning" />
-                  ))}
-                </div>
-                <p className="text-center text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">+{reviewCount.toLocaleString()} negocios</span> confían en VISTACEO
-                </p>
-              </motion.div>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Right side - Decorative (Desktop only) */}
-        {!isMobile && (
-          <div className="hidden lg:flex flex-1 items-center justify-center relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5">
-            {/* Decorative elements */}
-            <div className="absolute inset-0">
-              <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px] animate-pulse" />
-              <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
-            </div>
-            
-            {/* Grid pattern */}
-            <div className="absolute inset-0 opacity-[0.02]" style={{
-              backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
-              backgroundSize: '50px 50px'
-            }} />
-            
-            <div className="relative z-10 max-w-lg px-12">
-              {/* Main content */}
-              <motion.div 
-                className="text-center mb-10"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 mb-6 shadow-lg shadow-primary/20">
-                  <VistaceoLogo size={48} variant="icon" />
-                </div>
-                <h2 className="text-3xl font-bold text-foreground mb-3">
-                  Tu CEO digital con IA
-                </h2>
-                <p className="text-lg text-muted-foreground">
-                  Analizo tu negocio 24/7 y te digo exactamente qué hacer para crecer.
-                </p>
-              </motion.div>
-
-              {/* Benefits */}
-              <div className="space-y-2.5 mb-8">
-                {benefits.map((benefit, idx) => (
-                  <motion.div 
-                    key={idx}
-                    className="flex items-center gap-3 p-3.5 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + idx * 0.1 }}
-                  >
-                    <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <benefit.icon className="w-4 h-4 text-primary" />
-                    </div>
-                    <p className="text-foreground font-medium flex-1 text-sm whitespace-nowrap">{benefit.text}</p>
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary flex-shrink-0">
-                      {benefit.highlight}
-                    </span>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Testimonial */}
-              <motion.div 
-                className="p-4 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-              >
-                <div className="flex gap-0.5 mb-2">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-warning fill-warning" />
-                  ))}
-                </div>
-                <p className="text-foreground italic text-sm mb-3 leading-relaxed">"{testimonial.quote}"</p>
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Users className="w-3.5 h-3.5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{testimonial.author}</p>
-                    <p className="text-xs text-muted-foreground">{testimonial.role}</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Stats */}
-              <motion.div 
-                className="grid grid-cols-4 gap-2"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.9 }}
-              >
-                {stats.map((stat, idx) => (
-                  <div key={idx} className="text-center p-2 rounded-lg bg-card/30">
-                    <p className="text-base font-bold text-foreground">{stat.value}</p>
-                    <p className="text-[10px] text-muted-foreground leading-tight">{stat.label}</p>
-                  </div>
-                ))}
-              </motion.div>
-            </div>
           </div>
-        )}
+        </main>
       </div>
     </>
   );
