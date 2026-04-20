@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { GlassCard } from "./GlassCard";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 
 interface MarketInsight {
   id: string;
@@ -125,8 +126,8 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
       if (data && data.length > 0) {
         setInsights(data.map(item => ({
           id: item.id,
-          title: item.title,
-          description: item.content || "",
+          title: sanitizeAIOutput(item.title),
+          description: sanitizeAIOutput(item.content || ""),
           category: mapItemTypeToCategory(item.item_type || "insight"),
           source: cleanSourceLabel(item.source),
           date: formatRelativeDate(item.created_at),
@@ -240,8 +241,8 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
                 <Lightbulb className="w-4 h-4 text-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-foreground text-sm mb-1 line-clamp-2">{currentInsight.title}</p>
-                <p className="text-xs text-muted-foreground line-clamp-2">{currentInsight.description}</p>
+                <p className="font-medium text-foreground text-sm mb-1 line-clamp-2">{sanitizeAIOutput(currentInsight.title)}</p>
+                <p className="text-xs text-muted-foreground line-clamp-2">{sanitizeAIOutput(currentInsight.description)}</p>
                 <p className="text-[10px] text-muted-foreground mt-2 italic">{currentInsight.date}</p>
               </div>
             </div>
@@ -322,7 +323,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-foreground text-sm mb-0.5 line-clamp-1 group-hover:text-accent transition-colors">
-                  {insight.title}
+                  {sanitizeAIOutput(insight.title)}
                 </p>
                 <p className="text-[10px] text-muted-foreground">{insight.date} • {cleanSourceLabel(insight.source)}</p>
               </div>
