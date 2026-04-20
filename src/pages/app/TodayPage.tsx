@@ -196,18 +196,24 @@ const TodayPage = () => {
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
           <div className="col-span-2 space-y-6">
-            {mainWidgets.map((w, idx) => (
-              <div key={w.id}>
-                {renderWidget(w.id)}
-                {/* Insertar IntelligentQuestionPrompt justo después del primer widget (Visión Estratégica / aiSummary) */}
-                {idx === 0 && <div className="mt-6"><IntelligentQuestionPrompt variant="compact" /></div>}
-              </div>
+            {mainWidgets.map(w => (
+              <div key={w.id}>{renderWidget(w.id)}</div>
             ))}
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar — Conocimiento del negocio + prompt inteligente juntos */}
           <div className="space-y-6">
-            {sidebarWidgets.map(w => renderWidget(w.id))}
+            {sidebarWidgets.map(w => (
+              <div key={w.id}>
+                {renderWidget(w.id)}
+                {/* Justo debajo del widget de cerebro/conocimiento */}
+                {w.id === 'brain' && (
+                  <div className="mt-4">
+                    <IntelligentQuestionPrompt variant="compact" />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -271,10 +277,12 @@ const TodayPage = () => {
           };
           return (mobileOrder[a.id] ?? 99) - (mobileOrder[b.id] ?? 99);
         })
-        .map((w, idx) => (
+        .map(w => (
           <div key={w.id}>
             {renderWidget(w.id)}
-            {idx === 0 && <div className="mt-5"><IntelligentQuestionPrompt variant="compact" /></div>}
+            {w.id === 'brain' && (
+              <div className="mt-5"><IntelligentQuestionPrompt variant="compact" /></div>
+            )}
           </div>
         ))}
 
