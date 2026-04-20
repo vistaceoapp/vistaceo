@@ -42,37 +42,49 @@ const Auth = () => {
 
   const welcomeMessage = useMemo(() => {
     if (modeParam === "login") return "Bienvenido de vuelta";
-    if (modeParam === "signup") return "Empezá ahora";
+    if (modeParam === "signup") return "Creá tu cuenta";
     if (hasLoggedInBefore) return "Bienvenido de vuelta";
-    return "Empezá ahora";
+    return "Creá tu cuenta";
   }, [modeParam, hasLoggedInBefore]);
 
   const subtitle = useMemo(() => {
     return isLogin
-      ? "Ingresá para continuar."
-      : "Tu CEO digital con IA, en minutos.";
+      ? "Tu CEO digital te está esperando."
+      : "Tu CEO digital con IA, listo en minutos.";
   }, [isLogin]);
 
-  // Testimonios reales (rotación)
+  // Testimonios reales — sector · ciudad · país (sin nombres de marca)
   const testimonials = useMemo(
     () => [
       {
         quote:
-          "En tres semanas pasé de tomar decisiones por intuición a entender exactamente qué mover cada día.",
-        name: "Lucía Fernández",
-        role: "Dueña, Café Almacén · Buenos Aires",
+          "En tres semanas pasé de decidir por intuición a saber exactamente qué mover cada día.",
+        name: "Lucía F.",
+        role: "Cafetería · Buenos Aires, Argentina",
       },
       {
         quote:
-          "Detectó una fuga de margen en delivery que no veía hacía meses. Lo arreglamos en una semana.",
-        name: "Martín Rivas",
-        role: "Socio, Restaurante Roble · Córdoba",
+          "Detectó una fuga de margen en delivery que no veía hace meses. Lo arreglamos en una semana.",
+        name: "Martín R.",
+        role: "Restaurante · Córdoba, Argentina",
       },
       {
         quote:
           "Es como tener un director de operaciones disponible a cualquier hora. Claro, breve y al punto.",
-        name: "Camila Ortega",
-        role: "Fundadora, Estudio Norte · Montevideo",
+        name: "Camila O.",
+        role: "Estudio de diseño · Montevideo, Uruguay",
+      },
+      {
+        quote:
+          "Subimos el ticket promedio 14% siguiendo dos misiones puntuales. Sin contratar a nadie.",
+        name: "Diego P.",
+        role: "Heladería · Santiago, Chile",
+      },
+      {
+        quote:
+          "Por fin entiendo mis números sin perderme entre planillas. Decisiones más rápidas y mejores.",
+        name: "Sofía M.",
+        role: "Boutique de ropa · Ciudad de México, México",
       },
     ],
     []
@@ -214,26 +226,26 @@ const Auth = () => {
       <div className="min-h-screen w-full bg-white text-[#0a0a0a] flex flex-col lg:grid lg:grid-cols-[1.05fr_1fr]">
         {/* ============ LEFT — Brand panel (premium) ============ */}
         <aside className="relative hidden lg:flex flex-col justify-between overflow-hidden text-white p-10 xl:p-14">
-          {/* Background */}
+          {/* Background — mismo lenguaje visual de la app (azul → violeta marca) */}
           <div
             aria-hidden
             className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(160deg, #0b1020 0%, #131a3a 45%, #1a1145 100%)",
+                "linear-gradient(140deg, #1a4fa8 0%, #2692DC 35%, #5a5ed8 70%, #746CE6 100%)",
             }}
           />
           <div
             aria-hidden
-            className="absolute inset-0 opacity-70"
+            className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(60% 50% at 15% 10%, rgba(38,146,220,0.35), transparent 60%), radial-gradient(50% 50% at 85% 90%, rgba(116,108,230,0.30), transparent 65%)",
+                "radial-gradient(70% 50% at 10% 0%, rgba(255,255,255,0.18), transparent 60%), radial-gradient(60% 50% at 100% 100%, rgba(10,16,40,0.35), transparent 60%)",
             }}
           />
           <div
             aria-hidden
-            className="absolute inset-0 opacity-[0.06] mix-blend-overlay"
+            className="absolute inset-0 opacity-[0.07] mix-blend-overlay"
             style={{
               backgroundImage:
                 "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
@@ -251,27 +263,24 @@ const Auth = () => {
           </div>
 
           {/* Middle — testimonio rotativo */}
-          <div className="relative z-10 max-w-[440px]">
+          <div className="relative z-10 max-w-[460px]">
             <div className="flex items-center gap-1 mb-5">
               {[0, 1, 2, 3, 4].map((i) => (
                 <svg key={i} viewBox="0 0 20 20" className="w-3.5 h-3.5 fill-amber-300">
                   <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.78L10 14.77l-5.2 2.73.99-5.78L1.58 7.62l5.82-.85L10 1.5z" />
                 </svg>
               ))}
-              <span className="ml-2 text-[12px] text-white/60">4.9 · +1.200 dueños activos</span>
+              <span className="ml-2 text-[12px] text-white/75">4.9 · +1.200 dueños activos</span>
             </div>
 
             <blockquote
               key={activeTestimonial}
-              className="text-[22px] xl:text-[24px] leading-[1.4] font-medium tracking-[-0.01em] text-white/95 transition-opacity duration-500"
+              className="text-[22px] xl:text-[25px] leading-[1.4] font-medium tracking-[-0.01em] text-white transition-opacity duration-500"
             >
               “{testimonials[activeTestimonial].quote}”
             </blockquote>
             <div className="mt-5 flex items-center gap-3">
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-semibold text-white"
-                style={{ background: "linear-gradient(135deg, #2692DC, #746CE6)" }}
-              >
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-semibold text-[#1a4fa8] bg-white/95">
                 {testimonials[activeTestimonial].name
                   .split(" ")
                   .map((n) => n[0])
@@ -279,10 +288,10 @@ const Auth = () => {
                   .slice(0, 2)}
               </div>
               <div>
-                <div className="text-[13.5px] font-medium text-white/95">
+                <div className="text-[13.5px] font-medium text-white">
                   {testimonials[activeTestimonial].name}
                 </div>
-                <div className="text-[12px] text-white/55">
+                <div className="text-[12px] text-white/70">
                   {testimonials[activeTestimonial].role}
                 </div>
               </div>
@@ -297,7 +306,7 @@ const Auth = () => {
                   aria-label={`Testimonio ${i + 1}`}
                   onClick={() => setActiveTestimonial(i)}
                   className={`h-1 rounded-full transition-all ${
-                    i === activeTestimonial ? "w-6 bg-white/80" : "w-1.5 bg-white/25"
+                    i === activeTestimonial ? "w-6 bg-white" : "w-1.5 bg-white/30 hover:bg-white/50"
                   }`}
                 />
               ))}
@@ -305,7 +314,7 @@ const Auth = () => {
           </div>
 
           {/* Bottom — capacidades */}
-          <div className="relative z-10 grid grid-cols-2 gap-3 max-w-[460px]">
+          <div className="relative z-10 grid grid-cols-2 gap-3 max-w-[480px]">
             {[
               { t: "Radar diario", d: "Oportunidades reales con evidencia." },
               { t: "Misiones claras", d: "Qué hacer hoy y cómo medirlo." },
@@ -314,10 +323,10 @@ const Auth = () => {
             ].map((c) => (
               <div
                 key={c.t}
-                className="rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-sm p-3.5"
+                className="rounded-xl border border-white/15 bg-white/[0.08] backdrop-blur-sm p-3.5"
               >
-                <div className="text-[13px] font-semibold text-white/95">{c.t}</div>
-                <div className="text-[11.5px] text-white/55 mt-0.5 leading-snug">
+                <div className="text-[13px] font-semibold text-white">{c.t}</div>
+                <div className="text-[11.5px] text-white/75 mt-0.5 leading-snug">
                   {c.d}
                 </div>
               </div>
