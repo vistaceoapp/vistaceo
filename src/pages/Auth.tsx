@@ -349,7 +349,7 @@ const Auth = () => {
           {/* Top bar (mobile shows logo, desktop shows back link) */}
           <header className="relative z-10 w-full px-6 sm:px-8 py-5 flex items-center justify-between">
             <Link to="/" className="inline-flex items-center group lg:hidden">
-              <VistaceoLogo size={isMobile ? 96 : 110} variant="full" />
+              <VistaceoLogo size={isMobile ? 52 : 60} variant="full" />
             </Link>
             <div className="hidden lg:block" />
             <Link
@@ -361,19 +361,19 @@ const Auth = () => {
           </header>
 
           {/* Centered form */}
-          <main className="relative z-10 flex-1 flex items-center justify-center px-5 sm:px-6 pb-16">
-            <div className="w-full max-w-[400px]">
+          <main className="relative z-10 flex-1 flex items-center justify-center px-5 sm:px-6 pb-12 pt-2">
+            <div className="w-full max-w-[380px] mx-auto">
               {/* Heading */}
-              <div className="mb-8">
-                <h1 className="text-[clamp(1.75rem,3vw,2.125rem)] font-semibold tracking-[-0.02em] text-[#0a0a0a] leading-[1.15]">
+              <div className="mb-7 text-center">
+                <h1 className="text-[clamp(1.6rem,2.6vw,1.95rem)] font-semibold tracking-[-0.02em] text-[#0a0a0a] leading-[1.15]">
                   {welcomeMessage}
                 </h1>
-                <p className="mt-2.5 text-[14.5px] text-[#777] leading-relaxed">
+                <p className="mt-2 text-[14px] text-[#777] leading-relaxed">
                   {subtitle}
                 </p>
 
                 {pendingPlan && (
-                  <div className="mt-5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200">
+                  <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200">
                     <Crown className="w-3.5 h-3.5 text-amber-600" />
                     <span className="text-[12px] font-medium text-amber-700">
                       {pendingPlan === "pro_yearly" ? "Pro Anual · 51% off" : "Pro Mensual"}
