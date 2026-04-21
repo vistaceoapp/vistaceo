@@ -1023,14 +1023,36 @@ MESSAGE_JSON:
 === FIN CONTEXTO ===
 `;
 
-    // Prepare messages for AI
+    // Prepare messages for AI (with multimodal support for images)
+    const recentMessages = messages.slice(-20).map((m: { role: string; content: string }) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    // Inject image attachments into the last user message as multimodal content
+    const imageAttachments = (attachments || []).filter((a: any) => a?.type === "image" && a?.dataUrl);
+    if (imageAttachments.length > 0 && recentMessages.length > 0) {
+      const lastIdx = recentMessages.length - 1;
+      const last = recentMessages[lastIdx];
+      if (last.role === "user") {
+        const textPart = typeof last.content === "string" ? last.content : "";
+        recentMessages[lastIdx] = {
+          role: "user",
+          content: [
+            { type: "text", text: textPart || "Analizá esta imagen en el contexto de mi negocio." },
+            ...imageAttachments.map((a: any) => ({
+              type: "image_url",
+              image_url: { url: a.dataUrl },
+            })),
+          ] as any,
+        };
+      }
+    }
+
     const aiMessages = [
       { role: "system", content: CEO_SYSTEM_PROMPT },
       { role: "system", content: contextInjection },
-      ...messages.slice(-20).map((m: { role: string; content: string }) => ({
-        role: m.role,
-        content: m.content,
-      })),
+      ...recentMessages,
     ];
 
     console.log("Calling VistaCEO AI with", messages.length, "messages, MVC:", brainJson.mvc_completion_pct || 0);
