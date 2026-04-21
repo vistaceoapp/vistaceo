@@ -956,7 +956,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, businessContext, inputType = "text", messageId, personalityPrompt } = await req.json();
+    const { messages, businessContext, inputType = "text", messageId, personalityPrompt, attachments = [] } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
