@@ -265,9 +265,19 @@ const HeroSection = () => {
           </Reveal>
 
           <Reveal delay={80} distance={30}>
-            <h1 className="text-[clamp(1.75rem,4.2vw,3.2rem)] font-semibold text-[#0a0a0a] leading-[1.14] tracking-[-0.025em] mt-5 max-w-full hyphens-none">
+            <h1 className="text-[clamp(1.75rem,4.2vw,3.2rem)] font-semibold text-[#0a0a0a] leading-[1.2] tracking-[-0.025em] mt-5 max-w-full hyphens-none pb-[0.15em]">
               Tu empresa, guiada por un{" "}
-              <span className="inline whitespace-normal" style={{ backgroundImage: ACCENT_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <span
+                className="inline whitespace-normal"
+                style={{
+                  backgroundImage: ACCENT_GRADIENT,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  paddingBottom: "0.15em",
+                  display: "inline-block",
+                  lineHeight: "1.2",
+                }}
+              >
                 CEO digital impulsado por IA.
               </span>
             </h1>
