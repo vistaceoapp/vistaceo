@@ -257,7 +257,7 @@ const Auth = () => {
           <div className="relative z-10">
             <Link to="/" className="inline-flex items-center group">
               <div className="brightness-0 invert">
-                <VistaceoLogo size={120} variant="full" />
+                <VistaceoLogo size={64} variant="full" />
               </div>
             </Link>
           </div>
