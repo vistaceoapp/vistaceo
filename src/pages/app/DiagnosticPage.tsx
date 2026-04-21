@@ -41,6 +41,213 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 
+// ----- Tipo + helpers de renderizado de inputs -----
+type AnyOption = string | QuestionInputOption;
+
+function getOptionId(opt: AnyOption): string {
+  return typeof opt === 'string' ? opt : opt.id;
+}
+function getOptionLabel(opt: AnyOption, language: Language): string {
+  if (typeof opt === 'string') {
+    return opt.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+  return language === 'pt-BR' ? opt.label_pt : opt.label_es;
+}
+
+interface RenderInputArgs {
+  question: any;
+  value: any;
+  language: Language;
+  onChange: (value: any) => void;
+}
+
+function renderInput({ question, value, language, onChange }: RenderInputArgs) {
+  const input = question.ui?.input;
+  if (!input) return null;
+  const type: string = input.type;
+  const options: AnyOption[] = input.options || [];
+
+  if (type === 'choice_cards' || type === 'single_select' || type === 'single') {
+    return (
+      <div className="grid grid-cols-1 gap-2.5">
+        {options.map((opt) => {
+          const id = getOptionId(opt);
+          const label = getOptionLabel(opt, language);
+          const selected = value === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onChange(id)}
+              className={cn(
+                'w-full text-left px-4 py-3.5 rounded-xl border transition-all',
+                'hover:border-primary/60 hover:bg-primary/5',
+                selected
+                  ? 'border-primary bg-primary/10 text-foreground shadow-sm'
+                  : 'border-border bg-card text-foreground'
+              )}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[15px] font-medium">{label}</span>
+                {selected && <Check className="w-4 h-4 text-primary shrink-0" />}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (type === 'multiselect' || type === 'multi') {
+    const arr: string[] = Array.isArray(value) ? value : [];
+    const toggle = (id: string) => {
+      if (arr.includes(id)) onChange(arr.filter((v) => v !== id));
+      else onChange([...arr, id]);
+    };
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        {options.map((opt) => {
+          const id = getOptionId(opt);
+          const label = getOptionLabel(opt, language);
+          const selected = arr.includes(id);
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => toggle(id)}
+              className={cn(
+                'flex items-center gap-3 w-full text-left px-4 py-3 rounded-xl border transition-all',
+                selected
+                  ? 'border-primary bg-primary/10 shadow-sm'
+                  : 'border-border bg-card hover:border-primary/40'
+              )}
+            >
+              <Checkbox checked={selected} className="pointer-events-none" />
+              <span className="text-[14px] font-medium text-foreground">{label}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (type === 'number' || type === 'money' || type === 'money_or_range') {
+    return (
+      <Input
+        type="number"
+        inputMode="decimal"
+        placeholder="0"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))}
+        className="h-12 text-lg"
+      />
+    );
+  }
+
+  if (type === 'slider') {
+    const min = input.min ?? 0;
+    const max = input.max ?? 100;
+    const step = input.step ?? 1;
+    const current = typeof value === 'number' ? value : min;
+    return (
+      <div className="space-y-4">
+        <div className="text-center">
+          <span className="text-3xl font-bold text-foreground">{current}</span>
+          {input.unit && <span className="text-sm text-muted-foreground ml-1">{input.unit}</span>}
+        </div>
+        <Slider
+          min={min}
+          max={max}
+          step={step}
+          value={[current]}
+          onValueChange={(vals) => onChange(vals[0])}
+        />
+        <div className="flex justify-between text-[11px] text-muted-foreground">
+          <span>{min}</span>
+          <span>{max}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'percent_or_bucket') {
+    const buckets: string[] = input.buckets || ['bajo', 'medio', 'alto', 'no_se'];
+    return (
+      <div className="grid grid-cols-2 gap-2.5">
+        {buckets.map((b) => {
+          const selected = value === b;
+          const label = b === 'no_se' ? 'No sé' : b.charAt(0).toUpperCase() + b.slice(1);
+          return (
+            <button
+              key={b}
+              type="button"
+              onClick={() => onChange(b)}
+              className={cn(
+                'px-4 py-3 rounded-xl border text-[14px] font-medium transition-all',
+                selected
+                  ? 'border-primary bg-primary/10 text-foreground'
+                  : 'border-border bg-card text-foreground hover:border-primary/40'
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (type === 'chips_text') {
+    const arr: string[] = Array.isArray(value) ? value : [];
+    const max: number = input.max || 5;
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {arr.map((chip, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[13px] font-medium"
+            >
+              {chip}
+              <button
+                type="button"
+                onClick={() => onChange(arr.filter((_, idx) => idx !== i))}
+                className="hover:text-foreground"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+        {arr.length < max && (
+          <Input
+            placeholder={`Escribí y presioná Enter (máx. ${max})`}
+            onKeyDown={(e) => {
+              const target = e.currentTarget;
+              if (e.key === 'Enter' && target.value.trim()) {
+                e.preventDefault();
+                onChange([...arr, target.value.trim()]);
+                target.value = '';
+              }
+            }}
+            className="h-12"
+          />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <Input
+      placeholder="Tu respuesta..."
+      value={value ?? ''}
+      onChange={(e) => onChange(e.target.value)}
+      className="h-12 text-lg"
+    />
+  );
+}
+
+
 const DiagnosticPage = () => {
   const navigate = useNavigate();
   const { currentBusiness, refreshBusinesses } = useBusiness();
