@@ -39,8 +39,8 @@ export const AIDailySummary = () => {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const [showVision, setShowVision] = useState(false);
+  const [expanded, setExpanded] = useState(true);
+  const [showVision, setShowVision] = useState(true);
 
   useEffect(() => {
     if (currentBusiness) fetchOrGenerate();

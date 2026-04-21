@@ -719,6 +719,22 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
     result.userReply = rawResponse.trim();
   }
 
+  // SAFETY NET: strip any internal blocks that may have leaked into userReply
+  // (sometimes the model writes them inline without proper closing tags)
+  if (result.userReply) {
+    result.userReply = result.userReply
+      // Remove complete or partial CEO_AUDIO_SCRIPT, AVATAR_CUES, LEARNING_EXTRACT
+      .replace(/<CEO_AUDIO_SCRIPT>[\s\S]*?(<\/CEO_AUDIO_SCRIPT>|$)/gi, '')
+      .replace(/<AVATAR_CUES>[\s\S]*?(<\/AVATAR_CUES>|$)/gi, '')
+      .replace(/<LEARNING_EXTRACT>[\s\S]*?(<\/LEARNING_EXTRACT>|$)/gi, '')
+      .replace(/<\/?USER_REPLY>/gi, '')
+      // Remove any remaining XML-like internal tags
+      .replace(/<\/?(CEO_AUDIO_SCRIPT|AVATAR_CUES|LEARNING_EXTRACT|USER_REPLY)>/gi, '')
+      // Cleanup orphan whitespace
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
   // CRITICAL: Auto-generate audio script if missing but we have userReply
   // This ensures TTS always works even if the model forgets the audio block
   if (!result.audioScript && result.userReply) {
