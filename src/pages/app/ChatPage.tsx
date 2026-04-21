@@ -440,6 +440,7 @@ const ChatPage = () => {
             name: f.file.name,
             type: f.type,
             size: f.file.size,
+            dataUrl: f.type === "image" ? f.preview : undefined,
           })),
         },
       });
