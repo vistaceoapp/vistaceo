@@ -719,20 +719,30 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
     result.userReply = rawResponse.trim();
   }
 
-  // SAFETY NET: strip any internal blocks that may have leaked into userReply
-  // (sometimes the model writes them inline without proper closing tags)
+  // ============================================================
+  // ZERO LEAKAGE FIREWALL — strip ALL internal blocks/markers
+  // even when the model omits closing tags or wrapper tags.
+  // ============================================================
   if (result.userReply) {
-    result.userReply = result.userReply
-      // Remove complete or partial CEO_AUDIO_SCRIPT, AVATAR_CUES, LEARNING_EXTRACT
-      .replace(/<CEO_AUDIO_SCRIPT>[\s\S]*?(<\/CEO_AUDIO_SCRIPT>|$)/gi, '')
-      .replace(/<AVATAR_CUES>[\s\S]*?(<\/AVATAR_CUES>|$)/gi, '')
-      .replace(/<LEARNING_EXTRACT>[\s\S]*?(<\/LEARNING_EXTRACT>|$)/gi, '')
-      .replace(/<\/?USER_REPLY>/gi, '')
-      // Remove any remaining XML-like internal tags
-      .replace(/<\/?(CEO_AUDIO_SCRIPT|AVATAR_CUES|LEARNING_EXTRACT|USER_REPLY)>/gi, '')
-      // Cleanup orphan whitespace
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
+    const INTERNAL_TAGS = [
+      'CEO_AUDIO_SCRIPT', 'AVATAR_CUES', 'LEARNING_EXTRACT', 'USER_REPLY',
+      'BRAIN_JSON', 'STATE_JSON', 'CONFIG_JSON', 'SYSTEM_PROMPT',
+      'INTERNAL', 'METADATA', 'DEBUG', 'TOOL_CALL', 'TOOL_RESULT',
+    ];
+    let cleaned = result.userReply;
+    for (const tag of INTERNAL_TAGS) {
+      // Closed block first (greedy across the whole tag pair)
+      cleaned = cleaned.replace(new RegExp(`<${tag}[^>]*>[\\s\\S]*?<\\/${tag}>`, 'gi'), '');
+      // Unclosed/truncated block: remove from opening tag to end-of-string
+      cleaned = cleaned.replace(new RegExp(`<${tag}[^>]*>[\\s\\S]*$`, 'gi'), '');
+      // Orphan tags
+      cleaned = cleaned.replace(new RegExp(`<\\/?${tag}[^>]*>`, 'gi'), '');
+    }
+    // Remove orphan JSON blobs left over from internal blocks
+    cleaned = cleaned.replace(/\{\s*"(facts_to_add|decisions|risks|missions_suggested|mood|pace|gestures|interruptions_allowed|moments|attachment_id|message_id|scope|definition_of_done|due_hint)"[\s\S]*?\}\s*\}?/gi, '');
+    // Cleanup orphan whitespace and stray symbols
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
+    result.userReply = cleaned;
   }
 
   // CRITICAL: Auto-generate audio script if missing but we have userReply

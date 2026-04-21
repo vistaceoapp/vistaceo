@@ -80,6 +80,27 @@ export function sanitizeAIOutput(text: string | null | undefined): string {
   
   let result = text;
 
+  // ===== CAPA 0: STRIP INTERNAL XML/TAG BLOCKS (P0 ZERO LEAKAGE) =====
+  // Remove complete blocks first (greedy-safe, non-greedy match)
+  const INTERNAL_BLOCKS = [
+    'CEO_AUDIO_SCRIPT', 'AVATAR_CUES', 'LEARNING_EXTRACT', 'USER_REPLY',
+    'BRAIN_JSON', 'STATE_JSON', 'CONFIG_JSON', 'SYSTEM_PROMPT',
+    'INTERNAL', 'METADATA', 'DEBUG', 'TOOL_CALL', 'TOOL_RESULT',
+  ];
+  for (const block of INTERNAL_BLOCKS) {
+    // Complete block: <TAG>...</TAG>
+    result = result.replace(new RegExp(`<${block}[^>]*>[\\s\\S]*?<\\/${block}>`, 'gi'), '');
+    // Unclosed/orphan opening tag onwards (truncated stream)
+    result = result.replace(new RegExp(`<${block}[^>]*>[\\s\\S]*$`, 'gi'), '');
+    // Stray closing tags
+    result = result.replace(new RegExp(`<\\/${block}>`, 'gi'), '');
+    // Stray opening tags
+    result = result.replace(new RegExp(`<${block}[^>]*>`, 'gi'), '');
+  }
+  // Remove any remaining JSON-looking blobs that follow internal markers
+  // e.g. raw `{ "facts_to_add": [...] }` left over after tag removal
+  result = result.replace(/\{\s*"(facts_to_add|decisions|risks|missions_suggested|mood|pace|gestures|interruptions_allowed|moments|attachment_id|message_id|scope|definition_of_done|due_hint)"[\s\S]*?\}\s*\}?/gi, '');
+
   // Replace internal business type codes with Spanish labels (case-insensitive, word-boundary)
   for (const [code, label] of Object.entries(BUSINESS_TYPE_LABELS)) {
     const re = new RegExp(`\\b${code}\\b`, 'gi');
