@@ -41,10 +41,10 @@ const Auth = () => {
   }, [modeParam, hasLoggedInBefore]);
 
   const welcomeMessage = useMemo(() => {
-    if (modeParam === "login") return "Bienvenido de vuelta";
-    if (modeParam === "signup") return "Creá tu cuenta";
-    if (hasLoggedInBefore) return "Bienvenido de vuelta";
-    return "Creá tu cuenta";
+    if (modeParam === "login") return "Bienvenido de nuevo";
+    if (modeParam === "signup") return "Crea tu cuenta";
+    if (hasLoggedInBefore) return "Bienvenido de nuevo";
+    return "Crea tu cuenta";
   }, [modeParam, hasLoggedInBefore]);
 
   const subtitle = useMemo(() => {
@@ -175,19 +175,39 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
-          if (error.message.includes("Invalid login credentials")) {
-            toast.error("Email o contraseña incorrectos");
+          const msg = (error.message || "").toLowerCase();
+          if (msg.includes("invalid login credentials")) {
+            // Puede ser: contraseña incorrecta O usuario no existe.
+            // Damos un mensaje claro y ofrecemos crear cuenta automáticamente.
+            toast.error("Email o contraseña incorrectos. Si no tienes cuenta, crea una nueva.", {
+              action: {
+                label: "Crear cuenta",
+                onClick: () => navigate("/auth?mode=signup", { replace: true }),
+              },
+              duration: 6000,
+            });
+          } else if (msg.includes("email not confirmed")) {
+            toast.error("Confirma tu email antes de iniciar sesión.");
           } else {
             toast.error(error.message);
           }
           return;
         }
-        toast.success("¡Bienvenido de vuelta!");
+        toast.success("¡Bienvenido de nuevo!");
       } else {
         const { error, requiresEmailConfirmation } = await signUp(email, password, fullName);
         if (error) {
-          if (error.message.includes("already registered")) {
-            toast.error("Este email ya está registrado");
+          const msg = (error.message || "").toLowerCase();
+          if (msg.includes("already registered") || msg.includes("user already")) {
+            // Email ya existe → cambiamos a login automáticamente y avisamos.
+            toast.info("Este email ya tiene cuenta. Inicia sesión con tu contraseña.", {
+              duration: 5000,
+            });
+            navigate("/auth?mode=login", { replace: true });
+            return;
+          }
+          if (msg.includes("password") && msg.includes("weak")) {
+            toast.error("Tu contraseña es muy débil. Usa al menos 6 caracteres.");
           } else {
             toast.error(error.message);
           }
@@ -195,7 +215,7 @@ const Auth = () => {
         }
         await sendWelcomeEmail(email, fullName, 'email');
         if (requiresEmailConfirmation) {
-          toast.success("¡Cuenta creada! Revisá tu email para confirmarla e ingresar.");
+          toast.success("¡Cuenta creada! Revisa tu email para confirmarla e ingresar.");
           navigate("/auth?mode=login", { replace: true });
           return;
         }
@@ -208,7 +228,7 @@ const Auth = () => {
         }
       }
     } catch {
-      toast.error("Algo salió mal. Intentá de nuevo.");
+      toast.error("Algo salió mal. Inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -362,13 +382,13 @@ const Auth = () => {
 
           {/* Centered form */}
           <main className="relative z-10 flex-1 flex items-center justify-center px-5 sm:px-6 pb-10 pt-4 sm:pt-6">
-            <div className="w-full max-w-[400px] mx-auto">
-              {/* Heading — más grande y jerárquico */}
-              <div className="mb-8 sm:mb-9 text-center">
-                <h1 className="text-[clamp(1.95rem,4.6vw,2.6rem)] font-semibold tracking-[-0.025em] text-[#0a0a0a] leading-[1.08]">
+            <div className="w-full max-w-[420px] mx-auto">
+              {/* Heading — protagonismo, jerárquico, sin voseo */}
+              <div className="mb-9 sm:mb-10 text-center">
+                <h1 className="text-[clamp(2.1rem,5.2vw,2.95rem)] font-semibold tracking-[-0.028em] text-[#0a0a0a] leading-[1.04]">
                   {welcomeMessage}
                 </h1>
-                <p className="mt-3 sm:mt-3.5 text-[15px] sm:text-[15.5px] text-[#666] leading-relaxed max-w-[320px] mx-auto">
+                <p className="mt-3.5 text-[15.5px] sm:text-[16px] text-[#5e5e5e] leading-relaxed max-w-[340px] mx-auto">
                   {subtitle}
                 </p>
 
