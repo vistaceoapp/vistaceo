@@ -418,15 +418,18 @@ const MorePage = () => {
                   </button>
 
                   <button
-                    onClick={() => navigate("/app/diagnostic")}
+                    onClick={() => {
+                      const prompt = 'Quiero mejorar la precisión de tu inteligencia. Hacé las preguntas más importantes que te faltan saber sobre mi negocio, una por una.';
+                      navigate(`/app/chat?prompt=${encodeURIComponent(prompt)}`);
+                    }}
                     className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
                   >
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                       <Target className="w-4 h-4 text-primary" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-foreground text-sm">Precisión del Brain</p>
-                      <p className="text-xs text-muted-foreground">Completá tu perfil de negocio</p>
+                      <p className="font-medium text-foreground text-sm">Mejorar precisión</p>
+                      <p className="text-xs text-muted-foreground">Respondé en el chat para afinar el análisis</p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </button>

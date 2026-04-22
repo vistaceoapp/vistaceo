@@ -174,12 +174,36 @@ export const PrecisionRingWidget = ({
 
   const trend = getTrend();
 
-  const handleDiagnosticClick = () => {
-    if (isPro) {
-      onStartDiagnostic?.();
-    } else {
+  const handleDiagnosticClick = async () => {
+    if (!isPro) {
       setShowPaywall(true);
+      return;
     }
+
+    // Flujo integrado silencioso: dispara análisis de gaps en background
+    // y abre el chat con un prompt que despierta las preguntas inteligentes
+    // dentro de la misma conversación (sin abrir un cuestionario aparte).
+    if (onStartDiagnostic) {
+      onStartDiagnostic();
+      return;
+    }
+
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Lee businessId del contexto vía localStorage para no acoplar el hook
+        const stored = localStorage.getItem('currentBusinessId');
+        if (stored) {
+          supabase.functions.invoke('brain-analyze-gaps', {
+            body: { businessId: stored },
+          }).catch(() => { /* best effort */ });
+        }
+      }
+    } catch { /* best effort */ }
+
+    const prompt = 'Ayudame a completar mi perfil. Hacé las preguntas más importantes que te falten para entender bien el negocio, una por una y sin tecnicismos.';
+    navigate(`/app/chat?prompt=${encodeURIComponent(prompt)}`);
   };
 
   const getHealthColor = () => {
