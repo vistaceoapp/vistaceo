@@ -361,19 +361,19 @@ const Auth = () => {
           </header>
 
           {/* Centered form */}
-          <main className="relative z-10 flex-1 flex items-center justify-center px-5 sm:px-6 pb-12 pt-2">
-            <div className="w-full max-w-[380px] mx-auto">
-              {/* Heading */}
-              <div className="mb-7 text-center">
-                <h1 className="text-[clamp(1.6rem,2.6vw,1.95rem)] font-semibold tracking-[-0.02em] text-[#0a0a0a] leading-[1.15]">
+          <main className="relative z-10 flex-1 flex items-center justify-center px-5 sm:px-6 pb-10 pt-4 sm:pt-6">
+            <div className="w-full max-w-[400px] mx-auto">
+              {/* Heading — más grande y jerárquico */}
+              <div className="mb-8 sm:mb-9 text-center">
+                <h1 className="text-[clamp(1.95rem,4.6vw,2.6rem)] font-semibold tracking-[-0.025em] text-[#0a0a0a] leading-[1.08]">
                   {welcomeMessage}
                 </h1>
-                <p className="mt-2 text-[14px] text-[#777] leading-relaxed">
+                <p className="mt-3 sm:mt-3.5 text-[15px] sm:text-[15.5px] text-[#666] leading-relaxed max-w-[320px] mx-auto">
                   {subtitle}
                 </p>
 
                 {pendingPlan && (
-                  <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200">
+                  <div className="mt-5 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200">
                     <Crown className="w-3.5 h-3.5 text-amber-600" />
                     <span className="text-[12px] font-medium text-amber-700">
                       {pendingPlan === "pro_yearly" ? "Pro Anual · 51% off" : "Pro Mensual"}
