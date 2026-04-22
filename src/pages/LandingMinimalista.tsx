@@ -1495,6 +1495,7 @@ export default function LandingMinimalista() {
         <ProductShowcase />
         <FeaturesGrid />
         <CompetitorSection />
+        <TestimonialsSection />
         <PricingSection />
         <SecuritySection />
         <FAQSection />
