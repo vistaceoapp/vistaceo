@@ -453,7 +453,10 @@ export const BrainKnowledgeWidget = ({ className, compact = false }: BrainKnowle
           variant="ghost" 
           size="sm" 
           className="w-full mt-3 text-xs"
-          onClick={() => navigate("/app/diagnostic")}
+          onClick={() => {
+            const prompt = 'Mostrame un resumen de todo lo que sabés sobre mi negocio y qué te falta saber. Si te falta información, hacé las preguntas clave una por una.';
+            navigate(`/app/chat?prompt=${encodeURIComponent(prompt)}`);
+          }}
         >
           Ver qué tanto te conozco
           <ChevronRight className="w-4 h-4 ml-1" />
