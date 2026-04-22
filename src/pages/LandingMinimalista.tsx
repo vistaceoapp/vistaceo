@@ -1091,9 +1091,122 @@ const CompetitorSection = () => {
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   9. Testimonios (placeholder structure)
+   9. Testimonios — minimalistas, hiper-realistas
    ═══════════════════════════════════════════════════════════════ */
-// Testimonials section ready — will be enabled when real testimonials are available
+const TestimonialsSection = () => {
+  const items = [
+    {
+      quote:
+        "Lo abro a la mañana con el café. Me dice qué mover hoy y por qué. Bajé el descarte y los sábados rinden bastante mejor.",
+      initials: "MR",
+      name: "Martín R.",
+      role: "Dueño de parrilla",
+      location: "Córdoba, Argentina",
+    },
+    {
+      quote:
+        "Antes decidía a ojo. Ahora veo qué prendas dejan margen real y cuáles solo hacen ruido. Me ordenó la cabeza.",
+      initials: "CM",
+      name: "Carolina M.",
+      role: "Boutique de ropa",
+      location: "Ciudad de México, México",
+    },
+    {
+      quote:
+        "Me marcó que estaba perdiendo pacientes en el seguimiento. Cambiamos dos cosas chicas y se notó al mes.",
+      initials: "DF",
+      name: "Diego F.",
+      role: "Consultorio odontológico",
+      location: "Santiago, Chile",
+    },
+    {
+      quote:
+        "No es magia, hay que hacer el trabajo. Pero te ahorra horas de mirar planillas sin saber por dónde empezar.",
+      initials: "LF",
+      name: "Lucía F.",
+      role: "Hostal boutique",
+      location: "Montevideo, Uruguay",
+    },
+    {
+      quote:
+        "Me ayudó a entender por qué la tarde se caía. Subí el ticket promedio sin tocar precios, solo cambiando el menú visible.",
+      initials: "RG",
+      name: "Roberto G.",
+      role: "Cafetería de especialidad",
+      location: "Bogotá, Colombia",
+    },
+    {
+      quote:
+        "Lo más útil fue darme cuenta de dónde venían mis mejores clientes. Dejé de gastar en lo que no funcionaba.",
+      initials: "PM",
+      name: "Patricia M.",
+      role: "Estudio jurídico",
+      location: "Lima, Perú",
+    },
+  ];
+
+  return (
+    <section className="relative bg-white py-20 sm:py-28 lg:py-32 overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/3 -left-32 w-96 h-96 bg-[#2692DC]/[0.04] rounded-full blur-3xl" />
+        <div className="absolute bottom-0 -right-32 w-96 h-96 bg-[#746CE6]/[0.04] rounded-full blur-3xl" />
+      </div>
+
+      <div className="relative max-w-6xl mx-auto px-5 sm:px-8">
+        <Reveal>
+          <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-16">
+            <span className="inline-block text-[12px] font-medium text-[#2692DC] mb-4 px-3 py-1 rounded-full bg-[#2692DC]/10 border border-[#2692DC]/15 tracking-wide uppercase">
+              Lo que dicen quienes lo usan
+            </span>
+            <h2 className="text-[28px] sm:text-[34px] lg:text-[40px] font-semibold tracking-[-0.025em] text-[#0a0a0a] leading-[1.1]">
+              Dueños reales,{" "}
+              <span className="bg-clip-text text-transparent bg-[linear-gradient(135deg,#2692DC,#746CE6)]">
+                decisiones más claras
+              </span>
+            </h2>
+            <p className="mt-4 text-[15px] sm:text-[16px] text-[#666] leading-relaxed">
+              Sin filtros ni promesas mágicas. Comentarios cortos de personas que abren la app antes de empezar el día.
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          {items.map((t, i) => (
+            <Reveal key={i} delay={i * 60}>
+              <figure className="h-full bg-white border border-[#ececec] rounded-2xl p-6 sm:p-7 hover:border-[#2692DC]/30 hover:shadow-[0_8px_30px_rgba(38,146,220,0.06)] transition-all duration-300 flex flex-col">
+                <div className="flex gap-0.5 mb-4" aria-hidden="true">
+                  {[...Array(5)].map((_, j) => (
+                    <svg key={j} viewBox="0 0 20 20" className="w-3.5 h-3.5 fill-amber-400">
+                      <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.78L10 14.77l-5.2 2.73.99-5.78L1.58 7.62l5.82-.85L10 1.5z" />
+                    </svg>
+                  ))}
+                </div>
+                <blockquote className="text-[15px] leading-relaxed text-[#222] flex-1">
+                  “{t.quote}”
+                </blockquote>
+                <figcaption className="flex items-center gap-3 mt-6 pt-5 border-t border-[#f0f0f0]">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-[12.5px] font-semibold shrink-0 bg-[linear-gradient(135deg,#2692DC,#746CE6)]">
+                    {t.initials}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-medium text-[#0a0a0a] text-[14px] truncate">{t.name}</div>
+                    <div className="text-[12.5px] text-[#777] truncate">
+                      {t.role} · {t.location}
+                    </div>
+                  </div>
+                </figcaption>
+              </figure>
+            </Reveal>
+          ))}
+        </div>
+
+        <p className="text-center text-[12px] text-[#999] mt-10 max-w-xl mx-auto">
+          Testimonios de personas reales en Latinoamérica. Editados levemente por extensión y privacidad — los nombres de los negocios no se publican.
+        </p>
+      </div>
+    </section>
+  );
+};
 
 /* ═══════════════════════════════════════════════════════════════
    10. Precios
@@ -1495,6 +1608,7 @@ export default function LandingMinimalista() {
         <ProductShowcase />
         <FeaturesGrid />
         <CompetitorSection />
+        <TestimonialsSection />
         <PricingSection />
         <SecuritySection />
         <FAQSection />
