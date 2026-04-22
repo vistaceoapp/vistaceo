@@ -523,7 +523,7 @@ const Auth = () => {
                         type="button"
                         onClick={async () => {
                           if (!email) {
-                            toast.error("Ingresá tu email primero");
+                            toast.error("Ingresa tu email primero");
                             return;
                           }
                           try {
@@ -552,16 +552,16 @@ const Auth = () => {
                   onClick={() => navigate(isLogin ? "/auth?mode=signup" : "/auth?mode=login", { replace: true })}
                   className="text-[13px] text-[#777] hover:text-[#0a0a0a] transition-colors"
                 >
-                  {isLogin ? "¿No tenés cuenta? " : "¿Ya tenés cuenta? "}
+                  {isLogin ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
                   <span className="font-medium text-[#0a0a0a]">
-                    {isLogin ? "Empezá gratis" : "Iniciar sesión"}
+                    {isLogin ? "Crear cuenta gratis" : "Iniciar sesión"}
                   </span>
                 </button>
               </div>
 
               {/* Terms */}
               <p className="mt-8 text-[11.5px] text-[#aaa] text-center leading-relaxed">
-                Al continuar aceptás nuestras{" "}
+                Al continuar aceptas nuestras{" "}
                 <Link to="/condiciones" className="text-[#666] hover:text-[#0a0a0a] underline underline-offset-2">
                   Condiciones
                 </Link>{" "}
