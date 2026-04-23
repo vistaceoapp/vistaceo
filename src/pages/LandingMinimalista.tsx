@@ -19,6 +19,7 @@ import { MockupProInsights } from "@/components/landing/mockups/MockupProInsight
 import { MockupProCompetitors } from "@/components/landing/mockups/MockupProCompetitors";
 import { CapabilitiesShowcase } from "@/components/landing/CapabilitiesShowcase";
 import HeroOrb from "@/components/landing/HeroOrb";
+import ceoOfficeImg from "@/assets/hero/ceo-office-1.avif";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
