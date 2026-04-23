@@ -475,7 +475,8 @@ serve(async (req) => {
       missionTitle, 
       missionDescription, 
       missionArea,
-      regenerate = false 
+      regenerate = false,
+      enhanceExisting = false,
     } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -492,6 +493,9 @@ serve(async (req) => {
 
     // ─────────────────────────────────────────────────────────────
     // FREE PLAN ENFORCEMENT (server-side, before spending AI tokens)
+    // Only enforced on NEW mission creation. `enhanceExisting=true`
+    // (used to re-render the plan of an already-created mission)
+    // is exempt — the mission already counted against the cap when created.
     // Free users: max 3 missions per calendar month. Pro: unlimited.
     // Fail-open on infra errors so paying users are never blocked.
     // ─────────────────────────────────────────────────────────────
