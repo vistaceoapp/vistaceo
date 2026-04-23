@@ -490,6 +490,61 @@ serve(async (req) => {
       ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
       : null;
 
+    // ─────────────────────────────────────────────────────────────
+    // FREE PLAN ENFORCEMENT (server-side, before spending AI tokens)
+    // Free users: max 3 missions per calendar month. Pro: unlimited.
+    // Fail-open on infra errors so paying users are never blocked.
+    // ─────────────────────────────────────────────────────────────
+    const FREE_MISSIONS_PER_MONTH = 3;
+    if (businessId && supabase) {
+      try {
+        const { data: activeSub } = await supabase
+          .from("subscriptions")
+          .select("expires_at, status")
+          .eq("business_id", businessId)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const isPro = !!(activeSub?.expires_at && new Date(activeSub.expires_at).getTime() > Date.now());
+
+        if (!isPro) {
+          const startOfMonth = new Date();
+          startOfMonth.setDate(1);
+          startOfMonth.setHours(0, 0, 0, 0);
+
+          const { count } = await supabase
+            .from("missions")
+            .select("id", { count: "exact", head: true })
+            .eq("business_id", businessId)
+            .gte("created_at", startOfMonth.toISOString());
+
+          const used = count || 0;
+          if (used >= FREE_MISSIONS_PER_MONTH) {
+            console.log(`[free-limit] Mission cap reached: ${used}/${FREE_MISSIONS_PER_MONTH} for business ${businessId}`);
+            return new Response(
+              JSON.stringify({
+                error: "free_limit_reached",
+                limitType: "missions",
+                used,
+                limit: FREE_MISSIONS_PER_MONTH,
+                message: `Alcanzaste el límite de ${FREE_MISSIONS_PER_MONTH} misiones del plan Free este mes. Pasate a Pro para misiones ilimitadas.`,
+                upgradeUrl: "/checkout",
+              }),
+              {
+                status: 402,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              }
+            );
+          }
+        }
+      } catch (limitErr) {
+        // Fail-open: never block on infra issues
+        console.error("[free-limit] check failed, allowing request:", limitErr);
+      }
+    }
+
     // Fetch comprehensive context
     let context = null;
     if (businessId && supabase) {
