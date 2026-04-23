@@ -6,6 +6,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
 import { safeLocalStorage } from "@/lib/safe-storage";
