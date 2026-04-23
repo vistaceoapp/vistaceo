@@ -1,836 +1,483 @@
-import { memo, useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import {
-  TrendingUp,
-  Target,
-  Lightbulb,
-  ShieldAlert,
-  Radar,
-  LineChart,
-} from "lucide-react";
+import { memo } from "react";
 import vistaceoIcon from "@/assets/brand/icon-vistaceo-new.webp";
 
 /**
- * IntelligenceFlow — Hero VISTACEO
+ * IntelligenceFlow — Hero VISTACEO · Etapa 1 (Static Premium)
  *
- * Cinematic white-premium hero scene:
- *  · Foreground: thick 3D ceramic highway entering from bottom-left, with edge light + contact shadow
- *  · Midground: transformation core — monumental concentric glass disc holding the brand mark
- *  · Background: soft echo lanes + ambient atmospherics
+ * Escena hero escultórica white-premium. NO es un diagrama.
+ * Composición de objetos 3D-style construidos con SVG + gradientes radiales/cónicos:
  *
- * Sculpted signal entities (sales / risk / review / competitor / trend / anomaly)
- * travel along the highway, reach the core, and crystallize into executive outputs
- * (Insight crítico · Oportunidad activa · Riesgo priorizado · Radar · Predicción).
+ *   Foreground   → entidad protagónica (gota ascendente "ventas") + base reflectante
+ *   Midground    → MOTOR CENTRAL monumental (lente de cristal con anillos concéntricos
+ *                  y el isotipo VISTACEO embebido como corazón)
+ *                  + 3 entidades escultóricas flotando alrededor
+ *   Background   → ecos suaves desenfocados, halo ambiental, partículas mínimas
+ *   Right rail   → 3 outputs cristalizados (placas de cristal grueso)
  *
- * Performance:
- *  · Pure SVG procedural (no heavy assets)
- *  · IntersectionObserver pause off-screen
- *  · prefers-reduced-motion respected
- *  · Mobile: simplified path + fewer entities/outputs
- *  · rAF parallax (desktop only)
+ * Esta etapa NO incluye animación compleja — sólo respiración mínima ambiental.
  */
 
-/* ──────────────────────────────────────────────────────────────────────────
-   GEOMETRY (viewBox 1100 × 720 — wide cinematic frame)
-   ────────────────────────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════
+   DEFS — Materiales premium (glass, cerámica, halos, luz)
+   ═══════════════════════════════════════════════════════════════════ */
+const SceneDefs = memo(() => (
+  <defs>
+    {/* Halo ambiental detrás del motor */}
+    <radialGradient id="ambientHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#E9E4FF" stopOpacity="0.55" />
+      <stop offset="45%" stopColor="#DCE9FF" stopOpacity="0.28" />
+      <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+    </radialGradient>
 
-// Foreground "highway" — enters from bottom-left, sweeps up to the core
-const HIGHWAY = "M -80 720 C 160 700, 280 600, 380 520 S 560 360, 640 360";
-// Background echo lane (top)
-const ECHO_TOP = "M -60 220 C 200 220, 360 240, 520 320 S 680 380, 760 380";
-// Background echo lane (bottom)
-const ECHO_BOTTOM = "M -60 600 C 220 600, 360 540, 480 480 S 600 420, 700 400";
+    {/* Lente exterior del motor — vidrio frío translúcido */}
+    <radialGradient id="coreLens" cx="40%" cy="35%" r="75%">
+      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
+      <stop offset="35%" stopColor="#F4F1FF" stopOpacity="0.92" />
+      <stop offset="75%" stopColor="#E1E8FF" stopOpacity="0.78" />
+      <stop offset="100%" stopColor="#C9D2F2" stopOpacity="0.55" />
+    </radialGradient>
 
-// Monumental core position
-const CORE = { x: 700, y: 380 };
+    {/* Anillo cerámico interior */}
+    <radialGradient id="ceramicRing" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stopColor="#FFFFFF" />
+      <stop offset="60%" stopColor="#F0EEFB" />
+      <stop offset="100%" stopColor="#D7DDF2" />
+    </radialGradient>
 
-/* ──────────────────────────────────────────────────────────────────────────
-   SIGNAL ENTITIES (sculptural family, distinct morphology per kind)
-   ────────────────────────────────────────────────────────────────────────── */
+    {/* Bisel iluminado celeste-violeta */}
+    <linearGradient id="bevelEdge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#2692DC" stopOpacity="0.85" />
+      <stop offset="50%" stopColor="#A99EFF" stopOpacity="0.7" />
+      <stop offset="100%" stopColor="#746CE6" stopOpacity="0.85" />
+    </linearGradient>
 
-type SignalKind = "sales" | "risk" | "review" | "competitor" | "trend" | "anomaly";
+    {/* Highlight especular — toque de luz superior */}
+    <radialGradient id="specularTop" cx="50%" cy="0%" r="60%">
+      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
+      <stop offset="60%" stopColor="#FFFFFF" stopOpacity="0.15" />
+      <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+    </radialGradient>
 
-type Signal = {
-  id: string;
-  kind: SignalKind;
-  label: string;
-  duration: number;
-  begin: number;
-  // Pre-impact path fragment (entity travels along this)
-  path: string;
+    {/* Sombra de contacto bajo objetos flotantes */}
+    <radialGradient id="contactShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#7A8CB8" stopOpacity="0.32" />
+      <stop offset="100%" stopColor="#7A8CB8" stopOpacity="0" />
+    </radialGradient>
+
+    {/* Material de entidades — glass blanco perlado */}
+    <radialGradient id="entityGlass" cx="35%" cy="25%" r="80%">
+      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
+      <stop offset="55%" stopColor="#F2EEFF" stopOpacity="0.88" />
+      <stop offset="100%" stopColor="#C7D0EF" stopOpacity="0.7" />
+    </radialGradient>
+
+    {/* Glow violeta sutil para outputs */}
+    <radialGradient id="outputGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#A99EFF" stopOpacity="0.4" />
+      <stop offset="100%" stopColor="#A99EFF" stopOpacity="0" />
+    </radialGradient>
+
+    {/* Filtro: blur suave para ecos de background */}
+    <filter id="echoBlur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="14" />
+    </filter>
+
+    {/* Filtro: glow premium */}
+    <filter id="premiumGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="b" />
+      <feMerge>
+        <feMergeNode in="b" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+));
+SceneDefs.displayName = "SceneDefs";
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOTOR CENTRAL — Lente monumental (protagonista de la escena)
+   ═══════════════════════════════════════════════════════════════════ */
+const CoreEngine = memo(({ cx, cy, r }: { cx: number; cy: number; r: number }) => {
+  return (
+    <g>
+      {/* Halo ambiental exterior masivo */}
+      <circle cx={cx} cy={cy} r={r * 2.1} fill="url(#ambientHalo)" />
+
+      {/* Sombra de contacto */}
+      <ellipse cx={cx} cy={cy + r * 0.95} rx={r * 1.05} ry={r * 0.18} fill="url(#contactShadow)" />
+
+      {/* Anillo orbital exterior (delgado, decorativo refinado) */}
+      <circle cx={cx} cy={cy} r={r * 1.45} fill="none" stroke="url(#bevelEdge)" strokeWidth="1" strokeOpacity="0.35" strokeDasharray="2 6" />
+
+      {/* Anillo orbital medio */}
+      <circle cx={cx} cy={cy} r={r * 1.22} fill="none" stroke="#C7D0EF" strokeWidth="0.8" strokeOpacity="0.5" />
+
+      {/* Carcasa exterior — lente de cristal */}
+      <circle cx={cx} cy={cy} r={r} fill="url(#coreLens)" />
+      {/* Bisel iluminado */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#bevelEdge)" strokeWidth="2" strokeOpacity="0.9" />
+      {/* Sutil sombra interior */}
+      <circle cx={cx} cy={cy} r={r - 1} fill="none" stroke="#FFFFFF" strokeWidth="1" strokeOpacity="0.6" />
+
+      {/* Anillo cerámico interno */}
+      <circle cx={cx} cy={cy} r={r * 0.78} fill="url(#ceramicRing)" />
+      <circle cx={cx} cy={cy} r={r * 0.78} fill="none" stroke="#D7DDF2" strokeWidth="0.6" />
+
+      {/* Núcleo más profundo — disco interno */}
+      <circle cx={cx} cy={cy} r={r * 0.58} fill="#FFFFFF" />
+      <circle cx={cx} cy={cy} r={r * 0.58} fill="url(#specularTop)" />
+      <circle cx={cx} cy={cy} r={r * 0.58} fill="none" stroke="url(#bevelEdge)" strokeWidth="1.2" strokeOpacity="0.5" />
+
+      {/* Highlight especular superior (reflejo de estudio) */}
+      <ellipse cx={cx} cy={cy - r * 0.55} rx={r * 0.55} ry={r * 0.14} fill="#FFFFFF" opacity="0.7" />
+      <ellipse cx={cx - r * 0.18} cy={cy - r * 0.4} rx={r * 0.08} ry={r * 0.04} fill="#FFFFFF" opacity="0.95" />
+
+      {/* Marcas de instrumento — 8 ticks elegantes */}
+      {Array.from({ length: 8 }).map((_, i) => {
+        const a = (i / 8) * Math.PI * 2;
+        const r1 = r * 0.85;
+        const r2 = r * 0.92;
+        const x1 = cx + Math.cos(a) * r1;
+        const y1 = cy + Math.sin(a) * r1;
+        const x2 = cx + Math.cos(a) * r2;
+        const y2 = cy + Math.sin(a) * r2;
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#9AA6CF" strokeWidth="1" strokeOpacity="0.55" strokeLinecap="round" />;
+      })}
+    </g>
+  );
+});
+CoreEngine.displayName = "CoreEngine";
+
+/* ═══════════════════════════════════════════════════════════════════
+   ENTIDADES ESCULTÓRICAS — cada una con morfología propia
+   ═══════════════════════════════════════════════════════════════════ */
+
+// Gota ascendente — VENTAS (foreground, protagonista)
+const SalesEntity = memo(({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) => {
+  const w = 70 * scale;
+  const h = 110 * scale;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <ellipse cx={0} cy={h * 0.55} rx={w * 0.7} ry={w * 0.18} fill="url(#contactShadow)" />
+      <path
+        d={`M 0 ${-h * 0.5} C ${w * 0.55} ${-h * 0.3}, ${w * 0.55} ${h * 0.2}, 0 ${h * 0.45} C ${-w * 0.55} ${h * 0.2}, ${-w * 0.55} ${-h * 0.3}, 0 ${-h * 0.5} Z`}
+        fill="url(#entityGlass)"
+        stroke="url(#bevelEdge)"
+        strokeWidth="1.2"
+        strokeOpacity="0.7"
+      />
+      {/* Highlight interno */}
+      <ellipse cx={-w * 0.2} cy={-h * 0.2} rx={w * 0.18} ry={h * 0.22} fill="#FFFFFF" opacity="0.8" />
+      <ellipse cx={-w * 0.25} cy={-h * 0.28} rx={w * 0.06} ry={h * 0.06} fill="#FFFFFF" opacity="1" />
+      {/* Núcleo interno luminoso */}
+      <circle cx={0} cy={h * 0.05} r={w * 0.18} fill="url(#outputGlow)" />
+      <circle cx={0} cy={h * 0.05} r={w * 0.08} fill="#FFFFFF" opacity="0.9" />
+    </g>
+  );
+});
+SalesEntity.displayName = "SalesEntity";
+
+// Prisma asimétrico — RIESGO/ANOMALÍA
+const RiskEntity = memo(({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) => {
+  const s = 56 * scale;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <ellipse cx={0} cy={s * 0.7} rx={s * 0.6} ry={s * 0.12} fill="url(#contactShadow)" />
+      <polygon
+        points={`0,${-s * 0.7} ${s * 0.62},${-s * 0.1} ${s * 0.42},${s * 0.55} ${-s * 0.5},${s * 0.45} ${-s * 0.6},${-s * 0.2}`}
+        fill="url(#entityGlass)"
+        stroke="url(#bevelEdge)"
+        strokeWidth="1.2"
+        strokeOpacity="0.75"
+      />
+      {/* Faceta interna (sugiere 3D) */}
+      <polygon
+        points={`0,${-s * 0.7} ${s * 0.62},${-s * 0.1} 0,${s * 0.1}`}
+        fill="#FFFFFF"
+        opacity="0.45"
+      />
+      <polygon
+        points={`0,${-s * 0.7} ${-s * 0.6},${-s * 0.2} 0,${s * 0.1}`}
+        fill="#A99EFF"
+        opacity="0.18"
+      />
+      <circle cx={s * 0.05} cy={s * 0.05} r={s * 0.1} fill="#FFFFFF" opacity="0.85" />
+    </g>
+  );
+});
+RiskEntity.displayName = "RiskEntity";
+
+// Cápsula doble orgánica — RESEÑAS
+const ReviewEntity = memo(({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) => {
+  const s = 50 * scale;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <ellipse cx={0} cy={s * 0.85} rx={s * 0.85} ry={s * 0.13} fill="url(#contactShadow)" />
+      {/* Burbuja grande */}
+      <circle cx={-s * 0.2} cy={-s * 0.05} r={s * 0.55} fill="url(#entityGlass)" stroke="url(#bevelEdge)" strokeWidth="1.1" strokeOpacity="0.7" />
+      {/* Burbuja secundaria */}
+      <circle cx={s * 0.45} cy={s * 0.25} r={s * 0.32} fill="url(#entityGlass)" stroke="url(#bevelEdge)" strokeWidth="1" strokeOpacity="0.65" />
+      {/* Highlights */}
+      <ellipse cx={-s * 0.38} cy={-s * 0.28} rx={s * 0.13} ry={s * 0.16} fill="#FFFFFF" opacity="0.85" />
+      <ellipse cx={s * 0.35} cy={s * 0.13} rx={s * 0.07} ry={s * 0.09} fill="#FFFFFF" opacity="0.8" />
+    </g>
+  );
+});
+ReviewEntity.displayName = "ReviewEntity";
+
+// Doble plano paralelo — COMPETENCIA
+const CompetitorEntity = memo(({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) => {
+  const w = 70 * scale;
+  const h = 50 * scale;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <ellipse cx={0} cy={h * 0.85} rx={w * 0.55} ry={h * 0.13} fill="url(#contactShadow)" />
+      {/* Plano trasero */}
+      <rect x={-w * 0.35} y={-h * 0.35} width={w * 0.7} height={h * 0.75} rx={8} fill="url(#entityGlass)" stroke="url(#bevelEdge)" strokeWidth="1" strokeOpacity="0.55" opacity="0.75" />
+      {/* Plano frontal (offset) */}
+      <rect x={-w * 0.45} y={-h * 0.5} width={w * 0.7} height={h * 0.75} rx={8} fill="url(#entityGlass)" stroke="url(#bevelEdge)" strokeWidth="1.2" strokeOpacity="0.75" />
+      {/* Highlight */}
+      <rect x={-w * 0.4} y={-h * 0.45} width={w * 0.18} height={h * 0.1} rx={3} fill="#FFFFFF" opacity="0.7" />
+      {/* Línea de comparación */}
+      <line x1={-w * 0.32} y1={-h * 0.1} x2={w * 0.12} y2={-h * 0.1} stroke="#A99EFF" strokeWidth="1" strokeOpacity="0.6" />
+      <line x1={-w * 0.32} y1={h * 0.05} x2={w * 0.05} y2={h * 0.05} stroke="#2692DC" strokeWidth="1" strokeOpacity="0.55" />
+    </g>
+  );
+});
+CompetitorEntity.displayName = "CompetitorEntity";
+
+// Cinta ondulada — TENDENCIA
+const TrendEntity = memo(({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) => {
+  const w = 95 * scale;
+  const h = 38 * scale;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <ellipse cx={0} cy={h * 0.95} rx={w * 0.45} ry={h * 0.18} fill="url(#contactShadow)" />
+      <path
+        d={`M ${-w * 0.5} ${h * 0.1} C ${-w * 0.25} ${-h * 0.6}, ${w * 0.05} ${h * 0.6}, ${w * 0.5} ${-h * 0.2} L ${w * 0.5} ${h * 0.15} C ${w * 0.05} ${h * 0.95}, ${-w * 0.25} ${-h * 0.25}, ${-w * 0.5} ${h * 0.45} Z`}
+        fill="url(#entityGlass)"
+        stroke="url(#bevelEdge)"
+        strokeWidth="1.2"
+        strokeOpacity="0.7"
+      />
+      {/* Highlight runner */}
+      <path
+        d={`M ${-w * 0.5} ${-h * 0.05} C ${-w * 0.25} ${-h * 0.7}, ${w * 0.05} ${h * 0.45}, ${w * 0.5} ${-h * 0.3}`}
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth="2"
+        strokeOpacity="0.65"
+        strokeLinecap="round"
+      />
+    </g>
+  );
+});
+TrendEntity.displayName = "TrendEntity";
+
+// Eco background (entidad desenfocada)
+const EchoEntity = memo(({ x, y, r }: { x: number; y: number; r: number }) => (
+  <g filter="url(#echoBlur)" opacity="0.55">
+    <circle cx={x} cy={y} r={r} fill="url(#entityGlass)" />
+  </g>
+));
+EchoEntity.displayName = "EchoEntity";
+
+/* ═══════════════════════════════════════════════════════════════════
+   OUTPUTS CRISTALIZADOS — Artefactos premium (right rail)
+   ═══════════════════════════════════════════════════════════════════ */
+type OutputKind = "opportunity" | "insight" | "radar" | "prediction" | "risk";
+
+const OUTPUT_META: Record<OutputKind, { label: string; sub: string; accent: string }> = {
+  opportunity: { label: "Oportunidad activa", sub: "+18% potencial", accent: "#2692DC" },
+  insight: { label: "Insight crítico", sub: "Patrón detectado", accent: "#746CE6" },
+  radar: { label: "Radar competitivo", sub: "3 movimientos", accent: "#2692DC" },
+  prediction: { label: "Predicción semanal", sub: "Próx. 7 días", accent: "#746CE6" },
+  risk: { label: "Riesgo priorizado", sub: "Atención alta", accent: "#A99EFF" },
 };
 
-const SIGNALS_DESKTOP: Signal[] = [
-  { id: "s1", kind: "sales",      label: "Ventas",      path: HIGHWAY,     duration: 7.2, begin: 0.4 },
-  { id: "s2", kind: "review",     label: "Reseña",      path: ECHO_TOP,    duration: 7.6, begin: 2.1 },
-  { id: "s3", kind: "risk",       label: "Margen",      path: HIGHWAY,     duration: 7.2, begin: 3.8 },
-  { id: "s4", kind: "competitor", label: "Competencia", path: ECHO_BOTTOM, duration: 7.6, begin: 5.4 },
-  { id: "s5", kind: "trend",      label: "Tendencia",   path: ECHO_TOP,    duration: 7.6, begin: 7.0 },
-  { id: "s6", kind: "anomaly",    label: "Anomalía",    path: HIGHWAY,     duration: 7.2, begin: 8.6 },
-];
-
-const SIGNALS_MOBILE: Signal[] = [
-  { id: "m1", kind: "sales",      label: "Ventas",      path: HIGHWAY, duration: 6.6, begin: 0.4 },
-  { id: "m2", kind: "review",     label: "Reseña",      path: HIGHWAY, duration: 6.6, begin: 3.0 },
-  { id: "m3", kind: "competitor", label: "Competencia", path: HIGHWAY, duration: 6.6, begin: 5.6 },
-];
-
-/* ──────────────────────────────────────────────────────────────────────────
-   EXECUTIVE OUTPUTS (crystallized artefacts on the right side)
-   ────────────────────────────────────────────────────────────────────────── */
-
-type OutputKind = "opportunity" | "insight_critical" | "risk" | "radar" | "prediction";
-
-type OutputDef = {
-  id: string;
-  kind: OutputKind;
-  label: string;
-  detail: string;
-  icon: typeof Target;
-  x: number;
-  y: number;
-  appearAt: number;
-  size: "lg" | "md";
-};
-
-const OUTPUTS_DESKTOP: OutputDef[] = [
-  { id: "o1", kind: "opportunity",      label: "Oportunidad activa",  detail: "Mediodía rinde +23%",   icon: Target,      x: 88, y: 18, appearAt: 2.4, size: "lg" },
-  { id: "o2", kind: "insight_critical", label: "Insight crítico",     detail: "Recompra dormida",      icon: Lightbulb,   x: 92, y: 50, appearAt: 4.2, size: "lg" },
-  { id: "o3", kind: "radar",            label: "Radar competitivo",   detail: "Nueva oferta cercana",  icon: Radar,       x: 84, y: 80, appearAt: 6.0, size: "md" },
-  { id: "o4", kind: "risk",             label: "Riesgo priorizado",   detail: "Margen en 5 días",      icon: ShieldAlert, x: 70, y: 8,  appearAt: 7.6, size: "md" },
-  { id: "o5", kind: "prediction",       label: "Predicción semanal",  detail: "+18% delivery",         icon: LineChart,   x: 76, y: 92, appearAt: 9.0, size: "md" },
-];
-
-const OUTPUTS_MOBILE: OutputDef[] = [
-  { id: "om1", kind: "opportunity",      label: "Oportunidad", detail: "Mediodía +23%", icon: Target,    x: 84, y: 22, appearAt: 2.0, size: "md" },
-  { id: "om2", kind: "insight_critical", label: "Insight",     detail: "Recompra",      icon: Lightbulb, x: 88, y: 60, appearAt: 4.4, size: "md" },
-  { id: "om3", kind: "radar",            label: "Radar",       detail: "Competencia",   icon: Radar,     x: 82, y: 88, appearAt: 6.6, size: "md" },
-];
-
-/* ──────────────────────────────────────────────────────────────────────────
-   COLOR TOKENS
-   ────────────────────────────────────────────────────────────────────────── */
-
-const SIGNAL_GLOW: Record<SignalKind, string> = {
-  sales:      "hsl(204 80% 56%)",
-  risk:       "hsl(258 70% 64%)",
-  review:     "hsl(204 80% 56%)",
-  competitor: "hsl(258 70% 64%)",
-  trend:      "hsl(204 80% 56%)",
-  anomaly:    "hsl(258 70% 64%)",
-};
-
-const OUTPUT_TONE: Record<
-  OutputKind,
-  { ring: string; accent: string; chip: string; iconBg: string; iconText: string }
-> = {
-  opportunity:      { ring: "ring-primary/20", accent: "from-primary/12 via-white to-white", chip: "text-primary",  iconBg: "bg-primary/10", iconText: "text-primary"  },
-  insight_critical: { ring: "ring-accent/25",  accent: "from-accent/14 via-white to-white",  chip: "text-accent",   iconBg: "bg-accent/10",  iconText: "text-accent"   },
-  risk:             { ring: "ring-accent/25",  accent: "from-accent/12 via-white to-white",  chip: "text-accent",   iconBg: "bg-accent/10",  iconText: "text-accent"   },
-  radar:            { ring: "ring-primary/20", accent: "from-primary/10 via-white to-white", chip: "text-primary",  iconBg: "bg-primary/10", iconText: "text-primary"  },
-  prediction:       { ring: "ring-accent/20",  accent: "from-accent/10 via-white to-white",  chip: "text-accent",   iconBg: "bg-accent/10",  iconText: "text-accent"   },
-};
-
-/* ──────────────────────────────────────────────────────────────────────────
-   COMPONENT
-   ────────────────────────────────────────────────────────────────────────── */
-
-export const IntelligenceFlow = memo(() => {
-  const reduce = useReducedMotion();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const parallaxRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => setIsVisible(e.isIntersecting), { threshold: 0.05 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (reduce || isMobile || !isVisible) return;
-    const node = parallaxRef.current;
-    if (!node) return;
-
-    let raf = 0;
-    let tx = 0, ty = 0, cx = 0, cy = 0;
-
-    const tick = () => {
-      cx += (tx - cx) * 0.07;
-      cy += (ty - cy) * 0.07;
-      node.style.transform = `translate3d(${cx.toFixed(2)}px, ${cy.toFixed(2)}px, 0)`;
-      if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) raf = requestAnimationFrame(tick);
-      else raf = 0;
-    };
-
-    const onMove = (e: MouseEvent) => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      tx = ((e.clientX - rect.left) / rect.width - 0.5) * 14;
-      ty = ((e.clientY - rect.top) / rect.height - 0.5) * 12;
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [reduce, isMobile, isVisible]);
-
-  const signals = isMobile ? SIGNALS_MOBILE : SIGNALS_DESKTOP;
-  const outputs = isMobile ? OUTPUTS_MOBILE : OUTPUTS_DESKTOP;
-  const LOOP = isMobile ? 12 : 12;
-  const CORE_DIAM = isMobile ? 150 : 230;
-
+const CrystalOutput = memo(({
+  kind, top, delay = 0,
+}: { kind: OutputKind; top: string; delay?: number }) => {
+  const meta = OUTPUT_META[kind];
   return (
     <div
-      ref={containerRef}
-      className="relative w-full h-full min-h-[440px] lg:min-h-[600px] select-none pointer-events-none overflow-hidden"
-      aria-hidden="true"
+      className="absolute right-0 select-none"
+      style={{
+        top,
+        animation: `vc-float 7s ease-in-out ${delay}s infinite`,
+        willChange: "transform",
+      }}
     >
-      {/* ─── Atmospheric ambient (white-premium) ─── */}
-      <div className={`absolute -top-[8%] left-[18%] w-[68%] h-[68%] rounded-full bg-primary/[0.10] ${isMobile ? "blur-[60px]" : "blur-[150px]"}`} />
-      <div className={`absolute bottom-[-8%] right-[-6%] w-[60%] h-[60%] rounded-full bg-accent/[0.10] ${isMobile ? "blur-[55px]" : "blur-[140px]"}`} />
-
-      {/* Soft radial grid behind the core (depth) */}
-      {!isMobile && (
+      <div className="relative">
+        {/* Glow detrás de la card */}
         <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "repeating-radial-gradient(circle at 64% 53%, transparent 0, transparent 48px, hsl(var(--foreground) / 0.022) 49px, transparent 50px)",
-            maskImage: "radial-gradient(ellipse at 64% 53%, #000 8%, transparent 70%)",
-            WebkitMaskImage: "radial-gradient(ellipse at 64% 53%, #000 8%, transparent 70%)",
-          }}
+          className="absolute -inset-3 rounded-2xl blur-2xl opacity-60"
+          style={{ background: `radial-gradient(circle, ${meta.accent}33, transparent 70%)` }}
         />
-      )}
-
-      {/* ─── PARALLAX STAGE ─── */}
-      <div
-        ref={parallaxRef}
-        className="absolute inset-0"
-        style={{ willChange: reduce || isMobile ? undefined : "transform" }}
-      >
-        <svg
-          viewBox="0 0 1100 720"
-          className="absolute inset-0 w-full h-full"
-          preserveAspectRatio="xMidYMid slice"
-        >
-          <defs>
-            {/* Highway "ceramic" — thick, layered, premium white surface */}
-            <linearGradient id="hwBase" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%"  stopColor="hsl(220 24% 92%)" />
-              <stop offset="40%" stopColor="hsl(220 24% 97%)" />
-              <stop offset="100%" stopColor="hsl(244 40% 96%)" />
-            </linearGradient>
-            <linearGradient id="hwHighlight" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%"  stopColor="white" stopOpacity="0" />
-              <stop offset="50%" stopColor="white" stopOpacity="0.95" />
-              <stop offset="100%" stopColor="white" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="hwEdgeGlow" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%"  stopColor="hsl(204 80% 56%)" stopOpacity="0" />
-              <stop offset="50%" stopColor="hsl(204 80% 56%)" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="hsl(258 70% 64%)" stopOpacity="0.95" />
-            </linearGradient>
-            <linearGradient id="echoEdge" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%"  stopColor="hsl(244 60% 70%)" stopOpacity="0" />
-              <stop offset="50%" stopColor="hsl(244 60% 70%)" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="hsl(244 60% 70%)" stopOpacity="0" />
-            </linearGradient>
-
-            {/* Core radial halos */}
-            <radialGradient id="coreOuter" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"  stopColor="hsl(258 70% 64%)" stopOpacity="0.55" />
-              <stop offset="60%" stopColor="hsl(204 80% 56%)" stopOpacity="0.18" />
-              <stop offset="100%" stopColor="hsl(204 80% 56%)" stopOpacity="0" />
-            </radialGradient>
-
-            {/* Entity sculptural shine */}
-            <radialGradient id="entShine" cx="32%" cy="30%" r="65%">
-              <stop offset="0%"  stopColor="white" stopOpacity="0.95" />
-              <stop offset="45%" stopColor="white" stopOpacity="0.30" />
-              <stop offset="100%" stopColor="white" stopOpacity="0" />
-            </radialGradient>
-
-            {/* Drop shadow filter (contact shadow) */}
-            <filter id="contactShadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur in="SourceAlpha" stdDeviation="6" />
-              <feOffset dx="0" dy="10" result="off" />
-              <feComponentTransfer><feFuncA type="linear" slope="0.20" /></feComponentTransfer>
-              <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-
-            <filter id="entityShadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
-              <feOffset dx="0" dy="4" result="off" />
-              <feComponentTransfer><feFuncA type="linear" slope="0.22" /></feComponentTransfer>
-              <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-          </defs>
-
-          {/* ─── BACKGROUND echo lanes (subtle activity) ─── */}
-          <g opacity="0.65">
-            <path d={ECHO_TOP}    stroke="url(#echoEdge)" strokeWidth="14" fill="none" strokeLinecap="round" />
-            <path d={ECHO_BOTTOM} stroke="url(#echoEdge)" strokeWidth="14" fill="none" strokeLinecap="round" />
-            <path d={ECHO_TOP}    stroke="hsl(244 60% 70%)" strokeOpacity="0.35" strokeWidth="0.8" strokeDasharray="2 10" fill="none" />
-            <path d={ECHO_BOTTOM} stroke="hsl(244 60% 70%)" strokeOpacity="0.35" strokeWidth="0.8" strokeDasharray="2 10" fill="none" />
-          </g>
-
-          {/* ─── FOREGROUND highway (3D ceramic body) ─── */}
-          {/* 1. wide soft outer glow */}
-          <path d={HIGHWAY} stroke="url(#hwEdgeGlow)" strokeWidth="68" strokeOpacity="0.35" fill="none" strokeLinecap="round" />
-          {/* 2. contact shadow (under the highway) */}
-          <g filter="url(#contactShadow)">
-            <path d={HIGHWAY} stroke="hsl(220 18% 88%)" strokeWidth="40" fill="none" strokeLinecap="round" opacity="0.95" />
-          </g>
-          {/* 3. base ceramic body — thickness */}
-          <path d={HIGHWAY} stroke="url(#hwBase)" strokeWidth="40" fill="none" strokeLinecap="round" />
-          {/* 4. top highlight line — gives the "satin" 3D feel */}
-          <path d={HIGHWAY} stroke="url(#hwHighlight)" strokeWidth="6" strokeOpacity="0.85" fill="none" strokeLinecap="round" />
-          {/* 5. inner luminous edge */}
-          <path d={HIGHWAY} stroke="url(#hwEdgeGlow)" strokeWidth="2.2" strokeOpacity="0.95" fill="none" strokeLinecap="round" />
-
-          {/* Highway transformation checkpoint (premium ring station near the core) */}
-          <g transform="translate(560 380)">
-            <circle r="22" fill="white" stroke="hsl(244 60% 70% / 0.30)" strokeWidth="1" filter="url(#contactShadow)" />
-            <circle r="22" fill="none" stroke="url(#hwEdgeGlow)" strokeWidth="1.4" />
-            <circle r="6" fill="hsl(258 70% 64%)" opacity="0.85" />
-            {!reduce && isVisible && (
-              <motion.circle
-                r="22"
-                fill="none"
-                stroke="hsl(258 70% 64%)"
-                strokeWidth="1.2"
-                initial={{ scale: 1, opacity: 0 }}
-                animate={{ scale: [1, 2.4], opacity: [0.7, 0] }}
-                transition={{ duration: 3.2, repeat: Infinity, ease: "easeOut", delay: 1 }}
-              />
-            )}
-          </g>
-
-          {/* ─── CORE outer halo (in SVG, behind HTML core) ─── */}
-          <g transform={`translate(${CORE.x} ${CORE.y})`}>
-            <circle r={isMobile ? 130 : 200} fill="url(#coreOuter)" />
-            {!reduce && isVisible && [0, 1.6, 3.2].map((d, i) => (
-              <motion.circle
-                key={`pulse-${i}`}
-                r={isMobile ? 70 : 110}
-                fill="none"
-                stroke="hsl(258 70% 64%)"
-                strokeWidth="1"
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: [0.65, 1.5], opacity: [0.55, 0] }}
-                transition={{ duration: 4.5, repeat: Infinity, ease: "easeOut", delay: 1.4 + d }}
-              />
-            ))}
-          </g>
-
-          {/* ─── SIGNAL ENTITIES (sculptural, large, distinct) ─── */}
-          {!reduce && isVisible && signals.map((s) => (
-            <SignalSculpture key={s.id} signal={s} />
-          ))}
-        </svg>
-
-        {/* ─── MONUMENTAL CORE (HTML, layered glass disc with brand mark) ─── */}
-        <motion.div
-          className="absolute"
+        {/* Placa de cristal */}
+        <div
+          className="relative rounded-2xl px-4 py-3 min-w-[200px] backdrop-blur-xl"
           style={{
-            left: `${(CORE.x / 1100) * 100}%`,
-            top: `${(CORE.y / 720) * 100}%`,
-            transform: "translate(-50%, -50%)",
+            background: "linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(244,241,255,0.78) 100%)",
+            boxShadow:
+              "0 1px 0 rgba(255,255,255,0.95) inset, 0 -1px 0 rgba(180,190,220,0.25) inset, 0 18px 40px -12px rgba(74,86,140,0.28), 0 4px 12px -4px rgba(74,86,140,0.18)",
+            border: "1px solid rgba(255,255,255,0.9)",
           }}
-          initial={{ opacity: 0, scale: 0.45 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.0, delay: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
         >
-          <div className="relative" style={{ width: CORE_DIAM, height: CORE_DIAM }}>
-            {/* Layer 1 — outer dashed ring (slow rotation) */}
-            {!reduce && isVisible && (
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                style={{ border: "1px dashed hsl(var(--primary) / 0.32)" }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 56, repeat: Infinity, ease: "linear" }}
-              />
-            )}
-
-            {/* Layer 2 — solid mid ring with orbit dots */}
-            {!reduce && isVisible && (
-              <motion.div
-                className="absolute"
-                style={{
-                  inset: CORE_DIAM * 0.10,
-                  borderRadius: 9999,
-                  border: "1px solid hsl(var(--accent) / 0.30)",
-                  boxShadow: "inset 0 0 24px hsl(var(--accent) / 0.06)",
-                }}
-                animate={{ rotate: -360 }}
-                transition={{ duration: 32, repeat: Infinity, ease: "linear" }}
-              >
-                <span
-                  className="absolute w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_14px_hsl(var(--accent))]"
-                  style={{ top: -5, left: "50%", marginLeft: -5 }}
-                />
-                <span
-                  className="absolute w-2 h-2 rounded-full bg-primary shadow-[0_0_12px_hsl(var(--primary))]"
-                  style={{ bottom: -4, left: "50%", marginLeft: -4 }}
-                />
-                <span
-                  className="absolute w-1.5 h-1.5 rounded-full bg-accent/70 shadow-[0_0_10px_hsl(var(--accent))]"
-                  style={{ top: "50%", left: -3, marginTop: -3 }}
-                />
-              </motion.div>
-            )}
-
-            {/* Layer 3 — secondary fine ring (counter-rotating tick marks) */}
-            {!reduce && isVisible && (
-              <motion.div
-                className="absolute"
-                style={{
-                  inset: CORE_DIAM * 0.18,
-                  borderRadius: 9999,
-                  border: "1px solid hsl(var(--primary) / 0.18)",
-                }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-              >
-                {Array.from({ length: 12 }).map((_, i) => {
-                  const angle = (i / 12) * 360;
-                  return (
-                    <span
-                      key={i}
-                      className="absolute bg-primary/40"
-                      style={{
-                        width: 1,
-                        height: i % 3 === 0 ? 6 : 3,
-                        top: 0,
-                        left: "50%",
-                        transformOrigin: `0 ${CORE_DIAM * 0.32}px`,
-                        transform: `translateX(-50%) rotate(${angle}deg)`,
-                      }}
-                    />
-                  );
-                })}
-              </motion.div>
-            )}
-
-            {/* Layer 4 — main glass disc (the "lens" holding the brand mark) */}
-            <div
-              className="absolute rounded-full overflow-hidden flex items-center justify-center"
-              style={{
-                inset: CORE_DIAM * 0.27,
-                background:
-                  "radial-gradient(circle at 32% 28%, rgba(255,255,255,1) 0%, rgba(255,255,255,0.92) 35%, rgba(245,245,255,0.88) 100%)",
-                boxShadow:
-                  "0 40px 90px -22px hsl(var(--accent) / 0.55), 0 18px 40px -14px hsl(var(--primary) / 0.40), inset 0 2px 0 rgba(255,255,255,1), inset 0 -3px 14px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(255,255,255,0.85)",
-              }}
-            >
-              {/* Conic shimmer */}
-              {!reduce && isVisible && (
-                <motion.div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "conic-gradient(from 0deg, transparent 0deg, hsl(var(--primary) / 0.22) 60deg, transparent 120deg, transparent 240deg, hsl(var(--accent) / 0.22) 300deg, transparent 360deg)",
-                  }}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 11, repeat: Infinity, ease: "linear" }}
-                />
-              )}
-              {/* Inner specular highlight (top-left) */}
-              <span
-                className="absolute rounded-full pointer-events-none"
-                style={{
-                  inset: "8% 40% 60% 8%",
-                  background:
-                    "radial-gradient(ellipse, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 70%)",
-                  filter: "blur(6px)",
-                }}
-              />
-              {/* Brand mark */}
-              <img
-                src={vistaceoIcon}
-                alt=""
-                className="relative z-10 object-contain"
-                style={{
-                  width: "58%",
-                  height: "58%",
-                  filter: "drop-shadow(0 3px 10px hsl(var(--accent) / 0.35))",
-                }}
-                draggable={false}
-              />
-              {/* Bottom inner shadow (gives depth) */}
-              <span
-                className="absolute inset-0 rounded-full pointer-events-none"
-                style={{
-                  background:
-                    "radial-gradient(ellipse at 50% 110%, rgba(116,108,230,0.18) 0%, transparent 55%)",
-                }}
-              />
-            </div>
-
-            {/* Soft pulse glow under disc */}
-            {!reduce && isVisible && (
-              <motion.div
-                className="absolute rounded-full pointer-events-none"
-                style={{
-                  inset: CORE_DIAM * 0.20,
-                  background: "radial-gradient(circle, hsl(var(--accent) / 0.32) 0%, transparent 65%)",
-                  filter: "blur(14px)",
-                }}
-                animate={{ opacity: [0.55, 0.95, 0.55], scale: [0.95, 1.10, 0.95] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-              />
-            )}
-          </div>
-        </motion.div>
-
-        {/* ─── EXECUTIVE OUTPUTS (cristalized cards, fewer + larger + premium) ─── */}
-        {outputs.map((o) => (
-          <OutputArtefact key={o.id} output={o} reduce={!!reduce} loop={LOOP} isMobile={isMobile} />
-        ))}
-
-        {/* ─── KEY TRANSFORMATIONS (the "wow" moments — 2 cinematic beats) ─── */}
-        {!reduce && !isMobile && isVisible && (
-          <>
-            <TransformBurst x={CORE.x} y={CORE.y} delay={2.2} hue="hsl(204 80% 56%)" loop={LOOP} />
-            <TransformBurst x={CORE.x} y={CORE.y} delay={6.8} hue="hsl(258 70% 64%)" loop={LOOP} />
-          </>
-        )}
-
-        {/* Cinematic scan-line sweeping diagonally */}
-        {!reduce && !isMobile && isVisible && (
-          <motion.div
-            className="absolute pointer-events-none"
-            style={{
-              left: "30%",
-              top: "10%",
-              width: "48%",
-              height: "82%",
-              background: "linear-gradient(108deg, transparent 0%, hsl(var(--accent) / 0.12) 50%, transparent 100%)",
-              filter: "blur(14px)",
-            }}
-            initial={{ opacity: 0, x: -240 }}
-            animate={{ opacity: [0, 1, 0], x: [-240, 140, 420] }}
-            transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 3, repeatDelay: 2.2 }}
+          {/* Highlight superior (especular) */}
+          <div
+            className="absolute inset-x-3 top-0 h-px rounded-full"
+            style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,1), transparent)" }}
           />
-        )}
+          <div className="flex items-center gap-2.5">
+            {/* Indicador material */}
+            <div
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{
+                background: meta.accent,
+                boxShadow: `0 0 10px ${meta.accent}, 0 0 0 3px ${meta.accent}22`,
+              }}
+            />
+            <div className="flex flex-col">
+              <span className="text-[12.5px] font-semibold tracking-tight" style={{ color: "#1A1F36" }}>
+                {meta.label}
+              </span>
+              <span className="text-[10.5px] text-[#6E7591] font-medium">{meta.sub}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 });
+CrystalOutput.displayName = "CrystalOutput";
 
-IntelligenceFlow.displayName = "IntelligenceFlow";
-export default IntelligenceFlow;
-
-/* ════════════════════════════════════════════════════════════════════════ */
-/* SignalSculpture — large translucent 3D-ish entity with distinct morphology */
-/* ════════════════════════════════════════════════════════════════════════ */
-
-const SignalSculpture = memo(({ signal }: { signal: Signal }) => {
-  const glow = SIGNAL_GLOW[signal.kind];
+/* ═══════════════════════════════════════════════════════════════════
+   ESCENA HERO PRINCIPAL
+   ═══════════════════════════════════════════════════════════════════ */
+const IntelligenceFlow = memo(() => {
+  // viewBox cinematográfico
+  const VB_W = 900;
+  const VB_H = 700;
+  const CORE = { x: 440, y: 340, r: 130 };
 
   return (
-    <g>
-      {/* CONTACT shadow under entity */}
-      <g>
-        <ellipse rx="22" ry="6" fill={glow} fillOpacity="0.16">
-          <animateMotion dur={`${signal.duration}s`} repeatCount="indefinite" begin={`${signal.begin}s`} path={signal.path} />
-          <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.18;0.7;1" dur={`${signal.duration}s`} repeatCount="indefinite" begin={`${signal.begin}s`} />
-        </ellipse>
-      </g>
+    <div className="relative w-full h-full min-h-[560px]">
+      {/* Atmósfera ambiental: glows muy suaves detrás de toda la escena */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(60% 50% at 50% 45%, rgba(220,233,255,0.55) 0%, transparent 70%), radial-gradient(40% 40% at 70% 30%, rgba(233,228,255,0.45) 0%, transparent 75%)",
+        }}
+      />
 
-      {/* SCULPTURAL BODY — distinct per kind */}
-      <g filter="url(#entityShadow)">
-        <g>
-          {renderSculpture(signal.kind, glow)}
-          <animateMotion dur={`${signal.duration}s`} repeatCount="indefinite" begin={`${signal.begin}s`} path={signal.path} rotate="auto" />
-          <animate attributeName="opacity" values="0;1;1;0.35;0" keyTimes="0;0.16;0.62;0.78;1" dur={`${signal.duration}s`} repeatCount="indefinite" begin={`${signal.begin}s`} />
-        </g>
-      </g>
-
-      {/* FLOATING LABEL above the sculpture */}
-      <g>
-        <g transform="translate(0,-44)">
-          <rect
-            x="-44" y="-12" width="88" height="22" rx="11"
-            fill="white"
-            stroke="hsl(var(--foreground) / 0.06)"
-            filter="url(#entityShadow)"
-          />
-          <circle cx="-31" cy="0" r="3" fill={glow} />
-          <text
-            x="-22" y="3.8"
-            fontSize="11" fontFamily="ui-sans-serif, system-ui"
-            fontWeight="600" fill="hsl(var(--foreground))"
-            letterSpacing="0.2"
-          >
-            {signal.label}
-          </text>
-        </g>
-        <animateMotion dur={`${signal.duration}s`} repeatCount="indefinite" begin={`${signal.begin}s`} path={signal.path} />
-        <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.20;0.62;0.78" dur={`${signal.duration}s`} repeatCount="indefinite" begin={`${signal.begin}s`} />
-      </g>
-    </g>
-  );
-});
-SignalSculpture.displayName = "SignalSculpture";
-
-/* Distinct sculptural morphology per signal kind */
-function renderSculpture(kind: SignalKind, glow: string) {
-  const fillBase = { fill: glow, fillOpacity: 0.18 };
-  const stroke = { stroke: glow, strokeOpacity: 0.7, strokeWidth: 1.6 };
-
-  switch (kind) {
-    case "sales":
-      // Ascending elongated drop — confident upward volume
-      return (
-        <g>
-          <path d="M 0 -22 C 13 -10, 13 8, 0 22 C -13 8, -13 -10, 0 -22 Z" {...fillBase} {...stroke} />
-          <path d="M 0 -22 C 8 -14, 9 -2, 4 8" stroke="white" strokeOpacity="0.85" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-          <ellipse cx="-3" cy="-6" rx="6" ry="9" fill="url(#entShine)" />
-        </g>
-      );
-    case "risk":
-      // Tense diagonal prism — restrained, sharper
-      return (
-        <g>
-          <path d="M -16 12 L -2 -18 L 18 -2 L 6 18 Z" {...fillBase} {...stroke} />
-          <path d="M -2 -18 L 18 -2" stroke="white" strokeOpacity="0.7" strokeWidth="1.2" />
-          <ellipse cx="-2" cy="-4" rx="5" ry="7" fill="url(#entShine)" />
-          <circle cx="0" cy="0" r="3.2" fill={glow} fillOpacity="0.55" />
-        </g>
-      );
-    case "review":
-      // Two fused organic bubbles — conversational
-      return (
-        <g>
-          <ellipse cx="-9" cy="-2" rx="13" ry="11" {...fillBase} {...stroke} />
-          <ellipse cx="9" cy="3" rx="11" ry="9" {...fillBase} {...stroke} />
-          <ellipse cx="-12" cy="-6" rx="6" ry="5" fill="url(#entShine)" />
-          <ellipse cx="6" cy="0" rx="4" ry="3" fill="url(#entShine)" />
-        </g>
-      );
-    case "competitor":
-      // Two parallel translucent panels — comparison
-      return (
-        <g>
-          <rect x="-18" y="-14" width="14" height="28" rx="3.5" {...fillBase} {...stroke} />
-          <rect x="4"   y="-16" width="14" height="32" rx="3.5" {...fillBase} {...stroke} />
-          <rect x="-16" y="-12" width="6" height="14" fill="url(#entShine)" />
-          <rect x="6"   y="-14" width="6" height="14" fill="url(#entShine)" />
-        </g>
-      );
-    case "trend":
-      // Solid wave ribbon — fluid current
-      return (
-        <g>
-          <path
-            d="M -22 6 Q -11 -16, 0 0 T 22 -8"
-            fill="none"
-            stroke={glow} strokeOpacity="0.75" strokeWidth="6" strokeLinecap="round"
-          />
-          <path
-            d="M -22 6 Q -11 -16, 0 0 T 22 -8"
-            fill="none"
-            stroke="white" strokeOpacity="0.65" strokeWidth="1.6" strokeLinecap="round"
-          />
-        </g>
-      );
-    case "anomaly":
-      // Asymmetric elegant shape — singular, off-axis
-      return (
-        <g>
-          <path d="M -14 -8 L 8 -16 L 18 4 L 10 18 L -10 14 Z" {...fillBase} {...stroke} />
-          <path d="M -14 -8 L 8 -16 L 18 4" stroke="white" strokeOpacity="0.7" strokeWidth="1.2" fill="none" />
-          <circle cx="2" cy="-2" r="3" fill={glow} fillOpacity="0.6" />
-          <ellipse cx="-4" cy="-6" rx="5" ry="6" fill="url(#entShine)" />
-        </g>
-      );
-  }
-}
-
-/* ════════════════════════════════════════════════════════════════════════ */
-/* OutputArtefact — premium crystallized executive card                     */
-/* ════════════════════════════════════════════════════════════════════════ */
-
-const OutputArtefact = memo(
-  ({ output, reduce, loop, isMobile }: { output: OutputDef; reduce: boolean; loop: number; isMobile: boolean }) => {
-    const tone = OUTPUT_TONE[output.kind];
-    const Icon = output.icon;
-    const enableFloat = !reduce && !isMobile;
-    const sizeLg = output.size === "lg";
-
-    return (
-      <motion.div
-        className="absolute"
-        style={{ left: `${output.x}%`, top: `${output.y}%`, transform: "translate(-50%, -50%)" }}
-        initial={{ opacity: 0, scale: 0.55, x: -60 }}
-        animate={
-          reduce
-            ? { opacity: 1, scale: 1, x: 0 }
-            : enableFloat
-            ? {
-                opacity: [0, 1, 1, 0.9, 1],
-                scale: [0.55, 1, 1, 1, 1],
-                x: [-60, 0, 0, 0, 0],
-                y: [0, 0, -4, 4, 0],
-              }
-            : { opacity: [0, 1, 1], scale: [0.6, 1, 1], x: [-30, 0, 0] }
-        }
-        transition={
-          reduce
-            ? { duration: 0.5, delay: 0.4 + output.appearAt * 0.08 }
-            : enableFloat
-            ? {
-                duration: loop,
-                times: [0, output.appearAt / loop, 0.55, 0.78, 1],
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.4,
-              }
-            : { duration: loop, times: [0, output.appearAt / loop, 1], repeat: Infinity, ease: "easeOut", delay: 0.4 }
-        }
+      {/* SVG principal — escena escultórica */}
+      <svg
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        className="relative w-full h-full"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden="true"
       >
-        <div
-          className={`relative flex items-center gap-3 rounded-2xl bg-gradient-to-br ${tone.accent} backdrop-blur-md ring-1 ${tone.ring}`}
-          style={{
-            paddingLeft: sizeLg ? 12 : 10,
-            paddingRight: sizeLg ? 18 : 14,
-            paddingTop: sizeLg ? 11 : 9,
-            paddingBottom: sizeLg ? 11 : 9,
-            border: "1px solid rgba(255,255,255,0.85)",
-            boxShadow:
-              "0 30px 60px -22px rgba(15,23,42,0.28), 0 10px 24px -10px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,1)",
-          }}
-        >
-          {/* live status dot */}
-          {!reduce && (
-            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-              <span className={`absolute inline-flex h-full w-full rounded-full opacity-70 ${tone.iconBg} animate-ping`} />
-              <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${tone.iconBg}`}>
-                <span className={`absolute inset-0.5 rounded-full ${tone.iconText.replace("text-", "bg-")}`} />
-              </span>
-            </span>
-          )}
+        <SceneDefs />
 
-          {/* premium icon plate */}
+        {/* ─── BACKGROUND: ecos suaves desenfocados ─── */}
+        <EchoEntity x={140} y={130} r={48} />
+        <EchoEntity x={780} y={150} r={36} />
+        <EchoEntity x={760} y={580} r={42} />
+        <EchoEntity x={120} y={560} r={32} />
+        {/* Anillo orbital muy lejano */}
+        <circle
+          cx={CORE.x}
+          cy={CORE.y}
+          r={CORE.r * 2.4}
+          fill="none"
+          stroke="#C7D0EF"
+          strokeWidth="0.6"
+          strokeOpacity="0.35"
+          strokeDasharray="1 8"
+        />
+
+        {/* ─── MIDGROUND: Motor central monumental ─── */}
+        <CoreEngine cx={CORE.x} cy={CORE.y} r={CORE.r} />
+
+        {/* ─── MIDGROUND: Entidades escultóricas orbitando ─── */}
+        {/* Reseña — arriba izquierda */}
+        <ReviewEntity x={210} y={195} scale={1.05} />
+        {/* Competencia — arriba derecha */}
+        <CompetitorEntity x={680} y={210} scale={1} />
+        {/* Tendencia — derecha media */}
+        <TrendEntity x={700} y={460} scale={0.95} />
+        {/* Riesgo — izquierda media */}
+        <RiskEntity x={195} y={465} scale={1.05} />
+
+        {/* ─── FOREGROUND: Entidad protagónica (ventas) ─── */}
+        <SalesEntity x={385} y={605} scale={1.15} />
+
+        {/* Reflejo base — superficie reflectante muy sutil */}
+        <ellipse
+          cx={CORE.x}
+          cy={680}
+          rx={420}
+          ry={14}
+          fill="url(#contactShadow)"
+          opacity="0.5"
+        />
+      </svg>
+
+      {/* ─── Isotipo VISTACEO embebido en el corazón del motor ─── */}
+      <div
+        className="absolute pointer-events-none flex items-center justify-center"
+        style={{
+          left: `${(CORE.x / VB_W) * 100}%`,
+          top: `${(CORE.y / VB_H) * 100}%`,
+          transform: "translate(-50%, -50%)",
+          width: `${(CORE.r * 0.7 / VB_W) * 100}%`,
+        }}
+      >
+        <div className="relative w-full aspect-square">
+          {/* Halo detrás del logo */}
           <div
-            className={`flex items-center justify-center rounded-xl ${tone.iconBg}`}
+            className="absolute inset-0 rounded-full blur-xl"
+            style={{ background: "radial-gradient(circle, rgba(169,158,255,0.45), transparent 65%)" }}
+          />
+          <img
+            src={vistaceoIcon}
+            alt=""
+            className="relative w-full h-full object-contain"
             style={{
-              width: sizeLg ? 38 : 32,
-              height: sizeLg ? 38 : 32,
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8), inset 0 -1px 0 rgba(0,0,0,0.04)",
+              filter: "drop-shadow(0 6px 14px rgba(74,86,140,0.25)) drop-shadow(0 0 10px rgba(169,158,255,0.35))",
             }}
-          >
-            <Icon className={`${tone.iconText}`} style={{ width: sizeLg ? 18 : 16, height: sizeLg ? 18 : 16 }} strokeWidth={2.2} />
-          </div>
-
-          <div className="text-left">
-            <div className={`font-bold uppercase tracking-[0.14em] ${tone.chip}`} style={{ fontSize: sizeLg ? 9.5 : 8.5 }}>
-              {output.label}
-            </div>
-            <div className="font-semibold text-foreground whitespace-nowrap leading-tight" style={{ fontSize: sizeLg ? 13 : 11.5 }}>
-              {output.detail}
-            </div>
-          </div>
-
-          {/* Subtle inner top highlight */}
-          <span
-            className="absolute top-0 left-3 right-3 h-px rounded-full pointer-events-none"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.85), transparent)" }}
+            draggable={false}
           />
         </div>
-      </motion.div>
-    );
-  }
-);
-OutputArtefact.displayName = "OutputArtefact";
+      </div>
 
-/* ════════════════════════════════════════════════════════════════════════ */
-/* TransformBurst — the "wow" moment at the core (signal → executive output) */
-/* ════════════════════════════════════════════════════════════════════════ */
+      {/* ─── OUTPUTS CRISTALIZADOS (right rail) ─── */}
+      <div className="absolute right-2 sm:right-4 top-0 h-full pointer-events-none hidden md:block">
+        <CrystalOutput kind="opportunity" top="14%" delay={0} />
+        <CrystalOutput kind="insight" top="44%" delay={1.4} />
+        <CrystalOutput kind="prediction" top="74%" delay={2.6} />
+      </div>
 
-const TransformBurst = memo(
-  ({ x, y, delay, hue, loop }: { x: number; y: number; delay: number; hue: string; loop: number }) => {
-    return (
-      <svg
-        viewBox="0 0 1100 720"
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <g transform={`translate(${x} ${y})`}>
-          {/* Expanding refraction ring */}
-          <motion.circle
-            r="20"
-            fill="none"
-            stroke={hue}
-            strokeWidth="1.4"
-            initial={{ scale: 0.4, opacity: 0 }}
-            animate={{ scale: [0.4, 4.2], opacity: [0.85, 0] }}
-            transition={{
-              duration: 2.6,
-              times: [0, 1],
-              ease: [0.22, 1, 0.36, 1],
-              delay,
-              repeat: Infinity,
-              repeatDelay: loop - 2.6,
-            }}
-          />
-          {/* Inner flash */}
-          <motion.circle
-            r="60"
-            fill={hue}
-            fillOpacity="0.18"
-            initial={{ scale: 0.2, opacity: 0 }}
-            animate={{ scale: [0.2, 1.4, 1.6], opacity: [0, 0.9, 0] }}
-            transition={{
-              duration: 1.4,
-              times: [0, 0.4, 1],
-              ease: "easeOut",
-              delay,
-              repeat: Infinity,
-              repeatDelay: loop - 1.4,
-            }}
-          />
-          {/* Crystallization shards radiating out (4 fragments) */}
-          {[0, 90, 180, 270].map((a, i) => (
-            <motion.line
-              key={i}
-              x1="0" y1="0" x2="0" y2="-46"
-              stroke={hue}
-              strokeWidth="1.4"
-              strokeLinecap="round"
-              strokeOpacity="0.85"
-              transform={`rotate(${a + 22})`}
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: [0, 1, 1], opacity: [0, 1, 0] }}
-              transition={{
-                duration: 1.6,
-                times: [0, 0.4, 1],
-                ease: "easeOut",
-                delay: delay + 0.05 * i,
-                repeat: Infinity,
-                repeatDelay: loop - 1.6,
-              }}
-            />
-          ))}
-        </g>
-      </svg>
-    );
-  }
-);
-TransformBurst.displayName = "TransformBurst";
+      {/* ─── OUTPUTS MOBILE (mostrar 2 abajo) ─── */}
+      <div className="absolute inset-x-0 bottom-2 flex justify-center gap-3 md:hidden pointer-events-none">
+        <CrystalOutput kind="opportunity" top="0" delay={0} />
+      </div>
+
+      {/* Keyframes para float ambiental */}
+      <style>{`
+        @keyframes vc-float {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          50% { transform: translateY(-6px) translateX(-2px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [style*="vc-float"] { animation: none !important; }
+        }
+      `}</style>
+    </div>
+  );
+});
+IntelligenceFlow.displayName = "IntelligenceFlow";
+
+export default IntelligenceFlow;
