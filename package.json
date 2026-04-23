@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-blog-og-pages.mjs",
-    "build:dev": "vite build --mode development && node scripts/generate-blog-og-pages.mjs",
+    "build": "vite build && node scripts/generate-blog-og-pages.mjs && node scripts/generate-sitemap.mjs",
+    "build:dev": "vite build --mode development && node scripts/generate-blog-og-pages.mjs && node scripts/generate-sitemap.mjs",
+    "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "validate:blog": "node scripts/validate-blog-og.mjs"
