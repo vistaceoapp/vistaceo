@@ -11,6 +11,7 @@ import { Eye, EyeOff, ArrowRight, Loader2, Crown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { safeLocalStorage } from "@/lib/safe-storage";
+import iconBrand from "@/assets/brand/icon-vistaceo-new.webp";
 
 // Dashboard route constant
 const DASHBOARD_ROUTE = "/app";
