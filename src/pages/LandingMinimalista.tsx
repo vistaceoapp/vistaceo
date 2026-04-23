@@ -311,8 +311,8 @@ const HeroSection = () => {
               <h1
                 className="font-semibold text-[#0a0a0a] tracking-[-0.034em] hyphens-none"
                 style={{
-                  fontSize: "clamp(2rem, 5.2vw, 4.6rem)",
-                  lineHeight: 1.02,
+                  fontSize: "clamp(1.85rem, 5vw, 4.4rem)",
+                  lineHeight: 1.04,
                 }}
               >
                 <span className="block whitespace-nowrap">Un CEO digital con IA</span>
@@ -340,9 +340,49 @@ const HeroSection = () => {
                     paddingBottom: "0.06em",
                   }}
                 >
-                  o servicio · 24/7
+                  o servicio
+                </span>
+                <span className="flex items-center gap-3 mt-2">
+                  <span
+                    className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-white/80 bg-white/70 backdrop-blur-md shadow-[0_6px_18px_-6px_rgba(38,146,220,0.35)]"
+                    style={{ fontSize: "0.42em" }}
+                  >
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#28c840] opacity-80" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#28c840]" />
+                    </span>
+                    <span className="font-medium tracking-[0.04em] text-[#28c840] uppercase">En vivo</span>
+                  </span>
+                  <span
+                    className="font-bold tabular-nums hero-247"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                      paddingBottom: "0.06em",
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    24/7
+                  </span>
                 </span>
               </h1>
+              <style>{`
+                .hero-247 {
+                  display: inline-block;
+                  animation: hero247Pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+                  filter: drop-shadow(0 6px 22px rgba(38,146,220,0.18));
+                }
+                @keyframes hero247Pulse {
+                  0%, 100% { transform: scale(1); opacity: 1; }
+                  50%      { transform: scale(1.045); opacity: 0.92; }
+                }
+                @media (prefers-reduced-motion: reduce) {
+                  .hero-247 { animation: none; }
+                }
+              `}</style>
             </Reveal>
 
             <div className="mt-8 lg:mt-10 max-w-[600px]">
