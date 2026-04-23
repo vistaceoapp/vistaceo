@@ -715,12 +715,21 @@ const IntelligenceFlow = memo(() => {
 
   return (
     <div ref={wrapRef} className="relative w-full h-full min-h-[560px] overflow-hidden">
-      {/* Atmósfera */}
+      {/* Atmósfera — luz de estudio premium estratificada */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(60% 50% at 50% 45%, rgba(220,233,255,0.55) 0%, transparent 70%), radial-gradient(40% 40% at 70% 30%, rgba(233,228,255,0.45) 0%, transparent 75%)",
+            "radial-gradient(55% 45% at 48% 42%, rgba(220,233,255,0.65) 0%, transparent 70%), radial-gradient(38% 38% at 70% 28%, rgba(237,231,255,0.55) 0%, transparent 75%), radial-gradient(45% 35% at 30% 75%, rgba(248,245,255,0.4) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Vignette ultra-sutil para enfocar el ojo en el núcleo */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(80% 70% at 50% 50%, transparent 50%, rgba(200,210,235,0.18) 100%)",
         }}
       />
 
@@ -733,17 +742,18 @@ const IntelligenceFlow = memo(() => {
       >
         <SceneDefs />
 
-        {/* BACKGROUND */}
+        {/* BACKGROUND — ecos atmosféricos (reducidos en mobile) */}
         <g style={{ transformOrigin: "center", animation: animsActive ? "vc-bg-drift 24s ease-in-out infinite" : undefined }}>
           <EchoEntity x={140} y={130} r={48} />
           <EchoEntity x={780} y={150} r={36} />
-          <EchoEntity x={760} y={580} r={42} />
-          <EchoEntity x={120} y={560} r={32} />
+          {!isMobile && <EchoEntity x={760} y={580} r={42} />}
+          {!isMobile && <EchoEntity x={120} y={560} r={32} />}
         </g>
 
         {/* Anillo orbital lejano */}
         <g style={{ transformOrigin: `${CORE.x}px ${CORE.y}px`, animation: animsActive ? "vc-spin-rev 90s linear infinite" : undefined }}>
-          <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.4} fill="none" stroke="#C7D0EF" strokeWidth="0.6" strokeOpacity="0.35" strokeDasharray="1 8" />
+          <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.4} fill="none" stroke="#B8C2E5" strokeWidth="0.6" strokeOpacity="0.32" strokeDasharray="1 9" />
+          {!isMobile && <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.05} fill="none" stroke="#C7D0EF" strokeWidth="0.5" strokeOpacity="0.22" strokeDasharray="0.5 6" />}
         </g>
 
         {/* MOTOR — respiración + spin sutil */}
@@ -762,8 +772,10 @@ const IntelligenceFlow = memo(() => {
         {/* Beam de emergencia hacia el slot destino */}
         <EmergenceBeam core={CORE} t={beatT} slotY={SLOT_Y[currentBeat.slot]} />
 
-        {/* Reflejo base */}
-        <ellipse cx={CORE.x} cy={680} rx={420} ry={14} fill="url(#contactShadow)" opacity="0.5" />
+        {/* PISO REFLECTANTE — sutil pero esencial para sensación de objeto */}
+        <ellipse cx={CORE.x} cy={CORE.y + CORE.r + 24} rx={CORE.r * 1.2} ry={10} fill="url(#contactShadow)" opacity="0.55" />
+        <ellipse cx={CORE.x} cy={CORE.y + CORE.r + 60} rx={CORE.r * 0.85} ry={CORE.r * 0.45} fill="url(#floorReflect)" opacity="0.18" />
+        <ellipse cx={CORE.x} cy={680} rx={420} ry={14} fill="url(#contactShadow)" opacity="0.4" />
       </svg>
 
       {/* Isotipo VISTACEO — pulsa más fuerte cuando hay cristalización */}
