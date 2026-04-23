@@ -1,9 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Sparkles, ChevronDown, Target, Eye, BarChart3, AlertTriangle, Lightbulb, Zap, Radar, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useState, useRef, useEffect, memo, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect, memo, useMemo, useCallback, lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
+
+// Lazy-load the protagonist scene so it never blocks LCP / FCP
+const IntelligenceFlow = lazy(() => import("@/components/landing/IntelligenceFlow").then(m => ({ default: m.IntelligenceFlow })));
 
 // Business photos - optimized WebP at 2x carousel display size (230px)
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=230&format=webp";
