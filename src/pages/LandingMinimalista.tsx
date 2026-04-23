@@ -261,9 +261,9 @@ const HeroSection = () => {
       }} />
 
       <div className="relative z-10 max-w-[1280px] mx-auto">
-        {/* Title row with floating pills (Voxr-style) */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 lg:gap-16 items-start">
-          {/* Left: Massive title */}
+        {/* Hero: copy left + cinematic scene right */}
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-10 lg:gap-12 items-center">
+          {/* Left: Massive title + subtitle + CTA */}
           <div>
             <Reveal distance={20}>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#eaeaea] shadow-[0_2px_8px_rgba(0,0,0,0.02)] mb-6">
