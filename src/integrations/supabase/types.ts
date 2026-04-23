@@ -3970,6 +3970,15 @@ export type Database = {
           plan_id: string
         }[]
       }
+      enforce_free_limit: {
+        Args: {
+          _business_id: string
+          _extra_filter?: string
+          _limit: number
+          _table_name: string
+        }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3977,6 +3986,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_business_pro: { Args: { _business_id: string }; Returns: boolean }
     }
     Enums: {
       action_status: "pending" | "completed" | "skipped" | "snoozed"
