@@ -1,9 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Sparkles, ChevronDown, Target, Eye, BarChart3, AlertTriangle, Lightbulb, Zap, Radar, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useState, useRef, useEffect, memo, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect, memo, useMemo, useCallback, lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
+
+// Lazy-load the protagonist scene so it never blocks LCP / FCP
+const IntelligenceFlow = lazy(() => import("@/components/landing/IntelligenceFlow").then(m => ({ default: m.IntelligenceFlow })));
 
 // Business photos - optimized WebP at 2x carousel display size (230px)
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=230&format=webp";
@@ -233,62 +236,82 @@ export const HeroSection = memo(() => {
         <div className="absolute bottom-0 -right-1/4 w-[60%] h-[50%] bg-accent/10 rounded-full blur-[150px]" />
       </div>
 
-      {/* Main Hero Content - CSS animations instead of Framer Motion */}
+      {/* Main Hero Content - 2-col layout on desktop, stacked on mobile */}
       <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-5xl mx-auto text-center">
-          {/* Badge with realtime counter */}
-          <div className="mb-5 animate-fade-in-up">
-            <Badge 
-              variant="outline" 
-              className="px-4 py-1.5 border-primary/40 bg-primary/10 backdrop-blur-sm"
-            >
-              <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" aria-hidden="true" />
-              <span className="text-xs font-medium">
-                +5.000 proyectos en LATAM · <span className="inline-flex items-center gap-1"><span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" /></span>{activeUsers} activos ahora</span>
-              </span>
-            </Badge>
-          </div>
-          
-          {/* Main Headline - 2 lines: rotating top, colorful typewriter bottom */}
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center max-w-7xl mx-auto">
+          {/* LEFT: Copy + CTAs */}
+          <div className="lg:col-span-6 text-center lg:text-left">
+            {/* Badge with realtime counter */}
+            <div className="mb-5 animate-fade-in-up flex lg:justify-start justify-center">
+              <Badge
+                variant="outline"
+                className="px-4 py-1.5 border-primary/40 bg-primary/10 backdrop-blur-sm"
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" aria-hidden="true" />
+                <span className="text-xs font-medium">
+                  +5.000 proyectos en LATAM · <span className="inline-flex items-center gap-1"><span className="relative flex h-1.5 w-1.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" /><span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" /></span>{activeUsers} activos ahora</span>
+                </span>
+              </Badge>
+            </div>
+
+            {/* Main Headline */}
             <div className="mb-5 animate-fade-in-up-delay-2">
-             <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-normal tracking-tight whitespace-nowrap">
-              <span ref={topLineRef} style={{ transition: "opacity 0.3s, transform 0.3s" }}>{topInitial}</span>
-            </h1>
-            <div className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-normal tracking-tight pb-2">
-              <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} onCycleComplete={handleCycleComplete} />
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold text-foreground leading-tight tracking-tight">
+                <span ref={topLineRef} style={{ transition: "opacity 0.3s, transform 0.3s" }}>{topInitial}</span>
+              </h1>
+              <div className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-bold leading-tight tracking-tight pb-2">
+                <TypewriterText texts={["CEO digital", "mentor 24/7", "radar inteligente", "estratega IA"]} onCycleComplete={handleCycleComplete} />
+              </div>
+            </div>
+
+            {/* Subtitle */}
+            <div className="mb-6 max-w-xl mx-auto lg:mx-0 animate-fade-in-up-delay-3">
+              <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+                Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu empresa, negocio, servicio o emprendimiento.
+              </p>
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center lg:items-start lg:justify-start justify-center gap-3 mb-6 animate-fade-in-up-delay-4">
+              <ShimmerButton
+                className="px-8 py-3.5 text-base"
+                onClick={() => navigate("/auth?mode=signup")}
+                ariaLabel="Empezar gratis con VistaCEO"
+              >
+                Empezar gratis
+                <ArrowRight className="w-5 h-5" aria-hidden="true" />
+              </ShimmerButton>
+              <button
+                onClick={() => {
+                  const el = document.getElementById("capacidades");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="px-6 py-3.5 text-base font-medium text-foreground/80 hover:text-foreground rounded-full border border-foreground/15 hover:border-foreground/30 hover:bg-foreground/[0.03] transition-all"
+              >
+                Ver cómo funciona
+              </button>
+            </div>
+
+            <div className="text-xs text-muted-foreground/70 mb-5 text-center lg:text-left">
+              Gratis · Sin tarjeta · En 2 minutos
+            </div>
+
+            {/* Verified Reviews */}
+            <div className="mb-2 animate-fade-in-up-delay-5 flex lg:justify-start justify-center">
+              <VerifiedReviews />
             </div>
           </div>
-          
-          {/* Subtitle */}
-          <div className="mb-6 max-w-2xl mx-auto animate-fade-in-up-delay-3">
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-center">
-              Inteligencia artificial que <span className="text-foreground font-semibold">acelera el crecimiento</span> de tu empresa, negocio, servicio o emprendimiento.
-            </p>
-          </div>
-          
-          {/* CTA Button + Microcopy */}
-          <div className="flex flex-col items-center gap-3 mb-6 animate-fade-in-up-delay-4">
-            <ShimmerButton
-              className="px-10 py-4 text-base md:text-lg"
-              onClick={() => navigate("/auth?mode=signup")}
-              ariaLabel="Empezar gratis con VistaCEO"
-            >
-              Empezar gratis
-              <ArrowRight className="w-5 h-5" aria-hidden="true" />
-            </ShimmerButton>
-            <span className="text-xs text-muted-foreground/70">
-              Gratis · Sin tarjeta · En 2 minutos
-            </span>
-          </div>
 
-          {/* Verified Reviews - Google-style stars */}
-          <div className="mb-6 animate-fade-in-up-delay-5">
-            <VerifiedReviews />
+          {/* RIGHT: Intelligence Flow scene */}
+          <div className="lg:col-span-6 relative animate-fade-in-up-delay-3">
+            <Suspense fallback={<div className="w-full aspect-[5/4] rounded-[2rem] bg-gradient-to-br from-white to-slate-50/60 border border-foreground/5" />}>
+              <IntelligenceFlow />
+            </Suspense>
           </div>
         </div>
 
-        {/* Executive Intelligence Signal Cards */}
-        <div className="max-w-4xl mx-auto animate-fade-in-up-delay-6">
+        {/* Executive Intelligence Signal Cards - condensed below */}
+        <div className="max-w-5xl mx-auto mt-10 animate-fade-in-up-delay-6">
           <div className="text-center mb-3">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               +180 tipos de proyecto · Señales activas en tiempo real
