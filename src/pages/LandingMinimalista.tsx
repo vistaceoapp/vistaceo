@@ -375,20 +375,23 @@ const HeroSection = () => {
               `}</style>
             </Reveal>
 
-            <div className="mt-8 lg:mt-10 max-w-[600px]">
+            <div className="mt-8 lg:mt-10 max-w-[640px]">
               <Reveal delay={300} distance={18}>
-                <p className="text-[17px] lg:text-[19px] text-[#444] leading-[1.6] font-normal">
-                  VISTACEO aprende cómo opera tu empresa, detecta lo que importa y te dice exactamente qué hacer hoy para crecer — como un equipo ejecutivo trabajando para vos sin pausa.
+                <p className="text-[18px] lg:text-[21px] text-[#1a1a1a] leading-[1.55] font-normal tracking-[-0.01em]">
+                  Tu <span className="font-semibold text-[#0a0a0a]">equipo ejecutivo con IA</span>: aprende cómo opera tu negocio, detecta lo que mueve la aguja y te dice <span className="font-semibold text-[#0a0a0a]">qué hacer hoy</span> para crecer.
+                  <span className="block mt-2 text-[15px] lg:text-[16px] text-[#666] leading-[1.6]">
+                    Sin reuniones. Sin consultoras. Sin pausa.
+                  </span>
                 </p>
               </Reveal>
 
               <Reveal delay={380} distance={18}>
-                <div className="flex flex-wrap items-center gap-3 mt-8">
+                <div className="flex flex-wrap items-center gap-3 mt-9">
                   <button
                     onClick={() => navigate("/auth?mode=signup")}
-                    className="group flex items-center gap-2 pl-6 pr-2 py-2 rounded-full bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] transition-all duration-300 active:scale-[0.98] shadow-[0_12px_32px_-10px_rgba(0,0,0,0.5)]"
+                    className="group relative flex items-center gap-2 pl-6 pr-2 py-2 rounded-full bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] transition-all duration-300 active:scale-[0.98] shadow-[0_14px_36px_-10px_rgba(0,0,0,0.55)] hover:shadow-[0_18px_44px_-10px_rgba(38,146,220,0.45)]"
                   >
-                    <span className="text-[14.5px] font-medium">Empezar gratis</span>
+                    <span className="text-[14.5px] font-medium tracking-[-0.005em]">Empezar gratis</span>
                     <span
                       className="w-9 h-9 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5"
                       style={{ background: ACCENT_GRADIENT }}
@@ -402,16 +405,35 @@ const HeroSection = () => {
                       const el = document.querySelector("#producto");
                       if (el) el.scrollIntoView({ behavior: "smooth" });
                     }}
-                    className="text-[14px] text-[#555] hover:text-[#111] px-5 py-3 rounded-full transition-colors border border-white/80 bg-white/60 hover:bg-white/90 backdrop-blur-sm"
+                    className="group flex items-center gap-1.5 text-[14px] text-[#444] hover:text-[#0a0a0a] px-5 py-3 rounded-full transition-all duration-300 border border-black/[0.08] bg-white/70 hover:bg-white hover:border-black/[0.14] backdrop-blur-md hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.18)]"
                   >
-                    Conocer la plataforma
+                    <span className="font-medium">Ver cómo funciona</span>
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-y-0.5" />
                   </button>
                 </div>
 
-                <p className="text-[12px] text-[#888] mt-5 flex items-center gap-4 flex-wrap">
-                  <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#28c840]" /> Sin tarjeta de crédito</span>
-                  <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#2692DC]" /> Activo en minutos</span>
-                </p>
+                <div className="mt-6 flex items-center gap-4 sm:gap-5 flex-wrap">
+                  <span className="flex items-center gap-1.5 text-[12.5px] text-[#666]">
+                    <span className="w-4 h-4 rounded-full bg-[#28c840]/10 flex items-center justify-center">
+                      <CheckCircle2 className="w-3 h-3 text-[#28c840]" strokeWidth={2.5} />
+                    </span>
+                    Gratis para siempre
+                  </span>
+                  <span className="hidden sm:block w-px h-3 bg-black/10" />
+                  <span className="flex items-center gap-1.5 text-[12.5px] text-[#666]">
+                    <span className="w-4 h-4 rounded-full bg-[#2692DC]/10 flex items-center justify-center">
+                      <Clock className="w-3 h-3 text-[#2692DC]" strokeWidth={2.5} />
+                    </span>
+                    Listo en 2 minutos
+                  </span>
+                  <span className="hidden sm:block w-px h-3 bg-black/10" />
+                  <span className="flex items-center gap-1.5 text-[12.5px] text-[#666]">
+                    <span className="w-4 h-4 rounded-full bg-[#746CE6]/10 flex items-center justify-center">
+                      <Sparkles className="w-3 h-3 text-[#746CE6]" strokeWidth={2.5} />
+                    </span>
+                    Sin tarjeta
+                  </span>
+                </div>
               </Reveal>
             </div>
           </div>
