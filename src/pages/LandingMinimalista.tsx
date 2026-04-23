@@ -315,23 +315,10 @@ const HeroSection = () => {
                   lineHeight: 1.06,
                 }}
               >
-                <span className="block whitespace-nowrap">
-                  Un CEO digital con{" "}
-                  <span
-                    className="hero-ia-text"
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    IA
-                  </span>
-                </span>
+                <span className="block">Tu empresa,</span>
+                <span className="block mt-1">impulsada por un</span>
                 <span
-                  className="block mt-1 whitespace-nowrap"
+                  className="block mt-1"
                   style={{
                     backgroundImage:
                       "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
@@ -339,12 +326,10 @@ const HeroSection = () => {
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
                     paddingBottom: "0.06em",
+                    filter: "drop-shadow(0 4px 14px rgba(38,146,220,0.18))",
                   }}
                 >
-                  impulsando tu negocio o servicio
-                </span>
-                <span className="block mt-1 hero-sin-descanso">
-                  sin descanso
+                  CEO digital con IA.
                 </span>
               </h1>
               <style>{`
