@@ -89,15 +89,15 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
 
   return (
     <Helmet>
-      {/* Basic meta */}
-      <title>{post.meta_title || post.title}</title>
+      {/* Basic meta — full title, no suffix, no truncation */}
+      <title>{shareTitle}</title>
       <meta name="description" content={post.meta_description || post.excerpt || ''} />
       <link rel="canonical" href={post.canonical_url || canonicalUrl} />
 
       {/* Open Graph - CRITICAL for LinkedIn/Social sharing */}
       <meta property="og:type" content="article" />
       <meta property="og:site_name" content="VISTACEO" />
-      <meta property="og:title" content={post.meta_title || post.title} />
+      <meta property="og:title" content={shareTitle} />
       <meta property="og:description" content={post.meta_description || post.excerpt || ''} />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:image" content={ogImage} />
@@ -111,7 +111,7 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@vistaceo" />
-      <meta name="twitter:title" content={post.meta_title || post.title} />
+      <meta name="twitter:title" content={shareTitle} />
       <meta name="twitter:description" content={post.meta_description || post.excerpt || ''} />
       <meta name="twitter:image" content={ogImage} />
 
