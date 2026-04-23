@@ -18,7 +18,7 @@ import { MockupProPredictions } from "@/components/landing/mockups/MockupProPred
 import { MockupProInsights } from "@/components/landing/mockups/MockupProInsights";
 import { MockupProCompetitors } from "@/components/landing/mockups/MockupProCompetitors";
 import { CapabilitiesShowcase } from "@/components/landing/CapabilitiesShowcase";
-import IntelligenceFlow from "@/components/landing/IntelligenceFlow";
+import HeroOrb from "@/components/landing/HeroOrb";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
