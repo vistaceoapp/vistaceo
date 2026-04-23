@@ -48,7 +48,7 @@ const Card = ({
 
 // 1. Radar de oportunidades — línea punteada con dot que viaja al cerebro
 const RadarVisual = () => (
-  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
+  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
     <defs>
       <linearGradient id="cap-line" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0%" stopColor={BRAND} stopOpacity="0.2" />
@@ -88,7 +88,7 @@ const RadarVisual = () => (
 
 // 2. Timeline de misiones con check
 const MissionsVisual = () => (
-  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
+  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
     <line x1="40" y1="70" x2="240" y2="70" stroke="#e5e5e5" strokeWidth="1.5" strokeDasharray="4 4" />
     <circle cx="80" cy="70" r="14" fill="#f3f4f6" stroke="#e5e5e5" strokeWidth="1.5" />
     <text x="80" y="74" textAnchor="middle" fontSize="11" fill="#999" fontWeight="600">1</text>
@@ -110,7 +110,7 @@ const MissionsVisual = () => (
 
 // 3. Speed / IA — rayo con destello
 const SpeedVisual = () => (
-  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
+  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
     <motion.line
       x1="40" y1="70" x2="240" y2="70"
       stroke={BRAND} strokeWidth="2" strokeLinecap="round"
@@ -220,7 +220,7 @@ const ForecastVisual = () => (
 
 // 5. Analytics — curva animada con dot pulsante
 const AnalyticsVisual = () => (
-  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
+  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
     <defs>
       <linearGradient id="cap-area" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stopColor={BRAND} stopOpacity="0.3" />
