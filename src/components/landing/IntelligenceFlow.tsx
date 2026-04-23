@@ -364,44 +364,94 @@ const CrystalOutput = memo(({
       style={{
         top,
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateX(0) scale(1)" : "translateX(28px) scale(0.94)",
-        transition: "opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
+        transform: visible ? "translateX(0) scale(1)" : "translateX(36px) scale(0.92)",
+        transition: "opacity 800ms cubic-bezier(0.22, 1, 0.36, 1), transform 1100ms cubic-bezier(0.22, 1, 0.36, 1)",
         willChange: "transform, opacity",
       }}
     >
-      <div className="relative" style={{ animation: visible ? "vc-float 7s ease-in-out infinite" : undefined }}>
+      <div className="relative" style={{ animation: visible ? "vc-float 8s ease-in-out infinite" : undefined }}>
+        {/* Halo de glow accent */}
         <div
-          className="absolute -inset-3 rounded-2xl blur-2xl opacity-60"
-          style={{ background: `radial-gradient(circle, ${meta.accent}33, transparent 70%)` }}
+          className="absolute -inset-4 rounded-[22px] blur-2xl opacity-70"
+          style={{ background: `radial-gradient(60% 60% at 30% 30%, ${meta.accent}38, transparent 70%)` }}
         />
+        {/* Sombra de contacto bajo el artefacto */}
         <div
-          className="relative rounded-2xl px-4 py-3 min-w-[200px] backdrop-blur-xl"
+          className="absolute -bottom-3 left-3 right-3 h-3 rounded-full blur-md opacity-60"
+          style={{ background: "radial-gradient(50% 100% at 50% 0%, rgba(74,86,140,0.35), transparent 70%)" }}
+        />
+
+        {/* PLACA DE CRISTAL — artefacto premium */}
+        <div
+          className="relative rounded-[18px] pl-3 pr-4 py-3 min-w-[218px] backdrop-blur-2xl overflow-hidden"
           style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.94) 0%, rgba(244,241,255,0.8) 100%)",
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(248,245,255,0.88) 50%, rgba(232,235,247,0.82) 100%)",
             boxShadow:
-              "0 1px 0 rgba(255,255,255,0.95) inset, 0 -1px 0 rgba(180,190,220,0.25) inset, 0 18px 40px -12px rgba(74,86,140,0.28), 0 4px 12px -4px rgba(74,86,140,0.18)",
-            border: "1px solid rgba(255,255,255,0.9)",
+              "0 1px 0 rgba(255,255,255,1) inset, 0 -1px 0 rgba(160,172,205,0.35) inset, 0 0 0 1px rgba(255,255,255,0.7) inset, 0 22px 48px -14px rgba(60,72,120,0.32), 0 8px 18px -6px rgba(60,72,120,0.22), 0 2px 4px -1px rgba(60,72,120,0.12)",
+            border: "1px solid rgba(255,255,255,0.92)",
           }}
         >
+          {/* Top edge — luz especular superior */}
           <div
-            className="absolute inset-x-3 top-0 h-px rounded-full"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,1), transparent)" }}
+            className="absolute inset-x-4 top-0 h-px rounded-full"
+            style={{ background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,1) 50%, transparent 100%)" }}
           />
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{
-                background: meta.accent,
-                boxShadow: `0 0 10px ${meta.accent}, 0 0 0 3px ${meta.accent}22`,
-              }}
-            />
-            <div className="flex flex-col">
-              <span className="text-[12.5px] font-semibold tracking-tight" style={{ color: "#1A1F36" }}>
+          {/* Iridiscencia interior — refracción sutil */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-50"
+            style={{
+              background: `radial-gradient(80% 50% at 0% 0%, ${meta.accent}14, transparent 60%)`,
+            }}
+          />
+          {/* Specular highlight diagonal */}
+          <div
+            className="absolute -top-4 -left-2 w-24 h-12 rotate-[-18deg] opacity-60 pointer-events-none"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, transparent 70%)",
+              borderRadius: "50%",
+              filter: "blur(8px)",
+            }}
+          />
+
+          <div className="relative flex items-center gap-3">
+            {/* Indicador cristalizado — pequeña gema con bisel */}
+            <div className="relative shrink-0" style={{ width: 14, height: 14 }}>
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: `radial-gradient(circle at 30% 25%, #FFFFFF 0%, ${meta.accent} 60%, ${meta.accent} 100%)`,
+                  boxShadow: `0 0 14px ${meta.accent}, 0 0 0 3px ${meta.accent}1f, inset 0 1px 0 rgba(255,255,255,0.7)`,
+                }}
+              />
+              <div
+                className="absolute rounded-full"
+                style={{
+                  top: 2,
+                  left: 3,
+                  width: 4,
+                  height: 4,
+                  background: "rgba(255,255,255,0.95)",
+                  filter: "blur(0.4px)",
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="text-[13px] font-semibold tracking-tight truncate" style={{ color: "#161B33", letterSpacing: "-0.01em" }}>
                 {meta.label}
               </span>
-              <span className="text-[10.5px] text-[#6E7591] font-medium">{meta.sub}</span>
+              <span className="text-[10.5px] font-medium tracking-wide" style={{ color: "#6F7799" }}>
+                {meta.sub}
+              </span>
             </div>
           </div>
+
+          {/* Bottom rim — sutil sombra de espesor */}
+          <div
+            className="absolute inset-x-3 bottom-0 h-px rounded-full opacity-70"
+            style={{ background: "linear-gradient(90deg, transparent, rgba(140,150,185,0.5), transparent)" }}
+          />
         </div>
       </div>
     </div>
