@@ -1,50 +1,98 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { TrendingUp, Eye, Target, AlertTriangle, Lightbulb, Sparkles } from "lucide-react";
+import { TrendingUp, Target, AlertTriangle, Lightbulb, Sparkles, Zap } from "lucide-react";
 
 /**
- * IntelligenceFlow — Escena ambient del hero VISTACEO.
+ * IntelligenceFlow — Escena cinematográfica del hero VISTACEO.
  *
- * Sin cuadro contenedor: la escena vive integrada en el hero,
- * con glows etéreos, una trayectoria curva de señales y outputs
- * ejecutivos que aparecen flotando sobre el fondo blanco.
+ * Narrativa visual:
+ *  1. Señales caóticas (datos crudos) entran desde la izquierda
+ *  2. Convergen en ríos curvos hacia el núcleo VISTACEO
+ *  3. El núcleo "respira" y emite outputs ejecutivos legibles
+ *  4. Los outputs flotan a la derecha como decisiones accionables
  *
- * Optimizada para 60fps:
- *  - Parallax via transform directo (sin React state en mousemove)
- *  - IntersectionObserver: pausa cuando no es visible
- *  - Detección mobile: menos chips, menos partículas, sin backdrop-blur
- *  - GPU-friendly: solo transform/opacity
+ * Optimizada 60fps:
+ *  - Parallax via rAF + transform directo
+ *  - IntersectionObserver pausa cuando off-screen
+ *  - Mobile: menos partículas, sin parallax, blurs reducidos
+ *  - GPU-only: transform/opacity
  *  - Respeta prefers-reduced-motion
  */
 
-const CHAOS_CHIPS_DESKTOP = [
-  { label: "ventas", x: 2, y: 14 },
-  { label: "caja", x: 0, y: 36 },
-  { label: "clientes", x: 4, y: 58 },
-  { label: "competencia", x: 1, y: 80 },
-  { label: "tendencias", x: 6, y: 26 },
+const SIGNAL_CHIPS_DESKTOP = [
+  { label: "ventas hoy", x: 1, y: 12, hue: "primary" },
+  { label: "ticket promedio", x: -2, y: 30, hue: "accent" },
+  { label: "reseñas nuevas", x: 3, y: 48, hue: "primary" },
+  { label: "competencia", x: 0, y: 66, hue: "accent" },
+  { label: "tendencia semanal", x: 4, y: 82, hue: "primary" },
+  { label: "margen", x: -1, y: 22, hue: "accent" },
 ];
 
-const CHAOS_CHIPS_MOBILE = [
-  { label: "ventas", x: 2, y: 18 },
-  { label: "clientes", x: 0, y: 50 },
-  { label: "competencia", x: 4, y: 78 },
+const SIGNAL_CHIPS_MOBILE = [
+  { label: "ventas", x: 2, y: 16, hue: "primary" },
+  { label: "clientes", x: 0, y: 46, hue: "accent" },
+  { label: "competencia", x: 4, y: 76, hue: "primary" },
 ];
 
 const OUTPUT_CARDS = [
-  { icon: Lightbulb, label: "Insight", title: "Mediodía rinde +23%", color: "primary", x: 78, y: 10, delay: 2.2 },
-  { icon: Target, label: "Prioridad", title: "Activar recompra", color: "accent", x: 86, y: 30, delay: 2.5 },
-  { icon: AlertTriangle, label: "Riesgo", title: "Margen en 5 días", color: "warning", x: 74, y: 52, delay: 2.8 },
-  { icon: TrendingUp, label: "Oportunidad", title: "Delivery premium", color: "primary", x: 88, y: 72, delay: 3.1 },
-  { icon: Eye, label: "Predicción", title: "Demanda alta jue.", color: "accent", x: 76, y: 90, delay: 3.4 },
+  {
+    icon: Lightbulb,
+    label: "Insight",
+    title: "Mediodía rinde +23%",
+    detail: "Reasigná staff",
+    color: "primary",
+    x: 80,
+    y: 8,
+    delay: 2.4,
+  },
+  {
+    icon: Target,
+    label: "Acción prioritaria",
+    title: "Activá recompra",
+    detail: "142 clientes inactivos",
+    color: "accent",
+    x: 88,
+    y: 30,
+    delay: 2.7,
+  },
+  {
+    icon: AlertTriangle,
+    label: "Riesgo detectado",
+    title: "Margen cae en 5 días",
+    detail: "Revisá costos",
+    color: "warning",
+    x: 76,
+    y: 54,
+    delay: 3.0,
+  },
+  {
+    icon: TrendingUp,
+    label: "Oportunidad",
+    title: "Delivery premium",
+    detail: "+18% proyectado",
+    color: "primary",
+    x: 90,
+    y: 76,
+    delay: 3.3,
+  },
 ];
 
-const FLOW_PATH = "M 20 220 C 160 70, 300 360, 440 210 S 680 90, 800 200";
+// Tres rivers que convergen al núcleo (~560,220) y tres que salen
+const RIVER_IN_PATHS = [
+  "M -20 80 C 140 100, 280 180, 540 220",
+  "M -20 220 C 160 230, 320 220, 540 220",
+  "M -20 360 C 140 340, 300 260, 540 220",
+];
+const RIVER_OUT_PATHS = [
+  "M 580 220 C 700 180, 760 120, 860 90",
+  "M 580 220 C 720 220, 800 230, 860 240",
+  "M 580 220 C 700 270, 760 330, 860 360",
+];
 
-const colorMap: Record<string, { bg: string; text: string; ring: string }> = {
-  primary: { bg: "bg-primary/10", text: "text-primary", ring: "ring-primary/15" },
-  accent: { bg: "bg-accent/10", text: "text-accent", ring: "ring-accent/15" },
-  warning: { bg: "bg-warning/10", text: "text-warning", ring: "ring-warning/15" },
+const colorMap: Record<string, { bg: string; text: string; ring: string; dot: string }> = {
+  primary: { bg: "bg-primary/10", text: "text-primary", ring: "ring-primary/15", dot: "bg-primary" },
+  accent: { bg: "bg-accent/10", text: "text-accent", ring: "ring-accent/15", dot: "bg-accent" },
+  warning: { bg: "bg-warning/10", text: "text-warning", ring: "ring-warning/15", dot: "bg-warning" },
 };
 
 export const IntelligenceFlow = memo(() => {
@@ -65,10 +113,7 @@ export const IntelligenceFlow = memo(() => {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.05 }
-    );
+    const obs = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), { threshold: 0.05 });
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
@@ -79,14 +124,11 @@ export const IntelligenceFlow = memo(() => {
     if (!node) return;
 
     let raf = 0;
-    let tx = 0;
-    let ty = 0;
-    let cx = 0;
-    let cy = 0;
+    let tx = 0, ty = 0, cx = 0, cy = 0;
 
     const tick = () => {
-      cx += (tx - cx) * 0.08;
-      cy += (ty - cy) * 0.08;
+      cx += (tx - cx) * 0.07;
+      cy += (ty - cy) * 0.07;
       node.style.transform = `translate3d(${cx.toFixed(2)}px, ${cy.toFixed(2)}px, 0)`;
       if (Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05) {
         raf = requestAnimationFrame(tick);
@@ -96,8 +138,8 @@ export const IntelligenceFlow = memo(() => {
     };
 
     const onMove = (e: MouseEvent) => {
-      tx = (e.clientX / window.innerWidth - 0.5) * 10;
-      ty = (e.clientY / window.innerHeight - 0.5) * 10;
+      tx = (e.clientX / window.innerWidth - 0.5) * 12;
+      ty = (e.clientY / window.innerHeight - 0.5) * 12;
       if (!raf) raf = requestAnimationFrame(tick);
     };
 
@@ -108,183 +150,306 @@ export const IntelligenceFlow = memo(() => {
     };
   }, [reduce, isMobile, isVisible]);
 
-  const chips = isMobile ? CHAOS_CHIPS_MOBILE : CHAOS_CHIPS_DESKTOP;
-  const particleCount = isMobile ? 2 : 4;
-  const particleDelays = particleCount === 2 ? [0, 2.2] : [0, 1.1, 2.2, 3.3];
+  const chips = isMobile ? SIGNAL_CHIPS_MOBILE : SIGNAL_CHIPS_DESKTOP;
+  const inParticles = isMobile ? [0, 1.6] : [0, 0.8, 1.6, 2.4];
+  const outParticles = isMobile ? [3.2] : [3.2, 4.0, 4.8];
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-h-[440px] lg:min-h-[560px] select-none pointer-events-none"
+      className="relative w-full h-full min-h-[460px] lg:min-h-[600px] select-none pointer-events-none"
       aria-hidden="true"
     >
-      {/* Ambient glows — sin contenedor, fundidos al hero blanco */}
+      {/* ─── Ambient glows ─── */}
       <div
-        className={`absolute -top-32 right-[-10%] w-[70%] h-[70%] rounded-full bg-primary/[0.10] ${
-          isMobile ? "blur-[70px]" : "blur-[140px]"
+        className={`absolute top-[8%] left-[42%] w-[55%] h-[55%] rounded-full bg-primary/[0.13] ${
+          isMobile ? "blur-[60px]" : "blur-[150px]"
         }`}
       />
       <div
-        className={`absolute -bottom-24 right-[10%] w-[55%] h-[55%] rounded-full bg-accent/[0.10] ${
-          isMobile ? "blur-[60px]" : "blur-[130px]"
+        className={`absolute bottom-[5%] right-[5%] w-[50%] h-[50%] rounded-full bg-accent/[0.12] ${
+          isMobile ? "blur-[55px]" : "blur-[140px]"
         }`}
       />
       <div
-        className={`absolute top-[20%] left-[5%] w-[40%] h-[40%] rounded-full bg-primary/[0.06] ${
-          isMobile ? "blur-[50px]" : "blur-[110px]"
+        className={`absolute top-[30%] left-[2%] w-[35%] h-[35%] rounded-full bg-primary/[0.05] ${
+          isMobile ? "blur-[45px]" : "blur-[110px]"
         }`}
       />
 
-      {/* Parallax layer */}
+      {/* ─── Parallax stage ─── */}
       <div
         ref={parallaxRef}
         className="absolute inset-0"
         style={{ willChange: reduce || isMobile ? undefined : "transform" }}
       >
         <svg
-          viewBox="0 0 820 440"
+          viewBox="0 0 880 440"
           className="absolute inset-0 w-full h-full"
           preserveAspectRatio="xMidYMid meet"
         >
           <defs>
-            <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            {/* River gradient: faint → bright → faint */}
+            <linearGradient id="riverIn" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="hsl(204 72% 50%)" stopOpacity="0" />
-              <stop offset="35%" stopColor="hsl(204 72% 50%)" stopOpacity="0.5" />
-              <stop offset="65%" stopColor="hsl(244 68% 66%)" stopOpacity="0.5" />
+              <stop offset="40%" stopColor="hsl(204 72% 50%)" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="hsl(244 68% 66%)" stopOpacity="0.85" />
+            </linearGradient>
+            <linearGradient id="riverOut" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="hsl(244 68% 66%)" stopOpacity="0.85" />
+              <stop offset="60%" stopColor="hsl(244 68% 66%)" stopOpacity="0.45" />
               <stop offset="100%" stopColor="hsl(244 68% 66%)" stopOpacity="0" />
             </linearGradient>
-            <linearGradient id="flowGradSoft" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="riverHalo" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="hsl(204 72% 50%)" stopOpacity="0" />
-              <stop offset="50%" stopColor="hsl(244 68% 66%)" stopOpacity="0.14" />
+              <stop offset="50%" stopColor="hsl(244 68% 66%)" stopOpacity="0.10" />
               <stop offset="100%" stopColor="hsl(244 68% 66%)" stopOpacity="0" />
             </linearGradient>
-            <radialGradient id="coreGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="hsl(204 72% 60%)" stopOpacity="0.7" />
-              <stop offset="50%" stopColor="hsl(244 68% 66%)" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="hsl(244 68% 66%)" stopOpacity="0" />
+            {/* Core radial */}
+            <radialGradient id="coreHalo" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="hsl(244 68% 66%)" stopOpacity="0.55" />
+              <stop offset="55%" stopColor="hsl(204 72% 50%)" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="hsl(204 72% 50%)" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="coreSphere" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="60%" stopColor="hsl(244 80% 96%)" />
+              <stop offset="100%" stopColor="hsl(244 60% 88%)" />
             </radialGradient>
           </defs>
 
-          {/* Wide soft halo */}
-          <path
-            d={FLOW_PATH}
-            stroke="url(#flowGradSoft)"
-            strokeWidth="42"
-            fill="none"
-            strokeLinecap="round"
-          />
+          {/* Wide soft halos (rivers IN) */}
+          {RIVER_IN_PATHS.map((d, i) => (
+            <path key={`hi-${i}`} d={d} stroke="url(#riverHalo)" strokeWidth="34" fill="none" strokeLinecap="round" />
+          ))}
+          {/* Wide soft halos (rivers OUT) */}
+          {RIVER_OUT_PATHS.map((d, i) => (
+            <path key={`ho-${i}`} d={d} stroke="url(#riverHalo)" strokeWidth="30" fill="none" strokeLinecap="round" />
+          ))}
 
-          {/* Main trajectory */}
-          <motion.path
-            d={FLOW_PATH}
-            stroke="url(#flowGrad)"
-            strokeWidth="1.4"
-            fill="none"
-            strokeLinecap="round"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: reduce ? 0.6 : 0.8 }}
-            transition={{ duration: 1.6, ease: "easeInOut" }}
-          />
+          {/* Main rivers IN */}
+          {RIVER_IN_PATHS.map((d, i) => (
+            <motion.path
+              key={`ri-${i}`}
+              d={d}
+              stroke="url(#riverIn)"
+              strokeWidth={i === 1 ? 1.6 : 1.2}
+              fill="none"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: reduce ? 0.55 : 0.82 }}
+              transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 + i * 0.12 }}
+            />
+          ))}
 
-          {/* Dashed echo */}
-          <motion.path
-            d={FLOW_PATH}
-            stroke="hsl(244 68% 66%)"
-            strokeWidth="0.7"
-            strokeDasharray="2 9"
-            fill="none"
-            opacity="0.28"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 2.2, ease: "easeInOut", delay: 0.2 }}
-          />
+          {/* Main rivers OUT */}
+          {RIVER_OUT_PATHS.map((d, i) => (
+            <motion.path
+              key={`ro-${i}`}
+              d={d}
+              stroke="url(#riverOut)"
+              strokeWidth={i === 1 ? 1.6 : 1.2}
+              fill="none"
+              strokeLinecap="round"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: reduce ? 0.55 : 0.82 }}
+              transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 1.6 + i * 0.1 }}
+            />
+          ))}
 
-          {/* Particles */}
+          {/* Dashed echoes */}
           {!reduce &&
-            isVisible &&
-            particleDelays.map((delay, i) => (
-              <circle
-                key={i}
-                r={i % 2 === 0 ? 3 : 2.2}
-                fill={i % 2 === 0 ? "hsl(204 72% 50%)" : "hsl(244 68% 66%)"}
-                opacity="0.9"
-              >
-                <animateMotion dur="5s" repeatCount="indefinite" begin={`${delay}s`} path={FLOW_PATH} rotate="auto" />
-                <animate attributeName="opacity" values="0;0.95;0.95;0" dur="5s" repeatCount="indefinite" begin={`${delay}s`} />
-              </circle>
+            RIVER_IN_PATHS.map((d, i) => (
+              <motion.path
+                key={`di-${i}`}
+                d={d}
+                stroke="hsl(244 68% 66%)"
+                strokeWidth="0.6"
+                strokeDasharray="2 8"
+                fill="none"
+                opacity="0.22"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 2.4, ease: "easeInOut", delay: 0.4 + i * 0.1 }}
+              />
             ))}
 
-          {/* Core node */}
-          <g transform="translate(560 200)">
+          {/* Particles flowing IN */}
+          {!reduce &&
+            isVisible &&
+            inParticles.map((delay, i) => {
+              const path = RIVER_IN_PATHS[i % RIVER_IN_PATHS.length];
+              const isPrim = i % 2 === 0;
+              return (
+                <circle
+                  key={`pi-${i}`}
+                  r={isPrim ? 2.8 : 2.2}
+                  fill={isPrim ? "hsl(204 72% 50%)" : "hsl(244 68% 66%)"}
+                  opacity="0"
+                >
+                  <animateMotion dur="4.5s" repeatCount="indefinite" begin={`${1.8 + delay}s`} path={path} rotate="auto" />
+                  <animate
+                    attributeName="opacity"
+                    values="0;0.95;0.95;0"
+                    dur="4.5s"
+                    repeatCount="indefinite"
+                    begin={`${1.8 + delay}s`}
+                  />
+                </circle>
+              );
+            })}
+
+          {/* Particles flowing OUT */}
+          {!reduce &&
+            isVisible &&
+            outParticles.map((delay, i) => {
+              const path = RIVER_OUT_PATHS[i % RIVER_OUT_PATHS.length];
+              return (
+                <circle key={`po-${i}`} r="2.4" fill="hsl(244 68% 66%)" opacity="0">
+                  <animateMotion dur="3.8s" repeatCount="indefinite" begin={`${delay}s`} path={path} rotate="auto" />
+                  <animate
+                    attributeName="opacity"
+                    values="0;1;1;0"
+                    dur="3.8s"
+                    repeatCount="indefinite"
+                    begin={`${delay}s`}
+                  />
+                </circle>
+              );
+            })}
+
+          {/* ─── CORE NODE: VISTACEO ─── */}
+          <g transform="translate(560 220)">
+            {/* Outer breathing halo */}
             {!reduce && (
               <motion.circle
-                r="56"
-                fill="url(#coreGrad)"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={isVisible ? { scale: [0.85, 1.12, 0.95], opacity: [0.35, 0.65, 0.45] } : { scale: 0.95, opacity: 0.45 }}
-                transition={{ duration: 4, repeat: isVisible ? Infinity : 0, ease: "easeInOut", delay: 1.6 }}
+                r="78"
+                fill="url(#coreHalo)"
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={
+                  isVisible
+                    ? { scale: [0.92, 1.15, 0.92], opacity: [0.4, 0.75, 0.4] }
+                    : { scale: 1, opacity: 0.5 }
+                }
+                transition={{ duration: 4.5, repeat: isVisible ? Infinity : 0, ease: "easeInOut", delay: 1.4 }}
               />
             )}
+            {/* Mid pulse ring */}
+            {!reduce && isVisible && (
+              <motion.circle
+                r="40"
+                fill="none"
+                stroke="hsl(244 68% 66%)"
+                strokeWidth="1"
+                initial={{ scale: 0.7, opacity: 0 }}
+                animate={{ scale: [0.85, 1.4, 1.4], opacity: [0.6, 0, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeOut", delay: 2 }}
+              />
+            )}
+            {/* Static thin ring */}
             <motion.circle
-              r="13"
-              fill="white"
-              stroke="hsl(204 72% 50%)"
-              strokeWidth="1.4"
+              r="32"
+              fill="none"
+              stroke="hsl(244 68% 66%)"
+              strokeWidth="0.8"
+              opacity="0.35"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 0.35 }}
+              transition={{ duration: 0.7, delay: 1.5, ease: [0.34, 1.56, 0.64, 1] }}
+            />
+            {/* Core sphere */}
+            <motion.circle
+              r="22"
+              fill="url(#coreSphere)"
+              stroke="hsl(244 68% 66%)"
+              strokeWidth="1"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.4, ease: [0.34, 1.56, 0.64, 1] }}
+              transition={{ duration: 0.7, delay: 1.4, ease: [0.34, 1.56, 0.64, 1] }}
+              style={{ filter: "drop-shadow(0 8px 20px hsl(244 68% 66% / 0.35))" }}
             />
+            {/* Inner glow dot */}
+            <motion.circle
+              r="6"
+              fill="hsl(244 68% 66%)"
+              initial={{ opacity: 0 }}
+              animate={isVisible && !reduce ? { opacity: [0.4, 1, 0.4] } : { opacity: 0.8 }}
+              transition={{ duration: 2.4, repeat: isVisible && !reduce ? Infinity : 0, ease: "easeInOut", delay: 1.8 }}
+            />
+            {/* Orbital satellites */}
             {!reduce && !isMobile && isVisible &&
-              [0, 1, 2].map((i) => (
-                <motion.circle
-                  key={i}
-                  cx={Math.cos((i * Math.PI * 2) / 3) * 28}
-                  cy={Math.sin((i * Math.PI * 2) / 3) * 28}
-                  r="2"
-                  fill="hsl(244 68% 66%)"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: [0.25, 0.9, 0.25] }}
-                  transition={{ duration: 2.6, repeat: Infinity, delay: 1.8 + i * 0.3 }}
-                />
-              ))}
+              [0, 1, 2, 3].map((i) => {
+                const angle = (i * Math.PI * 2) / 4;
+                return (
+                  <motion.circle
+                    key={`sat-${i}`}
+                    cx={Math.cos(angle) * 32}
+                    cy={Math.sin(angle) * 32}
+                    r="1.8"
+                    fill="hsl(204 72% 50%)"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0.3, 1, 0.3] }}
+                    transition={{ duration: 2.8, repeat: Infinity, delay: 2 + i * 0.25 }}
+                  />
+                );
+              })}
           </g>
         </svg>
 
-        {/* Chaos chips */}
-        {chips.map((chip, i) => (
-          <motion.div
-            key={chip.label}
-            className="absolute"
-            style={{ left: `${chip.x}%`, top: `${chip.y}%`, willChange: reduce ? undefined : "transform, opacity" }}
-            initial={{ opacity: 0, x: -30, scale: 0.6 }}
-            animate={
-              reduce || !isVisible
-                ? { opacity: 0.7, x: 0, scale: 1 }
-                : {
-                    opacity: [0, 0.9, 0.9, 0],
-                    x: [-30, 0, 140, 280],
-                    scale: [0.6, 1, 0.95, 0.4],
-                  }
-            }
-            transition={
-              reduce || !isVisible
-                ? { duration: 0.5, delay: 0.3 + i * 0.06 }
-                : {
-                    duration: 5.2,
-                    delay: 0.6 + i * 0.5,
-                    repeat: Infinity,
-                    repeatDelay: isMobile ? 2.5 : 1.4,
-                    ease: "easeInOut",
-                  }
-            }
-          >
-            <div className="px-2.5 py-1 rounded-full bg-white/70 border border-foreground/[0.06] shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
-              <span className="text-[10px] font-medium text-muted-foreground tracking-wide">{chip.label}</span>
-            </div>
-          </motion.div>
-        ))}
+        {/* ─── VISTACEO label (HTML, perfectly readable) ─── */}
+        <motion.div
+          className="absolute"
+          style={{ left: "63.6%", top: "59%", transform: "translateX(-50%)" }}
+          initial={{ opacity: 0, y: 8, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.6, delay: 1.9, ease: [0.34, 1.56, 0.64, 1] }}
+        >
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-foreground text-background shadow-[0_10px_30px_-8px_hsl(var(--foreground)/0.35)] ring-1 ring-foreground/10">
+            <Sparkles className="w-3 h-3" strokeWidth={2.2} />
+            <span className="text-[9px] font-bold tracking-[0.18em]">VISTACEO</span>
+          </div>
+        </motion.div>
 
-        {/* Output cards */}
+        {/* ─── Signal chips (raw data flowing IN) ─── */}
+        {chips.map((chip, i) => {
+          const tone = chip.hue === "primary" ? "text-primary/80" : "text-accent/80";
+          const dotTone = chip.hue === "primary" ? "bg-primary" : "bg-accent";
+          return (
+            <motion.div
+              key={chip.label}
+              className="absolute"
+              style={{ left: `${chip.x}%`, top: `${chip.y}%`, willChange: reduce ? undefined : "transform, opacity" }}
+              initial={{ opacity: 0, x: -40, scale: 0.6 }}
+              animate={
+                reduce || !isVisible
+                  ? { opacity: 0.7, x: 0, scale: 1 }
+                  : {
+                      opacity: [0, 0.95, 0.95, 0],
+                      x: [-40, 20, 200, 380],
+                      scale: [0.55, 1, 0.92, 0.35],
+                    }
+              }
+              transition={
+                reduce || !isVisible
+                  ? { duration: 0.5, delay: 0.3 + i * 0.06 }
+                  : {
+                      duration: 5.4,
+                      delay: 0.4 + i * 0.42,
+                      repeat: Infinity,
+                      repeatDelay: isMobile ? 2.2 : 1.2,
+                      ease: [0.45, 0, 0.55, 1],
+                    }
+              }
+            >
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/85 backdrop-blur-sm border border-foreground/[0.06] shadow-[0_2px_12px_-4px_rgba(15,23,42,0.08)]">
+                <span className={`w-1 h-1 rounded-full ${dotTone}`} />
+                <span className={`text-[10px] font-medium tracking-wide ${tone}`}>{chip.label}</span>
+              </div>
+            </motion.div>
+          );
+        })}
+
+        {/* ─── Output cards (executive decisions flowing OUT) ─── */}
         {OUTPUT_CARDS.map((card) => {
           const Icon = card.icon;
           const c = colorMap[card.color];
@@ -294,55 +459,71 @@ export const IntelligenceFlow = memo(() => {
               key={card.label}
               className="absolute"
               style={{ left: `${card.x}%`, top: `${card.y}%`, transform: "translate(-50%, -50%)" }}
-              initial={{ opacity: 0, scale: 0.4, x: -120 }}
+              initial={{ opacity: 0, scale: 0.5, x: -80 }}
               animate={
                 reduce
                   ? { opacity: 1, scale: 1, x: 0 }
                   : enableFloat
-                    ? { opacity: 1, scale: 1, x: 0, y: [0, -5, 0, 5, 0] }
+                    ? { opacity: 1, scale: 1, x: 0, y: [0, -4, 0, 4, 0] }
                     : { opacity: 1, scale: 1, x: 0 }
               }
               transition={
                 reduce
                   ? { duration: 0.4, delay: 0.5 + card.delay * 0.1 }
                   : {
-                      opacity: { duration: 0.6, delay: card.delay },
-                      scale: { duration: 0.6, delay: card.delay, ease: [0.34, 1.56, 0.64, 1] },
-                      x: { duration: 0.7, delay: card.delay, ease: "easeOut" },
+                      opacity: { duration: 0.7, delay: card.delay },
+                      scale: { duration: 0.7, delay: card.delay, ease: [0.34, 1.56, 0.64, 1] },
+                      x: { duration: 0.8, delay: card.delay, ease: [0.22, 1, 0.36, 1] },
                       ...(enableFloat && {
-                        y: { duration: 6, delay: card.delay + 1, repeat: Infinity, ease: "easeInOut" },
+                        y: { duration: 7, delay: card.delay + 1, repeat: Infinity, ease: "easeInOut" },
                       }),
                     }
               }
             >
               <div
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white/95 border border-foreground/[0.06] shadow-[0_20px_50px_-20px_rgba(15,23,42,0.18),0_4px_12px_-4px_rgba(15,23,42,0.06)] ring-1 ${c.ring}`}
+                className={`relative flex items-center gap-2.5 pl-2.5 pr-3.5 py-2 rounded-2xl bg-white/95 backdrop-blur-sm border border-foreground/[0.05] shadow-[0_24px_60px_-24px_rgba(15,23,42,0.22),0_4px_14px_-6px_rgba(15,23,42,0.08)] ring-1 ${c.ring}`}
               >
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${c.bg}`}>
-                  <Icon className={`w-3.5 h-3.5 ${c.text}`} />
+                {/* live indicator */}
+                {!reduce && (
+                  <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${c.dot} opacity-60`} />
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${c.dot}`} />
+                  </span>
+                )}
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${c.bg}`}>
+                  <Icon className={`w-4 h-4 ${c.text}`} strokeWidth={2.2} />
                 </div>
                 <div className="text-left">
-                  <div className={`text-[8px] font-semibold uppercase tracking-wider ${c.text}`}>{card.label}</div>
-                  <div className="text-[11px] font-medium text-foreground whitespace-nowrap">{card.title}</div>
+                  <div className={`text-[8.5px] font-bold uppercase tracking-[0.12em] ${c.text}`}>{card.label}</div>
+                  <div className="text-[12px] font-semibold text-foreground whitespace-nowrap leading-tight">
+                    {card.title}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground whitespace-nowrap leading-tight mt-0.5">
+                    {card.detail}
+                  </div>
                 </div>
               </div>
             </motion.div>
           );
         })}
 
-        {/* VISTACEO marker near the core */}
-        <motion.div
-          className="absolute"
-          style={{ left: "70%", top: "45.4%" }}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 1.6 }}
-        >
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-primary to-accent text-white shadow-[0_8px_20px_-6px_hsl(var(--primary)/0.4)]">
-            <Sparkles className="w-2.5 h-2.5" />
-            <span className="text-[8px] font-bold tracking-widest">VISTACEO</span>
-          </div>
-        </motion.div>
+        {/* ─── Subtle scan-line sweeping the core (cinematic touch) ─── */}
+        {!reduce && !isMobile && isVisible && (
+          <motion.div
+            className="absolute pointer-events-none"
+            style={{
+              left: "50%",
+              top: "30%",
+              width: "30%",
+              height: "40%",
+              background: "linear-gradient(90deg, transparent, hsl(var(--accent) / 0.08), transparent)",
+              filter: "blur(8px)",
+            }}
+            initial={{ opacity: 0, x: -100 }}
+            animate={{ opacity: [0, 1, 0], x: [-100, 100, 250] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 3, repeatDelay: 2 }}
+          />
+        )}
       </div>
     </div>
   );
