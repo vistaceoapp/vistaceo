@@ -130,25 +130,75 @@ const SpeedVisual = () => (
   </svg>
 );
 
-// 4. Auto-booking — chip de reserva
-const BookingVisual = () => (
-  <div className="absolute inset-0 flex items-center justify-center px-4">
-    <motion.div
-      initial={{ y: 10, opacity: 0 }}
-      whileInView={{ y: 0, opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay: 0.2, duration: 0.5 }}
-      className="flex items-center gap-3 bg-white border border-[#ececec] rounded-xl px-4 py-3 shadow-[0_6px_20px_-8px_rgba(0,0,0,0.1)] max-w-[220px]"
-    >
-      <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${BRAND}20` }}>
-        <Calendar className="w-4 h-4" style={{ color: BRAND }} />
-      </div>
-      <div className="text-left leading-tight">
-        <div className="text-xs font-semibold text-[#1a1a1a]">Misión agendada</div>
-        <div className="text-[11px] text-[#888]">Hoy a las 18:00</div>
-      </div>
-    </motion.div>
-  </div>
+// 4. Anticipación estratégica — orbe predictivo con escenarios futuros
+const ForecastVisual = () => (
+  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
+    <defs>
+      <radialGradient id="cap-orb" cx="50%" cy="40%" r="60%">
+        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+        <stop offset="40%" stopColor={BRAND} stopOpacity="0.45" />
+        <stop offset="100%" stopColor={BRAND} stopOpacity="0.95" />
+      </radialGradient>
+      <linearGradient id="cap-future" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stopColor={BRAND} stopOpacity="0.8" />
+        <stop offset="100%" stopColor={BRAND} stopOpacity="0" />
+      </linearGradient>
+    </defs>
+
+    {/* Ondas de predicción que se expanden */}
+    {[0, 0.6, 1.2].map((delay, i) => (
+      <motion.circle
+        key={i}
+        cx="90" cy="78" r="28"
+        fill="none" stroke={BRAND} strokeWidth="1.2"
+        initial={{ scale: 0.6, opacity: 0.6 }}
+        animate={{ scale: 2.2, opacity: 0 }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut", delay }}
+        style={{ transformOrigin: "90px 78px" }}
+      />
+    ))}
+
+    {/* Orbe / bola de cristal */}
+    <circle cx="90" cy="78" r="28" fill="url(#cap-orb)" />
+    <circle cx="90" cy="78" r="28" fill="none" stroke={BRAND} strokeOpacity="0.4" strokeWidth="1" />
+    {/* Reflejo */}
+    <ellipse cx="82" cy="68" rx="8" ry="5" fill="white" fillOpacity="0.5" />
+    {/* Base */}
+    <ellipse cx="90" cy="110" rx="22" ry="3" fill={BRAND} fillOpacity="0.15" />
+
+    {/* Línea de tiempo hacia el futuro */}
+    <line x1="130" y1="78" x2="260" y2="78" stroke="url(#cap-future)" strokeWidth="1.5" strokeDasharray="3 4" />
+
+    {/* 3 escenarios proyectados */}
+    {[
+      { x: 165, y: 50, label: "+18%", delay: 0.3 },
+      { x: 205, y: 78, label: "Pico", delay: 0.6 },
+      { x: 245, y: 100, label: "Riesgo", delay: 0.9 },
+    ].map((s, i) => (
+      <motion.g
+        key={i}
+        initial={{ opacity: 0, scale: 0.5 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: s.delay, duration: 0.4, ease: "easeOut" }}
+        style={{ transformOrigin: `${s.x}px ${s.y}px` }}
+      >
+        <circle cx={s.x} cy={s.y} r="4" fill={BRAND} />
+        <circle cx={s.x} cy={s.y} r="9" fill="none" stroke={BRAND} strokeOpacity="0.3" strokeWidth="1" />
+        <rect x={s.x - 18} y={s.y - 22} width="36" height="13" rx="6" fill="white" stroke={BRAND} strokeOpacity="0.25" strokeWidth="0.8" />
+        <text x={s.x} y={s.y - 13} textAnchor="middle" fontSize="8" fontWeight="600" fill={BRAND}>{s.label}</text>
+      </motion.g>
+    ))}
+
+    {/* Destello dentro del orbe */}
+    <motion.circle
+      cx="90" cy="78" r="3"
+      fill="white"
+      animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.4, 0.8] }}
+      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+      style={{ transformOrigin: "90px 78px" }}
+    />
+  </svg>
 );
 
 // 5. Analytics — curva animada con dot pulsante
@@ -265,7 +315,7 @@ const items = [
     icon: Calendar,
     title: "Anticipación estratégica",
     desc: "Predice lo que va a pasar y te prepara para aprovecharlo. Adelantate a oportunidades y riesgos antes que tu competencia.",
-    visual: <BookingVisual />,
+    visual: <ForecastVisual />,
   },
   {
     icon: TrendingUp,
