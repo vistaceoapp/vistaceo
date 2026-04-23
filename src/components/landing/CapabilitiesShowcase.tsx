@@ -315,7 +315,7 @@ const items = [
     icon: Calendar,
     title: "Anticipación estratégica",
     desc: "Predice lo que va a pasar y te prepara para aprovecharlo. Adelantate a oportunidades y riesgos antes que tu competencia.",
-    visual: <BookingVisual />,
+    visual: <ForecastVisual />,
   },
   {
     icon: TrendingUp,
