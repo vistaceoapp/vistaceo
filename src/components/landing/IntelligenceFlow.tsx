@@ -286,52 +286,51 @@ EchoEntity.displayName = "EchoEntity";
 /* ═══════════════════════════════════════════════════════════════════
    OUTPUTS CRISTALIZADOS — Artefactos premium (right rail)
    ═══════════════════════════════════════════════════════════════════ */
-type OutputKind = "opportunity" | "insight" | "radar" | "prediction" | "risk";
+type OutputKind = "opportunity" | "insight" | "radar" | "prediction" | "risk" | "mission";
 
 const OUTPUT_META: Record<OutputKind, { label: string; sub: string; accent: string }> = {
   opportunity: { label: "Oportunidad activa", sub: "+18% potencial", accent: "#2692DC" },
-  insight: { label: "Insight crítico", sub: "Patrón detectado", accent: "#746CE6" },
+  insight: { label: "Insight nuevo", sub: "Patrón detectado", accent: "#746CE6" },
   radar: { label: "Radar competitivo", sub: "3 movimientos", accent: "#2692DC" },
   prediction: { label: "Predicción semanal", sub: "Próx. 7 días", accent: "#746CE6" },
   risk: { label: "Riesgo priorizado", sub: "Atención alta", accent: "#A99EFF" },
+  mission: { label: "Misión sugerida", sub: "Acción inmediata", accent: "#746CE6" },
 };
 
 const CrystalOutput = memo(({
-  kind, top, delay = 0,
-}: { kind: OutputKind; top: string; delay?: number }) => {
+  kind, top, visible,
+}: { kind: OutputKind; top: string; visible: boolean }) => {
   const meta = OUTPUT_META[kind];
   return (
     <div
       className="absolute right-0 select-none"
       style={{
         top,
-        animation: `vc-float 7s ease-in-out ${delay}s infinite`,
-        willChange: "transform",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateX(0) scale(1)" : "translateX(28px) scale(0.94)",
+        transition: "opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
+        willChange: "transform, opacity",
       }}
     >
-      <div className="relative">
-        {/* Glow detrás de la card */}
+      <div className="relative" style={{ animation: visible ? "vc-float 7s ease-in-out infinite" : undefined }}>
         <div
           className="absolute -inset-3 rounded-2xl blur-2xl opacity-60"
           style={{ background: `radial-gradient(circle, ${meta.accent}33, transparent 70%)` }}
         />
-        {/* Placa de cristal */}
         <div
           className="relative rounded-2xl px-4 py-3 min-w-[200px] backdrop-blur-xl"
           style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(244,241,255,0.78) 100%)",
+            background: "linear-gradient(135deg, rgba(255,255,255,0.94) 0%, rgba(244,241,255,0.8) 100%)",
             boxShadow:
               "0 1px 0 rgba(255,255,255,0.95) inset, 0 -1px 0 rgba(180,190,220,0.25) inset, 0 18px 40px -12px rgba(74,86,140,0.28), 0 4px 12px -4px rgba(74,86,140,0.18)",
             border: "1px solid rgba(255,255,255,0.9)",
           }}
         >
-          {/* Highlight superior (especular) */}
           <div
             className="absolute inset-x-3 top-0 h-px rounded-full"
             style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,1), transparent)" }}
           />
           <div className="flex items-center gap-2.5">
-            {/* Indicador material */}
             <div
               className="w-2 h-2 rounded-full shrink-0"
               style={{
@@ -354,7 +353,147 @@ const CrystalOutput = memo(({
 CrystalOutput.displayName = "CrystalOutput";
 
 /* ═══════════════════════════════════════════════════════════════════
-   ESCENA HERO PRINCIPAL — Etapa 2 (respiración + parallax + orbits)
+   TRANSFORMATION SCRIPT — narrativa semántica del loop
+   ═══════════════════════════════════════════════════════════════════ */
+type EntityKind = "sales" | "risk" | "review" | "competitor" | "trend";
+
+interface Beat {
+  /** kind of incoming signal */
+  entity: EntityKind;
+  /** which output it crystallizes into (semantic transformation) */
+  output: OutputKind;
+  /** which output slot (0-2) it lands into in the right rail */
+  slot: 0 | 1 | 2;
+  /** entry origin point (vbox coords) */
+  from: { x: number; y: number };
+}
+
+// 5 transformaciones secuenciales — cada una toma ~3.6s (loop ≈ 18s)
+const BEATS: Beat[] = [
+  { entity: "sales",      output: "opportunity", slot: 0, from: { x: -60,  y: 600 } }, // FG izquierda-abajo
+  { entity: "review",     output: "insight",     slot: 1, from: { x: -40,  y: 200 } }, // top-izquierda
+  { entity: "risk",       output: "mission",     slot: 2, from: { x: 940,  y: 240 } }, // top-derecha (alerta → misión)
+  { entity: "competitor", output: "radar",       slot: 0, from: { x: -60,  y: 380 } }, // izquierda media
+  { entity: "trend",      output: "prediction",  slot: 1, from: { x: 940,  y: 520 } }, // derecha-abajo
+];
+
+const BEAT_MS = 3600;
+const LOOP_MS = BEATS.length * BEAT_MS;
+
+// Renderiza la entidad correcta para cada kind, centrada en (0,0)
+const EntityByKind = memo(({ kind, scale = 1 }: { kind: EntityKind; scale?: number }) => {
+  switch (kind) {
+    case "sales":      return <SalesEntity x={0} y={0} scale={scale} />;
+    case "risk":       return <RiskEntity x={0} y={0} scale={scale} />;
+    case "review":     return <ReviewEntity x={0} y={0} scale={scale} />;
+    case "competitor": return <CompetitorEntity x={0} y={0} scale={scale} />;
+    case "trend":      return <TrendEntity x={0} y={0} scale={scale} />;
+  }
+});
+EntityByKind.displayName = "EntityByKind";
+
+/* ═══════════════════════════════════════════════════════════════════
+   TRAVELER — entidad que recorre el arco entrada → núcleo → cristalización
+   ═══════════════════════════════════════════════════════════════════ */
+interface TravelerProps {
+  beat: Beat;
+  core: { x: number; y: number; r: number };
+  /** progress 0 → 1 across the beat */
+  t: number;
+}
+
+// Curva cuadrática suave entre origen y núcleo, con punto de control offset
+const arcPoint = (from: { x: number; y: number }, to: { x: number; y: number }, t: number) => {
+  // control point: arch upward/sideways for elegance
+  const mx = (from.x + to.x) / 2;
+  const my = (from.y + to.y) / 2;
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  // perpendicular offset for arc curvature
+  const cx = mx + -dy * 0.18;
+  const cy = my + dx * 0.18;
+  const u = 1 - t;
+  return {
+    x: u * u * from.x + 2 * u * t * cx + t * t * to.x,
+    y: u * u * from.y + 2 * u * t * cy + t * t * to.y,
+  };
+};
+
+const Traveler = memo(({ beat, core, t }: TravelerProps) => {
+  // Phase mapping:
+  //  0.00 – 0.55  → travel from origin to core (approach)
+  //  0.55 – 0.72  → crystallize inside core (compress + spin + fade)
+  //  0.72 – 1.00  → emerge as light streak toward output slot
+  const approach = Math.min(1, t / 0.55);
+  const inCore = t >= 0.55 && t < 0.72;
+  const fadeOut = t >= 0.65 ? Math.min(1, (t - 0.65) / 0.15) : 0;
+
+  // eased approach (cubic ease-in-out)
+  const e = approach < 0.5 ? 4 * approach ** 3 : 1 - Math.pow(-2 * approach + 2, 3) / 2;
+  const pos = arcPoint(beat.from, { x: core.x, y: core.y }, e);
+
+  // scale shrinks as it nears core (perspective hint)
+  const baseScale = 1 - 0.35 * approach;
+  // crystallization spin
+  const spin = inCore ? (t - 0.55) * 360 * 4 : 0;
+  // crystallization compression
+  const crystalScale = inCore ? 1 - (t - 0.55) * 4 : baseScale;
+  const opacity = 1 - fadeOut;
+
+  return (
+    <g
+      style={{
+        transform: `translate(${pos.x}px, ${pos.y}px) rotate(${spin}deg) scale(${Math.max(0.05, crystalScale)})`,
+        transformOrigin: "0 0",
+        opacity,
+        transition: "none",
+      }}
+    >
+      <EntityByKind kind={beat.entity} scale={1} />
+    </g>
+  );
+});
+Traveler.displayName = "Traveler";
+
+/* Pulso de cristalización en el núcleo cuando el viajero llega */
+const CrystallizeBurst = memo(({ core, t, accent }: { core: { x: number; y: number; r: number }; t: number; accent: string }) => {
+  // active during 0.55 – 0.85
+  if (t < 0.55 || t > 0.95) return null;
+  const local = (t - 0.55) / 0.4; // 0 → 1
+  const ringR = core.r * (0.5 + local * 1.6);
+  const opacity = (1 - local) * 0.7;
+  return (
+    <g pointerEvents="none">
+      <circle cx={core.x} cy={core.y} r={ringR} fill="none" stroke={accent} strokeOpacity={opacity} strokeWidth={2} />
+      <circle cx={core.x} cy={core.y} r={ringR * 0.65} fill="none" stroke={accent} strokeOpacity={opacity * 0.6} strokeWidth={1} />
+      <circle cx={core.x} cy={core.y} r={core.r * (0.85 - local * 0.1)} fill={accent} opacity={opacity * 0.18} />
+    </g>
+  );
+});
+CrystallizeBurst.displayName = "CrystallizeBurst";
+
+/* Beam de salida hacia el slot del right rail */
+const EmergenceBeam = memo(({ core, t, slotY }: { core: { x: number; y: number }; t: number; slotY: number }) => {
+  if (t < 0.7 || t > 0.95) return null;
+  const local = (t - 0.7) / 0.25;
+  const x2 = 900 + 30; // off-canvas to right rail
+  const y2 = slotY;
+  // emerging streak: a tiny crystal traveling out
+  const px = core.x + (x2 - core.x) * local;
+  const py = core.y + (y2 - core.y) * local;
+  const op = 1 - local;
+  return (
+    <g pointerEvents="none">
+      <line x1={core.x} y1={core.y} x2={px} y2={py} stroke="#A99EFF" strokeOpacity={op * 0.4} strokeWidth={1.2} />
+      <circle cx={px} cy={py} r={5 + local * 4} fill="#FFFFFF" opacity={op * 0.95} />
+      <circle cx={px} cy={py} r={10 + local * 8} fill="#A99EFF" opacity={op * 0.25} />
+    </g>
+  );
+});
+EmergenceBeam.displayName = "EmergenceBeam";
+
+/* ═══════════════════════════════════════════════════════════════════
+   ESCENA HERO PRINCIPAL — Etapa 3 (transformación semántica)
    ═══════════════════════════════════════════════════════════════════ */
 const IntelligenceFlow = memo(() => {
   const VB_W = 900;
@@ -366,7 +505,12 @@ const IntelligenceFlow = memo(() => {
   const [inView, setInView] = useState(false);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
 
-  // Pause when off-screen
+  // Loop time (ms within LOOP_MS)
+  const [loopT, setLoopT] = useState(0);
+  // Persistent visibility of each output slot
+  const [slots, setSlots] = useState<(OutputKind | null)[]>([null, null, null]);
+
+  // In-view observer
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -375,7 +519,7 @@ const IntelligenceFlow = memo(() => {
     return () => obs.disconnect();
   }, []);
 
-  // Subtle cursor parallax (desktop only)
+  // Parallax
   useEffect(() => {
     if (reduceMotion || !inView) return;
     if (typeof window === "undefined" || window.matchMedia("(pointer: coarse)").matches) return;
@@ -404,18 +548,56 @@ const IntelligenceFlow = memo(() => {
     };
   }, [reduceMotion, inView]);
 
+  // Master loop clock
+  useEffect(() => {
+    if (!inView || reduceMotion) {
+      // If reduced motion, prefill slots so user still sees outputs
+      if (reduceMotion) setSlots([BEATS[0].output, BEATS[1].output, BEATS[2].output]);
+      return;
+    }
+    let raf = 0;
+    let start = performance.now();
+    const tick = (now: number) => {
+      const elapsed = (now - start) % LOOP_MS;
+      setLoopT(elapsed);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, reduceMotion]);
+
+  // Update slots whenever a beat reaches the materialization point (~t=0.78)
+  const lastMaterialized = useRef<number>(-1);
+  useEffect(() => {
+    if (reduceMotion) return;
+    const beatIdx = Math.floor(loopT / BEAT_MS);
+    const beatT = (loopT % BEAT_MS) / BEAT_MS;
+    if (beatT >= 0.78 && lastMaterialized.current !== beatIdx) {
+      const beat = BEATS[beatIdx];
+      lastMaterialized.current = beatIdx;
+      setSlots(prev => {
+        const next = [...prev] as (OutputKind | null)[];
+        next[beat.slot] = beat.output;
+        return next;
+      });
+    }
+    // Reset tracker on loop wrap
+    if (beatIdx === 0 && beatT < 0.05) lastMaterialized.current = -1;
+  }, [loopT, reduceMotion]);
+
   const animsActive = inView && !reduceMotion;
 
-  // Layer offsets — depth-based parallax intensity
-  const layer = (depth: number) => ({
-    transform: `translate3d(${parallax.x * depth}px, ${parallax.y * depth}px, 0)`,
-    transition: "transform 120ms linear",
-    willChange: "transform",
-  });
+  // Determine current beat & its progress
+  const beatIdx = Math.floor(loopT / BEAT_MS);
+  const beatT = (loopT % BEAT_MS) / BEAT_MS;
+  const currentBeat = BEATS[beatIdx] ?? BEATS[0];
+
+  // Slot Y positions (for emergence beam targeting)
+  const SLOT_Y = [VB_H * 0.18, VB_H * 0.48, VB_H * 0.78];
 
   return (
     <div ref={wrapRef} className="relative w-full h-full min-h-[560px] overflow-hidden">
-      {/* Atmósfera ambiental */}
+      {/* Atmósfera */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -424,7 +606,6 @@ const IntelligenceFlow = memo(() => {
         }}
       />
 
-      {/* SVG escena */}
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="relative w-full h-full"
@@ -434,7 +615,7 @@ const IntelligenceFlow = memo(() => {
       >
         <SceneDefs />
 
-        {/* BACKGROUND — drift más lento */}
+        {/* BACKGROUND */}
         <g style={{ transformOrigin: "center", animation: animsActive ? "vc-bg-drift 24s ease-in-out infinite" : undefined }}>
           <EchoEntity x={140} y={130} r={48} />
           <EchoEntity x={780} y={150} r={36} />
@@ -442,48 +623,32 @@ const IntelligenceFlow = memo(() => {
           <EchoEntity x={120} y={560} r={32} />
         </g>
 
-        {/* Anillo orbital lejano (rotación lenta inversa) */}
-        <g
-          style={{
-            transformOrigin: `${CORE.x}px ${CORE.y}px`,
-            animation: animsActive ? "vc-spin-rev 90s linear infinite" : undefined,
-          }}
-        >
+        {/* Anillo orbital lejano */}
+        <g style={{ transformOrigin: `${CORE.x}px ${CORE.y}px`, animation: animsActive ? "vc-spin-rev 90s linear infinite" : undefined }}>
           <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.4} fill="none" stroke="#C7D0EF" strokeWidth="0.6" strokeOpacity="0.35" strokeDasharray="1 8" />
         </g>
 
-        {/* MOTOR — respiración + anillo dasheado rotando */}
+        {/* MOTOR — respiración + spin sutil */}
         <g style={{ transformOrigin: `${CORE.x}px ${CORE.y}px`, animation: animsActive ? "vc-breathe 6s ease-in-out infinite" : undefined }}>
-          {/* anillo dasheado interno girando dentro del motor */}
           <g style={{ transformOrigin: `${CORE.x}px ${CORE.y}px`, animation: animsActive ? "vc-spin 60s linear infinite" : undefined }}>
             <CoreEngine cx={CORE.x} cy={CORE.y} r={CORE.r} />
           </g>
         </g>
 
-        {/* MIDGROUND — entidades, cada una con su propio bob */}
-        <g style={{ transformOrigin: "210px 195px", animation: animsActive ? "vc-bob-a 7s ease-in-out infinite" : undefined }}>
-          <ReviewEntity x={210} y={195} scale={1.05} />
-        </g>
-        <g style={{ transformOrigin: "680px 210px", animation: animsActive ? "vc-bob-b 8.5s ease-in-out infinite" : undefined }}>
-          <CompetitorEntity x={680} y={210} scale={1} />
-        </g>
-        <g style={{ transformOrigin: "700px 460px", animation: animsActive ? "vc-bob-c 9.5s ease-in-out infinite" : undefined }}>
-          <TrendEntity x={700} y={460} scale={0.95} />
-        </g>
-        <g style={{ transformOrigin: "195px 465px", animation: animsActive ? "vc-bob-d 8s ease-in-out infinite" : undefined }}>
-          <RiskEntity x={195} y={465} scale={1.05} />
-        </g>
+        {/* TRAVELER actual — única entidad en escena (foco) */}
+        <Traveler beat={currentBeat} core={CORE} t={beatT} />
 
-        {/* FOREGROUND — protagonista (respira más amplio) */}
-        <g style={{ transformOrigin: "385px 605px", animation: animsActive ? "vc-bob-fg 6.5s ease-in-out infinite" : undefined }}>
-          <SalesEntity x={385} y={605} scale={1.15} />
-        </g>
+        {/* Pulso de cristalización en el núcleo */}
+        <CrystallizeBurst core={CORE} t={beatT} accent={OUTPUT_META[currentBeat.output].accent} />
+
+        {/* Beam de emergencia hacia el slot destino */}
+        <EmergenceBeam core={CORE} t={beatT} slotY={SLOT_Y[currentBeat.slot]} />
 
         {/* Reflejo base */}
         <ellipse cx={CORE.x} cy={680} rx={420} ry={14} fill="url(#contactShadow)" opacity="0.5" />
       </svg>
 
-      {/* Isotipo VISTACEO — respiración + halo pulse */}
+      {/* Isotipo VISTACEO — pulsa más fuerte cuando hay cristalización */}
       <div
         className="absolute pointer-events-none flex items-center justify-center"
         style={{
@@ -500,31 +665,36 @@ const IntelligenceFlow = memo(() => {
             style={{
               background: "radial-gradient(circle, rgba(169,158,255,0.45), transparent 65%)",
               animation: animsActive ? "vc-halo-pulse 5s ease-in-out infinite" : undefined,
+              opacity: beatT >= 0.55 && beatT <= 0.85 ? 1 : 0.85,
+              transition: "opacity 200ms linear",
             }}
           />
           <img
             src={vistaceoIcon}
             alt=""
             className="relative w-full h-full object-contain"
-            style={{ filter: "drop-shadow(0 6px 14px rgba(74,86,140,0.25)) drop-shadow(0 0 10px rgba(169,158,255,0.35))" }}
+            style={{
+              filter: `drop-shadow(0 6px 14px rgba(74,86,140,0.25)) drop-shadow(0 0 ${beatT >= 0.55 && beatT <= 0.85 ? 18 : 10}px rgba(169,158,255,${beatT >= 0.55 && beatT <= 0.85 ? 0.6 : 0.35}))`,
+              transition: "filter 250ms ease-out",
+            }}
             draggable={false}
           />
         </div>
       </div>
 
-      {/* OUTPUTS — right rail, parallax leve (foreground) */}
+      {/* OUTPUTS — right rail (controlados por el loop) */}
       <div
         className="absolute right-2 sm:right-4 top-0 h-full pointer-events-none hidden md:block"
-        style={animsActive ? layer(10) : undefined}
+        style={animsActive ? { transform: `translate3d(${parallax.x * 10}px, ${parallax.y * 10}px, 0)`, transition: "transform 120ms linear", willChange: "transform" } : undefined}
       >
-        <CrystalOutput kind="opportunity" top="14%" delay={0} />
-        <CrystalOutput kind="insight" top="44%" delay={1.4} />
-        <CrystalOutput kind="prediction" top="74%" delay={2.6} />
+        {slots[0] && <CrystalOutput kind={slots[0]} top="14%" visible={true} />}
+        {slots[1] && <CrystalOutput kind={slots[1]} top="44%" visible={true} />}
+        {slots[2] && <CrystalOutput kind={slots[2]} top="74%" visible={true} />}
       </div>
 
-      {/* OUTPUTS mobile */}
+      {/* OUTPUTS mobile — muestra el último materializado */}
       <div className="absolute inset-x-0 bottom-2 flex justify-center gap-3 md:hidden pointer-events-none">
-        <CrystalOutput kind="opportunity" top="0" delay={0} />
+        {slots.find(Boolean) && <CrystalOutput kind={slots.find(Boolean) as OutputKind} top="0" visible={true} />}
       </div>
 
       {/* Keyframes */}
@@ -553,31 +723,9 @@ const IntelligenceFlow = memo(() => {
           0%, 100% { transform: translate(0, 0); }
           50% { transform: translate(4px, -3px); }
         }
-        @keyframes vc-bob-a {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(-3px, -8px); }
-        }
-        @keyframes vc-bob-b {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(4px, -6px); }
-        }
-        @keyframes vc-bob-c {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(3px, 7px); }
-        }
-        @keyframes vc-bob-d {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(-4px, 6px); }
-        }
-        @keyframes vc-bob-fg {
-          0%, 100% { transform: translate(0, 0); }
-          50% { transform: translate(0, -10px); }
-        }
         @media (prefers-reduced-motion: reduce) {
           [style*="vc-float"], [style*="vc-breathe"], [style*="vc-halo-pulse"],
-          [style*="vc-spin"], [style*="vc-spin-rev"], [style*="vc-bg-drift"],
-          [style*="vc-bob-a"], [style*="vc-bob-b"], [style*="vc-bob-c"],
-          [style*="vc-bob-d"], [style*="vc-bob-fg"] {
+          [style*="vc-spin"], [style*="vc-spin-rev"], [style*="vc-bg-drift"] {
             animation: none !important;
           }
         }
