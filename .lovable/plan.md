@@ -1,158 +1,93 @@
 
 
-The user wants performance + UX intelligence improvements WITHOUT touching UI/visual design. They want the dashboard to feel "wow" by reducing noise and making information sharper. Let me explore key areas: dashboard load, widget rendering, data fetching patterns.
-<lov-tool-use id="toolu_vrtx_01MfYGiFYdStCFyAzHJksLW7" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/app/TodayPage.tsx\"}">
-</lov-tool-use>
+## Plan — Hero VISTACEO: nuevo copy + escena 3D "Orb" premium
 
-<lov-tool-use id="toolu_vrtx_01KHrMs3SWrmBibpwEQtZ63Q" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/use-widget-config.ts\"}">
-</lov-tool-use>
+### 1. Copy del hero (desktop y mobile)
 
-<lov-tool-use id="toolu_vrtx_01LJFNS7HtxytnR1pqhtpAZH" name="code--view" integration-id="code" data="{\"file_path\": \"src/components/app/AIDailySummary.tsx\"}">
-</lov-tool-use>
+Reemplazar el H1 actual de tres líneas por una versión más corta, contundente y perfectamente legible en ambos formatos.
 
-<lov-tool-use id="toolu_vrtx_01DPb923bAaZpGZPAUPwzPkT" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/use-auto-sync.ts\"}">
-</lov-tool-use>
+**Headline (H1):**
+> **Un CEO digital con IA**
+> **impulsando tu negocio**
+> **o servicio · 24/7**
 
-<lov-tool-use id="toolu_vrtx_0135UdK1HC1boAVrusCE1QCY" name="code--view" integration-id="code" data="{\"file_path\": \"src/pages/app/TodayPage.tsx\"}">
-</lov-tool-use>
+- Tipografía actual (Inter/Codec Pro semibold), tracking ajustado.
+- Tamaño fluido: `clamp(2.2rem, 5.6vw, 4.8rem)` para que en mobile no quiebre raro y en desktop tenga peso editorial.
+- "24/7" tratado como acento con el gradiente VISTACEO (#2692DC → #746CE6) para anclaje visual.
+- En mobile (<640px): el `<br>` se controla con `<span class="block">` para asegurar tres líneas limpias sin huérfanas.
+- Subtítulo se mantiene corto y se reposiciona para no competir con el headline.
 
-<lov-tool-use id="toolu_vrtx_013RFNoa64UXhFEZehWSjLmV" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/use-widget-config.ts\"}">
-</lov-tool-use>
+### 2. Diagnóstico del hero 3D actual
 
-<lov-tool-use id="toolu_vrtx_01EMcupZy5iN1wsNum6jYext" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/use-auto-sync.ts\"}">
-</lov-tool-use>
+`IntelligenceFlow` (912 líneas) intenta resolver demasiadas cosas: pista, entidades, transformaciones, outputs flotando, anillos. En mobile se ve apretado y en desktop sigue leyéndose como diagrama detrás del copy. El veil blanco al 92% además mata casi toda la escena del lado izquierdo.
 
-<lov-tool-use id="toolu_vrtx_01F8wac8W6CeTq4bY5mJRsUg" name="code--view" integration-id="code" data="{\"file_path\": \"src/components/app/AIDailySummary.tsx\"}">
-</lov-tool-use>
+### 3. Nuevo enfoque visual — "Executive Orb"
 
-<lov-tool-use id="toolu_vrtx_01GhUAvneHbDp4Pear34gPRN" name="code--view" integration-id="code" data="{\"file_path\": \"src/hooks/use-dashboard-data.ts\"}">
-</lov-tool-use>
-I have enough context to build a comprehensive performance & UX optimization plan. Let me check a couple more things quickly.
-<lov-tool-use id="toolu_vrtx_01EmXLD8VGX2NrAS2VgLvu1u" name="code--exec" integration-id="code" data="{\"command\": \"ls src/components/app/ | head -50 && echo \\\"---\\\" && wc -l src/App.tsx src/main.tsx 2>/dev/null && echo \\\"---\\\" && grep -r \\\"lazy(\\\" src/App.tsx 2>/dev/null | head -20\", \"user_facing_description\": \"Inspecting dashboard components and routing\"}">
-</lov-tool-use>
-<lov-plan>
+Reemplazar el sistema diagramático por **una sola pieza protagónica**: un orbe de cristal premium (estilo voxr.ai / Apple Vision / Linear) que respira, con señales orbitando y cristalizándose en micro-cards ejecutivas. Menos elementos, más impacto.
 
-## Plan: Performance, eficiencia y "wow" del Dashboard (sin tocar UI)
+**Componente nuevo:** `src/components/landing/HeroOrb.tsx`
 
-### Diagnóstico actual
+**Estructura de la escena:**
 
-**Cuellos de botella detectados:**
-
-1. **Dashboard cargado en serie de N widgets independientes**: cada widget (HealthScore, Brain, Radar, Missions, Reputation, Focus, Predictions, WeeklyMetrics, etc.) hace sus propias queries Supabase al montar → 10+ requests duplicados en paralelo en el primer render.
-2. **`useDashboardData` ya hace 7 queries en paralelo**, pero los widgets vuelven a pedir parte de esos mismos datos (snapshots, brain, integrations).
-3. **`AIDailySummary`** llama a `generate-daily-summary` (Gemini) **cada vez que no hay signals**, sin caché de sesión → coste y latencia alta.
-4. **`useAutoSync`** dispara 3 edge functions pesadas en los primeros 8s del montaje del layout (`sync-external-data`, `brain-analyze-gaps`, `analyze-health-score`) **en cada navegación al dashboard** porque los `Ref` viven dentro del hook que se re-monta.
-5. **No hay React Query / cache compartido**: cada widget re-fetchea al cambiar de tab del navegador.
-6. **Demasiados widgets visibles por defecto** (aiSummary + health + nextSteps + missions + brain + focus + radar = 7 cargas de datos al entrar) → ruido cognitivo y lentitud percibida.
-7. **Edge function `generate-daily-summary`** usa `gemini-2.5-flash` (costoso) cuando `flash-lite` alcanza para señales JSON cortas.
-8. **`framer-motion`** importado en widget core (AIDailySummary) sin necesidad real para 6 tarjetas estáticas.
-9. **No hay `prefetch`** del dashboard tras login → primera entrada lenta.
-
-### Objetivo
-
-Hacer que **entrar al dashboard se sienta instantáneo** (<400 ms a contenido útil), reducir tráfico de red ~60%, costos de IA ~40%, y mostrar **menos widgets pero más densos en valor**, sin alterar el diseño visual.
-
----
-
-### Cambios propuestos (8 áreas, sin modificar UI)
-
-**1. Capa unificada de datos del Dashboard (`useDashboardSnapshot`)**
-- Crear un hook único que hace **una sola llamada** a una nueva edge function `dashboard-snapshot` que devuelve en una respuesta: business + brain + último snapshot + últimas misiones + signals count + competitors + photos + summary del día.
-- Cachear resultado con TTL 5 min en `sessionStorage` → entrar/volver al dashboard no dispara red.
-- Widgets reciben datos por props desde el padre (ya hay patrón en `HealthScoreWidget`); migrar `BrainKnowledgeWidget`, `MissionsWidget`, `FocusWidget`, `RadarWidget` para que **acepten datos por props** y sólo hagan fetch si no se les pasan.
-
-**2. React Query global con stale-time agresivo**
-- Configurar `QueryClient` con `staleTime: 5 min`, `refetchOnWindowFocus: false`, `refetchOnMount: false`.
-- Migrar fetches de widgets a `useQuery` con keys compartidos (`['business', id, 'snapshot']`, `['business', id, 'brain']`).
-- Resultado: un widget que se re-monta no vuelve a pegarle a la DB.
-
-**3. AutoSync inteligente (debounce + persistencia)**
-- Mover `lastSyncRef` a `localStorage` con clave `autosync:${businessId}`.
-- Sólo correr `triggerBrainGaps` y `checkAndSyncHealth` **una vez por día** por business, no por sesión.
-- Reducir intervalo periódico de 5 → 15 min.
-- Postergar todos los syncs a `requestIdleCallback` para no competir con render inicial.
-
-**4. `generate-daily-summary` más rápido y barato**
-- Cambiar modelo a `google/gemini-2.5-flash-lite` (suficiente para JSON corto, 3-5× más barato/rápido).
-- Limitar contexto a ~600 tokens (truncar memorias factual/dinámica más agresivamente).
-- Cache server-side: si existe `business_daily_summaries` de hoy con `signals.length > 0`, devolver sin llamar a IA.
-- Cliente: no regenerar automáticamente si signals están vacías; mostrar botón "Generar análisis" → evita coste por usuarios viejos al cargar.
-
-**5. Dashboard "menos es más" (defaults nuevos)**
-- Por defecto sólo 4 widgets visibles: **aiSummary**, **health**, **nextSteps**, **brain**. El resto (missions, focus, radar, reputation, predictions, weeklyMetrics, pulse) quedan en el editor (ocultos), accesibles con un click.
-- Migración: usuarios existentes mantienen sus selecciones; sólo cambia el default de los nuevos.
-- Resultado: render inicial de 4 cards en vez de 7 → menos JS, menos red, lectura más clara.
-
-**6. Lazy-loading de widgets pesados**
-- `PredictionsWidget`, `WeeklyMetricsWidget`, `RadarWidget`, `ReputationWidget` → `React.lazy()` con `<Suspense>` y skeleton del mismo tamaño.
-- Reduce el bundle del dashboard inicial estimado en ~80-120 KB.
-
-**7. Quitar dependencias innecesarias en hot path**
-- `AIDailySummary`: reemplazar `framer-motion` por una transición CSS (`@keyframes fade-up`) — la animación es trivial.
-- Quitar `motion.div` colapsable; usar `<details>` o `transition-all max-h`.
-
-**8. Prefetch tras login**
-- En el callback de `/auth` exitoso, disparar `queryClient.prefetchQuery(['business', id, 'snapshot'])` antes de navegar a `/app` → al llegar, el dashboard ya tiene los datos.
-
----
-
-### Detalles técnicos
-
-**Nueva edge function `dashboard-snapshot`** (single round-trip):
-```ts
-// Input: { businessId }
-// Output: { business, brain, snapshot, missions, signalsCount, competitors, photoCount, todaySummary }
-// Una sola query SQL combinada o Promise.all server-side (latencia LAN < 100ms vs múltiples round-trips cliente)
+```text
+                  ┌──────────────────────────────┐
+   COPY (left)    │                              │
+   ▓▓▓▓▓▓▓▓▓▓     │      ◌  micro-card           │
+   ▓▓▓▓▓▓▓▓▓▓     │   ◌      ╔════════╗          │
+   ▓▓▓▓▓▓▓        │          ║  ORB   ║   ◌      │
+   [CTA]          │     ◌    ║ glass  ║          │
+                  │          ╚════════╝   micro-c │
+                  │      ◌                        │
+                  └──────────────────────────────┘
 ```
 
-**Cache shape** (`sessionStorage`):
-```
-key: `dash:${businessId}`
-value: { ts, payload }
-TTL: 5 min; invalidate on mutation (mission complete, focus change, etc.)
-```
+**Capas del orb (de adentro hacia afuera):**
 
-**`useAutoSync` cambios:**
-```ts
-const lastBrainGapsKey = `autosync:braingaps:${businessId}`;
-const last = localStorage.getItem(lastBrainGapsKey);
-if (last && Date.now() - +last < 24*60*60*1000) return;
-// run, then localStorage.setItem(lastBrainGapsKey, String(Date.now()))
-```
+1. **Núcleo** — esfera de cristal blanco perlado con highlight especular suave, isotipo VISTACEO embebido, breathing 6s.
+2. **Anillo iridiscente** — gradiente cónico celeste→lavanda rotando muy lento (40s), conic-gradient + mask radial.
+3. **Halo difuso** — radial-gradient violeta/celeste muy bajo en opacidad para luz ambiente.
+4. **Órbitas de señales** — 5–7 puntos discretos viajando en elipses (ventas, reseña, riesgo, competencia, tendencia, anomalía, oportunidad), cada uno con su tinte sutil. Sin etiquetas mientras orbitan.
+5. **Micro-cards de salida** — 3 chips de cristal que aparecen escalonados: *"Oportunidad activa"*, *"Insight nuevo"*, *"Predicción semanal"*. Cada uno aparece cuando una señal "toca" el orb, fade-in 600ms con cubic-bezier suave, queda visible 4s, fade-out, rota la próxima.
 
-**Nuevos defaults en `use-widget-config`**:
-```ts
-{ id: "missions", visible: false, ... }, // antes true
-{ id: "focus",    visible: false, ... }, // antes true
-{ id: "radar",    visible: false, ... }, // antes true
-```
+**Materialidad:**
+- `backdrop-filter: blur(20px)` real para las micro-cards.
+- Bordes con `box-shadow` interior + exterior (glass premium real, no fake).
+- Sombra de contacto bajo el orb con radial-gradient muy suave.
+- Cero negro, cero saturación alta. Solo blanco perla, gris hielo, lavanda muy clara, acentos celeste-violeta.
 
----
+**Motion:**
+- Un solo `requestAnimationFrame` loop compartido para órbitas (mejor performance que múltiples Framer).
+- `prefers-reduced-motion`: orbe estático con halo respirando, micro-cards visibles fijas.
+- IntersectionObserver: pausa el RAF cuando sale del viewport.
 
-### Resultados esperados
+### 4. Layout responsivo del hero
 
-| Métrica | Antes | Después |
-|---|---|---|
-| Requests al entrar al dashboard | 12-18 | 2-3 |
-| Tiempo a contenido visible (TTI) | ~1.8 s | ~0.5 s |
-| Llamadas IA por sesión repetida | 1 (ciega) | 0 (cache) |
-| Widgets visibles por defecto | 7 | 4 |
-| Bundle inicial dashboard | ~480 KB | ~360 KB |
-| Costo Gemini diario por usuario | ~$0.004 | ~$0.0015 |
+**Desktop (lg+):**
+- Grid 12 columnas: copy ocupa `col-span-6`, orb ocupa `col-span-6` (ya no es full-bleed). Esto resuelve el problema del veil que tapaba la escena.
+- Orb centrado verticalmente en la columna derecha, ~520px de alto.
 
----
+**Mobile (<lg):**
+- Layout vertical: copy arriba, orb abajo (~360px de alto).
+- Solo 3 órbitas visibles (vs 5–7 en desktop), 1 sola micro-card rotando.
+- Sin parallax de cursor.
 
-### Archivos a tocar
-- `src/hooks/use-dashboard-data.ts` → reemplazar lógica por wrapper de `useDashboardSnapshot`
-- `src/hooks/use-dashboard-snapshot.ts` (nuevo)
-- `src/hooks/use-auto-sync.ts` → debounce diario via localStorage
-- `src/hooks/use-widget-config.ts` → defaults reducidos
-- `src/components/app/AIDailySummary.tsx` → quitar framer-motion, no auto-regenerar
-- `src/components/app/{Brain,Missions,Focus,Radar,Reputation}Widget.tsx` → aceptar datos por props
-- `src/pages/app/TodayPage.tsx` → lazy widgets pesados
-- `src/App.tsx` → React Query config global
-- `supabase/functions/dashboard-snapshot/index.ts` (nuevo)
-- `supabase/functions/generate-daily-summary/index.ts` → flash-lite + cache check + contexto recortado
+### 5. Cleanup
 
-Sin cambios en CSS, layout, ni jerarquía visual.
+- `IntelligenceFlow` queda en el repo pero **se desconecta** del hero (no se borra por si querés volver). El import se reemplaza por `HeroOrb`.
+- Se elimina el veil blanco gigante del lado izquierdo (ya no necesario porque el orb está contenido en su columna).
+- Se elimina el `min-h-[100svh]` agresivo y se usa `min-h-[88svh]` para que el scroll-indicator tenga lugar.
+
+### 6. Archivos afectados
+
+- ✏️ `src/components/landing/sections/HeroSection.tsx` *(o el HeroSection que esté activo en LandingMinimalista — usaremos el de `LandingMinimalista.tsx` directamente)*
+- ✏️ `src/pages/LandingMinimalista.tsx` — nuevo copy + reemplazo de `IntelligenceFlow` por `HeroOrb` en la sección hero.
+- 🆕 `src/components/landing/HeroOrb.tsx` — escena nueva, ~250 líneas, optimizada.
+
+### 7. Criterios de validación
+
+- ✅ El headline lee perfecto en 320px, 390px, 768px, 1280px y 1920px.
+- ✅ El orb se siente **objeto**, no diagrama.
+- ✅ Cero superposición entre copy y orb en cualquier breakpoint.
+- ✅ FPS estable en mobile (un solo RAF, sin filters caros en mobile).
+- ✅ Respeta `prefers-reduced-motion`.
 
