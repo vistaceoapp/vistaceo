@@ -337,8 +337,12 @@ const HeroSection = () => {
                   background-clip: text;
                   -webkit-text-fill-color: transparent;
                   color: transparent;
-                  filter: drop-shadow(0 6px 22px rgba(38,146,220,0.22));
-                  animation: heroCeoShimmer 9s ease-in-out infinite;
+                }
+                @media (min-width: 768px) {
+                  .hero-ceo-grad {
+                    filter: drop-shadow(0 6px 22px rgba(38,146,220,0.22));
+                    animation: heroCeoShimmer 9s ease-in-out infinite;
+                  }
                 }
                 @keyframes heroCeoShimmer {
                   0%, 100% { background-position: 0% 50%; }
