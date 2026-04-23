@@ -168,7 +168,7 @@ export const IntelligenceFlow = memo(() => {
         className="absolute inset-0"
         style={{ willChange: reduce || isMobile ? undefined : "transform" }}
       >
-        <svg viewBox="0 0 880 440" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet">
+        <svg viewBox="0 0 880 440" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
           <defs>
             <linearGradient id="riverIn" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="hsl(204 72% 50%)" stopOpacity="0" />
@@ -387,40 +387,41 @@ export const IntelligenceFlow = memo(() => {
           </div>
         </motion.div>
 
-        {/* ─── Signal chips (raw data flowing IN) ─── */}
+        {/* ─── Signal chips (raw data flowing IN) — slower & more legible ─── */}
         {chips.map((chip, i) => {
-          const tone = chip.hue === "primary" ? "text-primary/80" : "text-accent/80";
+          const tone = chip.hue === "primary" ? "text-primary" : "text-accent";
           const dotTone = chip.hue === "primary" ? "bg-primary" : "bg-accent";
           return (
             <motion.div
               key={chip.label}
               className="absolute"
               style={{ left: `${chip.x}%`, top: `${chip.y}%`, willChange: reduce ? undefined : "transform, opacity" }}
-              initial={{ opacity: 0, x: -40, scale: 0.6 }}
+              initial={{ opacity: 0, x: -40, scale: 0.7 }}
               animate={
                 reduce || !isVisible
-                  ? { opacity: 0.7, x: 0, scale: 1 }
+                  ? { opacity: 0.85, x: 0, scale: 1 }
                   : {
-                      opacity: [0, 0.95, 0.95, 0],
-                      x: [-40, 20, 200, 380],
-                      scale: [0.55, 1, 0.92, 0.35],
+                      opacity: [0, 1, 1, 0],
+                      x: [-40, 30, 240, 440],
+                      scale: [0.7, 1, 0.95, 0.5],
                     }
               }
               transition={
                 reduce || !isVisible
                   ? { duration: 0.5, delay: 0.3 + i * 0.06 }
                   : {
-                      duration: 5.4,
-                      delay: 0.4 + i * 0.42,
+                      duration: 9,
+                      delay: 0.6 + i * 0.9,
                       repeat: Infinity,
-                      repeatDelay: isMobile ? 2.2 : 1.2,
+                      repeatDelay: isMobile ? 3 : 1.8,
                       ease: [0.45, 0, 0.55, 1],
+                      times: [0, 0.18, 0.78, 1],
                     }
               }
             >
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/85 backdrop-blur-sm border border-foreground/[0.06] shadow-[0_2px_12px_-4px_rgba(15,23,42,0.08)]">
-                <span className={`w-1 h-1 rounded-full ${dotTone}`} />
-                <span className={`text-[10px] font-medium tracking-wide ${tone}`}>{chip.label}</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm border border-foreground/[0.08] shadow-[0_4px_18px_-6px_rgba(15,23,42,0.12)]">
+                <span className={`w-1.5 h-1.5 rounded-full ${dotTone}`} />
+                <span className={`text-[12px] sm:text-[13px] font-medium tracking-wide ${tone}`}>{chip.label}</span>
               </div>
             </motion.div>
           );
