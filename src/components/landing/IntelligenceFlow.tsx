@@ -866,7 +866,7 @@ const IntelligenceFlow = memo(() => {
         }
         @keyframes vc-halo-pulse {
           0%, 100% { opacity: 0.85; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.08); }
+          50% { opacity: 1; transform: scale(1.06); }
         }
         @keyframes vc-spin {
           from { transform: rotate(0deg); }
@@ -880,11 +880,28 @@ const IntelligenceFlow = memo(() => {
           0%, 100% { transform: translate(0, 0); }
           50% { transform: translate(4px, -3px); }
         }
+        @keyframes vc-bob-a {
+          0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+          50% { transform: translateY(-8px) translateX(2px) rotate(0.6deg); }
+        }
+        @keyframes vc-bob-b {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          50% { transform: translateY(6px) translateX(-3px); }
+        }
+        @keyframes vc-bob-c {
+          0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+          50% { transform: translateY(-5px) translateX(-2px) rotate(-0.5deg); }
+        }
+        @keyframes vc-bob-d {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          50% { transform: translateY(-7px) translateX(3px); }
+        }
+        @keyframes vc-bob-fg {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          50% { transform: translateY(-10px) translateX(-2px); }
+        }
         @media (prefers-reduced-motion: reduce) {
-          [style*="vc-float"], [style*="vc-breathe"], [style*="vc-halo-pulse"],
-          [style*="vc-spin"], [style*="vc-spin-rev"], [style*="vc-bg-drift"] {
-            animation: none !important;
-          }
+          [style*="vc-"] { animation: none !important; }
         }
       `}</style>
     </div>
