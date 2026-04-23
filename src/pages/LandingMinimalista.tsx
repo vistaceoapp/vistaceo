@@ -41,22 +41,36 @@ type RevealProps = { children: React.ReactNode; className?: string; delay?: numb
 const Reveal = memo(forwardRef<HTMLDivElement, RevealProps>(({ children, className, delay = 0, distance = 40 }, _externalRef) => {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  // Detect mobile + reduced motion once for cheaper, snappier animations on phones
+  const isMobile = typeof window !== "undefined" && window.matchMedia?.("(max-width: 768px)").matches;
+  const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const effectiveDistance = reduced ? 0 : isMobile ? Math.min(distance, 16) : distance;
+  const effectiveDuration = reduced ? 0 : isMobile ? 460 : 800;
+  const effectiveDelay = isMobile ? Math.min(delay, 120) : delay;
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Fire earlier on mobile so content is already settled when user scrolls to it
     const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setTimeout(() => setVisible(true), delay); obs.disconnect(); }
-    }, { threshold: 0.08, rootMargin: "0px 0px -40px 0px" });
+      if (e.isIntersecting) {
+        if (effectiveDelay > 0) setTimeout(() => setVisible(true), effectiveDelay);
+        else setVisible(true);
+        obs.disconnect();
+      }
+    }, { threshold: 0.05, rootMargin: isMobile ? "0px 0px 120px 0px" : "0px 0px -40px 0px" });
     obs.observe(el);
     return () => obs.disconnect();
-  }, [delay]);
+  }, [effectiveDelay, isMobile]);
+
   return (
-    <div ref={ref} className={cn("transition-all ease-out", className)}
+    <div ref={ref} className={cn("transition-[opacity,transform] ease-out", className)}
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : `translateY(${distance}px)`,
-        transitionDuration: "800ms",
+        transform: visible ? "translate3d(0,0,0)" : `translate3d(0,${effectiveDistance}px,0)`,
+        transitionDuration: `${effectiveDuration}ms`,
         transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+        willChange: visible ? "auto" : "opacity, transform",
       }}
     >{children}</div>
   );
