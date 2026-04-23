@@ -255,66 +255,110 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative pt-28 pb-16 lg:pt-32 lg:pb-20 px-6 overflow-hidden min-h-[88svh]">
-      {/* Base gradient — extremely subtle */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(38,146,220,0.06) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(116,108,230,0.05) 0%, transparent 60%)"
-      }} />
+    <section className="relative pt-28 pb-20 lg:pt-36 lg:pb-28 px-6 overflow-hidden min-h-[92svh]">
+      {/* Background image — CEO office, full bleed */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src={ceoOfficeImg}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover"
+          style={{ filter: "saturate(0.85) brightness(1.04)" }}
+          loading="eager"
+          decoding="async"
+        />
+        {/* White → light celeste veil for legibility (desktop) */}
+        <div
+          className="hidden lg:block absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(100deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.88) 38%, rgba(232,243,253,0.62) 62%, rgba(214,232,250,0.30) 100%)",
+          }}
+        />
+        {/* Mobile veil — heavier so copy reads */}
+        <div
+          className="lg:hidden absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.80) 45%, rgba(232,243,253,0.55) 100%)",
+          }}
+        />
+        {/* Subtle celeste glow accent */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 50% at 78% 40%, rgba(38,146,220,0.10) 0%, transparent 60%)",
+          }}
+        />
+      </div>
 
       <div className="relative z-10 max-w-[1280px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
-          {/* Left: copy */}
-          <div className="lg:col-span-6">
+          {/* Left: copy — wider, more breathing room */}
+          <div className="lg:col-span-8 xl:col-span-7">
             <Reveal distance={20}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#eaeaea] shadow-[0_2px_8px_rgba(0,0,0,0.02)] mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-white/80 shadow-[0_4px_14px_rgba(38,146,220,0.10)] mb-7">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#28c840] opacity-75" />
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#28c840]" />
                 </span>
-                <span className="text-[11px] font-medium tracking-wide text-[#666]">Inteligencia ejecutiva en vivo</span>
+                <span className="text-[11px] font-medium tracking-wide text-[#555]">Inteligencia ejecutiva en vivo</span>
               </div>
             </Reveal>
 
             <Reveal delay={80} distance={28}>
               <h1
-                className="font-semibold text-[#0a0a0a] tracking-[-0.032em] hyphens-none"
+                className="font-semibold text-[#0a0a0a] tracking-[-0.034em] hyphens-none"
                 style={{
-                  fontSize: "clamp(2.2rem, 5.6vw, 4.8rem)",
-                  lineHeight: 1.02,
+                  fontSize: "clamp(2.4rem, 6.4vw, 5.6rem)",
+                  lineHeight: 1.0,
                 }}
               >
                 <span className="block">Un CEO digital con IA</span>
-                <span className="block">impulsando tu negocio</span>
-                <span className="block">
-                  o servicio ·{" "}
-                  <span
-                    className="inline-block"
-                    style={{
-                      backgroundImage: ACCENT_GRADIENT,
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                    }}
-                  >
-                    24/7
-                  </span>
+                <span
+                  className="block mt-1"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(120deg, #4FB3F0 0%, #2692DC 45%, #5C8FE6 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    paddingBottom: "0.06em",
+                  }}
+                >
+                  impulsando tu negocio
+                </span>
+                <span
+                  className="block"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(120deg, #4FB3F0 0%, #2692DC 45%, #5C8FE6 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    paddingBottom: "0.06em",
+                  }}
+                >
+                  o servicio · 24/7
                 </span>
               </h1>
             </Reveal>
 
-            <div className="mt-7 lg:mt-9 max-w-[560px]">
+            <div className="mt-8 lg:mt-10 max-w-[600px]">
               <Reveal delay={300} distance={18}>
-                <p className="text-[16.5px] lg:text-[17.5px] text-[#666] leading-[1.65]">
-                  VISTACEO aprende cómo opera tu empresa, detecta lo que importa y te dice exactamente qué hacer hoy para crecer.
+                <p className="text-[17px] lg:text-[19px] text-[#444] leading-[1.6] font-normal">
+                  VISTACEO aprende cómo opera tu empresa, detecta lo que importa y te dice exactamente qué hacer hoy para crecer — como un equipo ejecutivo trabajando para vos sin pausa.
                 </p>
               </Reveal>
 
               <Reveal delay={380} distance={18}>
-                <div className="flex flex-wrap items-center gap-3 mt-7">
+                <div className="flex flex-wrap items-center gap-3 mt-8">
                   <button
                     onClick={() => navigate("/auth?mode=signup")}
-                    className="group flex items-center gap-2 pl-6 pr-2 py-2 rounded-full bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] transition-all duration-300 active:scale-[0.98] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.4)]"
+                    className="group flex items-center gap-2 pl-6 pr-2 py-2 rounded-full bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] transition-all duration-300 active:scale-[0.98] shadow-[0_12px_32px_-10px_rgba(0,0,0,0.5)]"
                   >
-                    <span className="text-[14px] font-medium">Empezar gratis</span>
+                    <span className="text-[14.5px] font-medium">Empezar gratis</span>
                     <span
                       className="w-9 h-9 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5"
                       style={{ background: ACCENT_GRADIENT }}
@@ -328,13 +372,13 @@ const HeroSection = () => {
                       const el = document.querySelector("#producto");
                       if (el) el.scrollIntoView({ behavior: "smooth" });
                     }}
-                    className="text-[14px] text-[#666] hover:text-[#111] px-5 py-3 rounded-full transition-colors border border-[#e8e8e8] hover:border-[#ccc] hover:bg-white/50"
+                    className="text-[14px] text-[#555] hover:text-[#111] px-5 py-3 rounded-full transition-colors border border-white/80 bg-white/60 hover:bg-white/90 backdrop-blur-sm"
                   >
                     Conocer la plataforma
                   </button>
                 </div>
 
-                <p className="text-[12px] text-[#aaa] mt-5 flex items-center gap-4 flex-wrap">
+                <p className="text-[12px] text-[#888] mt-5 flex items-center gap-4 flex-wrap">
                   <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#28c840]" /> Sin tarjeta de crédito</span>
                   <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#2692DC]" /> Activo en minutos</span>
                 </p>
@@ -342,12 +386,8 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right: Executive Orb */}
-          <div className="lg:col-span-6 relative">
-            <Reveal delay={200} distance={24}>
-              <HeroOrb />
-            </Reveal>
-          </div>
+          {/* Right: spacer — image fills it cinematically */}
+          <div className="hidden lg:block lg:col-span-4 xl:col-span-5" aria-hidden="true" />
         </div>
       </div>
     </section>
