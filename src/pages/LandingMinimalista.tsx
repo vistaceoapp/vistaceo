@@ -18,7 +18,7 @@ import { MockupProPredictions } from "@/components/landing/mockups/MockupProPred
 import { MockupProInsights } from "@/components/landing/mockups/MockupProInsights";
 import { MockupProCompetitors } from "@/components/landing/mockups/MockupProCompetitors";
 import { CapabilitiesShowcase } from "@/components/landing/CapabilitiesShowcase";
-import IntelligenceFlow from "@/components/landing/IntelligenceFlow";
+import HeroOrb from "@/components/landing/HeroOrb";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
@@ -254,37 +254,15 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative pt-28 pb-20 lg:pt-32 lg:pb-28 px-6 overflow-hidden min-h-[100svh]">
-      {/* Base gradient — extremely subtle, bleeds full width */}
+    <section className="relative pt-28 pb-16 lg:pt-32 lg:pb-20 px-6 overflow-hidden min-h-[88svh]">
+      {/* Base gradient — extremely subtle */}
       <div className="absolute inset-0 pointer-events-none" style={{
         background: "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(38,146,220,0.06) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(116,108,230,0.05) 0%, transparent 60%)"
       }} />
 
-      {/* FULL-BLEED cinematic intelligence scene — sits behind the copy */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <IntelligenceFlow />
-        {/* Soft veil to keep left copy crisp on desktop */}
-        <div
-          className="hidden lg:block absolute inset-y-0 left-0 w-[58%]"
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.72) 45%, rgba(255,255,255,0) 100%)",
-          }}
-        />
-        {/* Mobile veil — very subtle, scene reads through */}
-        <div
-          className="lg:hidden absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0.85) 100%)",
-          }}
-        />
-      </div>
-
       <div className="relative z-10 max-w-[1280px] mx-auto">
-        {/* Hero: copy left, scene full-bleed behind */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* Left: Massive title + subtitle + CTA */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+          {/* Left: copy */}
           <div className="lg:col-span-6">
             <Reveal distance={20}>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#eaeaea] shadow-[0_2px_8px_rgba(0,0,0,0.02)] mb-6">
@@ -297,26 +275,32 @@ const HeroSection = () => {
             </Reveal>
 
             <Reveal delay={80} distance={28}>
-              <h1 className="text-[clamp(2.4rem,6.2vw,5.4rem)] font-semibold text-[#0a0a0a] leading-[0.98] tracking-[-0.035em] hyphens-none">
-                Tu negocio,<br />
-                <span
-                  className="inline-block pb-[0.08em]"
-                  style={{
-                    backgroundImage: ACCENT_GRADIENT,
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    lineHeight: "1.05",
-                  }}
-                >
-                  con un CEO digital
+              <h1
+                className="font-semibold text-[#0a0a0a] tracking-[-0.032em] hyphens-none"
+                style={{
+                  fontSize: "clamp(2.2rem, 5.6vw, 4.8rem)",
+                  lineHeight: 1.02,
+                }}
+              >
+                <span className="block">Un CEO digital con IA</span>
+                <span className="block">impulsando tu negocio</span>
+                <span className="block">
+                  o servicio ·{" "}
+                  <span
+                    className="inline-block"
+                    style={{
+                      backgroundImage: ACCENT_GRADIENT,
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
+                    24/7
+                  </span>
                 </span>
-                <br />
-                que nunca duerme.
               </h1>
             </Reveal>
 
-            {/* Subtitle + CTA (left column) */}
-            <div className="mt-8 lg:mt-10 max-w-[560px]">
+            <div className="mt-7 lg:mt-9 max-w-[560px]">
               <Reveal delay={300} distance={18}>
                 <p className="text-[16.5px] lg:text-[17.5px] text-[#666] leading-[1.65]">
                   VISTACEO aprende cómo opera tu empresa, detecta lo que importa y te dice exactamente qué hacer hoy para crecer.
@@ -357,8 +341,12 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right: empty grid spacer — the cinematic scene already lives full-bleed behind */}
-          <div className="hidden lg:block lg:col-span-6" aria-hidden="true" />
+          {/* Right: Executive Orb */}
+          <div className="lg:col-span-6 relative">
+            <Reveal delay={200} distance={24}>
+              <HeroOrb />
+            </Reveal>
+          </div>
         </div>
       </div>
     </section>
