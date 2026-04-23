@@ -31,10 +31,14 @@ export function BlogSchema({ post, url }: BlogSchemaProps) {
     ? post.hero_image_url 
     : DEFAULT_OG_IMAGE;
 
+  // Always use the full article title for sharing/SEO — never the truncated meta_title.
+  // No "| VISTACEO" suffix — keep titles clean and intact.
+  const shareTitle = post.title;
+
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    headline: post.meta_title || post.title,
+    headline: shareTitle,
     description: post.meta_description || post.excerpt,
     image: ogImage,
     datePublished: post.publish_at,
