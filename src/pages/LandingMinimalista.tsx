@@ -426,8 +426,6 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right: spacer — image fills it cinematically */}
-          <div className="hidden lg:block lg:col-span-4 xl:col-span-5" aria-hidden="true" />
         </div>
       </div>
     </section>
