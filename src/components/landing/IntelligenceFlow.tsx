@@ -1,4 +1,5 @@
-import { memo } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import vistaceoIcon from "@/assets/brand/icon-vistaceo-new.webp";
 
 /**
@@ -353,17 +354,68 @@ const CrystalOutput = memo(({
 CrystalOutput.displayName = "CrystalOutput";
 
 /* ═══════════════════════════════════════════════════════════════════
-   ESCENA HERO PRINCIPAL
+   ESCENA HERO PRINCIPAL — Etapa 2 (respiración + parallax + orbits)
    ═══════════════════════════════════════════════════════════════════ */
 const IntelligenceFlow = memo(() => {
-  // viewBox cinematográfico
   const VB_W = 900;
   const VB_H = 700;
   const CORE = { x: 440, y: 340, r: 130 };
 
+  const reduceMotion = useReducedMotion();
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+
+  // Pause when off-screen
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.05 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // Subtle cursor parallax (desktop only)
+  useEffect(() => {
+    if (reduceMotion || !inView) return;
+    if (typeof window === "undefined" || window.matchMedia("(pointer: coarse)").matches) return;
+    let raf = 0;
+    let target = { x: 0, y: 0 };
+    const cur = { x: 0, y: 0 };
+    const onMove = (e: PointerEvent) => {
+      const el = wrapRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
+      const dy = (e.clientY - (r.top + r.height / 2)) / r.height;
+      target = { x: Math.max(-1, Math.min(1, dx)), y: Math.max(-1, Math.min(1, dy)) };
+    };
+    const tick = () => {
+      cur.x += (target.x - cur.x) * 0.06;
+      cur.y += (target.y - cur.y) * 0.06;
+      setParallax({ x: cur.x, y: cur.y });
+      raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener("pointermove", onMove, { passive: true });
+    raf = requestAnimationFrame(tick);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, [reduceMotion, inView]);
+
+  const animsActive = inView && !reduceMotion;
+
+  // Layer offsets — depth-based parallax intensity
+  const layer = (depth: number) => ({
+    transform: `translate3d(${parallax.x * depth}px, ${parallax.y * depth}px, 0)`,
+    transition: "transform 120ms linear",
+    willChange: "transform",
+  });
+
   return (
-    <div className="relative w-full h-full min-h-[560px]">
-      {/* Atmósfera ambiental: glows muy suaves detrás de toda la escena */}
+    <div ref={wrapRef} className="relative w-full h-full min-h-[560px] overflow-hidden">
+      {/* Atmósfera ambiental */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -372,107 +424,162 @@ const IntelligenceFlow = memo(() => {
         }}
       />
 
-      {/* SVG principal — escena escultórica */}
+      {/* SVG escena */}
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="relative w-full h-full"
         preserveAspectRatio="xMidYMid meet"
         aria-hidden="true"
+        style={animsActive ? { transform: `translate3d(${parallax.x * 6}px, ${parallax.y * 6}px, 0)`, transition: "transform 180ms linear" } : undefined}
       >
         <SceneDefs />
 
-        {/* ─── BACKGROUND: ecos suaves desenfocados ─── */}
-        <EchoEntity x={140} y={130} r={48} />
-        <EchoEntity x={780} y={150} r={36} />
-        <EchoEntity x={760} y={580} r={42} />
-        <EchoEntity x={120} y={560} r={32} />
-        {/* Anillo orbital muy lejano */}
-        <circle
-          cx={CORE.x}
-          cy={CORE.y}
-          r={CORE.r * 2.4}
-          fill="none"
-          stroke="#C7D0EF"
-          strokeWidth="0.6"
-          strokeOpacity="0.35"
-          strokeDasharray="1 8"
-        />
+        {/* BACKGROUND — drift más lento */}
+        <g style={{ transformOrigin: "center", animation: animsActive ? "vc-bg-drift 24s ease-in-out infinite" : undefined }}>
+          <EchoEntity x={140} y={130} r={48} />
+          <EchoEntity x={780} y={150} r={36} />
+          <EchoEntity x={760} y={580} r={42} />
+          <EchoEntity x={120} y={560} r={32} />
+        </g>
 
-        {/* ─── MIDGROUND: Motor central monumental ─── */}
-        <CoreEngine cx={CORE.x} cy={CORE.y} r={CORE.r} />
+        {/* Anillo orbital lejano (rotación lenta inversa) */}
+        <g
+          style={{
+            transformOrigin: `${CORE.x}px ${CORE.y}px`,
+            animation: animsActive ? "vc-spin-rev 90s linear infinite" : undefined,
+          }}
+        >
+          <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.4} fill="none" stroke="#C7D0EF" strokeWidth="0.6" strokeOpacity="0.35" strokeDasharray="1 8" />
+        </g>
 
-        {/* ─── MIDGROUND: Entidades escultóricas orbitando ─── */}
-        {/* Reseña — arriba izquierda */}
-        <ReviewEntity x={210} y={195} scale={1.05} />
-        {/* Competencia — arriba derecha */}
-        <CompetitorEntity x={680} y={210} scale={1} />
-        {/* Tendencia — derecha media */}
-        <TrendEntity x={700} y={460} scale={0.95} />
-        {/* Riesgo — izquierda media */}
-        <RiskEntity x={195} y={465} scale={1.05} />
+        {/* MOTOR — respiración + anillo dasheado rotando */}
+        <g style={{ transformOrigin: `${CORE.x}px ${CORE.y}px`, animation: animsActive ? "vc-breathe 6s ease-in-out infinite" : undefined }}>
+          {/* anillo dasheado interno girando dentro del motor */}
+          <g style={{ transformOrigin: `${CORE.x}px ${CORE.y}px`, animation: animsActive ? "vc-spin 60s linear infinite" : undefined }}>
+            <CoreEngine cx={CORE.x} cy={CORE.y} r={CORE.r} />
+          </g>
+        </g>
 
-        {/* ─── FOREGROUND: Entidad protagónica (ventas) ─── */}
-        <SalesEntity x={385} y={605} scale={1.15} />
+        {/* MIDGROUND — entidades, cada una con su propio bob */}
+        <g style={{ transformOrigin: "210px 195px", animation: animsActive ? "vc-bob-a 7s ease-in-out infinite" : undefined }}>
+          <ReviewEntity x={210} y={195} scale={1.05} />
+        </g>
+        <g style={{ transformOrigin: "680px 210px", animation: animsActive ? "vc-bob-b 8.5s ease-in-out infinite" : undefined }}>
+          <CompetitorEntity x={680} y={210} scale={1} />
+        </g>
+        <g style={{ transformOrigin: "700px 460px", animation: animsActive ? "vc-bob-c 9.5s ease-in-out infinite" : undefined }}>
+          <TrendEntity x={700} y={460} scale={0.95} />
+        </g>
+        <g style={{ transformOrigin: "195px 465px", animation: animsActive ? "vc-bob-d 8s ease-in-out infinite" : undefined }}>
+          <RiskEntity x={195} y={465} scale={1.05} />
+        </g>
 
-        {/* Reflejo base — superficie reflectante muy sutil */}
-        <ellipse
-          cx={CORE.x}
-          cy={680}
-          rx={420}
-          ry={14}
-          fill="url(#contactShadow)"
-          opacity="0.5"
-        />
+        {/* FOREGROUND — protagonista (respira más amplio) */}
+        <g style={{ transformOrigin: "385px 605px", animation: animsActive ? "vc-bob-fg 6.5s ease-in-out infinite" : undefined }}>
+          <SalesEntity x={385} y={605} scale={1.15} />
+        </g>
+
+        {/* Reflejo base */}
+        <ellipse cx={CORE.x} cy={680} rx={420} ry={14} fill="url(#contactShadow)" opacity="0.5" />
       </svg>
 
-      {/* ─── Isotipo VISTACEO embebido en el corazón del motor ─── */}
+      {/* Isotipo VISTACEO — respiración + halo pulse */}
       <div
         className="absolute pointer-events-none flex items-center justify-center"
         style={{
           left: `${(CORE.x / VB_W) * 100}%`,
           top: `${(CORE.y / VB_H) * 100}%`,
-          transform: "translate(-50%, -50%)",
-          width: `${(CORE.r * 0.7 / VB_W) * 100}%`,
+          transform: `translate(-50%, -50%) translate3d(${parallax.x * 4}px, ${parallax.y * 4}px, 0)`,
+          width: `${((CORE.r * 0.7) / VB_W) * 100}%`,
+          transition: "transform 180ms linear",
         }}
       >
-        <div className="relative w-full aspect-square">
-          {/* Halo detrás del logo */}
+        <div className="relative w-full aspect-square" style={animsActive ? { animation: "vc-breathe 6s ease-in-out infinite" } : undefined}>
           <div
             className="absolute inset-0 rounded-full blur-xl"
-            style={{ background: "radial-gradient(circle, rgba(169,158,255,0.45), transparent 65%)" }}
+            style={{
+              background: "radial-gradient(circle, rgba(169,158,255,0.45), transparent 65%)",
+              animation: animsActive ? "vc-halo-pulse 5s ease-in-out infinite" : undefined,
+            }}
           />
           <img
             src={vistaceoIcon}
             alt=""
             className="relative w-full h-full object-contain"
-            style={{
-              filter: "drop-shadow(0 6px 14px rgba(74,86,140,0.25)) drop-shadow(0 0 10px rgba(169,158,255,0.35))",
-            }}
+            style={{ filter: "drop-shadow(0 6px 14px rgba(74,86,140,0.25)) drop-shadow(0 0 10px rgba(169,158,255,0.35))" }}
             draggable={false}
           />
         </div>
       </div>
 
-      {/* ─── OUTPUTS CRISTALIZADOS (right rail) ─── */}
-      <div className="absolute right-2 sm:right-4 top-0 h-full pointer-events-none hidden md:block">
+      {/* OUTPUTS — right rail, parallax leve (foreground) */}
+      <div
+        className="absolute right-2 sm:right-4 top-0 h-full pointer-events-none hidden md:block"
+        style={animsActive ? layer(10) : undefined}
+      >
         <CrystalOutput kind="opportunity" top="14%" delay={0} />
         <CrystalOutput kind="insight" top="44%" delay={1.4} />
         <CrystalOutput kind="prediction" top="74%" delay={2.6} />
       </div>
 
-      {/* ─── OUTPUTS MOBILE (mostrar 2 abajo) ─── */}
+      {/* OUTPUTS mobile */}
       <div className="absolute inset-x-0 bottom-2 flex justify-center gap-3 md:hidden pointer-events-none">
         <CrystalOutput kind="opportunity" top="0" delay={0} />
       </div>
 
-      {/* Keyframes para float ambiental */}
+      {/* Keyframes */}
       <style>{`
         @keyframes vc-float {
           0%, 100% { transform: translateY(0) translateX(0); }
           50% { transform: translateY(-6px) translateX(-2px); }
         }
+        @keyframes vc-breathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.018); }
+        }
+        @keyframes vc-halo-pulse {
+          0%, 100% { opacity: 0.85; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.08); }
+        }
+        @keyframes vc-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes vc-spin-rev {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(-360deg); }
+        }
+        @keyframes vc-bg-drift {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(4px, -3px); }
+        }
+        @keyframes vc-bob-a {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(-3px, -8px); }
+        }
+        @keyframes vc-bob-b {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(4px, -6px); }
+        }
+        @keyframes vc-bob-c {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(3px, 7px); }
+        }
+        @keyframes vc-bob-d {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(-4px, 6px); }
+        }
+        @keyframes vc-bob-fg {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(0, -10px); }
+        }
         @media (prefers-reduced-motion: reduce) {
-          [style*="vc-float"] { animation: none !important; }
+          [style*="vc-float"], [style*="vc-breathe"], [style*="vc-halo-pulse"],
+          [style*="vc-spin"], [style*="vc-spin-rev"], [style*="vc-bg-drift"],
+          [style*="vc-bob-a"], [style*="vc-bob-b"], [style*="vc-bob-c"],
+          [style*="vc-bob-d"], [style*="vc-bob-fg"] {
+            animation: none !important;
+          }
         }
       `}</style>
     </div>
