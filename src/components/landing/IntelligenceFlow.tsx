@@ -715,46 +715,73 @@ const IntelligenceFlow = memo(() => {
   const SLOT_Y = [VB_H * 0.18, VB_H * 0.48, VB_H * 0.78];
 
   return (
-    <div ref={wrapRef} className="relative w-full h-full min-h-[560px] overflow-hidden">
-      {/* Atmósfera — luz de estudio premium estratificada */}
+    <div ref={wrapRef} className="relative w-full h-[100svh] min-h-[640px] overflow-hidden">
+      {/* Atmósfera — luz suave y controlada (no sobre-iluminada) */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(55% 45% at 48% 42%, rgba(220,233,255,0.65) 0%, transparent 70%), radial-gradient(38% 38% at 70% 28%, rgba(237,231,255,0.55) 0%, transparent 75%), radial-gradient(45% 35% at 30% 75%, rgba(248,245,255,0.4) 0%, transparent 70%)",
+            "radial-gradient(40% 38% at 67% 50%, rgba(220,233,255,0.38) 0%, transparent 70%), radial-gradient(28% 30% at 78% 32%, rgba(237,231,255,0.28) 0%, transparent 75%)",
         }}
       />
 
-      {/* Vignette ultra-sutil para enfocar el ojo en el núcleo */}
+      {/* Vignette ultra-sutil (foco sobre el motor a la derecha) */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(80% 70% at 50% 50%, transparent 50%, rgba(200,210,235,0.18) 100%)",
+            "radial-gradient(70% 65% at 67% 50%, transparent 60%, rgba(190,200,225,0.12) 100%)",
         }}
       />
 
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="relative w-full h-full"
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio="xMidYMid slice"
         aria-hidden="true"
         style={animsActive ? { transform: `translate3d(${parallax.x * 6}px, ${parallax.y * 6}px, 0)`, transition: "transform 180ms linear" } : undefined}
       >
         <SceneDefs />
 
-        {/* BACKGROUND — ecos atmosféricos (reducidos en mobile) */}
+        {/* BACKGROUND — ecos atmosféricos distribuidos por todo el ancho */}
         <g style={{ transformOrigin: "center", animation: animsActive ? "vc-bg-drift 24s ease-in-out infinite" : undefined }}>
-          <EchoEntity x={140} y={130} r={48} />
-          <EchoEntity x={780} y={150} r={36} />
-          {!isMobile && <EchoEntity x={760} y={580} r={42} />}
-          {!isMobile && <EchoEntity x={120} y={560} r={32} />}
+          <EchoEntity x={220} y={130} r={48} />
+          <EchoEntity x={520} y={90} r={36} />
+          <EchoEntity x={1380} y={120} r={42} />
+          {!isMobile && <EchoEntity x={1450} y={620} r={38} />}
+          {!isMobile && <EchoEntity x={680} y={680} r={32} />}
+          {!isMobile && <EchoEntity x={340} y={620} r={28} />}
+        </g>
+
+        {/* AMBIENT ENTITY FAMILY — visible siempre (NO solo el traveler) */}
+        {/* Distribuidas a lo ancho, tamaños variados, parallax sutil */}
+        <g opacity="0.95">
+          {/* TENDENCIA — cinta fluida (background-mid, izquierda) */}
+          <g style={{ animation: animsActive ? "vc-bob-a 9s ease-in-out infinite" : undefined, transformOrigin: "330px 240px" }}>
+            <TrendEntity x={330} y={240} scale={0.85} />
+          </g>
+          {/* RESEÑAS — burbujas (top mid) */}
+          <g style={{ animation: animsActive ? "vc-bob-b 11s ease-in-out infinite" : undefined, transformOrigin: "560px 360px" }}>
+            <ReviewEntity x={560} y={360} scale={0.95} />
+          </g>
+          {/* RIESGO — prisma (mid-left) */}
+          <g style={{ animation: animsActive ? "vc-bob-c 10s ease-in-out infinite" : undefined, transformOrigin: "240px 480px" }}>
+            <RiskEntity x={240} y={480} scale={0.8} />
+          </g>
+          {/* COMPETENCIA — doble plano (mid) */}
+          <g style={{ animation: animsActive ? "vc-bob-d 12s ease-in-out infinite" : undefined, transformOrigin: "720px 560px" }}>
+            <CompetitorEntity x={720} y={560} scale={0.85} />
+          </g>
+          {/* VENTAS — gota (foreground, izquierda-abajo, más grande) */}
+          <g style={{ animation: animsActive ? "vc-bob-fg 8s ease-in-out infinite" : undefined, transformOrigin: "150px 600px" }}>
+            <SalesEntity x={150} y={600} scale={1.15} />
+          </g>
         </g>
 
         {/* Anillo orbital lejano */}
         <g style={{ transformOrigin: `${CORE.x}px ${CORE.y}px`, animation: animsActive ? "vc-spin-rev 90s linear infinite" : undefined }}>
-          <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.4} fill="none" stroke="#B8C2E5" strokeWidth="0.6" strokeOpacity="0.32" strokeDasharray="1 9" />
-          {!isMobile && <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.05} fill="none" stroke="#C7D0EF" strokeWidth="0.5" strokeOpacity="0.22" strokeDasharray="0.5 6" />}
+          <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.4} fill="none" stroke="#B8C2E5" strokeWidth="0.6" strokeOpacity="0.25" strokeDasharray="1 9" />
+          {!isMobile && <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.05} fill="none" stroke="#C7D0EF" strokeWidth="0.5" strokeOpacity="0.18" strokeDasharray="0.5 6" />}
         </g>
 
         {/* MOTOR — respiración + spin sutil */}
@@ -764,19 +791,18 @@ const IntelligenceFlow = memo(() => {
           </g>
         </g>
 
-        {/* TRAVELER actual — única entidad en escena (foco) */}
+        {/* TRAVELER actual — recorre desde el lado izquierdo hacia el motor */}
         <Traveler beat={currentBeat} core={CORE} t={beatT} />
 
         {/* Pulso de cristalización en el núcleo */}
         <CrystallizeBurst core={CORE} t={beatT} accent={OUTPUT_META[currentBeat.output].accent} />
 
         {/* Beam de emergencia hacia el slot destino */}
-        <EmergenceBeam core={CORE} t={beatT} slotY={SLOT_Y[currentBeat.slot]} />
+        <EmergenceBeam core={CORE} t={beatT} slotY={SLOT_Y[currentBeat.slot]} vbWidth={VB_W} />
 
-        {/* PISO REFLECTANTE — sutil pero esencial para sensación de objeto */}
-        <ellipse cx={CORE.x} cy={CORE.y + CORE.r + 24} rx={CORE.r * 1.2} ry={10} fill="url(#contactShadow)" opacity="0.55" />
-        <ellipse cx={CORE.x} cy={CORE.y + CORE.r + 60} rx={CORE.r * 0.85} ry={CORE.r * 0.45} fill="url(#floorReflect)" opacity="0.18" />
-        <ellipse cx={CORE.x} cy={680} rx={420} ry={14} fill="url(#contactShadow)" opacity="0.4" />
+        {/* PISO REFLECTANTE — sutil sombra de contacto del motor */}
+        <ellipse cx={CORE.x} cy={CORE.y + CORE.r + 24} rx={CORE.r * 1.2} ry={10} fill="url(#contactShadow)" opacity="0.45" />
+        <ellipse cx={CORE.x} cy={CORE.y + CORE.r + 60} rx={CORE.r * 0.85} ry={CORE.r * 0.45} fill="url(#floorReflect)" opacity="0.14" />
       </svg>
 
       {/* Isotipo VISTACEO — pulsa más fuerte cuando hay cristalización */}
@@ -794,9 +820,9 @@ const IntelligenceFlow = memo(() => {
           <div
             className="absolute inset-0 rounded-full blur-xl"
             style={{
-              background: "radial-gradient(circle, rgba(169,158,255,0.45), transparent 65%)",
+              background: "radial-gradient(circle, rgba(169,158,255,0.35), transparent 65%)",
               animation: animsActive ? "vc-halo-pulse 5s ease-in-out infinite" : undefined,
-              opacity: beatT >= 0.55 && beatT <= 0.85 ? 1 : 0.85,
+              opacity: beatT >= 0.55 && beatT <= 0.85 ? 0.95 : 0.7,
               transition: "opacity 200ms linear",
             }}
           />
@@ -805,7 +831,7 @@ const IntelligenceFlow = memo(() => {
             alt=""
             className="relative w-full h-full object-contain"
             style={{
-              filter: `drop-shadow(0 6px 14px rgba(74,86,140,0.25)) drop-shadow(0 0 ${beatT >= 0.55 && beatT <= 0.85 ? 18 : 10}px rgba(169,158,255,${beatT >= 0.55 && beatT <= 0.85 ? 0.6 : 0.35}))`,
+              filter: `drop-shadow(0 6px 14px rgba(74,86,140,0.22)) drop-shadow(0 0 ${beatT >= 0.55 && beatT <= 0.85 ? 14 : 8}px rgba(169,158,255,${beatT >= 0.55 && beatT <= 0.85 ? 0.45 : 0.28}))`,
               transition: "filter 250ms ease-out",
             }}
             draggable={false}
@@ -813,13 +839,13 @@ const IntelligenceFlow = memo(() => {
         </div>
       </div>
 
-      {/* OUTPUTS — right rail (controlados por el loop) */}
+      {/* OUTPUTS — flotando a la derecha del motor */}
       <div
-        className="absolute right-2 sm:right-4 top-0 h-full pointer-events-none hidden md:block"
+        className="absolute right-4 lg:right-8 top-0 h-full pointer-events-none hidden md:block w-[260px]"
         style={animsActive ? { transform: `translate3d(${parallax.x * 10}px, ${parallax.y * 10}px, 0)`, transition: "transform 120ms linear", willChange: "transform" } : undefined}
       >
-        {slots[0] && <CrystalOutput kind={slots[0]} top="14%" visible={true} />}
-        {slots[1] && <CrystalOutput kind={slots[1]} top="44%" visible={true} />}
+        {slots[0] && <CrystalOutput kind={slots[0]} top="22%" visible={true} />}
+        {slots[1] && <CrystalOutput kind={slots[1]} top="48%" visible={true} />}
         {slots[2] && <CrystalOutput kind={slots[2]} top="74%" visible={true} />}
       </div>
 
