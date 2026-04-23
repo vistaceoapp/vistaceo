@@ -382,27 +382,60 @@ const HeroSection = () => {
                   </button>
                 </div>
 
-                <div className="mt-6 flex items-center gap-4 sm:gap-5 flex-wrap">
-                  <span className="flex items-center gap-1.5 text-[12.5px] text-[#666]">
-                    <span className="w-4 h-4 rounded-full bg-[#28c840]/10 flex items-center justify-center">
-                      <CheckCircle2 className="w-3 h-3 text-[#28c840]" strokeWidth={2.5} />
-                    </span>
-                    Gratis para siempre
-                  </span>
-                  <span className="hidden sm:block w-px h-3 bg-black/10" />
-                  <span className="flex items-center gap-1.5 text-[12.5px] text-[#666]">
-                    <span className="w-4 h-4 rounded-full bg-[#2692DC]/10 flex items-center justify-center">
-                      <Clock className="w-3 h-3 text-[#2692DC]" strokeWidth={2.5} />
-                    </span>
-                    Listo en 2 minutos
-                  </span>
-                  <span className="hidden sm:block w-px h-3 bg-black/10" />
-                  <span className="flex items-center gap-1.5 text-[12.5px] text-[#666]">
-                    <span className="w-4 h-4 rounded-full bg-[#746CE6]/10 flex items-center justify-center">
-                      <Sparkles className="w-3 h-3 text-[#746CE6]" strokeWidth={2.5} />
-                    </span>
-                    Sin tarjeta
-                  </span>
+                <div
+                  className="mt-7 relative overflow-hidden hero-marquee-mask"
+                  aria-hidden="true"
+                >
+                  <div className="flex gap-3 hero-marquee-track whitespace-nowrap py-1">
+                    {[
+                      "Restaurantes", "Cafeterías", "Hoteles", "Estudios jurídicos",
+                      "Clínicas", "Consultorios", "Gimnasios", "Spas",
+                      "Tiendas online", "Retail", "Inmobiliarias", "Constructoras",
+                      "Agencias", "Consultoras", "Estudios contables", "Coaches",
+                      "Diseñadores", "Desarrolladores", "Fotógrafos", "Productoras",
+                      "Talleres", "Distribuidoras", "Fábricas", "Importadoras",
+                      "Escuelas", "Academias", "ONGs", "Marcas D2C",
+                      "Peluquerías", "Veterinarias", "Farmacias", "Floristerías",
+                    ].concat([
+                      "Restaurantes", "Cafeterías", "Hoteles", "Estudios jurídicos",
+                      "Clínicas", "Consultorios", "Gimnasios", "Spas",
+                      "Tiendas online", "Retail", "Inmobiliarias", "Constructoras",
+                      "Agencias", "Consultoras", "Estudios contables", "Coaches",
+                      "Diseñadores", "Desarrolladores", "Fotógrafos", "Productoras",
+                      "Talleres", "Distribuidoras", "Fábricas", "Importadoras",
+                      "Escuelas", "Academias", "ONGs", "Marcas D2C",
+                      "Peluquerías", "Veterinarias", "Farmacias", "Floristerías",
+                    ]).map((label, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.06] bg-white/40 backdrop-blur-sm text-[12px] text-[#555] font-medium tracking-[-0.005em]"
+                      >
+                        <span className="w-1 h-1 rounded-full bg-gradient-to-br from-[#4FB3F0] to-[#746CE6]" />
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                  <style>{`
+                    .hero-marquee-mask {
+                      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
+                              mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
+                    }
+                    .hero-marquee-track {
+                      width: max-content;
+                      animation: heroMarquee 55s linear infinite;
+                      will-change: transform;
+                    }
+                    .hero-marquee-mask:hover .hero-marquee-track {
+                      animation-play-state: paused;
+                    }
+                    @keyframes heroMarquee {
+                      0%   { transform: translateX(0); }
+                      100% { transform: translateX(-50%); }
+                    }
+                    @media (prefers-reduced-motion: reduce) {
+                      .hero-marquee-track { animation: none; }
+                    }
+                  `}</style>
                 </div>
               </Reveal>
             </div>
