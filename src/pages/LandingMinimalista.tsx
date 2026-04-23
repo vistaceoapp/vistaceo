@@ -293,72 +293,55 @@ const HeroSection = () => {
                 que nunca duerme.
               </h1>
             </Reveal>
-          </div>
 
-          {/* Right: Floating feature pills (Voxr-style) */}
-          <div className="flex flex-col gap-3 lg:items-end lg:pt-4">
-            {[
-              { icon: <Sparkles className="w-3.5 h-3.5" />, text: "Detecta oportunidades en vivo", color: "#2692DC" },
-              { icon: <Target className="w-3.5 h-3.5" />, text: "Ejecuta misiones priorizadas", color: "#746CE6" },
-              { icon: <TrendingUp className="w-3.5 h-3.5" />, text: "Aumenta margen +18% promedio", color: "#2692DC" },
-            ].map((pill, i) => (
-              <Reveal key={pill.text} delay={150 + i * 90} distance={20}>
-                <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white/85 backdrop-blur-md border border-[#ebebeb] shadow-[0_4px_20px_-6px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.03)]">
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${pill.color}15`, color: pill.color }}>
-                    {pill.icon}
-                  </span>
-                  <span className="text-[12.5px] font-medium text-[#333] whitespace-nowrap">{pill.text}</span>
-                </div>
+            {/* Subtitle + CTA (left column) */}
+            <div className="mt-8 lg:mt-10 max-w-[560px]">
+              <Reveal delay={300} distance={18}>
+                <p className="text-[16.5px] lg:text-[17.5px] text-[#666] leading-[1.65]">
+                  VISTACEO aprende cómo opera tu empresa, detecta lo que importa y te dice exactamente qué hacer hoy para crecer.
+                </p>
               </Reveal>
-            ))}
-          </div>
-        </div>
 
-        {/* Subtitle + CTA */}
-        <div className="mt-10 lg:mt-14 max-w-[580px]">
-          <Reveal delay={300} distance={18}>
-            <p className="text-[16.5px] lg:text-[17.5px] text-[#666] leading-[1.65]">
-              VISTACEO aprende cómo opera tu empresa, detecta lo que importa y te dice exactamente qué hacer hoy para crecer.
-            </p>
-          </Reveal>
+              <Reveal delay={380} distance={18}>
+                <div className="flex flex-wrap items-center gap-3 mt-7">
+                  <button
+                    onClick={() => navigate("/auth?mode=signup")}
+                    className="group flex items-center gap-2 pl-6 pr-2 py-2 rounded-full bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] transition-all duration-300 active:scale-[0.98] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.4)]"
+                  >
+                    <span className="text-[14px] font-medium">Empezar gratis</span>
+                    <span
+                      className="w-9 h-9 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5"
+                      style={{ background: ACCENT_GRADIENT }}
+                    >
+                      <ArrowRight className="w-4 h-4 text-white" />
+                    </span>
+                  </button>
 
-          <Reveal delay={380} distance={18}>
-            <div className="flex flex-wrap items-center gap-3 mt-8">
-              {/* Voxr-style pill CTA: white pill with circular accent button */}
-              <button
-                onClick={() => navigate("/auth?mode=signup")}
-                className="group flex items-center gap-2 pl-6 pr-2 py-2 rounded-full bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] transition-all duration-300 active:scale-[0.98] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.4)]"
-              >
-                <span className="text-[14px] font-medium">Empezar gratis</span>
-                <span
-                  className="w-9 h-9 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5"
-                  style={{ background: ACCENT_GRADIENT }}
-                >
-                  <ArrowRight className="w-4 h-4 text-white" />
-                </span>
-              </button>
+                  <button
+                    onClick={() => {
+                      const el = document.querySelector("#producto");
+                      if (el) el.scrollIntoView({ behavior: "smooth" });
+                    }}
+                    className="text-[14px] text-[#666] hover:text-[#111] px-5 py-3 rounded-full transition-colors border border-[#e8e8e8] hover:border-[#ccc] hover:bg-white/50"
+                  >
+                    Conocer la plataforma
+                  </button>
+                </div>
 
-              <button
-                onClick={() => {
-                  const el = document.querySelector("#producto");
-                  if (el) el.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="text-[14px] text-[#666] hover:text-[#111] px-5 py-3 rounded-full transition-colors border border-[#e8e8e8] hover:border-[#ccc] hover:bg-white/50"
-              >
-                Conocer la plataforma
-              </button>
+                <p className="text-[12px] text-[#aaa] mt-5 flex items-center gap-4 flex-wrap">
+                  <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#28c840]" /> Sin tarjeta de crédito</span>
+                  <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#2692DC]" /> Activo en minutos</span>
+                </p>
+              </Reveal>
             </div>
+          </div>
 
-            <p className="text-[12px] text-[#aaa] mt-5 flex items-center gap-4">
-              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#28c840]" /> Sin tarjeta de crédito</span>
-              <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#2692DC]" /> Activo en minutos</span>
-            </p>
+          {/* Right: Cinematic intelligence scene (premium hero asset) */}
+          <Reveal delay={200} distance={24}>
+            <div className="relative w-full h-[360px] sm:h-[440px] lg:h-[580px]">
+              <IntelligenceFlow />
+            </div>
           </Reveal>
-        </div>
-
-        {/* Hero scene — protagonist below the fold area */}
-        <div className="relative mt-16 lg:mt-20 h-[420px] lg:h-[520px] -mx-6">
-          <IntelligenceFlow />
         </div>
       </div>
     </section>
