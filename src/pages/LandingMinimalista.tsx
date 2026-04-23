@@ -454,17 +454,26 @@ const TrustStrip = () => {
   const counter = useRealtimeCounter();
   
   return (
-    <section className="py-14 px-6 bg-white border-y border-[#f5f5f5]">
-      <div className="max-w-[1000px] mx-auto">
+    <section className="py-8 px-6 bg-white border-y border-[#f5f5f5]">
+      <div className="max-w-[900px] mx-auto">
         <Reveal>
-          <div className="flex items-center justify-center text-center">
-            <div className="flex items-center gap-2.5 text-[14px] sm:text-[15px] text-[#666]">
-              <Users className="w-4 h-4 sm:w-[18px] sm:h-[18px]" style={{ color: "#2692DC" }} />
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center">
+            <span className="flex items-center gap-1.5 text-[12px] text-[#888]">
+              <Users className="w-3.5 h-3.5 text-[#2692DC]/70" />
               <span>
-                <span className="font-bold text-[#0a0a0a] text-[16px] sm:text-[18px] tabular-nums">+5.000</span>{" "}
-                negocios o servicios <span className="font-semibold text-[#333]">ya la utilizan</span>
+                <span className="font-semibold text-[#444] tabular-nums">+5.000</span> negocios o servicios ya la utilizan
               </span>
-            </div>
+            </span>
+            <span className="hidden sm:inline-block w-px h-3 bg-[#eee]" />
+            <span className="flex items-center gap-1.5 text-[12px] text-[#999]">
+              <Globe className="w-3.5 h-3.5 text-[#746CE6]/70" />
+              Disponible en LATAM y España
+            </span>
+            <span className="hidden sm:inline-block w-px h-3 bg-[#eee]" />
+            <span className="flex items-center gap-1.5 text-[12px] text-[#999]">
+              <Shield className="w-3.5 h-3.5 text-[#2692DC]/70" />
+              Datos encriptados
+            </span>
           </div>
         </Reveal>
       </div>
