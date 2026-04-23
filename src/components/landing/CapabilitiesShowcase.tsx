@@ -283,7 +283,7 @@ const items = [
 
 export const CapabilitiesShowcase = memo(() => {
   return (
-    <section className="py-20 md:py-28 bg-white relative overflow-hidden" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
+    <section id="capacidades" className="py-20 md:py-28 bg-white relative overflow-hidden" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
       <div className="container mx-auto px-6 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
