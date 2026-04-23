@@ -23,60 +23,97 @@ import vistaceoIcon from "@/assets/brand/icon-vistaceo-new.webp";
    ═══════════════════════════════════════════════════════════════════ */
 const SceneDefs = memo(() => (
   <defs>
-    {/* Halo ambiental detrás del motor */}
+    {/* Halo ambiental — luz de estudio estratificada */}
     <radialGradient id="ambientHalo" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stopColor="#E9E4FF" stopOpacity="0.55" />
-      <stop offset="45%" stopColor="#DCE9FF" stopOpacity="0.28" />
+      <stop offset="0%" stopColor="#EDE7FF" stopOpacity="0.7" />
+      <stop offset="35%" stopColor="#DCE9FF" stopOpacity="0.4" />
+      <stop offset="70%" stopColor="#F2EEFF" stopOpacity="0.15" />
       <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
     </radialGradient>
 
-    {/* Lente exterior del motor — vidrio frío translúcido */}
-    <radialGradient id="coreLens" cx="40%" cy="35%" r="75%">
+    {/* Lente exterior — vidrio frosted con refracción */}
+    <radialGradient id="coreLens" cx="38%" cy="30%" r="78%">
       <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
-      <stop offset="35%" stopColor="#F4F1FF" stopOpacity="0.92" />
-      <stop offset="75%" stopColor="#E1E8FF" stopOpacity="0.78" />
-      <stop offset="100%" stopColor="#C9D2F2" stopOpacity="0.55" />
+      <stop offset="22%" stopColor="#FAF7FF" stopOpacity="0.96" />
+      <stop offset="48%" stopColor="#EDE9FB" stopOpacity="0.88" />
+      <stop offset="78%" stopColor="#DDE3F7" stopOpacity="0.74" />
+      <stop offset="100%" stopColor="#B8C2E8" stopOpacity="0.5" />
     </radialGradient>
 
-    {/* Anillo cerámico interior */}
-    <radialGradient id="ceramicRing" cx="50%" cy="40%" r="60%">
+    {/* Refracción interior — sutil tinte iridiscente */}
+    <radialGradient id="coreRefraction" cx="62%" cy="68%" r="55%">
+      <stop offset="0%" stopColor="#C8DCFF" stopOpacity="0.45" />
+      <stop offset="50%" stopColor="#E3D9FF" stopOpacity="0.22" />
+      <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+    </radialGradient>
+
+    {/* Cerámica satinada interior */}
+    <radialGradient id="ceramicRing" cx="50%" cy="35%" r="65%">
       <stop offset="0%" stopColor="#FFFFFF" />
-      <stop offset="60%" stopColor="#F0EEFB" />
-      <stop offset="100%" stopColor="#D7DDF2" />
+      <stop offset="45%" stopColor="#F6F3FE" />
+      <stop offset="80%" stopColor="#E6E9F5" />
+      <stop offset="100%" stopColor="#CDD3E8" />
     </radialGradient>
 
-    {/* Bisel iluminado celeste-violeta */}
+    {/* Bisel iluminado — gradiente VISTACEO refinado */}
     <linearGradient id="bevelEdge" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#2692DC" stopOpacity="0.85" />
-      <stop offset="50%" stopColor="#A99EFF" stopOpacity="0.7" />
-      <stop offset="100%" stopColor="#746CE6" stopOpacity="0.85" />
+      <stop offset="0%" stopColor="#2692DC" stopOpacity="0.9" />
+      <stop offset="50%" stopColor="#A99EFF" stopOpacity="0.78" />
+      <stop offset="100%" stopColor="#5C53D4" stopOpacity="0.9" />
     </linearGradient>
 
-    {/* Highlight especular — toque de luz superior */}
-    <radialGradient id="specularTop" cx="50%" cy="0%" r="60%">
+    {/* Rim light — luz de borde */}
+    <linearGradient id="rimLight" x1="50%" y1="0%" x2="50%" y2="100%">
       <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
-      <stop offset="60%" stopColor="#FFFFFF" stopOpacity="0.15" />
+      <stop offset="40%" stopColor="#FFFFFF" stopOpacity="0.4" />
+      <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+    </linearGradient>
+
+    {/* Highlight especular superior */}
+    <radialGradient id="specularTop" cx="50%" cy="0%" r="65%">
+      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
+      <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.2" />
       <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
     </radialGradient>
 
-    {/* Sombra de contacto bajo objetos flotantes */}
+    {/* Sombra de contacto — gris-azulado profundo */}
     <radialGradient id="contactShadow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stopColor="#7A8CB8" stopOpacity="0.32" />
+      <stop offset="0%" stopColor="#5A6A98" stopOpacity="0.4" />
+      <stop offset="60%" stopColor="#7A8CB8" stopOpacity="0.18" />
       <stop offset="100%" stopColor="#7A8CB8" stopOpacity="0" />
     </radialGradient>
 
-    {/* Material de entidades — glass blanco perlado */}
-    <radialGradient id="entityGlass" cx="35%" cy="25%" r="80%">
+    {/* Material de entidades — glass blanco perlado refinado */}
+    <radialGradient id="entityGlass" cx="32%" cy="22%" r="85%">
       <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
-      <stop offset="55%" stopColor="#F2EEFF" stopOpacity="0.88" />
-      <stop offset="100%" stopColor="#C7D0EF" stopOpacity="0.7" />
+      <stop offset="35%" stopColor="#F8F5FF" stopOpacity="0.95" />
+      <stop offset="70%" stopColor="#E8EBF7" stopOpacity="0.85" />
+      <stop offset="100%" stopColor="#B8C4E5" stopOpacity="0.65" />
     </radialGradient>
 
-    {/* Glow violeta sutil para outputs */}
+    {/* Faceta interior — sugiere refracción */}
+    <linearGradient id="entityFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.6" />
+      <stop offset="100%" stopColor="#D8DFF2" stopOpacity="0.1" />
+    </linearGradient>
+
+    {/* Glow violeta sutil */}
     <radialGradient id="outputGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stopColor="#A99EFF" stopOpacity="0.4" />
+      <stop offset="0%" stopColor="#A99EFF" stopOpacity="0.5" />
       <stop offset="100%" stopColor="#A99EFF" stopOpacity="0" />
     </radialGradient>
+
+    {/* Glow celeste para entradas */}
+    <radialGradient id="inputGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#2692DC" stopOpacity="0.4" />
+      <stop offset="100%" stopColor="#2692DC" stopOpacity="0" />
+    </radialGradient>
+
+    {/* Floor reflection — reflejo del piso */}
+    <linearGradient id="floorReflect" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.55" />
+      <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+    </linearGradient>
 
     {/* Filtro: blur suave para ecos de background */}
     <filter id="echoBlur" x="-20%" y="-20%" width="140%" height="140%">
@@ -91,6 +128,11 @@ const SceneDefs = memo(() => (
         <feMergeNode in="SourceGraphic" />
       </feMerge>
     </filter>
+
+    {/* Filtro: soft inner shadow para profundidad de cerámica */}
+    <filter id="innerSoft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" />
+    </filter>
   </defs>
 ));
 SceneDefs.displayName = "SceneDefs";
@@ -101,48 +143,63 @@ SceneDefs.displayName = "SceneDefs";
 const CoreEngine = memo(({ cx, cy, r }: { cx: number; cy: number; r: number }) => {
   return (
     <g>
-      {/* Halo ambiental exterior masivo */}
-      <circle cx={cx} cy={cy} r={r * 2.1} fill="url(#ambientHalo)" />
+      {/* Halo ambiental exterior masivo (key light) */}
+      <circle cx={cx} cy={cy} r={r * 2.3} fill="url(#ambientHalo)" />
 
-      {/* Sombra de contacto */}
-      <ellipse cx={cx} cy={cy + r * 0.95} rx={r * 1.05} ry={r * 0.18} fill="url(#contactShadow)" />
+      {/* Sombra de contacto profunda */}
+      <ellipse cx={cx} cy={cy + r * 0.98} rx={r * 1.15} ry={r * 0.2} fill="url(#contactShadow)" />
+      <ellipse cx={cx} cy={cy + r * 1.02} rx={r * 0.7} ry={r * 0.09} fill="#5A6A98" opacity="0.18" />
 
-      {/* Anillo orbital exterior (delgado, decorativo refinado) */}
-      <circle cx={cx} cy={cy} r={r * 1.45} fill="none" stroke="url(#bevelEdge)" strokeWidth="1" strokeOpacity="0.35" strokeDasharray="2 6" />
+      {/* Anillo orbital exterior — punteado fino */}
+      <circle cx={cx} cy={cy} r={r * 1.55} fill="none" stroke="url(#bevelEdge)" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 7" />
 
-      {/* Anillo orbital medio */}
-      <circle cx={cx} cy={cy} r={r * 1.22} fill="none" stroke="#C7D0EF" strokeWidth="0.8" strokeOpacity="0.5" />
+      {/* Anillo orbital medio — sólido translúcido */}
+      <circle cx={cx} cy={cy} r={r * 1.28} fill="none" stroke="#B8C2E5" strokeWidth="0.8" strokeOpacity="0.45" />
+      <circle cx={cx} cy={cy} r={r * 1.18} fill="none" stroke="#FFFFFF" strokeWidth="0.6" strokeOpacity="0.7" />
 
-      {/* Carcasa exterior — lente de cristal */}
+      {/* CARCASA EXTERIOR — vidrio frosted con refracción */}
       <circle cx={cx} cy={cy} r={r} fill="url(#coreLens)" />
-      {/* Bisel iluminado */}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#bevelEdge)" strokeWidth="2" strokeOpacity="0.9" />
-      {/* Sutil sombra interior */}
-      <circle cx={cx} cy={cy} r={r - 1} fill="none" stroke="#FFFFFF" strokeWidth="1" strokeOpacity="0.6" />
+      <circle cx={cx} cy={cy} r={r} fill="url(#coreRefraction)" />
 
-      {/* Anillo cerámico interno */}
+      {/* Bisel iluminado exterior */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#bevelEdge)" strokeWidth="2.2" strokeOpacity="0.92" />
+      {/* Rim light interior — anillo blanco fino */}
+      <circle cx={cx} cy={cy} r={r - 1.5} fill="none" stroke="#FFFFFF" strokeWidth="1.2" strokeOpacity="0.85" />
+      {/* Sombra interior sutil para profundidad */}
+      <circle cx={cx} cy={cy} r={r - 4} fill="none" stroke="#9AA6CF" strokeWidth="0.6" strokeOpacity="0.35" />
+
+      {/* Anillo cerámico interno satinado */}
       <circle cx={cx} cy={cy} r={r * 0.78} fill="url(#ceramicRing)" />
-      <circle cx={cx} cy={cy} r={r * 0.78} fill="none" stroke="#D7DDF2" strokeWidth="0.6" />
+      <circle cx={cx} cy={cy} r={r * 0.78} fill="none" stroke="#C7D0EA" strokeWidth="0.6" strokeOpacity="0.7" />
+      <circle cx={cx} cy={cy} r={r * 0.78 - 1} fill="none" stroke="#FFFFFF" strokeWidth="0.5" strokeOpacity="0.75" />
 
-      {/* Núcleo más profundo — disco interno */}
+      {/* Lente interna profunda — vidrio puro */}
       <circle cx={cx} cy={cy} r={r * 0.58} fill="#FFFFFF" />
+      <circle cx={cx} cy={cy} r={r * 0.58} fill="url(#coreRefraction)" opacity="0.6" />
       <circle cx={cx} cy={cy} r={r * 0.58} fill="url(#specularTop)" />
-      <circle cx={cx} cy={cy} r={r * 0.58} fill="none" stroke="url(#bevelEdge)" strokeWidth="1.2" strokeOpacity="0.5" />
+      <circle cx={cx} cy={cy} r={r * 0.58} fill="none" stroke="url(#bevelEdge)" strokeWidth="1.4" strokeOpacity="0.55" />
+      <circle cx={cx} cy={cy} r={r * 0.58 - 1} fill="none" stroke="#FFFFFF" strokeWidth="0.6" strokeOpacity="0.7" />
 
-      {/* Highlight especular superior (reflejo de estudio) */}
-      <ellipse cx={cx} cy={cy - r * 0.55} rx={r * 0.55} ry={r * 0.14} fill="#FFFFFF" opacity="0.7" />
-      <ellipse cx={cx - r * 0.18} cy={cy - r * 0.4} rx={r * 0.08} ry={r * 0.04} fill="#FFFFFF" opacity="0.95" />
+      {/* HIGHLIGHTS ESPECULARES — luz de estudio */}
+      {/* Highlight superior amplio */}
+      <ellipse cx={cx} cy={cy - r * 0.6} rx={r * 0.6} ry={r * 0.16} fill="#FFFFFF" opacity="0.78" />
+      {/* Punto de luz nítido */}
+      <ellipse cx={cx - r * 0.22} cy={cy - r * 0.45} rx={r * 0.09} ry={r * 0.045} fill="#FFFFFF" opacity="1" />
+      {/* Reflejo lateral sutil */}
+      <ellipse cx={cx + r * 0.55} cy={cy + r * 0.1} rx={r * 0.06} ry={r * 0.25} fill="#FFFFFF" opacity="0.35" transform={`rotate(-15 ${cx + r * 0.55} ${cy + r * 0.1})`} />
+      {/* Reflejo inferior — bounce light */}
+      <ellipse cx={cx} cy={cy + r * 0.55} rx={r * 0.4} ry={r * 0.08} fill="#A99EFF" opacity="0.18" />
 
-      {/* Marcas de instrumento — 8 ticks elegantes */}
-      {Array.from({ length: 8 }).map((_, i) => {
-        const a = (i / 8) * Math.PI * 2;
-        const r1 = r * 0.85;
-        const r2 = r * 0.92;
+      {/* Marcas de instrumento — 12 ticks finos elegantes */}
+      {Array.from({ length: 12 }).map((_, i) => {
+        const a = (i / 12) * Math.PI * 2;
+        const r1 = r * 0.86;
+        const r2 = r * 0.93;
         const x1 = cx + Math.cos(a) * r1;
         const y1 = cy + Math.sin(a) * r1;
         const x2 = cx + Math.cos(a) * r2;
         const y2 = cy + Math.sin(a) * r2;
-        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#9AA6CF" strokeWidth="1" strokeOpacity="0.55" strokeLinecap="round" />;
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#8896C2" strokeWidth={i % 3 === 0 ? 1.2 : 0.7} strokeOpacity={i % 3 === 0 ? 0.7 : 0.4} strokeLinecap="round" />;
       })}
     </g>
   );
@@ -307,44 +364,94 @@ const CrystalOutput = memo(({
       style={{
         top,
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateX(0) scale(1)" : "translateX(28px) scale(0.94)",
-        transition: "opacity 700ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1)",
+        transform: visible ? "translateX(0) scale(1)" : "translateX(36px) scale(0.92)",
+        transition: "opacity 800ms cubic-bezier(0.22, 1, 0.36, 1), transform 1100ms cubic-bezier(0.22, 1, 0.36, 1)",
         willChange: "transform, opacity",
       }}
     >
-      <div className="relative" style={{ animation: visible ? "vc-float 7s ease-in-out infinite" : undefined }}>
+      <div className="relative" style={{ animation: visible ? "vc-float 8s ease-in-out infinite" : undefined }}>
+        {/* Halo de glow accent */}
         <div
-          className="absolute -inset-3 rounded-2xl blur-2xl opacity-60"
-          style={{ background: `radial-gradient(circle, ${meta.accent}33, transparent 70%)` }}
+          className="absolute -inset-4 rounded-[22px] blur-2xl opacity-70"
+          style={{ background: `radial-gradient(60% 60% at 30% 30%, ${meta.accent}38, transparent 70%)` }}
         />
+        {/* Sombra de contacto bajo el artefacto */}
         <div
-          className="relative rounded-2xl px-4 py-3 min-w-[200px] backdrop-blur-xl"
+          className="absolute -bottom-3 left-3 right-3 h-3 rounded-full blur-md opacity-60"
+          style={{ background: "radial-gradient(50% 100% at 50% 0%, rgba(74,86,140,0.35), transparent 70%)" }}
+        />
+
+        {/* PLACA DE CRISTAL — artefacto premium */}
+        <div
+          className="relative rounded-[18px] pl-3 pr-4 py-3 min-w-[218px] backdrop-blur-2xl overflow-hidden"
           style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.94) 0%, rgba(244,241,255,0.8) 100%)",
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(248,245,255,0.88) 50%, rgba(232,235,247,0.82) 100%)",
             boxShadow:
-              "0 1px 0 rgba(255,255,255,0.95) inset, 0 -1px 0 rgba(180,190,220,0.25) inset, 0 18px 40px -12px rgba(74,86,140,0.28), 0 4px 12px -4px rgba(74,86,140,0.18)",
-            border: "1px solid rgba(255,255,255,0.9)",
+              "0 1px 0 rgba(255,255,255,1) inset, 0 -1px 0 rgba(160,172,205,0.35) inset, 0 0 0 1px rgba(255,255,255,0.7) inset, 0 22px 48px -14px rgba(60,72,120,0.32), 0 8px 18px -6px rgba(60,72,120,0.22), 0 2px 4px -1px rgba(60,72,120,0.12)",
+            border: "1px solid rgba(255,255,255,0.92)",
           }}
         >
+          {/* Top edge — luz especular superior */}
           <div
-            className="absolute inset-x-3 top-0 h-px rounded-full"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,1), transparent)" }}
+            className="absolute inset-x-4 top-0 h-px rounded-full"
+            style={{ background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,1) 50%, transparent 100%)" }}
           />
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{
-                background: meta.accent,
-                boxShadow: `0 0 10px ${meta.accent}, 0 0 0 3px ${meta.accent}22`,
-              }}
-            />
-            <div className="flex flex-col">
-              <span className="text-[12.5px] font-semibold tracking-tight" style={{ color: "#1A1F36" }}>
+          {/* Iridiscencia interior — refracción sutil */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-50"
+            style={{
+              background: `radial-gradient(80% 50% at 0% 0%, ${meta.accent}14, transparent 60%)`,
+            }}
+          />
+          {/* Specular highlight diagonal */}
+          <div
+            className="absolute -top-4 -left-2 w-24 h-12 rotate-[-18deg] opacity-60 pointer-events-none"
+            style={{
+              background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, transparent 70%)",
+              borderRadius: "50%",
+              filter: "blur(8px)",
+            }}
+          />
+
+          <div className="relative flex items-center gap-3">
+            {/* Indicador cristalizado — pequeña gema con bisel */}
+            <div className="relative shrink-0" style={{ width: 14, height: 14 }}>
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: `radial-gradient(circle at 30% 25%, #FFFFFF 0%, ${meta.accent} 60%, ${meta.accent} 100%)`,
+                  boxShadow: `0 0 14px ${meta.accent}, 0 0 0 3px ${meta.accent}1f, inset 0 1px 0 rgba(255,255,255,0.7)`,
+                }}
+              />
+              <div
+                className="absolute rounded-full"
+                style={{
+                  top: 2,
+                  left: 3,
+                  width: 4,
+                  height: 4,
+                  background: "rgba(255,255,255,0.95)",
+                  filter: "blur(0.4px)",
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="text-[13px] font-semibold tracking-tight truncate" style={{ color: "#161B33", letterSpacing: "-0.01em" }}>
                 {meta.label}
               </span>
-              <span className="text-[10.5px] text-[#6E7591] font-medium">{meta.sub}</span>
+              <span className="text-[10.5px] font-medium tracking-wide" style={{ color: "#6F7799" }}>
+                {meta.sub}
+              </span>
             </div>
           </div>
+
+          {/* Bottom rim — sutil sombra de espesor */}
+          <div
+            className="absolute inset-x-3 bottom-0 h-px rounded-full opacity-70"
+            style={{ background: "linear-gradient(90deg, transparent, rgba(140,150,185,0.5), transparent)" }}
+          />
         </div>
       </div>
     </div>
@@ -504,11 +611,22 @@ const IntelligenceFlow = memo(() => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
 
   // Loop time (ms within LOOP_MS)
   const [loopT, setLoopT] = useState(0);
   // Persistent visibility of each output slot
   const [slots, setSlots] = useState<(OutputKind | null)[]>([null, null, null]);
+
+  // Mobile detection
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   // In-view observer
   useEffect(() => {
@@ -597,12 +715,21 @@ const IntelligenceFlow = memo(() => {
 
   return (
     <div ref={wrapRef} className="relative w-full h-full min-h-[560px] overflow-hidden">
-      {/* Atmósfera */}
+      {/* Atmósfera — luz de estudio premium estratificada */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(60% 50% at 50% 45%, rgba(220,233,255,0.55) 0%, transparent 70%), radial-gradient(40% 40% at 70% 30%, rgba(233,228,255,0.45) 0%, transparent 75%)",
+            "radial-gradient(55% 45% at 48% 42%, rgba(220,233,255,0.65) 0%, transparent 70%), radial-gradient(38% 38% at 70% 28%, rgba(237,231,255,0.55) 0%, transparent 75%), radial-gradient(45% 35% at 30% 75%, rgba(248,245,255,0.4) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Vignette ultra-sutil para enfocar el ojo en el núcleo */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(80% 70% at 50% 50%, transparent 50%, rgba(200,210,235,0.18) 100%)",
         }}
       />
 
@@ -615,17 +742,18 @@ const IntelligenceFlow = memo(() => {
       >
         <SceneDefs />
 
-        {/* BACKGROUND */}
+        {/* BACKGROUND — ecos atmosféricos (reducidos en mobile) */}
         <g style={{ transformOrigin: "center", animation: animsActive ? "vc-bg-drift 24s ease-in-out infinite" : undefined }}>
           <EchoEntity x={140} y={130} r={48} />
           <EchoEntity x={780} y={150} r={36} />
-          <EchoEntity x={760} y={580} r={42} />
-          <EchoEntity x={120} y={560} r={32} />
+          {!isMobile && <EchoEntity x={760} y={580} r={42} />}
+          {!isMobile && <EchoEntity x={120} y={560} r={32} />}
         </g>
 
         {/* Anillo orbital lejano */}
         <g style={{ transformOrigin: `${CORE.x}px ${CORE.y}px`, animation: animsActive ? "vc-spin-rev 90s linear infinite" : undefined }}>
-          <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.4} fill="none" stroke="#C7D0EF" strokeWidth="0.6" strokeOpacity="0.35" strokeDasharray="1 8" />
+          <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.4} fill="none" stroke="#B8C2E5" strokeWidth="0.6" strokeOpacity="0.32" strokeDasharray="1 9" />
+          {!isMobile && <circle cx={CORE.x} cy={CORE.y} r={CORE.r * 2.05} fill="none" stroke="#C7D0EF" strokeWidth="0.5" strokeOpacity="0.22" strokeDasharray="0.5 6" />}
         </g>
 
         {/* MOTOR — respiración + spin sutil */}
@@ -644,8 +772,10 @@ const IntelligenceFlow = memo(() => {
         {/* Beam de emergencia hacia el slot destino */}
         <EmergenceBeam core={CORE} t={beatT} slotY={SLOT_Y[currentBeat.slot]} />
 
-        {/* Reflejo base */}
-        <ellipse cx={CORE.x} cy={680} rx={420} ry={14} fill="url(#contactShadow)" opacity="0.5" />
+        {/* PISO REFLECTANTE — sutil pero esencial para sensación de objeto */}
+        <ellipse cx={CORE.x} cy={CORE.y + CORE.r + 24} rx={CORE.r * 1.2} ry={10} fill="url(#contactShadow)" opacity="0.55" />
+        <ellipse cx={CORE.x} cy={CORE.y + CORE.r + 60} rx={CORE.r * 0.85} ry={CORE.r * 0.45} fill="url(#floorReflect)" opacity="0.18" />
+        <ellipse cx={CORE.x} cy={680} rx={420} ry={14} fill="url(#contactShadow)" opacity="0.4" />
       </svg>
 
       {/* Isotipo VISTACEO — pulsa más fuerte cuando hay cristalización */}
