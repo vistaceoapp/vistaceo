@@ -207,7 +207,6 @@ export const formatLimitText = (used: number, limit: number, isPro: boolean): st
 /**
  * Returns real mission usage for the current month.
  * Pro users get { used: 0, limit: Infinity, remaining: Infinity }.
- * Truthful counter — replaces the previous hardcoded version.
  */
 export const useRemainingMissions = (): { used: number; limit: number; remaining: number } => {
   const { usage, limits, remaining, isPro } = useFreeLimits();
@@ -216,5 +215,31 @@ export const useRemainingMissions = (): { used: number; limit: number; remaining
     used: usage.missions,
     limit: limits.missions,
     remaining: remaining.missions,
+  };
+};
+
+/**
+ * Detects if a Supabase error was raised by the server-side Free-limit triggers.
+ * The DB trigger raises: "Free plan limit reached for <table>: X / Y this month..."
+ */
+export const isFreeLimitError = (error: unknown): boolean => {
+  if (!error) return false;
+  const msg = (error as { message?: string })?.message ?? String(error);
+  return /free plan limit reached/i.test(msg);
+};
+
+/**
+ * Maps a server-side limit error to a user-friendly Spanish message.
+ */
+export const getFreeLimitMessage = (error: unknown): { title: string; description: string } => {
+  const msg = (error as { message?: string })?.message ?? String(error);
+  let resource = "este recurso";
+  if (/missions/i.test(msg)) resource = "tus 3 misiones";
+  else if (/chat_messages/i.test(msg)) resource = "tus 3 mensajes del chat";
+  else if (/opportunities/i.test(msg)) resource = "tus 3 oportunidades del radar";
+  else if (/learning_items/i.test(msg)) resource = "tus 3 ítems de investigación";
+  return {
+    title: "Límite del plan Gratis alcanzado",
+    description: `Ya usaste ${resource} de este mes. Pasate a Pro para acceso ilimitado.`,
   };
 };
