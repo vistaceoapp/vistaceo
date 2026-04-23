@@ -298,66 +298,55 @@ const HeroSection = () => {
           {/* Left: copy — wider, more breathing room */}
           <div className="lg:col-span-12">
             <Reveal distance={20}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-white/80 shadow-[0_4px_14px_rgba(38,146,220,0.10)] mb-7">
-                <span className="relative flex h-1.5 w-1.5">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/85 backdrop-blur-md border border-white/80 shadow-[0_4px_14px_rgba(38,146,220,0.10)] mb-7">
+                <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#28c840] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#28c840]" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#28c840]" />
                 </span>
-                <span className="text-[11px] font-medium tracking-wide text-[#555]">Inteligencia ejecutiva en vivo</span>
+                <span className="text-[12.5px] sm:text-[13px] font-medium tracking-wide text-[#444]">Inteligencia ejecutiva en vivo</span>
               </div>
             </Reveal>
 
             <Reveal delay={80} distance={28}>
               <h1
-                className="font-semibold text-[#0a0a0a] tracking-[-0.034em] hyphens-none"
+                className="font-semibold text-[#0a0a0a] tracking-[-0.036em] hyphens-none"
                 style={{
-                  fontSize: "clamp(1.7rem, 4.4vw, 4rem)",
-                  lineHeight: 1.06,
+                  fontSize: "clamp(2.05rem, 5.4vw, 4.85rem)",
+                  lineHeight: 1.04,
                 }}
               >
                 <span className="block">Tu empresa,</span>
                 <span className="block mt-1">impulsada por un</span>
                 <span
-                  className="block mt-1"
+                  className="block mt-1 hero-ceo-grad"
                   style={{
-                    backgroundImage:
-                      "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                    paddingBottom: "0.06em",
-                    filter: "drop-shadow(0 4px 14px rgba(38,146,220,0.18))",
+                    paddingBottom: "0.08em",
                   }}
                 >
                   CEO digital con IA.
                 </span>
               </h1>
               <style>{`
-                .hero-ia-text {
-                  position: relative;
-                  display: inline-block;
-                  padding-bottom: 0.04em;
-                }
-                .hero-ia-text::after {
-                  content: "";
-                  position: absolute;
-                  left: 0;
-                  right: 0;
-                  bottom: 0.02em;
-                  height: 0.09em;
-                  border-radius: 999px;
-                  background: linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%);
-                  box-shadow: 0 4px 14px rgba(38,146,220,0.35);
-                }
-                .hero-sin-descanso {
-                  background-image: linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%);
+                .hero-ceo-grad {
+                  background-image: linear-gradient(118deg, #4FB3F0 0%, #2692DC 28%, #4A7FE8 58%, #746CE6 82%, #8A6CE6 100%);
+                  background-size: 200% 100%;
+                  background-position: 0% 50%;
                   -webkit-background-clip: text;
                   background-clip: text;
                   -webkit-text-fill-color: transparent;
-                  padding-bottom: 0.06em;
-                  filter: drop-shadow(0 4px 14px rgba(38,146,220,0.18));
+                  color: transparent;
+                  filter: drop-shadow(0 6px 22px rgba(38,146,220,0.22));
+                  animation: heroCeoShimmer 9s ease-in-out infinite;
+                }
+                @keyframes heroCeoShimmer {
+                  0%, 100% { background-position: 0% 50%; }
+                  50%      { background-position: 100% 50%; }
+                }
+                @media (prefers-reduced-motion: reduce) {
+                  .hero-ceo-grad { animation: none; }
                 }
               `}</style>
+            </Reveal>
             </Reveal>
 
             <div className="mt-8 lg:mt-10 max-w-[640px]">
