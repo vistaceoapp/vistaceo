@@ -41,22 +41,36 @@ type RevealProps = { children: React.ReactNode; className?: string; delay?: numb
 const Reveal = memo(forwardRef<HTMLDivElement, RevealProps>(({ children, className, delay = 0, distance = 40 }, _externalRef) => {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  // Detect mobile + reduced motion once for cheaper, snappier animations on phones
+  const isMobile = typeof window !== "undefined" && window.matchMedia?.("(max-width: 768px)").matches;
+  const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const effectiveDistance = reduced ? 0 : isMobile ? Math.min(distance, 16) : distance;
+  const effectiveDuration = reduced ? 0 : isMobile ? 460 : 800;
+  const effectiveDelay = isMobile ? Math.min(delay, 120) : delay;
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Fire earlier on mobile so content is already settled when user scrolls to it
     const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setTimeout(() => setVisible(true), delay); obs.disconnect(); }
-    }, { threshold: 0.08, rootMargin: "0px 0px -40px 0px" });
+      if (e.isIntersecting) {
+        if (effectiveDelay > 0) setTimeout(() => setVisible(true), effectiveDelay);
+        else setVisible(true);
+        obs.disconnect();
+      }
+    }, { threshold: 0.05, rootMargin: isMobile ? "0px 0px 120px 0px" : "0px 0px -40px 0px" });
     obs.observe(el);
     return () => obs.disconnect();
-  }, [delay]);
+  }, [effectiveDelay, isMobile]);
+
   return (
-    <div ref={ref} className={cn("transition-all ease-out", className)}
+    <div ref={ref} className={cn("transition-[opacity,transform] ease-out", className)}
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : `translateY(${distance}px)`,
-        transitionDuration: "800ms",
+        transform: visible ? "translate3d(0,0,0)" : `translate3d(0,${effectiveDistance}px,0)`,
+        transitionDuration: `${effectiveDuration}ms`,
         transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+        willChange: visible ? "auto" : "opacity, transform",
       }}
     >{children}</div>
   );
@@ -266,6 +280,8 @@ const HeroSection = () => {
           style={{ filter: "saturate(0.85) brightness(1.04)" }}
           loading="eager"
           decoding="async"
+          // @ts-ignore — valid HTML attr
+          fetchpriority="high"
         />
         {/* White → light celeste veil for legibility (desktop) */}
         <div
@@ -335,8 +351,12 @@ const HeroSection = () => {
                   background-clip: text;
                   -webkit-text-fill-color: transparent;
                   color: transparent;
-                  filter: drop-shadow(0 6px 22px rgba(38,146,220,0.22));
-                  animation: heroCeoShimmer 9s ease-in-out infinite;
+                }
+                @media (min-width: 768px) {
+                  .hero-ceo-grad {
+                    filter: drop-shadow(0 6px 22px rgba(38,146,220,0.22));
+                    animation: heroCeoShimmer 9s ease-in-out infinite;
+                  }
                 }
                 @keyframes heroCeoShimmer {
                   0%, 100% { background-position: 0% 50%; }
@@ -408,7 +428,7 @@ const HeroSection = () => {
                     ]).map((label, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.06] bg-white/40 backdrop-blur-sm text-[12px] text-[#555] font-medium tracking-[-0.005em]"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.06] bg-white/70 text-[12px] text-[#555] font-medium tracking-[-0.005em]"
                       >
                         <span className="w-1 h-1 rounded-full bg-gradient-to-br from-[#4FB3F0] to-[#746CE6]" />
                         {label}
@@ -1644,19 +1664,19 @@ export default function LandingMinimalista() {
         path="/"
       />
 
-      <div className="min-h-screen bg-white text-[#1a1a1a] antialiased" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
+      <div className="landing-mobile-perf min-h-screen bg-white text-[#1a1a1a] antialiased" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
         <Header />
         <HeroSection />
-        <TrustStrip />
-        
-        <CapabilitiesShowcase />
-        <ProductShowcase />
-        <CompetitorSection />
-        <TestimonialsSection />
-        <PricingSection />
-        <SecuritySection />
-        <FAQSection />
-        <FinalCTA />
+        <div className="lp-section"><TrustStrip /></div>
+
+        <div className="lp-section"><CapabilitiesShowcase /></div>
+        <div className="lp-section"><ProductShowcase /></div>
+        <div className="lp-section"><CompetitorSection /></div>
+        <div className="lp-section"><TestimonialsSection /></div>
+        <div className="lp-section"><PricingSection /></div>
+        <div className="lp-section"><SecuritySection /></div>
+        <div className="lp-section"><FAQSection /></div>
+        <div className="lp-section"><FinalCTA /></div>
         <PremiumFooter />
       </div>
 
