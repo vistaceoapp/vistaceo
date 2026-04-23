@@ -6,6 +6,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
 import { safeLocalStorage } from "@/lib/safe-storage";
@@ -445,9 +446,61 @@ const ChatPage = () => {
         },
       });
 
+      // Handle Free plan limit reached (HTTP 402 from edge function)
+      // supabase.functions.invoke maps non-2xx into aiError; the body is in aiError.context
       if (aiError) {
+        let limitPayload: any = null;
+        try {
+          const ctx: any = (aiError as any).context;
+          if (ctx && typeof ctx.json === "function") {
+            limitPayload = await ctx.json();
+          }
+        } catch {
+          // ignore parse error
+        }
+        // Some clients return the body inline in aiData even on error
+        if (!limitPayload && aiData && (aiData as any).error === "free_limit_reached") {
+          limitPayload = aiData;
+        }
+
+        if (limitPayload?.error === "free_limit_reached") {
+          toast({
+            title: "Límite del plan Gratis alcanzado",
+            description: limitPayload.message ||
+              "Llegaste a los 3 mensajes mensuales. Pasate a Pro para chatear sin límites.",
+            action: (
+              <ToastAction altText="Ver Pro" onClick={() => navigate("/checkout")}>
+                Ver Pro
+              </ToastAction>
+            ),
+          });
+          // Roll back the optimistic user message
+          setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
+          setLoading(false);
+          if (!isPro) refreshLimits();
+          return;
+        }
+
         console.error("AI error:", aiError);
         throw new Error(aiError.message || "Error al comunicarse con el asistente");
+      }
+
+      // Inline 402 (rare path: body returned as data)
+      if (aiData && (aiData as any).error === "free_limit_reached") {
+        toast({
+          title: "Límite del plan Gratis alcanzado",
+          description: (aiData as any).message ||
+            "Llegaste a los 3 mensajes mensuales. Pasate a Pro para chatear sin límites.",
+          action: (
+            <ToastAction altText="Ver Pro" onClick={() => navigate("/checkout")}>
+              Ver Pro
+            </ToastAction>
+          ),
+        });
+        setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
+        setLoading(false);
+        if (!isPro) refreshLimits();
+        return;
       }
 
       const aiResponse = aiData?.message || "Lo siento, no pude procesar tu mensaje. Intenta de nuevo.";
