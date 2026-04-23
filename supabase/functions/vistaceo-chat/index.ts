@@ -980,6 +980,61 @@ serve(async (req) => {
       ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
       : null;
 
+    // ============================================================
+    // FREE PLAN ENFORCEMENT (server-side, before consuming AI)
+    // Free: 3 chat messages/month. Pro: unlimited.
+    // Fail-open on errors so a transient DB issue can't lock users out.
+    // ============================================================
+    const FREE_CHAT_PER_MONTH = 3;
+    if (supabase && businessContext?.id) {
+      try {
+        const { data: activeSub } = await supabase
+          .from("subscriptions")
+          .select("status, expires_at")
+          .eq("business_id", businessContext.id)
+          .eq("status", "active")
+          .gt("expires_at", new Date().toISOString())
+          .order("expires_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const isPro = !!activeSub;
+
+        if (!isPro) {
+          const now = new Date();
+          const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+          const { count: usedThisMonth } = await supabase
+            .from("chat_messages")
+            .select("id", { count: "exact", head: true })
+            .eq("business_id", businessContext.id)
+            .eq("role", "user")
+            .gte("created_at", startOfMonth);
+
+          if ((usedThisMonth ?? 0) >= FREE_CHAT_PER_MONTH) {
+            console.log(
+              `[free-limit] business ${businessContext.id} hit chat cap (${usedThisMonth}/${FREE_CHAT_PER_MONTH})`,
+            );
+            return new Response(
+              JSON.stringify({
+                error: "free_limit_reached",
+                limit_type: "chat",
+                used: usedThisMonth,
+                limit: FREE_CHAT_PER_MONTH,
+                message:
+                  "Alcanzaste el límite de 3 mensajes mensuales del plan Gratis. Pasate a Pro para conversar sin límites con tu CEO digital.",
+                upgrade_url: "/checkout",
+              }),
+              { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+            );
+          }
+        }
+      } catch (limitErr) {
+        // Never block the user if the quota check itself crashes.
+        console.error("[free-limit] check failed, allowing request:", limitErr);
+      }
+    }
+
     // Fetch memory context if we have business ID
     let memoryContext: MemoryContext = {
       recentActions: [],
