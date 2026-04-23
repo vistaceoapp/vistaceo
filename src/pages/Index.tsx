@@ -1,5 +1,5 @@
 import { Header } from "@/components/landing/Header";
-import { HeroSection } from "@/components/landing/HeroSection";
+import { HeroSection } from "@/components/landing/sections/HeroSection";
 import { SystemPreviewSection } from "@/components/landing/SystemPreviewSection";
 import { SocialProofBar } from "@/components/landing/SocialProofBar";
 import { ProblemSection } from "@/components/landing/ProblemSection";
