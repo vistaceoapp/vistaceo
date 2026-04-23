@@ -1049,7 +1049,49 @@ const CompetitorSection = () => {
         </Reveal>
 
         <Reveal delay={80}>
-          <div className="rounded-2xl border border-[#eee] overflow-hidden bg-[#fafafa]">
+          {/* === Mobile (cards apiladas) === */}
+          <div className="sm:hidden space-y-4">
+            {rows.map((row, i) => (
+              <div key={i} className="rounded-2xl border border-[#eee] bg-white p-5">
+                <p className="text-[14px] font-medium text-[#0a0a0a] mb-4 leading-snug">
+                  {row.feature}
+                </p>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {[
+                    { label: "VISTACEO", val: row.vistaceo, brand: true },
+                    { label: "IA genérica", val: row.generic },
+                    { label: "Planillas", val: row.sheets },
+                    { label: "Consultor", val: row.consultant },
+                  ].map((c, j) => (
+                    <div
+                      key={j}
+                      className={cn(
+                        "flex items-center justify-between rounded-xl px-3 py-2.5 border",
+                        c.brand
+                          ? "border-[#2692DC]/25 bg-[#2692DC]/[0.04]"
+                          : "border-[#f0f0f0] bg-[#fafafa]"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "text-[11.5px] font-medium",
+                          c.brand ? "text-[#2692DC]" : "text-[#888]"
+                        )}
+                      >
+                        {c.label}
+                      </span>
+                      <span className="flex items-center justify-center min-w-[24px]">
+                        {renderCell(c.val)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* === Desktop / Tablet (tabla) === */}
+          <div className="hidden sm:block rounded-2xl border border-[#eee] overflow-hidden bg-[#fafafa]">
             {/* Header */}
             <div className="grid grid-cols-5 gap-0 border-b border-[#eee] bg-white">
               <div className="col-span-1 p-4" />
