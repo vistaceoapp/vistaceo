@@ -386,13 +386,13 @@ const Auth = () => {
             <div className="w-full max-w-[420px] mx-auto">
               {/* Heading — protagonismo, jerárquico, sin voseo */}
               <div className="mb-8 sm:mb-9 text-center">
-                <div className="flex justify-center mb-5">
+                <div className="flex justify-center mb-6">
                   <img
                     src={iconBrand}
                     alt="VISTACEO"
-                    width={56}
-                    height={56}
-                    className="w-14 h-14 object-contain drop-shadow-[0_4px_16px_rgba(38,146,220,0.25)]"
+                    width={88}
+                    height={88}
+                    className="w-[88px] h-[88px] object-contain drop-shadow-[0_8px_24px_rgba(38,146,220,0.28)]"
                   />
                 </div>
                 <h1 className="text-[clamp(1.85rem,4.4vw,2.55rem)] font-semibold tracking-[-0.028em] text-[#0a0a0a] leading-[1.05]">
