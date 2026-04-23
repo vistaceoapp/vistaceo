@@ -266,6 +266,8 @@ const HeroSection = () => {
           style={{ filter: "saturate(0.85) brightness(1.04)" }}
           loading="eager"
           decoding="async"
+          // @ts-ignore — valid HTML attr
+          fetchpriority="high"
         />
         {/* White → light celeste veil for legibility (desktop) */}
         <div
