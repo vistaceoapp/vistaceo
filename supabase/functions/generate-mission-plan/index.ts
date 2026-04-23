@@ -500,7 +500,7 @@ serve(async (req) => {
     // Fail-open on infra errors so paying users are never blocked.
     // ─────────────────────────────────────────────────────────────
     const FREE_MISSIONS_PER_MONTH = 3;
-    if (businessId && supabase) {
+    if (businessId && supabase && !enhanceExisting) {
       try {
         const { data: activeSub } = await supabase
           .from("subscriptions")
