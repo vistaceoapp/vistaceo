@@ -1664,19 +1664,19 @@ export default function LandingMinimalista() {
         path="/"
       />
 
-      <div className="min-h-screen bg-white text-[#1a1a1a] antialiased" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
+      <div className="landing-mobile-perf min-h-screen bg-white text-[#1a1a1a] antialiased" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
         <Header />
         <HeroSection />
-        <TrustStrip />
-        
-        <CapabilitiesShowcase />
-        <ProductShowcase />
-        <CompetitorSection />
-        <TestimonialsSection />
-        <PricingSection />
-        <SecuritySection />
-        <FAQSection />
-        <FinalCTA />
+        <div className="lp-section"><TrustStrip /></div>
+
+        <div className="lp-section"><CapabilitiesShowcase /></div>
+        <div className="lp-section"><ProductShowcase /></div>
+        <div className="lp-section"><CompetitorSection /></div>
+        <div className="lp-section"><TestimonialsSection /></div>
+        <div className="lp-section"><PricingSection /></div>
+        <div className="lp-section"><SecuritySection /></div>
+        <div className="lp-section"><FAQSection /></div>
+        <div className="lp-section"><FinalCTA /></div>
         <PremiumFooter />
       </div>
 
