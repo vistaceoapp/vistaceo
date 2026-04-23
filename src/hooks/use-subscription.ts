@@ -155,16 +155,19 @@ export const useProFeature = (feature: string): boolean => {
 };
 
 /**
- * @deprecated Use `useFreeLimits()` from `@/hooks/use-free-limits` instead.
- * This hook returned hardcoded values that did not reflect real usage and
- * has been removed to prevent showing false counters/badges to users.
- * Kept as a runtime no-op only to avoid hard import crashes during refactors.
+ * Returns real mission usage for the current month.
+ * Pro users get { used: 0, limit: Infinity, remaining: Infinity }.
+ * Internally delegates to `useFreeLimits()` so counters are always truthful.
  */
 export const useRemainingMissions = (): { used: number; limit: number; remaining: number } => {
-  if (typeof console !== "undefined") {
-    console.warn(
-      "[useRemainingMissions] deprecated — switch to useFreeLimits() for real usage data."
-    );
-  }
-  return { used: 0, limit: 0, remaining: 0 };
+  // Lazy import to avoid circular dep at module load
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { useFreeLimits } = require("@/hooks/use-free-limits") as typeof import("@/hooks/use-free-limits");
+  const { usage, limits, remaining, isPro } = useFreeLimits();
+  if (isPro) return { used: 0, limit: Infinity, remaining: Infinity };
+  return {
+    used: usage.missions,
+    limit: limits.missions,
+    remaining: remaining.missions,
+  };
 };

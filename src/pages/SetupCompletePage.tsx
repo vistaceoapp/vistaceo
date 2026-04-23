@@ -67,19 +67,24 @@ const SetupCompletePage = () => {
     // Show content after initial animation
     setTimeout(() => setShowContent(true), 500);
 
-    // Auto-redirect countdown for pending plan
+    // Auto-redirect countdown for pending plan (cancellable)
     if (hasPendingPlan) {
-      setCountdown(5);
+      setCountdown(8);
       const countdownInterval = setInterval(() => {
         setCountdown(prev => {
-          if (prev && prev <= 1) {
+          if (prev === null) {
+            clearInterval(countdownInterval);
+            return null;
+          }
+          if (prev <= 1) {
             clearInterval(countdownInterval);
             navigate("/checkout", { replace: true });
             return null;
           }
-          return prev ? prev - 1 : null;
+          return prev - 1;
         });
       }, 1000);
+      countdownIntervalRef.current = countdownInterval;
       return () => {
         clearInterval(interval);
         clearInterval(countdownInterval);
