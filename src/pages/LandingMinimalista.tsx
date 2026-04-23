@@ -296,7 +296,7 @@ const HeroSection = () => {
       <div className="relative z-10 max-w-[1280px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
           {/* Left: copy — wider, more breathing room */}
-          <div className="lg:col-span-8 xl:col-span-7">
+          <div className="lg:col-span-12">
             <Reveal distance={20}>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-white/80 shadow-[0_4px_14px_rgba(38,146,220,0.10)] mb-7">
                 <span className="relative flex h-1.5 w-1.5">
@@ -311,58 +311,56 @@ const HeroSection = () => {
               <h1
                 className="font-semibold text-[#0a0a0a] tracking-[-0.034em] hyphens-none"
                 style={{
-                  fontSize: "clamp(1.85rem, 5vw, 4.4rem)",
-                  lineHeight: 1.04,
+                  fontSize: "clamp(1.7rem, 4.4vw, 4rem)",
+                  lineHeight: 1.06,
                 }}
               >
-                <span className="block whitespace-nowrap">Un CEO digital con IA</span>
-                <span
-                  className="block mt-1"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                    paddingBottom: "0.06em",
-                  }}
-                >
-                  impulsando tu negocio
-                </span>
-                <span
-                  className="block"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                    paddingBottom: "0.06em",
-                  }}
-                >
-                  o servicio
-                </span>
-                <span className="flex items-center gap-3 mt-2">
-                  <span
-                    className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full border border-white/80 bg-white/70 backdrop-blur-md shadow-[0_6px_18px_-6px_rgba(38,146,220,0.35)]"
-                    style={{ fontSize: "0.42em" }}
-                  >
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#28c840] opacity-80" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#28c840]" />
+                <span className="block whitespace-nowrap">
+                  Un CEO digital con{" "}
+                  <span className="hero-ia-wrap inline-flex items-baseline gap-[0.18em] align-baseline">
+                    <span
+                      className="hero-ia-text"
+                      style={{
+                        backgroundImage:
+                          "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      IA
                     </span>
-                    <span className="font-medium tracking-[0.04em] text-[#28c840] uppercase">En vivo</span>
+                    <Sparkles
+                      className="hero-ia-spark"
+                      style={{
+                        width: "0.7em",
+                        height: "0.7em",
+                        color: "#2692DC",
+                        filter: "drop-shadow(0 2px 8px rgba(38,146,220,0.45))",
+                      }}
+                      strokeWidth={2.4}
+                    />
                   </span>
+                </span>
+                <span
+                  className="block mt-1 whitespace-nowrap"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    paddingBottom: "0.06em",
+                  }}
+                >
+                  impulsando tu negocio o servicio
                   <span
-                    className="font-bold tabular-nums hero-247"
+                    className="inline-block align-middle ml-3 hero-247"
                     style={{
-                      backgroundImage:
-                        "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                      paddingBottom: "0.06em",
-                      letterSpacing: "-0.02em",
+                      fontSize: "0.5em",
+                      fontWeight: 700,
+                      letterSpacing: "-0.01em",
+                      verticalAlign: "0.18em",
                     }}
                   >
                     24/7
@@ -370,17 +368,44 @@ const HeroSection = () => {
                 </span>
               </h1>
               <style>{`
+                .hero-ia-text {
+                  position: relative;
+                  display: inline-block;
+                  padding-bottom: 0.04em;
+                }
+                .hero-ia-text::after {
+                  content: "";
+                  position: absolute;
+                  left: 0;
+                  right: 0;
+                  bottom: 0.02em;
+                  height: 0.09em;
+                  border-radius: 999px;
+                  background: linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%);
+                  box-shadow: 0 4px 14px rgba(38,146,220,0.35);
+                }
+                .hero-ia-spark {
+                  animation: heroSparkPulse 2.4s ease-in-out infinite;
+                }
+                @keyframes heroSparkPulse {
+                  0%, 100% { opacity: 0.85; transform: scale(1) rotate(0deg); }
+                  50%      { opacity: 1;    transform: scale(1.18) rotate(12deg); }
+                }
                 .hero-247 {
                   display: inline-block;
+                  background-image: linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%);
+                  -webkit-background-clip: text;
+                  background-clip: text;
+                  -webkit-text-fill-color: transparent;
                   animation: hero247Pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-                  filter: drop-shadow(0 6px 22px rgba(38,146,220,0.18));
+                  filter: drop-shadow(0 4px 14px rgba(38,146,220,0.20));
                 }
                 @keyframes hero247Pulse {
-                  0%, 100% { transform: scale(1); opacity: 1; }
-                  50%      { transform: scale(1.045); opacity: 0.92; }
+                  0%, 100% { transform: scale(1);    opacity: 1; }
+                  50%      { transform: scale(1.06); opacity: 0.92; }
                 }
                 @media (prefers-reduced-motion: reduce) {
-                  .hero-247 { animation: none; }
+                  .hero-247, .hero-ia-spark { animation: none; }
                 }
               `}</style>
             </Reveal>
@@ -426,8 +451,6 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right: spacer — image fills it cinematically */}
-          <div className="hidden lg:block lg:col-span-4 xl:col-span-5" aria-hidden="true" />
         </div>
       </div>
     </section>
