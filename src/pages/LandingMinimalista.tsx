@@ -256,7 +256,7 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative pt-28 pb-20 lg:pt-32 lg:pb-28 px-6 overflow-hidden">
+    <section className="relative pt-24 pb-14 sm:pt-28 sm:pb-20 lg:pt-32 lg:pb-28 px-5 sm:px-6 overflow-hidden">
       {/* Base gradient — extremely subtle, bleeds full width */}
       <div className="absolute inset-0 pointer-events-none" style={{
         background: "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(38,146,220,0.06) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(116,108,230,0.05) 0%, transparent 60%)"
@@ -264,11 +264,11 @@ const HeroSection = () => {
 
       <div className="relative z-10 max-w-[1280px] mx-auto">
         {/* Title row with floating pills (Voxr-style) */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 lg:gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 lg:gap-16 items-start">
           {/* Left: Massive title */}
           <div>
             <Reveal distance={20}>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#eaeaea] shadow-[0_2px_8px_rgba(0,0,0,0.02)] mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#eaeaea] shadow-[0_2px_8px_rgba(0,0,0,0.02)] mb-5 sm:mb-6">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#28c840] opacity-75" />
                   <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#28c840]" />
@@ -278,7 +278,7 @@ const HeroSection = () => {
             </Reveal>
 
             <Reveal delay={80} distance={28}>
-              <h1 className="text-[clamp(2.4rem,6.2vw,5.4rem)] font-semibold text-[#0a0a0a] leading-[0.98] tracking-[-0.035em] hyphens-none">
+              <h1 className="text-[clamp(2.05rem,7.2vw,5.4rem)] font-semibold text-[#0a0a0a] leading-[1] tracking-[-0.035em] hyphens-none">
                 Tu negocio,<br />
                 <span
                   className="inline-block pb-[0.08em]"
@@ -297,19 +297,19 @@ const HeroSection = () => {
             </Reveal>
           </div>
 
-          {/* Right: Floating feature pills (Voxr-style) */}
-          <div className="flex flex-col gap-3 lg:items-end lg:pt-4">
+          {/* Right: Floating feature pills (Voxr-style) — horizontal scroll on mobile */}
+          <div className="-mx-5 sm:mx-0 px-5 sm:px-0 flex flex-row sm:flex-col gap-2.5 sm:gap-3 overflow-x-auto sm:overflow-visible lg:items-end lg:pt-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {[
               { icon: <Sparkles className="w-3.5 h-3.5" />, text: "Detecta oportunidades en vivo", color: "#2692DC" },
               { icon: <Target className="w-3.5 h-3.5" />, text: "Ejecuta misiones priorizadas", color: "#746CE6" },
               { icon: <TrendingUp className="w-3.5 h-3.5" />, text: "Aumenta margen +18% promedio", color: "#2692DC" },
             ].map((pill, i) => (
               <Reveal key={pill.text} delay={150 + i * 90} distance={20}>
-                <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white/85 backdrop-blur-md border border-[#ebebeb] shadow-[0_4px_20px_-6px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="inline-flex items-center gap-2.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full bg-white/85 backdrop-blur-md border border-[#ebebeb] shadow-[0_4px_20px_-6px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.03)]">
                   <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${pill.color}15`, color: pill.color }}>
                     {pill.icon}
                   </span>
-                  <span className="text-[12.5px] font-medium text-[#333] whitespace-nowrap">{pill.text}</span>
+                  <span className="text-[12px] sm:text-[12.5px] font-medium text-[#333] whitespace-nowrap">{pill.text}</span>
                 </div>
               </Reveal>
             ))}
@@ -317,19 +317,19 @@ const HeroSection = () => {
         </div>
 
         {/* Subtitle + CTA */}
-        <div className="mt-10 lg:mt-14 max-w-[580px]">
+        <div className="mt-8 sm:mt-10 lg:mt-14 max-w-[580px]">
           <Reveal delay={300} distance={18}>
-            <p className="text-[16.5px] lg:text-[17.5px] text-[#666] leading-[1.65]">
+            <p className="text-[15.5px] sm:text-[16.5px] lg:text-[17.5px] text-[#666] leading-[1.6]">
               VISTACEO aprende cómo opera tu empresa, detecta lo que importa y te dice exactamente qué hacer hoy para crecer.
             </p>
           </Reveal>
 
           <Reveal delay={380} distance={18}>
-            <div className="flex flex-wrap items-center gap-3 mt-8">
-              {/* Voxr-style pill CTA: white pill with circular accent button */}
+            <div className="flex flex-wrap items-center gap-3 mt-6 sm:mt-8">
+              {/* Primary CTA */}
               <button
                 onClick={() => navigate("/auth?mode=signup")}
-                className="group flex items-center gap-2 pl-6 pr-2 py-2 rounded-full bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] transition-all duration-300 active:scale-[0.98] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.4)]"
+                className="group flex items-center gap-2 pl-5 pr-2 py-2 sm:pl-6 rounded-full bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] transition-all duration-300 active:scale-[0.98] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.4)]"
               >
                 <span className="text-[14px] font-medium">Empezar gratis</span>
                 <span
@@ -351,21 +351,33 @@ const HeroSection = () => {
               </button>
             </div>
 
-            <p className="text-[12px] text-[#aaa] mt-5 flex items-center gap-4">
+            <p className="text-[12px] text-[#aaa] mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
               <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#28c840]" /> Sin tarjeta de crédito</span>
               <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#2692DC]" /> Activo en minutos</span>
             </p>
           </Reveal>
         </div>
 
-        {/* Hero scene — protagonist below the fold area */}
-        <div className="relative mt-16 lg:mt-20 h-[420px] lg:h-[520px] -mx-6">
-          <IntelligenceFlow />
+        {/* Hero scene — lazy-loaded with skeleton fallback for instant FCP */}
+        <div className="relative mt-12 sm:mt-16 lg:mt-20 h-[340px] sm:h-[420px] lg:h-[540px] -mx-5 sm:-mx-6">
+          <Suspense fallback={<HeroSceneSkeleton />}>
+            <IntelligenceFlow />
+          </Suspense>
         </div>
       </div>
     </section>
   );
 };
+
+/* ── Static skeleton for the hero scene (zero JS, instant render) ── */
+const HeroSceneSkeleton = memo(() => (
+  <div className="relative w-full h-full" aria-hidden="true">
+    <div className="absolute top-[10%] right-[5%] w-[55%] h-[55%] rounded-full bg-primary/[0.10] blur-[80px]" />
+    <div className="absolute bottom-[5%] right-[20%] w-[45%] h-[45%] rounded-full bg-accent/[0.10] blur-[70px]" />
+    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white/80 backdrop-blur-sm border border-[#ebebeb] shadow-[0_24px_60px_-16px_rgba(116,108,230,0.35)] animate-pulse" />
+  </div>
+));
+HeroSceneSkeleton.displayName = "HeroSceneSkeleton";
 
 /* ═══════════════════════════════════════════════════════════════
    3. Franja de confianza
