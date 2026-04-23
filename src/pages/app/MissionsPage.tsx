@@ -254,6 +254,25 @@ const MissionsPage = () => {
         }
       });
 
+      // Free-limit reached: edge function returns 402 with structured payload
+      if (data?.error === "free_limit_reached") {
+        toast({
+          title: "Llegaste al límite del plan Free",
+          description: data.message || `Usaste ${data.used}/${data.limit} misiones este mes.`,
+          variant: "destructive",
+          action: (
+            <button
+              onClick={() => navigate("/checkout")}
+              className="text-xs font-semibold underline underline-offset-2"
+            >
+              Ver Pro
+            </button>
+          ) as any,
+        });
+        setSelectedSuggestion(null);
+        return;
+      }
+
       if (error) throw error;
       setGeneratedPlan(data.plan);
     } catch (error) {

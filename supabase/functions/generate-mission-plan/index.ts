@@ -475,7 +475,8 @@ serve(async (req) => {
       missionTitle, 
       missionDescription, 
       missionArea,
-      regenerate = false 
+      regenerate = false,
+      enhanceExisting = false,
     } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -489,6 +490,64 @@ serve(async (req) => {
     const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY 
       ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
       : null;
+
+    // ─────────────────────────────────────────────────────────────
+    // FREE PLAN ENFORCEMENT (server-side, before spending AI tokens)
+    // Only enforced on NEW mission creation. `enhanceExisting=true`
+    // (used to re-render the plan of an already-created mission)
+    // is exempt — the mission already counted against the cap when created.
+    // Free users: max 3 missions per calendar month. Pro: unlimited.
+    // Fail-open on infra errors so paying users are never blocked.
+    // ─────────────────────────────────────────────────────────────
+    const FREE_MISSIONS_PER_MONTH = 3;
+    if (businessId && supabase && !enhanceExisting) {
+      try {
+        const { data: activeSub } = await supabase
+          .from("subscriptions")
+          .select("expires_at, status")
+          .eq("business_id", businessId)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const isPro = !!(activeSub?.expires_at && new Date(activeSub.expires_at).getTime() > Date.now());
+
+        if (!isPro) {
+          const startOfMonth = new Date();
+          startOfMonth.setDate(1);
+          startOfMonth.setHours(0, 0, 0, 0);
+
+          const { count } = await supabase
+            .from("missions")
+            .select("id", { count: "exact", head: true })
+            .eq("business_id", businessId)
+            .gte("created_at", startOfMonth.toISOString());
+
+          const used = count || 0;
+          if (used >= FREE_MISSIONS_PER_MONTH) {
+            console.log(`[free-limit] Mission cap reached: ${used}/${FREE_MISSIONS_PER_MONTH} for business ${businessId}`);
+            return new Response(
+              JSON.stringify({
+                error: "free_limit_reached",
+                limitType: "missions",
+                used,
+                limit: FREE_MISSIONS_PER_MONTH,
+                message: `Alcanzaste el límite de ${FREE_MISSIONS_PER_MONTH} misiones del plan Free este mes. Pasate a Pro para misiones ilimitadas.`,
+                upgradeUrl: "/checkout",
+              }),
+              {
+                status: 402,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              }
+            );
+          }
+        }
+      } catch (limitErr) {
+        // Fail-open: never block on infra issues
+        console.error("[free-limit] check failed, allowing request:", limitErr);
+      }
+    }
 
     // Fetch comprehensive context
     let context = null;
