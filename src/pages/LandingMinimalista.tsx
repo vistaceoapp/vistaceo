@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo, useCallback, useMemo, forwardRef } from "react";
+import { useState, useEffect, useRef, memo, useCallback, useMemo, forwardRef, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ChevronDown, Menu, X, Check, TrendingUp, Target, Zap, BarChart3, Shield, Brain, Sparkles, Heart, MessageCircle, Eye, Radar, Lock, Clock, Users, CheckCircle2, ArrowUpRight, Globe, Mail, Search, Lightbulb } from "lucide-react";
 import { SiteHead } from "@/components/seo/SiteHead";
@@ -18,7 +18,9 @@ import { MockupProPredictions } from "@/components/landing/mockups/MockupProPred
 import { MockupProInsights } from "@/components/landing/mockups/MockupProInsights";
 import { MockupProCompetitors } from "@/components/landing/mockups/MockupProCompetitors";
 import { CapabilitiesShowcase } from "@/components/landing/CapabilitiesShowcase";
-import IntelligenceFlow from "@/components/landing/IntelligenceFlow";
+// Lazy load: la escena cinematográfica usa framer-motion + SVG pesado.
+// Deferirla mejora dramáticamente FCP/LCP en móvil sin afectar el contenido above-the-fold.
+const IntelligenceFlow = lazy(() => import("@/components/landing/IntelligenceFlow"));
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
