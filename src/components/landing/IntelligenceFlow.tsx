@@ -23,60 +23,97 @@ import vistaceoIcon from "@/assets/brand/icon-vistaceo-new.webp";
    ═══════════════════════════════════════════════════════════════════ */
 const SceneDefs = memo(() => (
   <defs>
-    {/* Halo ambiental detrás del motor */}
+    {/* Halo ambiental — luz de estudio estratificada */}
     <radialGradient id="ambientHalo" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stopColor="#E9E4FF" stopOpacity="0.55" />
-      <stop offset="45%" stopColor="#DCE9FF" stopOpacity="0.28" />
+      <stop offset="0%" stopColor="#EDE7FF" stopOpacity="0.7" />
+      <stop offset="35%" stopColor="#DCE9FF" stopOpacity="0.4" />
+      <stop offset="70%" stopColor="#F2EEFF" stopOpacity="0.15" />
       <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
     </radialGradient>
 
-    {/* Lente exterior del motor — vidrio frío translúcido */}
-    <radialGradient id="coreLens" cx="40%" cy="35%" r="75%">
+    {/* Lente exterior — vidrio frosted con refracción */}
+    <radialGradient id="coreLens" cx="38%" cy="30%" r="78%">
       <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
-      <stop offset="35%" stopColor="#F4F1FF" stopOpacity="0.92" />
-      <stop offset="75%" stopColor="#E1E8FF" stopOpacity="0.78" />
-      <stop offset="100%" stopColor="#C9D2F2" stopOpacity="0.55" />
+      <stop offset="22%" stopColor="#FAF7FF" stopOpacity="0.96" />
+      <stop offset="48%" stopColor="#EDE9FB" stopOpacity="0.88" />
+      <stop offset="78%" stopColor="#DDE3F7" stopOpacity="0.74" />
+      <stop offset="100%" stopColor="#B8C2E8" stopOpacity="0.5" />
     </radialGradient>
 
-    {/* Anillo cerámico interior */}
-    <radialGradient id="ceramicRing" cx="50%" cy="40%" r="60%">
+    {/* Refracción interior — sutil tinte iridiscente */}
+    <radialGradient id="coreRefraction" cx="62%" cy="68%" r="55%">
+      <stop offset="0%" stopColor="#C8DCFF" stopOpacity="0.45" />
+      <stop offset="50%" stopColor="#E3D9FF" stopOpacity="0.22" />
+      <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+    </radialGradient>
+
+    {/* Cerámica satinada interior */}
+    <radialGradient id="ceramicRing" cx="50%" cy="35%" r="65%">
       <stop offset="0%" stopColor="#FFFFFF" />
-      <stop offset="60%" stopColor="#F0EEFB" />
-      <stop offset="100%" stopColor="#D7DDF2" />
+      <stop offset="45%" stopColor="#F6F3FE" />
+      <stop offset="80%" stopColor="#E6E9F5" />
+      <stop offset="100%" stopColor="#CDD3E8" />
     </radialGradient>
 
-    {/* Bisel iluminado celeste-violeta */}
+    {/* Bisel iluminado — gradiente VISTACEO refinado */}
     <linearGradient id="bevelEdge" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stopColor="#2692DC" stopOpacity="0.85" />
-      <stop offset="50%" stopColor="#A99EFF" stopOpacity="0.7" />
-      <stop offset="100%" stopColor="#746CE6" stopOpacity="0.85" />
+      <stop offset="0%" stopColor="#2692DC" stopOpacity="0.9" />
+      <stop offset="50%" stopColor="#A99EFF" stopOpacity="0.78" />
+      <stop offset="100%" stopColor="#5C53D4" stopOpacity="0.9" />
     </linearGradient>
 
-    {/* Highlight especular — toque de luz superior */}
-    <radialGradient id="specularTop" cx="50%" cy="0%" r="60%">
+    {/* Rim light — luz de borde */}
+    <linearGradient id="rimLight" x1="50%" y1="0%" x2="50%" y2="100%">
       <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
-      <stop offset="60%" stopColor="#FFFFFF" stopOpacity="0.15" />
+      <stop offset="40%" stopColor="#FFFFFF" stopOpacity="0.4" />
+      <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+    </linearGradient>
+
+    {/* Highlight especular superior */}
+    <radialGradient id="specularTop" cx="50%" cy="0%" r="65%">
+      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
+      <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.2" />
       <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
     </radialGradient>
 
-    {/* Sombra de contacto bajo objetos flotantes */}
+    {/* Sombra de contacto — gris-azulado profundo */}
     <radialGradient id="contactShadow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stopColor="#7A8CB8" stopOpacity="0.32" />
+      <stop offset="0%" stopColor="#5A6A98" stopOpacity="0.4" />
+      <stop offset="60%" stopColor="#7A8CB8" stopOpacity="0.18" />
       <stop offset="100%" stopColor="#7A8CB8" stopOpacity="0" />
     </radialGradient>
 
-    {/* Material de entidades — glass blanco perlado */}
-    <radialGradient id="entityGlass" cx="35%" cy="25%" r="80%">
+    {/* Material de entidades — glass blanco perlado refinado */}
+    <radialGradient id="entityGlass" cx="32%" cy="22%" r="85%">
       <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
-      <stop offset="55%" stopColor="#F2EEFF" stopOpacity="0.88" />
-      <stop offset="100%" stopColor="#C7D0EF" stopOpacity="0.7" />
+      <stop offset="35%" stopColor="#F8F5FF" stopOpacity="0.95" />
+      <stop offset="70%" stopColor="#E8EBF7" stopOpacity="0.85" />
+      <stop offset="100%" stopColor="#B8C4E5" stopOpacity="0.65" />
     </radialGradient>
 
-    {/* Glow violeta sutil para outputs */}
+    {/* Faceta interior — sugiere refracción */}
+    <linearGradient id="entityFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.6" />
+      <stop offset="100%" stopColor="#D8DFF2" stopOpacity="0.1" />
+    </linearGradient>
+
+    {/* Glow violeta sutil */}
     <radialGradient id="outputGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stopColor="#A99EFF" stopOpacity="0.4" />
+      <stop offset="0%" stopColor="#A99EFF" stopOpacity="0.5" />
       <stop offset="100%" stopColor="#A99EFF" stopOpacity="0" />
     </radialGradient>
+
+    {/* Glow celeste para entradas */}
+    <radialGradient id="inputGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stopColor="#2692DC" stopOpacity="0.4" />
+      <stop offset="100%" stopColor="#2692DC" stopOpacity="0" />
+    </radialGradient>
+
+    {/* Floor reflection — reflejo del piso */}
+    <linearGradient id="floorReflect" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.55" />
+      <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+    </linearGradient>
 
     {/* Filtro: blur suave para ecos de background */}
     <filter id="echoBlur" x="-20%" y="-20%" width="140%" height="140%">
@@ -90,6 +127,11 @@ const SceneDefs = memo(() => (
         <feMergeNode in="b" />
         <feMergeNode in="SourceGraphic" />
       </feMerge>
+    </filter>
+
+    {/* Filtro: soft inner shadow para profundidad de cerámica */}
+    <filter id="innerSoft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" />
     </filter>
   </defs>
 ));
