@@ -457,37 +457,13 @@ const TrustStrip = () => {
     <section className="py-14 px-6 bg-white border-y border-[#f5f5f5]">
       <div className="max-w-[1000px] mx-auto">
         <Reveal>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16">
-            <div className="flex items-center gap-2 text-[13px] text-[#999]">
-              <Users className="w-4 h-4" style={{ color: "#2692DC" }} />
-              <span><span className="font-bold text-[#111] text-[15px] tabular-nums">{counter}</span> negocios activos</span>
-            </div>
-            <div className="hidden sm:block w-px h-5 bg-[#eee]" />
-            <div className="flex items-center gap-2 text-[13px] text-[#999]">
-              <Globe className="w-4 h-4" style={{ color: "#746CE6" }} />
-              <span>Disponible en <span className="font-semibold text-[#555]">LATAM y España</span></span>
-            </div>
-            <div className="hidden sm:block w-px h-5 bg-[#eee]" />
-            <div className="flex items-center gap-2 text-[13px] text-[#999]">
-              <Shield className="w-4 h-4" style={{ color: "#2692DC" }} />
-              <span>Datos <span className="font-semibold text-[#555]">encriptados</span></span>
-            </div>
-          </div>
-        </Reveal>
-
-        {/* Business types strip */}
-        <Reveal delay={100}>
-          <div className="mt-10 relative overflow-hidden">
-            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent z-10" />
-            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent z-10" />
-            <div className="flex animate-scroll-x gap-14 items-center">
-              {[...Array(3)].map((_, set) => (
-                <div key={set} className="flex gap-14 items-center flex-shrink-0">
-                  {["Restaurantes", "Clínicas", "Agencias", "Comercios", "Estudios", "Startups", "Freelancers", "Hoteles", "Consultorios", "Gimnasios", "Cafeterías", "Salones"].map(t => (
-                    <span key={`${set}-${t}`} className="text-[13px] text-[#ddd] font-medium whitespace-nowrap">{t}</span>
-                  ))}
-                </div>
-              ))}
+          <div className="flex items-center justify-center text-center">
+            <div className="flex items-center gap-2.5 text-[14px] sm:text-[15px] text-[#666]">
+              <Users className="w-4 h-4 sm:w-[18px] sm:h-[18px]" style={{ color: "#2692DC" }} />
+              <span>
+                <span className="font-bold text-[#0a0a0a] text-[16px] sm:text-[18px] tabular-nums">+5.000</span>{" "}
+                negocios o servicios <span className="font-semibold text-[#333]">ya la utilizan</span>
+              </span>
             </div>
           </div>
         </Reveal>
