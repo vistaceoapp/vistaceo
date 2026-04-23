@@ -15,7 +15,7 @@ type Signal = {
   tilt: number;        // ellipse tilt in radians
   size: number;        // px
   tint: string;        // rgba accent
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
 };
 
 const SIGNALS: Signal[] = [
