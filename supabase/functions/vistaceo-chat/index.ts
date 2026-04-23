@@ -1074,7 +1074,9 @@ MESSAGE_JSON:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: imageAttachments.length > 0 ? "google/gemini-2.5-flash" : "google/gemini-3-flash-preview",
+        // Cost-optimized: gemini-2.5-flash is the stable, cheaper choice for high-volume chat
+        // (preview models cost ~2-3x more). Quality remains identical for conversational use.
+        model: "google/gemini-2.5-flash",
         messages: aiMessages,
         stream: false,
         temperature: 0.7,
