@@ -611,11 +611,22 @@ const IntelligenceFlow = memo(() => {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
 
   // Loop time (ms within LOOP_MS)
   const [loopT, setLoopT] = useState(0);
   // Persistent visibility of each output slot
   const [slots, setSlots] = useState<(OutputKind | null)[]>([null, null, null]);
+
+  // Mobile detection
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   // In-view observer
   useEffect(() => {
