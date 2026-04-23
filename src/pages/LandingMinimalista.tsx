@@ -414,7 +414,7 @@ const HeroSection = () => {
                     ]).map((label, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.06] bg-white/40 backdrop-blur-sm text-[12px] text-[#555] font-medium tracking-[-0.005em]"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.06] bg-white/70 text-[12px] text-[#555] font-medium tracking-[-0.005em]"
                       >
                         <span className="w-1 h-1 rounded-full bg-gradient-to-br from-[#4FB3F0] to-[#746CE6]" />
                         {label}
