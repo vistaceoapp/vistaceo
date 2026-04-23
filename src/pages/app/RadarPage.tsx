@@ -333,6 +333,21 @@ const RadarPage = () => {
         },
       });
 
+      // 402: límite Free alcanzado
+      if (data?.error === "free_limit_reached") {
+        toast({
+          title: "Llegaste al límite del plan Free",
+          description: data.message || "3 investigaciones del Radar por mes. Pasá a Pro para ilimitado.",
+          variant: "destructive",
+          action: (
+            <Button size="sm" variant="default" onClick={() => navigate("/checkout")}>
+              Ver Pro
+            </Button>
+          ) as any,
+        });
+        return;
+      }
+
       if (error) throw error;
 
       const created = typeof data?.learningCreated === "number" ? data.learningCreated : 0;
@@ -356,7 +371,7 @@ const RadarPage = () => {
     } finally {
       setGeneratingResearch(false);
     }
-  }, [currentBusiness, brain, generatingResearch, fetchData]);
+  }, [currentBusiness, brain, generatingResearch, fetchData, navigate]);
 
   // Auto-scan effect: triggers ONLY if daily debounce in fetchData allowed it
   useEffect(() => {
