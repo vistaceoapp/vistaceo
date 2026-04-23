@@ -232,14 +232,29 @@ export const HeroSection = memo(() => {
     <section className="relative min-h-[100svh] flex flex-col justify-center pt-20 pb-6 overflow-hidden">
       {/* Static background gradients - CSS only, no Framer Motion */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 -left-1/4 w-[70%] h-[60%] bg-primary/15 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 -right-1/4 w-[60%] h-[50%] bg-accent/10 rounded-full blur-[150px]" />
+        <div className="absolute top-0 -left-1/4 w-[70%] h-[60%] bg-primary/10 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 -right-1/4 w-[60%] h-[50%] bg-accent/8 rounded-full blur-[150px]" />
       </div>
 
-      {/* Main Hero Content - 2-col layout on desktop, stacked on mobile */}
+      {/* FULL-WIDTH INTELLIGENCE SCENE — cinematic hero canvas */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Suspense fallback={null}>
+          <IntelligenceFlow />
+        </Suspense>
+        {/* Veil to keep copy crisp on the left third (desktop only) */}
+        <div
+          className="hidden lg:block absolute inset-y-0 left-0 w-[55%] pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(90deg, hsl(var(--background) / 0.85) 0%, hsl(var(--background) / 0.6) 45%, hsl(var(--background) / 0) 100%)",
+          }}
+        />
+      </div>
+
+      {/* Main Hero Content — copy left, scene full-bleed behind */}
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center max-w-7xl mx-auto">
-          {/* LEFT: Copy + CTAs */}
+          {/* LEFT: Copy + CTAs — overlays the scene */}
           <div className="lg:col-span-6 text-center lg:text-left">
             {/* Badge with realtime counter */}
             <div className="mb-5 animate-fade-in-up flex lg:justify-start justify-center">
@@ -302,12 +317,8 @@ export const HeroSection = memo(() => {
             </div>
           </div>
 
-          {/* RIGHT: Intelligence Flow scene */}
-          <div className="lg:col-span-6 relative animate-fade-in-up-delay-3">
-            <Suspense fallback={<div className="w-full aspect-[5/4] rounded-[2rem] bg-gradient-to-br from-white to-slate-50/60 border border-foreground/5" />}>
-              <IntelligenceFlow />
-            </Suspense>
-          </div>
+          {/* RIGHT spacer — scene already lives full-bleed behind */}
+          <div className="hidden lg:block lg:col-span-6" aria-hidden="true" />
         </div>
 
         {/* Executive Intelligence Signal Cards - condensed below */}
