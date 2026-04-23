@@ -1,31 +1,31 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { TrendingUp, Target, AlertTriangle, Lightbulb, Sparkles, Zap } from "lucide-react";
+import { TrendingUp, Target, AlertTriangle, Lightbulb } from "lucide-react";
+import vistaceoIcon from "@/assets/brand/icon-vistaceo-new.webp";
 
 /**
- * IntelligenceFlow — Escena cinematográfica del hero VISTACEO.
+ * IntelligenceFlow — Hero cinematográfico VISTACEO.
  *
- * Narrativa visual:
+ * Narrativa:
  *  1. Señales caóticas (datos crudos) entran desde la izquierda
- *  2. Convergen en ríos curvos hacia el núcleo VISTACEO
- *  3. El núcleo "respira" y emite outputs ejecutivos legibles
- *  4. Los outputs flotan a la derecha como decisiones accionables
+ *  2. Convergen en ríos curvos hacia el LOGO VISTACEO (núcleo real)
+ *  3. El núcleo respira, gira anillos orbitales, emite shimmer
+ *  4. Outputs ejecutivos legibles flotan a la derecha
  *
- * Optimizada 60fps:
- *  - Parallax via rAF + transform directo
- *  - IntersectionObserver pausa cuando off-screen
+ * 60fps:
+ *  - rAF parallax, IntersectionObserver pause off-screen
  *  - Mobile: menos partículas, sin parallax, blurs reducidos
- *  - GPU-only: transform/opacity
+ *  - GPU-only transform/opacity
  *  - Respeta prefers-reduced-motion
  */
 
 const SIGNAL_CHIPS_DESKTOP = [
   { label: "ventas hoy", x: 1, y: 12, hue: "primary" },
-  { label: "ticket promedio", x: -2, y: 30, hue: "accent" },
-  { label: "reseñas nuevas", x: 3, y: 48, hue: "primary" },
-  { label: "competencia", x: 0, y: 66, hue: "accent" },
-  { label: "tendencia semanal", x: 4, y: 82, hue: "primary" },
-  { label: "margen", x: -1, y: 22, hue: "accent" },
+  { label: "ticket promedio", x: -2, y: 28, hue: "accent" },
+  { label: "reseñas nuevas", x: 3, y: 44, hue: "primary" },
+  { label: "competencia", x: 0, y: 60, hue: "accent" },
+  { label: "tendencia semanal", x: 4, y: 76, hue: "primary" },
+  { label: "margen", x: -1, y: 88, hue: "accent" },
 ];
 
 const SIGNAL_CHIPS_MOBILE = [
@@ -35,49 +35,12 @@ const SIGNAL_CHIPS_MOBILE = [
 ];
 
 const OUTPUT_CARDS = [
-  {
-    icon: Lightbulb,
-    label: "Insight",
-    title: "Mediodía rinde +23%",
-    detail: "Reasigná staff",
-    color: "primary",
-    x: 80,
-    y: 8,
-    delay: 2.4,
-  },
-  {
-    icon: Target,
-    label: "Acción prioritaria",
-    title: "Activá recompra",
-    detail: "142 clientes inactivos",
-    color: "accent",
-    x: 88,
-    y: 30,
-    delay: 2.7,
-  },
-  {
-    icon: AlertTriangle,
-    label: "Riesgo detectado",
-    title: "Margen cae en 5 días",
-    detail: "Revisá costos",
-    color: "warning",
-    x: 76,
-    y: 54,
-    delay: 3.0,
-  },
-  {
-    icon: TrendingUp,
-    label: "Oportunidad",
-    title: "Delivery premium",
-    detail: "+18% proyectado",
-    color: "primary",
-    x: 90,
-    y: 76,
-    delay: 3.3,
-  },
+  { icon: Lightbulb, label: "Insight", title: "Mediodía rinde +23%", detail: "Reasigná staff", color: "primary", x: 80, y: 8, delay: 2.4 },
+  { icon: Target, label: "Acción prioritaria", title: "Activá recompra", detail: "142 clientes inactivos", color: "accent", x: 88, y: 30, delay: 2.7 },
+  { icon: AlertTriangle, label: "Riesgo detectado", title: "Margen cae en 5 días", detail: "Revisá costos", color: "warning", x: 76, y: 54, delay: 3.0 },
+  { icon: TrendingUp, label: "Oportunidad", title: "Delivery premium", detail: "+18% proyectado", color: "primary", x: 90, y: 76, delay: 3.3 },
 ];
 
-// Tres rivers que convergen al núcleo (~560,220) y tres que salen
 const RIVER_IN_PATHS = [
   "M -20 80 C 140 100, 280 180, 540 220",
   "M -20 220 C 160 230, 320 220, 540 220",
@@ -138,8 +101,8 @@ export const IntelligenceFlow = memo(() => {
     };
 
     const onMove = (e: MouseEvent) => {
-      tx = (e.clientX / window.innerWidth - 0.5) * 12;
-      ty = (e.clientY / window.innerHeight - 0.5) * 12;
+      tx = (e.clientX / window.innerWidth - 0.5) * 14;
+      ty = (e.clientY / window.innerHeight - 0.5) * 14;
       if (!raf) raf = requestAnimationFrame(tick);
     };
 
@@ -151,31 +114,53 @@ export const IntelligenceFlow = memo(() => {
   }, [reduce, isMobile, isVisible]);
 
   const chips = isMobile ? SIGNAL_CHIPS_MOBILE : SIGNAL_CHIPS_DESKTOP;
-  const inParticles = isMobile ? [0, 1.6] : [0, 0.8, 1.6, 2.4];
-  const outParticles = isMobile ? [3.2] : [3.2, 4.0, 4.8];
+  const inParticles = isMobile ? [0, 1.6] : [0, 0.7, 1.4, 2.1, 2.8];
+  const outParticles = isMobile ? [3.2] : [3.2, 3.9, 4.6, 5.3];
+
+  // Core position in % (matches SVG viewBox 880x440 → 560/880 = 63.6%, 220/440 = 50%)
+  const CORE_LEFT = "63.6%";
+  const CORE_TOP = "50%";
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-h-[460px] lg:min-h-[600px] select-none pointer-events-none"
+      className="relative w-full h-full min-h-[480px] lg:min-h-[620px] select-none pointer-events-none"
       aria-hidden="true"
     >
-      {/* ─── Ambient glows ─── */}
+      {/* ─── Cinematic ambient layer ─── */}
       <div
-        className={`absolute top-[8%] left-[42%] w-[55%] h-[55%] rounded-full bg-primary/[0.13] ${
-          isMobile ? "blur-[60px]" : "blur-[150px]"
+        className={`absolute top-[5%] left-[40%] w-[60%] h-[60%] rounded-full bg-primary/[0.14] ${
+          isMobile ? "blur-[60px]" : "blur-[160px]"
         }`}
       />
       <div
-        className={`absolute bottom-[5%] right-[5%] w-[50%] h-[50%] rounded-full bg-accent/[0.12] ${
-          isMobile ? "blur-[55px]" : "blur-[140px]"
+        className={`absolute bottom-[2%] right-[2%] w-[55%] h-[55%] rounded-full bg-accent/[0.13] ${
+          isMobile ? "blur-[55px]" : "blur-[150px]"
         }`}
       />
       <div
-        className={`absolute top-[30%] left-[2%] w-[35%] h-[35%] rounded-full bg-primary/[0.05] ${
-          isMobile ? "blur-[45px]" : "blur-[110px]"
+        className={`absolute top-[28%] left-[0%] w-[38%] h-[38%] rounded-full bg-primary/[0.06] ${
+          isMobile ? "blur-[45px]" : "blur-[120px]"
         }`}
       />
+
+      {/* Subtle radial grid behind the core (cinematic depth) */}
+      {!isMobile && (
+        <div
+          className="absolute"
+          style={{
+            left: CORE_LEFT,
+            top: CORE_TOP,
+            width: 520,
+            height: 520,
+            transform: "translate(-50%, -50%)",
+            background:
+              "radial-gradient(circle, hsl(var(--primary) / 0.06) 0%, transparent 60%), repeating-radial-gradient(circle at center, transparent 0, transparent 38px, hsl(var(--foreground) / 0.025) 39px, transparent 40px)",
+            maskImage: "radial-gradient(circle, #000 20%, transparent 70%)",
+            WebkitMaskImage: "radial-gradient(circle, #000 20%, transparent 70%)",
+          }}
+        />
+      )}
 
       {/* ─── Parallax stage ─── */}
       <div
@@ -183,46 +168,34 @@ export const IntelligenceFlow = memo(() => {
         className="absolute inset-0"
         style={{ willChange: reduce || isMobile ? undefined : "transform" }}
       >
-        <svg
-          viewBox="0 0 880 440"
-          className="absolute inset-0 w-full h-full"
-          preserveAspectRatio="xMidYMid meet"
-        >
+        <svg viewBox="0 0 880 440" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet">
           <defs>
-            {/* River gradient: faint → bright → faint */}
             <linearGradient id="riverIn" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="hsl(204 72% 50%)" stopOpacity="0" />
               <stop offset="40%" stopColor="hsl(204 72% 50%)" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="hsl(244 68% 66%)" stopOpacity="0.85" />
+              <stop offset="100%" stopColor="hsl(244 68% 66%)" stopOpacity="0.9" />
             </linearGradient>
             <linearGradient id="riverOut" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="hsl(244 68% 66%)" stopOpacity="0.85" />
+              <stop offset="0%" stopColor="hsl(244 68% 66%)" stopOpacity="0.9" />
               <stop offset="60%" stopColor="hsl(244 68% 66%)" stopOpacity="0.45" />
               <stop offset="100%" stopColor="hsl(244 68% 66%)" stopOpacity="0" />
             </linearGradient>
             <linearGradient id="riverHalo" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="hsl(204 72% 50%)" stopOpacity="0" />
-              <stop offset="50%" stopColor="hsl(244 68% 66%)" stopOpacity="0.10" />
+              <stop offset="50%" stopColor="hsl(244 68% 66%)" stopOpacity="0.12" />
               <stop offset="100%" stopColor="hsl(244 68% 66%)" stopOpacity="0" />
             </linearGradient>
-            {/* Core radial */}
             <radialGradient id="coreHalo" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="hsl(244 68% 66%)" stopOpacity="0.55" />
-              <stop offset="55%" stopColor="hsl(204 72% 50%)" stopOpacity="0.18" />
+              <stop offset="0%" stopColor="hsl(244 68% 66%)" stopOpacity="0.6" />
+              <stop offset="55%" stopColor="hsl(204 72% 50%)" stopOpacity="0.2" />
               <stop offset="100%" stopColor="hsl(204 72% 50%)" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="coreSphere" cx="35%" cy="30%" r="70%">
-              <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="60%" stopColor="hsl(244 80% 96%)" />
-              <stop offset="100%" stopColor="hsl(244 60% 88%)" />
             </radialGradient>
           </defs>
 
-          {/* Wide soft halos (rivers IN) */}
+          {/* Wide soft halos */}
           {RIVER_IN_PATHS.map((d, i) => (
             <path key={`hi-${i}`} d={d} stroke="url(#riverHalo)" strokeWidth="34" fill="none" strokeLinecap="round" />
           ))}
-          {/* Wide soft halos (rivers OUT) */}
           {RIVER_OUT_PATHS.map((d, i) => (
             <path key={`ho-${i}`} d={d} stroke="url(#riverHalo)" strokeWidth="30" fill="none" strokeLinecap="round" />
           ))}
@@ -237,7 +210,7 @@ export const IntelligenceFlow = memo(() => {
               fill="none"
               strokeLinecap="round"
               initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: reduce ? 0.55 : 0.82 }}
+              animate={{ pathLength: 1, opacity: reduce ? 0.55 : 0.85 }}
               transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 + i * 0.12 }}
             />
           ))}
@@ -252,7 +225,7 @@ export const IntelligenceFlow = memo(() => {
               fill="none"
               strokeLinecap="round"
               initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: reduce ? 0.55 : 0.82 }}
+              animate={{ pathLength: 1, opacity: reduce ? 0.55 : 0.85 }}
               transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 1.6 + i * 0.1 }}
             />
           ))}
@@ -281,20 +254,9 @@ export const IntelligenceFlow = memo(() => {
               const path = RIVER_IN_PATHS[i % RIVER_IN_PATHS.length];
               const isPrim = i % 2 === 0;
               return (
-                <circle
-                  key={`pi-${i}`}
-                  r={isPrim ? 2.8 : 2.2}
-                  fill={isPrim ? "hsl(204 72% 50%)" : "hsl(244 68% 66%)"}
-                  opacity="0"
-                >
+                <circle key={`pi-${i}`} r={isPrim ? 2.8 : 2.2} fill={isPrim ? "hsl(204 72% 50%)" : "hsl(244 68% 66%)"} opacity="0">
                   <animateMotion dur="4.5s" repeatCount="indefinite" begin={`${1.8 + delay}s`} path={path} rotate="auto" />
-                  <animate
-                    attributeName="opacity"
-                    values="0;0.95;0.95;0"
-                    dur="4.5s"
-                    repeatCount="indefinite"
-                    begin={`${1.8 + delay}s`}
-                  />
+                  <animate attributeName="opacity" values="0;0.95;0.95;0" dur="4.5s" repeatCount="indefinite" begin={`${1.8 + delay}s`} />
                 </circle>
               );
             })}
@@ -307,106 +269,121 @@ export const IntelligenceFlow = memo(() => {
               return (
                 <circle key={`po-${i}`} r="2.4" fill="hsl(244 68% 66%)" opacity="0">
                   <animateMotion dur="3.8s" repeatCount="indefinite" begin={`${delay}s`} path={path} rotate="auto" />
-                  <animate
-                    attributeName="opacity"
-                    values="0;1;1;0"
-                    dur="3.8s"
-                    repeatCount="indefinite"
-                    begin={`${delay}s`}
-                  />
+                  <animate attributeName="opacity" values="0;1;1;0" dur="3.8s" repeatCount="indefinite" begin={`${delay}s`} />
                 </circle>
               );
             })}
 
-          {/* ─── CORE NODE: VISTACEO ─── */}
+          {/* Core SVG halos (rendering behind logo) */}
           <g transform="translate(560 220)">
-            {/* Outer breathing halo */}
             {!reduce && (
               <motion.circle
-                r="78"
+                r="92"
                 fill="url(#coreHalo)"
                 initial={{ scale: 0.6, opacity: 0 }}
-                animate={
-                  isVisible
-                    ? { scale: [0.92, 1.15, 0.92], opacity: [0.4, 0.75, 0.4] }
-                    : { scale: 1, opacity: 0.5 }
-                }
-                transition={{ duration: 4.5, repeat: isVisible ? Infinity : 0, ease: "easeInOut", delay: 1.4 }}
+                animate={isVisible ? { scale: [0.92, 1.18, 0.92], opacity: [0.4, 0.8, 0.4] } : { scale: 1, opacity: 0.5 }}
+                transition={{ duration: 5, repeat: isVisible ? Infinity : 0, ease: "easeInOut", delay: 1.2 }}
               />
             )}
-            {/* Mid pulse ring */}
-            {!reduce && isVisible && (
+            {/* Expanding pulse rings (cinematic radar) */}
+            {!reduce && isVisible && [0, 1.5].map((d, i) => (
               <motion.circle
-                r="40"
+                key={`pulse-${i}`}
+                r="38"
                 fill="none"
                 stroke="hsl(244 68% 66%)"
                 strokeWidth="1"
-                initial={{ scale: 0.7, opacity: 0 }}
-                animate={{ scale: [0.85, 1.4, 1.4], opacity: [0.6, 0, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeOut", delay: 2 }}
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{ scale: [0.7, 1.6], opacity: [0.7, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeOut", delay: 2 + d }}
               />
-            )}
-            {/* Static thin ring */}
-            <motion.circle
-              r="32"
-              fill="none"
-              stroke="hsl(244 68% 66%)"
-              strokeWidth="0.8"
-              opacity="0.35"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 0.35 }}
-              transition={{ duration: 0.7, delay: 1.5, ease: [0.34, 1.56, 0.64, 1] }}
-            />
-            {/* Core sphere */}
-            <motion.circle
-              r="22"
-              fill="url(#coreSphere)"
-              stroke="hsl(244 68% 66%)"
-              strokeWidth="1"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.7, delay: 1.4, ease: [0.34, 1.56, 0.64, 1] }}
-              style={{ filter: "drop-shadow(0 8px 20px hsl(244 68% 66% / 0.35))" }}
-            />
-            {/* Inner glow dot */}
-            <motion.circle
-              r="6"
-              fill="hsl(244 68% 66%)"
-              initial={{ opacity: 0 }}
-              animate={isVisible && !reduce ? { opacity: [0.4, 1, 0.4] } : { opacity: 0.8 }}
-              transition={{ duration: 2.4, repeat: isVisible && !reduce ? Infinity : 0, ease: "easeInOut", delay: 1.8 }}
-            />
-            {/* Orbital satellites */}
-            {!reduce && !isMobile && isVisible &&
-              [0, 1, 2, 3].map((i) => {
-                const angle = (i * Math.PI * 2) / 4;
-                return (
-                  <motion.circle
-                    key={`sat-${i}`}
-                    cx={Math.cos(angle) * 32}
-                    cy={Math.sin(angle) * 32}
-                    r="1.8"
-                    fill="hsl(204 72% 50%)"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: [0.3, 1, 0.3] }}
-                    transition={{ duration: 2.8, repeat: Infinity, delay: 2 + i * 0.25 }}
-                  />
-                );
-              })}
+            ))}
           </g>
         </svg>
 
-        {/* ─── VISTACEO label (HTML, perfectly readable) ─── */}
+        {/* ─── CORE: VISTACEO LOGO (real brand asset) ─── */}
         <motion.div
           className="absolute"
-          style={{ left: "63.6%", top: "59%", transform: "translateX(-50%)" }}
-          initial={{ opacity: 0, y: 8, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6, delay: 1.9, ease: [0.34, 1.56, 0.64, 1] }}
+          style={{ left: CORE_LEFT, top: CORE_TOP, transform: "translate(-50%, -50%)" }}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9, delay: 1.4, ease: [0.34, 1.56, 0.64, 1] }}
         >
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-foreground text-background shadow-[0_10px_30px_-8px_hsl(var(--foreground)/0.35)] ring-1 ring-foreground/10">
-            <Sparkles className="w-3 h-3" strokeWidth={2.2} />
-            <span className="text-[9px] font-bold tracking-[0.18em]">VISTACEO</span>
+          <div className="relative" style={{ width: 130, height: 130 }}>
+            {/* Outer rotating ring (slow) */}
+            {!reduce && isVisible && (
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  border: "1px dashed hsl(var(--primary) / 0.35)",
+                }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+              />
+            )}
+            {/* Mid rotating ring (counter, faster) with orbiting dot */}
+            {!reduce && isVisible && (
+              <motion.div
+                className="absolute"
+                style={{ inset: 14, borderRadius: "9999px", border: "1px solid hsl(var(--accent) / 0.25)" }}
+                animate={{ rotate: -360 }}
+                transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+              >
+                <span
+                  className="absolute w-2 h-2 rounded-full bg-accent shadow-[0_0_12px_hsl(var(--accent))]"
+                  style={{ top: -4, left: "50%", marginLeft: -4 }}
+                />
+                <span
+                  className="absolute w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]"
+                  style={{ bottom: -3, left: "50%", marginLeft: -3 }}
+                />
+              </motion.div>
+            )}
+
+            {/* Inner glass disc holding the LOGO */}
+            <div
+              className="absolute rounded-full bg-white flex items-center justify-center overflow-hidden"
+              style={{
+                inset: 30,
+                boxShadow:
+                  "0 24px 60px -16px hsl(var(--accent) / 0.45), 0 8px 24px -8px hsl(var(--primary) / 0.35), inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -2px 8px rgba(0,0,0,0.04)",
+                border: "1px solid rgba(255,255,255,0.9)",
+              }}
+            >
+              {/* Soft conic shimmer behind logo */}
+              {!reduce && isVisible && (
+                <motion.div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "conic-gradient(from 0deg, transparent 0deg, hsl(var(--primary) / 0.18) 60deg, transparent 120deg, transparent 240deg, hsl(var(--accent) / 0.18) 300deg, transparent 360deg)",
+                  }}
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                />
+              )}
+              <img
+                src={vistaceoIcon}
+                alt=""
+                className="relative z-10 w-[60%] h-[60%] object-contain"
+                style={{ filter: "drop-shadow(0 2px 6px hsl(var(--accent) / 0.25))" }}
+                draggable={false}
+              />
+            </div>
+
+            {/* Inner subtle pulse glow under disc */}
+            {!reduce && isVisible && (
+              <motion.div
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  inset: 20,
+                  background: "radial-gradient(circle, hsl(var(--accent) / 0.35) 0%, transparent 70%)",
+                  filter: "blur(8px)",
+                }}
+                animate={{ opacity: [0.5, 0.9, 0.5], scale: [0.95, 1.08, 0.95] }}
+                transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+              />
+            )}
           </div>
         </motion.div>
 
@@ -483,7 +460,6 @@ export const IntelligenceFlow = memo(() => {
               <div
                 className={`relative flex items-center gap-2.5 pl-2.5 pr-3.5 py-2 rounded-2xl bg-white/95 backdrop-blur-sm border border-foreground/[0.05] shadow-[0_24px_60px_-24px_rgba(15,23,42,0.22),0_4px_14px_-6px_rgba(15,23,42,0.08)] ring-1 ${c.ring}`}
               >
-                {/* live indicator */}
                 {!reduce && (
                   <span className="absolute -top-1 -right-1 flex h-2 w-2">
                     <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${c.dot} opacity-60`} />
@@ -495,33 +471,29 @@ export const IntelligenceFlow = memo(() => {
                 </div>
                 <div className="text-left">
                   <div className={`text-[8.5px] font-bold uppercase tracking-[0.12em] ${c.text}`}>{card.label}</div>
-                  <div className="text-[12px] font-semibold text-foreground whitespace-nowrap leading-tight">
-                    {card.title}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground whitespace-nowrap leading-tight mt-0.5">
-                    {card.detail}
-                  </div>
+                  <div className="text-[12px] font-semibold text-foreground whitespace-nowrap leading-tight">{card.title}</div>
+                  <div className="text-[10px] text-muted-foreground whitespace-nowrap leading-tight mt-0.5">{card.detail}</div>
                 </div>
               </div>
             </motion.div>
           );
         })}
 
-        {/* ─── Subtle scan-line sweeping the core (cinematic touch) ─── */}
+        {/* ─── Cinematic scan-line sweeping across the core ─── */}
         {!reduce && !isMobile && isVisible && (
           <motion.div
             className="absolute pointer-events-none"
             style={{
-              left: "50%",
-              top: "30%",
-              width: "30%",
-              height: "40%",
-              background: "linear-gradient(90deg, transparent, hsl(var(--accent) / 0.08), transparent)",
-              filter: "blur(8px)",
+              left: "40%",
+              top: "20%",
+              width: "35%",
+              height: "60%",
+              background: "linear-gradient(105deg, transparent 0%, hsl(var(--accent) / 0.10) 50%, transparent 100%)",
+              filter: "blur(10px)",
             }}
-            initial={{ opacity: 0, x: -100 }}
-            animate={{ opacity: [0, 1, 0], x: [-100, 100, 250] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 3, repeatDelay: 2 }}
+            initial={{ opacity: 0, x: -200 }}
+            animate={{ opacity: [0, 1, 0], x: [-200, 100, 350] }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 2.5, repeatDelay: 1.5 }}
           />
         )}
       </div>
