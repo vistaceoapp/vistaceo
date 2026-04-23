@@ -580,10 +580,10 @@ const CrystallizeBurst = memo(({ core, t, accent }: { core: { x: number; y: numb
 CrystallizeBurst.displayName = "CrystallizeBurst";
 
 /* Beam de salida hacia el slot del right rail */
-const EmergenceBeam = memo(({ core, t, slotY }: { core: { x: number; y: number }; t: number; slotY: number }) => {
+const EmergenceBeam = memo(({ core, t, slotY, vbWidth }: { core: { x: number; y: number }; t: number; slotY: number; vbWidth: number }) => {
   if (t < 0.7 || t > 0.95) return null;
   const local = (t - 0.7) / 0.25;
-  const x2 = 900 + 30; // off-canvas to right rail
+  const x2 = vbWidth + 30; // off-canvas to right rail
   const y2 = slotY;
   // emerging streak: a tiny crystal traveling out
   const px = core.x + (x2 - core.x) * local;
@@ -591,9 +591,9 @@ const EmergenceBeam = memo(({ core, t, slotY }: { core: { x: number; y: number }
   const op = 1 - local;
   return (
     <g pointerEvents="none">
-      <line x1={core.x} y1={core.y} x2={px} y2={py} stroke="#A99EFF" strokeOpacity={op * 0.4} strokeWidth={1.2} />
-      <circle cx={px} cy={py} r={5 + local * 4} fill="#FFFFFF" opacity={op * 0.95} />
-      <circle cx={px} cy={py} r={10 + local * 8} fill="#A99EFF" opacity={op * 0.25} />
+      <line x1={core.x} y1={core.y} x2={px} y2={py} stroke="#A99EFF" strokeOpacity={op * 0.32} strokeWidth={1.2} />
+      <circle cx={px} cy={py} r={5 + local * 4} fill="#FFFFFF" opacity={op * 0.9} />
+      <circle cx={px} cy={py} r={10 + local * 8} fill="#A99EFF" opacity={op * 0.2} />
     </g>
   );
 });
