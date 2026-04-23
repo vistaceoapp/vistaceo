@@ -357,12 +357,8 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right: Cinematic intelligence scene (premium hero asset) */}
-          <Reveal delay={200} distance={24}>
-            <div className="relative w-full h-[360px] sm:h-[440px] lg:h-[580px]">
-              <IntelligenceFlow />
-            </div>
-          </Reveal>
+          {/* Right: empty grid spacer — the cinematic scene already lives full-bleed behind */}
+          <div className="hidden lg:block lg:col-span-6" aria-hidden="true" />
         </div>
       </div>
     </section>
