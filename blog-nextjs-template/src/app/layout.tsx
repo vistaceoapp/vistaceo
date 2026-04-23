@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: "VISTACEO Blog | Inteligencia de Negocios para Latinoamérica",
-    template: "%s | VISTACEO Blog",
+    template: "%s",
   },
   description:
     "Guías prácticas de IA, liderazgo, empleo y estrategia para emprendedores y profesionales de Latinoamérica.",
