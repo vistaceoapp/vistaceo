@@ -243,9 +243,9 @@ const Auth = () => {
         noindex={true}
       />
 
-      <div className="min-h-screen w-full bg-white text-[#0a0a0a] flex flex-col lg:grid lg:grid-cols-[1.05fr_1fr]">
-        {/* ============ LEFT — Brand panel (premium) ============ */}
-        <aside className="relative hidden lg:flex flex-col justify-between overflow-hidden text-white p-10 xl:p-14">
+      <div className="min-h-screen w-full bg-white text-[#0a0a0a] flex flex-col lg:grid lg:grid-cols-[minmax(0,40fr)_minmax(0,60fr)] xl:grid-cols-[minmax(0,38fr)_minmax(0,62fr)]">
+        {/* ============ LEFT — Brand panel (premium · soporte secundario) ============ */}
+        <aside className="relative hidden lg:flex flex-col justify-between overflow-hidden text-white p-8 xl:p-10">
           {/* Background — mismo lenguaje visual de la app (azul → violeta marca) */}
           <div
             aria-hidden
