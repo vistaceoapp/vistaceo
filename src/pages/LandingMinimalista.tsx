@@ -317,29 +317,17 @@ const HeroSection = () => {
               >
                 <span className="block whitespace-nowrap">
                   Un CEO digital con{" "}
-                  <span className="hero-ia-wrap inline-flex items-baseline gap-[0.18em] align-baseline">
-                    <span
-                      className="hero-ia-text"
-                      style={{
-                        backgroundImage:
-                          "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        backgroundClip: "text",
-                      }}
-                    >
-                      IA
-                    </span>
-                    <Sparkles
-                      className="hero-ia-spark"
-                      style={{
-                        width: "0.7em",
-                        height: "0.7em",
-                        color: "#2692DC",
-                        filter: "drop-shadow(0 2px 8px rgba(38,146,220,0.45))",
-                      }}
-                      strokeWidth={2.4}
-                    />
+                  <span
+                    className="hero-ia-text"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    IA
                   </span>
                 </span>
                 <span
@@ -354,17 +342,9 @@ const HeroSection = () => {
                   }}
                 >
                   impulsando tu negocio o servicio
-                  <span
-                    className="inline-block align-middle ml-3 hero-247"
-                    style={{
-                      fontSize: "0.5em",
-                      fontWeight: 700,
-                      letterSpacing: "-0.01em",
-                      verticalAlign: "0.18em",
-                    }}
-                  >
-                    24/7
-                  </span>
+                </span>
+                <span className="block mt-1 hero-sin-descanso">
+                  sin descanso
                 </span>
               </h1>
               <style>{`
@@ -384,28 +364,21 @@ const HeroSection = () => {
                   background: linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%);
                   box-shadow: 0 4px 14px rgba(38,146,220,0.35);
                 }
-                .hero-ia-spark {
-                  animation: heroSparkPulse 2.4s ease-in-out infinite;
-                }
-                @keyframes heroSparkPulse {
-                  0%, 100% { opacity: 0.85; transform: scale(1) rotate(0deg); }
-                  50%      { opacity: 1;    transform: scale(1.18) rotate(12deg); }
-                }
-                .hero-247 {
-                  display: inline-block;
+                .hero-sin-descanso {
                   background-image: linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%);
                   -webkit-background-clip: text;
                   background-clip: text;
                   -webkit-text-fill-color: transparent;
-                  animation: hero247Pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-                  filter: drop-shadow(0 4px 14px rgba(38,146,220,0.20));
+                  padding-bottom: 0.06em;
+                  animation: heroBreath 2.6s ease-in-out infinite;
+                  filter: drop-shadow(0 4px 14px rgba(38,146,220,0.18));
                 }
-                @keyframes hero247Pulse {
-                  0%, 100% { transform: scale(1);    opacity: 1; }
-                  50%      { transform: scale(1.06); opacity: 0.92; }
+                @keyframes heroBreath {
+                  0%, 100% { opacity: 1;    transform: scale(1); }
+                  50%      { opacity: 0.92; transform: scale(1.012); }
                 }
                 @media (prefers-reduced-motion: reduce) {
-                  .hero-247, .hero-ia-spark { animation: none; }
+                  .hero-sin-descanso { animation: none; }
                 }
               `}</style>
             </Reveal>
