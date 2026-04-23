@@ -477,11 +477,11 @@ interface Beat {
 
 // 5 transformaciones secuenciales — cada una toma ~3.6s (loop ≈ 18s)
 const BEATS: Beat[] = [
-  { entity: "sales",      output: "opportunity", slot: 0, from: { x: -60,  y: 600 } }, // FG izquierda-abajo
-  { entity: "review",     output: "insight",     slot: 1, from: { x: -40,  y: 200 } }, // top-izquierda
-  { entity: "risk",       output: "mission",     slot: 2, from: { x: 940,  y: 240 } }, // top-derecha (alerta → misión)
-  { entity: "competitor", output: "radar",       slot: 0, from: { x: -60,  y: 380 } }, // izquierda media
-  { entity: "trend",      output: "prediction",  slot: 1, from: { x: 940,  y: 520 } }, // derecha-abajo
+  { entity: "sales",      output: "opportunity", slot: 0, from: { x: 80,  y: 600 } }, // FG izquierda-abajo
+  { entity: "review",     output: "insight",     slot: 1, from: { x: 120, y: 180 } }, // top-izquierda
+  { entity: "risk",       output: "mission",     slot: 2, from: { x: 60,  y: 440 } }, // middle-izquierda
+  { entity: "competitor", output: "radar",       slot: 0, from: { x: 200, y: 680 } }, // bottom-izquierda
+  { entity: "trend",      output: "prediction",  slot: 1, from: { x: 60,  y: 300 } }, // upper-izquierda
 ];
 
 const BEAT_MS = 3600;
