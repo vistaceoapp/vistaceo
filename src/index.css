@@ -500,3 +500,17 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/* ─── Landing perf: skip rendering off-screen sections ─── */
+.lp-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 800px;
+}
+
+/* On mobile, drop expensive backdrop-blur inside landing — large repaints */
+@media (max-width: 768px) {
+  .landing-mobile-perf [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
