@@ -370,15 +370,7 @@ const HeroSection = () => {
                   background-clip: text;
                   -webkit-text-fill-color: transparent;
                   padding-bottom: 0.06em;
-                  animation: heroBreath 2.6s ease-in-out infinite;
                   filter: drop-shadow(0 4px 14px rgba(38,146,220,0.18));
-                }
-                @keyframes heroBreath {
-                  0%, 100% { opacity: 1;    transform: scale(1); }
-                  50%      { opacity: 0.92; transform: scale(1.012); }
-                }
-                @media (prefers-reduced-motion: reduce) {
-                  .hero-sin-descanso { animation: none; }
                 }
               `}</style>
             </Reveal>
