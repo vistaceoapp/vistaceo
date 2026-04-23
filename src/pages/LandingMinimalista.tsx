@@ -17,6 +17,7 @@ import { MockupProAnalytics } from "@/components/landing/mockups/MockupProAnalyt
 import { MockupProPredictions } from "@/components/landing/mockups/MockupProPredictions";
 import { MockupProInsights } from "@/components/landing/mockups/MockupProInsights";
 import { MockupProCompetitors } from "@/components/landing/mockups/MockupProCompetitors";
+import { CapabilitiesShowcase } from "@/components/landing/CapabilitiesShowcase";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
@@ -1647,6 +1648,9 @@ export default function LandingMinimalista() {
         <HeroSection />
         <TrustStrip />
         <HowItWorks />
+        <div className="bg-[#0a0a0a] text-white">
+          <CapabilitiesShowcase />
+        </div>
         <ProductShowcase />
         <FeaturesGrid />
         <CompetitorSection />
