@@ -130,73 +130,90 @@ const SpeedVisual = () => (
   </svg>
 );
 
-// 4. Anticipación estratégica — orbe predictivo con escenarios futuros
+// 4. Anticipación estratégica — "Hoy" vs predicción futura con curva ascendente
 const ForecastVisual = () => (
-  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
+  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
     <defs>
-      <radialGradient id="cap-orb" cx="50%" cy="40%" r="60%">
-        <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-        <stop offset="40%" stopColor={BRAND} stopOpacity="0.45" />
-        <stop offset="100%" stopColor={BRAND} stopOpacity="0.95" />
-      </radialGradient>
-      <linearGradient id="cap-future" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stopColor={BRAND} stopOpacity="0.8" />
+      <linearGradient id="cap-forecast-area" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor={BRAND} stopOpacity="0.25" />
         <stop offset="100%" stopColor={BRAND} stopOpacity="0" />
       </linearGradient>
     </defs>
 
-    {/* Ondas de predicción que se expanden */}
-    {[0, 0.6, 1.2].map((delay, i) => (
-      <motion.circle
-        key={i}
-        cx="90" cy="78" r="28"
-        fill="none" stroke={BRAND} strokeWidth="1.2"
-        initial={{ scale: 0.6, opacity: 0.6 }}
-        animate={{ scale: 2.2, opacity: 0 }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut", delay }}
-        style={{ transformOrigin: "90px 78px" }}
-      />
-    ))}
+    {/* Ejes sutiles */}
+    <line x1="20" y1="115" x2="260" y2="115" stroke="#e5e5e5" strokeWidth="1" />
 
-    {/* Orbe / bola de cristal */}
-    <circle cx="90" cy="78" r="28" fill="url(#cap-orb)" />
-    <circle cx="90" cy="78" r="28" fill="none" stroke={BRAND} strokeOpacity="0.4" strokeWidth="1" />
-    {/* Reflejo */}
-    <ellipse cx="82" cy="68" rx="8" ry="5" fill="white" fillOpacity="0.5" />
-    {/* Base */}
-    <ellipse cx="90" cy="110" rx="22" ry="3" fill={BRAND} fillOpacity="0.15" />
+    {/* Divisor Hoy / Futuro */}
+    <line x1="120" y1="25" x2="120" y2="115" stroke={BRAND} strokeOpacity="0.25" strokeWidth="1" strokeDasharray="3 3" />
+    <text x="70" y="20" textAnchor="middle" fontSize="8" fontWeight="600" fill="#999" letterSpacing="0.5">HOY</text>
+    <text x="195" y="20" textAnchor="middle" fontSize="8" fontWeight="600" fill={BRAND} letterSpacing="0.5">PREDICCIÓN</text>
 
-    {/* Línea de tiempo hacia el futuro */}
-    <line x1="130" y1="78" x2="260" y2="78" stroke="url(#cap-future)" strokeWidth="1.5" strokeDasharray="3 4" />
+    {/* Curva pasada (sólida) */}
+    <motion.path
+      d="M20 95 Q50 92 75 85 T120 75"
+      fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.9, ease: "easeOut" }}
+    />
 
-    {/* 3 escenarios proyectados */}
-    {[
-      { x: 165, y: 50, label: "+18%", delay: 0.3 },
-      { x: 205, y: 78, label: "Pico", delay: 0.6 },
-      { x: 245, y: 100, label: "Riesgo", delay: 0.9 },
-    ].map((s, i) => (
-      <motion.g
-        key={i}
-        initial={{ opacity: 0, scale: 0.5 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ delay: s.delay, duration: 0.4, ease: "easeOut" }}
-        style={{ transformOrigin: `${s.x}px ${s.y}px` }}
-      >
-        <circle cx={s.x} cy={s.y} r="4" fill={BRAND} />
-        <circle cx={s.x} cy={s.y} r="9" fill="none" stroke={BRAND} strokeOpacity="0.3" strokeWidth="1" />
-        <rect x={s.x - 18} y={s.y - 22} width="36" height="13" rx="6" fill="white" stroke={BRAND} strokeOpacity="0.25" strokeWidth="0.8" />
-        <text x={s.x} y={s.y - 13} textAnchor="middle" fontSize="8" fontWeight="600" fill={BRAND}>{s.label}</text>
-      </motion.g>
-    ))}
+    {/* Curva futura (predicha, ascendente) */}
+    <motion.path
+      d="M120 75 Q160 65 195 50 T260 32"
+      fill="none" stroke={BRAND} strokeWidth="2.2" strokeLinecap="round" strokeDasharray="4 3"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: 0.9, duration: 1.2, ease: "easeOut" }}
+    />
 
-    {/* Destello dentro del orbe */}
+    {/* Área bajo curva futura */}
+    <motion.path
+      d="M120 75 Q160 65 195 50 T260 32 L260 115 L120 115 Z"
+      fill="url(#cap-forecast-area)"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: 1.6, duration: 0.6 }}
+    />
+
+    {/* Punto "ahora" */}
+    <circle cx="120" cy="75" r="4" fill="white" stroke={BRAND} strokeWidth="2" />
+
+    {/* Pin de oportunidad */}
+    <motion.g
+      initial={{ opacity: 0, y: 6 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: 1.8, duration: 0.4 }}
+    >
+      <circle cx="195" cy="50" r="4" fill={BRAND} />
+      <circle cx="195" cy="50" r="9" fill="none" stroke={BRAND} strokeOpacity="0.35" strokeWidth="1" />
+      <rect x="172" y="28" width="46" height="14" rx="7" fill="white" stroke={BRAND} strokeOpacity="0.3" strokeWidth="0.8" />
+      <text x="195" y="38" textAnchor="middle" fontSize="9" fontWeight="700" fill={BRAND}>+18% ↑</text>
+    </motion.g>
+
+    {/* Pin de riesgo */}
+    <motion.g
+      initial={{ opacity: 0, y: -6 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: 2.1, duration: 0.4 }}
+    >
+      <circle cx="245" cy="38" r="3.5" fill="#f59e0b" />
+      <rect x="225" y="92" width="40" height="14" rx="7" fill="white" stroke="#f59e0b" strokeOpacity="0.4" strokeWidth="0.8" />
+      <text x="245" y="102" textAnchor="middle" fontSize="9" fontWeight="700" fill="#d97706">Riesgo</text>
+    </motion.g>
+
+    {/* Pulso en el punto presente */}
     <motion.circle
-      cx="90" cy="78" r="3"
-      fill="white"
-      animate={{ opacity: [0.4, 1, 0.4], scale: [0.8, 1.4, 0.8] }}
-      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      style={{ transformOrigin: "90px 78px" }}
+      cx="120" cy="75" r="6"
+      fill="none" stroke={BRAND} strokeWidth="1.5"
+      initial={{ scale: 1, opacity: 0.7 }}
+      animate={{ scale: 2.2, opacity: 0 }}
+      transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+      style={{ transformOrigin: "120px 75px" }}
     />
   </svg>
 );
