@@ -155,16 +155,7 @@ export const useProFeature = (feature: string): boolean => {
 };
 
 /**
- * @deprecated Use `useFreeLimits()` from `@/hooks/use-free-limits` instead.
- * This hook returned hardcoded values that did not reflect real usage and
- * has been removed to prevent showing false counters/badges to users.
- * Kept as a runtime no-op only to avoid hard import crashes during refactors.
+ * @deprecated Import `useRemainingMissions` from `@/hooks/use-free-limits` instead.
+ * Re-exported there to break the circular dependency.
  */
-export const useRemainingMissions = (): { used: number; limit: number; remaining: number } => {
-  if (typeof console !== "undefined") {
-    console.warn(
-      "[useRemainingMissions] deprecated — switch to useFreeLimits() for real usage data."
-    );
-  }
-  return { used: 0, limit: 0, remaining: 0 };
-};
+export { useRemainingMissions } from "@/hooks/use-free-limits";
