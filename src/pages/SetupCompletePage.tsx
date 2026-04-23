@@ -95,11 +95,18 @@ const SetupCompletePage = () => {
   }, [hasPendingPlan, navigate]);
 
   const handleStart = () => {
+    // Cancel any active countdown
+    setCountdown(null);
     if (hasPendingPlan) {
       navigate("/checkout", { replace: true });
     } else {
       navigate("/app", { replace: true });
     }
+  };
+
+  const handleGoToDashboard = () => {
+    setCountdown(null);
+    navigate("/app", { replace: true });
   };
 
   const features = [
@@ -188,10 +195,19 @@ const SetupCompletePage = () => {
               }
             </p>
 
-            {/* Countdown for Pro redirect */}
+            {/* Countdown for Pro redirect (cancellable) */}
             {hasPendingPlan && countdown !== null && (
-              <div className="mb-6 text-sm text-muted-foreground">
-                Redirigiendo a pago en <span className="font-bold text-amber-500">{countdown}</span> segundos...
+              <div className="mb-6 flex flex-col items-center gap-2 text-sm text-muted-foreground">
+                <span>
+                  Redirigiendo a pago en <span className="font-bold text-amber-500">{countdown}</span> segundos...
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCountdown(null)}
+                  className="text-xs underline-offset-4 hover:underline text-muted-foreground hover:text-foreground transition"
+                >
+                  Ver mi dashboard primero
+                </button>
               </div>
             )}
           </motion.div>
