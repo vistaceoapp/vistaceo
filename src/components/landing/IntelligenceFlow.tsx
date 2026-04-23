@@ -715,7 +715,7 @@ const IntelligenceFlow = memo(() => {
   const SLOT_Y = [VB_H * 0.18, VB_H * 0.48, VB_H * 0.78];
 
   return (
-    <div ref={wrapRef} className="relative w-full h-[100svh] min-h-[640px] overflow-hidden">
+    <div ref={wrapRef} className="relative w-full h-full min-h-[520px] overflow-hidden">
       {/* Atmósfera — luz suave y controlada (no sobre-iluminada) */}
       <div
         className="absolute inset-0 pointer-events-none"

@@ -254,17 +254,38 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative pt-28 pb-20 lg:pt-32 lg:pb-28 px-6 overflow-hidden">
+    <section className="relative pt-28 pb-20 lg:pt-32 lg:pb-28 px-6 overflow-hidden min-h-[100svh]">
       {/* Base gradient — extremely subtle, bleeds full width */}
       <div className="absolute inset-0 pointer-events-none" style={{
         background: "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(38,146,220,0.06) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(116,108,230,0.05) 0%, transparent 60%)"
       }} />
 
+      {/* FULL-BLEED cinematic intelligence scene — sits behind the copy */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <IntelligenceFlow />
+        {/* Soft veil to keep left copy crisp on desktop */}
+        <div
+          className="hidden lg:block absolute inset-y-0 left-0 w-[58%]"
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.72) 45%, rgba(255,255,255,0) 100%)",
+          }}
+        />
+        {/* Mobile veil — very subtle, scene reads through */}
+        <div
+          className="lg:hidden absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0.85) 100%)",
+          }}
+        />
+      </div>
+
       <div className="relative z-10 max-w-[1280px] mx-auto">
-        {/* Hero: copy left + cinematic scene right */}
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-10 lg:gap-12 items-center">
+        {/* Hero: copy left, scene full-bleed behind */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Left: Massive title + subtitle + CTA */}
-          <div>
+          <div className="lg:col-span-6">
             <Reveal distance={20}>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#eaeaea] shadow-[0_2px_8px_rgba(0,0,0,0.02)] mb-6">
                 <span className="relative flex h-1.5 w-1.5">
@@ -336,12 +357,8 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right: Cinematic intelligence scene (premium hero asset) */}
-          <Reveal delay={200} distance={24}>
-            <div className="relative w-full h-[360px] sm:h-[440px] lg:h-[580px]">
-              <IntelligenceFlow />
-            </div>
-          </Reveal>
+          {/* Right: empty grid spacer — the cinematic scene already lives full-bleed behind */}
+          <div className="hidden lg:block lg:col-span-6" aria-hidden="true" />
         </div>
       </div>
     </section>
