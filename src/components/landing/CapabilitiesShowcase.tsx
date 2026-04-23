@@ -4,9 +4,11 @@ import { Brain, Calendar, Zap, TrendingUp, Target, Radar } from "lucide-react";
 
 /**
  * CapabilitiesShowcase
- * 6 mini-cards con micro-animaciones SVG (estilo Voxr).
- * Liviano: solo SVG + framer-motion `whileInView` (anima 1 sola vez).
+ * 6 mini-cards con micro-animaciones SVG inspiradas en Voxr.
+ * UI/UX alineado a la landing minimalista (blanco, Inter, azul #2692DC).
  */
+
+const BRAND = "#2692DC";
 
 const Card = ({
   icon: Icon,
@@ -26,19 +28,19 @@ const Card = ({
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, margin: "-80px" }}
     transition={{ duration: 0.5, delay, ease: "easeOut" }}
-    className="group relative rounded-2xl bg-card border border-border p-6 md:p-7 overflow-hidden hover:border-primary/30 transition-colors"
+    className="group relative rounded-2xl bg-white border border-[#ececec] p-6 md:p-7 overflow-hidden hover:border-[#d4d4d4] hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.08)] transition-all duration-300"
   >
     {/* Visual area */}
-    <div className="relative h-36 md:h-40 mb-5 rounded-xl bg-gradient-to-br from-secondary/40 to-background overflow-hidden">
+    <div className="relative h-36 md:h-40 mb-5 rounded-xl bg-gradient-to-br from-[#f7f9fc] to-white border border-[#f0f0f0] overflow-hidden">
       {visual}
     </div>
 
     {/* Text */}
     <div className="flex items-center gap-2 mb-2">
-      <Icon className="w-4 h-4 text-primary" aria-hidden="true" />
-      <h3 className="text-base md:text-lg font-bold text-foreground">{title}</h3>
+      <Icon className="w-4 h-4" style={{ color: BRAND }} aria-hidden="true" />
+      <h3 className="text-base md:text-[17px] font-semibold text-[#1a1a1a] tracking-tight">{title}</h3>
     </div>
-    <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+    <p className="text-[13.5px] text-[#666] leading-relaxed">{desc}</p>
   </motion.div>
 );
 
@@ -49,37 +51,33 @@ const RadarVisual = () => (
   <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
     <defs>
       <linearGradient id="cap-line" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
-        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.9" />
+        <stop offset="0%" stopColor={BRAND} stopOpacity="0.2" />
+        <stop offset="100%" stopColor={BRAND} stopOpacity="0.9" />
       </linearGradient>
     </defs>
-    {/* dotted paths */}
-    <path d="M20 110 L80 110 L80 70 L140 70" fill="none" stroke="hsl(var(--primary) / 0.35)" strokeWidth="1.5" strokeDasharray="3 4" />
-    <path d="M20 30 L80 30 L80 70 L140 70" fill="none" stroke="hsl(var(--primary) / 0.35)" strokeWidth="1.5" strokeDasharray="3 4" />
+    <path d="M20 110 L80 110 L80 70 L140 70" fill="none" stroke={BRAND} strokeOpacity="0.3" strokeWidth="1.5" strokeDasharray="3 4" />
+    <path d="M20 30 L80 30 L80 70 L140 70" fill="none" stroke={BRAND} strokeOpacity="0.3" strokeWidth="1.5" strokeDasharray="3 4" />
     <path d="M140 70 L210 70" fill="none" stroke="url(#cap-line)" strokeWidth="2" />
 
-    {/* nodes */}
     {[[20, 30], [20, 110], [80, 30], [80, 70], [80, 110]].map(([x, y], i) => (
-      <circle key={i} cx={x} cy={y} r="3" fill="hsl(var(--primary) / 0.5)" />
+      <circle key={i} cx={x} cy={y} r="3" fill={BRAND} fillOpacity="0.5" />
     ))}
 
-    {/* central pulse */}
-    <circle cx="210" cy="70" r="22" fill="hsl(var(--primary) / 0.12)" />
+    <circle cx="210" cy="70" r="22" fill={BRAND} fillOpacity="0.1" />
     <motion.circle
       cx="210" cy="70" r="22"
-      fill="none" stroke="hsl(var(--primary) / 0.6)" strokeWidth="1.5"
+      fill="none" stroke={BRAND} strokeOpacity="0.5" strokeWidth="1.5"
       initial={{ scale: 0.8, opacity: 0.8 }}
       animate={{ scale: 1.6, opacity: 0 }}
       transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
       style={{ transformOrigin: "210px 70px" }}
     />
-    <circle cx="210" cy="70" r="14" fill="hsl(var(--primary))" />
+    <circle cx="210" cy="70" r="14" fill={BRAND} />
     <Brain x="200" y="60" width="20" height="20" stroke="white" strokeWidth="2" />
 
-    {/* traveling dot */}
     <motion.circle
       r="4"
-      fill="hsl(var(--primary))"
+      fill={BRAND}
       initial={{ offsetDistance: "0%" }}
       animate={{ offsetDistance: "100%" }}
       transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
@@ -91,11 +89,9 @@ const RadarVisual = () => (
 // 2. Timeline de misiones con check
 const MissionsVisual = () => (
   <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
-    <line x1="40" y1="70" x2="240" y2="70" stroke="hsl(var(--border))" strokeWidth="1.5" strokeDasharray="4 4" />
-    {/* step 1 */}
-    <circle cx="80" cy="70" r="14" fill="hsl(var(--secondary))" stroke="hsl(var(--border))" strokeWidth="1.5" />
-    <text x="80" y="74" textAnchor="middle" fontSize="11" fill="hsl(var(--muted-foreground))" fontWeight="600">1</text>
-    {/* step 2 (active) */}
+    <line x1="40" y1="70" x2="240" y2="70" stroke="#e5e5e5" strokeWidth="1.5" strokeDasharray="4 4" />
+    <circle cx="80" cy="70" r="14" fill="#f3f4f6" stroke="#e5e5e5" strokeWidth="1.5" />
+    <text x="80" y="74" textAnchor="middle" fontSize="11" fill="#999" fontWeight="600">1</text>
     <motion.g
       initial={{ scale: 0.8, opacity: 0 }}
       whileInView={{ scale: 1, opacity: 1 }}
@@ -103,13 +99,12 @@ const MissionsVisual = () => (
       transition={{ delay: 0.6, duration: 0.4 }}
       style={{ transformOrigin: "140px 70px" }}
     >
-      <circle cx="140" cy="70" r="18" fill="hsl(var(--primary) / 0.15)" />
-      <circle cx="140" cy="70" r="14" fill="hsl(var(--primary))" />
+      <circle cx="140" cy="70" r="18" fill={BRAND} fillOpacity="0.12" />
+      <circle cx="140" cy="70" r="14" fill={BRAND} />
       <path d="M133 70 L138 75 L147 65" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
     </motion.g>
-    {/* step 3 */}
-    <circle cx="200" cy="70" r="14" fill="hsl(var(--secondary))" stroke="hsl(var(--border))" strokeWidth="1.5" />
-    <text x="200" y="74" textAnchor="middle" fontSize="11" fill="hsl(var(--muted-foreground))" fontWeight="600">3</text>
+    <circle cx="200" cy="70" r="14" fill="#f3f4f6" stroke="#e5e5e5" strokeWidth="1.5" />
+    <text x="200" y="74" textAnchor="middle" fontSize="11" fill="#999" fontWeight="600">3</text>
   </svg>
 );
 
@@ -118,7 +113,7 @@ const SpeedVisual = () => (
   <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
     <motion.line
       x1="40" y1="70" x2="240" y2="70"
-      stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round"
+      stroke={BRAND} strokeWidth="2" strokeLinecap="round"
       initial={{ pathLength: 0, opacity: 0 }}
       whileInView={{ pathLength: 1, opacity: 1 }}
       viewport={{ once: true }}
@@ -128,8 +123,8 @@ const SpeedVisual = () => (
       animate={{ x: [0, 6, 0] }}
       transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
     >
-      <circle cx="200" cy="70" r="22" fill="hsl(var(--primary) / 0.12)" />
-      <circle cx="200" cy="70" r="14" fill="hsl(var(--primary))" />
+      <circle cx="200" cy="70" r="22" fill={BRAND} fillOpacity="0.12" />
+      <circle cx="200" cy="70" r="14" fill={BRAND} />
       <path d="M203 60 L194 73 L201 73 L197 80 L206 67 L199 67 Z" fill="white" />
     </motion.g>
   </svg>
@@ -143,14 +138,14 @@ const BookingVisual = () => (
       whileInView={{ y: 0, opacity: 1 }}
       viewport={{ once: true }}
       transition={{ delay: 0.2, duration: 0.5 }}
-      className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3 shadow-md max-w-[220px]"
+      className="flex items-center gap-3 bg-white border border-[#ececec] rounded-xl px-4 py-3 shadow-[0_6px_20px_-8px_rgba(0,0,0,0.1)] max-w-[220px]"
     >
-      <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-        <Calendar className="w-4 h-4 text-primary" />
+      <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${BRAND}20` }}>
+        <Calendar className="w-4 h-4" style={{ color: BRAND }} />
       </div>
       <div className="text-left leading-tight">
-        <div className="text-xs font-semibold text-foreground">Misión agendada</div>
-        <div className="text-[11px] text-muted-foreground">Hoy a las 18:00</div>
+        <div className="text-xs font-semibold text-[#1a1a1a]">Misión agendada</div>
+        <div className="text-[11px] text-[#888]">Hoy a las 18:00</div>
       </div>
     </motion.div>
   </div>
@@ -161,13 +156,13 @@ const AnalyticsVisual = () => (
   <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
     <defs>
       <linearGradient id="cap-area" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.35" />
-        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+        <stop offset="0%" stopColor={BRAND} stopOpacity="0.3" />
+        <stop offset="100%" stopColor={BRAND} stopOpacity="0" />
       </linearGradient>
     </defs>
     <motion.path
       d="M20 100 Q70 90 100 70 T180 50 T260 35"
-      fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="round"
+      fill="none" stroke={BRAND} strokeWidth="2.5" strokeLinecap="round"
       initial={{ pathLength: 0 }}
       whileInView={{ pathLength: 1 }}
       viewport={{ once: true }}
@@ -181,7 +176,6 @@ const AnalyticsVisual = () => (
       viewport={{ once: true }}
       transition={{ delay: 1.2, duration: 0.6 }}
     />
-    {/* dot at the end */}
     <motion.g
       initial={{ scale: 0, opacity: 0 }}
       whileInView={{ scale: 1, opacity: 1 }}
@@ -189,8 +183,8 @@ const AnalyticsVisual = () => (
       transition={{ delay: 1.3, duration: 0.4 }}
       style={{ transformOrigin: "260px 35px" }}
     >
-      <circle cx="260" cy="35" r="10" fill="hsl(var(--primary) / 0.2)" />
-      <circle cx="260" cy="35" r="5" fill="hsl(var(--primary))" stroke="white" strokeWidth="2" />
+      <circle cx="260" cy="35" r="10" fill={BRAND} fillOpacity="0.2" />
+      <circle cx="260" cy="35" r="5" fill={BRAND} stroke="white" strokeWidth="2" />
     </motion.g>
   </svg>
 );
@@ -212,17 +206,21 @@ const CompetitorsVisual = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.15 * i, duration: 0.4 }}
-            className={`flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-[11px] ${
+            className="flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-[11px]"
+            style={
               i === 0
-                ? "border-primary/40 bg-primary/5"
-                : "border-border bg-card/50"
-            }`}
+                ? { borderColor: `${BRAND}55`, backgroundColor: `${BRAND}0d` }
+                : { borderColor: "#ececec", backgroundColor: "#fafafa" }
+            }
           >
             <div className="flex items-center gap-2 min-w-0">
               <div
-                className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
-                  i === 0 ? "border-primary bg-primary" : "border-border"
-                }`}
+                className="w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0"
+                style={
+                  i === 0
+                    ? { borderColor: BRAND, backgroundColor: BRAND }
+                    : { borderColor: "#d4d4d4", backgroundColor: "white" }
+                }
               >
                 {i === 0 && (
                   <svg viewBox="0 0 12 12" className="w-2 h-2">
@@ -230,11 +228,11 @@ const CompetitorsVisual = () => {
                   </svg>
                 )}
               </div>
-              <span className={`truncate font-medium ${i === 0 ? "text-primary" : "text-foreground"}`}>
+              <span className="truncate font-medium" style={{ color: i === 0 ? BRAND : "#1a1a1a" }}>
                 {r.label}
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-mono">{r.flag}</span>
+            <span className="text-[10px] text-[#999] font-mono">{r.flag}</span>
           </motion.div>
         ))}
       </div>
@@ -285,21 +283,25 @@ const items = [
 
 export const CapabilitiesShowcase = memo(() => {
   return (
-    <section className="py-16 md:py-24 relative overflow-hidden">
-      <div className="container mx-auto px-4 relative z-10">
+    <section className="py-20 md:py-28 bg-white relative overflow-hidden" style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif" }}>
+      <div className="container mx-auto px-6 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center max-w-2xl mx-auto mb-12 md:mb-14"
+          className="text-center max-w-2xl mx-auto mb-14 md:mb-16"
         >
-          <span className="inline-block text-xs font-semibold tracking-wide text-primary mb-3 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
-            CAPACIDADES
+          <span
+            className="inline-block text-[11px] font-semibold tracking-[0.12em] uppercase mb-4 px-3 py-1 rounded-full border"
+            style={{ color: BRAND, borderColor: `${BRAND}33`, backgroundColor: `${BRAND}0d` }}
+          >
+            Capacidades
           </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3 leading-tight">
-            Una inteligencia, <span className="text-gradient-primary">seis superpoderes</span>
+          <h2 className="text-[32px] md:text-[44px] font-semibold text-[#1a1a1a] mb-4 leading-[1.1] tracking-tight">
+            Una inteligencia,{" "}
+            <span style={{ color: BRAND }}>seis superpoderes</span>
           </h2>
-          <p className="text-base text-muted-foreground">
+          <p className="text-[15px] md:text-[16px] text-[#666] leading-relaxed">
             Cada módulo trabaja sincronizado. El cerebro de tu negocio aprende de todos al mismo tiempo.
           </p>
         </motion.div>

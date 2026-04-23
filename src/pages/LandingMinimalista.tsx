@@ -1579,7 +1579,6 @@ const PremiumFooter = memo(() => {
             <ul className="space-y-2.5">
               {[
                 { label: "Cómo funciona", href: "#como-funciona" },
-                { label: "Funcionalidades", href: "#producto" },
                 { label: "Precios", href: "#precios" },
                 { label: "Comparativa", href: "#comparativa" },
               ].map(l => (
@@ -1648,11 +1647,8 @@ export default function LandingMinimalista() {
         <HeroSection />
         <TrustStrip />
         <HowItWorks />
-        <div className="bg-[#0a0a0a] text-white">
-          <CapabilitiesShowcase />
-        </div>
+        <CapabilitiesShowcase />
         <ProductShowcase />
-        <FeaturesGrid />
         <CompetitorSection />
         <TestimonialsSection />
         <PricingSection />
