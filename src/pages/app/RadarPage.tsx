@@ -274,17 +274,32 @@ const RadarPage = () => {
     setGeneratingOpportunities(true);
     
     try {
-      const { error } = await supabase.functions.invoke("analyze-patterns", {
+      const { data, error } = await supabase.functions.invoke("analyze-patterns", {
         body: { businessId: currentBusiness.id, type: "opportunities" }
       });
-      
+
+      // 402: límite Free alcanzado
+      if (data?.error === "free_limit_reached") {
+        toast({
+          title: "Llegaste al límite del plan Free",
+          description: data.message || "3 oportunidades del Radar por mes. Pasá a Pro para ilimitado.",
+          variant: "destructive",
+          action: (
+            <Button size="sm" variant="default" onClick={() => navigate("/checkout")}>
+              Ver Pro
+            </Button>
+          ) as any,
+        });
+        return;
+      }
+
       if (error) throw error;
-      
+
       toast({
         title: "Nuevas oportunidades detectadas",
         description: "El sistema encontró nuevas oportunidades para tu negocio",
       });
-      
+
       fetchData();
     } catch (error) {
       console.error("Error generating opportunities:", error);
@@ -296,7 +311,7 @@ const RadarPage = () => {
     } finally {
       setGeneratingOpportunities(false);
     }
-  }, [currentBusiness, generatingOpportunities, fetchData]);
+  }, [currentBusiness, generatingOpportunities, fetchData, navigate]);
   
   // Generate research items proactively
   const generateResearchItems = useCallback(async () => {
@@ -317,6 +332,21 @@ const RadarPage = () => {
             : null,
         },
       });
+
+      // 402: límite Free alcanzado
+      if (data?.error === "free_limit_reached") {
+        toast({
+          title: "Llegaste al límite del plan Free",
+          description: data.message || "3 investigaciones del Radar por mes. Pasá a Pro para ilimitado.",
+          variant: "destructive",
+          action: (
+            <Button size="sm" variant="default" onClick={() => navigate("/checkout")}>
+              Ver Pro
+            </Button>
+          ) as any,
+        });
+        return;
+      }
 
       if (error) throw error;
 
@@ -341,7 +371,7 @@ const RadarPage = () => {
     } finally {
       setGeneratingResearch(false);
     }
-  }, [currentBusiness, brain, generatingResearch, fetchData]);
+  }, [currentBusiness, brain, generatingResearch, fetchData, navigate]);
 
   // Auto-scan effect: triggers ONLY if daily debounce in fetchData allowed it
   useEffect(() => {

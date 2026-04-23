@@ -560,6 +560,56 @@ serve(async (req) => {
       throw new Error("Business not found");
     }
 
+    // ========================================================
+    // FREE PLAN ENFORCEMENT (server-side, before AI call)
+    // Free: 3 opportunities/mes y 3 research items/mes
+    // ========================================================
+    const FREE_LIMIT = 3;
+    const earlyMode = typeof type === "string" ? type : "opportunities";
+    try {
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("status, expires_at")
+        .eq("business_id", businessId)
+        .eq("status", "active")
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle();
+
+      const isPro = !!sub;
+      if (!isPro) {
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const table = earlyMode === "research" ? "learning_items" : "opportunities";
+        const { count } = await supabase
+          .from(table)
+          .select("id", { count: "exact", head: true })
+          .eq("business_id", businessId)
+          .gte("created_at", startOfMonth.toISOString());
+
+        if ((count || 0) >= FREE_LIMIT) {
+          console.log(`[analyze-patterns] Free limit reached on ${table}: ${count}/${FREE_LIMIT}`);
+          return new Response(
+            JSON.stringify({
+              error: "free_limit_reached",
+              limit: FREE_LIMIT,
+              used: count,
+              mode: earlyMode,
+              upgrade_url: "/checkout",
+              message: earlyMode === "research"
+                ? "Llegaste al límite de 3 investigaciones del Radar este mes en el plan Free."
+                : "Llegaste al límite de 3 oportunidades del Radar este mes en el plan Free.",
+            }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    } catch (quotaErr) {
+      // Fail-open: nunca bloquear Pro por un error de chequeo
+      console.warn("[analyze-patterns] Quota check failed (fail-open):", quotaErr);
+    }
+
     // Detect locale
     const locale = detectLocaleProfile(business.country);
     console.log(`[analyze-patterns] Locale: ${locale.voice} (${locale.currency})`);
