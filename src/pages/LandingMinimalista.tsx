@@ -435,50 +435,6 @@ const TrustStrip = () => {
   );
 };
 
-/* ═══════════════════════════════════════════════════════════════
-   4. Cómo funciona
-   ═══════════════════════════════════════════════════════════════ */
-const HowItWorks = () => {
-  const steps = [
-    { num: "01", title: "Contale tu negocio", desc: "Respondés preguntas simples. VISTACEO arma tu perfil inteligente.", icon: Brain },
-    { num: "02", title: "Detectamos prioridades", desc: "IA analiza tu situación y encuentra oportunidades y riesgos.", icon: Radar },
-    { num: "03", title: "Accionás con claridad", desc: "Misiones concretas cada día con pasos claros y métricas.", icon: Target },
-  ];
-
-  return (
-    <section id="como-funciona" className="py-28 lg:py-32 px-6 bg-[#fafafa]">
-      <div className="max-w-[1000px] mx-auto">
-        <Reveal>
-          <div className="text-center mb-16">
-            <AccentLabel>CÓMO FUNCIONA</AccentLabel>
-            <h2 className="text-[clamp(1.5rem,3.2vw,2.2rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5">
-              De la información a la acción en tres pasos
-            </h2>
-          </div>
-        </Reveal>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-10">
-          {steps.map((s, i) => (
-            <Reveal key={s.num} delay={i * 100}>
-              <div className="text-center md:text-left">
-                <div className="w-12 h-12 rounded-xl mx-auto md:mx-0 flex items-center justify-center mb-5"
-                  style={{ background: ACCENT_GRADIENT_SUBTLE }}>
-                  <s.icon className="w-5 h-5" style={{ color: "#2692DC" }} />
-                </div>
-                <p className="text-[11px] font-bold tracking-[0.15em] mb-2"
-                  style={{ backgroundImage: ACCENT_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  {s.num}
-                </p>
-                <h3 className="text-[16px] font-semibold text-[#111] mb-2.5">{s.title}</h3>
-                <p className="text-[13.5px] text-[#999] leading-[1.7]">{s.desc}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
 
 /* ═══════════════════════════════════════════════════════════════
    5. Producto — Interactive Showcase
@@ -1646,7 +1602,7 @@ export default function LandingMinimalista() {
         <Header />
         <HeroSection />
         <TrustStrip />
-        <HowItWorks />
+        
         <CapabilitiesShowcase />
         <ProductShowcase />
         <CompetitorSection />

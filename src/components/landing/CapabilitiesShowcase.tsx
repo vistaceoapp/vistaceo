@@ -263,8 +263,8 @@ const items = [
   },
   {
     icon: Calendar,
-    title: "Agenda automática",
-    desc: "Tus misiones se programan solas en los momentos de mayor impacto. Sin fricción operativa.",
+    title: "Anticipación estratégica",
+    desc: "Predice lo que va a pasar y te prepara para aprovecharlo. Adelantate a oportunidades y riesgos antes que tu competencia.",
     visual: <BookingVisual />,
   },
   {
