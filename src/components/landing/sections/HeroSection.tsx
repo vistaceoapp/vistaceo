@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
 
 // Lazy-load the protagonist scene so it never blocks LCP / FCP
-const IntelligenceFlow = lazy(() => import("@/components/landing/IntelligenceFlow").then(m => ({ default: m.IntelligenceFlow })));
+const IntelligenceFlow = lazy(() => import("@/components/landing/IntelligenceFlow"));
 
 // Business photos - optimized WebP at 2x carousel display size (230px)
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=230&format=webp";
