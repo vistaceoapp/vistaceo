@@ -363,10 +363,7 @@ const HeroSection = () => {
             <div className="mt-8 lg:mt-10 max-w-[640px]">
               <Reveal delay={300} distance={18}>
                 <p className="text-[18px] lg:text-[21px] text-[#1a1a1a] leading-[1.55] font-normal tracking-[-0.01em]">
-                  Tu <span className="font-semibold text-[#0a0a0a]">equipo ejecutivo con IA</span>: aprende cómo opera tu negocio, detecta lo que mueve la aguja y te dice <span className="font-semibold text-[#0a0a0a]">qué hacer hoy</span> para crecer.
-                  <span className="block mt-2 text-[15px] lg:text-[16px] text-[#666] leading-[1.6]">
-                    Sin reuniones. Sin consultoras. Sin pausa.
-                  </span>
+                  Entiende tu servicio o negocio, detecta <span className="font-semibold text-[#0a0a0a]">prioridades</span> y te dice <span className="font-semibold text-[#0a0a0a]">qué hacer hoy</span> para crecer con más claridad y velocidad.
                 </p>
               </Reveal>
 
