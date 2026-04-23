@@ -603,9 +603,10 @@ EmergenceBeam.displayName = "EmergenceBeam";
    ESCENA HERO PRINCIPAL — Etapa 3 (transformación semántica)
    ═══════════════════════════════════════════════════════════════════ */
 const IntelligenceFlow = memo(() => {
-  const VB_W = 900;
-  const VB_H = 700;
-  const CORE = { x: 440, y: 340, r: 130 };
+  // Wider canvas — full hero width, core sits to the right of center
+  const VB_W = 1600;
+  const VB_H = 760;
+  const CORE = { x: 1080, y: 380, r: 130 };
 
   const reduceMotion = useReducedMotion();
   const wrapRef = useRef<HTMLDivElement>(null);
