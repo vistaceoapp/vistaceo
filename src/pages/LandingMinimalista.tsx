@@ -254,73 +254,112 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative pt-28 pb-16 lg:pt-36 lg:pb-32 px-6 overflow-hidden">
-      {/* Subtle base gradient that bleeds across the whole hero */}
+    <section className="relative pt-28 pb-20 lg:pt-32 lg:pb-28 px-6 overflow-hidden">
+      {/* Base gradient — extremely subtle, bleeds full width */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: "linear-gradient(165deg, rgba(38,146,220,0.035) 0%, rgba(255,255,255,1) 50%, rgba(116,108,230,0.025) 100%)"
+        background: "radial-gradient(ellipse 80% 50% at 50% 0%, rgba(38,146,220,0.06) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(116,108,230,0.05) 0%, transparent 60%)"
       }} />
 
-      {/* Intelligence Flow — ambient scene integrated to the whole hero (right half on desktop) */}
-      <div className="absolute inset-y-0 right-0 w-full lg:w-[62%] pointer-events-none">
-        <IntelligenceFlow />
-      </div>
+      <div className="relative z-10 max-w-[1280px] mx-auto">
+        {/* Title row with floating pills (Voxr-style) */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 lg:gap-16 items-start">
+          {/* Left: Massive title */}
+          <div>
+            <Reveal distance={20}>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 backdrop-blur-sm border border-[#eaeaea] shadow-[0_2px_8px_rgba(0,0,0,0.02)] mb-6">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#28c840] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#28c840]" />
+                </span>
+                <span className="text-[11px] font-medium tracking-wide text-[#666]">Inteligencia ejecutiva en vivo</span>
+              </div>
+            </Reveal>
 
-      <div className="relative z-10 max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-0 min-h-[480px] lg:min-h-[560px]">
-        {/* Left: Text */}
-        <div className="flex-shrink-0 w-full lg:w-[480px] lg:pr-8 relative z-10">
-          <Reveal distance={30}>
-            <AccentLabel>INTELIGENCIA EJECUTIVA PARA TU NEGOCIO</AccentLabel>
-          </Reveal>
+            <Reveal delay={80} distance={28}>
+              <h1 className="text-[clamp(2.4rem,6.2vw,5.4rem)] font-semibold text-[#0a0a0a] leading-[0.98] tracking-[-0.035em] hyphens-none">
+                Tu negocio,<br />
+                <span
+                  className="inline-block pb-[0.08em]"
+                  style={{
+                    backgroundImage: ACCENT_GRADIENT,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    lineHeight: "1.05",
+                  }}
+                >
+                  con un CEO digital
+                </span>
+                <br />
+                que nunca duerme.
+              </h1>
+            </Reveal>
+          </div>
 
-          <Reveal delay={80} distance={30}>
-            <h1 className="text-[clamp(1.75rem,4.2vw,3.2rem)] font-semibold text-[#0a0a0a] leading-[1.2] tracking-[-0.025em] mt-5 max-w-full hyphens-none pb-[0.15em]">
-              Tu empresa, guiada por un{" "}
-              <span
-                className="inline whitespace-normal"
-                style={{
-                  backgroundImage: ACCENT_GRADIENT,
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  paddingBottom: "0.15em",
-                  display: "inline-block",
-                  lineHeight: "1.2",
-                }}
-              >
-                CEO digital impulsado por IA.
-              </span>
-            </h1>
-          </Reveal>
+          {/* Right: Floating feature pills (Voxr-style) */}
+          <div className="flex flex-col gap-3 lg:items-end lg:pt-4">
+            {[
+              { icon: <Sparkles className="w-3.5 h-3.5" />, text: "Detecta oportunidades en vivo", color: "#2692DC" },
+              { icon: <Target className="w-3.5 h-3.5" />, text: "Ejecuta misiones priorizadas", color: "#746CE6" },
+              { icon: <TrendingUp className="w-3.5 h-3.5" />, text: "Aumenta margen +18% promedio", color: "#2692DC" },
+            ].map((pill, i) => (
+              <Reveal key={pill.text} delay={150 + i * 90} distance={20}>
+                <div className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-white/85 backdrop-blur-md border border-[#ebebeb] shadow-[0_4px_20px_-6px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.03)]">
+                  <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${pill.color}15`, color: pill.color }}>
+                    {pill.icon}
+                  </span>
+                  <span className="text-[12.5px] font-medium text-[#333] whitespace-nowrap">{pill.text}</span>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
 
-          <Reveal delay={150} distance={25}>
-            <p className="text-[15.5px] text-[#777] mt-7 leading-[1.85] max-w-[400px]">
-              VISTACEO aprende, se adapta y te recomienda exactamente qué hacer para escalar tu negocio con claridad y velocidad.
+        {/* Subtitle + CTA */}
+        <div className="mt-10 lg:mt-14 max-w-[580px]">
+          <Reveal delay={300} distance={18}>
+            <p className="text-[16.5px] lg:text-[17.5px] text-[#666] leading-[1.65]">
+              VISTACEO aprende cómo opera tu empresa, detecta lo que importa y te dice exactamente qué hacer hoy para crecer.
             </p>
           </Reveal>
 
-          <Reveal delay={220} distance={20}>
-            <div className="flex items-center gap-3 mt-8">
-              <button onClick={() => navigate("/auth?mode=signup")}
-                className="text-white px-7 py-3.5 rounded-[12px] text-[14px] font-medium transition-all duration-300 flex items-center gap-2 hover:shadow-[0_8px_24px_rgba(38,146,220,0.2)] active:scale-[0.98] hover:-translate-y-0.5"
-                style={{ background: ACCENT_GRADIENT }}>
-                Empezar gratis <ArrowRight className="w-4 h-4" />
+          <Reveal delay={380} distance={18}>
+            <div className="flex flex-wrap items-center gap-3 mt-8">
+              {/* Voxr-style pill CTA: white pill with circular accent button */}
+              <button
+                onClick={() => navigate("/auth?mode=signup")}
+                className="group flex items-center gap-2 pl-6 pr-2 py-2 rounded-full bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] transition-all duration-300 active:scale-[0.98] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.4)]"
+              >
+                <span className="text-[14px] font-medium">Empezar gratis</span>
+                <span
+                  className="w-9 h-9 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5"
+                  style={{ background: ACCENT_GRADIENT }}
+                >
+                  <ArrowRight className="w-4 h-4 text-white" />
+                </span>
               </button>
-              <button onClick={() => {
-                const el = document.querySelector("#producto");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-              }}
-                className="text-[14px] text-[#888] hover:text-[#111] px-5 py-3.5 rounded-[12px] transition-colors border border-[#eee] hover:border-[#ddd]">
+
+              <button
+                onClick={() => {
+                  const el = document.querySelector("#producto");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="text-[14px] text-[#666] hover:text-[#111] px-5 py-3 rounded-full transition-colors border border-[#e8e8e8] hover:border-[#ccc] hover:bg-white/50"
+              >
                 Conocer la plataforma
               </button>
             </div>
-            <p className="text-[12px] text-[#bbb] mt-4 flex items-center gap-3">
-              <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Sin tarjeta de crédito</span>
-              <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Activo en minutos</span>
+
+            <p className="text-[12px] text-[#aaa] mt-5 flex items-center gap-4">
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#28c840]" /> Sin tarjeta de crédito</span>
+              <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#2692DC]" /> Activo en minutos</span>
             </p>
           </Reveal>
         </div>
 
-        {/* Spacer to balance flex layout (scene is absolutely positioned) */}
-        <div className="hidden lg:block flex-1" />
+        {/* Hero scene — protagonist below the fold area */}
+        <div className="relative mt-16 lg:mt-20 h-[420px] lg:h-[520px] -mx-6">
+          <IntelligenceFlow />
+        </div>
       </div>
     </section>
   );
