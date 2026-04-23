@@ -5,6 +5,7 @@ import { SocialProofBar } from "@/components/landing/SocialProofBar";
 import { ProblemSection } from "@/components/landing/ProblemSection";
 import { SolutionSection } from "@/components/landing/SolutionSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
+import { CapabilitiesShowcase } from "@/components/landing/CapabilitiesShowcase";
 import { FreeExperienceSection } from "@/components/landing/FreeExperienceSection";
 import { ProExperienceSection } from "@/components/landing/ProExperienceSection";
 import { ComparisonSection } from "@/components/landing/ComparisonSection";
@@ -31,6 +32,7 @@ const Index = () => {
         <SocialProofBar />
         <ProblemSection />
         <SolutionSection />
+        <CapabilitiesShowcase />
         <HowItWorksSection />
         <FreeExperienceSection />
         <ProExperienceSection />

@@ -1,0 +1,318 @@
+import { memo } from "react";
+import { motion } from "framer-motion";
+import { Brain, Calendar, Zap, TrendingUp, Target, Radar } from "lucide-react";
+
+/**
+ * CapabilitiesShowcase
+ * 6 mini-cards con micro-animaciones SVG (estilo Voxr).
+ * Liviano: solo SVG + framer-motion `whileInView` (anima 1 sola vez).
+ */
+
+const Card = ({
+  icon: Icon,
+  title,
+  desc,
+  visual,
+  delay = 0,
+}: {
+  icon: React.ElementType;
+  title: string;
+  desc: string;
+  visual: React.ReactNode;
+  delay?: number;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "-80px" }}
+    transition={{ duration: 0.5, delay, ease: "easeOut" }}
+    className="group relative rounded-2xl bg-card border border-border p-6 md:p-7 overflow-hidden hover:border-primary/30 transition-colors"
+  >
+    {/* Visual area */}
+    <div className="relative h-36 md:h-40 mb-5 rounded-xl bg-gradient-to-br from-secondary/40 to-background overflow-hidden">
+      {visual}
+    </div>
+
+    {/* Text */}
+    <div className="flex items-center gap-2 mb-2">
+      <Icon className="w-4 h-4 text-primary" aria-hidden="true" />
+      <h3 className="text-base md:text-lg font-bold text-foreground">{title}</h3>
+    </div>
+    <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+  </motion.div>
+);
+
+/* ─── Visuals ────────────────────────────────────────────────── */
+
+// 1. Radar de oportunidades — línea punteada con dot que viaja al cerebro
+const RadarVisual = () => (
+  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
+    <defs>
+      <linearGradient id="cap-line" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.2" />
+        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.9" />
+      </linearGradient>
+    </defs>
+    {/* dotted paths */}
+    <path d="M20 110 L80 110 L80 70 L140 70" fill="none" stroke="hsl(var(--primary) / 0.35)" strokeWidth="1.5" strokeDasharray="3 4" />
+    <path d="M20 30 L80 30 L80 70 L140 70" fill="none" stroke="hsl(var(--primary) / 0.35)" strokeWidth="1.5" strokeDasharray="3 4" />
+    <path d="M140 70 L210 70" fill="none" stroke="url(#cap-line)" strokeWidth="2" />
+
+    {/* nodes */}
+    {[[20, 30], [20, 110], [80, 30], [80, 70], [80, 110]].map(([x, y], i) => (
+      <circle key={i} cx={x} cy={y} r="3" fill="hsl(var(--primary) / 0.5)" />
+    ))}
+
+    {/* central pulse */}
+    <circle cx="210" cy="70" r="22" fill="hsl(var(--primary) / 0.12)" />
+    <motion.circle
+      cx="210" cy="70" r="22"
+      fill="none" stroke="hsl(var(--primary) / 0.6)" strokeWidth="1.5"
+      initial={{ scale: 0.8, opacity: 0.8 }}
+      animate={{ scale: 1.6, opacity: 0 }}
+      transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+      style={{ transformOrigin: "210px 70px" }}
+    />
+    <circle cx="210" cy="70" r="14" fill="hsl(var(--primary))" />
+    <Brain x="200" y="60" width="20" height="20" stroke="white" strokeWidth="2" />
+
+    {/* traveling dot */}
+    <motion.circle
+      r="4"
+      fill="hsl(var(--primary))"
+      initial={{ offsetDistance: "0%" }}
+      animate={{ offsetDistance: "100%" }}
+      transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
+      style={{ offsetPath: "path('M20 110 L80 110 L80 70 L140 70 L210 70')" } as any}
+    />
+  </svg>
+);
+
+// 2. Timeline de misiones con check
+const MissionsVisual = () => (
+  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
+    <line x1="40" y1="70" x2="240" y2="70" stroke="hsl(var(--border))" strokeWidth="1.5" strokeDasharray="4 4" />
+    {/* step 1 */}
+    <circle cx="80" cy="70" r="14" fill="hsl(var(--secondary))" stroke="hsl(var(--border))" strokeWidth="1.5" />
+    <text x="80" y="74" textAnchor="middle" fontSize="11" fill="hsl(var(--muted-foreground))" fontWeight="600">1</text>
+    {/* step 2 (active) */}
+    <motion.g
+      initial={{ scale: 0.8, opacity: 0 }}
+      whileInView={{ scale: 1, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: 0.6, duration: 0.4 }}
+      style={{ transformOrigin: "140px 70px" }}
+    >
+      <circle cx="140" cy="70" r="18" fill="hsl(var(--primary) / 0.15)" />
+      <circle cx="140" cy="70" r="14" fill="hsl(var(--primary))" />
+      <path d="M133 70 L138 75 L147 65" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </motion.g>
+    {/* step 3 */}
+    <circle cx="200" cy="70" r="14" fill="hsl(var(--secondary))" stroke="hsl(var(--border))" strokeWidth="1.5" />
+    <text x="200" y="74" textAnchor="middle" fontSize="11" fill="hsl(var(--muted-foreground))" fontWeight="600">3</text>
+  </svg>
+);
+
+// 3. Speed / IA — rayo con destello
+const SpeedVisual = () => (
+  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
+    <motion.line
+      x1="40" y1="70" x2="240" y2="70"
+      stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round"
+      initial={{ pathLength: 0, opacity: 0 }}
+      whileInView={{ pathLength: 1, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
+    />
+    <motion.g
+      animate={{ x: [0, 6, 0] }}
+      transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <circle cx="200" cy="70" r="22" fill="hsl(var(--primary) / 0.12)" />
+      <circle cx="200" cy="70" r="14" fill="hsl(var(--primary))" />
+      <path d="M203 60 L194 73 L201 73 L197 80 L206 67 L199 67 Z" fill="white" />
+    </motion.g>
+  </svg>
+);
+
+// 4. Auto-booking — chip de reserva
+const BookingVisual = () => (
+  <div className="absolute inset-0 flex items-center justify-center px-4">
+    <motion.div
+      initial={{ y: 10, opacity: 0 }}
+      whileInView={{ y: 0, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: 0.2, duration: 0.5 }}
+      className="flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3 shadow-md max-w-[220px]"
+    >
+      <div className="w-9 h-9 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+        <Calendar className="w-4 h-4 text-primary" />
+      </div>
+      <div className="text-left leading-tight">
+        <div className="text-xs font-semibold text-foreground">Misión agendada</div>
+        <div className="text-[11px] text-muted-foreground">Hoy a las 18:00</div>
+      </div>
+    </motion.div>
+  </div>
+);
+
+// 5. Analytics — curva animada con dot pulsante
+const AnalyticsVisual = () => (
+  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true">
+    <defs>
+      <linearGradient id="cap-area" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.35" />
+        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+      </linearGradient>
+    </defs>
+    <motion.path
+      d="M20 100 Q70 90 100 70 T180 50 T260 35"
+      fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="round"
+      initial={{ pathLength: 0 }}
+      whileInView={{ pathLength: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 1.4, ease: "easeOut" }}
+    />
+    <motion.path
+      d="M20 100 Q70 90 100 70 T180 50 T260 35 L260 130 L20 130 Z"
+      fill="url(#cap-area)"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: 1.2, duration: 0.6 }}
+    />
+    {/* dot at the end */}
+    <motion.g
+      initial={{ scale: 0, opacity: 0 }}
+      whileInView={{ scale: 1, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: 1.3, duration: 0.4 }}
+      style={{ transformOrigin: "260px 35px" }}
+    >
+      <circle cx="260" cy="35" r="10" fill="hsl(var(--primary) / 0.2)" />
+      <circle cx="260" cy="35" r="5" fill="hsl(var(--primary))" stroke="white" strokeWidth="2" />
+    </motion.g>
+  </svg>
+);
+
+// 6. Competencia — lista de ítems con check rotando al primero
+const CompetitorsVisual = () => {
+  const rows = [
+    { label: "La Brigada · Palermo", flag: "AR" },
+    { label: "Don Julio · Recoleta", flag: "AR" },
+    { label: "Parrilla Norte · Vicente L.", flag: "AR" },
+  ];
+  return (
+    <div className="absolute inset-0 flex items-center justify-center px-4">
+      <div className="w-full max-w-[240px] space-y-1.5">
+        {rows.map((r, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -8 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.15 * i, duration: 0.4 }}
+            className={`flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-[11px] ${
+              i === 0
+                ? "border-primary/40 bg-primary/5"
+                : "border-border bg-card/50"
+            }`}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <div
+                className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
+                  i === 0 ? "border-primary bg-primary" : "border-border"
+                }`}
+              >
+                {i === 0 && (
+                  <svg viewBox="0 0 12 12" className="w-2 h-2">
+                    <path d="M2 6 L5 9 L10 3" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+              <span className={`truncate font-medium ${i === 0 ? "text-primary" : "text-foreground"}`}>
+                {r.label}
+              </span>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-mono">{r.flag}</span>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ─── Section ────────────────────────────────────────────────── */
+
+const items = [
+  {
+    icon: Radar,
+    title: "Radar inteligente",
+    desc: "Detecta oportunidades y riesgos antes que tu competencia. Cada señal llega procesada al cerebro de tu negocio.",
+    visual: <RadarVisual />,
+  },
+  {
+    icon: Target,
+    title: "Misiones guiadas",
+    desc: "Planes paso a paso con seguimiento real. La IA prioriza qué hacer hoy para mover la aguja.",
+    visual: <MissionsVisual />,
+  },
+  {
+    icon: Zap,
+    title: "Velocidad ejecutiva",
+    desc: "Insights en segundos, no en reuniones. Decisiones más rápidas, sin perder profundidad estratégica.",
+    visual: <SpeedVisual />,
+  },
+  {
+    icon: Calendar,
+    title: "Agenda automática",
+    desc: "Tus misiones se programan solas en los momentos de mayor impacto. Sin fricción operativa.",
+    visual: <BookingVisual />,
+  },
+  {
+    icon: TrendingUp,
+    title: "Analítica viva",
+    desc: "Métricas que se actualizan en tiempo real con explicación causal. Entendé qué movió el resultado.",
+    visual: <AnalyticsVisual />,
+  },
+  {
+    icon: Brain,
+    title: "Inteligencia competitiva",
+    desc: "Conocé a tu competencia local: precios, reputación y movimientos. Posicionate con ventaja.",
+    visual: <CompetitorsVisual />,
+  },
+];
+
+export const CapabilitiesShowcase = memo(() => {
+  return (
+    <section className="py-16 md:py-24 relative overflow-hidden">
+      <div className="container mx-auto px-4 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center max-w-2xl mx-auto mb-12 md:mb-14"
+        >
+          <span className="inline-block text-xs font-semibold tracking-wide text-primary mb-3 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
+            CAPACIDADES
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3 leading-tight">
+            Una inteligencia, <span className="text-gradient-primary">seis superpoderes</span>
+          </h2>
+          <p className="text-base text-muted-foreground">
+            Cada módulo trabaja sincronizado. El cerebro de tu negocio aprende de todos al mismo tiempo.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 max-w-6xl mx-auto">
+          {items.map((it, i) => (
+            <Card key={it.title} {...it} delay={i * 0.05} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+});
+
+CapabilitiesShowcase.displayName = "CapabilitiesShowcase";
+export default CapabilitiesShowcase;
