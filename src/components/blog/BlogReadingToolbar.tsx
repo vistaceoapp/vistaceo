@@ -164,25 +164,25 @@ export function BlogReadingToolbar({ content, title, slug, readingTime, classNam
       }
     });
 
-    const MIN_SECTIONS = 4;
-    const MAX_SECTIONS = 6;
-    
+    const MIN_SECTIONS = 5;
+    const MAX_SECTIONS = 7;
+
     // Sort by score
     const sorted = [...scored].sort((a, b) => b.score - a.score);
-    
+
     // Ensure FAQ is always included if present
     const faqSection = sorted.find(s => s.label === 'FAQ');
-    
+
     // Take top N with type diversity + spatial distribution
     const selected: (SmartSection & { linePos: number })[] = [];
     const typeCounts: Record<string, number> = {};
-    
+
     // Add FAQ first if exists
     if (faqSection) {
       selected.push(faqSection);
       typeCounts[faqSection.type] = 1;
     }
-    
+
     // Ensure at least 1 actionable section
     const hasAction = faqSection?.type === 'action';
     if (!hasAction) {
@@ -192,25 +192,52 @@ export function BlogReadingToolbar({ content, title, slug, readingTime, classNam
         typeCounts['action'] = (typeCounts['action'] || 0) + 1;
       }
     }
-    
+
+    // Spatial distribution: divide doc in 3 zones (start/middle/end) and try to pick from each
+    const zoneOf = (linePos: number): 'start' | 'middle' | 'end' => {
+      const ratio = linePos / Math.max(1, totalLines);
+      if (ratio < 0.33) return 'start';
+      if (ratio < 0.66) return 'middle';
+      return 'end';
+    };
+    const zoneCounts: Record<string, number> = { start: 0, middle: 0, end: 0 };
+    selected.forEach(s => { zoneCounts[zoneOf(s.linePos)]++; });
+
+    // Pass 1: prioritize covering empty zones with the highest-scoring candidate per zone
+    for (const zone of ['start', 'middle', 'end'] as const) {
+      if (zoneCounts[zone] > 0) continue;
+      const candidate = sorted.find(s =>
+        zoneOf(s.linePos) === zone && !selected.find(sel => sel.id === s.id)
+      );
+      if (candidate) {
+        selected.push(candidate);
+        typeCounts[candidate.type] = (typeCounts[candidate.type] || 0) + 1;
+        zoneCounts[zone]++;
+      }
+    }
+
+    // Pass 2: fill remaining slots by score, with light type/spacing constraints
     for (const section of sorted) {
       if (selected.length >= MAX_SECTIONS) break;
       if (selected.find(s => s.id === section.id)) continue;
-      
+
       const typeCount = typeCounts[section.type] || 0;
-      if (typeCount >= 2 && selected.length >= MIN_SECTIONS) continue;
-      
-      // Spatial distribution: avoid clustering (sections too close together)
-      if (selected.length > 0) {
+      // Allow up to 2 of same type until we hit MIN, then up to 3
+      const typeLimit = selected.length < MIN_SECTIONS ? 3 : 2;
+      if (typeCount >= typeLimit) continue;
+
+      // Spatial spacing: avoid clustering only after MIN is satisfied
+      if (selected.length >= MIN_SECTIONS) {
         const tooClose = selected.some(s => Math.abs(s.linePos - section.linePos) < totalLines * 0.05);
-        if (tooClose && selected.length >= MIN_SECTIONS) continue;
+        if (tooClose) continue;
       }
-      
+
       selected.push(section);
       typeCounts[section.type] = typeCount + 1;
+      zoneCounts[zoneOf(section.linePos)]++;
     }
 
-    // If we have fewer than MIN_SECTIONS, add remaining by document order
+    // Pass 3: hard guarantee of MIN_SECTIONS — add any remaining H2 by document order
     if (selected.length < MIN_SECTIONS) {
       for (const section of scored) {
         if (selected.length >= MIN_SECTIONS) break;
@@ -220,12 +247,8 @@ export function BlogReadingToolbar({ content, title, slug, readingTime, classNam
       }
     }
 
-    // Re-sort by document order
-    selected.sort((a, b) => {
-      const idxA = parseInt(a.id.split('-')[1]) || 0;
-      const idxB = parseInt(b.id.split('-')[1]) || 0;
-      return idxA - idxB;
-    });
+    // Re-sort by document order so the toolbar reads top→bottom
+    selected.sort((a, b) => a.linePos - b.linePos);
 
     // Log quality issues for admin review
     if (selected.length < MIN_SECTIONS && typeof console !== 'undefined') {
@@ -316,7 +339,7 @@ export function BlogReadingToolbar({ content, title, slug, readingTime, classNam
     }
   };
 
-  if (!isVisible || smartSections.length < 2) return null;
+  if (!isVisible || smartSections.length < 3) return null;
 
   return (
     <>
