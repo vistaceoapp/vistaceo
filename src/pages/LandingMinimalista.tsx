@@ -347,7 +347,6 @@ const HeroSection = () => {
                 }
               `}</style>
             </Reveal>
-            </Reveal>
 
             <div className="mt-8 lg:mt-10 max-w-[640px]">
               <Reveal delay={300} distance={18}>
