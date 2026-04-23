@@ -243,9 +243,9 @@ const Auth = () => {
         noindex={true}
       />
 
-      <div className="min-h-screen w-full bg-white text-[#0a0a0a] flex flex-col lg:grid lg:grid-cols-[1.05fr_1fr]">
-        {/* ============ LEFT — Brand panel (premium) ============ */}
-        <aside className="relative hidden lg:flex flex-col justify-between overflow-hidden text-white p-10 xl:p-14">
+      <div className="min-h-screen w-full bg-white text-[#0a0a0a] flex flex-col lg:grid lg:grid-cols-[minmax(0,40fr)_minmax(0,60fr)] xl:grid-cols-[minmax(0,38fr)_minmax(0,62fr)]">
+        {/* ============ LEFT — Brand panel (premium · soporte secundario) ============ */}
+        <aside className="relative hidden lg:flex flex-col justify-between overflow-hidden text-white p-8 xl:p-10">
           {/* Background — mismo lenguaje visual de la app (azul → violeta marca) */}
           <div
             aria-hidden
@@ -277,27 +277,27 @@ const Auth = () => {
           <div className="relative z-10">
             <Link to="/" className="inline-flex items-center group">
               <div className="brightness-0 invert">
-                <VistaceoLogo size={64} variant="full" />
+                <VistaceoLogo size={52} variant="full" />
               </div>
             </Link>
           </div>
 
           {/* Middle — testimonio rotativo */}
-          <div className="relative z-10 max-w-[460px]">
-            <div className="flex items-center gap-1 mb-5">
+          <div className="relative z-10 max-w-[400px]">
+            <div className="flex items-center gap-1 mb-4">
               {[0, 1, 2, 3, 4].map((i) => (
-                <svg key={i} viewBox="0 0 20 20" className="w-3.5 h-3.5 fill-amber-300">
+                <svg key={i} viewBox="0 0 20 20" className="w-3 h-3 fill-amber-300">
                   <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.78L10 14.77l-5.2 2.73.99-5.78L1.58 7.62l5.82-.85L10 1.5z" />
                 </svg>
               ))}
-              <span className="ml-2 text-[12px] text-white/75">4.9 · +1.200 dueños activos</span>
+              <span className="ml-2 text-[11.5px] text-white/75">4.9 · +1.200 dueños activos</span>
             </div>
 
             <blockquote
               key={activeTestimonial}
-              className="text-[22px] xl:text-[25px] leading-[1.4] font-medium tracking-[-0.01em] text-white transition-opacity duration-500"
+              className="text-[18px] xl:text-[20px] leading-[1.45] font-medium tracking-[-0.01em] text-white transition-opacity duration-500"
             >
-              “{testimonials[activeTestimonial].quote}”
+              "{testimonials[activeTestimonial].quote}"
             </blockquote>
             <div className="mt-5 flex items-center gap-3">
               <div className="w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-semibold text-[#1a4fa8] bg-white/95">
