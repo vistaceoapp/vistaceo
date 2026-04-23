@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, memo } from "react";
-import { TrendingUp, Star, AlertTriangle, Users, Activity, Sparkles, Target } from "lucide-react";
+import { TrendingUp, Star, AlertTriangle, Users, Activity, Sparkles, Target, type LucideIcon } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════════════
    HeroOrb — Executive Glass Orb
