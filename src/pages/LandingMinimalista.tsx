@@ -254,14 +254,20 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative pt-28 pb-10 lg:pt-36 lg:pb-24 px-6 overflow-hidden">
+    <section className="relative pt-28 pb-16 lg:pt-36 lg:pb-32 px-6 overflow-hidden">
+      {/* Subtle base gradient that bleeds across the whole hero */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: "linear-gradient(165deg, rgba(38,146,220,0.04) 0%, rgba(255,255,255,1) 45%, rgba(116,108,230,0.03) 100%)"
+        background: "linear-gradient(165deg, rgba(38,146,220,0.035) 0%, rgba(255,255,255,1) 50%, rgba(116,108,230,0.025) 100%)"
       }} />
 
-      <div className="relative z-10 max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-0">
+      {/* Intelligence Flow — ambient scene integrated to the whole hero (right half on desktop) */}
+      <div className="absolute inset-y-0 right-0 w-full lg:w-[62%] pointer-events-none">
+        <IntelligenceFlow />
+      </div>
+
+      <div className="relative z-10 max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-0 min-h-[480px] lg:min-h-[560px]">
         {/* Left: Text */}
-        <div className="flex-shrink-0 w-full lg:w-[440px] lg:pr-8">
+        <div className="flex-shrink-0 w-full lg:w-[480px] lg:pr-8 relative z-10">
           <Reveal distance={30}>
             <AccentLabel>INTELIGENCIA EJECUTIVA PARA TU NEGOCIO</AccentLabel>
           </Reveal>
@@ -313,12 +319,8 @@ const HeroSection = () => {
           </Reveal>
         </div>
 
-        {/* Right: Intelligence Flow — animated executive scene */}
-        <div className="flex-1 relative w-full max-w-[740px]">
-          <Reveal delay={250} distance={50}>
-            <IntelligenceFlow />
-          </Reveal>
-        </div>
+        {/* Spacer to balance flex layout (scene is absolutely positioned) */}
+        <div className="hidden lg:block flex-1" />
       </div>
     </section>
   );
