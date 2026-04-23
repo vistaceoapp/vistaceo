@@ -1056,7 +1056,7 @@ const CompetitorSection = () => {
                 <p className="text-[14px] font-medium text-[#0a0a0a] mb-4 leading-snug">
                   {row.feature}
                 </p>
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2.5 auto-rows-fr">
                   {[
                     { label: "VISTACEO", val: row.vistaceo, brand: true },
                     { label: "IA genérica", val: row.generic },
@@ -1066,7 +1066,7 @@ const CompetitorSection = () => {
                     <div
                       key={j}
                       className={cn(
-                        "flex items-center justify-between rounded-xl px-3 py-2.5 border",
+                        "flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 border min-h-[44px]",
                         c.brand
                           ? "border-[#2692DC]/25 bg-[#2692DC]/[0.04]"
                           : "border-[#f0f0f0] bg-[#fafafa]"
@@ -1074,13 +1074,13 @@ const CompetitorSection = () => {
                     >
                       <span
                         className={cn(
-                          "text-[11.5px] font-medium",
+                          "text-[11px] font-medium leading-tight whitespace-nowrap",
                           c.brand ? "text-[#2692DC]" : "text-[#888]"
                         )}
                       >
                         {c.label}
                       </span>
-                      <span className="flex items-center justify-center min-w-[24px]">
+                      <span className="flex items-center justify-center min-w-[20px] shrink-0">
                         {renderCell(c.val)}
                       </span>
                     </div>
