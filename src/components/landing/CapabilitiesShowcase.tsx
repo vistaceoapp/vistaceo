@@ -218,43 +218,69 @@ const ForecastVisual = () => (
   </svg>
 );
 
-// 5. Analytics — curva animada con dot pulsante
-const AnalyticsVisual = () => (
-  <svg viewBox="0 0 280 140" className="w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid meet">
-    <defs>
-      <linearGradient id="cap-area" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor={BRAND} stopOpacity="0.3" />
-        <stop offset="100%" stopColor={BRAND} stopOpacity="0" />
-      </linearGradient>
-    </defs>
-    <motion.path
-      d="M20 100 Q70 90 100 70 T180 50 T260 35"
-      fill="none" stroke={BRAND} strokeWidth="2.5" strokeLinecap="round"
-      initial={{ pathLength: 0 }}
-      whileInView={{ pathLength: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 1.4, ease: "easeOut" }}
-    />
-    <motion.path
-      d="M20 100 Q70 90 100 70 T180 50 T260 35 L260 130 L20 130 Z"
-      fill="url(#cap-area)"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay: 1.2, duration: 0.6 }}
-    />
-    <motion.g
-      initial={{ scale: 0, opacity: 0 }}
-      whileInView={{ scale: 1, opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ delay: 1.3, duration: 0.4 }}
-      style={{ transformOrigin: "260px 35px" }}
-    >
-      <circle cx="260" cy="35" r="10" fill={BRAND} fillOpacity="0.2" />
-      <circle cx="260" cy="35" r="5" fill={BRAND} stroke="white" strokeWidth="2" />
-    </motion.g>
-  </svg>
-);
+// 5. Analytics — mini dashboard con KPI +23%, barras y sparkline
+const AnalyticsVisual = () => {
+  const bars = [38, 52, 44, 68, 58, 82, 74];
+  return (
+    <div className="absolute inset-0 p-3 md:p-4 flex flex-col gap-2">
+      {/* KPI row */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-col">
+          <span className="text-[9px] uppercase tracking-wider text-[#999] font-medium">Ventas · 7d</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-[15px] md:text-[16px] font-semibold text-[#1a1a1a] tabular-nums">$48.2k</span>
+            <motion.span
+              initial={{ opacity: 0, y: 4 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+              className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums"
+              style={{ color: BRAND, backgroundColor: `${BRAND}15` }}
+            >
+              +23%
+            </motion.span>
+          </div>
+        </div>
+        {/* Mini sparkline */}
+        <svg viewBox="0 0 80 28" className="w-[70px] h-[26px] shrink-0" aria-hidden="true">
+          <defs>
+            <linearGradient id="cap-spark" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={BRAND} stopOpacity="0.3" />
+              <stop offset="100%" stopColor={BRAND} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d="M2 22 L14 18 L26 20 L38 12 L50 14 L62 6 L78 4 L78 28 L2 28 Z" fill="url(#cap-spark)" />
+          <path d="M2 22 L14 18 L26 20 L38 12 L50 14 L62 6 L78 4" fill="none" stroke={BRAND} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="78" cy="4" r="2" fill={BRAND} />
+        </svg>
+      </div>
+
+      {/* Bars */}
+      <div className="flex-1 flex items-end gap-[5px] md:gap-1.5 min-h-0">
+        {bars.map((h, i) => (
+          <motion.div
+            key={i}
+            initial={{ height: 0 }}
+            whileInView={{ height: `${h}%` }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ delay: 0.1 + i * 0.05, duration: 0.5, ease: "easeOut" }}
+            className="flex-1 rounded-sm"
+            style={{
+              backgroundColor: i === bars.length - 1 ? BRAND : `${BRAND}33`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Causal label */}
+      <div className="flex items-center gap-1.5 text-[9.5px] text-[#666]">
+        <span className="w-1 h-1 rounded-full" style={{ backgroundColor: BRAND }} />
+        <span className="truncate">Promo fin de semana → +18% ticket</span>
+      </div>
+    </div>
+  );
+};
+
 
 // 6. Competencia — lista de ítems con check rotando al primero
 const CompetitorsVisual = () => {
