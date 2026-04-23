@@ -143,48 +143,63 @@ SceneDefs.displayName = "SceneDefs";
 const CoreEngine = memo(({ cx, cy, r }: { cx: number; cy: number; r: number }) => {
   return (
     <g>
-      {/* Halo ambiental exterior masivo */}
-      <circle cx={cx} cy={cy} r={r * 2.1} fill="url(#ambientHalo)" />
+      {/* Halo ambiental exterior masivo (key light) */}
+      <circle cx={cx} cy={cy} r={r * 2.3} fill="url(#ambientHalo)" />
 
-      {/* Sombra de contacto */}
-      <ellipse cx={cx} cy={cy + r * 0.95} rx={r * 1.05} ry={r * 0.18} fill="url(#contactShadow)" />
+      {/* Sombra de contacto profunda */}
+      <ellipse cx={cx} cy={cy + r * 0.98} rx={r * 1.15} ry={r * 0.2} fill="url(#contactShadow)" />
+      <ellipse cx={cx} cy={cy + r * 1.02} rx={r * 0.7} ry={r * 0.09} fill="#5A6A98" opacity="0.18" />
 
-      {/* Anillo orbital exterior (delgado, decorativo refinado) */}
-      <circle cx={cx} cy={cy} r={r * 1.45} fill="none" stroke="url(#bevelEdge)" strokeWidth="1" strokeOpacity="0.35" strokeDasharray="2 6" />
+      {/* Anillo orbital exterior — punteado fino */}
+      <circle cx={cx} cy={cy} r={r * 1.55} fill="none" stroke="url(#bevelEdge)" strokeWidth="1" strokeOpacity="0.3" strokeDasharray="2 7" />
 
-      {/* Anillo orbital medio */}
-      <circle cx={cx} cy={cy} r={r * 1.22} fill="none" stroke="#C7D0EF" strokeWidth="0.8" strokeOpacity="0.5" />
+      {/* Anillo orbital medio — sólido translúcido */}
+      <circle cx={cx} cy={cy} r={r * 1.28} fill="none" stroke="#B8C2E5" strokeWidth="0.8" strokeOpacity="0.45" />
+      <circle cx={cx} cy={cy} r={r * 1.18} fill="none" stroke="#FFFFFF" strokeWidth="0.6" strokeOpacity="0.7" />
 
-      {/* Carcasa exterior — lente de cristal */}
+      {/* CARCASA EXTERIOR — vidrio frosted con refracción */}
       <circle cx={cx} cy={cy} r={r} fill="url(#coreLens)" />
-      {/* Bisel iluminado */}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#bevelEdge)" strokeWidth="2" strokeOpacity="0.9" />
-      {/* Sutil sombra interior */}
-      <circle cx={cx} cy={cy} r={r - 1} fill="none" stroke="#FFFFFF" strokeWidth="1" strokeOpacity="0.6" />
+      <circle cx={cx} cy={cy} r={r} fill="url(#coreRefraction)" />
 
-      {/* Anillo cerámico interno */}
+      {/* Bisel iluminado exterior */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="url(#bevelEdge)" strokeWidth="2.2" strokeOpacity="0.92" />
+      {/* Rim light interior — anillo blanco fino */}
+      <circle cx={cx} cy={cy} r={r - 1.5} fill="none" stroke="#FFFFFF" strokeWidth="1.2" strokeOpacity="0.85" />
+      {/* Sombra interior sutil para profundidad */}
+      <circle cx={cx} cy={cy} r={r - 4} fill="none" stroke="#9AA6CF" strokeWidth="0.6" strokeOpacity="0.35" />
+
+      {/* Anillo cerámico interno satinado */}
       <circle cx={cx} cy={cy} r={r * 0.78} fill="url(#ceramicRing)" />
-      <circle cx={cx} cy={cy} r={r * 0.78} fill="none" stroke="#D7DDF2" strokeWidth="0.6" />
+      <circle cx={cx} cy={cy} r={r * 0.78} fill="none" stroke="#C7D0EA" strokeWidth="0.6" strokeOpacity="0.7" />
+      <circle cx={cx} cy={cy} r={r * 0.78 - 1} fill="none" stroke="#FFFFFF" strokeWidth="0.5" strokeOpacity="0.75" />
 
-      {/* Núcleo más profundo — disco interno */}
+      {/* Lente interna profunda — vidrio puro */}
       <circle cx={cx} cy={cy} r={r * 0.58} fill="#FFFFFF" />
+      <circle cx={cx} cy={cy} r={r * 0.58} fill="url(#coreRefraction)" opacity="0.6" />
       <circle cx={cx} cy={cy} r={r * 0.58} fill="url(#specularTop)" />
-      <circle cx={cx} cy={cy} r={r * 0.58} fill="none" stroke="url(#bevelEdge)" strokeWidth="1.2" strokeOpacity="0.5" />
+      <circle cx={cx} cy={cy} r={r * 0.58} fill="none" stroke="url(#bevelEdge)" strokeWidth="1.4" strokeOpacity="0.55" />
+      <circle cx={cx} cy={cy} r={r * 0.58 - 1} fill="none" stroke="#FFFFFF" strokeWidth="0.6" strokeOpacity="0.7" />
 
-      {/* Highlight especular superior (reflejo de estudio) */}
-      <ellipse cx={cx} cy={cy - r * 0.55} rx={r * 0.55} ry={r * 0.14} fill="#FFFFFF" opacity="0.7" />
-      <ellipse cx={cx - r * 0.18} cy={cy - r * 0.4} rx={r * 0.08} ry={r * 0.04} fill="#FFFFFF" opacity="0.95" />
+      {/* HIGHLIGHTS ESPECULARES — luz de estudio */}
+      {/* Highlight superior amplio */}
+      <ellipse cx={cx} cy={cy - r * 0.6} rx={r * 0.6} ry={r * 0.16} fill="#FFFFFF" opacity="0.78" />
+      {/* Punto de luz nítido */}
+      <ellipse cx={cx - r * 0.22} cy={cy - r * 0.45} rx={r * 0.09} ry={r * 0.045} fill="#FFFFFF" opacity="1" />
+      {/* Reflejo lateral sutil */}
+      <ellipse cx={cx + r * 0.55} cy={cy + r * 0.1} rx={r * 0.06} ry={r * 0.25} fill="#FFFFFF" opacity="0.35" transform={`rotate(-15 ${cx + r * 0.55} ${cy + r * 0.1})`} />
+      {/* Reflejo inferior — bounce light */}
+      <ellipse cx={cx} cy={cy + r * 0.55} rx={r * 0.4} ry={r * 0.08} fill="#A99EFF" opacity="0.18" />
 
-      {/* Marcas de instrumento — 8 ticks elegantes */}
-      {Array.from({ length: 8 }).map((_, i) => {
-        const a = (i / 8) * Math.PI * 2;
-        const r1 = r * 0.85;
-        const r2 = r * 0.92;
+      {/* Marcas de instrumento — 12 ticks finos elegantes */}
+      {Array.from({ length: 12 }).map((_, i) => {
+        const a = (i / 12) * Math.PI * 2;
+        const r1 = r * 0.86;
+        const r2 = r * 0.93;
         const x1 = cx + Math.cos(a) * r1;
         const y1 = cy + Math.sin(a) * r1;
         const x2 = cx + Math.cos(a) * r2;
         const y2 = cy + Math.sin(a) * r2;
-        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#9AA6CF" strokeWidth="1" strokeOpacity="0.55" strokeLinecap="round" />;
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#8896C2" strokeWidth={i % 3 === 0 ? 1.2 : 0.7} strokeOpacity={i % 3 === 0 ? 0.7 : 0.4} strokeLinecap="round" />;
       })}
     </g>
   );
