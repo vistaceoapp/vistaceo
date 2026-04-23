@@ -203,3 +203,18 @@ export const formatLimitText = (used: number, limit: number, isPro: boolean): st
   if (isPro) return "Ilimitado";
   return `${used}/${limit}`;
 };
+
+/**
+ * Returns real mission usage for the current month.
+ * Pro users get { used: 0, limit: Infinity, remaining: Infinity }.
+ * Truthful counter — replaces the previous hardcoded version.
+ */
+export const useRemainingMissions = (): { used: number; limit: number; remaining: number } => {
+  const { usage, limits, remaining, isPro } = useFreeLimits();
+  if (isPro) return { used: 0, limit: Infinity, remaining: Infinity };
+  return {
+    used: usage.missions,
+    limit: limits.missions,
+    remaining: remaining.missions,
+  };
+};

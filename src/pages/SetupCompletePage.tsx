@@ -84,7 +84,7 @@ const SetupCompletePage = () => {
           return prev - 1;
         });
       }, 1000);
-      countdownIntervalRef.current = countdownInterval;
+      
       return () => {
         clearInterval(interval);
         clearInterval(countdownInterval);

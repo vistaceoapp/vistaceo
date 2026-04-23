@@ -155,19 +155,7 @@ export const useProFeature = (feature: string): boolean => {
 };
 
 /**
- * Returns real mission usage for the current month.
- * Pro users get { used: 0, limit: Infinity, remaining: Infinity }.
- * Internally delegates to `useFreeLimits()` so counters are always truthful.
+ * @deprecated Import `useRemainingMissions` from `@/hooks/use-free-limits` instead.
+ * Re-exported there to break the circular dependency.
  */
-export const useRemainingMissions = (): { used: number; limit: number; remaining: number } => {
-  // Lazy import to avoid circular dep at module load
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { useFreeLimits } = require("@/hooks/use-free-limits") as typeof import("@/hooks/use-free-limits");
-  const { usage, limits, remaining, isPro } = useFreeLimits();
-  if (isPro) return { used: 0, limit: Infinity, remaining: Infinity };
-  return {
-    used: usage.missions,
-    limit: limits.missions,
-    remaining: remaining.missions,
-  };
-};
+export { useRemainingMissions } from "@/hooks/use-free-limits";
