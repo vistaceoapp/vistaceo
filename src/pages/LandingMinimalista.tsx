@@ -296,7 +296,7 @@ const HeroSection = () => {
       <div className="relative z-10 max-w-[1280px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
           {/* Left: copy — wider, more breathing room */}
-          <div className="lg:col-span-8 xl:col-span-7">
+          <div className="lg:col-span-12">
             <Reveal distance={20}>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/85 backdrop-blur-md border border-white/80 shadow-[0_4px_14px_rgba(38,146,220,0.10)] mb-7">
                 <span className="relative flex h-1.5 w-1.5">
