@@ -311,16 +311,16 @@ const HeroSection = () => {
               <h1
                 className="font-semibold text-[#0a0a0a] tracking-[-0.034em] hyphens-none"
                 style={{
-                  fontSize: "clamp(2.4rem, 6.4vw, 5.6rem)",
-                  lineHeight: 1.0,
+                  fontSize: "clamp(2rem, 5.2vw, 4.6rem)",
+                  lineHeight: 1.02,
                 }}
               >
-                <span className="block">Un CEO digital con IA</span>
+                <span className="block whitespace-nowrap">Un CEO digital con IA</span>
                 <span
                   className="block mt-1"
                   style={{
                     backgroundImage:
-                      "linear-gradient(120deg, #4FB3F0 0%, #2692DC 45%, #5C8FE6 100%)",
+                      "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
@@ -333,7 +333,7 @@ const HeroSection = () => {
                   className="block"
                   style={{
                     backgroundImage:
-                      "linear-gradient(120deg, #4FB3F0 0%, #2692DC 45%, #5C8FE6 100%)",
+                      "linear-gradient(120deg, #4FB3F0 0%, #2692DC 35%, #5C7FE8 70%, #746CE6 100%)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
