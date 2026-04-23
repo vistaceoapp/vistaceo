@@ -44,7 +44,7 @@ const FLOW_PATH = "M 30 220 C 140 80, 280 360, 420 220 S 660 100, 770 200";
 const colorMap: Record<string, { bg: string; text: string; ring: string }> = {
   primary: { bg: "bg-primary/10", text: "text-primary", ring: "ring-primary/20" },
   accent: { bg: "bg-accent/10", text: "text-accent", ring: "ring-accent/20" },
-  warning: { bg: "bg-amber-500/10", text: "text-amber-600", ring: "ring-amber-500/20" },
+  warning: { bg: "bg-warning/10", text: "text-warning", ring: "ring-warning/20" },
 };
 
 export const IntelligenceFlow = memo(() => {
