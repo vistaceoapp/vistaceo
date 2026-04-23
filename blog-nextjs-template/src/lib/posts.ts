@@ -90,10 +90,9 @@ export async function getAllSlugs(): Promise<string[]> {
 }
 
 export function getMetaTitle(post: BlogPost): string {
-  if (post.meta_title && post.meta_title.length > 0) {
-    return post.meta_title.slice(0, 60);
-  }
-  return post.title.slice(0, 57) + (post.title.length > 57 ? "..." : "");
+  // Always prefer the actual article title, full and untruncated.
+  // No "| VISTACEO" suffix — keep titles clean for sharing/SERP.
+  return (post.title || "").trim();
 }
 
 export function getMetaDescription(post: BlogPost): string {
