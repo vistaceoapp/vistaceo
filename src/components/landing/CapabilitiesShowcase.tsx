@@ -372,7 +372,7 @@ export const CapabilitiesShowcase = memo(() => {
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center max-w-2xl mx-auto mb-14 md:mb-16"
+          className="text-center max-w-2xl md:max-w-4xl mx-auto mb-14 md:mb-16"
         >
           <span
             className="inline-block text-[11px] font-semibold tracking-[0.12em] uppercase mb-4 px-3 py-1 rounded-full border"
