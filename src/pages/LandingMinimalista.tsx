@@ -1617,7 +1617,7 @@ const FAQSection = () => {
         <div className="space-y-2.5">
           {faqs.map((faq, i) => (
             <Reveal key={i} delay={i * 40}>
-              <div className="rounded-xl border border-[#eee] bg-[#fafafa] overflow-hidden hover:border-[#e0e0e0] transition-colors">
+              <div className="rounded-2xl border border-[#eee] bg-[#fafafa] overflow-hidden hover:border-[#e0e0e0] transition-colors">
                 <button onClick={() => setOpen(open === i ? null : i)}
                   className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-[#f5f5f5] transition-colors bg-transparent">
                   <span className="text-[14px] font-medium text-[#222] pr-4">{faq.q}</span>
