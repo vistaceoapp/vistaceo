@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronDown, Building2, CreditCard, Brain, Shield, Zap } from "lucide-react";
+import { Sparkles, Building2, Settings, TrendingUp, Radar, Eye, GraduationCap, Rocket, CreditCard, Shield } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -9,83 +9,54 @@ import {
 
 const faqs = [
   {
+    icon: Sparkles,
+    question: "¿Qué es VISTACEO?",
+    answer: `VISTACEO es una plataforma con inteligencia artificial que funciona como un **CEO digital** para tu empresa, negocio o servicio. Aprende de tu negocio hasta convertirse en un experto en tu realidad, trabaja 24/7 y te ayuda con análisis personalizados para detectar oportunidades, anticipar riesgos, encontrar mejoras y decidir con más claridad cómo crecer.`,
+  },
+  {
     icon: Building2,
-    question: "¿Qué tipos de negocio soporta VISTACEO?",
-    answer: `VISTACEO está diseñado para **más de 180 tipos de negocio** organizados en **10 sectores principales**:
-
-• **Gastronomía**: Restaurantes, cafeterías, bares, heladerías, panaderías, dark kitchens, food trucks...
-• **Retail**: Tiendas de ropa, calzado, electrónica, joyerías, ferreterías, farmacias...
-• **Salud & Bienestar**: Clínicas, consultorios, spas, gimnasios, estéticas, ópticas...
-• **Turismo & Hotelería**: Hoteles, hostels, cabañas, agencias de viaje, tours...
-• **Servicios Profesionales**: Agencias, consultorías, estudios contables, legales...
-• **Educación**: Academias, institutos, tutorías, escuelas de idiomas...
-• **Hogar & Decoración**: Mueblerías, decoración, construcción, inmobiliarias...
-• **Transporte & Logística**: Flotas, mensajería, mudanzas, parking...
-• **Agro & Industria**: Productores, distribuidores, procesadoras...
-• **Tecnología & Digital**: Agencias digitales, SaaS, e-commerce...
-
-El sistema adapta automáticamente las preguntas, métricas y recomendaciones según tu sector y tipo de negocio específico.`,
+    question: "¿Para qué tipo de negocio sirve?",
+    answer: `Sirve para **todo tipo de empresa, negocio o servicio**, físico o remoto. Puede adaptarse a comercios, restaurantes, clínicas, agencias, estudios profesionales, marcas personales, emprendimientos, consultoras, academias, negocios digitales, servicios B2B y proyectos en crecimiento.`,
+  },
+  {
+    icon: Settings,
+    question: "¿Cómo funciona?",
+    answer: `Cargás información sobre tu negocio, objetivos, clientes, procesos y desafíos. A partir de eso, la IA **aprende de tus datos, integraciones y particularidades** hasta volverse cada vez más experta en tu negocio, para generar insights, alertas, misiones, predicciones y recomendaciones personalizadas.`,
+  },
+  {
+    icon: TrendingUp,
+    question: "¿Qué puede hacer por mi negocio?",
+    answer: `Puede ayudarte a mejorar **ventas, marketing, operaciones, finanzas, atención al cliente, productividad, estrategia y toma de decisiones**. También puede detectar cuellos de botella, oportunidades ocultas, riesgos, tendencias, movimientos de la competencia y próximos pasos para avanzar.`,
+  },
+  {
+    icon: Radar,
+    question: "¿Qué son el Radar, las Misiones y los Insights?",
+    answer: `El **Radar** muestra señales importantes como oportunidades, riesgos, tendencias, competencia o puntos críticos. Las **Misiones** convierten esas señales en acciones concretas. Los **Insights** te ayudan a entender qué está pasando, por qué pasa y qué conviene hacer.`,
+  },
+  {
+    icon: Eye,
+    question: "¿Puede analizar competencia, tendencias y predicciones?",
+    answer: `Sí. Puede ayudarte a observar competidores, detectar cambios del mercado, identificar oportunidades de posicionamiento, **proyectar escenarios** y anticipar posibles riesgos o movimientos relevantes para tu rubro.`,
+  },
+  {
+    icon: GraduationCap,
+    question: "¿Necesito saber de inteligencia artificial para usarlo?",
+    answer: `No. Está pensado para usarse de forma simple. **No necesitás conocimientos técnicos**. Compartís información, hacés preguntas y recibís análisis, ideas, alertas, misiones y recomendaciones claras para accionar.`,
+  },
+  {
+    icon: Rocket,
+    question: "¿Puedo usarlo si mi negocio recién empieza o si ya está funcionando?",
+    answer: `Sí. Si estás **empezando**, te ayuda a ordenar propuesta, prioridades, ventas, comunicación y próximos pasos. Si tu negocio **ya funciona**, puede analizar lo que sucede, detectar mejoras, revisar puntos críticos y ayudarte a decidir mejor cada día.`,
   },
   {
     icon: CreditCard,
-    question: "¿Qué incluye el plan gratuito vs Pro?",
-    answer: `**Plan Gratuito** (para siempre):
-• Dashboard de salud completo con 7 dimensiones
-• 3 misiones activas por mes
-• 5 oportunidades del Radar I+D mensual
-• Check-ins de pulso diarios
-• Análisis básico de tu negocio
-
-**Plan Pro** (desde $49 USD/mes o $290 USD/año con 51% de descuento):
-• ✅ Misiones ilimitadas
-• ✅ Chat con IA Mentor (texto + voz)
-• ✅ Análisis de fotos y documentos
-• ✅ Radar I+D completo (tendencias + competencia)
-• ✅ Integración con Google Reviews
-• ✅ Analytics avanzados y predictivos
-• ✅ Soporte prioritario
-
-En Argentina, pagás en pesos con MercadoPago. Para el resto del mundo, PayPal en USD.`,
-  },
-  {
-    icon: Brain,
-    question: "¿Cómo aprende VISTACEO sobre mi negocio?",
-    answer: `VISTACEO utiliza un **Cerebro de Negocio** que aprende continuamente de múltiples fuentes:
-
-1. **Setup inicial**: Respondes un cuestionario adaptado a tu sector (3-5 minutos)
-2. **Check-ins diarios**: Indicas cómo te fue hoy en 10 segundos
-3. **Preguntas de aprendizaje**: El sistema te hace preguntas personalizadas para entender mejor tu operación
-4. **Tus decisiones**: Cada misión que completas, pausas o rechazas enseña al sistema qué funciona para ti
-5. **Integraciones**: Si conectas Google Reviews u otras plataformas, el sistema analiza automáticamente
-
-Mientras más usas VISTACEO, más preciso se vuelve. Empiezas con ~70% de certeza y puedes llegar a 95%+.`,
-  },
-  {
-    icon: Zap,
-    question: "¿Cuánto tiempo necesito dedicarle?",
-    answer: `VISTACEO está diseñado para dueños de negocio **ocupados**:
-
-• **Setup inicial**: 3-5 minutos (respondés preguntas simples)
-• **Check-in diario**: 10 segundos (un toque: excelente, normal o flojo)
-• **Revisar acciones**: 2-3 minutos por día
-
-El sistema hace el trabajo pesado por vos: analiza datos, detecta patrones, investiga tendencias del mercado, y te presenta todo en acciones concretas con tiempo estimado e impacto proyectado.
-
-**No tenés que ser experto en nada**. VISTACEO traduce todo a pasos simples que podés ejecutar.`,
+    question: "¿Hay versión gratis, planes pagos y posibilidad de cancelar?",
+    answer: `Sí. Podés **empezar gratis** para probar la plataforma y ver cómo puede ayudarte. Los planes pagos permiten usarla con más profundidad, frecuencia y capacidad. Además, **podés cancelar cuando quieras**, sin permanencias forzadas ni compromisos innecesarios.`,
   },
   {
     icon: Shield,
-    question: "¿Mis datos están seguros?",
-    answer: `Absolutamente. Tu información está protegida con:
-
-• **Encriptación de extremo a extremo** en tránsito y en reposo
-• **Infraestructura en la nube** de clase empresarial (Supabase/AWS)
-• **Sin acceso de terceros**: Nunca vendemos ni compartimos tu información
-• **Control total**: Podés exportar o eliminar tus datos cuando quieras
-
-Además, VISTACEO **no requiere acceso a tu cuenta bancaria ni sistema de punto de venta**. Trabajamos con rangos y estimaciones que vos proporcionás, nunca datos financieros exactos.
-
-Cumplimos con regulaciones de protección de datos de Argentina y Latinoamérica.`,
+    question: "¿Es seguro cargar información de mi negocio?",
+    answer: `Sí. La plataforma está pensada para trabajar con información importante de empresas, negocios y servicios. Tus datos se usan para **personalizar tu experiencia** y generar mejores análisis para vos, no para exponer ni compartir información sensible de tu empresa.`,
   },
 ];
 
