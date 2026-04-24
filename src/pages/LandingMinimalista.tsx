@@ -116,10 +116,10 @@ const Header = memo(() => {
 
   return (
     <header className={cn(
-      "fixed top-0 left-0 right-0 z-50 transition-all duration-500 backdrop-blur-2xl",
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-500 backdrop-blur-2xl backdrop-saturate-150 supports-[backdrop-filter]:bg-white/70",
       scrolled
-        ? "bg-white/92 shadow-[0_1px_0_rgba(0,0,0,0.04)]"
-        : "bg-white/75 shadow-[0_1px_0_rgba(0,0,0,0.03)]"
+        ? "bg-white/85 md:bg-white/92 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.08)] border-b border-black/[0.06]"
+        : "bg-white/60 md:bg-white/75 shadow-[0_1px_0_rgba(0,0,0,0.03)]"
     )}>
       <div className="max-w-[1200px] mx-auto px-6 h-[68px] flex items-center">
         <div className="flex items-center gap-5">
