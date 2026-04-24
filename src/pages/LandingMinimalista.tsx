@@ -203,7 +203,7 @@ const NotifCard = ({ icon, iconBg, name, text, time, className, delay = 0 }: {
 
   return (
     <div ref={ref}
-      className={cn("bg-white rounded-[14px] border border-[#ebebeb] shadow-[0_8px_32px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] p-3.5 w-[250px] flex gap-3 items-start transition-all", className)}
+      className={cn("bg-white rounded-2xl border border-[#ebebeb] shadow-[0_8px_32px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] p-3.5 w-[250px] flex gap-3 items-start transition-all", className)}
       style={{
         opacity: show ? 1 : 0,
         transform: show ? "translateX(0) translateY(0)" : "translateX(20px) translateY(10px)",
@@ -243,7 +243,7 @@ const HeroSignalCard = ({ icon, label, title, detail, accentColor, delay = 0 }: 
   }, [delay]);
   return (
     <div ref={ref}
-      className="p-3 rounded-xl border border-[#ebebeb] bg-white/90 transition-all duration-700"
+      className="p-3 rounded-2xl border border-[#ebebeb] bg-white/90 transition-all duration-700"
       style={{
         opacity: show ? 1 : 0,
         transform: show ? "translateY(0)" : "translateY(12px)",
@@ -1617,7 +1617,7 @@ const FAQSection = () => {
         <div className="space-y-2.5">
           {faqs.map((faq, i) => (
             <Reveal key={i} delay={i * 40}>
-              <div className="rounded-xl border border-[#eee] bg-[#fafafa] overflow-hidden hover:border-[#e0e0e0] transition-colors">
+              <div className="rounded-2xl border border-[#eee] bg-[#fafafa] overflow-hidden hover:border-[#e0e0e0] transition-colors">
                 <button onClick={() => setOpen(open === i ? null : i)}
                   className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-[#f5f5f5] transition-colors bg-transparent">
                   <span className="text-[14px] font-medium text-[#222] pr-4">{faq.q}</span>
