@@ -1016,7 +1016,7 @@ const Differentiation = () => {
         <div className="space-y-4">
           {comparisons.map((c, i) => (
             <Reveal key={c.vs} delay={i * 80}>
-              <div className="rounded-xl border border-[#eee] bg-white p-6 lg:p-8">
+              <div className="rounded-2xl border border-[#eee] bg-white p-6 lg:p-8">
                 <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-8">
                   <div className="lg:w-[240px] flex-shrink-0">
                     <p className="text-[12px] font-semibold text-[#ccc] uppercase tracking-[0.1em] mb-1.5">vs. {c.vs}</p>
