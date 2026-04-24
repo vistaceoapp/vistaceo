@@ -243,7 +243,7 @@ const HeroSignalCard = ({ icon, label, title, detail, accentColor, delay = 0 }: 
   }, [delay]);
   return (
     <div ref={ref}
-      className="p-3 rounded-xl border border-[#ebebeb] bg-white/90 transition-all duration-700"
+      className="p-3 rounded-2xl border border-[#ebebeb] bg-white/90 transition-all duration-700"
       style={{
         opacity: show ? 1 : 0,
         transform: show ? "translateY(0)" : "translateY(12px)",
