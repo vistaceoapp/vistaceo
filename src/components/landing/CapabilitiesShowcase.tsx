@@ -372,7 +372,7 @@ export const CapabilitiesShowcase = memo(() => {
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center max-w-2xl mx-auto mb-14 md:mb-16"
+          className="text-center max-w-2xl md:max-w-4xl mx-auto mb-14 md:mb-16"
         >
           <span
             className="inline-block text-[11px] font-semibold tracking-[0.12em] uppercase mb-4 px-3 py-1 rounded-full border"
@@ -382,9 +382,9 @@ export const CapabilitiesShowcase = memo(() => {
           </span>
           <h2 className="text-[32px] md:text-[44px] font-semibold text-[#1a1a1a] mb-4 leading-[1.1] tracking-tight">
             Una inteligencia,{" "}
-            <span style={{ color: BRAND }}>seis superpoderes</span>
+            <span style={{ color: BRAND }}>múltiples superpoderes</span>
           </h2>
-          <p className="text-[15px] md:text-[16px] text-[#666] leading-relaxed">
+          <p className="text-[15px] md:text-[16px] text-[#666] leading-relaxed md:whitespace-nowrap">
             Cada módulo trabaja sincronizado. El cerebro de tu negocio aprende de todos al mismo tiempo.
           </p>
         </motion.div>
