@@ -503,15 +503,43 @@ const TrustStrip = () => {
           <p className="mt-6 text-center text-[12px] text-[#888] max-w-[680px] mx-auto leading-relaxed">
             Desarrollado junto a profesionales con experiencia en compañías líderes de tecnología e inteligencia artificial
           </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 opacity-40">
-            {["IBM", "OpenAI", "Google", "Microsoft", "Anthropic", "Oracle", "Salesforce", "Adobe", "Amazon Web Services", "Perplexity", "Make"].map((brand) => (
-              <span
-                key={brand}
-                className="text-[11px] sm:text-[12px] font-medium tracking-wide text-black/70 uppercase"
-              >
-                {brand}
-              </span>
-            ))}
+          <div
+            className="mt-5 relative overflow-hidden"
+            style={{
+              maskImage: "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
+              WebkitMaskImage: "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
+            }}
+          >
+            <div
+              className="flex items-center gap-12 w-max"
+              style={{ animation: "scrollLeft 45s linear infinite" }}
+            >
+              {(() => {
+                const brands = [
+                  { name: "IBM", slug: "ibm" },
+                  { name: "OpenAI", slug: "openai" },
+                  { name: "Google", slug: "google" },
+                  { name: "Microsoft", slug: "microsoft" },
+                  { name: "Anthropic", slug: "anthropic" },
+                  { name: "Oracle", slug: "oracle" },
+                  { name: "Salesforce", slug: "salesforce" },
+                  { name: "Adobe", slug: "adobe" },
+                  { name: "Amazon Web Services", slug: "amazonwebservices" },
+                  { name: "Perplexity", slug: "perplexity" },
+                  { name: "Make", slug: "make" },
+                ];
+                return [...brands, ...brands].map((b, i) => (
+                  <img
+                    key={`${b.slug}-${i}`}
+                    src={`https://cdn.simpleicons.org/${b.slug}/000000`}
+                    alt={b.name}
+                    title={b.name}
+                    loading="lazy"
+                    className="h-5 sm:h-6 w-auto opacity-50 hover:opacity-80 transition-opacity shrink-0"
+                  />
+                ));
+              })()}
+            </div>
           </div>
         </Reveal>
       </div>
