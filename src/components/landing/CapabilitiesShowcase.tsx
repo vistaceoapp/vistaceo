@@ -382,9 +382,9 @@ export const CapabilitiesShowcase = memo(() => {
           </span>
           <h2 className="text-[32px] md:text-[44px] font-semibold text-[#1a1a1a] mb-4 leading-[1.1] tracking-tight">
             Una inteligencia,{" "}
-            <span style={{ color: BRAND }}>seis superpoderes</span>
+            <span style={{ color: BRAND }}>múltiples superpoderes</span>
           </h2>
-          <p className="text-[15px] md:text-[16px] text-[#666] leading-relaxed">
+          <p className="text-[15px] md:text-[16px] text-[#666] leading-relaxed whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
             Cada módulo trabaja sincronizado. El cerebro de tu negocio aprende de todos al mismo tiempo.
           </p>
         </motion.div>
