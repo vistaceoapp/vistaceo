@@ -94,8 +94,7 @@ const MissionsVisual = () => (
     <text x="80" y="74" textAnchor="middle" fontSize="11" fill="#999" fontWeight="600">1</text>
     <motion.g
       initial={{ scale: 0.8, opacity: 0 }}
-      whileInView={{ scale: 1, opacity: 1 }}
-      viewport={{ once: true }}
+      animate={{ scale: 1, opacity: 1 }}
       transition={{ delay: 0.6, duration: 0.4 }}
       style={{ transformOrigin: "140px 70px" }}
     >
@@ -115,8 +114,7 @@ const SpeedVisual = () => (
       x1="40" y1="70" x2="240" y2="70"
       stroke={BRAND} strokeWidth="2" strokeLinecap="round"
       initial={{ pathLength: 0, opacity: 0 }}
-      whileInView={{ pathLength: 1, opacity: 1 }}
-      viewport={{ once: true }}
+      animate={{ pathLength: 1, opacity: 1 }}
       transition={{ duration: 1.2, ease: "easeOut" }}
     />
     <motion.g
@@ -153,8 +151,7 @@ const ForecastVisual = () => (
       d="M20 95 Q50 92 75 85 T120 75"
       fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"
       initial={{ pathLength: 0 }}
-      whileInView={{ pathLength: 1 }}
-      viewport={{ once: true }}
+      animate={{ pathLength: 1 }}
       transition={{ duration: 0.9, ease: "easeOut" }}
     />
 
@@ -163,8 +160,7 @@ const ForecastVisual = () => (
       d="M120 75 Q160 65 195 50 T260 32"
       fill="none" stroke={BRAND} strokeWidth="2.2" strokeLinecap="round" strokeDasharray="4 3"
       initial={{ pathLength: 0 }}
-      whileInView={{ pathLength: 1 }}
-      viewport={{ once: true }}
+      animate={{ pathLength: 1 }}
       transition={{ delay: 0.9, duration: 1.2, ease: "easeOut" }}
     />
 
@@ -173,8 +169,7 @@ const ForecastVisual = () => (
       d="M120 75 Q160 65 195 50 T260 32 L260 115 L120 115 Z"
       fill="url(#cap-forecast-area)"
       initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
+      animate={{ opacity: 1 }}
       transition={{ delay: 1.6, duration: 0.6 }}
     />
 
@@ -184,8 +179,7 @@ const ForecastVisual = () => (
     {/* Pin de oportunidad */}
     <motion.g
       initial={{ opacity: 0, y: 6 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.8, duration: 0.4 }}
     >
       <circle cx="195" cy="50" r="4" fill={BRAND} />
@@ -197,8 +191,7 @@ const ForecastVisual = () => (
     {/* Pin de riesgo */}
     <motion.g
       initial={{ opacity: 0, y: -6 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 2.1, duration: 0.4 }}
     >
       <circle cx="245" cy="38" r="3.5" fill="#f59e0b" />
@@ -231,8 +224,7 @@ const AnalyticsVisual = () => {
             <span className="text-[15px] md:text-[16px] font-semibold text-[#1a1a1a] tabular-nums">$48.2k</span>
             <motion.span
               initial={{ opacity: 0, y: 4 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.4 }}
               className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md tabular-nums"
               style={{ color: BRAND, backgroundColor: `${BRAND}15` }}
@@ -261,8 +253,7 @@ const AnalyticsVisual = () => {
           <motion.div
             key={i}
             initial={{ height: 0 }}
-            whileInView={{ height: `${h}%` }}
-            viewport={{ once: true, margin: "-40px" }}
+            animate={{ height: `${h}%` }}
             transition={{ delay: 0.1 + i * 0.05, duration: 0.5, ease: "easeOut" }}
             className="flex-1 rounded-sm"
             style={{
@@ -296,8 +287,7 @@ const CompetitorsVisual = () => {
           <motion.div
             key={i}
             initial={{ opacity: 0, x: -8 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.15 * i, duration: 0.4 }}
             className="flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-[11px]"
             style={
