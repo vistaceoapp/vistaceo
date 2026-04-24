@@ -498,45 +498,6 @@ const TrustStrip = () => {
             </span>
           </div>
         </Reveal>
-
-        <Reveal delay={0.1}>
-          <p className="mt-6 text-center text-[12px] text-[#888] max-w-[680px] mx-auto leading-relaxed">
-            Desarrollado junto a profesionales con experiencia en compañías líderes de tecnología e inteligencia artificial
-          </p>
-          <div
-            className="mt-5 relative overflow-hidden"
-            style={{
-              maskImage: "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
-              WebkitMaskImage: "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
-            }}
-          >
-            <div
-              className="flex items-center gap-14 w-max"
-              style={{ animation: "scrollLeft 50s linear infinite" }}
-            >
-              {(() => {
-                const brands = [
-                  { name: "IBM", url: "https://svgl.app/library/ibm.svg" },
-                  { name: "OpenAI", url: "https://svgl.app/library/openai.svg" },
-                  { name: "Google", url: "https://svgl.app/library/google.svg" },
-                  { name: "Microsoft", url: "https://svgl.app/library/microsoft.svg" },
-                  { name: "Anthropic", url: "https://svgl.app/library/anthropic.svg" },
-                ];
-                return [...brands, ...brands].map((b, i) => (
-                  <img
-                    key={`${b.name}-${i}`}
-                    src={b.url}
-                    alt={b.name}
-                    title={b.name}
-                    loading="lazy"
-                    className="h-6 sm:h-7 w-auto shrink-0 transition-opacity hover:opacity-80"
-                    style={{ filter: "brightness(0) saturate(0)", opacity: 0.55 }}
-                  />
-                ));
-              })()}
-            </div>
-          </div>
-        </Reveal>
       </div>
     </section>
   );
