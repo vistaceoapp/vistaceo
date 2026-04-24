@@ -158,8 +158,8 @@ const Header = memo(() => {
       </div>
 
       <div className={cn(
-        "md:hidden overflow-hidden transition-all duration-500 bg-white/98 backdrop-blur-2xl border-t border-[#f5f5f5]",
-        mobileOpen ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0"
+        "md:hidden overflow-hidden transition-all duration-500 bg-white backdrop-blur-2xl border-t border-[#f0f0f0] shadow-[0_8px_24px_rgba(0,0,0,0.06)]",
+        mobileOpen ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0"
       )}>
         <div className="px-6 py-5 space-y-1">
           {NAV_LINKS.map(item => (
