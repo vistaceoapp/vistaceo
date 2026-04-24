@@ -498,6 +498,22 @@ const TrustStrip = () => {
             </span>
           </div>
         </Reveal>
+
+        <Reveal delay={0.1}>
+          <p className="mt-6 text-center text-[12px] text-[#888] max-w-[680px] mx-auto leading-relaxed">
+            Desarrollado junto a profesionales con experiencia en compañías líderes de tecnología e inteligencia artificial
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 opacity-40">
+            {["IBM", "OpenAI", "Google", "Microsoft", "Anthropic", "Oracle", "Salesforce", "Adobe", "Amazon Web Services", "Perplexity", "Make"].map((brand) => (
+              <span
+                key={brand}
+                className="text-[11px] sm:text-[12px] font-medium tracking-wide text-black/70 uppercase"
+              >
+                {brand}
+              </span>
+            ))}
+          </div>
+        </Reveal>
       </div>
     </section>
   );
