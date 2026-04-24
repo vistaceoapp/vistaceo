@@ -1624,7 +1624,7 @@ const FAQSection = () => {
                   <ChevronDown className={cn("w-4 h-4 text-[#ccc] flex-shrink-0 transition-transform duration-400", open === i && "rotate-180 text-[#999]")} />
                 </button>
                 <div className="overflow-hidden transition-all duration-500 ease-out"
-                  style={{ maxHeight: open === i ? "200px" : "0px" }}>
+                  style={{ maxHeight: open === i ? "500px" : "0px" }}>
                   <p className="px-6 pb-5 text-[13.5px] text-[#888] leading-[1.75]">{faq.a}</p>
                 </div>
               </div>
