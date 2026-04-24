@@ -1292,7 +1292,7 @@ const TestimonialsSection = () => {
 
       <div className="relative max-w-6xl mx-auto px-5 sm:px-8">
         <Reveal>
-          <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-16">
+          <div className="text-center max-w-2xl md:max-w-4xl mx-auto mb-14 sm:mb-16">
             <span className="inline-block text-[12px] font-medium text-[#2692DC] mb-4 px-3 py-1 rounded-full bg-[#2692DC]/10 border border-[#2692DC]/15 tracking-wide uppercase">
               Lo que dicen quienes lo usan
             </span>
@@ -1302,7 +1302,7 @@ const TestimonialsSection = () => {
                 decisiones más claras
               </span>
             </h2>
-            <p className="mt-4 text-[15px] sm:text-[16px] text-[#666] leading-relaxed">
+            <p className="mt-4 text-[15px] sm:text-[16px] text-[#666] leading-relaxed md:whitespace-nowrap">
               Sin filtros ni promesas mágicas. Comentarios cortos de personas que abren la app antes de empezar el día.
             </p>
           </div>
