@@ -203,7 +203,7 @@ const NotifCard = ({ icon, iconBg, name, text, time, className, delay = 0 }: {
 
   return (
     <div ref={ref}
-      className={cn("bg-white rounded-[14px] border border-[#ebebeb] shadow-[0_8px_32px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] p-3.5 w-[250px] flex gap-3 items-start transition-all", className)}
+      className={cn("bg-white rounded-2xl border border-[#ebebeb] shadow-[0_8px_32px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] p-3.5 w-[250px] flex gap-3 items-start transition-all", className)}
       style={{
         opacity: show ? 1 : 0,
         transform: show ? "translateX(0) translateY(0)" : "translateX(20px) translateY(10px)",
