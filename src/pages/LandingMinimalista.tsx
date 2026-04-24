@@ -1169,6 +1169,7 @@ const TestimonialsSection = () => {
       name: "Martín R.",
       role: "Dueño de parrilla",
       location: "Córdoba, Argentina",
+      rating: 5.0,
     },
     {
       quote:
@@ -1177,6 +1178,7 @@ const TestimonialsSection = () => {
       name: "Carolina M.",
       role: "Boutique de ropa",
       location: "Ciudad de México, México",
+      rating: 4.9,
     },
     {
       quote:
@@ -1185,6 +1187,7 @@ const TestimonialsSection = () => {
       name: "Diego F.",
       role: "Consultorio odontológico",
       location: "Santiago, Chile",
+      rating: 5.0,
     },
     {
       quote:
@@ -1193,6 +1196,7 @@ const TestimonialsSection = () => {
       name: "Lucía F.",
       role: "Hostal boutique",
       location: "Montevideo, Uruguay",
+      rating: 4.8,
     },
     {
       quote:
@@ -1201,6 +1205,7 @@ const TestimonialsSection = () => {
       name: "Roberto G.",
       role: "Cafetería de especialidad",
       location: "Bogotá, Colombia",
+      rating: 4.9,
     },
     {
       quote:
@@ -1209,8 +1214,74 @@ const TestimonialsSection = () => {
       name: "Patricia M.",
       role: "Estudio jurídico",
       location: "Lima, Perú",
+      rating: 5.0,
     },
   ];
+
+  // Carrusel: 1 card en mobile, 2 en sm, 3 en lg
+  const [index, setIndex] = useState(0);
+  const [perView, setPerView] = useState(1);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    const compute = () => {
+      const w = window.innerWidth;
+      setPerView(w >= 1024 ? 3 : w >= 640 ? 2 : 1);
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
+
+  const maxIndex = Math.max(0, items.length - perView);
+
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(() => {
+      setIndex((i) => (i >= maxIndex ? 0 : i + 1));
+    }, 4500);
+    return () => clearInterval(id);
+  }, [maxIndex, paused]);
+
+  useEffect(() => {
+    if (index > maxIndex) setIndex(0);
+  }, [maxIndex, index]);
+
+  const StarRow = ({ rating }: { rating: number }) => {
+    const clamped = Math.max(0, Math.min(5, rating));
+    return (
+      <div className="flex items-center gap-2 mb-4" aria-label={`${rating.toFixed(1)} de 5`}>
+        <div className="flex gap-0.5">
+          {[0, 1, 2, 3, 4].map((i) => {
+            const fill = Math.max(0, Math.min(1, clamped - i)) * 100;
+            const gid = `star-grad-${i}-${Math.round(fill)}`;
+            return (
+              <svg key={i} viewBox="0 0 20 20" className="w-3.5 h-3.5">
+                <defs>
+                  <linearGradient id={gid} x1="0" y1="0" x2="1" y2="0">
+                    <stop offset={`${fill}%`} stopColor="#f59e0b" />
+                    <stop offset={`${fill}%`} stopColor="#e5e7eb" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.78L10 14.77l-5.2 2.73.99-5.78L1.58 7.62l5.82-.85L10 1.5z"
+                  fill={`url(#${gid})`}
+                />
+              </svg>
+            );
+          })}
+        </div>
+        <span className="text-[12px] font-semibold text-[#444] tabular-nums">
+          {rating.toFixed(1)}
+        </span>
+        <span className="text-[11px] text-[#999]">/ 5</span>
+      </div>
+    );
+  };
+
+  const slideWidth = 100 / perView;
+  const translatePct = -(index * slideWidth);
+  const totalSlides = items.length;
 
   return (
     <section className="relative bg-white py-20 sm:py-28 lg:py-32 overflow-hidden">
@@ -1237,38 +1308,63 @@ const TestimonialsSection = () => {
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {items.map((t, i) => (
-            <Reveal key={i} delay={i * 60}>
-              <figure className="h-full bg-white border border-[#ececec] rounded-2xl p-6 sm:p-7 hover:border-[#2692DC]/30 hover:shadow-[0_8px_30px_rgba(38,146,220,0.06)] transition-all duration-300 flex flex-col">
-                <div className="flex gap-0.5 mb-4" aria-hidden="true">
-                  {[...Array(5)].map((_, j) => (
-                    <svg key={j} viewBox="0 0 20 20" className="w-3.5 h-3.5 fill-amber-400">
-                      <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.78L10 14.77l-5.2 2.73.99-5.78L1.58 7.62l5.82-.85L10 1.5z" />
-                    </svg>
-                  ))}
-                </div>
-                <blockquote className="text-[15px] leading-relaxed text-[#222] flex-1">
-                  “{t.quote}”
-                </blockquote>
-                <figcaption className="flex items-center gap-3 mt-6 pt-5 border-t border-[#f0f0f0]">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-[12.5px] font-semibold shrink-0 bg-[linear-gradient(135deg,#2692DC,#746CE6)]">
-                    {t.initials}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="font-medium text-[#0a0a0a] text-[14px] truncate">{t.name}</div>
-                    <div className="text-[12.5px] text-[#777] truncate">
-                      {t.role} · {t.location}
+        {/* Carrusel */}
+        <div
+          className="relative overflow-hidden"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onTouchStart={() => setPaused(true)}
+          onTouchEnd={() => setPaused(false)}
+        >
+          <div
+            className="flex transition-transform duration-700 ease-out"
+            style={{ transform: `translateX(${translatePct}%)` }}
+          >
+            {items.map((t, i) => (
+              <div
+                key={i}
+                className="shrink-0 px-2.5 sm:px-3"
+                style={{ width: `${slideWidth}%` }}
+              >
+                <figure className="h-full bg-white border border-[#ececec] rounded-2xl p-6 sm:p-7 hover:border-[#2692DC]/30 hover:shadow-[0_8px_30px_rgba(38,146,220,0.06)] transition-all duration-300 flex flex-col">
+                  <StarRow rating={t.rating} />
+                  <blockquote className="text-[15px] leading-relaxed text-[#222] flex-1">
+                    "{t.quote}"
+                  </blockquote>
+                  <figcaption className="flex items-center gap-3 mt-6 pt-5 border-t border-[#f0f0f0]">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-[12.5px] font-semibold shrink-0 bg-[linear-gradient(135deg,#2692DC,#746CE6)]">
+                      {t.initials}
                     </div>
-                  </div>
-                </figcaption>
-              </figure>
-            </Reveal>
+                    <div className="min-w-0">
+                      <div className="font-medium text-[#0a0a0a] text-[14px] truncate">{t.name}</div>
+                      <div className="text-[12.5px] text-[#777] truncate">
+                        {t.role} · {t.location}
+                      </div>
+                    </div>
+                  </figcaption>
+                </figure>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Dots */}
+        <div className="flex items-center justify-center gap-2 mt-8">
+          {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              aria-label={`Ir al testimonio ${i + 1}`}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                i === index ? "w-6 bg-[#2692DC]" : "w-1.5 bg-[#d4d4d4] hover:bg-[#999]"
+              )}
+            />
           ))}
         </div>
 
         <p className="text-center text-[12px] text-[#999] mt-10 max-w-xl mx-auto">
-          Testimonios de personas reales en Latinoamérica. Editados levemente por extensión y privacidad — los nombres de los negocios no se publican.
+          {totalSlides}+ testimonios reales en Latinoamérica. Editados levemente por extensión y privacidad — los nombres de los negocios no se publican.
         </p>
       </div>
     </section>
