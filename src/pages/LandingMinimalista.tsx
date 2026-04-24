@@ -277,18 +277,18 @@ const HeroSection = () => {
           alt=""
           aria-hidden="true"
           className="w-full h-full object-cover"
-          style={{ filter: "saturate(0.85) brightness(1.04)" }}
+          style={{ filter: "saturate(0.92) brightness(1.06)" }}
           loading="eager"
           decoding="async"
           // @ts-ignore — valid HTML attr
           fetchpriority="high"
         />
-        {/* White → light celeste veil for legibility (desktop) */}
+        {/* White → soft celeste veil for legibility (desktop) */}
         <div
           className="hidden lg:block absolute inset-0"
           style={{
             background:
-              "linear-gradient(100deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.88) 38%, rgba(232,243,253,0.62) 62%, rgba(214,232,250,0.30) 100%)",
+              "linear-gradient(100deg, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.84) 38%, rgba(232,243,253,0.55) 64%, rgba(214,232,250,0.22) 100%)",
           }}
         />
         {/* Mobile veil — heavier so copy reads */}
@@ -296,7 +296,7 @@ const HeroSection = () => {
           className="lg:hidden absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.80) 45%, rgba(232,243,253,0.55) 100%)",
+              "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.82) 45%, rgba(232,243,253,0.55) 100%)",
           }}
         />
         {/* Subtle celeste glow accent */}
@@ -304,7 +304,7 @@ const HeroSection = () => {
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              "radial-gradient(ellipse 60% 50% at 78% 40%, rgba(38,146,220,0.10) 0%, transparent 60%)",
+              "radial-gradient(ellipse 60% 50% at 78% 40%, rgba(38,146,220,0.12) 0%, transparent 60%)",
           }}
         />
       </div>
