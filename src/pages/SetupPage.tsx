@@ -451,6 +451,22 @@ const SetupPage = () => {
         console.warn('[Setup] Activated email failed (non-blocking):', err);
       });
 
+      // Aviso interno al admin: setup completado (no bloqueante)
+      supabase.functions.invoke('notify-admin', {
+        body: {
+          event: 'setup_completed',
+          email: user.email,
+          fullName: user.user_metadata?.full_name || user.email?.split('@')[0],
+          businessName: data.businessName,
+          businessId: business.id,
+          countryCode: data.countryCode,
+          areaId: data.areaId,
+          userId: user.id,
+        },
+      }).catch(err => {
+        console.warn('[notify-admin] setup_completed failed (non-blocking):', err);
+      });
+
       toast.success(lang === 'pt' ? 'Negócio criado com sucesso!' : '¡Tu negocio está listo!');
       navigate('/setup-complete', { replace: true });
     } catch (error) {
