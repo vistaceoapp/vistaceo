@@ -1,14 +1,14 @@
-// notify-admin: thin compatibility wrapper that forwards admin notifications
-// to the Lovable Emails transactional system (send-transactional-email).
-// Keeps the same external contract so existing callers don't need updates.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
+// notify-admin: envía notificaciones al administrador (info@vistaceo.com)
+// usando Resend directamente. NUNCA envía al usuario final.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 const ADMIN_EMAIL = "info@vistaceo.com";
+// Usamos el remitente de prueba de Resend para no depender de verificación DNS.
+// Si en el futuro verificás vistaceo.com en Resend, cambiá a "VistaCEO <notify@vistaceo.com>".
+const FROM = "VistaCEO Admin <onboarding@resend.dev>";
 
 type EventType = "user_signup" | "setup_completed";
 
@@ -24,13 +24,79 @@ interface Payload {
   userId?: string;
 }
 
+function escapeHtml(s: unknown): string {
+  return String(s ?? "—")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function row(label: string, value: unknown): string {
+  return `<tr>
+    <td style="padding:8px 12px;border-bottom:1px solid #eee;color:#666;font-size:13px;width:160px;">${escapeHtml(label)}</td>
+    <td style="padding:8px 12px;border-bottom:1px solid #eee;color:#111;font-size:14px;font-weight:500;">${escapeHtml(value)}</td>
+  </tr>`;
+}
+
+function buildEmail(payload: Payload, timestamp: string): { subject: string; html: string } {
+  if (payload.event === "user_signup") {
+    const subject = `🆕 Nuevo usuario en VistaCEO — ${payload.email ?? "sin email"}`;
+    const html = `
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f6f7f9;padding:24px;">
+        <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #eee;">
+          <div style="padding:20px 24px;background:#0a0a0a;color:#fff;">
+            <div style="font-size:12px;letter-spacing:1px;opacity:0.7;">VISTACEO · ADMIN</div>
+            <div style="font-size:18px;font-weight:600;margin-top:4px;">🆕 Nuevo registro de usuario</div>
+          </div>
+          <table style="width:100%;border-collapse:collapse;">
+            ${row("Email", payload.email)}
+            ${row("Nombre", payload.fullName)}
+            ${row("Método", payload.authMethod === "google" ? "Google" : "Email/Password")}
+            ${row("User ID", payload.userId)}
+            ${row("Fecha", timestamp)}
+          </table>
+          <div style="padding:16px 24px;background:#fafafa;color:#888;font-size:12px;">
+            Notificación automática — solo para administradores.
+          </div>
+        </div>
+      </div>`;
+    return { subject, html };
+  }
+
+  // setup_completed
+  const subject = `✅ Setup completado — ${payload.businessName ?? payload.email ?? "negocio"}`;
+  const html = `
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f6f7f9;padding:24px;">
+      <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #eee;">
+        <div style="padding:20px 24px;background:#0a0a0a;color:#fff;">
+          <div style="font-size:12px;letter-spacing:1px;opacity:0.7;">VISTACEO · ADMIN</div>
+          <div style="font-size:18px;font-weight:600;margin-top:4px;">✅ Onboarding completado</div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          ${row("Negocio", payload.businessName)}
+          ${row("Email", payload.email)}
+          ${row("Nombre", payload.fullName)}
+          ${row("País", payload.countryCode)}
+          ${row("Área", payload.areaId)}
+          ${row("Business ID", payload.businessId)}
+          ${row("User ID", payload.userId)}
+          ${row("Fecha", timestamp)}
+        </table>
+        <div style="padding:16px 24px;background:#fafafa;color:#888;font-size:12px;">
+          Notificación automática — solo para administradores.
+        </div>
+      </div>
+    </div>`;
+  return { subject, html };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceKey);
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY no configurada");
 
     const payload = (await req.json()) as Payload;
     if (!payload?.event) throw new Error("Missing event");
@@ -39,49 +105,31 @@ Deno.serve(async (req) => {
       timeZone: "America/Argentina/Buenos_Aires",
     });
 
-    let templateName: string;
-    let templateData: Record<string, unknown>;
-    let idempotencyKey: string;
+    const { subject, html } = buildEmail(payload, timestamp);
 
-    if (payload.event === "user_signup") {
-      templateName = "admin-user-signup";
-      templateData = {
-        email: payload.email,
-        fullName: payload.fullName,
-        authMethod: payload.authMethod,
-        userId: payload.userId,
-        timestamp,
-      };
-      idempotencyKey = `admin-signup-${payload.userId ?? payload.email ?? crypto.randomUUID()}`;
-    } else if (payload.event === "setup_completed") {
-      templateName = "admin-setup-completed";
-      templateData = {
-        email: payload.email,
-        fullName: payload.fullName,
-        businessName: payload.businessName,
-        businessId: payload.businessId,
-        countryCode: payload.countryCode,
-        areaId: payload.areaId,
-        userId: payload.userId,
-        timestamp,
-      };
-      idempotencyKey = `admin-setup-${payload.businessId ?? payload.userId ?? crypto.randomUUID()}`;
-    } else {
-      throw new Error(`Unknown event: ${payload.event}`);
-    }
-
-    const { data, error } = await supabase.functions.invoke("send-transactional-email", {
-      body: {
-        templateName,
-        recipientEmail: ADMIN_EMAIL,
-        idempotencyKey,
-        templateData,
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        from: FROM,
+        to: [ADMIN_EMAIL],
+        subject,
+        html,
+      }),
     });
 
-    if (error) throw error;
+    const data = await res.json();
+    if (!res.ok) {
+      console.error("[notify-admin] Resend error", res.status, data);
+      throw new Error(`Resend ${res.status}: ${JSON.stringify(data)}`);
+    }
 
-    return new Response(JSON.stringify({ ok: true, forwarded: true, data }), {
+    console.log("[notify-admin] sent", payload.event, "→", ADMIN_EMAIL, "id:", data.id);
+
+    return new Response(JSON.stringify({ ok: true, id: data.id }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
