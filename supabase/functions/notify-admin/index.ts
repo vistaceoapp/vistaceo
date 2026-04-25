@@ -7,7 +7,8 @@ const corsHeaders = {
 };
 
 const ADMIN_EMAIL = "info@vistaceo.com";
-const FROM = "VistaCEO Alerts <onboarding@resend.dev>";
+const VERIFIED_FROM = "VistaCEO Alertas <info@vistaceo.com>";
+const FALLBACK_FROM = "VistaCEO Alertas <onboarding@resend.dev>";
 
 type EventType = "user_signup" | "setup_completed";
 
@@ -100,12 +101,26 @@ serve(async (req) => {
       throw new Error(`Unknown event: ${payload.event}`);
     }
 
-    const result = await resend.emails.send({
-      from: FROM,
+    let result = await resend.emails.send({
+      from: VERIFIED_FROM,
       to: [ADMIN_EMAIL],
       subject,
       html: html(title, rows, accent),
+      reply_to: ADMIN_EMAIL,
     });
+
+    if (result.error) {
+      console.warn("[notify-admin] Verified sender failed, retrying with Resend fallback:", result.error.message);
+      result = await resend.emails.send({
+        from: FALLBACK_FROM,
+        to: [ADMIN_EMAIL],
+        subject: `[Fallback] ${subject}`,
+        html: html(title, rows, accent),
+        reply_to: ADMIN_EMAIL,
+      });
+    }
+
+    if (result.error) throw new Error(result.error.message);
 
     return new Response(JSON.stringify({ ok: true, result }), {
       status: 200,
