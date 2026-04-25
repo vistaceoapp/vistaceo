@@ -1668,7 +1668,8 @@ const FinalCTA = memo(forwardRef<HTMLElement>((_props, _ref) => {
       </Reveal>
     </section>
   );
-};
+}));
+FinalCTA.displayName = "FinalCTA";
 
 /* ═══════════════════════════════════════════════════════════════
    14. Footer premium
