@@ -1639,7 +1639,7 @@ const FAQSection = () => {
 /* ═══════════════════════════════════════════════════════════════
    13. CTA final
    ═══════════════════════════════════════════════════════════════ */
-const FinalCTA = () => {
+const FinalCTA = memo(forwardRef<HTMLElement>((_props, _ref) => {
   const navigate = useNavigate();
 
   return (
