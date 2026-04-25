@@ -55,6 +55,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               } catch (error) {
                 console.error('Failed to send welcome email:', error);
               }
+              // Aviso interno al admin (no bloqueante)
+              try {
+                await supabase.functions.invoke('notify-admin', {
+                  body: {
+                    event: 'user_signup',
+                    email: session.user.email,
+                    fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+                    authMethod: 'google',
+                    userId: session.user.id,
+                  },
+                });
+              } catch (error) {
+                console.error('[notify-admin] signup google failed:', error);
+              }
             }, 0);
           }
         }
