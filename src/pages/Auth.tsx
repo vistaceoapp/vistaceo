@@ -215,6 +215,15 @@ const Auth = () => {
           return;
         }
         await sendWelcomeEmail(email, fullName, 'email');
+        // Aviso interno al admin (no bloqueante)
+        supabase.functions.invoke('notify-admin', {
+          body: {
+            event: 'user_signup',
+            email,
+            fullName,
+            authMethod: 'email',
+          },
+        }).catch((err) => console.error('[notify-admin] signup email failed:', err));
         if (requiresEmailConfirmation) {
           toast.success("¡Cuenta creada! Revisa tu email para confirmarla e ingresar.");
           navigate("/auth?mode=login", { replace: true });
