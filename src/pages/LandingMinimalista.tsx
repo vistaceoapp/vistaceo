@@ -1673,7 +1673,7 @@ const FinalCTA = () => {
 /* ═══════════════════════════════════════════════════════════════
    14. Footer premium
    ═══════════════════════════════════════════════════════════════ */
-const PremiumFooter = memo(() => {
+const PremiumFooter = memo(forwardRef<HTMLElement>((_props, _ref) => {
   const scrollTo = (href: string) => {
     if (href.startsWith("http")) { window.open(href, "_blank"); return; }
     const el = document.querySelector(href);
