@@ -1749,7 +1749,7 @@ const PremiumFooter = memo(forwardRef<HTMLElement>((_props, _ref) => {
       </div>
     </footer>
   );
-});
+}));
 PremiumFooter.displayName = "PremiumFooter";
 
 /* ═══════════════════════════════════════════════════════════════
