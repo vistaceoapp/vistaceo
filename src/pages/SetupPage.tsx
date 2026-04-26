@@ -406,15 +406,18 @@ const SetupPage = () => {
         }
       }
 
-      // Step 5b: Auto-trigger opportunity scanning (fire and forget)
+      // Step 5b: Seed initial Radar (opportunities + 1 trend) so the user
+      // never lands on an empty dashboard. Fire-and-forget; the function
+      // guarantees at least 1-2 opportunities and 1 trend even if the AI
+      // returns nothing.
       try {
-        supabase.functions.invoke('weekly-insight-scan', {
-          body: { businessId: business.id, source: 'setup_auto' },
+        supabase.functions.invoke('seed-initial-insights', {
+          body: { businessId: business.id },
         }).catch(err => {
-          console.warn('[Setup] Auto radar scan failed (non-blocking):', err);
+          console.warn('[Setup] seed-initial-insights failed (non-blocking):', err);
         });
       } catch (scanErr) {
-        console.warn('[Setup] Error triggering auto scan:', scanErr);
+        console.warn('[Setup] Error triggering initial seed:', scanErr);
       }
 
       setCreateProgress(100);
