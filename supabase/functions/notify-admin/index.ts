@@ -44,7 +44,9 @@ Deno.serve(async (req) => {
         ? `admin-signup-${payload.userId ?? payload.email ?? crypto.randomUUID()}`
         : `admin-setup-${payload.businessId ?? payload.userId ?? crypto.randomUUID()}`;
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      global: { headers: { Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` } },
+    });
 
     const { data, error } = await supabase.functions.invoke("send-transactional-email", {
       body: {
