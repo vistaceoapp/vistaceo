@@ -101,45 +101,21 @@ Deno.serve(async (req) => {
       console.log('[auto-index] IndexNow results:', JSON.stringify(results.indexnow));
     }
 
-    // 2. Google Ping - Notify about sitemap updates
-    const googlePingUrls = [
-      `https://www.google.com/ping?sitemap=${encodeURIComponent(`${BLOG_URL}/sitemap.xml`)}`,
-      `https://www.google.com/ping?sitemap=${encodeURIComponent(`${MAIN_URL}/sitemap.xml`)}`,
-    ];
-
-    const googleResults = await Promise.allSettled(
-      googlePingUrls.map(async (url) => {
-        const resp = await fetch(url);
-        return { url, status: resp.status, ok: resp.ok };
-      })
-    );
-
-    results.google_ping = {
+    // 2. Google ya no acepta /ping (deprecado jun-2023). En su lugar refrescamos
+    //    el sitemap haciendo HEAD para forzar la caché del CDN/Cloudflare y
+    //    permitir que Googlebot detecte cambios al próximo crawl natural.
+    const sitemapWarmup = await Promise.allSettled([
+      fetch(`${BLOG_URL}/sitemap.xml`, { method: 'GET', headers: { 'Cache-Control': 'no-cache' } }),
+      fetch(`${MAIN_URL}/sitemap.xml`, { method: 'GET', headers: { 'Cache-Control': 'no-cache' } }),
+    ]);
+    results.sitemap_warmup = {
       success: true,
-      pings: googleResults.map(r => 
-        r.status === 'fulfilled' ? r.value : { error: String(r.reason) }
-      ),
+      results: sitemapWarmup.map(r => r.status === 'fulfilled' ? { status: r.value.status, ok: r.value.ok } : { error: String(r.reason) }),
     };
 
-    // 3. Bing Webmaster Ping
-    const bingPingUrls = [
-      `https://www.bing.com/ping?sitemap=${encodeURIComponent(`${BLOG_URL}/sitemap.xml`)}`,
-      `https://www.bing.com/ping?sitemap=${encodeURIComponent(`${MAIN_URL}/sitemap.xml`)}`,
-    ];
-
-    const bingResults = await Promise.allSettled(
-      bingPingUrls.map(async (url) => {
-        const resp = await fetch(url);
-        return { url, status: resp.status, ok: resp.ok };
-      })
-    );
-
-    results.bing_ping = {
-      success: true,
-      pings: bingResults.map(r => 
-        r.status === 'fulfilled' ? r.value : { error: String(r.reason) }
-      ),
-    };
+    // 3. Bing también deprecó /ping. IndexNow ya cubre Bing, omitimos llamadas inútiles.
+    results.google_ping = { success: true, note: 'Deprecated by Google 2023 - using IndexNow instead' };
+    results.bing_ping = { success: true, note: 'Covered by IndexNow' };
 
     // Log the run for auditing
     await supabase.from('blog_runs').insert({

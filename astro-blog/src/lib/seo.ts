@@ -5,13 +5,20 @@ import { truncate } from './text';
 const SITE_URL = 'https://blog.vistaceo.com';
 const MAIN_SITE_URL = 'https://www.vistaceo.com';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.jpg`;
+const BRAND = 'VISTACEO® Latinoamérica';
+const PUBLISHER = 'VISTACEO';
+
+// LATAM target areas — boostea relevancia regional para Search Console
+const LATAM_AREAS = [
+  'AR', 'MX', 'CO', 'CL', 'PE', 'UY', 'EC', 'VE', 'BO', 'PY',
+  'CR', 'PA', 'DO', 'GT', 'HN', 'SV', 'NI', 'PR'
+];
 
 export function getMetaTitle(post: BlogPost): string {
   if (post.meta_title && post.meta_title.length > 0) {
     return truncate(post.meta_title, 60);
   }
-  const generated = `${post.title} | VistaCEO Blog`;
-  return truncate(generated, 60);
+  return truncate(post.title, 60);
 }
 
 export function getMetaDescription(post: BlogPost): string {
@@ -21,7 +28,7 @@ export function getMetaDescription(post: BlogPost): string {
   if (post.excerpt) {
     return truncate(post.excerpt, 155);
   }
-  return truncate(`${post.title} - Guía completa por VistaCEO`, 155);
+  return truncate(`${post.title} - Guía ejecutiva por VISTACEO`, 155);
 }
 
 export function getOgImage(post: BlogPost): string {
@@ -38,42 +45,51 @@ function isValidPublicUrl(url: string | null): boolean {
 }
 
 export function getCanonicalUrl(slug: string): string {
-  // Always use trailing slash for consistency with Astro directory format
   return `${SITE_URL}/${slug}/`;
 }
 
 export function generateBlogPostingSchema(post: BlogPost) {
-  // Use category (12-cluster system) first, fallback to pillar
   const cluster = getCluster(post.category || post.pillar);
-  
+  const wordCount = post.content_md?.split(/\s+/).length || 0;
+  const readingMinutes = Math.max(1, Math.round(wordCount / 220));
+
   return {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    "headline": getMetaTitle(post),
+    "headline": post.title,
+    "alternativeHeadline": post.meta_title || post.title,
     "description": getMetaDescription(post),
-    "image": getOgImage(post),
+    "image": [getOgImage(post)],
     "datePublished": post.publish_at || post.created_at,
     "dateModified": post.updated_at,
     "author": {
-      "@type": "Person",
-      "name": post.author_name || "Equipo VistaCEO",
-      "url": `${MAIN_SITE_URL}/equipo`
+      "@type": "Organization",
+      "name": post.author_name || PUBLISHER,
+      "url": MAIN_SITE_URL
     },
     "publisher": {
       "@type": "Organization",
-      "name": "VistaCEO",
+      "name": PUBLISHER,
       "logo": {
         "@type": "ImageObject",
-        "url": `${MAIN_SITE_URL}/favicon.png`
+        "url": `${MAIN_SITE_URL}/favicon.png`,
+        "width": 512,
+        "height": 512
       }
     },
     "mainEntityOfPage": {
       "@type": "WebPage",
       "@id": getCanonicalUrl(post.slug)
     },
-    "wordCount": post.content_md?.split(/\s+/).length || 0,
-    "articleSection": cluster?.name || "Blog",
+    "wordCount": wordCount,
+    "timeRequired": `PT${readingMinutes}M`,
+    "articleSection": cluster?.name || "Negocios",
     "inLanguage": "es-419",
+    "isAccessibleForFree": true,
+    "spatialCoverage": LATAM_AREAS.map(code => ({
+      "@type": "Country",
+      "identifier": code
+    })),
     "keywords": [
       post.primary_keyword,
       ...(post.secondary_keywords || []),
@@ -83,9 +99,8 @@ export function generateBlogPostingSchema(post: BlogPost) {
 }
 
 export function generateBreadcrumbSchema(post: BlogPost) {
-  // Use category (12-cluster system) first, fallback to pillar
   const cluster = getCluster(post.category || post.pillar);
-  const items = [
+  const items: any[] = [
     {
       "@type": "ListItem",
       "position": 1,
@@ -127,9 +142,11 @@ export function generateWebSiteSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "VistaCEO Blog",
+    "name": BRAND,
+    "alternateName": "VISTACEO Blog",
     "url": SITE_URL,
     "inLanguage": "es-419",
+    "publisher": { "@type": "Organization", "name": PUBLISHER, "url": MAIN_SITE_URL },
     "potentialAction": {
       "@type": "SearchAction",
       "target": {
@@ -145,7 +162,8 @@ export function generateOrganizationSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "VistaCEO",
+    "name": PUBLISHER,
+    "alternateName": BRAND,
     "url": MAIN_SITE_URL,
     "logo": `${MAIN_SITE_URL}/favicon.png`,
     "sameAs": [
@@ -153,7 +171,8 @@ export function generateOrganizationSchema() {
       "https://twitter.com/vistaceo",
       "https://instagram.com/vistaceo"
     ],
-    "description": "VistaCEO es tu copiloto de IA para tomar decisiones de negocio más inteligentes en Latinoamérica."
+    "areaServed": LATAM_AREAS.map(code => ({ "@type": "Country", "identifier": code })),
+    "description": "VISTACEO es inteligencia ejecutiva impulsada por IA para tomar mejores decisiones de negocio en Latinoamérica."
   };
 }
 
@@ -176,7 +195,6 @@ export function generateCollectionPageSchema(clusterName: string, clusterUrl: st
   };
 }
 
-// NEW: FAQ Schema for cluster pages
 export function generateFAQSchema(faqs: { question: string; answer: string }[]) {
   return {
     "@context": "https://schema.org",
@@ -192,15 +210,12 @@ export function generateFAQSchema(faqs: { question: string; answer: string }[]) 
   };
 }
 
-// NEW: Article structured data for enhanced SEO
 export function generateArticleSchema(post: BlogPost) {
-  // Use category (12-cluster system) first, fallback to pillar
   const cluster = getCluster(post.category || post.pillar);
-  
   return {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": getMetaTitle(post),
+    "headline": post.title,
     "description": getMetaDescription(post),
     "image": {
       "@type": "ImageObject",
@@ -211,12 +226,13 @@ export function generateArticleSchema(post: BlogPost) {
     "datePublished": post.publish_at || post.created_at,
     "dateModified": post.updated_at,
     "author": {
-      "@type": "Person",
-      "name": post.author_name || "Equipo VistaCEO"
+      "@type": "Organization",
+      "name": post.author_name || PUBLISHER,
+      "url": MAIN_SITE_URL
     },
     "publisher": {
       "@type": "Organization",
-      "name": "VistaCEO",
+      "name": PUBLISHER,
       "logo": {
         "@type": "ImageObject",
         "url": `${MAIN_SITE_URL}/favicon.png`,
@@ -229,6 +245,10 @@ export function generateArticleSchema(post: BlogPost) {
     "articleSection": cluster?.name || "Negocios",
     "inLanguage": "es-419",
     "isAccessibleForFree": true,
+    "spatialCoverage": LATAM_AREAS.map(code => ({
+      "@type": "Country",
+      "identifier": code
+    })),
     "speakable": {
       "@type": "SpeakableSpecification",
       "cssSelector": [".post-content h1", ".post-content h2", ".post-takeaways"]

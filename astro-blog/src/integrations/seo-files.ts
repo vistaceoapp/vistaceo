@@ -30,10 +30,13 @@ async function generateSitemapXml(): Promise<string> {
     lastmod: string;
     changefreq: string;
     priority: string;
-    image?: { loc: string; title: string };
+    image?: { loc: string; title: string; caption?: string };
+    news?: { title: string; publication_date: string };
   }[] = [];
 
   const today = new Date().toISOString().split('T')[0];
+  const nowIso = new Date().toISOString();
+  const TWO_DAYS = 1000 * 60 * 60 * 24 * 2;
 
   urls.push({
     loc: withTrailingSlash(`${SITE_URL}/`),
@@ -46,25 +49,37 @@ async function generateSitemapXml(): Promise<string> {
     urls.push({
       loc: withTrailingSlash(`${SITE_URL}/tema/${cluster.slug}/`),
       lastmod: today,
-      changefreq: 'weekly',
+      changefreq: 'daily',
       priority: '0.9',
     });
   }
 
   for (const post of posts) {
-    const lastmod = (post.updated_at || post.publish_at || new Date().toISOString()).split('T')[0];
+    const lastmodIso = post.updated_at || post.publish_at || nowIso;
+    const lastmod = lastmodIso.split('T')[0];
+    const ageMs = Date.now() - new Date(lastmodIso).getTime();
+    const isFresh = ageMs < TWO_DAYS;
 
     const entry: typeof urls[number] = {
       loc: withTrailingSlash(`${SITE_URL}/${post.slug}/`),
       lastmod,
-      changefreq: 'monthly',
-      priority: '0.8',
+      changefreq: isFresh ? 'daily' : 'weekly',
+      priority: isFresh ? '0.95' : '0.85',
     };
 
     if (post.hero_image_url && post.hero_image_url.startsWith('http')) {
       entry.image = {
         loc: post.hero_image_url,
         title: post.image_alt_text || post.title,
+        caption: post.image_alt_text || post.title,
+      };
+    }
+
+    // News tag — solo para notas frescas (<48h). Boost de descubrimiento.
+    if (isFresh) {
+      entry.news = {
+        title: post.title,
+        publication_date: lastmodIso,
       };
     }
 
@@ -80,7 +95,11 @@ async function generateSitemapXml(): Promise<string> {
     urls
       .map((url) => {
         const imageBlock = url.image
-          ? `\n    <image:image>\n      <image:loc>${escapeXml(url.image.loc)}</image:loc>\n      <image:title>${escapeXml(url.image.title)}</image:title>\n    </image:image>`
+          ? `\n    <image:image>\n      <image:loc>${escapeXml(url.image.loc)}</image:loc>\n      <image:title>${escapeXml(url.image.title)}</image:title>${url.image.caption ? `\n      <image:caption>${escapeXml(url.image.caption)}</image:caption>` : ''}\n    </image:image>`
+          : '';
+
+        const newsBlock = url.news
+          ? `\n    <news:news>\n      <news:publication>\n        <news:name>VISTACEO Latinoamérica</news:name>\n        <news:language>es</news:language>\n      </news:publication>\n      <news:publication_date>${escapeXml(url.news.publication_date)}</news:publication_date>\n      <news:title>${escapeXml(url.news.title)}</news:title>\n    </news:news>`
           : '';
 
         return (
@@ -89,7 +108,8 @@ async function generateSitemapXml(): Promise<string> {
           `    <lastmod>${escapeXml(url.lastmod)}</lastmod>\n` +
           `    <changefreq>${escapeXml(url.changefreq)}</changefreq>\n` +
           `    <priority>${escapeXml(url.priority)}</priority>` +
-          `${imageBlock}\n` +
+          `${imageBlock}` +
+          `${newsBlock}\n` +
           `  </url>`
         );
       })

@@ -8,7 +8,7 @@ import RelatedPosts from '../components/RelatedPosts.astro';
 import ReadingToolbar from '../components/ReadingToolbar.astro';
 import type { BlogPost } from '../lib/supabase';
 import { getCategoryVisual } from '../lib/category-visuals';
-import { getMetaTitle, getMetaDescription, getOgImage, getCanonicalUrl, generateBlogPostingSchema, generateBreadcrumbSchema, generateArticleSchema } from '../lib/seo';
+import { getMetaTitle, getMetaDescription, getOgImage, getCanonicalUrl, generateBlogPostingSchema, generateBreadcrumbSchema, generateArticleSchema, generateOrganizationSchema, generateWebSiteSchema } from '../lib/seo';
 import { extractHeadings } from '../lib/text';
 import { parseMarkdown } from '../lib/markdown';
 
@@ -31,7 +31,9 @@ const processedContent = parseMarkdown(post.content_md);
 const schemas = [
   generateBlogPostingSchema(post),
   generateBreadcrumbSchema(post),
-  generateArticleSchema(post)
+  generateArticleSchema(post),
+  generateOrganizationSchema(),
+  generateWebSiteSchema()
 ];
 ---
 
