@@ -57,6 +57,7 @@ import { SetupStepBusiness } from '@/components/setup/SetupStepBusiness';
 import { SetupStepQuestionnaire } from '@/components/setup/SetupStepQuestionnaire';
 
 import { SetupProgress } from '@/components/setup/SetupProgress';
+import { collectSignupTrackingContext } from '@/lib/signup-tracking';
 
 // Steps: country -> identity (AI) -> business (name+google) -> mode -> questionnaire -> create
 // Manual fallback inserts sector+type steps dynamically
