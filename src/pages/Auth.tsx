@@ -11,6 +11,7 @@ import { Eye, EyeOff, ArrowRight, Loader2, Crown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { safeLocalStorage } from "@/lib/safe-storage";
+import { collectSignupTrackingContext } from "@/lib/signup-tracking";
 import iconBrand from "@/assets/brand/icon-vistaceo-new.webp";
 
 // Dashboard route constant
@@ -212,13 +213,14 @@ const Auth = () => {
           return;
         }
         await sendWelcomeEmail(email, fullName, 'email');
-        // Aviso interno al admin (no bloqueante)
+        // Aviso interno al admin con tracking completo (no bloqueante)
         supabase.functions.invoke('notify-admin', {
           body: {
             event: 'user_signup',
             email,
             fullName,
             authMethod: 'email',
+            ...collectSignupTrackingContext(),
           },
         }).catch((err) => console.error('[notify-admin] signup email failed:', err));
         if (requiresEmailConfirmation) {
