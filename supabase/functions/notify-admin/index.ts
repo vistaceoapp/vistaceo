@@ -1,7 +1,5 @@
 // notify-admin: delega al sistema transaccional oficial usando los templates
 // admin-user-signup y admin-setup-completed (React Email premium).
-import { createClient } from "npm:@supabase/supabase-js@2";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -27,7 +25,6 @@ Deno.serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     const payload = (await req.json()) as Payload;
     if (!payload?.event) throw new Error("Missing event");
@@ -44,22 +41,25 @@ Deno.serve(async (req) => {
         ? `admin-signup-${payload.userId ?? payload.email ?? crypto.randomUUID()}`
         : `admin-setup-${payload.businessId ?? payload.userId ?? crypto.randomUUID()}`;
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      global: { headers: { Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` } },
-    });
-
-    const { data, error } = await supabase.functions.invoke("send-transactional-email", {
-      body: {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+      },
+      body: JSON.stringify({
         templateName,
         recipientEmail: "info@vistaceo.com",
         idempotencyKey,
         templateData: { ...payload, timestamp },
-      },
+      }),
     });
 
-    if (error) {
-      console.error("[notify-admin] invoke error", error);
-      throw new Error(error.message || "send-transactional-email failed");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.error("[notify-admin] send-transactional-email failed", res.status, data);
+      throw new Error(`send-transactional-email ${res.status}: ${JSON.stringify(data)}`);
     }
 
     console.log("[notify-admin] queued", payload.event, "→ info@vistaceo.com", data);
