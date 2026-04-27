@@ -50,14 +50,34 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
   <meta name="description" content={description}>
   <link rel="canonical" href={canonical}>
   
-  <!-- Language -->
+  <!-- Language: LATAM hreflang matrix (boost de impresiones país por país) -->
   <meta http-equiv="content-language" content="es-419">
+  <link rel="alternate" hreflang="es" href={canonical}>
   <link rel="alternate" hreflang="es-419" href={canonical}>
+  <link rel="alternate" hreflang="es-AR" href={canonical}>
+  <link rel="alternate" hreflang="es-MX" href={canonical}>
+  <link rel="alternate" hreflang="es-CO" href={canonical}>
+  <link rel="alternate" hreflang="es-CL" href={canonical}>
+  <link rel="alternate" hreflang="es-PE" href={canonical}>
+  <link rel="alternate" hreflang="es-UY" href={canonical}>
+  <link rel="alternate" hreflang="es-EC" href={canonical}>
+  <link rel="alternate" hreflang="es-VE" href={canonical}>
+  <link rel="alternate" hreflang="es-BO" href={canonical}>
+  <link rel="alternate" hreflang="es-PY" href={canonical}>
+  <link rel="alternate" hreflang="es-CR" href={canonical}>
+  <link rel="alternate" hreflang="es-PA" href={canonical}>
+  <link rel="alternate" hreflang="es-DO" href={canonical}>
+  <link rel="alternate" hreflang="es-GT" href={canonical}>
+  <link rel="alternate" hreflang="es-HN" href={canonical}>
+  <link rel="alternate" hreflang="es-SV" href={canonical}>
+  <link rel="alternate" hreflang="es-NI" href={canonical}>
+  <link rel="alternate" hreflang="es-PR" href={canonical}>
+  <link rel="alternate" hreflang="es-US" href={canonical}>
   <link rel="alternate" hreflang="x-default" href={canonical}>
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content={ogType}>
-  <meta property="og:site_name" content="VistaCEO Blog">
+  <meta property="og:site_name" content="VISTACEO® Latinoamérica">
   <meta property="og:title" content={title}>
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonical}>
