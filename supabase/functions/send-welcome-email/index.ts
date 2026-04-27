@@ -258,7 +258,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const emailResponse = await resend.emails.send({
-      from: "VISTACEO <onboarding@resend.dev>",
+      from: "VISTACEO® Latinoamérica <onboarding@resend.dev>",
       to: [email],
       subject: t.subject,
       html,

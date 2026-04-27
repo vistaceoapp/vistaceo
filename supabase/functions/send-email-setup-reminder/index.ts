@@ -291,7 +291,7 @@ async function sendReminderToUser(
   const { html, text } = generateSetupReminderEmail(firstName, setupUrl, dashboardUrl);
 
   const emailResponse = await resend.emails.send({
-    from: "VISTACEO Latinoamérica <info@vistaceo.com>",
+    from: "VISTACEO® Latinoamérica <info@vistaceo.com>",
     replyTo: "info@vistaceo.com",
     to: [email],
     subject: "Tu cuenta está casi lista ⚠️ …falta calibrar tu contexto.",
