@@ -8,10 +8,12 @@ const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.jpg`;
 const BRAND = 'VISTACEO® Latinoamérica';
 const PUBLISHER = 'VISTACEO';
 
-// LATAM target areas — boostea relevancia regional para Search Console
+// Países objetivo VISTACEO — LATAM hispanohablante (sin VE/CU/NI/HN/SV/DO/GT/PR/BO/US) + España como secundario
+// Primarios: Argentina, Chile, México, Uruguay, Costa Rica, Ecuador, Colombia, Panamá
+// Secundarios: Perú, Paraguay, España
 const LATAM_AREAS = [
-  'AR', 'MX', 'CO', 'CL', 'PE', 'UY', 'EC', 'VE', 'BO', 'PY',
-  'CR', 'PA', 'DO', 'GT', 'HN', 'SV', 'NI', 'PR'
+  'AR', 'CL', 'MX', 'UY', 'CR', 'EC', 'CO', 'PA',
+  'PE', 'PY', 'ES'
 ];
 
 export function getMetaTitle(post: BlogPost): string {
