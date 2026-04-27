@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { safeLocalStorage } from "@/lib/safe-storage";
+import { collectSignupTrackingContext } from "@/lib/signup-tracking";
 
 interface AuthContextType {
   user: User | null;
