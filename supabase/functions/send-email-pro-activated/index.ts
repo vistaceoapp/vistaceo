@@ -412,7 +412,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const resend = new Resend(RESEND_API_KEY);
     const emailResponse = await resend.emails.send({
-      from: "VISTACEO Latinoamérica <info@vistaceo.com>",
+      from: "VISTACEO® Latinoamérica <info@vistaceo.com>",
       replyTo: "info@vistaceo.com",
       to: [email],
       subject: "¡Felicitaciones! Pro activado 👑 Inteligencia suprema sin límites",

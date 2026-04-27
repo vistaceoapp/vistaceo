@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'VistaCEO Blog <info@vistaceo.com>',
+            from: 'VISTACEO® Latinoamérica <info@vistaceo.com>',
             to: ['info@vistaceo.com'],
             subject: '🚨 Blog Deploy FAILED - All retries exhausted',
             html: `
