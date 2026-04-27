@@ -153,15 +153,12 @@ const Auth = () => {
     }
   };
 
-  const sendWelcomeEmail = async (email: string, fullName: string, authMethod: 'email' | 'google') => {
+  const sendWelcomeEmail = async (email: string, fullName: string, _authMethod: 'email' | 'google') => {
     try {
-      await supabase.functions.invoke('send-welcome-email', {
+      await supabase.functions.invoke('send-email-setup-reminder', {
         body: {
           email,
           fullName: fullName || email.split('@')[0],
-          authMethod,
-          locale: 'es',
-          continueUrl: `${window.location.origin}/setup`,
         },
       });
     } catch (error) {
