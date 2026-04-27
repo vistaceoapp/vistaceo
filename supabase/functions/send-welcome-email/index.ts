@@ -20,9 +20,9 @@ interface WelcomeEmailRequest {
 const getLocalizedContent = (locale: string = 'es') => {
   const content = {
     es: {
-      subject: '¡Bienvenido a Vistaceo! 🚀 Tu CEO digital te espera',
+      subject: '¡Bienvenido a VISTACEO! 🚀 Tu CEO digital te espera',
       greeting: 'Hola',
-      welcome: '¡Bienvenido a Vistaceo!',
+      welcome: '¡Bienvenido a VISTACEO!',
       subtitle: 'Tu CEO digital personal está listo para ayudarte',
       bodyIntro: 'Empezaste a crear tu cuenta y estamos muy emocionados de tenerte con nosotros.',
       googleLoginText: 'Ingresa con tu cuenta de Google cuando quieras acceder.',
@@ -39,12 +39,12 @@ const getLocalizedContent = (locale: string = 'es') => {
         '🧠 IA que aprende de tu negocio cada día',
       ],
       footer: 'Si tienes preguntas, responde a este email. Estamos aquí para ayudarte.',
-      team: 'El equipo de Vistaceo',
+      team: 'El equipo de VISTACEO',
     },
     pt: {
-      subject: 'Bem-vindo ao Vistaceo! 🚀 Seu CEO digital te espera',
+      subject: 'Bem-vindo ao VISTACEO! 🚀 Seu CEO digital te espera',
       greeting: 'Olá',
-      welcome: 'Bem-vindo ao Vistaceo!',
+      welcome: 'Bem-vindo ao VISTACEO!',
       subtitle: 'Seu CEO digital pessoal está pronto para te ajudar',
       bodyIntro: 'Você começou a criar sua conta e estamos muito animados em tê-lo conosco.',
       googleLoginText: 'Entre com sua conta do Google quando quiser acessar.',
@@ -61,12 +61,12 @@ const getLocalizedContent = (locale: string = 'es') => {
         '🧠 IA que aprende do seu negócio cada dia',
       ],
       footer: 'Se tiver dúvidas, responda a este email. Estamos aqui para te ajudar.',
-      team: 'Equipe Vistaceo',
+      team: 'Equipe VISTACEO',
     },
     en: {
-      subject: 'Welcome to Vistaceo! 🚀 Your digital CEO awaits',
+      subject: 'Welcome to VISTACEO! 🚀 Your digital CEO awaits',
       greeting: 'Hello',
-      welcome: 'Welcome to Vistaceo!',
+      welcome: 'Welcome to VISTACEO!',
       subtitle: 'Your personal digital CEO is ready to help you',
       bodyIntro: 'You started creating your account and we are very excited to have you with us.',
       googleLoginText: 'Sign in with your Google account whenever you want to access.',
@@ -83,7 +83,7 @@ const getLocalizedContent = (locale: string = 'es') => {
         '🧠 AI that learns from your business every day',
       ],
       footer: 'If you have questions, reply to this email. We are here to help you.',
-      team: 'The Vistaceo Team',
+      team: 'The VISTACEO Team',
     },
   };
 
@@ -160,7 +160,7 @@ const generateWelcomeEmail = (
             <td style="background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #D946EF 100%); padding: 40px 40px 30px 40px; text-align: center;">
               <!-- Logo placeholder - uses text as fallback -->
               <div style="margin-bottom: 20px;">
-                <span style="font-size: 36px; font-weight: 800; color: white; letter-spacing: -1px;">Vistaceo</span>
+                <span style="font-size: 36px; font-weight: 800; color: white; letter-spacing: -1px;">VISTACEO</span>
               </div>
               <h1 style="margin: 0 0 8px 0; color: white; font-size: 28px; font-weight: 700;">${t.greeting}, ${firstName}!</h1>
               <p style="margin: 0; color: rgba(255,255,255,0.9); font-size: 16px;">${t.subtitle}</p>
@@ -224,7 +224,7 @@ const generateWelcomeEmail = (
           <tr>
             <td align="center">
               <p style="margin: 0; color: #94a3b8; font-size: 12px;">
-                © ${new Date().getFullYear()} Vistaceo. All rights reserved.
+                © ${new Date().getFullYear()} VISTACEO. All rights reserved.
               </p>
             </td>
           </tr>
@@ -258,7 +258,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const emailResponse = await resend.emails.send({
-      from: "Vistaceo <onboarding@resend.dev>",
+      from: "VISTACEO <onboarding@resend.dev>",
       to: [email],
       subject: t.subject,
       html,

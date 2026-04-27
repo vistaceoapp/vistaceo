@@ -16,7 +16,7 @@ interface SetupReminderRequest {
   runJob?: boolean; // If true, runs the cron job logic
 }
 
-// VistaCEO Premium Design System
+// VISTACEO Premium Design System
 const BRAND = {
   gradientStart: "#298FDA",
   gradientMid: "#3B79D9",
@@ -84,7 +84,7 @@ function generateSetupReminderEmail(
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td align="center">
-                    <img src="${BRAND.logoUrl}" alt="VistaCEO" width="160" height="40" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto;" />
+                    <img src="${BRAND.logoUrl}" alt="VISTACEO" width="160" height="40" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto;" />
                   </td>
                 </tr>
               </table>
@@ -112,7 +112,7 @@ function generateSetupReminderEmail(
                 </tr>
                 <tr>
                   <td style="font-size: 15px; color: ${BRAND.textSecondary}; line-height: 1.7; padding-bottom: 28px;">
-                    Tomá 3 minutos para calibrar VistaCEO® a tu negocio y desbloqueá todo el potencial de tu CEO digital.
+                    Tomá 3 minutos para calibrar VISTACEO a tu negocio y desbloqueá todo el potencial de tu CEO digital.
                   </td>
                 </tr>
               </table>
@@ -210,7 +210,7 @@ function generateSetupReminderEmail(
                 </tr>
                 <tr>
                   <td style="font-size: 11px; color: ${BRAND.textMuted}; padding-top: 16px;">
-                    © ${new Date().getFullYear()} VistaCEO® Latinoamérica
+                    © ${new Date().getFullYear()} VISTACEO Latinoamérica
                   </td>
                 </tr>
               </table>
@@ -226,13 +226,13 @@ function generateSetupReminderEmail(
 </html>
 `;
   const text = `
-Tu cuenta en VistaCEO® está casi lista...falta calibrar tu contexto.
+Tu cuenta en VISTACEO está casi lista...falta calibrar tu contexto.
 
 Falta calibrar tu contexto
 
 ${firstName}, creaste tu cuenta pero aún no completaste la configuración inicial. Sin esta información, nuestra IA queda genérica y pierde la capacidad de darte recomendaciones personalizadas.
 
-Tomá 3 minutos para calibrar VistaCEO® a tu negocio y desbloqueá todo el potencial de tu CEO digital.
+Tomá 3 minutos para calibrar VISTACEO a tu negocio y desbloqueá todo el potencial de tu CEO digital.
 
 Lo que desbloqueás con la configuración:
 🎯 Plan de acción personalizado para tu tipo de negocio
@@ -249,7 +249,7 @@ Lo que desbloqueás con la configuración:
 Respondé este email y te ayudamos a configurar tu cuenta.
 info@vistaceo.com
 
-© ${new Date().getFullYear()} VistaCEO® Latinoamérica. Todos los derechos reservados.
+© ${new Date().getFullYear()} VISTACEO Latinoamérica. Todos los derechos reservados.
 `;
 
   return { html, text };
@@ -291,7 +291,7 @@ async function sendReminderToUser(
   const { html, text } = generateSetupReminderEmail(firstName, setupUrl, dashboardUrl);
 
   const emailResponse = await resend.emails.send({
-    from: "VistaCEO® Latinoamérica <info@vistaceo.com>",
+    from: "VISTACEO Latinoamérica <info@vistaceo.com>",
     replyTo: "info@vistaceo.com",
     to: [email],
     subject: "Tu cuenta está casi lista ⚠️ …falta calibrar tu contexto.",
