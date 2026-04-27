@@ -11,6 +11,7 @@ import { Eye, EyeOff, ArrowRight, Loader2, Crown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { safeLocalStorage } from "@/lib/safe-storage";
+import { collectSignupTrackingContext } from "@/lib/signup-tracking";
 import iconBrand from "@/assets/brand/icon-vistaceo-new.webp";
 
 // Dashboard route constant
@@ -153,15 +154,12 @@ const Auth = () => {
     }
   };
 
-  const sendWelcomeEmail = async (email: string, fullName: string, authMethod: 'email' | 'google') => {
+  const sendWelcomeEmail = async (email: string, fullName: string, _authMethod: 'email' | 'google') => {
     try {
-      await supabase.functions.invoke('send-welcome-email', {
+      await supabase.functions.invoke('send-email-setup-reminder', {
         body: {
           email,
           fullName: fullName || email.split('@')[0],
-          authMethod,
-          locale: 'es',
-          continueUrl: `${window.location.origin}/setup`,
         },
       });
     } catch (error) {
@@ -215,13 +213,14 @@ const Auth = () => {
           return;
         }
         await sendWelcomeEmail(email, fullName, 'email');
-        // Aviso interno al admin (no bloqueante)
+        // Aviso interno al admin con tracking completo (no bloqueante)
         supabase.functions.invoke('notify-admin', {
           body: {
             event: 'user_signup',
             email,
             fullName,
             authMethod: 'email',
+            ...collectSignupTrackingContext(),
           },
         }).catch((err) => console.error('[notify-admin] signup email failed:', err));
         if (requiresEmailConfirmation) {

@@ -17,7 +17,7 @@ interface ActivatedEmailRequest {
   businessName?: string;
 }
 
-// VistaCEO Premium Design System
+// VISTACEO Premium Design System
 const BRAND = {
   gradientStart: "#298FDA",
   gradientMid: "#3B79D9",
@@ -49,7 +49,7 @@ function generateActivatedEmail(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>VistaCEO® activado</title>
+  <title>VISTACEO activado</title>
   <!--[if mso]>
   <noscript>
     <xml>
@@ -85,7 +85,7 @@ function generateActivatedEmail(
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td align="center">
-                    <img src="${BRAND.logoUrl}" alt="VistaCEO" width="160" height="40" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto;" />
+                    <img src="${BRAND.logoUrl}" alt="VISTACEO" width="160" height="40" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto;" />
                   </td>
                 </tr>
               </table>
@@ -211,7 +211,7 @@ function generateActivatedEmail(
                 </tr>
                 <tr>
                   <td style="font-size: 11px; color: ${BRAND.textMuted}; padding-top: 16px;">
-                    © ${new Date().getFullYear()} VistaCEO® Latinoamérica
+                    © ${new Date().getFullYear()} VISTACEO Latinoamérica
                   </td>
                 </tr>
               </table>
@@ -227,7 +227,7 @@ function generateActivatedEmail(
 </html>
 `;
   const text = `
-VistaCEO® activado: tu inteligencia suprema ya está operativa
+VISTACEO activado: tu inteligencia suprema ya está operativa
 
 Bienvenido
 Tu CEO digital te está esperando
@@ -250,7 +250,7 @@ Tu próximo paso:
 ¿Tenés dudas? Respondé este email y te ayudamos.
 info@vistaceo.com
 
-© ${new Date().getFullYear()} VistaCEO® Latinoamérica. Todos los derechos reservados.
+© ${new Date().getFullYear()} VISTACEO Latinoamérica. Todos los derechos reservados.
 `;
 
   return { html, text };
@@ -328,7 +328,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const resend = new Resend(RESEND_API_KEY);
     const emailResponse = await resend.emails.send({
-      from: "VistaCEO® Latinoamérica <info@vistaceo.com>",
+      from: "VISTACEO Latinoamérica <info@vistaceo.com>",
       replyTo: "info@vistaceo.com",
       to: [email],
       subject: "¡Cuenta creada! ✅ CEO activado: tu inteligencia suprema ya está operativa",

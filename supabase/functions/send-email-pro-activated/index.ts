@@ -18,7 +18,7 @@ interface ProActivatedRequest {
   setupCompleted?: boolean;
 }
 
-// VistaCEO Premium Design System
+// VISTACEO Premium Design System
 const BRAND = {
   gradientStart: "#298FDA",
   gradientMid: "#3B79D9",
@@ -64,7 +64,7 @@ function generateProActivatedEmail(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>VistaCEO® Pro activado 👑</title>
+  <title>VISTACEO Pro activado 👑</title>
   <!--[if mso]>
   <noscript>
     <xml>
@@ -84,7 +84,7 @@ function generateProActivatedEmail(
 </head>
 <body style="margin: 0; padding: 0; background-color: ${BRAND.backgroundDark}; width: 100%; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
   <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
-    Ahora tenés el poder completo de VistaCEO® — análisis profundo, prioridades estratégicas y ejecución sin límites.
+    Ahora tenés el poder completo de VISTACEO — análisis profundo, prioridades estratégicas y ejecución sin límites.
   </div>
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: ${BRAND.backgroundDark};">
@@ -99,7 +99,7 @@ function generateProActivatedEmail(
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td align="center" style="padding-bottom: 16px;">
-                    <img src="${BRAND.logoUrl}" alt="VistaCEO" width="160" height="40" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto;" />
+                    <img src="${BRAND.logoUrl}" alt="VISTACEO" width="160" height="40" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto;" />
                   </td>
                 </tr>
                 <tr>
@@ -133,7 +133,7 @@ function generateProActivatedEmail(
                 </tr>
                 <tr>
                   <td style="font-size: 16px; font-weight: 500; color: ${BRAND.goldAccent}; padding-bottom: 24px; line-height: 1.4;">
-                    Bienvenido al nivel estratégico de VistaCEO®
+                    Bienvenido al nivel estratégico de VISTACEO
                   </td>
                 </tr>
                 <tr>
@@ -279,7 +279,7 @@ function generateProActivatedEmail(
                 </tr>
                 <tr>
                   <td style="font-size: 11px; color: ${BRAND.textMuted}; padding-top: 16px;">
-                    © ${new Date().getFullYear()} VistaCEO® Latinoamérica
+                    © ${new Date().getFullYear()} VISTACEO Latinoamérica
                   </td>
                 </tr>
               </table>
@@ -295,10 +295,10 @@ function generateProActivatedEmail(
 </html>
 `;
   const text = `
-VistaCEO® Pro activado 👑 — inteligencia suprema sin límites
+VISTACEO Pro activado 👑 — inteligencia suprema sin límites
 
 Pro activado 👑
-Bienvenido al nivel estratégico de VistaCEO®
+Bienvenido al nivel estratégico de VISTACEO
 
 ${firstName}, acabás de desbloquear el modo sin límites. Ahora tenés acceso completo a la inteligencia suprema que analiza, prioriza y ejecuta junto a vos para acelerar el crecimiento de tu negocio.
 
@@ -325,7 +325,7 @@ Tus nuevas capacidades Pro:
 ¿Tenés dudas sobre tu plan Pro? Respondé este email.
 info@vistaceo.com
 
-© ${new Date().getFullYear()} VistaCEO® Latinoamérica. Todos los derechos reservados.
+© ${new Date().getFullYear()} VISTACEO Latinoamérica. Todos los derechos reservados.
 `;
 
   return { html, text };
@@ -412,7 +412,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const resend = new Resend(RESEND_API_KEY);
     const emailResponse = await resend.emails.send({
-      from: "VistaCEO® Latinoamérica <info@vistaceo.com>",
+      from: "VISTACEO Latinoamérica <info@vistaceo.com>",
       replyTo: "info@vistaceo.com",
       to: [email],
       subject: "¡Felicitaciones! Pro activado 👑 Inteligencia suprema sin límites",

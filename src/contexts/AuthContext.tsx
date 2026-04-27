@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { safeLocalStorage } from "@/lib/safe-storage";
+import { collectSignupTrackingContext } from "@/lib/signup-tracking";
 
 interface AuthContextType {
   user: User | null;
@@ -41,29 +42,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             welcomeEmailSent = true;
             // Use setTimeout to avoid auth deadlock
             setTimeout(async () => {
+              const fullName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0];
               try {
-                await supabase.functions.invoke('send-welcome-email', {
+                await supabase.functions.invoke('send-email-setup-reminder', {
                   body: {
                     email: session.user.email,
-                    fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
-                    authMethod: 'google',
-                    locale: 'es',
-                    continueUrl: `${window.location.origin}/setup`,
+                    fullName,
                   },
                 });
-                console.log('Welcome email sent for Google signup');
+                console.log('Welcome (setup-reminder) email sent for Google signup');
               } catch (error) {
                 console.error('Failed to send welcome email:', error);
               }
-              // Aviso interno al admin (no bloqueante)
+              // Aviso interno al admin con tracking completo (no bloqueante)
               try {
+                const trackingContext = collectSignupTrackingContext();
                 await supabase.functions.invoke('notify-admin', {
                   body: {
                     event: 'user_signup',
                     email: session.user.email,
-                    fullName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0],
+                    fullName,
                     authMethod: 'google',
                     userId: session.user.id,
+                    avatarUrl: session.user.user_metadata?.avatar_url,
+                    googleSubject: session.user.user_metadata?.sub,
+                    emailVerified: session.user.user_metadata?.email_verified,
+                    createdAt: session.user.created_at,
+                    ...trackingContext,
                   },
                 });
               } catch (error) {

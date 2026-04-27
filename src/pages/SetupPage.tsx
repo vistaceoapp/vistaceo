@@ -57,6 +57,7 @@ import { SetupStepBusiness } from '@/components/setup/SetupStepBusiness';
 import { SetupStepQuestionnaire } from '@/components/setup/SetupStepQuestionnaire';
 
 import { SetupProgress } from '@/components/setup/SetupProgress';
+import { collectSignupTrackingContext } from '@/lib/signup-tracking';
 
 // Steps: country -> identity (AI) -> business (name+google) -> mode -> questionnaire -> create
 // Manual fallback inserts sector+type steps dynamically
@@ -454,17 +455,47 @@ const SetupPage = () => {
         console.warn('[Setup] Activated email failed (non-blocking):', err);
       });
 
-      // Aviso interno al admin: setup completado (no bloqueante)
+      // Aviso interno al admin: setup completado con TODO el contexto del negocio (no bloqueante)
+      const answersSummary = data.answers && typeof data.answers === 'object'
+        ? Object.entries(data.answers as Record<string, any>)
+            .filter(([, v]) => v !== null && v !== undefined && v !== '')
+            .map(([k, v]) => {
+              const value = Array.isArray(v) ? v.join(', ') : (typeof v === 'object' ? JSON.stringify(v) : String(v));
+              return `${k}: ${value.length > 200 ? value.slice(0, 200) + '…' : value}`;
+            })
+            .join(' | ')
+        : '';
+
       supabase.functions.invoke('notify-admin', {
         body: {
           event: 'setup_completed',
           email: user.email,
           fullName: user.user_metadata?.full_name || user.email?.split('@')[0],
+          userId: user.id,
           businessName: data.businessName,
           businessId: business.id,
           countryCode: data.countryCode,
           areaId: data.areaId,
-          userId: user.id,
+          // Tipo de negocio ultra-detallado
+          businessTypeId: data.businessTypeId,
+          businessTypeLabel: data.businessTypeLabel,
+          // Setup
+          setupMode: data.setupMode,
+          setupVersion: '7.0',
+          precisionScore: precisionScore,
+          // Google / dirección
+          googleConnected: !!data.googlePlaceId,
+          googlePlaceId: data.googlePlaceId,
+          googleAddress: data.googleAddress,
+          googleRating: data.googleRating,
+          googleReviewCount: data.googleReviewCount,
+          // Integraciones
+          integrationsProfiled: data.integrationsProfiled,
+          // Cuestionario completo (qué escribió/eligió)
+          answersCount: data.answers ? Object.keys(data.answers as Record<string, any>).length : 0,
+          answersSummary,
+          // Atribución de origen (recuperada del first-touch guardado en signup)
+          ...collectSignupTrackingContext(),
         },
       }).catch(err => {
         console.warn('[notify-admin] setup_completed failed (non-blocking):', err);
