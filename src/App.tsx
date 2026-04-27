@@ -117,6 +117,11 @@ const SetupGate = ({ children }: { children: React.ReactNode }) => {
 // Global unhandled promise rejection catcher
 const GlobalErrorCatcher = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
+    // Capturar primer touch (UTM, referrer, landing) lo antes posible para tracking de origen
+    import("@/lib/signup-tracking").then(({ captureFirstTouchIfMissing }) => {
+      try { captureFirstTouchIfMissing(); } catch (e) { console.error(e); }
+    });
+
     const handleRejection = (event: PromiseRejectionEvent) => {
       console.error("[GlobalErrorCatcher] Unhandled rejection:", event.reason);
       toast.error("Ocurrió un error inesperado. Intentá de nuevo.");
