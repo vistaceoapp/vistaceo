@@ -227,11 +227,11 @@ export default function AdminUsersPage() {
               </div>
               <div className="space-y-2 text-sm">
                 {[
-                  ['Tipo negocio', brain.primary_business_type],
-                  ['Foco', brain.current_focus],
-                  ['Confianza', `${Math.round((brain.confidence_score || 0) * 100)}%`],
-                  ['MVC', `${brain.mvc_completion_pct || 0}%`],
-                  ['Señales', brain.total_signals || 0],
+                  ['Tipo de negocio', safe(brain.primary_business_type)],
+                  ['Foco actual', safe(brain.current_focus)],
+                  ['Confianza IA', `${clampPct(brain.confidence_score)}%`],
+                  ['MVC completado', `${clampPct(brain.mvc_completion_pct)}%`],
+                  ['Señales recolectadas', brain.total_signals || 0],
                 ].map(([label, val]) => (
                   <div key={label as string} className="flex justify-between"><span className="text-muted-foreground">{label}</span><span className="text-foreground font-medium">{String(val)}</span></div>
                 ))}
