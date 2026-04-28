@@ -435,19 +435,6 @@ export default function AdminUsersPage() {
                 </div>
               );
             })}
-                  {/* Quick actions */}
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setPlanTarget({ id: user.id, email: user.email }); setShowPlanDialog(true); }}>
-                      <Crown className="w-3 h-3" />
-                    </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: user.id, email: user.email }); setShowDeleteDialog(true); }}>
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground/30" />
-                </div>
-              </div>
-            ))}
           </div>
         </ScrollArea>
       </div>
