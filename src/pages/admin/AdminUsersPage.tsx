@@ -356,43 +356,85 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Users list */}
-      <div className="rounded-xl bg-card border border-border">
-        <ScrollArea className="h-[600px]">
+      <div className="rounded-xl bg-card border border-border overflow-hidden">
+        <div className="px-4 py-2.5 border-b border-border bg-muted/30 flex items-center text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+          <span className="flex-1">Usuario</span>
+          <span className="w-32 hidden md:block">Negocio</span>
+          <span className="w-20 hidden lg:block text-center">Logins</span>
+          <span className="w-28 hidden md:block text-right">Registro</span>
+          <span className="w-32 text-right">Última actividad</span>
+          <span className="w-20" />
+        </div>
+        <ScrollArea className="h-[620px]">
           <div className="divide-y divide-border">
-            {isLoading && <div className="p-8 text-center text-muted-foreground text-sm">Cargando usuarios...</div>}
-            {usersData?.users?.map((user: UserData) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between p-4 hover:bg-accent/50 cursor-pointer transition-colors group"
-                onClick={() => setSelectedUserId(user.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/10 to-[#746CE6]/10 flex items-center justify-center flex-shrink-0">
-                    {user.avatar_url ? (
-                      <img src={user.avatar_url} alt="" className="w-9 h-9 rounded-lg object-cover" />
+            {isLoading && (
+              <div className="p-2 space-y-2">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="h-14 bg-muted/30 rounded-lg animate-pulse" />
+                ))}
+              </div>
+            )}
+            {!isLoading && !usersData?.users?.length && (
+              <div className="p-12 text-center text-sm text-muted-foreground">No se encontraron usuarios</div>
+            )}
+            {usersData?.users?.map((user: UserData) => {
+              const biz = user.businesses?.[0];
+              return (
+                <div
+                  key={user.id}
+                  className="flex items-center px-4 py-3 hover:bg-accent/50 cursor-pointer transition-colors group"
+                  onClick={() => setSelectedUserId(user.id)}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/10 to-[#746CE6]/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {user.avatar_url ? (
+                        <img src={user.avatar_url} alt="" className="w-9 h-9 object-cover" />
+                      ) : (
+                        <span className="text-sm font-bold text-muted-foreground">{(user.full_name || user.email || '?')[0].toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground truncate">{user.full_name || user.email?.split('@')[0]}</p>
+                        {isPro(user) && <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[9px] px-1.5 py-0 h-4">PRO</Badge>}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="w-32 hidden md:block min-w-0">
+                    {biz ? (
+                      <div className="flex items-center gap-1 text-[12px] text-foreground truncate">
+                        <Building2 className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate">{biz.name}</span>
+                        {biz.country && <span className="text-[10px] text-muted-foreground">·{biz.country}</span>}
+                      </div>
                     ) : (
-                      <span className="text-sm font-bold text-muted-foreground">{(user.full_name || user.email || '?')[0].toUpperCase()}</span>
+                      <span className="text-[11px] text-muted-foreground/60">Sin negocio</span>
                     )}
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-foreground truncate">{user.full_name || user.email}</p>
-                      {isPro(user) && <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-[9px] px-1.5 py-0">PRO</Badge>}
+                  <span className="w-20 hidden lg:block text-center text-[12px] text-foreground tabular-nums">
+                    {(user as any).login_count || 0}
+                  </span>
+                  <span className="w-28 hidden md:block text-right text-[11px] text-muted-foreground">
+                    {user.created_at ? format(new Date(user.created_at), 'dd MMM yy', { locale: es }) : '—'}
+                  </span>
+                  <span className="w-32 text-right text-[11px] text-muted-foreground">
+                    {user.last_active_at ? formatDistanceToNow(new Date(user.last_active_at), { locale: es, addSuffix: true }) : 'Nunca'}
+                  </span>
+                  <div className="w-20 flex items-center justify-end gap-1">
+                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setPlanTarget({ id: user.id, email: user.email }); setShowPlanDialog(true); }}>
+                        <Crown className="w-3 h-3" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: user.id, email: user.email }); setShowDeleteDialog(true); }}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     </div>
-                    <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground/30" />
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="text-right hidden sm:block">
-                    {user.businesses?.length > 0 && (
-                      <p className="text-[12px] text-muted-foreground flex items-center gap-1 justify-end">
-                        <Building2 className="w-3 h-3" /> {user.businesses[0].name}
-                      </p>
-                    )}
-                    <p className="text-[10px] text-muted-foreground/60">
-                      {user.last_active_at ? formatDistanceToNow(new Date(user.last_active_at), { locale: es, addSuffix: true }) : 'Sin actividad'}
-                    </p>
-                  </div>
+              );
+            })}
                   {/* Quick actions */}
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setPlanTarget({ id: user.id, email: user.email }); setShowPlanDialog(true); }}>
