@@ -60,9 +60,8 @@ export default function AdminDashboard() {
         supabase.from('businesses').select('*', { count: 'exact', head: true }),
         supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('setup_completed', true),
         supabase.from('subscriptions').select('payment_amount, status').eq('status', 'active'),
-        supabase.from('blog_posts').select('status', { count: 'exact' }),
+        supabase.from('blog_posts').select('id', { count: 'exact', head: true }).eq('status', 'published'),
       ]);
-      const publishedPosts = postsRes.data?.filter(p => p.status === 'published').length || 0;
       const totalRevenue = subsRes.data?.reduce((a, s) => a + (s.payment_amount || 0), 0) || 0;
       return {
         totalUsers: profilesRes.count || 0,
@@ -70,10 +69,11 @@ export default function AdminDashboard() {
         setupComplete: setupRes.count || 0,
         proUsers: subsRes.data?.length || 0,
         totalRevenue,
-        publishedPosts,
+        publishedPosts: postsRes.count || 0,
       };
     },
-    refetchInterval: 30000,
+    staleTime: 20_000,
+    refetchInterval: 30_000,
   });
 
   const { data: engagement } = useQuery({
