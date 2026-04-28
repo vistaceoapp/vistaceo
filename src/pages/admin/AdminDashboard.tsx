@@ -60,9 +60,8 @@ export default function AdminDashboard() {
         supabase.from('businesses').select('*', { count: 'exact', head: true }),
         supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('setup_completed', true),
         supabase.from('subscriptions').select('payment_amount, status').eq('status', 'active'),
-        supabase.from('blog_posts').select('status', { count: 'exact' }),
+        supabase.from('blog_posts').select('id', { count: 'exact', head: true }).eq('status', 'published'),
       ]);
-      const publishedPosts = postsRes.data?.filter(p => p.status === 'published').length || 0;
       const totalRevenue = subsRes.data?.reduce((a, s) => a + (s.payment_amount || 0), 0) || 0;
       return {
         totalUsers: profilesRes.count || 0,
@@ -70,10 +69,11 @@ export default function AdminDashboard() {
         setupComplete: setupRes.count || 0,
         proUsers: subsRes.data?.length || 0,
         totalRevenue,
-        publishedPosts,
+        publishedPosts: postsRes.count || 0,
       };
     },
-    refetchInterval: 30000,
+    staleTime: 20_000,
+    refetchInterval: 30_000,
   });
 
   const { data: engagement } = useQuery({
@@ -103,6 +103,7 @@ export default function AdminDashboard() {
         chatTrend: dailyData.map(d => d.chats),
       };
     },
+    staleTime: 60_000,
   });
 
   const { data: systemHealth } = useQuery({
@@ -114,14 +115,17 @@ export default function AdminDashboard() {
         supabase.from('data_gaps').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('predictions').select('*', { count: 'exact', head: true }).eq('status', 'active'),
       ]);
-      const avgConfidence = brainRes.data?.length 
-        ? Math.round(brainRes.data.reduce((a, b) => a + (b.confidence_score || 0), 0) / brainRes.data.length * 100) : 0;
+      // confidence_score is stored as 0-100 (sometimes >100 due to legacy). Clamp to [0,100].
+      const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
+      const avgConfidence = brainRes.data?.length
+        ? clamp(brainRes.data.reduce((a, b) => a + (b.confidence_score || 0), 0) / brainRes.data.length) : 0;
       const avgMVC = brainRes.data?.length
-        ? Math.round(brainRes.data.reduce((a, b) => a + (b.mvc_completion_pct || 0), 0) / brainRes.data.length) : 0;
+        ? clamp(brainRes.data.reduce((a, b) => a + (b.mvc_completion_pct || 0), 0) / brainRes.data.length) : 0;
       const avgHealth = snapshotRes.data?.length
-        ? Math.round(snapshotRes.data.reduce((a, b) => a + (b.total_score || 0), 0) / snapshotRes.data.length) : 0;
+        ? clamp(snapshotRes.data.reduce((a, b) => a + (b.total_score || 0), 0) / snapshotRes.data.length) : 0;
       return { avgConfidence, avgMVC, avgHealth, totalSignals: brainRes.data?.reduce((a, b) => a + (b.total_signals || 0), 0) || 0, pendingGaps: gapRes.count || 0, activePredictions: predRes.count || 0, totalBrains: brainRes.data?.length || 0 };
     },
+    staleTime: 60_000,
   });
 
   const { data: recentActivity } = useQuery({
@@ -143,7 +147,10 @@ export default function AdminDashboard() {
       const { count } = await supabase.from('web_analytics').select('*', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo);
       return { pageviews7d: count || 0 };
     },
+    staleTime: 60_000,
   });
+
+  const fmtMoney = (n: number) => new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(n);
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-[1400px]">
@@ -169,7 +176,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard title="Usuarios" value={stats?.totalUsers || 0} icon={Users} color="#2692DC" href="/admin/usuarios" subtitle={`${stats?.proUsers || 0} Pro`} />
         <StatCard title="Negocios" value={stats?.totalBusinesses || 0} icon={TrendingUp} color="#746CE6" subtitle={`${stats?.setupComplete || 0} con setup`} />
-        <StatCard title="Revenue" value={`$${stats?.totalRevenue || 0}`} icon={DollarSign} color="#22c55e" subtitle={`${stats?.proUsers || 0} suscripciones`} />
+        <StatCard title="Ingresos" value={`$${fmtMoney(stats?.totalRevenue || 0)}`} icon={DollarSign} color="#22c55e" subtitle={`${stats?.proUsers || 0} suscripciones activas`} />
         <StatCard title="Posts Blog" value={stats?.publishedPosts || 0} icon={Newspaper} color="#f59e0b" href="/admin/centro-control" />
         <StatCard title="Pageviews 7d" value={webStats?.pageviews7d || 0} icon={Eye} color="#ef4444" href="/admin/analytics" />
         <StatCard title="Logins 7d" value={engagement?.totalLogins || 0} icon={Activity} color="#06b6d4" />
