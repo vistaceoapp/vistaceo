@@ -104,8 +104,28 @@ export default function AdminUsersPage() {
 
   const isPro = (user: UserData) => user.subscriptions?.some(s => s.status === 'active');
 
+  // Helpers
+  const clampPct = (n: number) => Math.max(0, Math.min(100, Math.round(n || 0)));
+  const safe = (v: any, fallback = '—') => (v === null || v === undefined || v === '' ? fallback : v);
+
   // ── Detail View ──
-  if (selectedUserId && userDetail) {
+  if (selectedUserId) {
+    if (loadingDetail || !userDetail) {
+      return (
+        <div className="p-4 md:p-6 lg:p-8 max-w-[1200px] space-y-5">
+          <button onClick={() => setSelectedUserId(null)} className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 text-[13px]">
+            <ArrowLeft className="w-4 h-4" /> Volver
+          </button>
+          <div className="animate-pulse space-y-4">
+            <div className="h-16 bg-muted/40 rounded-xl" />
+            <div className="grid grid-cols-6 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-20 bg-muted/30 rounded-xl" />)}
+            </div>
+            <div className="h-48 bg-muted/30 rounded-xl" />
+          </div>
+        </div>
+      );
+    }
     const profile = userDetail.profile;
     const biz = userDetail.businesses?.[0];
     const brain = userDetail.businessBrain;
