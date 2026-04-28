@@ -60,10 +60,32 @@ const queryClient = new QueryClient({
       gcTime: 30 * 60 * 1000,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
+      refetchOnReconnect: false,
       retry: 1,
+      networkMode: "online",
     },
   },
 });
+
+// Idle-time prefetch: warm up the most likely next routes once the landing has painted.
+// This makes the first navigation feel instant — no PageLoader flash.
+const prefetchRoutes = () => {
+  const idle = (window as any).requestIdleCallback || ((cb: any) => setTimeout(cb, 200));
+  idle(() => {
+    // Critical post-landing destinations
+    import("./pages/Auth").catch(() => {});
+    import("./pages/CheckoutPage").catch(() => {});
+  });
+  idle(() => {
+    import("./layouts/AppLayout").catch(() => {});
+    import("./pages/app/TodayPage").catch(() => {});
+  });
+};
+if (typeof window !== "undefined") {
+  // Defer until after first paint
+  if (document.readyState === "complete") prefetchRoutes();
+  else window.addEventListener("load", prefetchRoutes, { once: true });
+}
 
 // Loading skeleton with branding — eliminates blank screen during lazy load
 const PageLoader = () => (

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useMemo, useCallback, useRef, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { safeLocalStorage } from "@/lib/safe-storage";
@@ -20,54 +20,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const welcomeEmailSentRef = useRef(false);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    // Track if we've sent welcome email for this session
-    let welcomeEmailSent = false;
-
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+      (event, newSession) => {
+        // Avoid duplicate state writes if value is identical (prevents extra re-renders)
+        setSession((prev) => (prev?.access_token === newSession?.access_token ? prev : newSession));
+        setUser((prev) => (prev?.id === newSession?.user?.id ? prev : (newSession?.user ?? null)));
+        if (loading) setLoading(false);
+        initializedRef.current = true;
 
         // Send welcome email for new Google signups
-        if (event === 'SIGNED_IN' && session?.user && !welcomeEmailSent) {
-          const provider = session.user.app_metadata?.provider;
-          const isNewUser = session.user.created_at === session.user.updated_at ||
-            (new Date().getTime() - new Date(session.user.created_at).getTime()) < 60000; // Within 1 minute
+        if (event === 'SIGNED_IN' && newSession?.user && !welcomeEmailSentRef.current) {
+          const provider = newSession.user.app_metadata?.provider;
+          const isNewUser = newSession.user.created_at === newSession.user.updated_at ||
+            (new Date().getTime() - new Date(newSession.user.created_at).getTime()) < 60000;
 
           if (provider === 'google' && isNewUser) {
-            welcomeEmailSent = true;
-            // Use setTimeout to avoid auth deadlock
+            welcomeEmailSentRef.current = true;
             setTimeout(async () => {
-              const fullName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0];
+              const fullName = newSession.user.user_metadata?.full_name || newSession.user.email?.split('@')[0];
               try {
                 await supabase.functions.invoke('send-email-setup-reminder', {
-                  body: {
-                    email: session.user.email,
-                    fullName,
-                  },
+                  body: { email: newSession.user.email, fullName },
                 });
-                console.log('Welcome (setup-reminder) email sent for Google signup');
               } catch (error) {
                 console.error('Failed to send welcome email:', error);
               }
-              // Aviso interno al admin con tracking completo (no bloqueante)
               try {
                 const trackingContext = collectSignupTrackingContext();
                 await supabase.functions.invoke('notify-admin', {
                   body: {
                     event: 'user_signup',
-                    email: session.user.email,
+                    email: newSession.user.email,
                     fullName,
                     authMethod: 'google',
-                    userId: session.user.id,
-                    avatarUrl: session.user.user_metadata?.avatar_url,
-                    googleSubject: session.user.user_metadata?.sub,
-                    emailVerified: session.user.user_metadata?.email_verified,
-                    createdAt: session.user.created_at,
+                    userId: newSession.user.id,
+                    avatarUrl: newSession.user.user_metadata?.avatar_url,
+                    googleSubject: newSession.user.user_metadata?.sub,
+                    emailVerified: newSession.user.user_metadata?.email_verified,
+                    createdAt: newSession.user.created_at,
                     ...trackingContext,
                   },
                 });
@@ -81,20 +76,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      // If onAuthStateChange already fired, skip — prevents double render
+      if (initializedRef.current) return;
+      setSession(existingSession);
+      setUser(existingSession?.user ?? null);
       setLoading(false);
+      initializedRef.current = true;
     }).catch((err) => {
       console.error('[AuthContext] getSession failed:', err);
-      setLoading(false); // CRITICAL: never leave loading=true
+      setLoading(false);
     });
 
-    // Safety timeout: if loading is STILL true after 8s, force it off
     const safetyTimeout = setTimeout(() => {
       setLoading((current) => {
         if (current) {
-          console.warn('[AuthContext] Safety timeout triggered - forcing loading=false');
+          console.warn('[AuthContext] Safety timeout triggered');
           return false;
         }
         return current;
@@ -105,39 +102,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       subscription.unsubscribe();
       clearTimeout(safetyTimeout);
     };
-
-    
   }, []);
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
+  const signUp = useCallback(async (email: string, password: string, fullName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
-
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName || email,
-        },
+        data: { full_name: fullName || email },
       },
     });
+    return { error, requiresEmailConfirmation: !data.session };
+  }, []);
 
-    return {
-      error,
-      requiresEmailConfirmation: !data.session,
-    };
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const signIn = useCallback(async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
-  };
+  }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     const pendingPlan = safeLocalStorage.getItem("pendingPlan");
     const redirectUrl = (pendingPlan === "pro_monthly" || pendingPlan === "pro_yearly")
       ? `${window.location.origin}/checkout?plan=${pendingPlan}`
@@ -152,17 +137,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (isCustomDomain) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          skipBrowserRedirect: true,
-        },
+        options: { redirectTo: redirectUrl, skipBrowserRedirect: true },
       });
 
       if (error) return { error };
-
-      if (!data?.url) {
-        return { error: new Error("No se pudo iniciar el login con Google") };
-      }
+      if (!data?.url) return { error: new Error("No se pudo iniciar el login con Google") };
 
       const oauthUrl = new URL(data.url);
       const allowedHosts = new Set<string>([
@@ -180,22 +159,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: redirectUrl,
-      },
+      options: { redirectTo: redirectUrl },
     });
     return { error };
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
-  };
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signInWithGoogle, signOut }}>
-      {children}
-    </AuthContext.Provider>
+  // Stable context value — only re-renders consumers when actual values change
+  const value = useMemo(
+    () => ({ user, session, loading, signUp, signIn, signInWithGoogle, signOut }),
+    [user, session, loading, signUp, signIn, signInWithGoogle, signOut]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
