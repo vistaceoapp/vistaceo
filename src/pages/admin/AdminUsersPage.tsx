@@ -163,18 +163,39 @@ export default function AdminUsersPage() {
         {/* Quick stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {[
-            { label: 'Logins', value: profile?.login_count || 0, color: '#2692DC' },
-            { label: 'Último login', value: profile?.last_login_at ? formatDistanceToNow(new Date(profile.last_login_at), { locale: es }) : 'Nunca', color: '#06b6d4' },
+            { label: 'Logins totales', value: profile?.login_count || 0, color: '#2692DC' },
+            { label: 'Último login', value: profile?.last_login_at ? formatDistanceToNow(new Date(profile.last_login_at), { locale: es, addSuffix: true }) : 'Nunca', color: '#06b6d4' },
             { label: 'Misiones', value: userDetail.missions?.length || 0, color: '#746CE6' },
-            { label: 'Chat msgs', value: userDetail.chatMessages?.length || 0, color: '#f59e0b' },
+            { label: 'Mensajes chat', value: userDetail.chatMessages?.length || 0, color: '#f59e0b' },
             { label: 'Oportunidades', value: userDetail.opportunities?.length || 0, color: '#22c55e' },
-            { label: 'Salud', value: userDetail.businessSnapshots?.[0]?.total_score ? `${userDetail.businessSnapshots[0].total_score}/100` : 'N/A', color: '#ef4444' },
+            { label: 'Salud negocio', value: userDetail.businessSnapshots?.[0]?.total_score != null ? `${clampPct(userDetail.businessSnapshots[0].total_score)}/100` : '—', color: '#ef4444' },
           ].map(s => (
             <div key={s.label} className="rounded-xl bg-card border border-border p-3 text-center">
-              <p className="text-lg font-bold text-foreground">{s.value}</p>
-              <p className="text-[10px] text-muted-foreground">{s.label}</p>
+              <p className="text-base font-bold text-foreground leading-tight">{s.value}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">{s.label}</p>
             </div>
           ))}
+        </div>
+
+        {/* Profile meta */}
+        <div className="rounded-xl bg-card border border-border p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Shield className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">Cuenta</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            {[
+              ['Registrado', profile?.created_at ? format(new Date(profile.created_at), "dd MMM yyyy", { locale: es }) : '—'],
+              ['Última actividad', profile?.last_active_at ? formatDistanceToNow(new Date(profile.last_active_at), { locale: es, addSuffix: true }) : '—'],
+              ['Onboarding', profile?.onboarding_completed ? '✓ Completado' : 'Pendiente'],
+              ['Idioma', safe(profile?.preferred_language)],
+            ].map(([label, val]) => (
+              <div key={label as string}>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground/70">{label}</p>
+                <p className="text-foreground font-medium mt-0.5">{val}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Business + Brain */}
