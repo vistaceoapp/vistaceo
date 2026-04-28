@@ -50,9 +50,11 @@ export default function AdminUsersPage() {
       if (error) throw error;
       return data;
     },
+    staleTime: 15_000,
+    placeholderData: (prev) => prev,
   });
 
-  const { data: userDetail } = useQuery({
+  const { data: userDetail, isLoading: loadingDetail } = useQuery({
     queryKey: ['admin-user-detail', selectedUserId],
     queryFn: async () => {
       if (!selectedUserId) return null;
@@ -63,6 +65,7 @@ export default function AdminUsersPage() {
       return data;
     },
     enabled: !!selectedUserId,
+    staleTime: 15_000,
   });
 
   const deleteMutation = useMutation({
