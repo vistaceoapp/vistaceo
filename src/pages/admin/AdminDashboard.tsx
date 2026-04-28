@@ -176,7 +176,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard title="Usuarios" value={stats?.totalUsers || 0} icon={Users} color="#2692DC" href="/admin/usuarios" subtitle={`${stats?.proUsers || 0} Pro`} />
         <StatCard title="Negocios" value={stats?.totalBusinesses || 0} icon={TrendingUp} color="#746CE6" subtitle={`${stats?.setupComplete || 0} con setup`} />
-        <StatCard title="Revenue" value={`$${stats?.totalRevenue || 0}`} icon={DollarSign} color="#22c55e" subtitle={`${stats?.proUsers || 0} suscripciones`} />
+        <StatCard title="Ingresos" value={`$${fmtMoney(stats?.totalRevenue || 0)}`} icon={DollarSign} color="#22c55e" subtitle={`${stats?.proUsers || 0} suscripciones activas`} />
         <StatCard title="Posts Blog" value={stats?.publishedPosts || 0} icon={Newspaper} color="#f59e0b" href="/admin/centro-control" />
         <StatCard title="Pageviews 7d" value={webStats?.pageviews7d || 0} icon={Eye} color="#ef4444" href="/admin/analytics" />
         <StatCard title="Logins 7d" value={engagement?.totalLogins || 0} icon={Activity} color="#06b6d4" />
