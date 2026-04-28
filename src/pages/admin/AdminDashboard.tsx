@@ -114,12 +114,14 @@ export default function AdminDashboard() {
         supabase.from('data_gaps').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('predictions').select('*', { count: 'exact', head: true }).eq('status', 'active'),
       ]);
-      const avgConfidence = brainRes.data?.length 
-        ? Math.round(brainRes.data.reduce((a, b) => a + (b.confidence_score || 0), 0) / brainRes.data.length * 100) : 0;
+      // confidence_score is stored as 0-100 (sometimes >100 due to legacy). Clamp to [0,100].
+      const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
+      const avgConfidence = brainRes.data?.length
+        ? clamp(brainRes.data.reduce((a, b) => a + (b.confidence_score || 0), 0) / brainRes.data.length) : 0;
       const avgMVC = brainRes.data?.length
-        ? Math.round(brainRes.data.reduce((a, b) => a + (b.mvc_completion_pct || 0), 0) / brainRes.data.length) : 0;
+        ? clamp(brainRes.data.reduce((a, b) => a + (b.mvc_completion_pct || 0), 0) / brainRes.data.length) : 0;
       const avgHealth = snapshotRes.data?.length
-        ? Math.round(snapshotRes.data.reduce((a, b) => a + (b.total_score || 0), 0) / snapshotRes.data.length) : 0;
+        ? clamp(snapshotRes.data.reduce((a, b) => a + (b.total_score || 0), 0) / snapshotRes.data.length) : 0;
       return { avgConfidence, avgMVC, avgHealth, totalSignals: brainRes.data?.reduce((a, b) => a + (b.total_signals || 0), 0) || 0, pendingGaps: gapRes.count || 0, activePredictions: predRes.count || 0, totalBrains: brainRes.data?.length || 0 };
     },
   });
