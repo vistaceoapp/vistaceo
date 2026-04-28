@@ -103,6 +103,7 @@ export default function AdminDashboard() {
         chatTrend: dailyData.map(d => d.chats),
       };
     },
+    staleTime: 60_000,
   });
 
   const { data: systemHealth } = useQuery({
@@ -124,6 +125,7 @@ export default function AdminDashboard() {
         ? clamp(snapshotRes.data.reduce((a, b) => a + (b.total_score || 0), 0) / snapshotRes.data.length) : 0;
       return { avgConfidence, avgMVC, avgHealth, totalSignals: brainRes.data?.reduce((a, b) => a + (b.total_signals || 0), 0) || 0, pendingGaps: gapRes.count || 0, activePredictions: predRes.count || 0, totalBrains: brainRes.data?.length || 0 };
     },
+    staleTime: 60_000,
   });
 
   const { data: recentActivity } = useQuery({
@@ -145,7 +147,10 @@ export default function AdminDashboard() {
       const { count } = await supabase.from('web_analytics').select('*', { count: 'exact', head: true }).gte('created_at', sevenDaysAgo);
       return { pageviews7d: count || 0 };
     },
+    staleTime: 60_000,
   });
+
+  const fmtMoney = (n: number) => new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(n);
 
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-[1400px]">
