@@ -783,7 +783,7 @@ const StatueDivider = () => {
           </Reveal>
 
           {/* Text side */}
-          <div className="lg:col-span-7" aria-hidden="false">
+          <div className="lg:col-span-7 pb-10 lg:pb-16" aria-hidden="false">
             <Reveal delay={80}>
               <span className="inline-block text-[10.5px] uppercase tracking-[0.22em] font-semibold"
                 style={{
