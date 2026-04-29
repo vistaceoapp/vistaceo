@@ -517,6 +517,190 @@ const businesses: { key: BusinessKey; name: string; type: string; image: string 
   { key: "juridico", name: "Vega & Asociados", type: "Estudio Jurídico", image: juridicoImg },
 ];
 
+/* ═══════════════════════════════════════════════════════════════
+   How it works — 3 pasos simples (arriba de capacidades)
+   ═══════════════════════════════════════════════════════════════ */
+const HOW_STEPS = [
+  {
+    n: "01",
+    title: "Contanos qué querés mejorar",
+    desc: "Indicá tu negocio, servicio, empresa o profesión. El sistema se personaliza automáticamente a tu sector, país y objetivos — sin formularios eternos.",
+    bullets: ["Setup en minutos", "Adaptado a tu industria", "Funciona desde el día uno"],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <path d="M12 2L4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z" />
+        <path d="M9 12l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
+    n: "02",
+    title: "Recibí inteligencia continua",
+    desc: "El sistema procesa información todo el tiempo y aprende de tu negocio. Vas a ver radar de oportunidades, alertas, insights y predicciones — listas para convertir en misiones.",
+    bullets: ["Radar 24/7", "Insights y predicciones", "Misiones priorizadas"],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <circle cx="12" cy="12" r="9" />
+        <circle cx="12" cy="12" r="5" />
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+        <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+      </svg>
+    ),
+  },
+  {
+    n: "03",
+    title: "Ejecutá y crecé con foco",
+    desc: "Hacé lo que el sistema te indica, paso a paso. Elegí tus objetivos — más ventas, mejor posicionamiento, más eficiencia — y el plan se reorganiza para llegar ahí.",
+    bullets: ["Objetivos personalizados", "Acciones diarias claras", "Resultados medibles"],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+        <path d="M3 17l6-6 4 4 8-8" />
+        <path d="M14 7h7v7" />
+      </svg>
+    ),
+  },
+];
+
+const HowItWorks = () => {
+  return (
+    <section id="capacidades" className="py-24 lg:py-32 px-6 bg-white relative overflow-hidden">
+      {/* Soft brand glow */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(60% 50% at 50% 0%, rgba(38,146,220,0.06) 0%, rgba(116,108,230,0.04) 40%, transparent 75%)",
+        }}
+      />
+
+      <div className="max-w-[1100px] mx-auto relative">
+        <Reveal>
+          <div className="text-center mb-4">
+            <AccentLabel>CÓMO FUNCIONA</AccentLabel>
+            <h2 className="text-[clamp(1.7rem,3.6vw,2.5rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5 leading-[1.15]">
+              Tres pasos. Cero fricción.
+            </h2>
+          </div>
+        </Reveal>
+        <Reveal delay={60}>
+          <p className="text-center text-[15px] text-[#777] mt-4 mb-14 max-w-[520px] mx-auto leading-[1.7]">
+            Así de simple es transformar la información de tu negocio en acciones que generan crecimiento real.
+          </p>
+        </Reveal>
+
+        {/* Steps */}
+        <div className="relative">
+          {/* Connector line desktop */}
+          <div
+            aria-hidden
+            className="hidden lg:block absolute top-[44px] left-[16%] right-[16%] h-px"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent 0%, rgba(38,146,220,0.35) 20%, rgba(74,127,232,0.45) 50%, rgba(116,108,230,0.35) 80%, transparent 100%)",
+            }}
+          />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 relative">
+            {HOW_STEPS.map((s, i) => (
+              <Reveal key={s.n} delay={120 + i * 100}>
+                <article
+                  className="relative h-full bg-white rounded-2xl p-7 lg:p-8 border border-[#ececec] transition-all duration-300 hover:-translate-y-1 hover:border-[#dcdcdc]"
+                  style={{
+                    boxShadow:
+                      "0 1px 2px rgba(15,23,42,0.04), 0 8px 24px -12px rgba(15,23,42,0.08)",
+                  }}
+                >
+                  {/* Step number badge */}
+                  <div className="flex items-center gap-3 mb-5">
+                    <div
+                      className="relative w-[88px] h-[88px] rounded-full flex items-center justify-center text-white"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #298FDA 0%, #4A7FE8 55%, #746CE6 100%)",
+                        boxShadow:
+                          "0 10px 28px -10px rgba(74,127,232,0.55), inset 0 0 0 1px rgba(255,255,255,0.18)",
+                      }}
+                    >
+                      <div className="absolute inset-[3px] rounded-full bg-white flex items-center justify-center text-[#0a0a0a]">
+                        <div className="text-center leading-none">
+                          <div
+                            className="text-[11px] font-semibold tracking-[0.18em]"
+                            style={{
+                              backgroundImage:
+                                "linear-gradient(135deg, #298FDA 0%, #4A7FE8 55%, #746CE6 100%)",
+                              WebkitBackgroundClip: "text",
+                              WebkitTextFillColor: "transparent",
+                            }}
+                          >
+                            PASO
+                          </div>
+                          <div className="text-[26px] font-semibold mt-1 text-[#0a0a0a] tabular-nums">
+                            {s.n}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className="ml-auto w-11 h-11 rounded-xl flex items-center justify-center"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, rgba(38,146,220,0.10) 0%, rgba(116,108,230,0.10) 100%)",
+                        color: "#4A7FE8",
+                      }}
+                    >
+                      {s.icon}
+                    </div>
+                  </div>
+
+                  <h3 className="text-[19px] lg:text-[20px] font-semibold text-[#0a0a0a] tracking-[-0.015em] leading-[1.3]">
+                    {s.title}
+                  </h3>
+                  <p className="mt-3 text-[14.5px] text-[#666] leading-[1.65]">
+                    {s.desc}
+                  </p>
+
+                  <ul className="mt-5 space-y-2">
+                    {s.bullets.map((b) => (
+                      <li key={b} className="flex items-start gap-2.5 text-[13.5px] text-[#444]">
+                        <svg
+                          viewBox="0 0 20 20"
+                          className="w-4 h-4 mt-[2px] flex-shrink-0"
+                          fill="none"
+                          stroke="url(#howGrad)"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <defs>
+                            <linearGradient id="howGrad" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#298FDA" />
+                              <stop offset="100%" stopColor="#746CE6" />
+                            </linearGradient>
+                          </defs>
+                          <path d="M4 10l4 4 8-8" />
+                        </svg>
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer line */}
+        <Reveal delay={500}>
+          <p className="text-center text-[13.5px] text-[#888] mt-12 max-w-[560px] mx-auto leading-[1.7]">
+            Sin instalaciones, sin agencias, sin cursos. Empezás gratis y el sistema se vuelve más experto en tu negocio cada día.
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+};
+
 const ProductShowcase = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("salud");
   const [activeBusiness, setActiveBusiness] = useState<BusinessKey>("argentina");
