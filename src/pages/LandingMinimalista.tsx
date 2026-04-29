@@ -752,28 +752,19 @@ const StatueDivider = () => {
         }}
       />
 
-      <div className="max-w-[1100px] mx-auto px-6 py-16 lg:py-24 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-          {/* Image side */}
+      <div className="max-w-[1100px] mx-auto px-6 pt-10 lg:pt-14 pb-0 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 lg:items-end">
+          {/* Image side — anclada al borde inferior */}
           <Reveal className="lg:col-span-5">
-            <div className="relative mx-auto" style={{ maxWidth: 380 }}>
+            <div className="relative mx-auto block" style={{ maxWidth: 300, marginBottom: -1 }}>
               {/* Brand aura behind statue */}
               <div
                 aria-hidden
                 className="absolute inset-0 -z-10"
                 style={{
                   background:
-                    "radial-gradient(55% 55% at 50% 45%, rgba(38,146,220,0.18) 0%, rgba(116,108,230,0.12) 45%, transparent 75%)",
+                    "radial-gradient(55% 55% at 50% 45%, rgba(38,146,220,0.16) 0%, rgba(116,108,230,0.10) 45%, transparent 75%)",
                   filter: "blur(8px)",
-                }}
-              />
-              {/* Pedestal contact shadow */}
-              <div
-                aria-hidden
-                className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-[70%] h-8 rounded-[50%] blur-xl"
-                style={{
-                  background:
-                    "radial-gradient(50% 50% at 50% 50%, rgba(15,23,42,0.18) 0%, transparent 70%)",
                 }}
               />
               <img
@@ -781,10 +772,10 @@ const StatueDivider = () => {
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="relative w-full h-auto select-none"
+                className="relative w-full h-auto select-none block"
                 style={{
                   filter:
-                    "drop-shadow(0 24px 36px rgba(38,146,220,0.22)) drop-shadow(0 6px 12px rgba(116,108,230,0.18))",
+                    "drop-shadow(0 18px 28px rgba(38,146,220,0.20)) drop-shadow(0 4px 10px rgba(116,108,230,0.15))",
                 }}
                 draggable={false}
               />
