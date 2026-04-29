@@ -756,7 +756,7 @@ const StatueDivider = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 lg:items-end">
           {/* Image side — anclada al borde inferior */}
           <Reveal className="lg:col-span-5">
-            <div className="relative mx-auto block" style={{ maxWidth: 300, marginBottom: -1 }}>
+            <div className="relative mx-auto block" style={{ maxWidth: 440, marginBottom: -1 }}>
               {/* Brand aura behind statue */}
               <div
                 aria-hidden
@@ -823,7 +823,7 @@ const StatueDivider = () => {
               <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-4">
                 {[
                   { k: "24/7", v: "Siempre activo" },
-                  { k: "180+", v: "Sectores cubiertos" },
+                  { k: "IA", v: "Totalmente revolucionaria" },
                   { k: "17", v: "Países LATAM y España" },
                 ].map((s) => (
                   <div key={s.k} className="flex flex-col">
