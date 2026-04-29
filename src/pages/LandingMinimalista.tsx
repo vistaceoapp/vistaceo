@@ -523,9 +523,9 @@ const businesses: { key: BusinessKey; name: string; type: string; image: string 
 const HOW_STEPS = [
   {
     n: "01",
-    title: "Contanos qué querés mejorar",
-    desc: "Indicá tu negocio, servicio, empresa o profesión. El sistema se personaliza automáticamente a tu sector, país y objetivos — sin formularios eternos.",
-    bullets: ["Setup en minutos", "Adaptado a tu industria", "Funciona desde el día uno"],
+    title: "Define qué quieres mejorar",
+    desc: "Indica tu negocio, servicio, empresa o profesión. El sistema se personaliza automáticamente a tu sector, país y objetivos, sin formularios eternos.",
+    bullets: ["Configuración en minutos", "Adaptado a tu industria", "Funciona desde el primer día"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
         <path d="M12 2L4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z" />
@@ -535,8 +535,8 @@ const HOW_STEPS = [
   },
   {
     n: "02",
-    title: "Recibí inteligencia continua",
-    desc: "El sistema procesa información todo el tiempo y aprende de tu negocio. Vas a ver radar de oportunidades, alertas, insights y predicciones — listas para convertir en misiones.",
+    title: "Recibe inteligencia continua",
+    desc: "El sistema procesa información todo el tiempo y aprende de tu negocio. Vas a ver radar de oportunidades, alertas, insights y predicciones, listas para convertir en misiones.",
     bullets: ["Radar 24/7", "Insights y predicciones", "Misiones priorizadas"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
@@ -549,8 +549,8 @@ const HOW_STEPS = [
   },
   {
     n: "03",
-    title: "Ejecutá y crecé con foco",
-    desc: "Hacé lo que el sistema te indica, paso a paso. Elegí tus objetivos — más ventas, mejor posicionamiento, más eficiencia — y el plan se reorganiza para llegar ahí.",
+    title: "Ejecuta y crece con foco",
+    desc: "Aplica lo que el sistema te indica, paso a paso. Elige tus objetivos, ya sea más ventas, mejor posicionamiento o más eficiencia, y el plan se reorganiza para llegar ahí.",
     bullets: ["Objetivos personalizados", "Acciones diarias claras", "Resultados medibles"],
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
@@ -693,7 +693,7 @@ const HowItWorks = () => {
         {/* Footer line */}
         <Reveal delay={500}>
           <p className="text-center text-[13.5px] text-[#888] mt-12 max-w-[560px] mx-auto leading-[1.7]">
-            Sin instalaciones, sin agencias, sin cursos. Empezás gratis y el sistema se vuelve más experto en tu negocio cada día.
+            Sin instalaciones, sin agencias, sin cursos. Empiezas gratis y el sistema se vuelve más experto en tu negocio cada día.
           </p>
         </Reveal>
       </div>
