@@ -713,6 +713,150 @@ const HowItWorks = () => {
   );
 };
 
+/* ═══════════════════════════════════════════════════════════════
+   Statue Divider — separador editorial entre Cómo funciona y Capacidades
+   ═══════════════════════════════════════════════════════════════ */
+const StatueDivider = () => {
+  return (
+    <section
+      aria-hidden="true"
+      className="relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(180deg, #ffffff 0%, #fafbff 35%, #f4f6ff 65%, #ffffff 100%)",
+      }}
+    >
+      {/* Soft brand glows */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(40% 60% at 18% 40%, rgba(38,146,220,0.10) 0%, transparent 70%), radial-gradient(35% 55% at 82% 60%, rgba(116,108,230,0.10) 0%, transparent 70%)",
+        }}
+      />
+      {/* Top & bottom hairlines */}
+      <div
+        aria-hidden
+        className="absolute top-0 left-0 right-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, rgba(15,23,42,0.08) 50%, transparent 100%)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute bottom-0 left-0 right-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, rgba(15,23,42,0.08) 50%, transparent 100%)",
+        }}
+      />
+
+      <div className="max-w-[1100px] mx-auto px-6 py-16 lg:py-24 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          {/* Image side */}
+          <Reveal className="lg:col-span-5">
+            <div className="relative mx-auto" style={{ maxWidth: 360 }}>
+              {/* Pedestal glow */}
+              <div
+                aria-hidden
+                className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[78%] h-10 rounded-[50%] blur-2xl"
+                style={{
+                  background:
+                    "radial-gradient(50% 50% at 50% 50%, rgba(116,108,230,0.30) 0%, transparent 70%)",
+                }}
+              />
+              <img
+                src={dividerStatueImg}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="relative w-full h-auto select-none"
+                style={{
+                  filter: "drop-shadow(0 30px 40px rgba(38,146,220,0.18)) drop-shadow(0 8px 14px rgba(116,108,230,0.14))",
+                  WebkitMaskImage:
+                    "radial-gradient(120% 110% at 50% 45%, #000 65%, transparent 100%)",
+                  maskImage:
+                    "radial-gradient(120% 110% at 50% 45%, #000 65%, transparent 100%)",
+                }}
+                draggable={false}
+              />
+            </div>
+          </Reveal>
+
+          {/* Text side */}
+          <div className="lg:col-span-7" aria-hidden="false">
+            <Reveal delay={80}>
+              <span className="inline-block text-[10.5px] uppercase tracking-[0.22em] font-semibold"
+                style={{
+                  backgroundImage: "linear-gradient(95deg, #298FDA 0%, #4A7FE8 55%, #746CE6 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                LA NUEVA ERA EJECUTIVA
+              </span>
+            </Reveal>
+            <Reveal delay={140}>
+              <h3 className="mt-5 text-[clamp(1.6rem,3.4vw,2.3rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] leading-[1.18]">
+                La sabiduría clásica.{" "}
+                <span
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(95deg, #298FDA 0%, #4A7FE8 55%, #746CE6 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                    color: "transparent",
+                  }}
+                >
+                  Con la inteligencia de hoy.
+                </span>
+              </h3>
+            </Reveal>
+            <Reveal delay={220}>
+              <p className="mt-5 text-[15.5px] text-[#555] leading-[1.7] max-w-[520px]">
+                El criterio de un gran estratega, disponible a toda hora. Información que se vuelve decisión, y decisión que se vuelve crecimiento.
+              </p>
+            </Reveal>
+
+            {/* Quiet stats row */}
+            <Reveal delay={300}>
+              <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-4">
+                {[
+                  { k: "24/7", v: "Siempre activo" },
+                  { k: "180+", v: "Sectores cubiertos" },
+                  { k: "17", v: "Países LATAM y España" },
+                ].map((s) => (
+                  <div key={s.k} className="flex flex-col">
+                    <span
+                      className="text-[20px] font-semibold tabular-nums tracking-[-0.01em]"
+                      style={{
+                        backgroundImage:
+                          "linear-gradient(95deg, #298FDA 0%, #4A7FE8 60%, #746CE6 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        color: "transparent",
+                      }}
+                    >
+                      {s.k}
+                    </span>
+                    <span className="text-[12px] text-[#888] mt-0.5 tracking-[0.01em]">
+                      {s.v}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+
 const ProductShowcase = () => {
   const [activeTab, setActiveTab] = useState<TabKey>("salud");
   const [activeBusiness, setActiveBusiness] = useState<BusinessKey>("argentina");
