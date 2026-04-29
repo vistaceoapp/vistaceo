@@ -20,7 +20,7 @@ import { MockupProCompetitors } from "@/components/landing/mockups/MockupProComp
 import { CapabilitiesShowcase } from "@/components/landing/CapabilitiesShowcase";
 import HeroOrb from "@/components/landing/HeroOrb";
 import ceoOfficeImg from "@/assets/hero/ceo-office-led.avif";
-import dividerStatueImg from "@/assets/landing/divider-statue.jpeg";
+import dividerStatueImg from "@/assets/landing/divider-statue.png";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
