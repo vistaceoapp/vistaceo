@@ -809,6 +809,9 @@ const StatueDivider = () => {
                     WebkitTextFillColor: "transparent",
                     backgroundClip: "text",
                     color: "transparent",
+                    display: "inline-block",
+                    paddingBottom: "0.15em",
+                    lineHeight: 1.25,
                   }}
                 >
                   Con la inteligencia de hoy.
