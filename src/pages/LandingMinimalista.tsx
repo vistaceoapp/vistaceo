@@ -1944,6 +1944,7 @@ export default function LandingMinimalista() {
         <HeroSection />
         <div className="lp-section"><TrustStrip /></div>
 
+        <div className="lp-section"><HowItWorks /></div>
         <div className="lp-section"><CapabilitiesShowcase /></div>
         <div className="lp-section"><ProductShowcase /></div>
         <div className="lp-section"><CompetitorSection /></div>
