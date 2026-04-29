@@ -579,7 +579,18 @@ const HowItWorks = () => {
           <div className="text-center mb-4">
             <AccentLabel>CÓMO FUNCIONA</AccentLabel>
             <h2 className="text-[clamp(1.7rem,3.6vw,2.5rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5 leading-[1.15]">
-              Tres pasos. Cero fricción.
+              <span
+                style={{
+                  backgroundImage: "linear-gradient(95deg, #298FDA 0%, #3B79DA 45%, #4A7FE8 85%, #5D74E2 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  color: "transparent",
+                }}
+              >
+                Simple
+              </span>
+              . Crece desde el día uno.
             </h2>
           </div>
         </Reveal>
