@@ -20,7 +20,7 @@ import { MockupProCompetitors } from "@/components/landing/mockups/MockupProComp
 import { CapabilitiesShowcase } from "@/components/landing/CapabilitiesShowcase";
 import HeroOrb from "@/components/landing/HeroOrb";
 import ceoOfficeImg from "@/assets/hero/ceo-office-led.avif";
-import dividerStatueImg from "@/assets/landing/divider-statue.jpeg";
+import dividerStatueImg from "@/assets/landing/divider-statue.png";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
 
@@ -756,14 +756,24 @@ const StatueDivider = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           {/* Image side */}
           <Reveal className="lg:col-span-5">
-            <div className="relative mx-auto" style={{ maxWidth: 360 }}>
-              {/* Pedestal glow */}
+            <div className="relative mx-auto" style={{ maxWidth: 380 }}>
+              {/* Brand aura behind statue */}
               <div
                 aria-hidden
-                className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[78%] h-10 rounded-[50%] blur-2xl"
+                className="absolute inset-0 -z-10"
                 style={{
                   background:
-                    "radial-gradient(50% 50% at 50% 50%, rgba(116,108,230,0.30) 0%, transparent 70%)",
+                    "radial-gradient(55% 55% at 50% 45%, rgba(38,146,220,0.18) 0%, rgba(116,108,230,0.12) 45%, transparent 75%)",
+                  filter: "blur(8px)",
+                }}
+              />
+              {/* Pedestal contact shadow */}
+              <div
+                aria-hidden
+                className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-[70%] h-8 rounded-[50%] blur-xl"
+                style={{
+                  background:
+                    "radial-gradient(50% 50% at 50% 50%, rgba(15,23,42,0.18) 0%, transparent 70%)",
                 }}
               />
               <img
@@ -773,11 +783,8 @@ const StatueDivider = () => {
                 decoding="async"
                 className="relative w-full h-auto select-none"
                 style={{
-                  filter: "drop-shadow(0 30px 40px rgba(38,146,220,0.18)) drop-shadow(0 8px 14px rgba(116,108,230,0.14))",
-                  WebkitMaskImage:
-                    "radial-gradient(120% 110% at 50% 45%, #000 65%, transparent 100%)",
-                  maskImage:
-                    "radial-gradient(120% 110% at 50% 45%, #000 65%, transparent 100%)",
+                  filter:
+                    "drop-shadow(0 24px 36px rgba(38,146,220,0.22)) drop-shadow(0 6px 12px rgba(116,108,230,0.18))",
                 }}
                 draggable={false}
               />
