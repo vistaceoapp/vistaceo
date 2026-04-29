@@ -2101,6 +2101,7 @@ export default function LandingMinimalista() {
         <div className="lp-section"><TrustStrip /></div>
 
         <div className="lp-section"><HowItWorks /></div>
+        <StatueDivider />
         <div className="lp-section"><CapabilitiesShowcase /></div>
         <div className="lp-section"><ProductShowcase /></div>
         <div className="lp-section"><CompetitorSection /></div>
