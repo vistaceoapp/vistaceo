@@ -346,9 +346,7 @@ const HeroSection = () => {
               </h1>
               <style>{`
                 .hero-ceo-grad {
-                  background-image: linear-gradient(118deg, #4FB3F0 0%, #2692DC 28%, #4A7FE8 58%, #746CE6 82%, #8A6CE6 100%);
-                  background-size: 200% 100%;
-                  background-position: 0% 50%;
+                  background-image: linear-gradient(118deg, #2692DC 0%, #4A7FE8 50%, #746CE6 100%);
                   -webkit-background-clip: text;
                   background-clip: text;
                   -webkit-text-fill-color: transparent;
@@ -357,15 +355,7 @@ const HeroSection = () => {
                 @media (min-width: 768px) {
                   .hero-ceo-grad {
                     filter: drop-shadow(0 6px 22px rgba(38,146,220,0.22));
-                    animation: heroCeoShimmer 9s ease-in-out infinite;
                   }
-                }
-                @keyframes heroCeoShimmer {
-                  0%, 100% { background-position: 0% 50%; }
-                  50%      { background-position: 100% 50%; }
-                }
-                @media (prefers-reduced-motion: reduce) {
-                  .hero-ceo-grad { animation: none; }
                 }
               `}</style>
             </Reveal>
