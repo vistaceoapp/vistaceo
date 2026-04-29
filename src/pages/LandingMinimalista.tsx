@@ -341,12 +341,19 @@ const HeroSection = () => {
                     paddingBottom: "0.08em",
                   }}
                 >
-                  CEO digital con IA.
+                  CEO digital con <span className="hero-ia-grad">IA</span>.
                 </span>
               </h1>
               <style>{`
                 .hero-ceo-grad {
-                  background-image: linear-gradient(118deg, #2692DC 0%, #4A7FE8 50%, #746CE6 100%);
+                  background-image: linear-gradient(95deg, #298FDA 0%, #3B79DA 55%, #4A7FE8 75%, #5D74E2 100%);
+                  -webkit-background-clip: text;
+                  background-clip: text;
+                  -webkit-text-fill-color: transparent;
+                  color: transparent;
+                }
+                .hero-ia-grad {
+                  background-image: linear-gradient(110deg, #5D74E2 0%, #746CE6 50%, #8A6CE6 100%);
                   -webkit-background-clip: text;
                   background-clip: text;
                   -webkit-text-fill-color: transparent;
@@ -355,6 +362,9 @@ const HeroSection = () => {
                 @media (min-width: 768px) {
                   .hero-ceo-grad {
                     filter: drop-shadow(0 6px 22px rgba(38,146,220,0.22));
+                  }
+                  .hero-ia-grad {
+                    filter: drop-shadow(0 6px 22px rgba(116,108,230,0.28));
                   }
                 }
               `}</style>
