@@ -693,7 +693,7 @@ const HowItWorks = () => {
         {/* Footer line */}
         <Reveal delay={500}>
           <p className="text-center text-[13.5px] text-[#888] mt-12 max-w-[560px] mx-auto leading-[1.7]">
-            Sin instalaciones, sin agencias, sin cursos. Empezás gratis y el sistema se vuelve más experto en tu negocio cada día.
+            Sin instalaciones, sin agencias, sin cursos. Empiezas gratis y el sistema se vuelve más experto en tu negocio cada día.
           </p>
         </Reveal>
       </div>
