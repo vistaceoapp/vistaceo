@@ -756,7 +756,7 @@ const StatueDivider = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 lg:items-end">
           {/* Image side — anclada al borde inferior */}
           <Reveal className="lg:col-span-5">
-            <div className="relative mx-auto block" style={{ maxWidth: 440, marginBottom: -1 }}>
+            <div className="relative mx-auto block" style={{ maxWidth: 440, marginBottom: -2 }}>
               {/* Brand aura behind statue */}
               <div
                 aria-hidden
@@ -774,8 +774,11 @@ const StatueDivider = () => {
                 decoding="async"
                 className="relative w-full h-auto select-none block"
                 style={{
+                  display: "block",
+                  verticalAlign: "bottom",
+                  marginBottom: 0,
                   filter:
-                    "drop-shadow(0 18px 28px rgba(38,146,220,0.20)) drop-shadow(0 4px 10px rgba(116,108,230,0.15))",
+                    "drop-shadow(0 -8px 18px rgba(38,146,220,0.18)) drop-shadow(0 -2px 8px rgba(116,108,230,0.12))",
                 }}
                 draggable={false}
               />
