@@ -3591,6 +3591,36 @@ export type Database = {
           },
         ]
       }
+      seo_health_log: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          reason: string
+          severity: string
+          slug: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          reason: string
+          severity?: string
+          slug?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          reason?: string
+          severity?: string
+          slug?: string | null
+        }
+        Relationships: []
+      }
       signals: {
         Row: {
           brain_id: string | null
