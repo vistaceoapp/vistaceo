@@ -17,13 +17,14 @@ const CANONICAL_DOMAIN = 'https://www.vistaceo.com';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://nlewrgmcawzcdazhfiyy.supabase.co';
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sZXdyZ21jYXd6Y2RhemhmaXl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY1MDg0NjksImV4cCI6MjA4MjA4NDQ2OX0.fWTySDGOsNNvddTJSj39qVq5gAWwXOVXf-dBzfDDJl0';
 
-// Static pages with their priorities and change frequencies
+// Static pages with their priorities and change frequencies.
+// IMPORTANT: only include pages that are publicly indexable (not blocked in robots.txt).
+// Excluded on purpose: /auth, /checkout, /setup, /app/* (blocked or non-indexable).
 const STATIC_PAGES = [
   { path: '/', priority: '1.0', changefreq: 'daily' },
   { path: '/blog', priority: '0.9', changefreq: 'daily' },
-  { path: '/auth', priority: '0.3', changefreq: 'monthly' },
-  { path: '/privacy', priority: '0.2', changefreq: 'yearly' },
-  { path: '/terms', priority: '0.2', changefreq: 'yearly' },
+  { path: '/politicas', priority: '0.3', changefreq: 'yearly' },
+  { path: '/condiciones', priority: '0.3', changefreq: 'yearly' },
 ];
 
 async function fetchPublishedPosts() {
