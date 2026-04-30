@@ -792,6 +792,30 @@ export type Database = {
           },
         ]
       }
+      blog_redirects: {
+        Row: {
+          created_at: string
+          from_slug: string
+          id: string
+          reason: string | null
+          to_slug: string
+        }
+        Insert: {
+          created_at?: string
+          from_slug: string
+          id?: string
+          reason?: string | null
+          to_slug: string
+        }
+        Update: {
+          created_at?: string
+          from_slug?: string
+          id?: string
+          reason?: string | null
+          to_slug?: string
+        }
+        Relationships: []
+      }
       blog_runs: {
         Row: {
           chosen_plan_id: string | null

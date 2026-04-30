@@ -1,22 +1,63 @@
 ---
 import PostLayout from '../layouts/PostLayout.astro';
-import { getAllPublishedPosts, getPostBySlug, getRelatedPosts } from '../lib/supabase';
+import { getAllPublishedPosts, getPostBySlug, getRelatedPosts, getAllRedirects } from '../lib/supabase';
 
 export async function getStaticPaths() {
-  const posts = await getAllPublishedPosts();
-  
-  return posts.map((post) => ({
+  const [posts, redirects] = await Promise.all([
+    getAllPublishedPosts(),
+    getAllRedirects(),
+  ]);
+
+  const publishedSlugs = new Set(posts.map(p => p.slug));
+
+  // Real post pages
+  const postPaths = posts.map((post) => ({
     params: { slug: post.slug },
+    props: { mode: 'post' as const, post },
   }));
+
+  // Redirect pages (only if destination is currently published)
+  const redirectPaths = redirects
+    .filter(r => publishedSlugs.has(r.to_slug) && !publishedSlugs.has(r.from_slug))
+    .map((r) => ({
+      params: { slug: r.from_slug },
+      props: { mode: 'redirect' as const, toSlug: r.to_slug },
+    }));
+
+  return [...postPaths, ...redirectPaths];
 }
 
-const { slug } = Astro.params;
-const post = await getPostBySlug(slug);
+type Props =
+  | { mode: 'post'; post: any }
+  | { mode: 'redirect'; toSlug: string };
 
-if (!post) {
-  return Astro.redirect('/404');
+const props = Astro.props as Props;
+
+if (props.mode === 'redirect') {
+  const target = `https://blog.vistaceo.com/${props.toSlug}/`;
+  // Render minimal HTML with canonical + meta refresh.
+  // GitHub Pages cannot return real 301s; this is the SEO-recognized
+  // pattern for permanent redirects on static hosts.
+  return new Response(
+    `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Redirigiendo…</title>
+<link rel="canonical" href="${target}">
+<meta name="robots" content="noindex, follow">
+<meta http-equiv="refresh" content="0; url=${target}">
+<script>window.location.replace(${JSON.stringify(target)});</script>
+</head>
+<body>
+<p>Esta página se movió. Redirigiendo a <a href="${target}">${target}</a>…</p>
+</body>
+</html>`,
+    { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+  );
 }
 
+const { post } = props;
 const relatedPosts = await getRelatedPosts(post.slug, post.category, 3);
 ---
 

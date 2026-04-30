@@ -116,6 +116,26 @@ export async function getLatestPosts(limit = 20): Promise<BlogPost[]> {
   return data || [];
 }
 
+// Blog redirects (301-equivalent for static hosting)
+export interface BlogRedirect {
+  from_slug: string;
+  to_slug: string;
+  reason: string | null;
+}
+
+export async function getAllRedirects(): Promise<BlogRedirect[]> {
+  const { data, error } = await supabase
+    .from('blog_redirects')
+    .select('from_slug, to_slug, reason');
+
+  if (error) {
+    console.error('Error fetching redirects:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
 // Get cluster stats for displaying post counts
 export async function getClusterStats(): Promise<Record<string, number>> {
   const { data, error } = await supabase
