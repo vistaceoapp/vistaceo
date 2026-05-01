@@ -11,9 +11,9 @@ export const PromoIntelligencePanel = () => {
   ];
 
   const bubbles = [
-    { icon: TrendingUp, text: "Detectamos una oportunidad comercial", delay: "0s" },
-    { icon: AlertCircle, text: "Prioridad alta para hoy", delay: "1.6s" },
-    { icon: Sparkles, text: "Nueva misión sugerida", delay: "3.2s" },
+    { icon: TrendingUp, text: "Oportunidad comercial detectada", delay: "0s", pos: "left-[-32px] top-[36px]" },
+    { icon: AlertCircle, text: "Prioridad alta para hoy", delay: "1.6s", pos: "right-[-28px] top-[200px]" },
+    { icon: Sparkles, text: "Nueva misión sugerida", delay: "3.2s", pos: "left-[-24px] bottom-[40px]" },
   ];
 
   return (
@@ -80,19 +80,14 @@ export const PromoIntelligencePanel = () => {
         </div>
       </div>
 
-      {/* Floating bubbles — subtle */}
-      <div className="hidden sm:block">
+      {/* Floating bubbles — subtle, anchored to outer edges to avoid overlapping the rows */}
+      <div className="hidden lg:block pointer-events-none">
         {bubbles.map((b, i) => {
           const Icon = b.icon;
-          const positions = [
-            "left-[-22px] top-[60px]",
-            "right-[-18px] top-[180px]",
-            "left-[-12px] bottom-[80px]",
-          ];
           return (
             <div
               key={i}
-              className={`absolute ${positions[i]} promo-float`}
+              className={`absolute ${b.pos} promo-float`}
               style={{ animationDelay: b.delay }}
             >
               <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-white border border-[#e8ebf2] shadow-[0_8px_24px_-8px_rgba(38,40,80,0.15)] text-[11.5px] font-medium text-[#1a1d27] whitespace-nowrap">
