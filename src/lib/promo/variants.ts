@@ -1,21 +1,23 @@
-// A/B variants for /promo. Switch ACTIVE_HERO / ACTIVE_CTA to test copy
-// without adding a runtime experiments framework.
+// A/B variants for /promo. Switch ACTIVE_HERO / ACTIVE_CTA to test copy.
 
 export const HERO_VARIANTS = {
   A: {
-    title: "Crea tu cuenta gratis y recibí un plan claro para hacer crecer tu negocio.",
+    title: "Sabé qué hacer hoy para hacer crecer tu negocio.",
+    highlight: "crecer",
     subtitle:
-      "VISTACEO analiza tu negocio, detecta prioridades y te entrega misiones accionables para saber qué hacer hoy.",
+      "VISTACEO analiza tu negocio, detecta prioridades y te entrega misiones para actuar hoy.",
   },
   B: {
-    title: "Tu negocio con un CEO digital con IA, gratis para empezar.",
+    title: "Tu CEO digital con IA, gratis para empezar hoy.",
+    highlight: "hoy",
     subtitle:
-      "VISTACEO te muestra qué priorizar, qué decidir y qué hacer hoy para crecer.",
+      "VISTACEO te muestra qué priorizar y qué decidir para crecer.",
   },
   C: {
-    title: "Descubrí qué hacer hoy para vender más, ordenar tu negocio y crecer.",
+    title: "Descubrí qué hacer hoy para vender más y crecer.",
+    highlight: "crecer",
     subtitle:
-      "Un sistema ejecutivo con IA que convierte tu contexto en próximos pasos concretos.",
+      "Un sistema ejecutivo con IA que convierte tu contexto en próximos pasos.",
   },
 } as const;
 
@@ -28,7 +30,6 @@ export const CTA_VARIANTS = {
 export type HeroVariant = keyof typeof HERO_VARIANTS;
 export type CTAVariant = keyof typeof CTA_VARIANTS;
 
-// Active variants — change here to test.
 export const ACTIVE_HERO: HeroVariant = "A";
 export const ACTIVE_CTA: CTAVariant = "A";
 

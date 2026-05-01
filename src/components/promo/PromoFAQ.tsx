@@ -7,20 +7,20 @@ import {
 
 const FAQ = [
   {
-    q: "¿La cuenta es gratis?",
-    a: "Sí. Podés crear tu cuenta gratis y empezar sin tarjeta.",
+    q: "¿La cuenta es realmente gratis?",
+    a: "Sí. Podés crear tu cuenta y empezar sin tarjeta. El plan gratuito incluye diagnóstico, misiones y chat CEO.",
   },
   {
-    q: "¿Necesito cargar muchos datos?",
-    a: "No. Primero te pedimos lo mínimo para entender tu negocio y darte un primer diagnóstico.",
+    q: "¿Necesito cargar muchos datos al registrarme?",
+    a: "No. Primero te pedimos lo mínimo para entender tu negocio. En 2 minutos tenés tu primer resultado.",
   },
   {
-    q: "¿Qué me entrega VISTACEO?",
-    a: "Prioridades, misiones accionables, análisis y un chat CEO con IA para ayudarte a decidir mejor.",
+    q: "¿Qué pasa después de crear la cuenta?",
+    a: "VISTACEO te hace 3 preguntas rápidas y en minutos te entrega un diagnóstico, prioridades y misiones concretas para tu negocio.",
   },
   {
     q: "¿Sirve para mi tipo de negocio?",
-    a: "Sí. Está pensado para negocios, servicios, comercios, agencias, clínicas, restaurantes, profesionales y emprendimientos.",
+    a: "Sí. Funciona para negocios, servicios, comercios, agencias, profesionales y emprendimientos de cualquier rubro.",
   },
 ];
 
@@ -31,12 +31,12 @@ export const PromoFAQ = () => {
         <AccordionItem
           key={i}
           value={`item-${i}`}
-          className="border-b border-[#eef0f4] last:border-b-0"
+          className="border-b border-[#E2E8F0] last:border-b-0"
         >
-          <AccordionTrigger className="text-left text-[15px] sm:text-[16px] font-semibold text-[#1a1d27] hover:no-underline py-5">
+          <AccordionTrigger className="text-left text-[15.5px] sm:text-[16.5px] font-semibold text-[#0F172A] hover:no-underline py-5">
             {item.q}
           </AccordionTrigger>
-          <AccordionContent className="text-[14.5px] text-[#5b6271] leading-relaxed pb-5">
+          <AccordionContent className="text-[14.5px] text-[#475569] leading-relaxed pb-5 pl-1">
             {item.a}
           </AccordionContent>
         </AccordionItem>
