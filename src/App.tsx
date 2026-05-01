@@ -11,9 +11,10 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { toast } from "sonner";
 
-// Critical path - loaded eagerly (landing + auth)
+// Critical path - loaded eagerly (landing + auth + paid-traffic landing)
 import LandingMinimalista from "./pages/LandingMinimalista";
 import Auth from "./pages/Auth";
+import PromoLanding from "./pages/PromoLanding";
 
 // Blog redirect (tiny component)
 import BlogRedirect from "./components/blog/BlogRedirect";
@@ -176,6 +177,7 @@ const AppRoutes = () => {
         <Route path="/ultra" element={<LandingUltra />} />
         <Route path="/v3" element={<Suspense fallback={<PageLoader />}><LandingV3 /></Suspense>} />
         <Route path="/minimalista" element={<Navigate to="/" replace />} />
+        <Route path="/promo" element={<PromoLanding />} />
         <Route path="/auth" element={<Auth />} />
         
         {/* Blog routes - Redirect to subdomain blog.vistaceo.com */}

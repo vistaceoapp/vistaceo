@@ -12,6 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { safeLocalStorage } from "@/lib/safe-storage";
 import { collectSignupTrackingContext } from "@/lib/signup-tracking";
+import { isPromoOrigin } from "@/lib/promo/utm";
 import iconBrand from "@/assets/brand/icon-vistaceo-new.webp";
 
 // Dashboard route constant
@@ -23,7 +24,17 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(() => {
+    // Low-friction: when arriving from /promo (Google Ads), email form is visible by default.
+    if (typeof window === "undefined") return false;
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get("from") === "promo") return true;
+    } catch {
+      // ignore
+    }
+    return isPromoOrigin();
+  });
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const { signIn, signUp, signInWithGoogle, user } = useAuth();

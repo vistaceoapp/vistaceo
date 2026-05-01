@@ -19,7 +19,7 @@ const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGci
 
 // Static pages with their priorities and change frequencies.
 // IMPORTANT: only include pages that are publicly indexable (not blocked in robots.txt).
-// Excluded on purpose: /auth, /checkout, /setup, /app/* (blocked or non-indexable).
+// Excluded on purpose: /auth, /checkout, /setup, /app/*, /promo (blocked, paid-traffic landing or non-indexable).
 const STATIC_PAGES = [
   { path: '/', priority: '1.0', changefreq: 'daily' },
   { path: '/blog', priority: '0.9', changefreq: 'daily' },
