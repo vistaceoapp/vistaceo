@@ -11,7 +11,7 @@ import {
   getCurrentUTMs,
 } from "@/lib/promo/utm";
 import { getActiveHero, getActiveCTA } from "@/lib/promo/variants";
-import { useActivityTracker } from "@/hooks/use-activity-tracker";
+import { trackPromoEvent } from "@/lib/promo/tracker";
 import {
   Sparkles,
   Target,
@@ -27,14 +27,13 @@ const GRADIENT = "linear-gradient(135deg, #2692DC 0%, #746CE6 100%)";
 const PromoLanding = () => {
   const hero = getActiveHero();
   const ctaLabel = getActiveCTA();
-  const { trackFeatureUse } = useActivityTracker();
 
   // Capture origin + first-touch + landing view event
   useEffect(() => {
     captureFirstTouchIfMissing();
     markPromoOrigin();
     const utms = getCurrentUTMs();
-    trackFeatureUse("promo_landing_view", {
+    trackPromoEvent("promo_landing_view", {
       ...utms,
       landing_path: "/promo",
       device:
@@ -43,11 +42,11 @@ const PromoLanding = () => {
           : "desktop",
       timestamp: new Date().toISOString(),
     });
-  }, [trackFeatureUse]);
+  }, []);
 
   const handleCtaClick = (position: string) => {
     const utms = getCurrentUTMs();
-    trackFeatureUse("promo_signup_cta_click", {
+    trackPromoEvent("promo_signup_cta_click", {
       ...utms,
       landing_path: "/promo",
       cta_position: position,
