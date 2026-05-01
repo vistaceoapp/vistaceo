@@ -59,7 +59,7 @@ export const PromoIntelligencePanel = () => {
                     background: "linear-gradient(135deg, #2692DC 0%, #746CE6 100%)",
                   }}
                 >
-                  <Icon className="w-4.5 h-4.5" strokeWidth={2.2} />
+                  <Icon className="w-[18px] h-[18px]" strokeWidth={2.2} />
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-[13.5px] font-semibold text-[#1a1d27] leading-tight">

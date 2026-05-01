@@ -107,11 +107,11 @@ const PromoLanding = () => {
                 <Link
                   to={buildSignupHref()}
                   onClick={() => handleCtaClick("hero_primary")}
-                  className="inline-flex items-center justify-center gap-2 h-13 px-7 rounded-2xl text-[15.5px] font-semibold text-white shadow-[0_10px_30px_-10px_rgba(116,108,230,0.55)] hover:shadow-[0_14px_36px_-10px_rgba(116,108,230,0.65)] transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-7 rounded-2xl text-[15.5px] font-semibold text-white shadow-[0_10px_30px_-10px_rgba(116,108,230,0.55)] hover:shadow-[0_14px_36px_-10px_rgba(116,108,230,0.65)] transition-all"
                   style={{ background: GRADIENT, height: 52 }}
                 >
                   {ctaLabel}
-                  <ChevronRight className="w-4.5 h-4.5" />
+                  <ChevronRight className="w-[18px] h-[18px]" />
                 </Link>
                 <a
                   href="#beneficios"
