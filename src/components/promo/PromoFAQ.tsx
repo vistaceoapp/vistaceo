@@ -19,8 +19,8 @@ const FAQ = [
     a: "VISTACEO te hace 3 preguntas rápidas y en minutos te entrega un diagnóstico, prioridades y misiones concretas para tu negocio.",
   },
   {
-    q: "¿Sirve para mi tipo de negocio?",
-    a: "Sí. Funciona para negocios, servicios, comercios, agencias, profesionales y emprendimientos de cualquier rubro.",
+    q: "¿Sirve para mi negocio, servicio o profesión?",
+    a: "Sí. Funciona para negocios, servicios y profesionales independientes de cualquier rubro: comercios, agencias, consultorios, estudios, emprendimientos y profesiones liberales.",
   },
 ];
 
