@@ -1,27 +1,84 @@
-# VistaCEO - Robots.txt
+# VISTACEO - Robots.txt
 # Canonical domain: https://www.vistaceo.com
+# Last updated: 2026-05-02
 
-# ===== MAIN CRAWLERS =====
+# ===== MAIN CRAWLERS (full access to public surface) =====
 
 User-agent: Googlebot
 Allow: /
 Disallow: /app/
 Disallow: /setup
+Disallow: /setup-complete
 Disallow: /checkout
 Disallow: /admin/
 Disallow: /api/
-Crawl-delay: 1
+Disallow: /reset-password
+Disallow: /unsubscribe
+Disallow: /bienvenido-pro
+Disallow: /welcome-pro
+Disallow: /promo
+Disallow: /v2
+Disallow: /v3
+Disallow: /ultra
+Disallow: /minimalista
+Disallow: /*?utm_
+Disallow: /*?ref=
+Disallow: /*?source=
+Disallow: /*?gclid=
+Disallow: /*?fbclid=
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
 
 User-agent: Bingbot
+Allow: /
+Disallow: /app/
+Disallow: /setup
+Disallow: /setup-complete
+Disallow: /checkout
+Disallow: /admin/
+Disallow: /api/
+Disallow: /reset-password
+Disallow: /unsubscribe
+Disallow: /bienvenido-pro
+Disallow: /welcome-pro
+Disallow: /promo
+Disallow: /v2
+Disallow: /v3
+Disallow: /ultra
+Disallow: /minimalista
+
+User-agent: YandexBot
 Allow: /
 Disallow: /app/
 Disallow: /setup
 Disallow: /checkout
 Disallow: /admin/
 Disallow: /api/
-Crawl-delay: 1
+Disallow: /promo
 
-# ===== SOCIAL MEDIA BOTS =====
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /app/
+Disallow: /setup
+Disallow: /checkout
+Disallow: /admin/
+Disallow: /api/
+Disallow: /promo
+
+User-agent: Applebot
+Allow: /
+Disallow: /app/
+Disallow: /setup
+Disallow: /checkout
+Disallow: /admin/
+Disallow: /api/
+Disallow: /promo
+
+# ===== SOCIAL MEDIA BOTS (allow crawling for previews) =====
 
 User-agent: Twitterbot
 Allow: /
@@ -44,7 +101,7 @@ Allow: /
 User-agent: Discordbot
 Allow: /
 
-# ===== BLOCK AGGRESSIVE/SPAM BOTS =====
+# ===== BLOCK AGGRESSIVE / SCRAPER BOTS =====
 
 User-agent: AhrefsBot
 Disallow: /
@@ -64,9 +121,6 @@ Disallow: /
 User-agent: PetalBot
 Disallow: /
 
-User-agent: YandexBot
-Disallow: /
-
 User-agent: Bytespider
 Disallow: /
 
@@ -79,19 +133,41 @@ Disallow: /
 User-agent: ClaudeBot
 Disallow: /
 
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
 # ===== ALL OTHER BOTS =====
 
 User-agent: *
 Allow: /
 Disallow: /app/
 Disallow: /setup
+Disallow: /setup-complete
 Disallow: /checkout
 Disallow: /admin/
 Disallow: /api/
+Disallow: /reset-password
+Disallow: /unsubscribe
+Disallow: /bienvenido-pro
+Disallow: /welcome-pro
+Disallow: /promo
+Disallow: /v2
+Disallow: /v3
+Disallow: /ultra
+Disallow: /minimalista
 Disallow: /*?utm_
 Disallow: /*?ref=
 Disallow: /*?source=
+Disallow: /*?gclid=
+Disallow: /*?fbclid=
 
-# ===== SITEMAP =====
+# ===== SITEMAPS =====
 
 Sitemap: https://www.vistaceo.com/sitemap.xml
+Sitemap: https://blog.vistaceo.com/sitemap.xml
+
+# ===== HOST =====
+Host: https://www.vistaceo.com
