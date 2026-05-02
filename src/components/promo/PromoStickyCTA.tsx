@@ -35,18 +35,18 @@ export const PromoStickyCTA = ({ onClick }: Props) => {
         <Link
           to={buildSignupHref()}
           onClick={onClick}
-          className="w-full inline-flex items-center justify-center rounded-[10px] font-bold text-white"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-[10px] font-bold text-white"
           style={{
-            height: 46,
-            fontSize: 15,
+            height: 48,
+            fontSize: 15.5,
             background: "linear-gradient(135deg, #6C63FF 0%, #00C4B4 100%)",
             boxShadow: "0 6px 20px rgba(108,99,255,0.45)",
           }}
         >
-          {getActiveCTA()}
+          {getActiveCTA()} →
         </Link>
-        <p className="text-center text-[11px] text-white/40 mt-1.5">
-          Gratis · Sin tarjeta
+        <p className="text-center text-[11px] text-white/55 mt-1.5">
+          Gratis · Sin tarjeta · Negocio, servicio o profesión
         </p>
       </div>
     </div>
