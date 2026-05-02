@@ -240,14 +240,35 @@ const PromoLanding = () => {
 
               <p
                 className="promo-fade-up mt-3 text-[13px]"
-                style={{ color: "#64748B", animationDelay: "0.35s" }}
+                style={{ color: "#94A3B8", animationDelay: "0.35s" }}
               >
-                Sin tarjeta · En minutos · Para negocios de LATAM
+                Sin tarjeta · En minutos · Negocio, servicio o profesión
               </p>
+
+              {/* Social proof inline */}
+              <div
+                className="promo-fade-up mt-5 flex items-center gap-3"
+                style={{ animationDelay: "0.4s" }}
+              >
+                <div className="flex -space-x-2">
+                  {["#6C63FF", "#00C4B4", "#8B5CF6", "#F59E0B"].map((c, i) => (
+                    <span
+                      key={i}
+                      className="w-7 h-7 rounded-full border-2 flex items-center justify-center text-[10px] font-bold text-white"
+                      style={{ background: c, borderColor: "#0A0A0F" }}
+                    >
+                      {["MR", "JP", "LC", "AS"][i]}
+                    </span>
+                  ))}
+                </div>
+                <span className="text-[12.5px] text-[#94A3B8] leading-tight">
+                  +500 negocios y profesionales activos
+                </span>
+              </div>
 
               <div
                 className="promo-fade-up mt-6"
-                style={{ animationDelay: "0.45s" }}
+                style={{ animationDelay: "0.5s" }}
               >
                 <a
                   href="#beneficios"
