@@ -2,22 +2,22 @@
 
 export const HERO_VARIANTS = {
   A: {
-    title: "Sabé qué hacer hoy para hacer crecer tu negocio.",
+    title: "Sabé qué hacer hoy para hacer crecer lo que hacés.",
     highlight: "crecer",
     subtitle:
-      "VISTACEO analiza tu negocio, detecta prioridades y te entrega misiones para actuar hoy.",
+      "VISTACEO analiza tu negocio, servicio o profesión, detecta prioridades y te entrega misiones para actuar hoy.",
   },
   B: {
     title: "Tu CEO digital con IA, gratis para empezar hoy.",
     highlight: "hoy",
     subtitle:
-      "VISTACEO te muestra qué priorizar y qué decidir para crecer.",
+      "Para tu negocio, servicio o profesión: VISTACEO te muestra qué priorizar y qué decidir para crecer.",
   },
   C: {
     title: "Descubrí qué hacer hoy para vender más y crecer.",
     highlight: "crecer",
     subtitle:
-      "Un sistema ejecutivo con IA que convierte tu contexto en próximos pasos.",
+      "Un sistema ejecutivo con IA que convierte tu contexto en próximos pasos, sea cual sea tu negocio, servicio o profesión.",
   },
 } as const;
 
