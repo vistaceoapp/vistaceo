@@ -295,7 +295,7 @@ const PromoLanding = () => {
               "Gratis para empezar",
               "Sin tarjeta de crédito",
               "Diagnóstico en minutos",
-              "Para negocios de LATAM",
+              "Negocio, servicio o profesión",
             ].map((t) => (
               <span key={t} className="inline-flex items-center gap-1.5">
                 <Check className="w-3.5 h-3.5 text-[#00C4B4]" strokeWidth={3} />
