@@ -302,7 +302,7 @@ const PromoLanding = () => {
 
           <div className="mt-12 grid md:grid-cols-3 gap-5">
             {[
-              { n: "01", t: "Contás tu negocio", d: "Qué tipo, rubro y objetivo tenés." },
+              { n: "01", t: "Contás qué hacés", d: "Tu negocio, servicio o profesión y tu objetivo." },
               { n: "02", t: "VISTACEO lo analiza", d: "IA detecta prioridades y oportunidades." },
               { n: "03", t: "Recibís claridad", d: "Diagnóstico, misiones y próximos pasos." },
             ].map((s) => (
