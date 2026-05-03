@@ -5,7 +5,7 @@ export const HERO_VARIANTS = {
     title: "Saber qué hacer hoy para crecer.",
     highlight: "crecer",
     subtitle:
-      "VISTACEO analiza tu contexto, detecta prioridades y te entrega misiones para actuar hoy.",
+      "Plataforma con IA que detecta oportunidades en tu negocio y te dice exactamente qué hacer hoy para crecer.",
   },
   B: {
     title: "Tu CEO digital con IA, gratis para empezar hoy.",
