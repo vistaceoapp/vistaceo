@@ -366,10 +366,10 @@ const PromoLanding = () => {
           >
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
               {[
-                { v: "3", l: "misiones iniciales" },
-                { v: "2 min", l: "para empezar" },
-                { v: "$0", l: "sin tarjeta" },
-                { v: "1", l: "plan claro para hoy" },
+                { v: "2 min", l: "para tener tu primer plan" },
+                { v: "24/7", l: "CEO con IA disponible" },
+                { v: "$0", l: "sin tarjeta para empezar" },
+                { v: "+500", l: "negocios y profesionales" },
               ].map((m) => (
                 <div key={m.l}>
                   <div
