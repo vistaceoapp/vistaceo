@@ -2,7 +2,7 @@
 
 export const HERO_VARIANTS = {
   A: {
-    title: "Sabé qué hacer hoy para crecer en tu negocio, servicio o profesión.",
+    title: "Saber qué hacer hoy para crecer.",
     highlight: "crecer",
     subtitle:
       "VISTACEO analiza tu contexto, detecta prioridades y te entrega misiones para actuar hoy.",
