@@ -2,25 +2,26 @@ import {
   Sparkles,
   AlertTriangle,
   TrendingUp,
-  Star,
-  Package,
+  Radar,
+  Target,
   Zap,
   ArrowUpRight,
   ArrowRight,
+  Crosshair,
+  Eye,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { buildSignupHref } from "@/lib/promo/utm";
 
 /**
- * PromoIntelligencePanel — Live Business Intelligence
+ * PromoIntelligencePanel — Inteligencia ejecutiva en vivo
  *
- * Panel visual premium tipo "inteligencia ejecutiva en vivo".
- * 7 micro-módulos: alerta, tendencia (sparkline), comparativo (barras),
- * reseñas, producto, oportunidad, chat CEO + CTA final.
+ * Panel premium tipo "tu CEO de IA está analizando tu negocio".
+ * Usa vocabulario de la app: Radar, Misión, Predicción, Competencia, Insight.
  */
 export const PromoIntelligencePanel = () => {
   return (
-    <div className="relative w-full max-w-[440px] mx-auto lg:mx-0 lbi-float">
+    <div className="relative w-full max-w-[460px] mx-auto lg:mx-0 lbi-float">
       {/* Soft outer glow */}
       <div
         className="absolute -inset-10 rounded-[44px] opacity-70 blur-3xl -z-10"
@@ -43,11 +44,11 @@ export const PromoIntelligencePanel = () => {
             "0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
         }}
       >
-        {/* ====== HEADER: En vivo ====== */}
-        <div className="flex items-center justify-between mb-5 pb-4 border-b border-white/10">
-          <div className="flex items-center gap-2.5">
+        {/* ====== HEADER: Analizando tu negocio ====== */}
+        <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
+          <div className="flex items-center gap-2.5 min-w-0">
             <span
-              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{
                 background: "linear-gradient(135deg, #6C63FF, #00C4B4)",
                 boxShadow: "0 6px 18px rgba(108,99,255,0.4)",
@@ -55,18 +56,17 @@ export const PromoIntelligencePanel = () => {
             >
               <Sparkles className="w-4 h-4 text-white" strokeWidth={2.4} />
             </span>
-            <div>
-              <div className="text-[12px] font-semibold text-white tracking-wide">
+            <div className="min-w-0">
+              <div className="text-[12.5px] font-semibold text-white tracking-wide truncate">
                 Analizando tu negocio
               </div>
-              <div className="text-[10.5px] text-white/50">
-                Inteligencia ejecutiva en vivo
+              <div className="text-[10.5px] text-white/55 truncate">
+                7 señales detectadas hoy
               </div>
             </div>
           </div>
 
-          {/* Live indicator */}
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#00C4B4]/10 border border-[#00C4B4]/30">
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[#00C4B4]/10 border border-[#00C4B4]/30 flex-shrink-0">
             <span className="relative flex w-1.5 h-1.5">
               <span className="absolute inline-flex w-full h-full rounded-full bg-[#00C4B4] opacity-75 animate-ping" />
               <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-[#00C4B4]" />
@@ -77,54 +77,90 @@ export const PromoIntelligencePanel = () => {
           </div>
         </div>
 
+        {/* ====== HERO INSIGHT — Oportunidad crítica ====== */}
+        <div
+          className="lbi-stagger relative rounded-2xl p-3.5 mb-2.5 overflow-hidden"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(0,196,180,0.18) 0%, rgba(108,99,255,0.14) 100%)",
+            border: "1px solid rgba(0,196,180,0.35)",
+            animationDelay: "0.1s",
+          }}
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider"
+              style={{
+                background: "rgba(0,196,180,0.2)",
+                color: "#5DEAD4",
+                border: "1px solid rgba(0,196,180,0.35)",
+              }}
+            >
+              <Target className="w-3 h-3" />
+              Oportunidad crítica
+            </span>
+            <span className="text-[10px] font-bold text-white/55">
+              Insight #1
+            </span>
+          </div>
+          <div className="text-[13.5px] text-white font-semibold leading-snug">
+            Tu margen puede subir hasta{" "}
+            <span className="text-[#5DEAD4]">+18%</span>
+          </div>
+          <div className="mt-1 text-[11px] text-white/65 leading-snug">
+            No vendiendo más, sino corrigiendo el proceso que hoy te hace perder
+            rentabilidad.
+          </div>
+        </div>
+
         {/* ====== GRID DE MÓDULOS ====== */}
         <div className="grid grid-cols-2 gap-2.5">
-          {/* 1. ALERTA — col-span-2 */}
+          {/* 1. RADAR — Competencia detectada */}
           <ModuleCard
             className="col-span-2"
-            delay="0.15s"
+            delay="0.25s"
             tone="warning"
-            icon={<AlertTriangle className="w-3.5 h-3.5" />}
-            label="Alerta detectada"
+            icon={<Crosshair className="w-3 h-3" />}
+            label="Radar de competencia"
           >
             <div className="flex items-center justify-between gap-3">
-              <div className="text-[12.5px] text-white leading-snug font-medium">
-                Consultas fuera de horario
+              <div className="text-[12px] text-white leading-snug font-medium min-w-0">
+                Tu competencia vende más en tu hora pico
               </div>
-              <div className="text-[11px] font-bold text-[#FFB454]">+38%</div>
+              <div className="text-[12px] font-bold text-[#FFB454] flex-shrink-0">
+                +23%
+              </div>
             </div>
-            {/* Mini bar */}
             <div className="mt-2 h-1 rounded-full bg-white/8 overflow-hidden">
               <div
                 className="h-full lbi-bar-fill rounded-full"
                 style={{
                   width: "78%",
-                  background:
-                    "linear-gradient(90deg, #F59E0B, #FFB454)",
+                  background: "linear-gradient(90deg, #F59E0B, #FFB454)",
                   animationDelay: "0.6s",
                 }}
               />
             </div>
           </ModuleCard>
 
-          {/* 2. TENDENCIA con sparkline */}
-          <ModuleCard delay="0.3s" tone="primary" label="Tendencia del sector">
+          {/* 2. PREDICCIÓN — Tendencia */}
+          <ModuleCard delay="0.4s" tone="primary" label="Predicción de mercado">
             <div className="flex items-end justify-between">
               <div>
                 <div className="text-[11.5px] text-white/85 leading-tight">
-                  Búsqueda en alza
+                  Búsquedas en tu zona
                 </div>
-                <div className="mt-0.5 flex items-center gap-0.5 text-[10.5px] font-bold text-[#5DEAD4]">
+                <div className="mt-0.5 flex items-center gap-0.5 text-[11px] font-bold text-[#5DEAD4]">
                   <ArrowUpRight className="w-2.5 h-2.5" />
-                  +24%
+                  +24% esta semana
                 </div>
               </div>
               <Sparkline />
             </div>
           </ModuleCard>
 
-          {/* 3. COMPARATIVO — barras */}
-          <ModuleCard delay="0.45s" tone="primary" label="Tu negocio vs sector">
+          {/* 3. INSIGHT — Tu negocio vs sector */}
+          <ModuleCard delay="0.55s" tone="primary" label="Tu negocio vs sector">
             <div className="space-y-1.5 mt-1">
               <CompareBar label="Vos" value={62} color="#6C63FF" delay="0.7s" />
               <CompareBar
@@ -134,65 +170,58 @@ export const PromoIntelligencePanel = () => {
                 delay="0.85s"
               />
             </div>
+            <div className="mt-1.5 text-[10px] text-white/55">
+              Brecha: <span className="text-white/80 font-semibold">22 pts</span>
+            </div>
           </ModuleCard>
 
-          {/* 4. RESEÑAS */}
-          <ModuleCard delay="0.6s" tone="neutral" label="Reseñas Google">
-            <div className="flex items-center gap-1 mb-1.5">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <Star
-                  key={i}
-                  className={`w-2.5 h-2.5 ${
-                    i < 4 ? "text-[#FBBF24] fill-[#FBBF24]" : "text-white/20"
-                  }`}
-                />
-              ))}
-              <span className="ml-1 text-[10px] text-white/60">4.2</span>
+          {/* 4. ALERTA — Web perdiendo clientes */}
+          <ModuleCard
+            delay="0.7s"
+            tone="warning"
+            icon={<Eye className="w-3 h-3" />}
+            label="Tu web pierde clientes"
+          >
+            <div className="text-[11.5px] text-white/85 leading-snug">
+              Hasta{" "}
+              <span className="text-[#FBBF24] font-bold">31%</span> se va sin
+              consultar
+            </div>
+            <div className="mt-1 text-[10px] text-white/55 leading-snug">
+              Faltan: CTA visible, oferta clara, prueba social.
+            </div>
+          </ModuleCard>
+
+          {/* 5. RESEÑAS — Patrón detectado */}
+          <ModuleCard delay="0.85s" tone="neutral" label="Reseñas Google">
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-[12px] font-bold text-white">4.2</span>
+              <span className="text-[10px] text-white/50">/5</span>
             </div>
             <div className="text-[11px] text-white/85 leading-snug">
-              Palabra repetida:
+              Palabra repetida 18×:
             </div>
-            <span
-              className="mt-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold text-[#FCA5A5] bg-[#EF4444]/15 border border-[#EF4444]/25"
-            >
+            <span className="mt-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold text-[#FCA5A5] bg-[#EF4444]/15 border border-[#EF4444]/25">
               "demora"
             </span>
           </ModuleCard>
 
-          {/* 5. PRODUCTO */}
-          <ModuleCard delay="0.75s" tone="neutral" label="Producto estrella">
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Package className="w-3 h-3 text-white/60" />
-              <span className="text-[11px] text-white/85 font-medium">
-                Plato del día
-              </span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center justify-between text-[10px]">
-                <span className="text-white/60">Más vendido</span>
-                <span className="font-semibold text-[#5DEAD4]">#1</span>
-              </div>
-              <div className="flex items-center justify-between text-[10px]">
-                <span className="text-white/60">Margen</span>
-                <span className="font-semibold text-[#FCA5A5]">Bajo</span>
-              </div>
-            </div>
-          </ModuleCard>
-
-          {/* 6. OPORTUNIDAD — col-span-2 */}
+          {/* 6. MISIÓN — col-span-2 */}
           <ModuleCard
             className="col-span-2"
-            delay="0.9s"
+            delay="1s"
             tone="success"
-            icon={<TrendingUp className="w-3.5 h-3.5" />}
-            label="Oportunidad detectada"
-            badge="Nuevo"
+            icon={<Target className="w-3 h-3" />}
+            label="Misión prioritaria"
+            badge="Hoy"
           >
             <div className="text-[12.5px] text-white leading-snug font-medium">
-              Nueva tendencia en tu rubro
+              Activar respuesta rápida por WhatsApp
             </div>
-            <div className="mt-0.5 text-[11px] text-white/60 leading-snug">
-              Margen estimado +18% si actúas esta semana.
+            <div className="mt-1 grid grid-cols-3 gap-1.5">
+              <MiniStat label="Tu respuesta" value="2h 40m" tone="bad" />
+              <MiniStat label="Ideal" value="< 5 min" tone="good" />
+              <MiniStat label="Pérdida" value="-27%" tone="bad" />
             </div>
           </ModuleCard>
 
@@ -202,7 +231,7 @@ export const PromoIntelligencePanel = () => {
             style={{
               background: "rgba(108,99,255,0.14)",
               border: "1px solid rgba(108,99,255,0.3)",
-              animationDelay: "1.05s",
+              animationDelay: "1.15s",
             }}
           >
             <span
@@ -219,7 +248,8 @@ export const PromoIntelligencePanel = () => {
                 Chat CEO
               </div>
               <div className="text-[12px] text-white/90 leading-snug">
-                Ya encontré el primer cambio para mejorar tus ventas
+                Ya encontré dónde se está escapando la plata y qué cambiaría
+                primero
                 <span className="inline-flex items-center gap-0.5 ml-1 align-middle">
                   <Dot delay="0s" />
                   <Dot delay="0.2s" />
@@ -237,19 +267,21 @@ export const PromoIntelligencePanel = () => {
           style={{
             background: "linear-gradient(135deg, #6C63FF 0%, #00C4B4 100%)",
             boxShadow: "0 12px 32px rgba(108,99,255,0.45)",
-            animationDelay: "1.2s",
+            animationDelay: "1.3s",
           }}
         >
           <Zap className="w-4 h-4" />
           Ver mi análisis gratis
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
-        <p className="lbi-stagger text-center mt-2 text-[10.5px] text-white/50" style={{ animationDelay: "1.3s" }}>
+        <p
+          className="lbi-stagger text-center mt-2 text-[10.5px] text-white/50"
+          style={{ animationDelay: "1.4s" }}
+        >
           Gratis · Sin tarjeta · En minutos
         </p>
       </div>
 
-      {/* ====== Animaciones ====== */}
       <style>{`
         @keyframes lbiFloat {
           0%, 100% { transform: translateY(0px); }
@@ -310,7 +342,16 @@ interface ModuleCardProps {
   delay?: string;
 }
 
-const TONE_STYLES: Record<string, { border: string; bg: string; chipBg: string; chipText: string; chipBorder: string }> = {
+const TONE_STYLES: Record<
+  string,
+  {
+    border: string;
+    bg: string;
+    chipBg: string;
+    chipText: string;
+    chipBorder: string;
+  }
+> = {
   primary: {
     border: "rgba(108,99,255,0.22)",
     bg: "rgba(108,99,255,0.06)",
@@ -360,9 +401,9 @@ const ModuleCard = ({
         animationDelay: delay,
       }}
     >
-      <div className="flex items-center justify-between mb-1.5">
+      <div className="flex items-center justify-between mb-1.5 gap-2">
         <span
-          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold"
+          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold min-w-0"
           style={{
             background: t.chipBg,
             color: t.chipText,
@@ -370,12 +411,14 @@ const ModuleCard = ({
           }}
         >
           {icon}
-          {label}
+          <span className="truncate">{label}</span>
         </span>
         {badge && (
           <span
-            className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white"
-            style={{ background: "linear-gradient(135deg, #6C63FF, #00C4B4)" }}
+            className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white flex-shrink-0"
+            style={{
+              background: "linear-gradient(135deg, #6C63FF, #00C4B4)",
+            }}
           >
             {badge}
           </span>
@@ -434,7 +477,9 @@ const CompareBar = ({
   delay: string;
 }) => (
   <div className="flex items-center gap-1.5">
-    <span className="text-[9.5px] text-white/55 w-9 flex-shrink-0">{label}</span>
+    <span className="text-[9.5px] text-white/55 w-9 flex-shrink-0">
+      {label}
+    </span>
     <div className="flex-1 h-1.5 rounded-full bg-white/8 overflow-hidden">
       <div
         className="h-full rounded-full lbi-bar-fill"
@@ -448,6 +493,29 @@ const CompareBar = ({
     <span className="text-[9.5px] font-semibold text-white/80 w-7 text-right">
       {value}
     </span>
+  </div>
+);
+
+const MiniStat = ({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "good" | "bad";
+}) => (
+  <div className="rounded-lg px-1.5 py-1 bg-white/5 border border-white/8">
+    <div className="text-[8.5px] text-white/50 leading-tight uppercase tracking-wide">
+      {label}
+    </div>
+    <div
+      className={`text-[10.5px] font-bold leading-tight ${
+        tone === "good" ? "text-[#5DEAD4]" : "text-[#FCA5A5]"
+      }`}
+    >
+      {value}
+    </div>
   </div>
 );
 
