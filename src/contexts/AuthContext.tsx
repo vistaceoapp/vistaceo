@@ -41,6 +41,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
           if (provider === 'google' && isNewUser) {
             welcomeEmailSentRef.current = true;
+            // Google Ads conversion (signup gratis vía Google)
+            import("@/lib/google-ads-conversion")
+              .then((m) => m.fireGoogleAdsSignupConversion({ method: "google" }))
+              .catch(() => {});
             setTimeout(async () => {
               const fullName = newSession.user.user_metadata?.full_name || newSession.user.email?.split('@')[0];
               try {
