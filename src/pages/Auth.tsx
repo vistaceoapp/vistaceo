@@ -224,6 +224,11 @@ const Auth = () => {
           return;
         }
         await sendWelcomeEmail(email, fullName, 'email');
+        // Google Ads conversion (signup gratis)
+        try {
+          const { fireGoogleAdsSignupConversion } = await import("@/lib/google-ads-conversion");
+          fireGoogleAdsSignupConversion({ method: "email" });
+        } catch {}
         // Aviso interno al admin con tracking completo (no bloqueante)
         supabase.functions.invoke('notify-admin', {
           body: {
