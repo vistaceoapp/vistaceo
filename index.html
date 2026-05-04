@@ -9,6 +9,7 @@
       window.gtag = gtag;
       gtag('js', new Date());
       gtag('config', 'G-E7T6MQPHDC');
+      gtag('config', 'AW-18121816177');
       // Defer the heavy network/eval until the page is interactive
       function __loadAnalytics(){
         if (window.__vcAnalyticsLoaded) return; window.__vcAnalyticsLoaded = true;
@@ -17,6 +18,11 @@
         ga.async = true;
         ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-E7T6MQPHDC';
         document.head.appendChild(ga);
+        // Google Ads
+        var gads = document.createElement('script');
+        gads.async = true;
+        gads.src = 'https://www.googletagmanager.com/gtag/js?id=AW-18121816177';
+        document.head.appendChild(gads);
         // GTM
         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
           new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
