@@ -7,7 +7,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -21,7 +20,7 @@ const navItems = [
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [time, setTime] = useState(new Date());
@@ -32,8 +31,8 @@ export default function AdminLayout() {
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
+    await signOut();
+    navigate('/auth?mode=login', { replace: true });
   };
 
   const handleNavClick = () => setSidebarOpen(false);
