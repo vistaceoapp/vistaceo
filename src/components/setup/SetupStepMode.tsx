@@ -12,8 +12,8 @@ const MODES = [
   {
     id: 'quick' as const,
     title: 'Rápido',
-    subtitle: '2-4 minutos',
-    description: 'Dashboard funcional con datos básicos. Ideal para empezar ya.',
+    subtitle: '10 preguntas',
+    description: 'Lo esencial para empezar hoy, sin preguntas difíciles ni datos que no tengas a mano.',
     icon: Zap,
     badge: null,
     precision: '5-25%',
@@ -22,8 +22,8 @@ const MODES = [
   {
     id: 'complete' as const,
     title: 'Completo',
-    subtitle: '8-12 minutos',
-    description: 'Dashboard preciso con análisis completo y recomendaciones personalizadas.',
+    subtitle: '35 preguntas máximo',
+    description: 'Más contexto, pero siempre con opciones simples y fáciles de responder.',
     icon: Target,
     badge: 'Recomendado',
     precision: '25-65%',
@@ -36,7 +36,7 @@ export const SetupStepMode = ({ value, onChange }: SetupStepModeProps) => {
     <div className="space-y-6 max-w-xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-foreground mb-2">¿Cómo querés empezar?</h2>
-        <p className="text-muted-foreground">Más datos = más precisión en las recomendaciones</p>
+        <p className="text-muted-foreground">Elegí una forma simple de arrancar. Lo avanzado queda para después.</p>
       </div>
 
       <div className="space-y-4">
@@ -109,8 +109,7 @@ export const SetupStepMode = ({ value, onChange }: SetupStepModeProps) => {
       {/* Motivational message */}
       <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
         <p className="text-sm text-center text-muted-foreground">
-          <span className="font-medium text-foreground">¿Solo 25-65%?</span> No te preocupes. 
-          Una vez dentro del sistema, trabajaremos juntos para conocer tu negocio al{' '}
+          <span className="font-medium text-foreground">El setup no tiene que ser una traba.</span> Después, dentro de la app, VISTACEO va a seguir aprendiendo tu negocio hasta llegar al{' '}
           <span className="font-bold text-primary">100%</span> y logres crecer con acciones y recomendaciones precisas.
         </p>
       </div>
