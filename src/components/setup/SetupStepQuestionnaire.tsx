@@ -197,7 +197,7 @@ export const SetupStepQuestionnaire = ({
   const cacheComplete = !!cacheData?.allBatchesDone;
   const easyQuestions = useMemo(() => buildEasyQuestionnaire(setupMode), [setupMode]);
 
-  const [currentIndex, setCurrentIndex] = useState(questionIndex);
+  const [currentIndex, setCurrentIndex] = useState(Math.max(0, Math.min(questionIndex, easyQuestions.length - 1)));
   const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cacheData!.questions : easyQuestions);
   const [isLoadingFirst, setIsLoadingFirst] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -597,7 +597,14 @@ export const SetupStepQuestionnaire = ({
     );
   }
 
-  if (!currentQuestion && !isLoadingFirst) return null;
+  if (!currentQuestion && !isLoadingFirst && questions.length > 0) {
+    setTimeout(() => setCurrentIndex(Math.max(0, Math.min(currentIndex, questions.length - 1))), 0);
+    return null;
+  }
+  if (!currentQuestion && !isLoadingFirst) {
+    setQuestions(easyQuestions);
+    return null;
+  }
   if (!currentQuestion) return null;
 
   // ============= RENDER INPUT =============
