@@ -121,6 +121,64 @@ function setCachedQuestions(questions: UniversalQuestion[], businessTypeId: stri
   } catch { /* ignore */ }
 }
 
+const opt = (id: string, es: string, emoji?: string, impactScore = 5) => ({ id, label: { es, 'pt-BR': es }, emoji, impactScore });
+const q = (id: string, category: string, dimension: UniversalQuestion['dimension'], title: string, options: ReturnType<typeof opt>[], type: 'single' | 'multi' = 'single'): UniversalQuestion => ({
+  id,
+  category,
+  mode: 'both',
+  dimension,
+  weight: 7,
+  title: { es: title, 'pt-BR': title },
+  type,
+  options: [...options, opt('not_sure', 'No lo sé todavía', '🤷', 3)],
+  required: true,
+});
+
+function buildEasyQuestionnaire(mode: 'quick' | 'complete'): UniversalQuestion[] {
+  const questions: UniversalQuestion[] = [
+    q('EASY_01_STAGE', 'identity', 'growth', '¿En qué momento está tu negocio hoy?', [opt('starting', 'Estoy empezando', '🌱'), opt('selling', 'Ya vendo, pero quiero crecer', '📈'), opt('stable', 'Funciona, pero quiero ordenarlo', '⚙️'), opt('stuck', 'Siento que está trabado', '🚧')]),
+    q('EASY_02_GOAL', 'goals', 'growth', '¿Qué querés mejorar primero?', [opt('more_clients', 'Conseguir más clientes', '👥'), opt('sell_more', 'Vender más', '💬'), opt('profit', 'Mejorar rentabilidad', '💰'), opt('order', 'Ordenar procesos', '🧩')]),
+    q('EASY_03_CHANNEL', 'sales', 'traffic', '¿Por dónde llegan más consultas o ventas?', [opt('whatsapp', 'WhatsApp', '📲'), opt('instagram', 'Redes sociales', '📱'), opt('web', 'Web o buscadores', '🔎'), opt('referrals', 'Recomendaciones', '🤝')]),
+    q('EASY_04_BLOCKER', 'operation', 'efficiency', '¿Qué te frena más en el día a día?', [opt('time', 'Falta de tiempo', '⏱️'), opt('clients', 'Faltan clientes', '👥'), opt('process', 'Mucho desorden operativo', '🧭'), opt('money', 'Los números no cierran', '💸')]),
+    q('EASY_05_RESPONSE', 'sales', 'traffic', 'Cuando alguien consulta, ¿qué tan rápido respondés?', [opt('minutes', 'En minutos', '⚡'), opt('same_day', 'En el día', '🕒'), opt('next_day', 'Al otro día', '📅'), opt('late', 'A veces se me pasan consultas', '⚠️')]),
+    q('EASY_06_PROFITABLE', 'finance', 'profitability', '¿Tenés claro qué producto o servicio te deja más ganancia?', [opt('yes', 'Sí, lo tengo claro', '✅'), opt('some', 'Más o menos', '🟡'), opt('no', 'No, vendo sin mirar eso', '🔍'), opt('varies', 'Depende del mes', '📆')]),
+    q('EASY_07_REPEAT', 'reputation', 'reputation', '¿Tus clientes suelen volver o recomendarte?', [opt('often', 'Sí, bastante', '⭐'), opt('sometimes', 'A veces', '🙂'), opt('rarely', 'Poco', '🧊'), opt('new', 'Todavía no tengo suficientes clientes', '🌱')]),
+    q('EASY_08_CONTROL', 'finance', 'finances', '¿Cómo llevás el control de ventas y gastos?', [opt('system', 'Con sistema o planilla', '📊'), opt('notes', 'Con notas o mensajes', '📝'), opt('memory', 'De memoria', '🧠'), opt('none', 'Casi no lo controlo', '⚠️')]),
+    q('EASY_09_COMPETITION', 'sales', 'growth', '¿Qué sentís que hace mejor tu competencia?', [opt('price', 'Precio', '🏷️'), opt('attention', 'Atención o respuesta', '💬'), opt('visibility', 'Visibilidad', '📣'), opt('offer', 'Oferta más clara', '🎯')]),
+    q('EASY_10_MISSION', 'goals', 'efficiency', 'Si VISTACEO te diera una misión para hoy, ¿cuál te serviría más?', [opt('sell', 'Mejorar ventas', '📈'), opt('whatsapp', 'Ordenar WhatsApp', '📲'), opt('prices', 'Revisar precios', '💰'), opt('priority', 'Saber qué priorizar', '🎯')]),
+  ];
+
+  if (mode === 'quick') return questions;
+
+  return [...questions,
+    q('EASY_11_CLEAR_OFFER', 'sales', 'traffic', '¿Tu oferta principal se entiende rápido?', [opt('yes', 'Sí, está clara', '✅'), opt('almost', 'Podría estar más clara', '🛠️'), opt('no', 'No tanto', '🌫️'), opt('new', 'La estoy definiendo', '🌱')]),
+    q('EASY_12_PRICE', 'finance', 'profitability', '¿Cuándo fue la última vez que revisaste precios?', [opt('month', 'Este mes', '📆'), opt('quarter', 'En los últimos 3 meses', '🗓️'), opt('year', 'Hace más de 6 meses', '⏳'), opt('never', 'Nunca de forma ordenada', '⚠️')]),
+    q('EASY_13_PEAK', 'sales', 'traffic', '¿Sabés qué días u horarios te conviene vender más fuerte?', [opt('yes', 'Sí, lo tengo claro', '✅'), opt('intuition', 'Lo intuyo', '🧠'), opt('no', 'No lo miro', '🔍'), opt('varies', 'Cambia mucho', '🔄')]),
+    q('EASY_14_LOST_CLIENTS', 'sales', 'traffic', '¿Dónde sentís que se pierden más clientes?', [opt('before_contact', 'Antes de consultar', '👀'), opt('after_message', 'Después del primer mensaje', '💬'), opt('price', 'Cuando ven el precio', '🏷️'), opt('followup', 'Por falta de seguimiento', '📌')]),
+    q('EASY_15_REVIEWS', 'reputation', 'reputation', '¿Tenés reseñas o testimonios recientes?', [opt('many', 'Sí, varias recientes', '⭐'), opt('few', 'Algunas', '🙂'), opt('old', 'Tengo, pero viejas', '⏳'), opt('none', 'Casi ninguna', '🧊')]),
+    q('EASY_16_TEAM', 'team', 'team', '¿Las tareas principales están claras para vos o tu equipo?', [opt('yes', 'Sí, cada uno sabe qué hacer', '✅'), opt('some', 'Más o menos', '🟡'), opt('no', 'Se decide sobre la marcha', '🧭'), opt('solo', 'Trabajo solo/a', '👤')]),
+    q('EASY_17_FOLLOWUP', 'sales', 'traffic', '¿Hacés seguimiento a quienes consultan y no compran?', [opt('always', 'Sí, siempre', '🔁'), opt('sometimes', 'A veces', '🙂'), opt('rarely', 'Pocas veces', '🧊'), opt('never', 'No lo hago', '⚠️')]),
+    q('EASY_18_CONTENT', 'sales', 'growth', '¿Qué tan seguido mostrás tu negocio o servicio?', [opt('daily', 'Todos los días', '📱'), opt('weekly', 'Varias veces por semana', '🗓️'), opt('rare', 'Cuando puedo', '⏱️'), opt('never', 'Casi nunca', '🧊')]),
+    q('EASY_19_PAYMENTS', 'finance', 'efficiency', '¿Cobrarle al cliente es simple?', [opt('easy', 'Sí, muy simple', '✅'), opt('some', 'Podría ser mejor', '🛠️'), opt('manual', 'Es bastante manual', '📝'), opt('problem', 'A veces genera problemas', '⚠️')]),
+    q('EASY_20_CAPACITY', 'operation', 'efficiency', '¿Hoy podrías atender más demanda sin desordenarte?', [opt('yes', 'Sí', '✅'), opt('little', 'Un poco más', '🟡'), opt('no', 'No, ya estoy al límite', '🚦'), opt('depends', 'Depende del día', '📆')]),
+    q('EASY_21_DECISIONS', 'goals', 'growth', '¿Qué decisión te cuesta más tomar?', [opt('prices', 'Precios', '💰'), opt('where_sell', 'Dónde vender o comunicar', '📣'), opt('hire', 'Contratar o delegar', '👥'), opt('priority', 'Qué hacer primero', '🎯')]),
+    q('EASY_22_PROMOS', 'sales', 'profitability', '¿Usás promociones o descuentos?', [opt('planned', 'Sí, planificados', '🎯'), opt('sometimes', 'A veces', '🏷️'), opt('too_much', 'Demasiado seguido', '⚠️'), opt('never', 'No uso', '🧊')]),
+    q('EASY_23_SUPPLIERS', 'operation', 'profitability', '¿Hay costos o proveedores que te preocupan?', [opt('yes', 'Sí, varios', '💸'), opt('some', 'Algunos', '🟡'), opt('no', 'No especialmente', '✅'), opt('unknown', 'No lo tengo claro', '🔍')]),
+    q('EASY_24_TOOLS', 'operation', 'efficiency', '¿Qué herramienta usás más para operar?', [opt('whatsapp', 'WhatsApp', '📲'), opt('spreadsheet', 'Planilla', '📊'), opt('system', 'Sistema de gestión', '🧩'), opt('manual', 'Todo manual', '📝')]),
+    q('EASY_25_CUSTOMER_ASKS', 'reputation', 'traffic', '¿Qué te preguntan más los clientes?', [opt('price', 'Precio', '💰'), opt('availability', 'Disponibilidad', '📅'), opt('how_it_works', 'Cómo funciona', '💬'), opt('trust', 'Garantía o confianza', '⭐')]),
+    q('EASY_26_CASH', 'finance', 'finances', '¿Cómo se siente tu caja hoy?', [opt('healthy', 'Ordenada', '✅'), opt('tight', 'Ajustada', '🟡'), opt('uncertain', 'Incierta', '🌫️'), opt('stress', 'Me preocupa', '⚠️')]),
+    q('EASY_27_REFERRALS', 'reputation', 'growth', '¿Pedís recomendaciones a clientes satisfechos?', [opt('always', 'Sí, siempre', '⭐'), opt('sometimes', 'A veces', '🙂'), opt('rarely', 'Casi nunca', '🧊'), opt('never', 'Nunca', '⚠️')]),
+    q('EASY_28_STOCK_TIME', 'operation', 'efficiency', '¿Qué te genera más pérdida de tiempo?', [opt('messages', 'Responder mensajes', '💬'), opt('admin', 'Administración', '🧾'), opt('delivery', 'Entregas o coordinación', '🚚'), opt('rework', 'Corregir errores', '🛠️')]),
+    q('EASY_29_WEBSITE', 'sales', 'traffic', 'Si alguien ve tu web o perfil, ¿tiene una acción clara?', [opt('yes', 'Sí, sabe qué hacer', '✅'), opt('some', 'Podría ser más claro', '🛠️'), opt('no', 'No mucho', '🌫️'), opt('none', 'No tengo web o perfil activo', '🧊')]),
+    q('EASY_30_SEASON', 'sales', 'growth', '¿Tu negocio cambia mucho por temporada?', [opt('yes', 'Sí, mucho', '🌊'), opt('some', 'Un poco', '📆'), opt('no', 'No demasiado', '✅'), opt('unknown', 'No lo tengo claro', '🔍')]),
+    q('EASY_31_QUALITY', 'reputation', 'reputation', '¿Qué podría mejorar más la experiencia del cliente?', [opt('speed', 'Velocidad', '⚡'), opt('clarity', 'Claridad', '🎯'), opt('attention', 'Atención', '💬'), opt('result', 'Resultado final', '⭐')]),
+    q('EASY_32_AUTOMATE', 'operation', 'efficiency', '¿Qué te gustaría automatizar primero?', [opt('responses', 'Respuestas frecuentes', '🤖'), opt('followup', 'Seguimiento', '🔁'), opt('payments', 'Cobros', '💳'), opt('reports', 'Números del negocio', '📊')]),
+    q('EASY_33_NEXT_30', 'goals', 'growth', 'En los próximos 30 días, ¿qué sería un buen avance?', [opt('more_sales', 'Más ventas', '📈'), opt('more_order', 'Más orden', '🧩'), opt('better_profit', 'Más margen', '💰'), opt('more_visibility', 'Más visibilidad', '📣')]),
+    q('EASY_34_RISK', 'operation', 'finances', '¿Qué riesgo querés que VISTACEO vigile por vos?', [opt('sales_drop', 'Baja de ventas', '📉'), opt('costs', 'Suba de costos', '💸'), opt('competition', 'Movimientos de competencia', '👀'), opt('reputation', 'Problemas de reputación', '⭐')]),
+    q('EASY_35_FIRST_ANALYSIS', 'goals', 'growth', '¿Qué querés ver primero en tu análisis?', [opt('opportunities', 'Radar de oportunidades', '📡'), opt('mission', 'Misión para hoy', '🎯'), opt('prediction', 'Predicción de competencia', '🔮'), opt('insights', 'Ideas concretas para crecer', '💡')]),
+  ];
+}
+
 export const SetupStepQuestionnaire = ({
   countryCode,
   areaId,
