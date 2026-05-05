@@ -13,15 +13,16 @@ interface State {
   error: Error | null;
 }
 
-const resetRecoveryState = () => {
+const resetRecoveryState = (preserveSetup = false) => {
   [
-    'setupProgress',
-    'setupUniversalProfile',
     'pendingPlan',
     'pendingPlanTimestamp',
     'proPurchaseCompleted',
-    'selectedCountryCode',
   ].forEach((key) => safeLocalStorage.removeItem(key));
+
+  if (!preserveSetup) {
+    ['setupProgress', 'setupUniversalProfile', 'selectedCountryCode'].forEach((key) => safeLocalStorage.removeItem(key));
+  }
 
   safeSessionStorage.removeItem('va_session');
 };
@@ -42,13 +43,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   handleReload = () => {
     this.setState({ hasError: false, error: null });
-    resetRecoveryState();
+    resetRecoveryState(this.props.fallbackRoute === '/setup');
     window.location.reload();
   };
 
   handleGoHome = () => {
     this.setState({ hasError: false, error: null });
-    resetRecoveryState();
+    resetRecoveryState(this.props.fallbackRoute === '/setup');
     window.location.href = this.props.fallbackRoute || '/';
   };
 

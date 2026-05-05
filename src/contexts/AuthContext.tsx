@@ -23,6 +23,38 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const welcomeEmailSentRef = useRef(false);
   const initializedRef = useRef(false);
 
+  const clearClientAuthState = useCallback(() => {
+    setSession(null);
+    setUser(null);
+
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (
+          key.startsWith("sb-") ||
+          key.startsWith("supabase.auth") ||
+          key.startsWith("vc_") ||
+          key === "setupProgress" ||
+          key === "setupQuestionsCache" ||
+          key === "setupQuestionsMeta" ||
+          key === "setupUniversalProfile" ||
+          key === "selectedCountryCode"
+        ) {
+          localStorage.removeItem(key);
+        }
+      });
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith("sb-") || key.startsWith("vc_") || key === "va_session") {
+          sessionStorage.removeItem(key);
+        }
+      });
+    } catch {
+      safeLocalStorage.removeItem("setupProgress");
+      safeLocalStorage.removeItem("setupQuestionsCache");
+      safeLocalStorage.removeItem("setupQuestionsMeta");
+      safeLocalStorage.removeItem("setupUniversalProfile");
+    }
+  }, []);
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -141,7 +173,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (isCustomDomain) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: redirectUrl, skipBrowserRedirect: true },
+        options: { redirectTo: redirectUrl, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } },
       });
 
       if (error) return { error };
@@ -163,14 +195,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: redirectUrl },
+      options: { redirectTo: redirectUrl, queryParams: { prompt: 'select_account' } },
     });
     return { error };
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
-  }, []);
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) {
+        await supabase.auth.signOut();
+      }
+    } catch (error) {
+      console.error('[AuthContext] signOut failed:', error);
+    } finally {
+      clearClientAuthState();
+      welcomeEmailSentRef.current = false;
+      initializedRef.current = true;
+      setLoading(false);
+    }
+  }, [clearClientAuthState]);
 
   // Stable context value — only re-renders consumers when actual values change
   const value = useMemo(

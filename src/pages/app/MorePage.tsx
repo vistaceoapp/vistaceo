@@ -131,7 +131,7 @@ const MorePage = () => {
   const handleSignOut = async () => {
     await signOut();
     toast({ title: "Sesión cerrada" });
-    navigate("/");
+    navigate("/auth?mode=login", { replace: true });
   };
 
   const saveProfile = async () => {

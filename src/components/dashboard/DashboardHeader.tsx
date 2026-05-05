@@ -47,6 +47,11 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
     return user?.email?.charAt(0).toUpperCase() || 'U';
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth?mode=login', { replace: true });
+  };
+
   return (
     <header 
       className={cn(
@@ -91,7 +96,7 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem 
-              onClick={() => signOut()}
+              onClick={handleSignOut}
               className="text-destructive focus:text-destructive cursor-pointer text-[13px] rounded-lg"
             >
               Cerrar sesión

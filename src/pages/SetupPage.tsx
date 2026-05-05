@@ -89,7 +89,7 @@ interface SetupData {
 
 const SetupPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { refreshBusinesses, setCurrentBusiness, businesses } = useBusiness();
   const { trackSetupStarted, trackSetupStepViewed, trackSetupCompleted } = useActivityTracker();
   const [creatingBusiness, setCreatingBusiness] = useState(false);
@@ -747,8 +747,8 @@ const SetupPage = () => {
       return;
     }
     clearSavedProgress();
-    await supabase.auth.signOut();
-    navigate('/auth', { replace: true });
+    await signOut();
+    navigate('/auth?mode=login', { replace: true });
   };
 
   return (
