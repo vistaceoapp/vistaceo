@@ -50,17 +50,17 @@ const LOADING_MESSAGES_PT = [
 // Batch configuration - optimized for speed with parallel generation
 const BATCH_CONFIG = {
   quick: {
-    firstBatch: 5,       // Show first 5 questions immediately
-    remainingTarget: 10,  // Generate ~10 more in background
-    totalMin: 12,
-    totalMax: 15,
+    firstBatch: 10,
+    remainingTarget: 0,
+    totalMin: 10,
+    totalMax: 10,
   },
   complete: {
-    firstBatch: 8,        // Show first 8 questions immediately
-    parallelBatches: 3,   // Generate 3 batches IN PARALLEL
-    perBatch: 22,         // ~22 per batch to reach 65-75 total
-    totalMin: 65,
-    totalMax: 75,
+    firstBatch: 35,
+    parallelBatches: 0,
+    perBatch: 0,
+    totalMin: 35,
+    totalMax: 35,
   },
 };
 
@@ -79,7 +79,7 @@ function capQuestions(questions: UniversalQuestion[], mode: 'quick' | 'complete'
 }
 
 // Cache keys for persisting questions across navigation
-const QUESTIONS_CACHE_KEY = 'setupQuestionsCache';
+const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v2';
 const QUESTIONS_META_KEY = 'setupQuestionsMeta';
 
 interface QuestionsCacheData {
