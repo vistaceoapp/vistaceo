@@ -195,18 +195,19 @@ export const SetupStepQuestionnaire = ({
   const cacheData = useMemo(() => getCachedQuestions(businessTypeId, setupMode), [businessTypeId, setupMode]);
   const hasCache = !!cacheData && cacheData.questions.length > 0;
   const cacheComplete = !!cacheData?.allBatchesDone;
+  const easyQuestions = useMemo(() => buildEasyQuestionnaire(setupMode), [setupMode]);
 
   const [currentIndex, setCurrentIndex] = useState(questionIndex);
-  const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cacheData!.questions : []);
-  const [isLoadingFirst, setIsLoadingFirst] = useState(!hasCache);
+  const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cacheData!.questions : easyQuestions);
+  const [isLoadingFirst, setIsLoadingFirst] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [generationError, setGenerationError] = useState(false);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   // Only skip background fetch if cache has ALL batches done
-  const backgroundFetchStarted = useRef(cacheComplete);
-  const allBatchesDone = useRef(cacheComplete);
+  const backgroundFetchStarted = useRef(true);
+  const allBatchesDone = useRef(true);
   const latestAnswersRef = useRef(answers);
 
   const lang = COUNTRY_PACKS[countryCode]?.locale?.startsWith('pt') ? 'pt-BR' : 'es';
@@ -357,12 +358,13 @@ export const SetupStepQuestionnaire = ({
     }
   }, [fetchQuestions, setupMode, businessTypeId]);
 
-  // Start first batch on mount (skip if we have cached questions)
+  // Setup must be fast and safe: use a curated, easy questionnaire instead of runtime-generated questions.
   useEffect(() => {
     if (!hasCache) {
-      generateFirstBatch();
+      setQuestions(easyQuestions);
+      setCachedQuestions(easyQuestions, businessTypeId, setupMode, true);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [businessTypeId, easyQuestions, hasCache, setupMode]);
 
   // Start background fetch: immediately if returning with incomplete cache, or after first answer
   useEffect(() => {
