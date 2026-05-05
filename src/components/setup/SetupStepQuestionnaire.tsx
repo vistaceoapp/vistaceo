@@ -805,7 +805,7 @@ export const SetupStepQuestionnaire = ({
                   : "border-border hover:border-primary/50 bg-card text-muted-foreground"
               )}
             >
-              {lang === 'pt-BR' ? '🤷 Não tenho certeza' : '🤷 No estoy seguro'}
+              {lang === 'pt-BR' ? '🤷 Não sei ainda' : '🤷 No lo sé todavía'}
             </button>
           </div>
         );
@@ -846,7 +846,7 @@ export const SetupStepQuestionnaire = ({
                   : "border-border hover:border-primary/50 bg-card text-muted-foreground"
               )}
             >
-              {lang === 'pt-BR' ? '🤷 Não tenho certeza' : '🤷 No estoy seguro'}
+              {lang === 'pt-BR' ? '🤷 Não sei ainda' : '🤷 No lo sé todavía'}
             </button>
           </div>
         );
@@ -872,7 +872,7 @@ export const SetupStepQuestionnaire = ({
 
   // Estimated total - always show a number within valid range
   const { min: limitMin, max: limitMax } = getQuestionLimits(setupMode);
-  const estimatedTotal = setupMode === 'quick' ? 14 : 70;
+  const estimatedTotal = setupMode === 'quick' ? 10 : 35;
   // If all batches done, show actual total (already capped). Otherwise show estimate.
   const displayTotal = allBatchesDone.current 
     ? totalQuestions 
@@ -893,7 +893,7 @@ export const SetupStepQuestionnaire = ({
               <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
             )}
             <span className="text-muted-foreground">
-              {currentIndex + 1} / {allBatchesDone.current ? totalQuestions : `~${displayTotal}`}
+              {currentIndex + 1} / {displayTotal}
             </span>
           </div>
         </div>
