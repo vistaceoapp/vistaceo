@@ -173,7 +173,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (isCustomDomain) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: redirectUrl, skipBrowserRedirect: true },
+        options: { redirectTo: redirectUrl, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } },
       });
 
       if (error) return { error };
