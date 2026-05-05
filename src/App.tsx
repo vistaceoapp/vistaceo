@@ -216,7 +216,7 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <BusinessProvider>
-                <ErrorBoundary fallbackRoute="/">
+                <ErrorBoundary fallbackRoute="/setup">
                   <SetupPage />
                 </ErrorBoundary>
               </BusinessProvider>
