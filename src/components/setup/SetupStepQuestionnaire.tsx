@@ -426,12 +426,21 @@ export const SetupStepQuestionnaire = ({
 
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customText, setCustomText] = useState('');
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reset custom input when question changes
+  // Reset custom input when question changes + clear pending auto-advance
   useEffect(() => {
     setShowCustomInput(false);
     setCustomText('');
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
   }, [currentIndex]);
+
+  useEffect(() => () => {
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+  }, []);
 
   const getCurrentValue = () => answers[currentQuestion?.id];
 
@@ -473,7 +482,6 @@ export const SetupStepQuestionnaire = ({
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex(prev => prev + 1);
     } else if (!isLoadingMore && allBatchesDone.current) {
-      // Validate minimum question count before completing
       const { min } = getQuestionLimits(setupMode);
       if (totalQuestions < min) {
         console.warn(`Only ${totalQuestions} questions, minimum is ${min}. Allowing completion anyway.`);
@@ -482,15 +490,22 @@ export const SetupStepQuestionnaire = ({
     } else if (isLoadingMore) {
       // Still loading more questions - user sees waiting state
     } else if (totalQuestions >= getQuestionLimits(setupMode).min) {
-      // Background failed but we have enough questions
       onComplete();
     }
-    // If none of the above, do nothing (prevents premature completion)
+  };
+
+  // Auto-advance on single-select after a short delay (better UX, no extra click)
+  const handleSingleSelect = (optionId: string) => {
+    handleAnswer(optionId);
+    setShowCustomInput(false);
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = setTimeout(() => {
+      handleNext();
+    }, 280);
   };
 
   // Auto-advance when new questions arrive and user was at the end
   useEffect(() => {
-    // If user was waiting at the last question and new ones just arrived
     if (currentIndex === totalQuestions - 1 && isLoadingMore) {
       // Questions array will grow, so this effect will re-trigger
     }
