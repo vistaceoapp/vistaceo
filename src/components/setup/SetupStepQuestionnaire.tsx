@@ -47,20 +47,21 @@ const LOADING_MESSAGES_PT = [
   'Quase pronto...',
 ];
 
-// Batch configuration - optimized for speed with parallel generation
+// Batch configuration - hard limits per user spec
+// Quick: 12 questions max | Complete: 30 questions max
 const BATCH_CONFIG = {
   quick: {
-    firstBatch: 10,
+    firstBatch: 12,
     remainingTarget: 0,
-    totalMin: 10,
-    totalMax: 10,
+    totalMin: 12,
+    totalMax: 12,
   },
   complete: {
-    firstBatch: 35,
+    firstBatch: 30,
     parallelBatches: 0,
     perBatch: 0,
-    totalMin: 35,
-    totalMax: 35,
+    totalMin: 30,
+    totalMax: 30,
   },
 };
 
