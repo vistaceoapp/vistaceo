@@ -47,20 +47,21 @@ const LOADING_MESSAGES_PT = [
   'Quase pronto...',
 ];
 
-// Batch configuration - optimized for speed with parallel generation
+// Batch configuration - hard limits per user spec
+// Quick: 12 questions max | Complete: 30 questions max
 const BATCH_CONFIG = {
   quick: {
-    firstBatch: 10,
+    firstBatch: 12,
     remainingTarget: 0,
-    totalMin: 10,
-    totalMax: 10,
+    totalMin: 12,
+    totalMax: 12,
   },
   complete: {
-    firstBatch: 35,
+    firstBatch: 30,
     parallelBatches: 0,
     perBatch: 0,
-    totalMin: 35,
-    totalMax: 35,
+    totalMin: 30,
+    totalMax: 30,
   },
 };
 
@@ -79,7 +80,7 @@ function capQuestions(questions: UniversalQuestion[], mode: 'quick' | 'complete'
 }
 
 // Cache keys for persisting questions across navigation
-const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v2';
+const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v3_12_30';
 const QUESTIONS_META_KEY = 'setupQuestionsMeta';
 
 interface QuestionsCacheData {
@@ -122,7 +123,15 @@ function setCachedQuestions(questions: UniversalQuestion[], businessTypeId: stri
 }
 
 const opt = (id: string, es: string, emoji?: string, impactScore = 5) => ({ id, label: { es, 'pt-BR': es }, emoji, impactScore });
-const q = (id: string, category: string, dimension: UniversalQuestion['dimension'], title: string, options: ReturnType<typeof opt>[], type: 'single' | 'multi' = 'single'): UniversalQuestion => ({
+const q = (
+  id: string,
+  category: string,
+  dimension: UniversalQuestion['dimension'],
+  title: string,
+  options: ReturnType<typeof opt>[],
+  type: 'single' | 'multi' = 'single',
+  help?: string
+): UniversalQuestion => ({
   id,
   category,
   mode: 'both',
@@ -132,12 +141,13 @@ const q = (id: string, category: string, dimension: UniversalQuestion['dimension
   type,
   options: [...options, opt('not_sure', 'No lo sé todavía', '🤷', 3)],
   required: true,
+  ...(help ? { help: { es: help, 'pt-BR': help } } : {}),
 });
 
 function buildEasyQuestionnaire(mode: 'quick' | 'complete'): UniversalQuestion[] {
-  const questions: UniversalQuestion[] = [
+  const quick: UniversalQuestion[] = [
     q('EASY_01_STAGE', 'identity', 'growth', '¿En qué momento está tu negocio hoy?', [opt('starting', 'Estoy empezando', '🌱'), opt('selling', 'Ya vendo, pero quiero crecer', '📈'), opt('stable', 'Funciona, pero quiero ordenarlo', '⚙️'), opt('stuck', 'Siento que está trabado', '🚧')]),
-    q('EASY_02_GOAL', 'goals', 'growth', '¿Qué querés mejorar primero?', [opt('more_clients', 'Conseguir más clientes', '👥'), opt('sell_more', 'Vender más', '💬'), opt('profit', 'Mejorar rentabilidad', '💰'), opt('order', 'Ordenar procesos', '🧩')]),
+    q('EASY_02_GOAL', 'goals', 'growth', '¿Qué querés mejorar primero?', [opt('more_clients', 'Conseguir más clientes', '👥'), opt('sell_more', 'Vender más', '💬'), opt('profit', 'Mejorar rentabilidad', '💰'), opt('order', 'Ordenar procesos', '🧩')], 'single', 'Rentabilidad: cuánto te queda real después de cubrir todos los costos.'),
     q('EASY_03_CHANNEL', 'sales', 'traffic', '¿Por dónde llegan más consultas o ventas?', [opt('whatsapp', 'WhatsApp', '📲'), opt('instagram', 'Redes sociales', '📱'), opt('web', 'Web o buscadores', '🔎'), opt('referrals', 'Recomendaciones', '🤝')]),
     q('EASY_04_BLOCKER', 'operation', 'efficiency', '¿Qué te frena más en el día a día?', [opt('time', 'Falta de tiempo', '⏱️'), opt('clients', 'Faltan clientes', '👥'), opt('process', 'Mucho desorden operativo', '🧭'), opt('money', 'Los números no cierran', '💸')]),
     q('EASY_05_RESPONSE', 'sales', 'traffic', 'Cuando alguien consulta, ¿qué tan rápido respondés?', [opt('minutes', 'En minutos', '⚡'), opt('same_day', 'En el día', '🕒'), opt('next_day', 'Al otro día', '📅'), opt('late', 'A veces se me pasan consultas', '⚠️')]),
@@ -146,36 +156,31 @@ function buildEasyQuestionnaire(mode: 'quick' | 'complete'): UniversalQuestion[]
     q('EASY_08_CONTROL', 'finance', 'finances', '¿Cómo llevás el control de ventas y gastos?', [opt('system', 'Con sistema o planilla', '📊'), opt('notes', 'Con notas o mensajes', '📝'), opt('memory', 'De memoria', '🧠'), opt('none', 'Casi no lo controlo', '⚠️')]),
     q('EASY_09_COMPETITION', 'sales', 'growth', '¿Qué sentís que hace mejor tu competencia?', [opt('price', 'Precio', '🏷️'), opt('attention', 'Atención o respuesta', '💬'), opt('visibility', 'Visibilidad', '📣'), opt('offer', 'Oferta más clara', '🎯')]),
     q('EASY_10_MISSION', 'goals', 'efficiency', 'Si VISTACEO te diera una misión para hoy, ¿cuál te serviría más?', [opt('sell', 'Mejorar ventas', '📈'), opt('whatsapp', 'Ordenar WhatsApp', '📲'), opt('prices', 'Revisar precios', '💰'), opt('priority', 'Saber qué priorizar', '🎯')]),
+    q('EASY_11_CLEAR_OFFER', 'sales', 'traffic', '¿Tu oferta principal se entiende rápido?', [opt('yes', 'Sí, está clara', '✅'), opt('almost', 'Podría estar más clara', '🛠️'), opt('no', 'No tanto', '🌫️'), opt('new', 'La estoy definiendo', '🌱')], 'single', 'Oferta: el producto o servicio principal que ofrecés y por qué alguien debería elegirte.'),
+    q('EASY_12_PRICE', 'finance', 'profitability', '¿Cuándo fue la última vez que revisaste precios?', [opt('month', 'Este mes', '📆'), opt('quarter', 'En los últimos 3 meses', '🗓️'), opt('year', 'Hace más de 6 meses', '⏳'), opt('never', 'Nunca de forma ordenada', '⚠️')]),
   ];
 
-  if (mode === 'quick') return questions;
+  if (mode === 'quick') return quick;
 
-  return [...questions,
-    q('EASY_11_CLEAR_OFFER', 'sales', 'traffic', '¿Tu oferta principal se entiende rápido?', [opt('yes', 'Sí, está clara', '✅'), opt('almost', 'Podría estar más clara', '🛠️'), opt('no', 'No tanto', '🌫️'), opt('new', 'La estoy definiendo', '🌱')]),
-    q('EASY_12_PRICE', 'finance', 'profitability', '¿Cuándo fue la última vez que revisaste precios?', [opt('month', 'Este mes', '📆'), opt('quarter', 'En los últimos 3 meses', '🗓️'), opt('year', 'Hace más de 6 meses', '⏳'), opt('never', 'Nunca de forma ordenada', '⚠️')]),
+  return [...quick,
     q('EASY_13_PEAK', 'sales', 'traffic', '¿Sabés qué días u horarios te conviene vender más fuerte?', [opt('yes', 'Sí, lo tengo claro', '✅'), opt('intuition', 'Lo intuyo', '🧠'), opt('no', 'No lo miro', '🔍'), opt('varies', 'Cambia mucho', '🔄')]),
-    q('EASY_14_LOST_CLIENTS', 'sales', 'traffic', '¿Dónde sentís que se pierden más clientes?', [opt('before_contact', 'Antes de consultar', '👀'), opt('after_message', 'Después del primer mensaje', '💬'), opt('price', 'Cuando ven el precio', '🏷️'), opt('followup', 'Por falta de seguimiento', '📌')]),
+    q('EASY_14_LOST_CLIENTS', 'sales', 'traffic', '¿Dónde sentís que se pierden más clientes?', [opt('before_contact', 'Antes de consultar', '👀'), opt('after_message', 'Después del primer mensaje', '💬'), opt('price', 'Cuando ven el precio', '🏷️'), opt('followup', 'Por falta de seguimiento', '📌')], 'single', 'Seguimiento: volver a contactar a quien preguntó pero todavía no compró.'),
     q('EASY_15_REVIEWS', 'reputation', 'reputation', '¿Tenés reseñas o testimonios recientes?', [opt('many', 'Sí, varias recientes', '⭐'), opt('few', 'Algunas', '🙂'), opt('old', 'Tengo, pero viejas', '⏳'), opt('none', 'Casi ninguna', '🧊')]),
     q('EASY_16_TEAM', 'team', 'team', '¿Las tareas principales están claras para vos o tu equipo?', [opt('yes', 'Sí, cada uno sabe qué hacer', '✅'), opt('some', 'Más o menos', '🟡'), opt('no', 'Se decide sobre la marcha', '🧭'), opt('solo', 'Trabajo solo/a', '👤')]),
     q('EASY_17_FOLLOWUP', 'sales', 'traffic', '¿Hacés seguimiento a quienes consultan y no compran?', [opt('always', 'Sí, siempre', '🔁'), opt('sometimes', 'A veces', '🙂'), opt('rarely', 'Pocas veces', '🧊'), opt('never', 'No lo hago', '⚠️')]),
-    q('EASY_18_CONTENT', 'sales', 'growth', '¿Qué tan seguido mostrás tu negocio o servicio?', [opt('daily', 'Todos los días', '📱'), opt('weekly', 'Varias veces por semana', '🗓️'), opt('rare', 'Cuando puedo', '⏱️'), opt('never', 'Casi nunca', '🧊')]),
+    q('EASY_18_CONTENT', 'sales', 'growth', '¿Qué tan seguido mostrás tu negocio en redes o web?', [opt('daily', 'Todos los días', '📱'), opt('weekly', 'Varias veces por semana', '🗓️'), opt('rare', 'Cuando puedo', '⏱️'), opt('never', 'Casi nunca', '🧊')]),
     q('EASY_19_PAYMENTS', 'finance', 'efficiency', '¿Cobrarle al cliente es simple?', [opt('easy', 'Sí, muy simple', '✅'), opt('some', 'Podría ser mejor', '🛠️'), opt('manual', 'Es bastante manual', '📝'), opt('problem', 'A veces genera problemas', '⚠️')]),
     q('EASY_20_CAPACITY', 'operation', 'efficiency', '¿Hoy podrías atender más demanda sin desordenarte?', [opt('yes', 'Sí', '✅'), opt('little', 'Un poco más', '🟡'), opt('no', 'No, ya estoy al límite', '🚦'), opt('depends', 'Depende del día', '📆')]),
     q('EASY_21_DECISIONS', 'goals', 'growth', '¿Qué decisión te cuesta más tomar?', [opt('prices', 'Precios', '💰'), opt('where_sell', 'Dónde vender o comunicar', '📣'), opt('hire', 'Contratar o delegar', '👥'), opt('priority', 'Qué hacer primero', '🎯')]),
-    q('EASY_22_PROMOS', 'sales', 'profitability', '¿Usás promociones o descuentos?', [opt('planned', 'Sí, planificados', '🎯'), opt('sometimes', 'A veces', '🏷️'), opt('too_much', 'Demasiado seguido', '⚠️'), opt('never', 'No uso', '🧊')]),
+    q('EASY_22_PROMOS', 'sales', 'profitability', '¿Usás promociones o descuentos?', [opt('planned', 'Sí, planificados', '🎯'), opt('sometimes', 'A veces', '🏷️'), opt('too_much', 'Demasiado seguido', '⚠️'), opt('never', 'No uso', '🧊')], 'single', 'Planificados: pensados con anticipación, con fecha y objetivo claro (no improvisados).'),
     q('EASY_23_SUPPLIERS', 'operation', 'profitability', '¿Hay costos o proveedores que te preocupan?', [opt('yes', 'Sí, varios', '💸'), opt('some', 'Algunos', '🟡'), opt('no', 'No especialmente', '✅'), opt('unknown', 'No lo tengo claro', '🔍')]),
     q('EASY_24_TOOLS', 'operation', 'efficiency', '¿Qué herramienta usás más para operar?', [opt('whatsapp', 'WhatsApp', '📲'), opt('spreadsheet', 'Planilla', '📊'), opt('system', 'Sistema de gestión', '🧩'), opt('manual', 'Todo manual', '📝')]),
     q('EASY_25_CUSTOMER_ASKS', 'reputation', 'traffic', '¿Qué te preguntan más los clientes?', [opt('price', 'Precio', '💰'), opt('availability', 'Disponibilidad', '📅'), opt('how_it_works', 'Cómo funciona', '💬'), opt('trust', 'Garantía o confianza', '⭐')]),
-    q('EASY_26_CASH', 'finance', 'finances', '¿Cómo se siente tu caja hoy?', [opt('healthy', 'Ordenada', '✅'), opt('tight', 'Ajustada', '🟡'), opt('uncertain', 'Incierta', '🌫️'), opt('stress', 'Me preocupa', '⚠️')]),
+    q('EASY_26_CASH', 'finance', 'finances', '¿Cómo se siente tu caja hoy?', [opt('healthy', 'Ordenada', '✅'), opt('tight', 'Ajustada', '🟡'), opt('uncertain', 'Incierta', '🌫️'), opt('stress', 'Me preocupa', '⚠️')], 'single', 'Caja: la plata real disponible para el día a día del negocio.'),
     q('EASY_27_REFERRALS', 'reputation', 'growth', '¿Pedís recomendaciones a clientes satisfechos?', [opt('always', 'Sí, siempre', '⭐'), opt('sometimes', 'A veces', '🙂'), opt('rarely', 'Casi nunca', '🧊'), opt('never', 'Nunca', '⚠️')]),
-    q('EASY_28_STOCK_TIME', 'operation', 'efficiency', '¿Qué te genera más pérdida de tiempo?', [opt('messages', 'Responder mensajes', '💬'), opt('admin', 'Administración', '🧾'), opt('delivery', 'Entregas o coordinación', '🚚'), opt('rework', 'Corregir errores', '🛠️')]),
+    q('EASY_28_TIME_DRAIN', 'operation', 'efficiency', '¿Qué te genera más pérdida de tiempo?', [opt('messages', 'Responder mensajes', '💬'), opt('admin', 'Administración', '🧾'), opt('delivery', 'Entregas o coordinación', '🚚'), opt('rework', 'Corregir errores', '🛠️')]),
     q('EASY_29_WEBSITE', 'sales', 'traffic', 'Si alguien ve tu web o perfil, ¿tiene una acción clara?', [opt('yes', 'Sí, sabe qué hacer', '✅'), opt('some', 'Podría ser más claro', '🛠️'), opt('no', 'No mucho', '🌫️'), opt('none', 'No tengo web o perfil activo', '🧊')]),
-    q('EASY_30_SEASON', 'sales', 'growth', '¿Tu negocio cambia mucho por temporada?', [opt('yes', 'Sí, mucho', '🌊'), opt('some', 'Un poco', '📆'), opt('no', 'No demasiado', '✅'), opt('unknown', 'No lo tengo claro', '🔍')]),
-    q('EASY_31_QUALITY', 'reputation', 'reputation', '¿Qué podría mejorar más la experiencia del cliente?', [opt('speed', 'Velocidad', '⚡'), opt('clarity', 'Claridad', '🎯'), opt('attention', 'Atención', '💬'), opt('result', 'Resultado final', '⭐')]),
-    q('EASY_32_AUTOMATE', 'operation', 'efficiency', '¿Qué te gustaría automatizar primero?', [opt('responses', 'Respuestas frecuentes', '🤖'), opt('followup', 'Seguimiento', '🔁'), opt('payments', 'Cobros', '💳'), opt('reports', 'Números del negocio', '📊')]),
-    q('EASY_33_NEXT_30', 'goals', 'growth', 'En los próximos 30 días, ¿qué sería un buen avance?', [opt('more_sales', 'Más ventas', '📈'), opt('more_order', 'Más orden', '🧩'), opt('better_profit', 'Más margen', '💰'), opt('more_visibility', 'Más visibilidad', '📣')]),
-    q('EASY_34_RISK', 'operation', 'finances', '¿Qué riesgo querés que VISTACEO vigile por vos?', [opt('sales_drop', 'Baja de ventas', '📉'), opt('costs', 'Suba de costos', '💸'), opt('competition', 'Movimientos de competencia', '👀'), opt('reputation', 'Problemas de reputación', '⭐')]),
-    q('EASY_35_FIRST_ANALYSIS', 'goals', 'growth', '¿Qué querés ver primero en tu análisis?', [opt('opportunities', 'Radar de oportunidades', '📡'), opt('mission', 'Misión para hoy', '🎯'), opt('prediction', 'Predicción de competencia', '🔮'), opt('insights', 'Ideas concretas para crecer', '💡')]),
+    q('EASY_30_FIRST_ANALYSIS', 'goals', 'growth', '¿Qué querés ver primero en tu análisis?', [opt('opportunities', 'Radar de oportunidades', '📡'), opt('mission', 'Misión para hoy', '🎯'), opt('prediction', 'Predicción de competencia', '🔮'), opt('insights', 'Ideas concretas para crecer', '💡')]),
   ];
 }
 
@@ -421,12 +426,21 @@ export const SetupStepQuestionnaire = ({
 
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customText, setCustomText] = useState('');
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reset custom input when question changes
+  // Reset custom input when question changes + clear pending auto-advance
   useEffect(() => {
     setShowCustomInput(false);
     setCustomText('');
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
   }, [currentIndex]);
+
+  useEffect(() => () => {
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+  }, []);
 
   const getCurrentValue = () => answers[currentQuestion?.id];
 
@@ -468,7 +482,6 @@ export const SetupStepQuestionnaire = ({
     if (currentIndex < totalQuestions - 1) {
       setCurrentIndex(prev => prev + 1);
     } else if (!isLoadingMore && allBatchesDone.current) {
-      // Validate minimum question count before completing
       const { min } = getQuestionLimits(setupMode);
       if (totalQuestions < min) {
         console.warn(`Only ${totalQuestions} questions, minimum is ${min}. Allowing completion anyway.`);
@@ -477,15 +490,22 @@ export const SetupStepQuestionnaire = ({
     } else if (isLoadingMore) {
       // Still loading more questions - user sees waiting state
     } else if (totalQuestions >= getQuestionLimits(setupMode).min) {
-      // Background failed but we have enough questions
       onComplete();
     }
-    // If none of the above, do nothing (prevents premature completion)
+  };
+
+  // Auto-advance on single-select after a short delay (better UX, no extra click)
+  const handleSingleSelect = (optionId: string) => {
+    handleAnswer(optionId);
+    setShowCustomInput(false);
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = setTimeout(() => {
+      handleNext();
+    }, 280);
   };
 
   // Auto-advance when new questions arrive and user was at the end
   useEffect(() => {
-    // If user was waiting at the last question and new ones just arrived
     if (currentIndex === totalQuestions - 1 && isLoadingMore) {
       // Questions array will grow, so this effect will re-trigger
     }
@@ -643,22 +663,22 @@ export const SetupStepQuestionnaire = ({
         const isNone = currentVal === '__NONE__' || (typeof currentVal === 'object' && currentVal?.type === '__CUSTOM__');
         return (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {currentQuestion.options?.map((option) => {
                 const isSelected = currentVal === option.id;
                 return (
                   <button
                     key={option.id}
-                    onClick={() => { handleAnswer(option.id); setShowCustomInput(false); }}
+                    onClick={() => handleSingleSelect(option.id)}
                     className={cn(
-                      "p-4 rounded-xl border-2 text-left transition-all",
+                      "p-3 sm:p-4 rounded-xl border-2 text-left transition-all min-h-[72px] flex flex-col justify-center",
                       isSelected
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50 bg-card"
+                        ? "border-primary bg-primary/10 ring-2 ring-primary/30"
+                        : "border-border hover:border-primary/50 bg-card active:scale-[0.98]"
                     )}
                   >
-                    {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
-                    <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
+                    {option.emoji && <span className="text-lg sm:text-xl mb-1 block">{option.emoji}</span>}
+                    <span className={cn("font-medium text-xs sm:text-sm leading-tight", isSelected && "text-primary")}>
                       {option.label[lang] || option.label.es}
                     </span>
                   </button>
@@ -879,7 +899,7 @@ export const SetupStepQuestionnaire = ({
 
   // Estimated total - always show a number within valid range
   const { min: limitMin, max: limitMax } = getQuestionLimits(setupMode);
-  const estimatedTotal = setupMode === 'quick' ? 10 : 35;
+  const estimatedTotal = setupMode === 'quick' ? 12 : 30;
   // If all batches done, show actual total (already capped). Otherwise show estimate.
   const displayTotal = allBatchesDone.current 
     ? totalQuestions 
@@ -945,58 +965,64 @@ export const SetupStepQuestionnaire = ({
             </div>
 
             {/* Question */}
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-3">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-snug">
                 {currentQuestion.title[lang] || currentQuestion.title.es}
               </h2>
               {currentQuestion.help && (
-                <p className="text-muted-foreground text-sm flex items-center justify-center gap-2">
-                  <HelpCircle className="w-4 h-4 flex-shrink-0" />
-                  <span>{currentQuestion.help[lang] || currentQuestion.help.es}</span>
-                </p>
+                <div className="mx-auto max-w-md rounded-xl bg-primary/5 border border-primary/20 px-3 py-2 flex items-start gap-2 text-left">
+                  <HelpCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span className="text-xs sm:text-sm text-foreground/80 leading-snug">
+                    {currentQuestion.help[lang] || currentQuestion.help.es}
+                  </span>
+                </div>
               )}
             </div>
 
             {/* Input */}
-            <div className="py-4">{renderInput()}</div>
+            <div className="py-2">{renderInput()}</div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Navigation */}
-      <div className="flex items-center gap-4 pt-4">
+      {/* Navigation - minimal: small back + continue only when needed */}
+      <div className="flex items-center justify-between gap-3 pt-2">
         <Button
           variant="ghost"
+          size="sm"
           onClick={handleBack}
           disabled={currentIndex === 0 && !onBack}
-          size="lg"
+          className="text-muted-foreground hover:text-foreground"
         >
-          <ChevronLeft className="w-5 h-5 mr-1" />
-          {lang === 'pt-BR' ? 'Voltar' : 'Atrás'}
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          {lang === 'pt-BR' ? 'Anterior' : 'Anterior'}
         </Button>
-        <Button
-          onClick={handleNext}
-          disabled={!canProceed() || isWaitingForMore}
-          className="flex-1"
-          size="lg"
-        >
-          {isWaitingForMore ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              {lang === 'pt-BR' ? 'Carregando...' : 'Cargando...'}
-            </>
-          ) : currentIndex >= totalQuestions - 1 && allBatchesDone.current ? (
-            <>
-              <Check className="w-5 h-5 mr-2" />
-              {lang === 'pt-BR' ? 'Finalizar' : 'Finalizar'}
-            </>
-          ) : (
-            <>
-              {lang === 'pt-BR' ? 'Continuar' : 'Continuar'}
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </>
-          )}
-        </Button>
+        {/* Show Continue only for non-single types (multi/number/etc) or at the end */}
+        {(currentQuestion.type !== 'single' || (currentIndex >= totalQuestions - 1 && allBatchesDone.current)) && (
+          <Button
+            onClick={handleNext}
+            disabled={!canProceed() || isWaitingForMore}
+            size="lg"
+            className="flex-1 max-w-xs"
+          >
+            {isWaitingForMore ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                {lang === 'pt-BR' ? 'Carregando...' : 'Cargando...'}
+              </>
+            ) : currentIndex >= totalQuestions - 1 && allBatchesDone.current ? (
+              <>
+                <Check className="w-5 h-5 mr-2" />
+                {lang === 'pt-BR' ? 'Finalizar' : 'Finalizar'}
+              </>
+            ) : (
+              <>
+                {lang === 'pt-BR' ? 'Continuar' : 'Continuar'}
+                <ChevronRight className="w-5 h-5 ml-2" />
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Skip option for non-required */}
