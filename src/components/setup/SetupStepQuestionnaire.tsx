@@ -663,22 +663,22 @@ export const SetupStepQuestionnaire = ({
         const isNone = currentVal === '__NONE__' || (typeof currentVal === 'object' && currentVal?.type === '__CUSTOM__');
         return (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {currentQuestion.options?.map((option) => {
                 const isSelected = currentVal === option.id;
                 return (
                   <button
                     key={option.id}
-                    onClick={() => { handleAnswer(option.id); setShowCustomInput(false); }}
+                    onClick={() => handleSingleSelect(option.id)}
                     className={cn(
-                      "p-4 rounded-xl border-2 text-left transition-all",
+                      "p-3 sm:p-4 rounded-xl border-2 text-left transition-all min-h-[72px] flex flex-col justify-center",
                       isSelected
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50 bg-card"
+                        ? "border-primary bg-primary/10 ring-2 ring-primary/30"
+                        : "border-border hover:border-primary/50 bg-card active:scale-[0.98]"
                     )}
                   >
-                    {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
-                    <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
+                    {option.emoji && <span className="text-lg sm:text-xl mb-1 block">{option.emoji}</span>}
+                    <span className={cn("font-medium text-xs sm:text-sm leading-tight", isSelected && "text-primary")}>
                       {option.label[lang] || option.label.es}
                     </span>
                   </button>
