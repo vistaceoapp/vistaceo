@@ -80,7 +80,7 @@ function capQuestions(questions: UniversalQuestion[], mode: 'quick' | 'complete'
 }
 
 // Cache keys for persisting questions across navigation
-const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v2';
+const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v3_12_30';
 const QUESTIONS_META_KEY = 'setupQuestionsMeta';
 
 interface QuestionsCacheData {
