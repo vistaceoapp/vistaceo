@@ -884,7 +884,7 @@ export const SetupStepQuestionnaire = ({
 
   // Estimated total - always show a number within valid range
   const { min: limitMin, max: limitMax } = getQuestionLimits(setupMode);
-  const estimatedTotal = setupMode === 'quick' ? 10 : 35;
+  const estimatedTotal = setupMode === 'quick' ? 12 : 30;
   // If all batches done, show actual total (already capped). Otherwise show estimate.
   const displayTotal = allBatchesDone.current 
     ? totalQuestions 
