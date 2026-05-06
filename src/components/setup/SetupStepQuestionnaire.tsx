@@ -965,58 +965,64 @@ export const SetupStepQuestionnaire = ({
             </div>
 
             {/* Question */}
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-3">
               <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-snug">
                 {currentQuestion.title[lang] || currentQuestion.title.es}
               </h2>
               {currentQuestion.help && (
-                <p className="text-muted-foreground text-sm flex items-center justify-center gap-2">
-                  <HelpCircle className="w-4 h-4 flex-shrink-0" />
-                  <span>{currentQuestion.help[lang] || currentQuestion.help.es}</span>
-                </p>
+                <div className="mx-auto max-w-md rounded-xl bg-primary/5 border border-primary/20 px-3 py-2 flex items-start gap-2 text-left">
+                  <HelpCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                  <span className="text-xs sm:text-sm text-foreground/80 leading-snug">
+                    {currentQuestion.help[lang] || currentQuestion.help.es}
+                  </span>
+                </div>
               )}
             </div>
 
             {/* Input */}
-            <div className="py-4">{renderInput()}</div>
+            <div className="py-2">{renderInput()}</div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Navigation */}
-      <div className="flex items-center gap-4 pt-4">
+      {/* Navigation - minimal: small back + continue only when needed */}
+      <div className="flex items-center justify-between gap-3 pt-2">
         <Button
           variant="ghost"
+          size="sm"
           onClick={handleBack}
           disabled={currentIndex === 0 && !onBack}
-          size="lg"
+          className="text-muted-foreground hover:text-foreground"
         >
-          <ChevronLeft className="w-5 h-5 mr-1" />
-          {lang === 'pt-BR' ? 'Voltar' : 'Atrás'}
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          {lang === 'pt-BR' ? 'Anterior' : 'Anterior'}
         </Button>
-        <Button
-          onClick={handleNext}
-          disabled={!canProceed() || isWaitingForMore}
-          className="flex-1"
-          size="lg"
-        >
-          {isWaitingForMore ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              {lang === 'pt-BR' ? 'Carregando...' : 'Cargando...'}
-            </>
-          ) : currentIndex >= totalQuestions - 1 && allBatchesDone.current ? (
-            <>
-              <Check className="w-5 h-5 mr-2" />
-              {lang === 'pt-BR' ? 'Finalizar' : 'Finalizar'}
-            </>
-          ) : (
-            <>
-              {lang === 'pt-BR' ? 'Continuar' : 'Continuar'}
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </>
-          )}
-        </Button>
+        {/* Show Continue only for non-single types (multi/number/etc) or at the end */}
+        {(currentQuestion.type !== 'single' || (currentIndex >= totalQuestions - 1 && allBatchesDone.current)) && (
+          <Button
+            onClick={handleNext}
+            disabled={!canProceed() || isWaitingForMore}
+            size="lg"
+            className="flex-1 max-w-xs"
+          >
+            {isWaitingForMore ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                {lang === 'pt-BR' ? 'Carregando...' : 'Cargando...'}
+              </>
+            ) : currentIndex >= totalQuestions - 1 && allBatchesDone.current ? (
+              <>
+                <Check className="w-5 h-5 mr-2" />
+                {lang === 'pt-BR' ? 'Finalizar' : 'Finalizar'}
+              </>
+            ) : (
+              <>
+                {lang === 'pt-BR' ? 'Continuar' : 'Continuar'}
+                <ChevronRight className="w-5 h-5 ml-2" />
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Skip option for non-required */}
