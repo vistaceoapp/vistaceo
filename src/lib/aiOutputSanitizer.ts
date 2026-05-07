@@ -118,6 +118,7 @@ export function sanitizeAIOutput(text: string | null | undefined): string {
   
   // Remove "Q_BIO_104: value" style signal strings
   result = result.replace(/Q_[A-Z_]+\d*:\s*[a-z_]+/gi, '');
+  result = result.replace(/EASY[_\s]\d+[_\s][A-Z_]+\s*:?\s*[a-z_]*/gi, '');
   
   // Remove empty parentheses left over
   result = result.replace(/\(\s*\)/g, '');
