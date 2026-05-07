@@ -180,7 +180,7 @@ export const AIDailySummary = () => {
       </div>
 
       {/* Signals grid */}
-      {signalCount > 0 && (
+      {signalCount > 0 ? (
         <div className="px-5 sm:px-6 pb-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {summary.signals.map((signal, i) => {
@@ -212,6 +212,49 @@ export const AIDailySummary = () => {
               );
             })}
           </div>
+        </div>
+      ) : (
+        <div className="px-5 sm:px-6 pb-4">
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { icon: TrendingUp, label: 'Radar', title: 'Activá tu radar', desc: 'Detectá oportunidades reales de tu sector cada día.', accent: 'border-l-blue-500', iconBg: 'bg-blue-500/10 text-blue-600', to: '/app/radar' },
+              { icon: Target, label: 'Misión', title: 'Empezá la primera misión', desc: 'Una acción concreta priorizada por la IA.', accent: 'border-l-violet-500', iconBg: 'bg-violet-500/10 text-violet-600', to: '/app/missions' },
+              { icon: Eye, label: 'Predicción', title: 'Predicción semanal', desc: 'Qué puede pasar en tu negocio en los próximos 7 días.', accent: 'border-l-blue-500', iconBg: 'bg-blue-500/10 text-blue-600', to: '/app/predictions' },
+              { icon: Crosshair, label: 'Competencia', title: 'Mapeá tu competencia', desc: 'Qué hacen distinto y dónde podés ganar terreno.', accent: 'border-l-violet-500', iconBg: 'bg-violet-500/10 text-violet-600', to: '/app/analytics' },
+            ].map((s, i) => (
+              <button
+                key={i}
+                onClick={() => navigate(s.to)}
+                className={cn(
+                  "text-left rounded-xl border border-border/40 bg-background/50 p-3.5 border-l-[3px] hover:border-border/70 hover:bg-background/80 transition-all",
+                  s.accent
+                )}
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className={cn("w-5 h-5 rounded-md flex items-center justify-center shrink-0", s.iconBg)}>
+                    <s.icon className="w-3 h-3" />
+                  </div>
+                  <span className="text-[10px] font-bold tracking-wider text-foreground/60 uppercase">
+                    {s.label}
+                  </span>
+                </div>
+                <p className="text-[13px] font-semibold text-foreground leading-snug mb-1">
+                  {s.title}
+                </p>
+                <p className="text-[11.5px] text-muted-foreground leading-relaxed">
+                  {s.desc}
+                </p>
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => { setSummary(null); generateSummary(); }}
+            disabled={generating}
+            className="mt-3 w-full text-[11px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-1.5"
+          >
+            <RefreshCw className={cn('w-3 h-3', generating && 'animate-spin')} />
+            {generating ? 'Analizando señales en vivo…' : 'Generar señales en vivo de tu negocio'}
+          </button>
         </div>
       )}
 
