@@ -151,7 +151,7 @@ const getWhyItApplies = (opportunity: Opportunity, business: Business | null): s
   
   if (evidence?.signals?.length) {
     evidence.signals.slice(0, 2).forEach(signal => {
-      const clean = sanitizeAIOutput(signal);
+      const clean = cleanResidue(sanitizeAIOutput(signal));
       if (clean.length > 3) bullets.push(clean);
     });
   }
