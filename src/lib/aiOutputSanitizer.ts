@@ -11,9 +11,12 @@
 // Patterns to strip from AI output
 const AI_LEAK_PATTERNS = [
   /\bQ_[A-Z]{2,}_\d{2,}\b/g,                    // Q_BIO_104, Q_MD_005
+  /\bEASY_\d+_[A-Z_]+(?:\s*:\s*[a-z_]+)?/gi,    // EASY_17_FOLLOWUP, EASY_17_FOLLOWUP: sometimes
+  /\beasy[_\s]\d+[_\s][a-z_]+(?:\s+[a-z_]+)?/gi, // easy_13_peak / "Easy 13 peak intuition"
   /\b[a-z]+_[a-z]+_\d{3}\b/g,                    // b2b_arq_finance_001
   /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/g, // UUIDs
   /\(Q_[^)]+\)/g,                                 // (Q_BIO_104)
+  /\(EASY_[^)]+\)/gi,                             // (EASY_17_FOLLOWUP: sometimes)
   /\([A-Z_]{3,}\d*\)/g,                           // (CATEGORY_CODE)
   /`[a-z_]+`/g,                                    // `snake_case` backtick-wrapped
   /\bopt_[a-z_]+(?:_(?:high|low|mid|none))?\b/gi,  // opt_margin_high, opt_revenue_low
