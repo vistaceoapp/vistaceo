@@ -408,6 +408,8 @@ const ENGLISH_ALLOWLIST = new Set([
 const PROHIBITED_PATTERNS = [
   /\[object Object\]/g,               // Object stringification leak
   /\bQ_[A-Z]{2,}_\d+\b/g,           // Q_BIO_104, Q_AI_002
+  /\bEASY_\d+_[A-Z_]+(?:\s*:\s*[a-z_]+)?/gi,  // EASY_17_FOLLOWUP, EASY_17_FOLLOWUP: sometimes
+  /\beasy[_\s]\d+[_\s][a-z_]+(?:\s+[a-z_]+)?/gi, // easy_13_peak / "Easy 13 peak intuition"
   /\b[a-z]+_[a-z]+_\d{3}\b/g,       // b2b_arq_finance_001
   /\b[0-9a-f]{8}-[0-9a-f]{4}-/g,    // UUID prefixes
   /\bauth\.uid\(\)/g,                // SQL fragments
@@ -416,6 +418,14 @@ const PROHIBITED_PATTERNS = [
   /\{[a-z_]+\}/g,                    // Template variables {variable_name}
   /\b__[a-z]+__\b/g,                 // Dunder patterns
 ];
+
+// Detect if a key is a raw internal questionnaire code (EASY_XX_NAME, easy_xx_name)
+const EASY_CODE_PATTERN = /^easy[_\s]?\d+[_\s][a-z_]+$/i;
+export function isInternalQuestionCode(key: string | null | undefined): boolean {
+  if (!key) return false;
+  const k = key.trim();
+  return EASY_CODE_PATTERN.test(k) || /^Q_[A-Z]{2,}_\d+$/i.test(k);
+}
 
 // =============================================
 // CORE FUNCTIONS

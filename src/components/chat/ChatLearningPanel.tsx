@@ -146,6 +146,10 @@ const parseLearningData = (data: unknown): LearningFact[] => {
     if (isEnglishText(fact.answer)) return false;
     // Filter out duplicate question labels that add no value
     if (fact.question === fact.answer) return false;
+    // Filter out raw internal questionnaire codes (EASY_xx_NAME, easy_xx_name, Q_xx)
+    const q = (fact.question || '').trim();
+    if (/^easy[_\s]?\d+/i.test(q) || /^Q_[A-Z]{2,}_\d+$/i.test(q)) return false;
+    if (/^easy[_\s]?\d+/i.test(fact.answer) || /^Q_[A-Z]{2,}_\d+$/i.test(fact.answer)) return false;
     return true;
   });
 };
