@@ -16,14 +16,14 @@ export interface WidgetConfig {
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   // "Menos es más": sólo 4 widgets de alto valor visibles por defecto.
-  { id: "aiSummary", name: "Visión estratégica", icon: "Sparkles", visible: true, order: 0, section: "main", locked: true },
+  { id: "aiSummary", name: "Centro de inteligencia", icon: "Sparkles", visible: true, order: 0, section: "main", locked: true },
   { id: "health", name: "Salud del negocio", icon: "Heart", visible: true, order: 1, section: "main", locked: true },
-  { id: "nextSteps", name: "Siguiente paso", icon: "ArrowRight", visible: true, order: 2, section: "main", locked: true },
+  { id: "missions", name: "Misión prioritaria", icon: "Target", visible: true, order: 2, section: "main" },
+  { id: "nextSteps", name: "Siguiente paso", icon: "ArrowRight", visible: true, order: 3, section: "main", locked: true },
   { id: "brain", name: "Conocimiento", icon: "Brain", visible: true, order: 0, section: "sidebar", locked: true },
-  // El resto queda disponible en el editor pero oculto por defecto (menos ruido, render más rápido).
-  { id: "missions", name: "Misiones activas", icon: "Target", visible: false, order: 3, section: "main" },
-  { id: "focus", name: "Foco actual", icon: "Crosshair", visible: false, order: 1, section: "sidebar" },
-  { id: "radar", name: "Radar de mercado", icon: "Radar", visible: false, order: 2, section: "sidebar" },
+  { id: "radar", name: "Radar de oportunidades", icon: "Radar", visible: true, order: 1, section: "sidebar" },
+  // El resto queda disponible en el editor pero oculto por defecto.
+  { id: "focus", name: "Foco actual", icon: "Crosshair", visible: false, order: 2, section: "sidebar" },
   { id: "pulse", name: "Registro rápido", icon: "TrendingUp", visible: false, order: 5, section: "main" },
   { id: "weeklyMetrics", name: "Métricas semanales", icon: "BarChart3", visible: false, order: 6, section: "main" },
   { id: "predictions", name: "Predicciones", icon: "Orbit", visible: false, order: 7, section: "main" },

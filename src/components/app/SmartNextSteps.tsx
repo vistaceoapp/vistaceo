@@ -127,7 +127,28 @@ export const SmartNextSteps = () => {
     setSteps(computedSteps.sort((a, b) => a.priority - b.priority).slice(0, 3));
   };
 
-  if (steps.length === 0) return null;
+  if (steps.length === 0) {
+    return (
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold text-muted-foreground tracking-widest uppercase px-1">
+          Siguiente paso
+        </h3>
+        <button
+          onClick={() => navigate('/app/chat?prompt=' + encodeURIComponent('¿Qué debería hacer hoy en mi negocio para crecer?'))}
+          className="w-full flex items-center gap-3 p-3 rounded-xl bg-card border border-border/50 hover:border-primary/30 transition-all text-left group"
+        >
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-primary/10">
+            <TrendingUp className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground">Tu base está lista</p>
+            <p className="text-[11px] text-muted-foreground truncate">Pedile a la IA la próxima jugada estratégica.</p>
+          </div>
+          <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors shrink-0" />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
