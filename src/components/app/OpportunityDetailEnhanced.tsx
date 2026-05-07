@@ -123,10 +123,21 @@ const ImpactBar = ({ score, type }: { score: number; type: "impact" | "effort" }
   );
 };
 
+// Strip empty parentheses/brackets and dangling colons left after sanitization
+const cleanResidue = (s: string): string =>
+  s.replace(/\(\s*\)/g, '')
+   .replace(/\[\s*\]/g, '')
+   .replace(/\s+:\s*$/g, '')
+   .replace(/\s{2,}/g, ' ')
+   .trim();
+
 // Generate business-specific trigger
 const getTrigger = (opportunity: Opportunity, business: Business | null): string => {
   const evidence = opportunity.evidence as OpportunityEvidence | null;
-  if (evidence?.trigger) return sanitizeAIOutput(evidence.trigger);
+  if (evidence?.trigger) {
+    const clean = cleanResidue(sanitizeAIOutput(evidence.trigger));
+    if (clean && clean.length > 3) return clean;
+  }
   const businessName = business?.name || "tu negocio";
   const sourceInfo = getSourceInfo(opportunity.source);
   return `Detectado a través de ${sourceInfo.label.toLowerCase()} en ${businessName}`;
