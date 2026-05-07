@@ -68,7 +68,15 @@ const getSourceInfo = (source: string | null) => {
 const getTrigger = (opportunity: Opportunity, business: Business | null): string => {
   const evidence = opportunity.evidence as Record<string, any> | null;
   
-  if (evidence?.trigger) return sanitizeAIOutput(evidence.trigger);
+  if (evidence?.trigger) {
+    const clean = sanitizeAIOutput(evidence.trigger)
+      .replace(/\(\s*\)/g, '')
+      .replace(/\[\s*\]/g, '')
+      .replace(/\s+:\s*$/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    if (clean && clean.length > 3) return clean;
+  }
   
   // Generate contextual trigger based on source and business
   const businessName = business?.name || "tu negocio";
