@@ -203,7 +203,7 @@ const Auth = () => {
           }
           return;
         }
-        toast.success("¡Bienvenido de nuevo!");
+        toast.success("¡Bienvenido de nuevo!", { duration: 1200 });
       } else {
         const { error, requiresEmailConfirmation } = await signUp(email, password, fullName);
         if (error) {
