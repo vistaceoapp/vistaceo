@@ -145,7 +145,31 @@ const q = (
 });
 
 function buildEasyQuestionnaire(mode: 'quick' | 'complete'): UniversalQuestion[] {
-  const quick: UniversalQuestion[] = [
+  // Detect business stage from universal profile (set by SetupStepIdentityAI)
+  let stage: string | undefined;
+  try {
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('setupUniversalProfile') : null;
+    stage = stored ? JSON.parse(stored)?.business_stage : undefined;
+  } catch { /* ignore */ }
+  const isPlanning = stage === 'planning';
+
+  // ============= QUICK (12 preguntas) =============
+  // Para "Proyecto nuevo" cambiamos preguntas que asumen operación (precio actual, reseñas, seguimiento)
+  // por preguntas faciles de planeamiento.
+  const quick: UniversalQuestion[] = isPlanning ? [
+    q('EASY_01_STAGE', 'identity', 'growth', '¿En qué momento estás con tu proyecto?', [opt('idea', 'Idea muy inicial', '💡'), opt('planning', 'Planeando los próximos pasos', '🗺️'), opt('almost', 'Casi listo para arrancar', '🚀'), opt('first_sales', 'Hice las primeras ventas de prueba', '🌱')]),
+    q('EASY_02_GOAL', 'goals', 'growth', '¿Qué te ayudaría más ahora?', [opt('clarity', 'Tener claro qué hacer primero', '🎯'), opt('clients', 'Saber dónde encontrar clientes', '👥'), opt('offer', 'Definir bien la oferta', '📦'), opt('confidence', 'Validar que vale la pena', '✅')]),
+    q('EASY_03_OFFER', 'identity', 'traffic', '¿Tu propuesta principal está definida?', [opt('clear', 'Sí, ya la tengo', '✅'), opt('almost', 'Casi, falta pulir', '🛠️'), opt('exploring', 'Estoy explorando', '🌫️'), opt('open', 'Abierto a sugerencias', '💭')]),
+    q('EASY_04_AUDIENCE', 'identity', 'traffic', '¿Sabés a quién querés venderle?', [opt('clear', 'Sí, lo tengo claro', '🎯'), opt('rough', 'Tengo una idea', '🟡'), opt('exploring', 'Estoy probando', '🔍'), opt('open', 'No todavía', '🌱')]),
+    q('EASY_05_DIFFERENTIAL', 'identity', 'growth', '¿Qué te diferencia o querés que te diferencie?', [opt('quality', 'Calidad', '⭐'), opt('price', 'Precio', '💰'), opt('attention', 'Atención cercana', '💬'), opt('innovation', 'Algo nuevo', '✨')]),
+    q('EASY_06_CHANNEL', 'sales', 'traffic', '¿Por dónde pensás comunicar primero?', [opt('whatsapp', 'WhatsApp', '📲'), opt('instagram', 'Redes sociales', '📱'), opt('web', 'Web', '🌐'), opt('referrals', 'Boca en boca', '🤝')]),
+    q('EASY_07_BLOCKER', 'operation', 'efficiency', '¿Qué es lo que más te traba para arrancar?', [opt('time', 'Tiempo', '⏱️'), opt('money', 'Capital inicial', '💸'), opt('know_how', 'No sé por dónde empezar', '🧭'), opt('fear', 'Inseguridad de lanzar', '🌫️')]),
+    q('EASY_08_INVESTMENT', 'finance', 'finances', '¿Pensaste cuánto vas a invertir al principio?', [opt('low', 'Lo mínimo posible', '🪙'), opt('medium', 'Inversión moderada', '💼'), opt('high', 'Voy con todo', '💎'), opt('not_yet', 'Todavía no lo definí', '🤔')]),
+    q('EASY_09_TIMELINE', 'goals', 'growth', '¿Cuándo te gustaría arrancar?', [opt('now', 'Ya', '🚀'), opt('weeks', 'En unas semanas', '📅'), opt('months', 'En unos meses', '🗓️'), opt('exploring', 'Sigo explorando', '🌱')]),
+    q('EASY_10_FIRST_STEP', 'goals', 'efficiency', '¿Qué primer paso te gustaría hacer hoy?', [opt('plan', 'Tener un plan claro', '🗺️'), opt('test', 'Probar la idea con alguien', '🧪'), opt('content', 'Empezar a comunicar', '📣'), opt('priority', 'Saber qué priorizar', '🎯')]),
+    q('EASY_11_SUPPORT', 'team', 'team', '¿Vas a hacerlo solo/a o con alguien?', [opt('solo', 'Solo/a', '👤'), opt('partner', 'Con un socio/a', '🤝'), opt('team', 'Con un equipo', '👥'), opt('family', 'Con familia o amigos', '🫶')]),
+    q('EASY_12_FIRST_ANALYSIS', 'goals', 'growth', '¿Qué te gustaría ver primero en tu análisis?', [opt('opportunities', 'Radar de oportunidades', '📡'), opt('mission', 'Misión para hoy', '🎯'), opt('insights', 'Ideas para arrancar', '💡'), opt('competition', 'Análisis de competencia', '🔮')]),
+  ] : [
     q('EASY_01_STAGE', 'identity', 'growth', '¿En qué momento está tu negocio hoy?', [opt('starting', 'Estoy empezando', '🌱'), opt('selling', 'Ya vendo, pero quiero crecer', '📈'), opt('stable', 'Funciona, pero quiero ordenarlo', '⚙️'), opt('stuck', 'Siento que está trabado', '🚧')]),
     q('EASY_02_GOAL', 'goals', 'growth', '¿Qué querés mejorar primero?', [opt('more_clients', 'Conseguir más clientes', '👥'), opt('sell_more', 'Vender más', '💬'), opt('profit', 'Mejorar rentabilidad', '💰'), opt('order', 'Ordenar procesos', '🧩')], 'single', 'Rentabilidad: cuánto te queda real después de cubrir todos los costos.'),
     q('EASY_03_CHANNEL', 'sales', 'traffic', '¿Por dónde llegan más consultas o ventas?', [opt('whatsapp', 'WhatsApp', '📲'), opt('instagram', 'Redes sociales', '📱'), opt('web', 'Web o buscadores', '🔎'), opt('referrals', 'Recomendaciones', '🤝')]),
@@ -162,7 +186,8 @@ function buildEasyQuestionnaire(mode: 'quick' | 'complete'): UniversalQuestion[]
 
   if (mode === 'quick') return quick;
 
-  return [...quick,
+  // ============= COMPLETE - 18 preguntas extra =============
+  const moreActive: UniversalQuestion[] = [
     q('EASY_13_PEAK', 'sales', 'traffic', '¿Sabés qué días u horarios te conviene vender más fuerte?', [opt('yes', 'Sí, lo tengo claro', '✅'), opt('intuition', 'Lo intuyo', '🧠'), opt('no', 'No lo miro', '🔍'), opt('varies', 'Cambia mucho', '🔄')]),
     q('EASY_14_LOST_CLIENTS', 'sales', 'traffic', '¿Dónde sentís que se pierden más clientes?', [opt('before_contact', 'Antes de consultar', '👀'), opt('after_message', 'Después del primer mensaje', '💬'), opt('price', 'Cuando ven el precio', '🏷️'), opt('followup', 'Por falta de seguimiento', '📌')], 'single', 'Seguimiento: volver a contactar a quien preguntó pero todavía no compró.'),
     q('EASY_15_REVIEWS', 'reputation', 'reputation', '¿Tenés reseñas o testimonios recientes?', [opt('many', 'Sí, varias recientes', '⭐'), opt('few', 'Algunas', '🙂'), opt('old', 'Tengo, pero viejas', '⏳'), opt('none', 'Casi ninguna', '🧊')]),
@@ -182,6 +207,29 @@ function buildEasyQuestionnaire(mode: 'quick' | 'complete'): UniversalQuestion[]
     q('EASY_29_WEBSITE', 'sales', 'traffic', 'Si alguien ve tu web o perfil, ¿tiene una acción clara?', [opt('yes', 'Sí, sabe qué hacer', '✅'), opt('some', 'Podría ser más claro', '🛠️'), opt('no', 'No mucho', '🌫️'), opt('none', 'No tengo web o perfil activo', '🧊')]),
     q('EASY_30_FIRST_ANALYSIS', 'goals', 'growth', '¿Qué querés ver primero en tu análisis?', [opt('opportunities', 'Radar de oportunidades', '📡'), opt('mission', 'Misión para hoy', '🎯'), opt('prediction', 'Predicción de competencia', '🔮'), opt('insights', 'Ideas concretas para crecer', '💡')]),
   ];
+
+  const morePlanning: UniversalQuestion[] = [
+    q('EASY_13_NAME', 'identity', 'reputation', '¿Ya tenés nombre para tu proyecto?', [opt('yes', 'Sí, definitivo', '✅'), opt('idea', 'Tengo una idea', '💭'), opt('options', 'Estoy entre varias opciones', '🤔'), opt('no', 'Todavía no', '🌱')]),
+    q('EASY_14_LOCATION', 'identity', 'traffic', '¿Cómo va a operar tu proyecto?', [opt('online', '100% online', '🌐'), opt('local', 'Local físico', '🏠'), opt('hybrid', 'Mixto', '🔀'), opt('exploring', 'Aún no decidí', '🤷')]),
+    q('EASY_15_PRICES', 'finance', 'profitability', '¿Pensaste cómo vas a cobrar / qué precios?', [opt('clear', 'Sí, ya los tengo', '💰'), opt('rough', 'Una idea inicial', '🟡'), opt('research', 'Estoy investigando', '🔍'), opt('no', 'Todavía no', '🌫️')]),
+    q('EASY_16_FIRST_CLIENTS', 'sales', 'traffic', '¿Tenés idea de dónde van a salir tus primeros clientes?', [opt('network', 'De mi red personal', '🤝'), opt('online', 'De redes sociales', '📱'), opt('referrals', 'Por recomendación', '⭐'), opt('not_sure', 'No lo tengo claro', '🤔')]),
+    q('EASY_17_BIGGEST_FEAR', 'goals', 'growth', '¿Qué es lo que más te preocupa de arrancar?', [opt('no_clients', 'No conseguir clientes', '👥'), opt('competition', 'La competencia', '⚔️'), opt('money', 'Quedarme sin plata', '💸'), opt('time', 'No tener tiempo', '⏱️')]),
+    q('EASY_18_VALIDATION', 'sales', 'traffic', '¿Hablaste con alguien sobre tu idea para validarla?', [opt('many', 'Sí, con varias personas', '✅'), opt('few', 'Con algunos', '🙂'), opt('one', 'Con uno o dos', '🤝'), opt('no', 'Todavía no', '🌱')]),
+    q('EASY_19_BRAND', 'identity', 'reputation', '¿Tenés logo o identidad visual?', [opt('yes', 'Sí, definitiva', '🎨'), opt('draft', 'Algo borrador', '✏️'), opt('idea', 'Sólo idea', '💭'), opt('no', 'Todavía no', '🌫️')]),
+    q('EASY_20_SOCIAL', 'sales', 'traffic', '¿Ya tenés cuenta de redes sociales lista?', [opt('active', 'Sí, ya activa', '📱'), opt('created', 'Creada pero sin uso', '🟡'), opt('planning', 'La voy a crear', '🗓️'), opt('no', 'Todavía no lo pensé', '🤷')]),
+    q('EASY_21_LEGAL', 'finance', 'finances', '¿Cómo vas a facturar al principio?', [opt('formal', 'Empresa o monotributo', '📜'), opt('informal', 'Sin facturar todavía', '🤷'), opt('research', 'Lo estoy averiguando', '🔍'), opt('not_sure', 'No lo definí', '🌫️')]),
+    q('EASY_22_TIME', 'team', 'efficiency', '¿Cuánto tiempo por semana le vas a poder dedicar?', [opt('full', 'Tiempo completo', '🚀'), opt('half', 'Medio tiempo', '🕒'), opt('few', 'Pocas horas', '⏱️'), opt('weekends', 'Fines de semana', '📅')]),
+    q('EASY_23_MARKET', 'sales', 'growth', '¿Investigaste a la competencia?', [opt('deep', 'Sí, en profundidad', '🔬'), opt('basic', 'Por arriba', '🟡'), opt('plan', 'Lo voy a hacer', '🗓️'), opt('no', 'Todavía no', '🌱')]),
+    q('EASY_24_GOAL_3M', 'goals', 'growth', '¿Qué te gustaría haber logrado en 3 meses?', [opt('first_clients', 'Primeros clientes', '🎯'), opt('break_even', 'Cubrir gastos', '💰'), opt('confidence', 'Saber si funciona', '✅'), opt('community', 'Tener seguidores', '👥')]),
+    q('EASY_25_RISK', 'goals', 'finances', '¿Qué tanto riesgo estás dispuesto/a a tomar?', [opt('low', 'Bajo, ir despacio', '🐢'), opt('medium', 'Moderado', '🟡'), opt('high', 'Alto, ir a fondo', '🚀'), opt('not_sure', 'No lo tengo claro', '🤔')]),
+    q('EASY_26_HELP', 'team', 'team', '¿Quién te puede ayudar al principio?', [opt('mentor', 'Un mentor o referente', '🧭'), opt('friends', 'Amigos o familia', '🫶'), opt('community', 'Una comunidad', '👥'), opt('alone', 'Por ahora solo/a', '👤')]),
+    q('EASY_27_CONTENT_PLAN', 'sales', 'growth', '¿Pensaste cómo vas a comunicar lo que hacés?', [opt('plan', 'Sí, tengo un plan', '🗺️'), opt('idea', 'Ideas sueltas', '💭'), opt('learn', 'Tengo que aprender', '📚'), opt('no', 'No todavía', '🌱')]),
+    q('EASY_28_TOOLS', 'operation', 'efficiency', '¿Qué herramientas pensás usar para arrancar?', [opt('whatsapp', 'WhatsApp', '📲'), opt('spreadsheet', 'Planilla', '📊'), opt('platforms', 'Plataformas (Tienda, etc)', '🛒'), opt('not_sure', 'No lo definí', '🤷')]),
+    q('EASY_29_PASSION', 'identity', 'growth', '¿Qué te apasiona de este proyecto?', [opt('purpose', 'El propósito', '🌟'), opt('freedom', 'La libertad', '🦅'), opt('impact', 'El impacto que puede tener', '🌍'), opt('income', 'La oportunidad de ingresos', '💰')]),
+    q('EASY_30_FIRST_ANALYSIS', 'goals', 'growth', '¿Qué te gustaría ver primero en tu análisis?', [opt('roadmap', 'Plan de arranque', '🗺️'), opt('mission', 'Primera misión concreta', '🎯'), opt('insights', 'Ideas validadas', '💡'), opt('competition', 'Análisis de mercado', '🔮')]),
+  ];
+
+  return [...quick, ...(isPlanning ? morePlanning : moreActive)];
 }
 
 export const SetupStepQuestionnaire = ({
