@@ -211,9 +211,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('[AuthContext] signOut failed:', error);
     } finally {
       clearClientAuthState();
+      // Wipe additional UX flags so the next ingreso pide todo de nuevo
+      try {
+        localStorage.removeItem('has_logged_in');
+        localStorage.removeItem('pendingPlan');
+        localStorage.removeItem('pendingPlanTimestamp');
+      } catch { /* noop */ }
       welcomeEmailSentRef.current = false;
       initializedRef.current = true;
       setLoading(false);
+      // Hard reload to make 100% seguro que no queda estado en memoria.
+      try {
+        window.location.replace('/auth?mode=login');
+      } catch { /* noop */ }
     }
   }, [clearClientAuthState]);
 
