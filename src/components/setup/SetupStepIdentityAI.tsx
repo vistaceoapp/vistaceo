@@ -172,10 +172,10 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
   const renderStageBadge = (stage?: string) => {
     if (!stage || stage === 'active') return null;
     const config = stage === 'planning' 
-      ? { label: 'Proyecto nuevo', color: 'bg-accent/10 text-accent-foreground' }
-      : { label: 'Explorando', color: 'bg-secondary text-muted-foreground' };
+      ? { label: 'Proyecto nuevo', className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30' }
+      : { label: 'Explorando', className: 'bg-muted text-foreground/80 border border-border' };
     return (
-      <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold", config.color)}>
+      <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold", config.className)}>
         🚀 {config.label}
       </span>
     );
