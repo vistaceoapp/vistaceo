@@ -240,11 +240,11 @@ const Auth = () => {
           },
         }).catch((err) => console.error('[notify-admin] signup email failed:', err));
         if (requiresEmailConfirmation) {
-          toast.success("¡Cuenta creada! Revisa tu email para confirmarla e ingresar.");
+          toast.success("Revisa tu email para confirmar la cuenta.", { duration: 2500 });
           navigate("/auth?mode=login", { replace: true });
           return;
         }
-        toast.success("¡Cuenta creada!");
+        toast.success("¡Listo!", { duration: 1200 });
         const storedPlan = safeLocalStorage.getItem("pendingPlan");
         if (storedPlan === "pro_monthly" || storedPlan === "pro_yearly") {
           navigate("/checkout", { replace: true });
