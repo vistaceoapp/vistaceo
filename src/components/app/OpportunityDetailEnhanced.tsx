@@ -262,7 +262,7 @@ export const OpportunityDetailEnhanced = ({
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20">
             <Building2 className="w-3 h-3 mr-1" />
-            INTERNO
+            Tu negocio
           </Badge>
           <Badge variant="secondary" className={cn("text-[10px]", sourceInfo.color)}>
             <span className="mr-1">{sourceInfo.icon}</span>

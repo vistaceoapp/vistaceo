@@ -172,10 +172,10 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
   const renderStageBadge = (stage?: string) => {
     if (!stage || stage === 'active') return null;
     const config = stage === 'planning' 
-      ? { label: 'Proyecto nuevo', color: 'bg-accent/10 text-accent-foreground' }
-      : { label: 'Explorando', color: 'bg-secondary text-muted-foreground' };
+      ? { label: 'Proyecto nuevo', className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30' }
+      : { label: 'Explorando', className: 'bg-muted text-foreground/80 border border-border' };
     return (
-      <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold", config.color)}>
+      <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold", config.className)}>
         🚀 {config.label}
       </span>
     );
@@ -441,25 +441,25 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
                       {/* Labels row */}
                       <div className="flex flex-wrap items-center gap-1.5 mb-2">
                         {isTop && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold shadow-sm">
                             <Check className="w-3 h-3" />
                             Recomendado
                           </span>
                         )}
                         {option.origin === 'a_medida' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/10 text-accent-foreground text-[11px] font-semibold">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-foreground text-background text-[11px] font-semibold">
                             <Sparkles className="w-3 h-3" />
                             A medida
                           </span>
                         )}
                         {renderStageBadge(stage)}
                         <span className={cn(
-                          "inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold",
+                          "inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border",
                           (option.precision_percent ?? 0) >= 80
-                            ? 'bg-primary/10 text-primary'
+                            ? 'bg-primary/15 text-primary border-primary/30'
                             : (option.precision_percent ?? 0) >= 60
-                              ? 'bg-secondary text-foreground'
-                              : 'bg-secondary text-muted-foreground'
+                              ? 'bg-foreground/10 text-foreground border-foreground/20'
+                              : 'bg-muted text-foreground/70 border-border'
                         )}>
                           {option.precision_percent ?? 0}% precisión
                         </span>

@@ -109,7 +109,7 @@ export const OpportunityCard = ({
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20">
                 <Building2 className="w-2.5 h-2.5 mr-1" />
-                INTERNO
+                Tu negocio
               </Badge>
               {isQuickWin && (
                 <Badge className="text-[10px] bg-success/10 text-success border-success/20">
@@ -156,7 +156,7 @@ export const OpportunityCard = ({
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20">
             <Building2 className="w-2.5 h-2.5 mr-1" />
-            INTERNO
+            Tu negocio
           </Badge>
           {isQuickWin && (
             <Badge className="text-[10px] bg-success/10 text-success border-success/20">

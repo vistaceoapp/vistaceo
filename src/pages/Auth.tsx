@@ -203,7 +203,7 @@ const Auth = () => {
           }
           return;
         }
-        toast.success("¡Bienvenido de nuevo!");
+        toast.success("¡Bienvenido de nuevo!", { duration: 1200 });
       } else {
         const { error, requiresEmailConfirmation } = await signUp(email, password, fullName);
         if (error) {
@@ -240,11 +240,11 @@ const Auth = () => {
           },
         }).catch((err) => console.error('[notify-admin] signup email failed:', err));
         if (requiresEmailConfirmation) {
-          toast.success("¡Cuenta creada! Revisa tu email para confirmarla e ingresar.");
+          toast.success("Revisa tu email para confirmar la cuenta.", { duration: 2500 });
           navigate("/auth?mode=login", { replace: true });
           return;
         }
-        toast.success("¡Cuenta creada!");
+        toast.success("¡Listo!", { duration: 1200 });
         const storedPlan = safeLocalStorage.getItem("pendingPlan");
         if (storedPlan === "pro_monthly" || storedPlan === "pro_yearly") {
           navigate("/checkout", { replace: true });
@@ -489,7 +489,7 @@ const Auth = () => {
                         placeholder="Tu nombre"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="h-11 rounded-[10px] bg-white border-[#e5e5e5] focus-visible:ring-1 focus-visible:ring-[#2692DC]/30 focus-visible:border-[#2692DC]/50 text-[14px]"
+                        className="h-11 rounded-[10px] bg-white border-[#e5e5e5] focus-visible:ring-1 focus-visible:ring-[#2692DC]/30 focus-visible:border-[#2692DC]/50 text-[16px] sm:text-[14px]"
                         required={!isLogin}
                       />
                     </div>
@@ -505,7 +505,7 @@ const Auth = () => {
                       placeholder="tu@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="h-11 rounded-[10px] bg-white border-[#e5e5e5] focus-visible:ring-1 focus-visible:ring-[#2692DC]/30 focus-visible:border-[#2692DC]/50 text-[14px]"
+                      className="h-11 rounded-[10px] bg-white border-[#e5e5e5] focus-visible:ring-1 focus-visible:ring-[#2692DC]/30 focus-visible:border-[#2692DC]/50 text-[16px] sm:text-[14px]"
                       required
                     />
                   </div>
@@ -521,7 +521,7 @@ const Auth = () => {
                         placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="h-11 rounded-[10px] bg-white border-[#e5e5e5] pr-11 focus-visible:ring-1 focus-visible:ring-[#2692DC]/30 focus-visible:border-[#2692DC]/50 text-[14px]"
+                        className="h-11 rounded-[10px] bg-white border-[#e5e5e5] pr-11 focus-visible:ring-1 focus-visible:ring-[#2692DC]/30 focus-visible:border-[#2692DC]/50 text-[16px] sm:text-[14px]"
                         required
                         minLength={6}
                       />
