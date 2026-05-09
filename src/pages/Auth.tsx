@@ -244,7 +244,7 @@ const Auth = () => {
           navigate("/auth?mode=login", { replace: true });
           return;
         }
-        toast.success("¡Listo!", { duration: 1200 });
+        toast.success("¡Listo!", { duration: 700 });
         const storedPlan = safeLocalStorage.getItem("pendingPlan");
         if (storedPlan === "pro_monthly" || storedPlan === "pro_yearly") {
           navigate("/checkout", { replace: true });
