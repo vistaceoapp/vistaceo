@@ -1073,9 +1073,26 @@ const MissionsPage = () => {
           <h2 className="text-xl font-bold text-foreground mb-2">
             {areaFilter !== "all" ? "Sin misiones en esta área" : "Elegí tu primera misión"}
           </h2>
-          <p className="text-muted-foreground max-w-sm mx-auto">
+          <p className="text-muted-foreground max-w-sm mx-auto mb-5">
             {areaFilter !== "all" ? "Probá con otra área o iniciá una nueva misión" : "Mirá las sugerencias de abajo y convertí una en misión activa con un toque."}
           </p>
+          {areaFilter === "all" && hasEnoughData && (() => {
+            const firstSuggestion = getPlaceholderMissions(currentBusiness?.category)
+              .filter(s => !missions.some(m => m.title === s.title))[0];
+            if (!firstSuggestion) return null;
+            return (
+              <Button
+                variant="hero"
+                size="lg"
+                onClick={() => startMission(firstSuggestion)}
+                disabled={actionLoading}
+                className="mx-auto"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Iniciar misión recomendada
+              </Button>
+            );
+          })()}
         </GlassCard>
       )}
 
