@@ -19,6 +19,8 @@ const AI_LEAK_PATTERNS = [
   /\(EASY_[^)]+\)/gi,                             // (EASY_17_FOLLOWUP: sometimes)
   /\([A-Z_]{3,}\d*\)/g,                           // (CATEGORY_CODE)
   /`[a-z_]+`/g,                                    // `snake_case` backtick-wrapped
+  /['"][a-z]+_[a-z_]+['"]/g,                       // 'first_clients', "draft_brand", etc.
+  /\b(?:first_clients|draft|first_sale|brand_draft|landing_draft|mvp|prelaunch_buzz|test_market|early_adopters|growth_loop|funnel_top)\b/gi,
   /\bopt_[a-z_]+(?:_(?:high|low|mid|none))?\b/gi,  // opt_margin_high, opt_revenue_low
   /\bno_(?:proof|record|data|match)\b/gi,           // no_proof, no_record
   /\bconcept_hash\b/g,
