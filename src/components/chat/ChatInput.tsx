@@ -114,7 +114,7 @@ export const ChatInput = ({
   return (
     <div
       className={cn(
-        "rounded-2xl border bg-card transition-all duration-200",
+        "rounded-2xl border bg-card transition-all duration-200 max-w-full overflow-hidden",
         isFocused
           ? "border-primary/40 shadow-[var(--shadow-glow)]"
           : "border-border/50 shadow-[var(--shadow-sm)]",
@@ -191,7 +191,7 @@ export const ChatInput = ({
         />
 
         {/* Text input */}
-        <div className="flex-1 relative">
+        <div className="flex-1 min-w-0 relative">
           <textarea
             ref={inputRef}
             value={value}
