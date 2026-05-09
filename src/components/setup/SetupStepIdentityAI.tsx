@@ -2,7 +2,7 @@
 // Textarea → clarification (if ambiguous) → 3 smart options → profile selection
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Brain, Loader2, Check, Wand2, ChevronRight, RotateCcw, AlertTriangle, HelpCircle } from 'lucide-react';
+import { Sparkles, Brain, Loader2, Check, Wand2, ChevronRight, RotateCcw, AlertTriangle, HelpCircle, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -75,6 +75,11 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
     options: ClarificationOption[];
   } | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const speechSupported = typeof window !== 'undefined' && (
+    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+  );
 
   // Auto-resize textarea
   useEffect(() => {
@@ -83,6 +88,36 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
   }, [text]);
+
+  const toggleVoice = () => {
+    if (!speechSupported) return;
+    if (isListening) {
+      try { recognitionRef.current?.stop(); } catch { /* noop */ }
+      setIsListening(false);
+      return;
+    }
+    try {
+      const Ctor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const rec = new Ctor();
+      rec.lang = 'es-AR';
+      rec.continuous = false;
+      rec.interimResults = true;
+      rec.onresult = (e: any) => {
+        let finalText = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          finalText += e.results[i][0].transcript;
+        }
+        setText((prev) => (prev ? prev + ' ' : '') + finalText.trim());
+      };
+      rec.onend = () => setIsListening(false);
+      rec.onerror = () => setIsListening(false);
+      recognitionRef.current = rec;
+      rec.start();
+      setIsListening(true);
+    } catch {
+      setIsListening(false);
+    }
+  };
 
   const handleSubmit = async (clarificationAnswer?: string) => {
     if (text.trim().length < 3) return;
@@ -232,8 +267,25 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
                 <button
                   onClick={() => setText('')}
                   className="absolute top-3 right-3 text-muted-foreground/50 hover:text-muted-foreground p-1 rounded-full hover:bg-secondary transition-colors"
+                  aria-label="Limpiar"
                 >
                   <RotateCcw className="w-4 h-4" />
+                </button>
+              )}
+              {speechSupported && (
+                <button
+                  type="button"
+                  onClick={toggleVoice}
+                  className={cn(
+                    "absolute bottom-3 right-3 p-2 rounded-full transition-all",
+                    isListening
+                      ? "bg-red-500 text-white animate-pulse shadow-lg"
+                      : "bg-primary/10 text-primary hover:bg-primary/20"
+                  )}
+                  aria-label={isListening ? "Detener" : "Hablar"}
+                  title={isListening ? "Tocá para detener" : "Tocá y contame en voz"}
+                >
+                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                 </button>
               )}
             </div>
