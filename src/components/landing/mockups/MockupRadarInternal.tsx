@@ -8,7 +8,7 @@ export const MockupRadarInternal = () => {
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-4">
           <span className="px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium flex items-center gap-1.5">
-            <FileText className="w-3 h-3" /> INTERNO
+            <FileText className="w-3 h-3" /> Tu negocio
           </span>
           <span className="px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-medium flex items-center gap-1.5">
             <Lightbulb className="w-3 h-3" /> Diagnóstico

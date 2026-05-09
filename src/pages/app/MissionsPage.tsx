@@ -1071,10 +1071,10 @@ const MissionsPage = () => {
             </div>
           </div>
           <h2 className="text-xl font-bold text-foreground mb-2">
-            {areaFilter !== "all" ? "Sin misiones en esta área" : "Preparando misiones..."}
+            {areaFilter !== "all" ? "Sin misiones en esta área" : "Elegí tu primera misión"}
           </h2>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            {areaFilter !== "all" ? "Prueba con otra área o inicia una nueva misión" : "El sistema está seleccionando la mejor misión"}
+            {areaFilter !== "all" ? "Probá con otra área o iniciá una nueva misión" : "Mirá las sugerencias de abajo y convertí una en misión activa con un toque."}
           </p>
         </GlassCard>
       )}
