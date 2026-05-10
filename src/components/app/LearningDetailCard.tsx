@@ -1,7 +1,6 @@
 import { forwardRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DialogHeader,
   DialogTitle,
@@ -346,7 +345,7 @@ export const LearningDetailCard = forwardRef<HTMLDivElement, LearningDetailCardP
     const sourceInfo = extractSourceInfo(item.source);
     
     return (
-      <div ref={ref} className="flex flex-col max-h-[80vh]">
+      <div ref={ref} className="flex min-h-0 flex-col">
         {/* Header - Fixed */}
         <DialogHeader className="shrink-0 pb-4">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -368,9 +367,8 @@ export const LearningDetailCard = forwardRef<HTMLDivElement, LearningDetailCardP
           </DialogDescription>
         </DialogHeader>
 
-        {/* Scrollable Content */}
-        <ScrollArea className="flex-1 pr-3">
-          <div className="space-y-4 pb-4">
+        {/* Content */}
+        <div className="space-y-4 pb-4">
             {/* Content - Qué detectamos */}
             <div className="p-4 rounded-xl bg-accent/5 border border-accent/20">
               <h4 className="font-semibold text-accent mb-2 flex items-center gap-2 text-sm">
@@ -511,11 +509,10 @@ export const LearningDetailCard = forwardRef<HTMLDivElement, LearningDetailCardP
                 </div>
               </div>
             </div>
-          </div>
-        </ScrollArea>
+        </div>
 
         {/* Actions - Fixed at bottom */}
-        <div className="shrink-0 pt-4 border-t border-border/50 mt-2">
+        <div className="shrink-0 pt-4 pb-6 border-t border-border/50 mt-2">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Button variant="outline" size="sm" onClick={onDismiss} className="text-xs h-9">
               <ThumbsDown className="w-3 h-3 mr-1" />

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -258,6 +257,7 @@ export const OpportunityDetailEnhanced = ({
   
   return (
     <>
+      <div className="flex min-h-0 flex-col">
       <DialogHeader>
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20">
@@ -311,8 +311,7 @@ export const OpportunityDetailEnhanced = ({
         </Button>
       </div>
 
-      <ScrollArea className="max-h-[55vh] pr-2">
-        <div className="space-y-5">
+      <div className="space-y-5 pb-6">
           {/* Qué es */}
           <div className="p-4 rounded-xl bg-secondary/30 border border-border">
             <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2 text-sm">
@@ -660,9 +659,9 @@ export const OpportunityDetailEnhanced = ({
               </div>
             </div>
           )}
-        </div>
-      </ScrollArea>
+      </div>
 
+      </div>
     </>
   );
 };

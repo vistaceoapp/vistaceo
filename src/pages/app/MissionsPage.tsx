@@ -557,28 +557,30 @@ const MissionsPage = () => {
   const renderPlanPreviewModal = () => (
     <Dialog open={!!selectedSuggestion} onOpenChange={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}>
       <DialogContent className={cn(
-        "max-h-[90vh] overflow-y-auto",
+        "p-0 flex flex-col overflow-hidden",
         isMobile 
-          ? "max-w-lg bg-card/95 backdrop-blur-xl border-border/50" 
-          : "max-w-2xl bg-card border-border"
+          ? "inset-0 left-0 top-0 h-[100dvh] max-h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 rounded-none border-0 bg-card/95 backdrop-blur-xl" 
+          : "max-w-2xl max-h-[90dvh] bg-card border-border"
       )}>
-        {selectedSuggestion && (
-          <MissionPlanPreview
-            plan={generatedPlan || { 
-              planTitle: selectedSuggestion.title,
-              planDescription: selectedSuggestion.description,
-              estimatedDuration: "1-2 semanas",
-              estimatedImpact: "Mejora significativa",
-              steps: [] 
-            }}
-            missionTitle={selectedSuggestion.title}
-            missionArea={selectedSuggestion.area}
-            isLoading={planLoading}
-            onAccept={(steps) => acceptPlan(steps)}
-            onDismiss={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}
-            onRegenerate={() => generatePlanForSuggestion(selectedSuggestion, true)}
-          />
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+120px)]">
+          {selectedSuggestion && (
+            <MissionPlanPreview
+              plan={generatedPlan || { 
+                planTitle: selectedSuggestion.title,
+                planDescription: selectedSuggestion.description,
+                estimatedDuration: "1-2 semanas",
+                estimatedImpact: "Mejora significativa",
+                steps: [] 
+              }}
+              missionTitle={selectedSuggestion.title}
+              missionArea={selectedSuggestion.area}
+              isLoading={planLoading}
+              onAccept={(steps) => acceptPlan(steps)}
+              onDismiss={() => { setSelectedSuggestion(null); setGeneratedPlan(null); }}
+              onRegenerate={() => generatePlanForSuggestion(selectedSuggestion, true)}
+            />
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -637,7 +639,7 @@ const MissionsPage = () => {
       <div className={cn(
         "flex flex-col",
         isMobile 
-          ? "h-[calc(100vh-8rem)] -mx-4 -my-4" 
+          ? "h-[calc(100dvh-120px)] min-h-0 -mx-4 -my-4 overflow-hidden" 
           : "h-[calc(100vh-3rem)] -mx-5 -mb-5 -mt-5"
       )}>
         <MissionLLMMode
