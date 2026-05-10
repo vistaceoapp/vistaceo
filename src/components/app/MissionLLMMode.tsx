@@ -521,7 +521,7 @@ export const MissionLLMMode = ({
                 </TabsList>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-4 py-3">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+88px)]">
                 <TabsContent value="guide" className="m-0">
                   <MissionSummaryView
                     mission={mission}
@@ -582,7 +582,7 @@ export const MissionLLMMode = ({
 
             {/* Sticky CTA */}
             {mobileTab === "steps" && (
-              <div className="sticky bottom-0 px-4 py-3 border-t border-border bg-background/95 backdrop-blur-sm">
+              <div className="sticky bottom-0 px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] border-t border-border bg-background/95 backdrop-blur-sm">
                 <Button 
                   className="w-full h-11 text-sm font-semibold" 
                   size="lg"
