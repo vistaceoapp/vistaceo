@@ -842,8 +842,8 @@ const RadarPage = () => {
 
         {/* Opportunity Preview Dialog */}
         <Dialog open={!!selectedOpportunity} onOpenChange={() => setSelectedOpportunity(null)}>
-          <DialogContent className="max-w-xl h-[92vh] sm:h-auto sm:max-h-[90vh] p-0 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+96px)]">
+          <DialogContent className="max-w-xl h-[92dvh] sm:h-auto sm:max-h-[90dvh] p-0 flex flex-col overflow-hidden max-sm:inset-0 max-sm:left-0 max-sm:top-0 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:border-0">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+120px)]">
               {selectedOpportunity && (
                 <OpportunityDetailEnhanced 
                   opportunity={selectedOpportunity}
@@ -863,8 +863,8 @@ const RadarPage = () => {
 
         {/* Learning Preview Dialog - Mobile (scrollable + safe-area for bottom nav) */}
         <Dialog open={!!selectedLearning} onOpenChange={() => setSelectedLearning(null)}>
-          <DialogContent className="max-w-[95vw] h-[92vh] sm:h-auto sm:max-h-[90vh] p-0 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+96px)]">
+          <DialogContent className="max-w-[95vw] h-[92dvh] sm:h-auto sm:max-h-[90dvh] p-0 flex flex-col overflow-hidden max-sm:inset-0 max-sm:left-0 max-sm:top-0 max-sm:h-[100dvh] max-sm:max-h-[100dvh] max-sm:w-screen max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:border-0">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y [-webkit-overflow-scrolling:touch] p-4 sm:p-6 pb-[calc(env(safe-area-inset-bottom)+120px)]">
               {selectedLearning && (
                 <LearningDetailCard 
                   item={selectedLearning}
