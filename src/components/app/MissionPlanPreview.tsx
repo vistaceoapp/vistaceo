@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { 
   Sparkles, RefreshCw, X, Plus, Clock, Target, TrendingUp, 
   AlertCircle, Lightbulb, CheckCircle2, ChevronDown, ChevronUp,
