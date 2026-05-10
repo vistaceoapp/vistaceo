@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { 
   Sparkles, RefreshCw, X, Plus, Clock, Target, TrendingUp, 
@@ -141,8 +140,7 @@ export const MissionPlanPreview = ({
           Plan de Acción Detallado
         </h4>
         
-        <ScrollArea className="max-h-[40vh]">
-          <div className="space-y-3 pr-2">
+        <div className="space-y-3">
             {plan.steps?.map((step, idx) => (
               <div
                 key={idx}
@@ -250,8 +248,7 @@ export const MissionPlanPreview = ({
                 )}
               </div>
             ))}
-          </div>
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Business tips */}
