@@ -23,6 +23,7 @@ import {
   Brain,
   Rocket,
 } from "lucide-react";
+import { HeroSection } from "@/components/landing/sections/HeroSection";
 
 const GRADIENT = "linear-gradient(135deg, #6C63FF 0%, #00C4B4 100%)";
 const HERO_BG =
@@ -138,154 +139,22 @@ const PromoLanding = () => {
 
       <PromoHeader onCtaClick={() => handleCtaClick("header")} />
 
-      {/* ============ HERO ============ */}
-      <section
-        className="relative overflow-hidden"
-        style={{ background: HERO_BG, paddingTop: 120, paddingBottom: 100 }}
+      {/* ============ HERO (main landing hero, ultra-light) ============ */}
+      <div
+        className="promo-hero-light relative"
+        style={{
+          // Force pure-white "even lighter" theme tokens locally
+          ["--background" as any]: "0 0% 100%",
+          ["--background-alt" as any]: "0 0% 99.5%",
+          ["--card" as any]: "0 0% 100%",
+          ["--muted" as any]: "220 14% 98%",
+          ["--border" as any]: "220 14% 94%",
+          background:
+            "linear-gradient(180deg, #FFFFFF 0%, #FAFBFF 60%, #FFFFFF 100%)",
+        }}
       >
-        {/* Radial glow behind title */}
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            width: 600,
-            height: 400,
-            top: -100,
-            left: -50,
-            background:
-              "radial-gradient(circle, rgba(108,99,255,0.18) 0%, transparent 70%)",
-            zIndex: 0,
-          }}
-          aria-hidden
-        />
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            width: 500,
-            height: 500,
-            bottom: -150,
-            right: -100,
-            background:
-              "radial-gradient(circle, rgba(0,196,180,0.12) 0%, transparent 70%)",
-            zIndex: 0,
-          }}
-          aria-hidden
-        />
-
-        <div className="relative z-10 max-w-[1180px] mx-auto px-5 sm:px-6">
-          <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-12 lg:gap-16 items-center">
-            {/* Copy */}
-            <div>
-              {/* Badge */}
-              <span
-                className="promo-fade-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[13px] font-medium text-white"
-                style={{
-                  background: "rgba(108,99,255,0.15)",
-                  border: "1px solid rgba(108,99,255,0.35)",
-                  animationDelay: "0s",
-                }}
-              >
-                <span className="promo-pulse text-[#00C4B4]">✦</span>
-                CEO digital con IA · Gratis para empezar
-              </span>
-
-              {/* H1 */}
-              <h1
-                className="promo-fade-up mt-6 font-extrabold text-white"
-                style={{
-                  fontSize: "clamp(44px, 5.5vw, 72px)",
-                  lineHeight: 1.05,
-                  letterSpacing: "-0.025em",
-                  animationDelay: "0.1s",
-                }}
-              >
-                <HighlightedTitle title={hero.title} highlight={hero.highlight} />
-              </h1>
-
-              {/* Subtitle */}
-              <p
-                className="promo-fade-up mt-6 max-w-[560px]"
-                style={{
-                  fontSize: 19,
-                  lineHeight: 1.6,
-                  color: "#CBD5E1",
-                  fontWeight: 400,
-                  animationDelay: "0.2s",
-                }}
-              >
-                {hero.subtitle}
-              </p>
-
-              {/* Primary CTA */}
-              <div
-                className="promo-fade-up mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4"
-                style={{ animationDelay: "0.3s" }}
-              >
-                <Link
-                  to={buildSignupHref()}
-                  onClick={() => handleCtaClick("hero")}
-                  className="promo-cta inline-flex items-center justify-center gap-2 text-white font-bold transition-all"
-                  style={{
-                    height: 56,
-                    paddingInline: 32,
-                    fontSize: 17,
-                    borderRadius: 12,
-                    background: GRADIENT,
-                    boxShadow: "0 8px 32px rgba(108,99,255,0.45)",
-                  }}
-                >
-                  {ctaLabel}
-                  <ChevronRight className="w-5 h-5" />
-                </Link>
-              </div>
-
-              <p
-                className="promo-fade-up mt-3 text-[13px]"
-                style={{ color: "#94A3B8", animationDelay: "0.35s" }}
-              >
-                Sin tarjeta · En minutos · Negocio, servicio o profesión
-              </p>
-
-              {/* Social proof inline */}
-              <div
-                className="promo-fade-up mt-5 flex items-center gap-3"
-                style={{ animationDelay: "0.4s" }}
-              >
-                <div className="flex -space-x-2">
-                  {["#6C63FF", "#00C4B4", "#8B5CF6", "#F59E0B"].map((c, i) => (
-                    <span
-                      key={i}
-                      className="w-7 h-7 rounded-full border-2 flex items-center justify-center text-[10px] font-bold text-white"
-                      style={{ background: c, borderColor: "#0A0A0F" }}
-                    >
-                      {["MR", "JP", "LC", "AS"][i]}
-                    </span>
-                  ))}
-                </div>
-                <span className="text-[12.5px] text-[#94A3B8] leading-tight">
-                  +500 negocios y profesionales activos
-                </span>
-              </div>
-
-              <div
-                className="promo-fade-up mt-6"
-                style={{ animationDelay: "0.5s" }}
-              >
-                <a
-                  href="#beneficios"
-                  className="text-[14px] text-[#94A3B8] hover:text-white transition-colors underline-offset-4 hover:underline"
-                >
-                  Ver cómo funciona ↓
-                </a>
-              </div>
-            </div>
-
-            {/* Visual */}
-            <div className="relative">
-              <PromoIntelligencePanel />
-            </div>
-          </div>
-        </div>
-      </section>
+        <HeroSection />
+      </div>
 
       {/* ============ TRUST BAR ============ */}
       <section style={{ background: "#0F172A" }}>
