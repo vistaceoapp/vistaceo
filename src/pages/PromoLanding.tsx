@@ -23,6 +23,7 @@ import {
   Brain,
   Rocket,
 } from "lucide-react";
+import { HeroSection } from "@/components/landing/sections/HeroSection";
 
 const GRADIENT = "linear-gradient(135deg, #6C63FF 0%, #00C4B4 100%)";
 const HERO_BG =
