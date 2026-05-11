@@ -5,6 +5,9 @@ export default defineConfig({
   site: 'https://blog.vistaceo.com',
   base: '/',
   output: 'static',
+  // Canonical URL strategy: ALWAYS trailing slash to eliminate
+  // /slug vs /slug/ duplication flagged by Google Search Console.
+  trailingSlash: 'always',
   build: {
     // Keep directory format for trailing-slash URLs across the site.
     // sitemap.xml and robots.txt are generated as real files via integration.
