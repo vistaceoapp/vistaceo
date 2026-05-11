@@ -9,13 +9,12 @@ export default function BlogRedirect() {
   const { slug } = useParams<{ slug?: string }>();
   const location = useLocation();
 
-  // Build target URL — ALWAYS with trailing slash (canonical form on blog.vistaceo.com).
-  // This prevents the with/without-slash duplicate signals reported by GSC.
-  let targetUrl = `${BLOG_SUBDOMAIN}/`;
+  // Build target URL
+  let targetUrl = BLOG_SUBDOMAIN;
   if (slug) {
-    targetUrl = `${BLOG_SUBDOMAIN}/${slug}/`;
+    targetUrl = `${BLOG_SUBDOMAIN}/${slug}`;
   } else if (location.pathname.startsWith('/blog/tema/')) {
-    const clusterPath = location.pathname.replace('/blog', '').replace(/\/?$/, '/');
+    const clusterPath = location.pathname.replace('/blog', '');
     targetUrl = `${BLOG_SUBDOMAIN}${clusterPath}`;
   }
 

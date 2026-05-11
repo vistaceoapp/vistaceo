@@ -33,11 +33,9 @@ const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGci
 // Excluded: /auth, /checkout, /setup*, /app/*, /admin/*, /promo (paid traffic),
 // /v2, /v3, /ultra, /minimalista (variants), /reset-password, /unsubscribe,
 // /bienvenido-pro (post-purchase).
-// /blog on main domain is a 301-equivalent redirect (BlogRedirect.tsx) to
-// blog.vistaceo.com — it MUST NOT appear in the sitemap to avoid Google
-// reporting "Página con redirección" / canonical confusion.
 const STATIC_PAGES = [
   { path: '/', priority: '1.0', changefreq: 'daily', hreflang: true },
+  { path: '/blog', priority: '0.9', changefreq: 'daily' },
   { path: '/politicas', priority: '0.5', changefreq: 'monthly' },
   { path: '/condiciones', priority: '0.5', changefreq: 'monthly' },
 ];
