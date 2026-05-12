@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { CountryCode } from "@/lib/countryPacks";
 
 // Import REAL mockup components
+import { PromoIntelligencePanel } from "@/components/promo/PromoIntelligencePanel";
 import { MockupProDashboard } from "@/components/landing/mockups/MockupProDashboard";
 import { MockupProMissions } from "@/components/landing/mockups/MockupProMissions";
 import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
@@ -18,8 +19,6 @@ import { MockupProPredictions } from "@/components/landing/mockups/MockupProPred
 import { MockupProInsights } from "@/components/landing/mockups/MockupProInsights";
 import { MockupProCompetitors } from "@/components/landing/mockups/MockupProCompetitors";
 import { CapabilitiesShowcase } from "@/components/landing/CapabilitiesShowcase";
-import HeroOrb from "@/components/landing/HeroOrb";
-import ceoOfficeImg from "@/assets/hero/ceo-office-led.avif";
 import dividerStatueImg from "@/assets/landing/divider-statue.png";
 
 import type { BusinessKey } from "@/components/landing/mockups/MockupProDashboard";
@@ -272,188 +271,160 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative pt-28 pb-20 lg:pt-36 lg:pb-28 px-6 overflow-hidden min-h-[92svh]">
-      {/* Background image — CEO office, full bleed */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src={ceoOfficeImg}
-          alt=""
-          aria-hidden="true"
-          className="w-full h-full object-cover"
-          style={{ filter: "saturate(0.92) brightness(1.06)" }}
-          loading="eager"
-          decoding="async"
-          // @ts-ignore — valid HTML attr
-          fetchpriority="high"
-        />
-        {/* White → soft celeste veil for legibility (desktop) */}
-        <div
-          className="hidden lg:block absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(100deg, rgba(255,255,255,0.94) 0%, rgba(255,255,255,0.84) 38%, rgba(232,243,253,0.55) 64%, rgba(214,232,250,0.22) 100%)",
-          }}
-        />
-        {/* Mobile veil — heavier so copy reads */}
-        <div
-          className="lg:hidden absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.82) 45%, rgba(232,243,253,0.55) 100%)",
-          }}
-        />
-        {/* Subtle celeste glow accent */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse 60% 50% at 78% 40%, rgba(38,146,220,0.12) 0%, transparent 60%)",
-          }}
-        />
-      </div>
+    <section className="relative pt-28 pb-20 lg:pt-32 lg:pb-28 px-5 sm:px-6 overflow-hidden bg-white">
+      {/* Soft radial glows on white — same vibe as /promo, claro */}
+      <div
+        className="absolute pointer-events-none -z-0"
+        style={{
+          width: 720,
+          height: 480,
+          top: -120,
+          left: -120,
+          background:
+            "radial-gradient(circle, rgba(116,108,230,0.16) 0%, transparent 70%)",
+        }}
+        aria-hidden
+      />
+      <div
+        className="absolute pointer-events-none -z-0"
+        style={{
+          width: 620,
+          height: 620,
+          bottom: -200,
+          right: -160,
+          background:
+            "radial-gradient(circle, rgba(38,146,220,0.14) 0%, transparent 70%)",
+        }}
+        aria-hidden
+      />
+      <div
+        className="absolute pointer-events-none -z-0"
+        style={{
+          inset: 0,
+          background:
+            "radial-gradient(ellipse 70% 55% at 50% 0%, rgba(232,243,253,0.55) 0%, transparent 60%)",
+        }}
+        aria-hidden
+      />
 
-      <div className="relative z-10 max-w-[1280px] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
-          {/* Left: copy — wider, more breathing room */}
-          <div className="lg:col-span-12">
+      <div className="relative z-10 max-w-[1240px] mx-auto">
+        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center">
+          {/* ── Copy ── */}
+          <div>
             <Reveal distance={20}>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/85 backdrop-blur-md border border-white/80 shadow-[0_4px_14px_rgba(38,146,220,0.10)] mb-7">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#28c840] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#28c840]" />
-                </span>
-                <span className="text-[12.5px] sm:text-[13px] font-medium tracking-wide text-[#444]">Inteligencia ejecutiva en vivo</span>
-              </div>
+              <span
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[13px] font-medium text-[#0a0a0a]"
+                style={{
+                  background: "rgba(116,108,230,0.08)",
+                  border: "1px solid rgba(116,108,230,0.22)",
+                  boxShadow: "0 6px 18px -10px rgba(116,108,230,0.35)",
+                }}
+              >
+                <span className="text-[#10b981]">✦</span>
+                CEO digital con IA · Gratis para empezar
+              </span>
             </Reveal>
 
             <Reveal delay={80} distance={28}>
               <h1
-                className="font-semibold text-[#0a0a0a] tracking-[-0.036em] hyphens-none"
+                className="mt-6 font-semibold text-[#0a0a0a] tracking-[-0.03em]"
                 style={{
-                  fontSize: "clamp(2.05rem, 5.4vw, 4.85rem)",
-                  lineHeight: 1.04,
+                  fontSize: "clamp(2.1rem, 5.4vw, 4.6rem)",
+                  lineHeight: 1.05,
                 }}
               >
-                <span className="block">Tu empresa,</span>
-                <span className="block mt-1">impulsada por un</span>
-                <span
-                  className="block mt-1 hero-ceo-grad"
-                  style={{
-                    paddingBottom: "0.08em",
-                  }}
-                >
-                  CEO digital con IA.
+                Saber qué hacer{" "}
+                <span className="hero-light-grad" style={{ paddingBottom: "0.08em" }}>
+                  hoy para crecer
                 </span>
+                .
               </h1>
               <style>{`
-                .hero-ceo-grad {
-                  background-image: linear-gradient(95deg, #298FDA 0%, #3B79DA 30%, #4A7FE8 55%, #5D74E2 78%, #746CE6 100%);
+                .hero-light-grad {
+                  background-image: linear-gradient(95deg, #2692DC 0%, #3B79DA 35%, #5D74E2 70%, #746CE6 100%);
                   -webkit-background-clip: text;
                   background-clip: text;
                   -webkit-text-fill-color: transparent;
                   color: transparent;
                 }
-                @media (min-width: 768px) {
-                  .hero-ceo-grad {
-                    filter: drop-shadow(0 6px 22px rgba(80,120,230,0.25));
-                  }
-                }
               `}</style>
             </Reveal>
 
-            <div className="mt-8 lg:mt-10 max-w-[640px]">
-              <Reveal delay={300} distance={18}>
-                <p className="text-[18px] lg:text-[21px] text-[#1a1a1a] leading-[1.55] font-normal tracking-[-0.01em]">
-                  Entiende tu servicio o negocio, detecta <span className="font-semibold text-[#0a0a0a]">prioridades</span> y te dice <span className="font-semibold text-[#0a0a0a]">qué hacer hoy</span> para crecer con más claridad y velocidad.
-                </p>
-              </Reveal>
+            <Reveal delay={180} distance={18}>
+              <p className="mt-6 max-w-[560px] text-[17px] sm:text-[19px] leading-[1.55] text-[#3a3a3a]">
+                Plataforma con IA que detecta oportunidades en tu negocio y te dice
+                exactamente <span className="font-semibold text-[#0a0a0a]">qué hacer hoy</span> para crecer.
+              </p>
+            </Reveal>
 
-              <Reveal delay={380} distance={18}>
-                <div className="flex flex-wrap items-center gap-3 mt-9">
-                  <button
-                    onClick={() => navigate("/auth?mode=signup")}
-                    className="group relative flex items-center gap-2 pl-6 pr-2 py-2 rounded-full bg-[#0a0a0a] text-white hover:bg-[#1a1a1a] transition-all duration-300 active:scale-[0.98] shadow-[0_14px_36px_-10px_rgba(0,0,0,0.55)] hover:shadow-[0_18px_44px_-10px_rgba(38,146,220,0.45)]"
-                  >
-                    <span className="text-[14.5px] font-medium tracking-[-0.005em]">Empezar gratis</span>
-                    <span
-                      className="w-9 h-9 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:translate-x-0.5"
-                      style={{ background: ACCENT_GRADIENT }}
-                    >
-                      <ArrowRight className="w-4 h-4 text-white" />
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const el = document.querySelector("#producto");
-                      if (el) el.scrollIntoView({ behavior: "smooth" });
-                    }}
-                    className="group flex items-center gap-1.5 text-[14px] text-[#444] hover:text-[#0a0a0a] px-5 py-3 rounded-full transition-all duration-300 border border-black/[0.08] bg-white/70 hover:bg-white hover:border-black/[0.14] backdrop-blur-md hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.18)]"
-                  >
-                    <span className="font-medium">Ver cómo funciona</span>
-                    <ChevronDown className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-y-0.5" />
-                  </button>
-                </div>
-
-                <div
-                  className="mt-7 relative overflow-hidden hero-marquee-mask"
-                  aria-hidden="true"
+            <Reveal delay={260} distance={18}>
+              <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button
+                  onClick={() => navigate("/auth?mode=signup")}
+                  className="group inline-flex items-center justify-center gap-2 text-white font-semibold transition-all active:scale-[0.98]"
+                  style={{
+                    height: 56,
+                    paddingInline: 28,
+                    fontSize: 16,
+                    borderRadius: 14,
+                    background: ACCENT_GRADIENT,
+                    boxShadow: "0 14px 36px -8px rgba(116,108,230,0.55)",
+                  }}
                 >
-                  <div className="flex gap-3 hero-marquee-track whitespace-nowrap py-1">
-                    {[
-                      "Restaurantes", "Cafeterías", "Hoteles", "Estudios jurídicos",
-                      "Clínicas", "Consultorios", "Gimnasios", "Spas",
-                      "Tiendas online", "Retail", "Inmobiliarias", "Constructoras",
-                      "Agencias", "Consultoras", "Estudios contables", "Coaches",
-                      "Diseñadores", "Desarrolladores", "Fotógrafos", "Productoras",
-                      "Talleres", "Distribuidoras", "Fábricas", "Importadoras",
-                      "Escuelas", "Academias", "ONGs", "Marcas D2C",
-                      "Peluquerías", "Veterinarias", "Farmacias", "Floristerías",
-                    ].concat([
-                      "Restaurantes", "Cafeterías", "Hoteles", "Estudios jurídicos",
-                      "Clínicas", "Consultorios", "Gimnasios", "Spas",
-                      "Tiendas online", "Retail", "Inmobiliarias", "Constructoras",
-                      "Agencias", "Consultoras", "Estudios contables", "Coaches",
-                      "Diseñadores", "Desarrolladores", "Fotógrafos", "Productoras",
-                      "Talleres", "Distribuidoras", "Fábricas", "Importadoras",
-                      "Escuelas", "Academias", "ONGs", "Marcas D2C",
-                      "Peluquerías", "Veterinarias", "Farmacias", "Floristerías",
-                    ]).map((label, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-black/[0.06] bg-white/70 text-[12px] text-[#555] font-medium tracking-[-0.005em]"
-                      >
-                        <span className="w-1 h-1 rounded-full bg-gradient-to-br from-[#4FB3F0] to-[#746CE6]" />
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                  <style>{`
-                    .hero-marquee-mask {
-                      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
-                              mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
-                    }
-                    .hero-marquee-track {
-                      width: max-content;
-                      animation: heroMarquee 55s linear infinite;
-                      will-change: transform;
-                    }
-                    .hero-marquee-mask:hover .hero-marquee-track {
-                      animation-play-state: paused;
-                    }
-                    @keyframes heroMarquee {
-                      0%   { transform: translateX(0); }
-                      100% { transform: translateX(-50%); }
-                    }
-                    @media (prefers-reduced-motion: reduce) {
-                      .hero-marquee-track { animation: none; }
-                    }
-                  `}</style>
+                  Crear cuenta gratis
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    const el = document.querySelector("#producto");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="group inline-flex items-center justify-center gap-1.5 text-[14.5px] text-[#444] hover:text-[#0a0a0a] px-5 h-[52px] rounded-full transition-all border border-black/[0.08] bg-white/80 hover:bg-white hover:border-black/[0.16] backdrop-blur-md"
+                >
+                  <span className="font-medium">Ver cómo funciona</span>
+                  <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:translate-y-0.5" />
+                </button>
+              </div>
+            </Reveal>
+
+            <Reveal delay={320} distance={14}>
+              <p className="mt-4 text-[13px] text-[#777]">
+                Sin tarjeta · En minutos · Negocio, servicio o profesión
+              </p>
+            </Reveal>
+
+            <Reveal delay={380} distance={14}>
+              <div className="mt-6 flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {[
+                    { c: "#746CE6", t: "MR" },
+                    { c: "#2692DC", t: "JP" },
+                    { c: "#10b981", t: "LC" },
+                    { c: "#0a0a0a", t: "AS" },
+                  ].map((a, i) => (
+                    <span
+                      key={i}
+                      className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm"
+                      style={{ background: a.c }}
+                    >
+                      {a.t}
+                    </span>
+                  ))}
                 </div>
-              </Reveal>
-            </div>
+                <span className="text-[12.5px] text-[#666] leading-tight">
+                  +500 negocios y profesionales activos
+                </span>
+              </div>
+            </Reveal>
           </div>
 
+          {/* ── Visual: Intelligence Panel ── */}
+          <Reveal delay={120} distance={24}>
+            <div className="relative">
+              <PromoIntelligencePanel />
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>
