@@ -58,7 +58,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
                 boxShadow: "0 6px 18px rgba(108,99,255,0.4)",
               }}
             >
-              <Sparkles className="w-4 h-4 text-white" strokeWidth={2.4} />
+              <Sparkles className="w-4 h-4 text-white lbi-keep-white" strokeWidth={2.4} />
             </span>
             <div className="min-w-0">
               <div className="text-[12.5px] font-semibold text-white tracking-wide truncate">
@@ -436,7 +436,7 @@ const ModuleCard = ({
         </span>
         {badge && (
           <span
-            className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white flex-shrink-0"
+            className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white lbi-keep-white flex-shrink-0"
             style={{
               background: "linear-gradient(135deg, #6C63FF, #00C4B4)",
             }}
