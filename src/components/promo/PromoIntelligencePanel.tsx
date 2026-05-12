@@ -19,15 +19,17 @@ import { buildSignupHref } from "@/lib/promo/utm";
  * Panel premium tipo "tu CEO de IA está analizando tu negocio".
  * Usa vocabulario de la app: Radar, Misión, Predicción, Competencia, Insight.
  */
-export const PromoIntelligencePanel = () => {
+export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" | "light" }) => {
+  const isLight = variant === "light";
   return (
-    <div className="relative w-full max-w-[460px] mx-auto lg:mx-0 lbi-float">
+    <div className={`relative w-full max-w-[460px] mx-auto lg:mx-0 lbi-float ${isLight ? "lbi-light" : ""}`}>
       {/* Soft outer glow */}
       <div
         className="absolute -inset-10 rounded-[44px] opacity-70 blur-3xl -z-10"
         style={{
-          background:
-            "radial-gradient(50% 50% at 30% 25%, rgba(108,99,255,0.4) 0%, rgba(0,196,180,0.18) 60%, transparent 100%)",
+          background: isLight
+            ? "radial-gradient(50% 50% at 30% 25%, rgba(116,108,230,0.30) 0%, rgba(38,146,220,0.14) 60%, transparent 100%)"
+            : "radial-gradient(50% 50% at 30% 25%, rgba(108,99,255,0.4) 0%, rgba(0,196,180,0.18) 60%, transparent 100%)",
         }}
         aria-hidden
       />
@@ -35,13 +37,15 @@ export const PromoIntelligencePanel = () => {
       <div
         className="relative rounded-[22px] p-5 sm:p-6"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%)",
+          background: isLight
+            ? "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.92) 100%)"
+            : "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%)",
           backdropFilter: "blur(22px)",
           WebkitBackdropFilter: "blur(22px)",
-          border: "1px solid rgba(255,255,255,0.13)",
-          boxShadow:
-            "0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
+          border: isLight ? "1px solid rgba(15,23,42,0.08)" : "1px solid rgba(255,255,255,0.13)",
+          boxShadow: isLight
+            ? "0 30px 80px -20px rgba(38,60,120,0.22), 0 8px 24px -12px rgba(116,108,230,0.18), inset 0 1px 0 rgba(255,255,255,0.7)"
+            : "0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
         }}
       >
         {/* ====== HEADER: Analizando tu negocio ====== */}
