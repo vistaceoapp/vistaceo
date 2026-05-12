@@ -239,7 +239,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
             }}
           >
             <span
-              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white lbi-keep-white"
               style={{
                 background: "linear-gradient(135deg, #6C63FF, #00C4B4)",
                 boxShadow: "0 4px 12px rgba(108,99,255,0.4)",
