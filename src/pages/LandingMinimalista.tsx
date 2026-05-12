@@ -422,7 +422,7 @@ const HeroSection = () => {
           {/* ── Visual: Intelligence Panel ── */}
           <Reveal delay={120} distance={24}>
             <div className="relative">
-              <PromoIntelligencePanel />
+              <PromoIntelligencePanel variant="light" />
             </div>
           </Reveal>
         </div>

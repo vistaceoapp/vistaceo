@@ -19,15 +19,17 @@ import { buildSignupHref } from "@/lib/promo/utm";
  * Panel premium tipo "tu CEO de IA está analizando tu negocio".
  * Usa vocabulario de la app: Radar, Misión, Predicción, Competencia, Insight.
  */
-export const PromoIntelligencePanel = () => {
+export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" | "light" }) => {
+  const isLight = variant === "light";
   return (
-    <div className="relative w-full max-w-[460px] mx-auto lg:mx-0 lbi-float">
+    <div className={`relative w-full max-w-[460px] mx-auto lg:mx-0 lbi-float ${isLight ? "lbi-light" : ""}`}>
       {/* Soft outer glow */}
       <div
         className="absolute -inset-10 rounded-[44px] opacity-70 blur-3xl -z-10"
         style={{
-          background:
-            "radial-gradient(50% 50% at 30% 25%, rgba(108,99,255,0.4) 0%, rgba(0,196,180,0.18) 60%, transparent 100%)",
+          background: isLight
+            ? "radial-gradient(50% 50% at 30% 25%, rgba(116,108,230,0.30) 0%, rgba(38,146,220,0.14) 60%, transparent 100%)"
+            : "radial-gradient(50% 50% at 30% 25%, rgba(108,99,255,0.4) 0%, rgba(0,196,180,0.18) 60%, transparent 100%)",
         }}
         aria-hidden
       />
@@ -35,13 +37,15 @@ export const PromoIntelligencePanel = () => {
       <div
         className="relative rounded-[22px] p-5 sm:p-6"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%)",
+          background: isLight
+            ? "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.92) 100%)"
+            : "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%)",
           backdropFilter: "blur(22px)",
           WebkitBackdropFilter: "blur(22px)",
-          border: "1px solid rgba(255,255,255,0.13)",
-          boxShadow:
-            "0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
+          border: isLight ? "1px solid rgba(15,23,42,0.08)" : "1px solid rgba(255,255,255,0.13)",
+          boxShadow: isLight
+            ? "0 30px 80px -20px rgba(38,60,120,0.22), 0 8px 24px -12px rgba(116,108,230,0.18), inset 0 1px 0 rgba(255,255,255,0.7)"
+            : "0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
         }}
       >
         {/* ====== HEADER: Analizando tu negocio ====== */}
@@ -54,7 +58,7 @@ export const PromoIntelligencePanel = () => {
                 boxShadow: "0 6px 18px rgba(108,99,255,0.4)",
               }}
             >
-              <Sparkles className="w-4 h-4 text-white" strokeWidth={2.4} />
+              <Sparkles className="w-4 h-4 text-white lbi-keep-white" strokeWidth={2.4} />
             </span>
             <div className="min-w-0">
               <div className="text-[12.5px] font-semibold text-white tracking-wide truncate">
@@ -235,7 +239,7 @@ export const PromoIntelligencePanel = () => {
             }}
           >
             <span
-              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white lbi-keep-white"
               style={{
                 background: "linear-gradient(135deg, #6C63FF, #00C4B4)",
                 boxShadow: "0 4px 12px rgba(108,99,255,0.4)",
@@ -325,6 +329,23 @@ export const PromoIntelligencePanel = () => {
           transform: translateY(-2px);
           box-shadow: 0 16px 40px rgba(108,99,255,0.55) !important;
         }
+
+        /* ===== LIGHT VARIANT — invierte texto y separadores a tono oscuro ===== */
+        .lbi-light .text-white:not(.lbi-keep-white) { color: #0a0a0a !important; }
+        .lbi-light .text-white\\/90 { color: rgba(10,10,10,0.92) !important; }
+        .lbi-light .text-white\\/85 { color: rgba(10,10,10,0.82) !important; }
+        .lbi-light .text-white\\/80 { color: rgba(10,10,10,0.78) !important; }
+        .lbi-light .text-white\\/70 { color: rgba(10,10,10,0.68) !important; }
+        .lbi-light .text-white\\/65 { color: rgba(10,10,10,0.62) !important; }
+        .lbi-light .text-white\\/60 { color: rgba(10,10,10,0.58) !important; }
+        .lbi-light .text-white\\/55 { color: rgba(10,10,10,0.52) !important; }
+        .lbi-light .text-white\\/50 { color: rgba(10,10,10,0.48) !important; }
+        .lbi-light .border-white\\/10 { border-color: rgba(15,23,42,0.08) !important; }
+        .lbi-light .bg-white\\/8,
+        .lbi-light .bg-white\\/5 { background: rgba(15,23,42,0.06) !important; }
+        /* CTA con gradiente: texto blanco se preserva */
+        .lbi-light .lbi-cta,
+        .lbi-light .lbi-cta * { color: #ffffff !important; }
       `}</style>
     </div>
   );
@@ -415,7 +436,7 @@ const ModuleCard = ({
         </span>
         {badge && (
           <span
-            className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white flex-shrink-0"
+            className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white lbi-keep-white flex-shrink-0"
             style={{
               background: "linear-gradient(135deg, #6C63FF, #00C4B4)",
             }}
