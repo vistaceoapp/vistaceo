@@ -329,6 +329,23 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           transform: translateY(-2px);
           box-shadow: 0 16px 40px rgba(108,99,255,0.55) !important;
         }
+
+        /* ===== LIGHT VARIANT — invierte texto y separadores a tono oscuro ===== */
+        .lbi-light .text-white { color: #0a0a0a !important; }
+        .lbi-light .text-white\\/90 { color: rgba(10,10,10,0.92) !important; }
+        .lbi-light .text-white\\/85 { color: rgba(10,10,10,0.85) !important; }
+        .lbi-light .text-white\\/80 { color: rgba(10,10,10,0.78) !important; }
+        .lbi-light .text-white\\/70 { color: rgba(10,10,10,0.7) !important; }
+        .lbi-light .text-white\\/65 { color: rgba(10,10,10,0.62) !important; }
+        .lbi-light .text-white\\/60 { color: rgba(10,10,10,0.58) !important; }
+        .lbi-light .text-white\\/55 { color: rgba(10,10,10,0.54) !important; }
+        .lbi-light .text-white\\/50 { color: rgba(10,10,10,0.5) !important; }
+        .lbi-light .border-white\\/10 { border-color: rgba(15,23,42,0.08) !important; }
+        .lbi-light .bg-white\\/8,
+        .lbi-light .bg-white\\/5 { background: rgba(15,23,42,0.06) !important; }
+        /* CTA y badges con texto blanco se mantienen blancos (gradiente) */
+        .lbi-light .lbi-cta { color: #ffffff !important; }
+        .lbi-light .lbi-cta .text-white { color: #ffffff !important; }
       `}</style>
     </div>
   );
