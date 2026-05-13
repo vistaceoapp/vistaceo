@@ -472,6 +472,7 @@ const ModuleCard = ({
   const t = TONE_STYLES[tone];
   return (
     <div
+      data-tone={tone}
       className={`lbi-stagger rounded-xl p-2.5 ${className}`}
       style={{
         background: t.bg,
