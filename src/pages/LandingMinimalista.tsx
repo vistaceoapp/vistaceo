@@ -116,12 +116,17 @@ const Header = memo(() => {
   };
 
   return (
-    <header className={cn(
-      "fixed top-0 left-0 right-0 z-50 transition-all duration-500 backdrop-blur-2xl backdrop-saturate-150 supports-[backdrop-filter]:bg-white/70",
-      scrolled
-        ? "bg-white/85 md:bg-white/92 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.08)] border-b border-black/[0.06]"
-        : "bg-white/60 md:bg-white/75 shadow-[0_1px_0_rgba(0,0,0,0.03)]"
-    )}>
+    <header
+      className={cn("vc-nav fixed top-0 left-0 right-0 z-50", scrolled && "scrolled")}
+      style={{
+        transition: "background-color 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease",
+        background: scrolled ? "rgba(255,255,255,0.85)" : "transparent",
+        backdropFilter: scrolled ? "saturate(180%) blur(18px)" : "none",
+        WebkitBackdropFilter: scrolled ? "saturate(180%) blur(18px)" : "none",
+        boxShadow: scrolled ? "0 1px 0 rgba(0,0,0,0.06), 0 2px 12px rgba(0,0,0,0.06)" : "none",
+        borderBottom: "1px solid transparent",
+      }}
+    >
       <div className="max-w-[1200px] mx-auto px-6 h-[68px] flex items-center">
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
