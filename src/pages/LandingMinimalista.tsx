@@ -396,7 +396,7 @@ const HeroSection = () => {
             </Reveal>
 
             <Reveal delay={320} distance={14}>
-              <p className="mt-4 text-[13px] text-[#777]">
+              <p className="text-[13px] text-[#777]" style={{ marginTop: 20 }}>
                 Sin tarjeta · En minutos · Negocio, servicio o profesión
               </p>
             </Reveal>
