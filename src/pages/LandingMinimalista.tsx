@@ -333,8 +333,9 @@ const HeroSection = () => {
 
             <Reveal delay={80} distance={28}>
               <h1
-                className="mt-6 font-semibold text-[#0a0a0a] tracking-[-0.03em]"
+                className="font-semibold text-[#0a0a0a] tracking-[-0.03em]"
                 style={{
+                  marginTop: 16,
                   fontSize: "clamp(2.1rem, 5.4vw, 4.6rem)",
                   lineHeight: 1.05,
                 }}
