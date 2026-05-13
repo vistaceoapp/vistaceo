@@ -346,6 +346,28 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         /* CTA con gradiente: texto blanco se preserva */
         .lbi-light .lbi-cta,
         .lbi-light .lbi-cta * { color: #ffffff !important; }
+
+        /* ── Polish v2: layered shadow + tighter, denser cards (light only) ── */
+        .lbi-light > .relative.rounded-\\[22px\\] {
+          padding: 12px !important;
+          border-radius: 25px !important;
+          box-shadow:
+            0 32px 80px rgba(0,0,0,0.13),
+            0 8px 24px rgba(0,0,0,0.07),
+            0 0 0 1px rgba(0,0,0,0.05) !important;
+        }
+        .lbi-light .grid.grid-cols-2 { gap: 8px !important; }
+        .lbi-light .lbi-stagger {
+          border-radius: 14px !important;
+          padding: 9px !important;
+          box-shadow:
+            inset 0 1px 0 rgba(255,255,255,0.65),
+            0 2px 8px rgba(0,0,0,0.055) !important;
+        }
+        .lbi-light .lbi-stagger.rounded-2xl {
+          border-radius: 18px !important;
+          padding: 12px !important;
+        }
       `}</style>
     </div>
   );
