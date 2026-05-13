@@ -347,27 +347,60 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .lbi-cta,
         .lbi-light .lbi-cta * { color: #ffffff !important; }
 
-        /* ── Polish v2: layered shadow + tighter, denser cards (light only) ── */
+        /* ── Polish v3: compact + premium glass (light only) ── */
         .lbi-light > .relative.rounded-\\[22px\\] {
-          padding: 12px !important;
-          border-radius: 25px !important;
+          padding: 10px !important;
+          border-radius: 24px !important;
+          background: linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.62) 100%) !important;
+          backdrop-filter: saturate(180%) blur(26px) !important;
+          -webkit-backdrop-filter: saturate(180%) blur(26px) !important;
+          border: 1px solid rgba(255,255,255,0.55) !important;
           box-shadow:
-            0 32px 80px rgba(0,0,0,0.13),
-            0 8px 24px rgba(0,0,0,0.07),
-            0 0 0 1px rgba(0,0,0,0.05) !important;
+            0 28px 70px rgba(38,60,120,0.14),
+            0 8px 24px rgba(0,0,0,0.06),
+            inset 0 1px 0 rgba(255,255,255,0.85),
+            0 0 0 1px rgba(15,23,42,0.04) !important;
         }
-        .lbi-light .grid.grid-cols-2 { gap: 8px !important; }
+        /* Header de panel: menos margen y padding */
+        .lbi-light > .relative.rounded-\\[22px\\] > .flex.items-center.justify-between.mb-4 {
+          margin-bottom: 10px !important;
+          padding-bottom: 10px !important;
+        }
+        /* Grid más denso */
+        .lbi-light .grid.grid-cols-2 { gap: 6px !important; }
+        /* Cards generales (módulos) */
         .lbi-light .lbi-stagger {
-          border-radius: 14px !important;
-          padding: 9px !important;
+          border-radius: 13px !important;
+          padding: 8px 10px !important;
+          background: rgba(255,255,255,0.55) !important;
+          border-color: rgba(15,23,42,0.06) !important;
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
           box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.65),
-            0 2px 8px rgba(0,0,0,0.055) !important;
+            inset 0 1px 0 rgba(255,255,255,0.8),
+            0 1px 3px rgba(0,0,0,0.04) !important;
         }
+        /* Hero insight (rounded-2xl) — mantiene tinte de gradiente, solo compacta */
         .lbi-light .lbi-stagger.rounded-2xl {
-          border-radius: 18px !important;
-          padding: 12px !important;
+          border-radius: 16px !important;
+          padding: 10px 12px !important;
+          margin-bottom: 6px !important;
+          background: linear-gradient(135deg, rgba(0,196,180,0.14) 0%, rgba(108,99,255,0.10) 100%) !important;
+          border-color: rgba(0,196,180,0.28) !important;
         }
+        /* Reducir margenes verticales internos de cards */
+        .lbi-light .lbi-stagger .mb-1\\.5 { margin-bottom: 4px !important; }
+        .lbi-light .lbi-stagger .mt-2 { margin-top: 6px !important; }
+        .lbi-light .lbi-stagger .mt-1\\.5 { margin-top: 4px !important; }
+        .lbi-light .lbi-stagger .mt-1 { margin-top: 3px !important; }
+        /* CTA más compacto */
+        .lbi-light .lbi-cta {
+          height: 44px !important;
+          margin-top: 10px !important;
+          border-radius: 12px !important;
+          box-shadow: 0 10px 26px rgba(108,99,255,0.35), 0 2px 8px rgba(0,0,0,0.08) !important;
+        }
+        .lbi-light .lbi-cta + p { margin-top: 6px !important; }
       `}</style>
     </div>
   );
