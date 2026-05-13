@@ -375,7 +375,7 @@ const HeroSection = () => {
                     fontSize: 16,
                     borderRadius: 14,
                     background: ACCENT_GRADIENT,
-                    boxShadow: "0 14px 36px -8px rgba(116,108,230,0.55)",
+                    boxShadow: "0 14px 36px -8px rgba(116,108,230,0.55), 0 4px 20px rgba(0,0,0,0.18)",
                   }}
                 >
                   Crear cuenta gratis
