@@ -102,7 +102,8 @@ const Header = memo(() => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 10);
+    const h = () => setScrolled(window.scrollY > 80);
+    h();
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
@@ -115,12 +116,17 @@ const Header = memo(() => {
   };
 
   return (
-    <header className={cn(
-      "fixed top-0 left-0 right-0 z-50 transition-all duration-500 backdrop-blur-2xl backdrop-saturate-150 supports-[backdrop-filter]:bg-white/70",
-      scrolled
-        ? "bg-white/85 md:bg-white/92 shadow-[0_4px_20px_-8px_rgba(0,0,0,0.08)] border-b border-black/[0.06]"
-        : "bg-white/60 md:bg-white/75 shadow-[0_1px_0_rgba(0,0,0,0.03)]"
-    )}>
+    <header
+      className={cn("vc-nav fixed top-0 left-0 right-0 z-50", scrolled && "scrolled")}
+      style={{
+        transition: "background-color 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease",
+        background: scrolled ? "rgba(255,255,255,0.85)" : "transparent",
+        backdropFilter: scrolled ? "saturate(180%) blur(18px)" : "none",
+        WebkitBackdropFilter: scrolled ? "saturate(180%) blur(18px)" : "none",
+        boxShadow: scrolled ? "0 1px 0 rgba(0,0,0,0.06), 0 2px 12px rgba(0,0,0,0.06)" : "none",
+        borderBottom: "1px solid transparent",
+      }}
+    >
       <div className="max-w-[1200px] mx-auto px-6 h-[68px] flex items-center">
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
@@ -271,7 +277,7 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative pt-28 pb-20 lg:pt-32 lg:pb-28 px-5 sm:px-6 overflow-hidden bg-white">
+    <section className="relative px-5 sm:px-6 overflow-hidden bg-white" style={{ paddingTop: 110, paddingBottom: 70 }}>
       {/* Soft radial glows on white — same vibe as /promo, claro */}
       <div
         className="absolute pointer-events-none -z-0"
@@ -327,8 +333,9 @@ const HeroSection = () => {
 
             <Reveal delay={80} distance={28}>
               <h1
-                className="mt-6 font-semibold text-[#0a0a0a] tracking-[-0.03em]"
+                className="font-semibold text-[#0a0a0a] tracking-[-0.03em]"
                 style={{
+                  marginTop: 16,
                   fontSize: "clamp(2.1rem, 5.4vw, 4.6rem)",
                   lineHeight: 1.05,
                 }}
@@ -351,14 +358,14 @@ const HeroSection = () => {
             </Reveal>
 
             <Reveal delay={180} distance={18}>
-              <p className="mt-6 max-w-[560px] text-[17px] sm:text-[19px] leading-[1.55] text-[#3a3a3a]">
+              <p className="max-w-[560px] text-[17px] sm:text-[19px] leading-[1.55] text-[#3a3a3a]" style={{ marginTop: 16 }}>
                 Plataforma con IA que detecta oportunidades en tu negocio y te dice
                 exactamente <span className="font-semibold text-[#0a0a0a]">qué hacer hoy</span> para crecer.
               </p>
             </Reveal>
 
             <Reveal delay={260} distance={18}>
-              <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3" style={{ marginTop: 28 }}>
                 <button
                   onClick={() => navigate("/auth?mode=signup")}
                   className="group inline-flex items-center justify-center gap-2 text-white font-semibold transition-all active:scale-[0.98]"
@@ -368,7 +375,7 @@ const HeroSection = () => {
                     fontSize: 16,
                     borderRadius: 14,
                     background: ACCENT_GRADIENT,
-                    boxShadow: "0 14px 36px -8px rgba(116,108,230,0.55)",
+                    boxShadow: "0 14px 36px -8px rgba(116,108,230,0.55), 0 4px 20px rgba(0,0,0,0.18)",
                   }}
                 >
                   Crear cuenta gratis
@@ -389,13 +396,13 @@ const HeroSection = () => {
             </Reveal>
 
             <Reveal delay={320} distance={14}>
-              <p className="mt-4 text-[13px] text-[#777]">
+              <p className="text-[13px] text-[#777]" style={{ marginTop: 20 }}>
                 Sin tarjeta · En minutos · Negocio, servicio o profesión
               </p>
             </Reveal>
 
             <Reveal delay={380} distance={14}>
-              <div className="mt-6 flex items-center gap-3">
+              <div className="flex items-center gap-3" style={{ marginTop: 12 }}>
                 <div className="flex -space-x-2">
                   {[
                     { c: "#746CE6", t: "MR" },
