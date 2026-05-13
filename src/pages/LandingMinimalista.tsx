@@ -365,7 +365,7 @@ const HeroSection = () => {
             </Reveal>
 
             <Reveal delay={260} distance={18}>
-              <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3" style={{ marginTop: 28 }}>
                 <button
                   onClick={() => navigate("/auth?mode=signup")}
                   className="group inline-flex items-center justify-center gap-2 text-white font-semibold transition-all active:scale-[0.98]"
