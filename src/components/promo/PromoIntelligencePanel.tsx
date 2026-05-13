@@ -83,7 +83,8 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
 
         {/* ====== HERO INSIGHT — Oportunidad crítica ====== */}
         <div
-          className="lbi-stagger relative rounded-2xl p-3.5 mb-2.5 overflow-hidden"
+          data-tone="success"
+          className="lbi-stagger lbi-hero-insight relative rounded-2xl p-3.5 mb-2.5 overflow-hidden"
           style={{
             background:
               "linear-gradient(135deg, rgba(0,196,180,0.18) 0%, rgba(108,99,255,0.14) 100%)",
