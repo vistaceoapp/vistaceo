@@ -102,7 +102,8 @@ const Header = memo(() => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 10);
+    const h = () => setScrolled(window.scrollY > 80);
+    h();
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
