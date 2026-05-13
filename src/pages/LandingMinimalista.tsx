@@ -277,7 +277,7 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative pt-28 pb-20 lg:pt-32 lg:pb-28 px-5 sm:px-6 overflow-hidden bg-white">
+    <section className="relative px-5 sm:px-6 overflow-hidden bg-white" style={{ paddingTop: 110, paddingBottom: 70 }}>
       {/* Soft radial glows on white — same vibe as /promo, claro */}
       <div
         className="absolute pointer-events-none -z-0"
