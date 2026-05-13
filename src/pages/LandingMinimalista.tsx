@@ -402,7 +402,7 @@ const HeroSection = () => {
             </Reveal>
 
             <Reveal delay={380} distance={14}>
-              <div className="mt-6 flex items-center gap-3">
+              <div className="flex items-center gap-3" style={{ marginTop: 12 }}>
                 <div className="flex -space-x-2">
                   {[
                     { c: "#746CE6", t: "MR" },
