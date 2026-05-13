@@ -83,7 +83,8 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
 
         {/* ====== HERO INSIGHT — Oportunidad crítica ====== */}
         <div
-          className="lbi-stagger relative rounded-2xl p-3.5 mb-2.5 overflow-hidden"
+          data-tone="success"
+          className="lbi-stagger lbi-hero-insight relative rounded-2xl p-3.5 mb-2.5 overflow-hidden"
           style={{
             background:
               "linear-gradient(135deg, rgba(0,196,180,0.18) 0%, rgba(108,99,255,0.14) 100%)",
@@ -231,7 +232,8 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
 
           {/* 7. CHAT CEO — col-span-2 */}
           <div
-            className="col-span-2 lbi-stagger flex items-start gap-2.5 p-3 rounded-xl"
+            data-tone="primary"
+            className="col-span-2 lbi-stagger lbi-chat-ceo flex items-start gap-2.5 p-3 rounded-xl"
             style={{
               background: "rgba(108,99,255,0.14)",
               border: "1px solid rgba(108,99,255,0.3)",
@@ -330,77 +332,167 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           box-shadow: 0 16px 40px rgba(108,99,255,0.55) !important;
         }
 
-        /* ===== LIGHT VARIANT — invierte texto y separadores a tono oscuro ===== */
-        .lbi-light .text-white:not(.lbi-keep-white) { color: #0a0a0a !important; }
-        .lbi-light .text-white\\/90 { color: rgba(10,10,10,0.92) !important; }
-        .lbi-light .text-white\\/85 { color: rgba(10,10,10,0.82) !important; }
-        .lbi-light .text-white\\/80 { color: rgba(10,10,10,0.78) !important; }
-        .lbi-light .text-white\\/70 { color: rgba(10,10,10,0.68) !important; }
-        .lbi-light .text-white\\/65 { color: rgba(10,10,10,0.62) !important; }
-        .lbi-light .text-white\\/60 { color: rgba(10,10,10,0.58) !important; }
-        .lbi-light .text-white\\/55 { color: rgba(10,10,10,0.52) !important; }
-        .lbi-light .text-white\\/50 { color: rgba(10,10,10,0.48) !important; }
-        .lbi-light .border-white\\/10 { border-color: rgba(15,23,42,0.08) !important; }
-        .lbi-light .bg-white\\/8,
-        .lbi-light .bg-white\\/5 { background: rgba(15,23,42,0.06) !important; }
-        /* CTA con gradiente: texto blanco se preserva */
+        /* ===== LIGHT VARIANT — solid opaque cards, WCAG AA ===== */
+        /* CTA gradient text stays white */
         .lbi-light .lbi-cta,
         .lbi-light .lbi-cta * { color: #ffffff !important; }
 
-        /* ── Polish v3: compact + premium glass (light only) ── */
+        /* Outer panel: solid white, no blur */
         .lbi-light > .relative.rounded-\\[22px\\] {
-          padding: 10px !important;
+          padding: 12px !important;
           border-radius: 24px !important;
-          background: linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.62) 100%) !important;
-          backdrop-filter: saturate(180%) blur(26px) !important;
-          -webkit-backdrop-filter: saturate(180%) blur(26px) !important;
-          border: 1px solid rgba(255,255,255,0.55) !important;
+          background: #FFFFFF !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          border: 1px solid #E5E7EB !important;
           box-shadow:
-            0 28px 70px rgba(38,60,120,0.14),
-            0 8px 24px rgba(0,0,0,0.06),
-            inset 0 1px 0 rgba(255,255,255,0.85),
-            0 0 0 1px rgba(15,23,42,0.04) !important;
+            0 24px 60px rgba(38,60,120,0.10),
+            0 6px 18px rgba(0,0,0,0.05) !important;
         }
-        /* Header de panel: menos margen y padding */
+        /* Header divider */
         .lbi-light > .relative.rounded-\\[22px\\] > .flex.items-center.justify-between.mb-4 {
           margin-bottom: 10px !important;
           padding-bottom: 10px !important;
+          border-bottom-color: #E5E7EB !important;
         }
-        /* Grid más denso */
+        /* Header title (top "Analizando tu negocio") */
+        .lbi-light > .relative.rounded-\\[22px\\] > div:first-child .text-white:not(.lbi-keep-white) { color: #111827 !important; }
+        .lbi-light > .relative.rounded-\\[22px\\] > div:first-child [class*="text-white\\/"] { color: #4B5563 !important; }
+
+        /* Live pill: solid teal */
+        .lbi-light .bg-\\[\\#00C4B4\\]\\/10 { background: #047857 !important; }
+        .lbi-light .border-\\[\\#00C4B4\\]\\/30 { border-color: #047857 !important; }
+        .lbi-light .text-\\[\\#5DEAD4\\] { color: #ECFDF5 !important; }
+
+        /* Grid spacing */
         .lbi-light .grid.grid-cols-2 { gap: 6px !important; }
-        /* Cards generales (módulos) */
+
+        /* All cards: reset radius/padding, no blur */
         .lbi-light .lbi-stagger {
-          border-radius: 13px !important;
-          padding: 8px 10px !important;
-          background: rgba(255,255,255,0.55) !important;
-          border-color: rgba(15,23,42,0.06) !important;
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.8),
-            0 1px 3px rgba(0,0,0,0.04) !important;
-        }
-        /* Hero insight (rounded-2xl) — mantiene tinte de gradiente, solo compacta */
-        .lbi-light .lbi-stagger.rounded-2xl {
-          border-radius: 16px !important;
+          border-radius: 14px !important;
           padding: 10px 12px !important;
-          margin-bottom: 6px !important;
-          background: linear-gradient(135deg, rgba(0,196,180,0.14) 0%, rgba(108,99,255,0.10) 100%) !important;
-          border-color: rgba(0,196,180,0.28) !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          box-shadow: none !important;
         }
-        /* Reducir margenes verticales internos de cards */
         .lbi-light .lbi-stagger .mb-1\\.5 { margin-bottom: 4px !important; }
         .lbi-light .lbi-stagger .mt-2 { margin-top: 6px !important; }
         .lbi-light .lbi-stagger .mt-1\\.5 { margin-top: 4px !important; }
         .lbi-light .lbi-stagger .mt-1 { margin-top: 3px !important; }
-        /* CTA más compacto */
+
+        /* ===== TONE: SUCCESS (teal) — bg #E1F5EE, border #9FE1CB, text #064E3B ===== */
+        .lbi-light .lbi-stagger[data-tone="success"],
+        .lbi-light .lbi-hero-insight {
+          background: #E1F5EE !important;
+          border: 1px solid #9FE1CB !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="success"] *:not(.lbi-keep-white):not(.lbi-cta):not(svg):not(path):not(circle):not(stop),
+        .lbi-light .lbi-hero-insight *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
+          color: #064E3B !important;
+        }
+        /* Chip in success card: solid teal-700 with mint text */
+        .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:first-child,
+        .lbi-light .lbi-hero-insight > div:first-child > span:first-child {
+          background: #047857 !important;
+          color: #ECFDF5 !important;
+          border: 1px solid #047857 !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:first-child * ,
+        .lbi-light .lbi-hero-insight > div:first-child > span:first-child * {
+          color: #ECFDF5 !important;
+        }
+
+        /* ===== TONE: WARNING (amber) — bg #FAEEDA, border #F4D7A1, text #78350F ===== */
+        .lbi-light .lbi-stagger[data-tone="warning"] {
+          background: #FAEEDA !important;
+          border: 1px solid #F4D7A1 !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="warning"] *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
+          color: #78350F !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="warning"] > div:first-child > span:first-child {
+          background: #B45309 !important;
+          color: #FFFBEB !important;
+          border: 1px solid #B45309 !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="warning"] > div:first-child > span:first-child * {
+          color: #FFFBEB !important;
+        }
+
+        /* ===== TONE: PRIMARY (blue/purple) — bg #E6F1FB, border #B6D4F0, text #1E3A8A ===== */
+        .lbi-light .lbi-stagger[data-tone="primary"],
+        .lbi-light .lbi-chat-ceo {
+          background: #E6F1FB !important;
+          border: 1px solid #B6D4F0 !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="primary"] *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop),
+        .lbi-light .lbi-chat-ceo *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
+          color: #1E3A8A !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="primary"] > div:first-child > span:first-child {
+          background: #1D4ED8 !important;
+          color: #EFF6FF !important;
+          border: 1px solid #1D4ED8 !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="primary"] > div:first-child > span:first-child * {
+          color: #EFF6FF !important;
+        }
+
+        /* ===== TONE: NEUTRAL — bg #F8F9FA, border #E5E7EB, text #111827 ===== */
+        .lbi-light .lbi-stagger[data-tone="neutral"] {
+          background: #F8F9FA !important;
+          border: 1px solid #E5E7EB !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="neutral"] *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
+          color: #111827 !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="neutral"] > div:first-child > span:first-child {
+          background: #374151 !important;
+          color: #F9FAFB !important;
+          border: 1px solid #374151 !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="neutral"] > div:first-child > span:first-child * {
+          color: #F9FAFB !important;
+        }
+        /* "demora" pill in reseñas: solid coral */
+        .lbi-light .lbi-stagger[data-tone="neutral"] .bg-\\[\\#EF4444\\]\\/15 {
+          background: #B91C1C !important;
+          border-color: #B91C1C !important;
+          color: #FEF2F2 !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="neutral"] .text-\\[\\#FCA5A5\\] { color: #FEF2F2 !important; }
+
+        /* MiniStat boxes inside success card: solid white pills */
+        .lbi-light .lbi-stagger[data-tone="success"] .bg-white\\/5 {
+          background: #FFFFFF !important;
+          border: 1px solid #9FE1CB !important;
+        }
+        .lbi-light .lbi-stagger[data-tone="success"] .text-\\[\\#5DEAD4\\] { color: #047857 !important; }
+        .lbi-light .lbi-stagger[data-tone="success"] .text-\\[\\#FCA5A5\\] { color: #B91C1C !important; }
+
+        /* Bar tracks: solid muted neutral */
+        .lbi-light .bg-white\\/8,
+        .lbi-light .bg-white\\/5 { background: rgba(15,23,42,0.08) !important; }
+
+        /* Highlight numbers (override colored hex inline) */
+        .lbi-light .lbi-hero-insight .text-\\[\\#5DEAD4\\] { color: #047857 !important; }
+        .lbi-light .lbi-stagger[data-tone="warning"] .text-\\[\\#FFB454\\],
+        .lbi-light .lbi-stagger[data-tone="warning"] .text-\\[\\#FBBF24\\] { color: #78350F !important; }
+        .lbi-light .lbi-stagger[data-tone="primary"] .text-\\[\\#5DEAD4\\],
+        .lbi-light .lbi-stagger[data-tone="primary"] .text-\\[\\#A99FFF\\] { color: #1D4ED8 !important; }
+
+        /* CTA compact */
         .lbi-light .lbi-cta {
           height: 44px !important;
           margin-top: 10px !important;
           border-radius: 12px !important;
-          box-shadow: 0 10px 26px rgba(108,99,255,0.35), 0 2px 8px rgba(0,0,0,0.08) !important;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.18), 0 8px 24px rgba(80,67,148,0.30) !important;
+          background: linear-gradient(135deg, #017E8E 0%, #504394 100%) !important;
         }
-        .lbi-light .lbi-cta + p { margin-top: 6px !important; }
+        .lbi-light .lbi-cta + p {
+          margin-top: 6px !important;
+          color: #4B5563 !important;
+        }
       `}</style>
     </div>
   );
@@ -470,6 +562,7 @@ const ModuleCard = ({
   const t = TONE_STYLES[tone];
   return (
     <div
+      data-tone={tone}
       className={`lbi-stagger rounded-xl p-2.5 ${className}`}
       style={{
         background: t.bg,
