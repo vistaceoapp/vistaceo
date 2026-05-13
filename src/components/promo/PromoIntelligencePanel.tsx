@@ -232,7 +232,8 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
 
           {/* 7. CHAT CEO — col-span-2 */}
           <div
-            className="col-span-2 lbi-stagger flex items-start gap-2.5 p-3 rounded-xl"
+            data-tone="primary"
+            className="col-span-2 lbi-stagger lbi-chat-ceo flex items-start gap-2.5 p-3 rounded-xl"
             style={{
               background: "rgba(108,99,255,0.14)",
               border: "1px solid rgba(108,99,255,0.3)",
