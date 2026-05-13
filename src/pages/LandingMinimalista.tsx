@@ -358,7 +358,7 @@ const HeroSection = () => {
             </Reveal>
 
             <Reveal delay={180} distance={18}>
-              <p className="mt-6 max-w-[560px] text-[17px] sm:text-[19px] leading-[1.55] text-[#3a3a3a]">
+              <p className="max-w-[560px] text-[17px] sm:text-[19px] leading-[1.55] text-[#3a3a3a]" style={{ marginTop: 16 }}>
                 Plataforma con IA que detecta oportunidades en tu negocio y te dice
                 exactamente <span className="font-semibold text-[#0a0a0a]">qué hacer hoy</span> para crecer.
               </p>
