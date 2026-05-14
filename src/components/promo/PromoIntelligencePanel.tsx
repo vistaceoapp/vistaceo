@@ -239,62 +239,22 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
             </div>
           </ModuleCard>
 
-          {/* 7. CHAT CEO — col-span-2 */}
-          <div
-            data-tone="primary"
-            className="col-span-2 lbi-stagger lbi-chat-ceo flex items-start gap-2.5 p-3 rounded-xl"
-            style={{
-              background: "rgba(108,99,255,0.14)",
-              border: "1px solid rgba(108,99,255,0.3)",
-              animationDelay: "1.15s",
-            }}
-          >
-            <span
-              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white lbi-keep-white"
-              style={{
-                background: "linear-gradient(135deg, #6C63FF, #00C4B4)",
-                boxShadow: "0 4px 12px rgba(108,99,255,0.4)",
-              }}
-            >
-              IA
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-semibold text-white/60 mb-0.5">
-                Chat CEO
-              </div>
-              <div className="text-[12px] text-white/90 leading-snug">
-                Ya encontré dónde se está escapando la plata y qué cambiaría
-                primero
-                <span className="inline-flex items-center gap-0.5 ml-1 align-middle">
-                  <Dot delay="0s" />
-                  <Dot delay="0.2s" />
-                  <Dot delay="0.4s" />
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* ====== CTA FINAL ====== */}
         <Link
           to={buildSignupHref()}
-          className="lbi-stagger lbi-cta mt-5 group flex items-center justify-center gap-2 w-full h-12 rounded-xl text-[14px] font-bold text-white transition-all"
+          className="lbi-stagger lbi-cta mt-3 group flex items-center justify-center gap-2 w-full h-11 rounded-xl text-[14px] font-bold text-white transition-all"
           style={{
             background: "linear-gradient(135deg, #6C63FF 0%, #00C4B4 100%)",
             boxShadow: "0 12px 32px rgba(108,99,255,0.45)",
-            animationDelay: "1.3s",
+            animationDelay: "1.15s",
           }}
         >
           <Zap className="w-4 h-4" />
           Ver mi análisis gratis
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
-        <p
-          className="lbi-stagger text-center mt-2 text-[10.5px] text-white/50"
-          style={{ animationDelay: "1.4s" }}
-        >
-          Gratis · Sin tarjeta · En minutos
-        </p>
       </div>
 
       <style>{`
