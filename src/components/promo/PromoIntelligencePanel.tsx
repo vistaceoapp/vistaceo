@@ -343,7 +343,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
 
         /* Outer panel: liquid gradient base + radial overlays */
         .lbi-light > .relative.rounded-\\[22px\\] {
-          padding: 14px !important;
+          padding: 10px !important;
           border-radius: 26px !important;
           background:
             radial-gradient(ellipse 90% 70% at 5% 0%, rgba(43,108,230,0.38), transparent 60%),
