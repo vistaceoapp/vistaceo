@@ -398,12 +398,12 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .bg-\\[\\#00C4B4\\] { background: #2B6CE6 !important; }
 
         /* Grid spacing */
-        .lbi-light .grid.grid-cols-2 { gap: 8px !important; position: relative; z-index: 1; }
+        .lbi-light .grid.grid-cols-2 { gap: 6px !important; position: relative; z-index: 1; }
 
         /* ===== ALL CARDS: liquid glass base ===== */
         .lbi-light .lbi-stagger {
-          border-radius: 18px !important;
-          padding: 11px 13px !important;
+          border-radius: 14px !important;
+          padding: 8px 10px !important;
           background: rgba(255,255,255,0.76) !important;
           backdrop-filter: blur(36px) saturate(1.8) brightness(1.04) !important;
           -webkit-backdrop-filter: blur(36px) saturate(1.8) brightness(1.04) !important;
