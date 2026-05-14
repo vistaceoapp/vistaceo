@@ -34,6 +34,15 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         aria-hidden
       />
 
+      {/* Liquid orbs (light variant only) */}
+      {isLight && (
+        <>
+          <div className="lbi-orb lbi-orb-1" aria-hidden />
+          <div className="lbi-orb lbi-orb-2" aria-hidden />
+          <div className="lbi-orb lbi-orb-3" aria-hidden />
+        </>
+      )}
+
       <div
         className="relative rounded-[22px] p-5 sm:p-6"
         style={{
