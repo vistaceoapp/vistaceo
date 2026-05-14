@@ -484,15 +484,22 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         /* ===== BADGES: solid colors, frosted shadow, white text ===== */
         .lbi-light .lbi-stagger > div:first-child > span:first-child,
         .lbi-light .lbi-hero-insight > div:first-child > span:first-child {
-          font-size: 10px !important;
+          font-size: 9.5px !important;
           font-weight: 700 !important;
-          letter-spacing: 0.07em !important;
+          letter-spacing: 0.06em !important;
           text-transform: uppercase !important;
-          padding: 4px 11px !important;
-          border-radius: 20px !important;
+          padding: 3px 9px !important;
+          border-radius: 16px !important;
           backdrop-filter: blur(8px) !important;
           -webkit-backdrop-filter: blur(8px) !important;
           border: none !important;
+        }
+        /* Force white text inside ALL badges (override tinted-card text rules) */
+        .lbi-light .lbi-stagger > div:first-child > span:first-child,
+        .lbi-light .lbi-stagger > div:first-child > span:first-child *,
+        .lbi-light .lbi-hero-insight > div:first-child > span:first-child,
+        .lbi-light .lbi-hero-insight > div:first-child > span:first-child * {
+          color: #ffffff !important;
         }
         /* Primary blue badge */
         .lbi-light .lbi-stagger[data-tone="primary"] > div:first-child > span:first-child {
