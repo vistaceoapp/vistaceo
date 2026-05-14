@@ -93,7 +93,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         {/* ====== HERO INSIGHT — Oportunidad crítica ====== */}
         <div
           data-tone="success"
-          className="lbi-stagger lbi-hero-insight relative rounded-2xl p-3.5 mb-2.5 overflow-hidden"
+          className="lbi-stagger lbi-hero-insight relative rounded-2xl p-2.5 mb-1.5 overflow-hidden"
           style={{
             background:
               "linear-gradient(135deg, rgba(0,196,180,0.18) 0%, rgba(108,99,255,0.14) 100%)",
@@ -239,62 +239,22 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
             </div>
           </ModuleCard>
 
-          {/* 7. CHAT CEO — col-span-2 */}
-          <div
-            data-tone="primary"
-            className="col-span-2 lbi-stagger lbi-chat-ceo flex items-start gap-2.5 p-3 rounded-xl"
-            style={{
-              background: "rgba(108,99,255,0.14)",
-              border: "1px solid rgba(108,99,255,0.3)",
-              animationDelay: "1.15s",
-            }}
-          >
-            <span
-              className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white lbi-keep-white"
-              style={{
-                background: "linear-gradient(135deg, #6C63FF, #00C4B4)",
-                boxShadow: "0 4px 12px rgba(108,99,255,0.4)",
-              }}
-            >
-              IA
-            </span>
-            <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-semibold text-white/60 mb-0.5">
-                Chat CEO
-              </div>
-              <div className="text-[12px] text-white/90 leading-snug">
-                Ya encontré dónde se está escapando la plata y qué cambiaría
-                primero
-                <span className="inline-flex items-center gap-0.5 ml-1 align-middle">
-                  <Dot delay="0s" />
-                  <Dot delay="0.2s" />
-                  <Dot delay="0.4s" />
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* ====== CTA FINAL ====== */}
         <Link
           to={buildSignupHref()}
-          className="lbi-stagger lbi-cta mt-5 group flex items-center justify-center gap-2 w-full h-12 rounded-xl text-[14px] font-bold text-white transition-all"
+          className="lbi-stagger lbi-cta mt-3 group flex items-center justify-center gap-2 w-full h-11 rounded-xl text-[14px] font-bold text-white transition-all"
           style={{
             background: "linear-gradient(135deg, #6C63FF 0%, #00C4B4 100%)",
             boxShadow: "0 12px 32px rgba(108,99,255,0.45)",
-            animationDelay: "1.3s",
+            animationDelay: "1.15s",
           }}
         >
           <Zap className="w-4 h-4" />
           Ver mi análisis gratis
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </Link>
-        <p
-          className="lbi-stagger text-center mt-2 text-[10.5px] text-white/50"
-          style={{ animationDelay: "1.4s" }}
-        >
-          Gratis · Sin tarjeta · En minutos
-        </p>
       </div>
 
       <style>{`
@@ -383,7 +343,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
 
         /* Outer panel: liquid gradient base + radial overlays */
         .lbi-light > .relative.rounded-\\[22px\\] {
-          padding: 14px !important;
+          padding: 10px !important;
           border-radius: 26px !important;
           background:
             radial-gradient(ellipse 90% 70% at 5% 0%, rgba(43,108,230,0.38), transparent 60%),
@@ -438,12 +398,12 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .bg-\\[\\#00C4B4\\] { background: #2B6CE6 !important; }
 
         /* Grid spacing */
-        .lbi-light .grid.grid-cols-2 { gap: 8px !important; position: relative; z-index: 1; }
+        .lbi-light .grid.grid-cols-2 { gap: 6px !important; position: relative; z-index: 1; }
 
         /* ===== ALL CARDS: liquid glass base ===== */
         .lbi-light .lbi-stagger {
-          border-radius: 18px !important;
-          padding: 11px 13px !important;
+          border-radius: 14px !important;
+          padding: 8px 10px !important;
           background: rgba(255,255,255,0.76) !important;
           backdrop-filter: blur(36px) saturate(1.8) brightness(1.04) !important;
           -webkit-backdrop-filter: blur(36px) saturate(1.8) brightness(1.04) !important;
@@ -524,15 +484,22 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         /* ===== BADGES: solid colors, frosted shadow, white text ===== */
         .lbi-light .lbi-stagger > div:first-child > span:first-child,
         .lbi-light .lbi-hero-insight > div:first-child > span:first-child {
-          font-size: 10px !important;
+          font-size: 9.5px !important;
           font-weight: 700 !important;
-          letter-spacing: 0.07em !important;
+          letter-spacing: 0.06em !important;
           text-transform: uppercase !important;
-          padding: 4px 11px !important;
-          border-radius: 20px !important;
+          padding: 3px 9px !important;
+          border-radius: 16px !important;
           backdrop-filter: blur(8px) !important;
           -webkit-backdrop-filter: blur(8px) !important;
           border: none !important;
+        }
+        /* Force white text inside ALL badges (override tinted-card text rules) */
+        .lbi-light .lbi-stagger > div:first-child > span:first-child,
+        .lbi-light .lbi-stagger > div:first-child > span:first-child *,
+        .lbi-light .lbi-hero-insight > div:first-child > span:first-child,
+        .lbi-light .lbi-hero-insight > div:first-child > span:first-child * {
+          color: #ffffff !important;
         }
         /* Primary blue badge */
         .lbi-light .lbi-stagger[data-tone="primary"] > div:first-child > span:first-child {
