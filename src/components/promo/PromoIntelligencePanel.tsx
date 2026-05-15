@@ -481,37 +481,51 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         }
         .lbi-light .lbi-stagger[data-tone="neutral"] [class*="text-white\\/"] { color: #3A3F60 !important; }
 
-        /* ===== BADGES: premium dark glass pill, white text, unified ===== */
+        /* ===== BADGES: premium tonal solid pills, white text, per-tone ===== */
         .lbi-light .lbi-stagger > div:first-child > span:first-child,
-        .lbi-light .lbi-hero-insight > div:first-child > span:first-child {
+        .lbi-light .lbi-hero-insight > div:first-child > span:first-child,
+        .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:last-child:not(:first-child) {
           font-size: 9.5px !important;
           font-weight: 700 !important;
           letter-spacing: 0.06em !important;
           text-transform: uppercase !important;
-          padding: 3px 9px !important;
+          padding: 3px 10px !important;
           border-radius: 999px !important;
-          background: rgba(14,18,41,0.62) !important;
-          backdrop-filter: blur(14px) saturate(1.4) !important;
-          -webkit-backdrop-filter: blur(14px) saturate(1.4) !important;
-          border: 1px solid rgba(255,255,255,0.18) !important;
-          box-shadow: 0 1px 0 rgba(255,255,255,0.20) inset, 0 4px 12px rgba(14,18,41,0.18) !important;
+          border: 1px solid rgba(255,255,255,0.28) !important;
           color: #ffffff !important;
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
         }
         .lbi-light .lbi-stagger > div:first-child > span:first-child *,
         .lbi-light .lbi-hero-insight > div:first-child > span:first-child * {
           color: #ffffff !important;
         }
 
-        /* Misión "Hoy" right badge → matching premium glass */
+        /* HERO insight (Oportunidad crítica) → brand gradient */
+        .lbi-light .lbi-hero-insight > div:first-child > span:first-child {
+          background: linear-gradient(135deg, #2B6CE6 0%, #6B55F0 100%) !important;
+          box-shadow: 0 4px 12px rgba(43,108,230,0.30), 0 1px 0 rgba(255,255,255,0.30) inset !important;
+        }
+        /* PRIMARY tone (Predicción / Tu negocio vs sector) → blue */
+        .lbi-light .lbi-stagger[data-tone="primary"] > div:first-child > span:first-child {
+          background: linear-gradient(135deg, #2B6CE6 0%, #4D72EE 100%) !important;
+          box-shadow: 0 4px 12px rgba(43,108,230,0.28), 0 1px 0 rgba(255,255,255,0.28) inset !important;
+        }
+        /* SUCCESS tone (Misión) → violet */
+        .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:first-child,
         .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:last-child:not(:first-child) {
-          background: rgba(14,18,41,0.62) !important;
-          backdrop-filter: blur(14px) saturate(1.4) !important;
-          -webkit-backdrop-filter: blur(14px) saturate(1.4) !important;
-          border: 1px solid rgba(255,255,255,0.18) !important;
-          color: #ffffff !important;
-          padding: 3px 10px !important;
-          border-radius: 999px !important;
-          box-shadow: 0 1px 0 rgba(255,255,255,0.20) inset, 0 4px 12px rgba(14,18,41,0.18) !important;
+          background: linear-gradient(135deg, #6B55F0 0%, #8B6FF5 100%) !important;
+          box-shadow: 0 4px 12px rgba(107,85,240,0.28), 0 1px 0 rgba(255,255,255,0.28) inset !important;
+        }
+        /* WARNING tone (Radar / Web pierde clientes) → amber */
+        .lbi-light .lbi-stagger[data-tone="warning"] > div:first-child > span:first-child {
+          background: linear-gradient(135deg, #B87200 0%, #D98A1F 100%) !important;
+          box-shadow: 0 4px 12px rgba(184,114,0,0.28), 0 1px 0 rgba(255,255,255,0.28) inset !important;
+        }
+        /* NEUTRAL tone (Reseñas) → red/coral */
+        .lbi-light .lbi-stagger[data-tone="neutral"] > div:first-child > span:first-child {
+          background: linear-gradient(135deg, #C0320A 0%, #E04A1F 100%) !important;
+          box-shadow: 0 4px 12px rgba(192,50,10,0.28), 0 1px 0 rgba(255,255,255,0.28) inset !important;
         }
 
         /* Highlight numbers */
