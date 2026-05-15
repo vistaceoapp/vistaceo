@@ -481,7 +481,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         }
         .lbi-light .lbi-stagger[data-tone="neutral"] [class*="text-white\\/"] { color: #3A3F60 !important; }
 
-        /* ===== BADGES: solid colors, frosted shadow, white text ===== */
+        /* ===== BADGES: premium dark glass pill, white text, unified ===== */
         .lbi-light .lbi-stagger > div:first-child > span:first-child,
         .lbi-light .lbi-hero-insight > div:first-child > span:first-child {
           font-size: 9.5px !important;
@@ -489,55 +489,29 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           letter-spacing: 0.06em !important;
           text-transform: uppercase !important;
           padding: 3px 9px !important;
-          border-radius: 16px !important;
-          backdrop-filter: blur(8px) !important;
-          -webkit-backdrop-filter: blur(8px) !important;
-          border: none !important;
+          border-radius: 999px !important;
+          background: rgba(14,18,41,0.62) !important;
+          backdrop-filter: blur(14px) saturate(1.4) !important;
+          -webkit-backdrop-filter: blur(14px) saturate(1.4) !important;
+          border: 1px solid rgba(255,255,255,0.18) !important;
+          box-shadow: 0 1px 0 rgba(255,255,255,0.20) inset, 0 4px 12px rgba(14,18,41,0.18) !important;
+          color: #ffffff !important;
         }
-        /* Force white text inside ALL badges (override tinted-card text rules) */
-        .lbi-light .lbi-stagger > div:first-child > span:first-child,
         .lbi-light .lbi-stagger > div:first-child > span:first-child *,
-        .lbi-light .lbi-hero-insight > div:first-child > span:first-child,
         .lbi-light .lbi-hero-insight > div:first-child > span:first-child * {
           color: #ffffff !important;
         }
-        /* Primary blue badge */
-        .lbi-light .lbi-stagger[data-tone="primary"] > div:first-child > span:first-child {
-          background: rgba(43,108,230,0.92) !important;
-          color: #ffffff !important;
-          box-shadow: 0 4px 14px rgba(43,108,230,0.30) !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="primary"] > div:first-child > span:first-child * { color: #ffffff !important; }
-        /* Success → violet badge */
-        .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:first-child,
-        .lbi-light .lbi-hero-insight > div:first-child > span:first-child {
-          background: rgba(107,85,240,0.92) !important;
-          color: #ffffff !important;
-          box-shadow: 0 4px 14px rgba(107,85,240,0.30) !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:first-child *,
-        .lbi-light .lbi-hero-insight > div:first-child > span:first-child * { color: #ffffff !important; }
-        /* Warning → amber badge */
-        .lbi-light .lbi-stagger[data-tone="warning"] > div:first-child > span:first-child {
-          background: rgba(184,114,0,0.92) !important;
-          color: #ffffff !important;
-          box-shadow: 0 4px 14px rgba(184,114,0,0.28) !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="warning"] > div:first-child > span:first-child * { color: #ffffff !important; }
-        /* Neutral → dark badge */
-        .lbi-light .lbi-stagger[data-tone="neutral"] > div:first-child > span:first-child {
-          background: rgba(14,18,41,0.88) !important;
-          color: #ffffff !important;
-          box-shadow: 0 4px 14px rgba(14,18,41,0.28) !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="neutral"] > div:first-child > span:first-child * { color: #ffffff !important; }
 
-        /* Misión "Hoy" right badge → dark solid */
+        /* Misión "Hoy" right badge → matching premium glass */
         .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:last-child:not(:first-child) {
-          background: rgba(14,18,41,0.88) !important;
+          background: rgba(14,18,41,0.62) !important;
+          backdrop-filter: blur(14px) saturate(1.4) !important;
+          -webkit-backdrop-filter: blur(14px) saturate(1.4) !important;
+          border: 1px solid rgba(255,255,255,0.18) !important;
           color: #ffffff !important;
-          padding: 4px 10px !important;
-          border-radius: 16px !important;
+          padding: 3px 10px !important;
+          border-radius: 999px !important;
+          box-shadow: 0 1px 0 rgba(255,255,255,0.20) inset, 0 4px 12px rgba(14,18,41,0.18) !important;
         }
 
         /* Highlight numbers */
