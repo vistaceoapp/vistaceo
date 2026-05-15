@@ -38,6 +38,10 @@ export const SystemPreviewSection = () => {
             <img 
               src={analyticsSaludImg} 
               alt="VISTACEO - Salud del Negocio" 
+              width={1600}
+              height={900}
+              loading="lazy"
+              decoding="async"
               className="w-full h-auto"
             />
           </div>
