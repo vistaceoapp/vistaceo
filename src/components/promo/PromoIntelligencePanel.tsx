@@ -308,37 +308,39 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .lbi-orb {
           position: absolute;
           border-radius: 9999px;
-          filter: blur(72px);
-          opacity: 0.85;
+          filter: blur(80px);
           z-index: 0;
           pointer-events: none;
         }
         .lbi-light .lbi-orb-1 {
           top: -40px; left: -30px; width: 220px; height: 220px;
-          background: radial-gradient(circle, rgba(43,108,230,0.55) 0%, rgba(43,108,230,0) 70%);
-          animation: lbiOrb1 9s ease-in-out infinite;
+          background: radial-gradient(circle, rgba(43,108,230,0.85) 0%, rgba(43,108,230,0) 70%);
+          opacity: 0.22;
+          animation: lbiOrb1 11s ease-in-out infinite alternate;
         }
         .lbi-light .lbi-orb-2 {
           top: 20%; right: -50px; width: 240px; height: 240px;
-          background: radial-gradient(circle, rgba(107,85,240,0.50) 0%, rgba(107,85,240,0) 70%);
-          animation: lbiOrb2 11s ease-in-out infinite;
+          background: radial-gradient(circle, rgba(107,85,240,0.85) 0%, rgba(107,85,240,0) 70%);
+          opacity: 0.18;
+          animation: lbiOrb2 13s ease-in-out infinite alternate;
         }
         .lbi-light .lbi-orb-3 {
           bottom: -40px; left: 30%; width: 200px; height: 200px;
-          background: radial-gradient(circle, rgba(43,108,230,0.40) 0%, rgba(107,85,240,0.25) 60%, transparent 80%);
-          animation: lbiOrb3 8s ease-in-out infinite;
+          background: radial-gradient(circle, rgba(43,108,230,0.70) 0%, rgba(107,85,240,0.45) 60%, transparent 80%);
+          opacity: 0.13;
+          animation: lbiOrb3 10s ease-in-out infinite alternate;
         }
         @keyframes lbiOrb1 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(20px,30px) scale(1.08); }
+          from { transform: translate(0,0) scale(1); }
+          to { transform: translate(24px,32px) scale(1.08); }
         }
         @keyframes lbiOrb2 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(-25px,20px) scale(1.1); }
+          from { transform: translate(0,0) scale(1); }
+          to { transform: translate(-28px,22px) scale(1.10); }
         }
         @keyframes lbiOrb3 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(15px,-20px) scale(1.06); }
+          from { transform: translate(0,0) scale(1); }
+          to { transform: translate(18px,-22px) scale(1.06); }
         }
 
         /* Outer panel: liquid gradient base + radial overlays */
