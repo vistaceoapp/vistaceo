@@ -424,64 +424,28 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .lbi-stagger .mt-1\\.5 { margin-top: 4px !important; }
         .lbi-light .lbi-stagger .mt-1 { margin-top: 3px !important; }
 
-        /* ===== TINTED CARDS — keep glass blur, change tint ===== */
-        /* SUCCESS / PRIMARY → blue tint */
+        /* ===== ALL CARDS UNIFORM WHITE GLASS — tint only on accents ===== */
+        .lbi-light .lbi-stagger,
         .lbi-light .lbi-stagger[data-tone="primary"],
+        .lbi-light .lbi-stagger[data-tone="success"],
+        .lbi-light .lbi-stagger[data-tone="warning"],
+        .lbi-light .lbi-stagger[data-tone="neutral"],
+        .lbi-light .lbi-hero-insight,
         .lbi-light .lbi-chat-ceo {
-          background: rgba(200,224,255,0.72) !important;
+          background: rgba(255,255,255,0.68) !important;
           box-shadow:
             inset 0 2px 0 rgba(255,255,255,0.70),
-            0 12px 40px rgba(43,108,230,0.18),
-            0 3px 8px rgba(43,108,230,0.10) !important;
+            0 12px 36px rgba(43,60,120,0.10),
+            0 3px 8px rgba(43,60,120,0.06) !important;
         }
-        .lbi-light .lbi-stagger[data-tone="primary"] *:not(.lbi-keep-white):not(.lbi-cta):not(svg):not(path):not(circle):not(stop),
+        .lbi-light .lbi-stagger *:not(.lbi-keep-white):not(.lbi-cta):not(svg):not(path):not(circle):not(stop),
+        .lbi-light .lbi-hero-insight *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop),
         .lbi-light .lbi-chat-ceo *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
           color: #0E1229 !important;
         }
-        .lbi-light .lbi-stagger[data-tone="primary"] [class*="text-white\\/"],
+        .lbi-light .lbi-stagger [class*="text-white\\/"],
+        .lbi-light .lbi-hero-insight [class*="text-white\\/"],
         .lbi-light .lbi-chat-ceo [class*="text-white\\/"] { color: #3A3F60 !important; }
-
-        /* SUCCESS (hero insight + misión) → violet tint */
-        .lbi-light .lbi-stagger[data-tone="success"],
-        .lbi-light .lbi-hero-insight {
-          background: rgba(226,220,255,0.72) !important;
-          box-shadow:
-            inset 0 2px 0 rgba(255,255,255,0.70),
-            0 12px 40px rgba(107,85,240,0.16),
-            0 3px 8px rgba(107,85,240,0.10) !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="success"] *:not(.lbi-keep-white):not(.lbi-cta):not(svg):not(path):not(circle):not(stop),
-        .lbi-light .lbi-hero-insight *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
-          color: #0E1229 !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="success"] [class*="text-white\\/"],
-        .lbi-light .lbi-hero-insight [class*="text-white\\/"] { color: #3A3F60 !important; }
-
-        /* WARNING → amber tint */
-        .lbi-light .lbi-stagger[data-tone="warning"] {
-          background: rgba(255,239,200,0.76) !important;
-          box-shadow:
-            inset 0 2px 0 rgba(255,255,255,0.70),
-            0 12px 40px rgba(184,114,0,0.14),
-            0 3px 8px rgba(184,114,0,0.08) !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="warning"] *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
-          color: #0E1229 !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="warning"] [class*="text-white\\/"] { color: #3A3F60 !important; }
-
-        /* NEUTRAL (reseñas) → red tint when contains "demora" */
-        .lbi-light .lbi-stagger[data-tone="neutral"] {
-          background: rgba(255,225,215,0.74) !important;
-          box-shadow:
-            inset 0 2px 0 rgba(255,255,255,0.70),
-            0 12px 40px rgba(192,50,10,0.12),
-            0 3px 8px rgba(192,50,10,0.08) !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="neutral"] *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
-          color: #0E1229 !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="neutral"] [class*="text-white\\/"] { color: #3A3F60 !important; }
 
         /* ===== BADGES: premium tonal solid pills, white text, per-tone ===== */
         .lbi-light .lbi-stagger > div:first-child > span:first-child,
