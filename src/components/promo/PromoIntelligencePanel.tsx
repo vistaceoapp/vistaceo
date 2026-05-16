@@ -348,21 +348,20 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           padding: 10px !important;
           border-radius: 26px !important;
           background:
-            radial-gradient(ellipse 90% 70% at 5% 0%, rgba(43,108,230,0.38), transparent 60%),
-            radial-gradient(ellipse 75% 65% at 95% 15%, rgba(107,85,240,0.34), transparent 60%),
-            radial-gradient(ellipse 65% 55% at 55% 100%, rgba(43,108,230,0.22), transparent 60%),
-            radial-gradient(ellipse 55% 50% at 80% 80%, rgba(107,85,240,0.20), transparent 60%),
-            linear-gradient(155deg, #c8dcfb 0%, #dcd7fc 40%, #c4d9fa 70%, #ddd8fd 100%) !important;
+            radial-gradient(ellipse 90% 70% at 5% 0%, rgba(43,108,230,0.22), transparent 60%),
+            radial-gradient(ellipse 75% 65% at 95% 15%, rgba(107,85,240,0.20), transparent 60%),
+            radial-gradient(ellipse 65% 55% at 55% 100%, rgba(43,108,230,0.14), transparent 60%),
+            linear-gradient(155deg, #dce7fb 0%, #e6e2fc 45%, #d8e3fa 75%, #e8e3fd 100%) !important;
           backdrop-filter: none !important;
           -webkit-backdrop-filter: none !important;
-          border-top: 1px solid rgba(255,255,255,0.95) !important;
-          border-left: 1px solid rgba(255,255,255,0.85) !important;
-          border-right: 1px solid rgba(255,255,255,0.55) !important;
-          border-bottom: 1px solid rgba(255,255,255,0.45) !important;
+          border-top: 1px solid rgba(255,255,255,0.90) !important;
+          border-left: 1px solid rgba(255,255,255,0.75) !important;
+          border-right: 1px solid rgba(255,255,255,0.45) !important;
+          border-bottom: 1px solid rgba(255,255,255,0.35) !important;
           box-shadow:
-            0 24px 60px rgba(38,60,120,0.18),
-            0 6px 20px rgba(107,85,240,0.12),
-            inset 0 2px 0 rgba(255,255,255,0.70) !important;
+            0 18px 50px rgba(38,60,120,0.12),
+            0 4px 14px rgba(107,85,240,0.07),
+            inset 0 1px 0 rgba(255,255,255,0.60) !important;
         }
 
         /* Header: glass row */
@@ -432,11 +431,15 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .lbi-stagger[data-tone="neutral"],
         .lbi-light .lbi-hero-insight,
         .lbi-light .lbi-chat-ceo {
-          background: rgba(255,255,255,0.68) !important;
+          background: rgba(255,255,255,0.62) !important;
+          border-top: 1px solid rgba(255,255,255,0.90) !important;
+          border-left: 1px solid rgba(255,255,255,0.70) !important;
+          border-right: 1px solid rgba(255,255,255,0.40) !important;
+          border-bottom: 1px solid rgba(255,255,255,0.35) !important;
           box-shadow:
-            inset 0 2px 0 rgba(255,255,255,0.70),
-            0 12px 36px rgba(43,60,120,0.10),
-            0 3px 8px rgba(43,60,120,0.06) !important;
+            inset 0 1px 0 rgba(255,255,255,0.60),
+            0 6px 22px rgba(43,60,120,0.06),
+            0 1px 3px rgba(43,60,120,0.04) !important;
         }
         .lbi-light .lbi-stagger *:not(.lbi-keep-white):not(.lbi-cta):not(svg):not(path):not(circle):not(stop),
         .lbi-light .lbi-hero-insight *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop),
@@ -447,51 +450,54 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .lbi-hero-insight [class*="text-white\\/"],
         .lbi-light .lbi-chat-ceo [class*="text-white\\/"] { color: #3A3F60 !important; }
 
-        /* ===== BADGES: premium tonal solid pills, white text, per-tone ===== */
+        /* ===== BADGES: subtle premium tonal pills, WHITE text always ===== */
+        .lbi-light .lbi-stagger > div:first-child > span:first-child,
+        .lbi-light .lbi-stagger > div:first-child > span:first-child *,
+        .lbi-light .lbi-hero-insight > div:first-child > span:first-child,
+        .lbi-light .lbi-hero-insight > div:first-child > span:first-child *,
+        .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:last-child:not(:first-child),
+        .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:last-child:not(:first-child) * {
+          color: #ffffff !important;
+        }
         .lbi-light .lbi-stagger > div:first-child > span:first-child,
         .lbi-light .lbi-hero-insight > div:first-child > span:first-child,
         .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:last-child:not(:first-child) {
-          font-size: 9.5px !important;
+          font-size: 9px !important;
           font-weight: 700 !important;
-          letter-spacing: 0.06em !important;
+          letter-spacing: 0.07em !important;
           text-transform: uppercase !important;
-          padding: 3px 10px !important;
+          padding: 2.5px 8px !important;
           border-radius: 999px !important;
-          border: 1px solid rgba(255,255,255,0.28) !important;
-          color: #ffffff !important;
+          border: 1px solid rgba(255,255,255,0.22) !important;
           backdrop-filter: none !important;
           -webkit-backdrop-filter: none !important;
         }
-        .lbi-light .lbi-stagger > div:first-child > span:first-child *,
-        .lbi-light .lbi-hero-insight > div:first-child > span:first-child * {
-          color: #ffffff !important;
-        }
 
-        /* HERO insight (Oportunidad crítica) → brand gradient */
+        /* HERO insight (Oportunidad crítica) → brand gradient (subtle) */
         .lbi-light .lbi-hero-insight > div:first-child > span:first-child {
-          background: linear-gradient(135deg, #2B6CE6 0%, #6B55F0 100%) !important;
-          box-shadow: 0 4px 12px rgba(43,108,230,0.30), 0 1px 0 rgba(255,255,255,0.30) inset !important;
+          background: linear-gradient(135deg, #3B7CE8 0%, #6B55F0 100%) !important;
+          box-shadow: 0 2px 6px rgba(43,108,230,0.18), 0 1px 0 rgba(255,255,255,0.22) inset !important;
         }
-        /* PRIMARY tone (Predicción / Tu negocio vs sector) → blue */
+        /* PRIMARY tone → blue (subtle) */
         .lbi-light .lbi-stagger[data-tone="primary"] > div:first-child > span:first-child {
-          background: linear-gradient(135deg, #2B6CE6 0%, #4D72EE 100%) !important;
-          box-shadow: 0 4px 12px rgba(43,108,230,0.28), 0 1px 0 rgba(255,255,255,0.28) inset !important;
+          background: linear-gradient(135deg, #3B7CE8 0%, #5A82F0 100%) !important;
+          box-shadow: 0 2px 6px rgba(43,108,230,0.16), 0 1px 0 rgba(255,255,255,0.22) inset !important;
         }
-        /* SUCCESS tone (Misión) → violet */
+        /* SUCCESS tone (Misión) → violet (subtle) */
         .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:first-child,
         .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:last-child:not(:first-child) {
-          background: linear-gradient(135deg, #6B55F0 0%, #8B6FF5 100%) !important;
-          box-shadow: 0 4px 12px rgba(107,85,240,0.28), 0 1px 0 rgba(255,255,255,0.28) inset !important;
+          background: linear-gradient(135deg, #7565F2 0%, #9582F6 100%) !important;
+          box-shadow: 0 2px 6px rgba(107,85,240,0.16), 0 1px 0 rgba(255,255,255,0.22) inset !important;
         }
-        /* WARNING tone (Radar / Web pierde clientes) → amber */
+        /* WARNING tone → amber (subtle) */
         .lbi-light .lbi-stagger[data-tone="warning"] > div:first-child > span:first-child {
-          background: linear-gradient(135deg, #B87200 0%, #D98A1F 100%) !important;
-          box-shadow: 0 4px 12px rgba(184,114,0,0.28), 0 1px 0 rgba(255,255,255,0.28) inset !important;
+          background: linear-gradient(135deg, #C48313 0%, #D99A28 100%) !important;
+          box-shadow: 0 2px 6px rgba(184,114,0,0.18), 0 1px 0 rgba(255,255,255,0.22) inset !important;
         }
-        /* NEUTRAL tone (Reseñas) → red/coral */
+        /* NEUTRAL tone (Reseñas) → red/coral (subtle) */
         .lbi-light .lbi-stagger[data-tone="neutral"] > div:first-child > span:first-child {
-          background: linear-gradient(135deg, #C0320A 0%, #E04A1F 100%) !important;
-          box-shadow: 0 4px 12px rgba(192,50,10,0.28), 0 1px 0 rgba(255,255,255,0.28) inset !important;
+          background: linear-gradient(135deg, #CC3F1A 0%, #E45A2F 100%) !important;
+          box-shadow: 0 2px 6px rgba(192,50,10,0.18), 0 1px 0 rgba(255,255,255,0.22) inset !important;
         }
 
         /* Highlight numbers */
@@ -549,7 +555,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           font-weight: 700 !important;
           background: linear-gradient(135deg, #2B6CE6 0%, #4D72EE 50%, #6B55F0 100%) !important;
           border-top: 1px solid rgba(255,255,255,0.30) !important;
-          box-shadow: 0 10px 36px rgba(77,114,238,0.45) !important;
+          box-shadow: 0 6px 22px rgba(77,114,238,0.28) !important;
         }
         .lbi-light .lbi-cta::after {
           content: "";
