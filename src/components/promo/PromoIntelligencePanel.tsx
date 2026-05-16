@@ -348,21 +348,20 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           padding: 10px !important;
           border-radius: 26px !important;
           background:
-            radial-gradient(ellipse 90% 70% at 5% 0%, rgba(43,108,230,0.38), transparent 60%),
-            radial-gradient(ellipse 75% 65% at 95% 15%, rgba(107,85,240,0.34), transparent 60%),
-            radial-gradient(ellipse 65% 55% at 55% 100%, rgba(43,108,230,0.22), transparent 60%),
-            radial-gradient(ellipse 55% 50% at 80% 80%, rgba(107,85,240,0.20), transparent 60%),
-            linear-gradient(155deg, #c8dcfb 0%, #dcd7fc 40%, #c4d9fa 70%, #ddd8fd 100%) !important;
+            radial-gradient(ellipse 90% 70% at 5% 0%, rgba(43,108,230,0.22), transparent 60%),
+            radial-gradient(ellipse 75% 65% at 95% 15%, rgba(107,85,240,0.20), transparent 60%),
+            radial-gradient(ellipse 65% 55% at 55% 100%, rgba(43,108,230,0.14), transparent 60%),
+            linear-gradient(155deg, #dce7fb 0%, #e6e2fc 45%, #d8e3fa 75%, #e8e3fd 100%) !important;
           backdrop-filter: none !important;
           -webkit-backdrop-filter: none !important;
-          border-top: 1px solid rgba(255,255,255,0.95) !important;
-          border-left: 1px solid rgba(255,255,255,0.85) !important;
-          border-right: 1px solid rgba(255,255,255,0.55) !important;
-          border-bottom: 1px solid rgba(255,255,255,0.45) !important;
+          border-top: 1px solid rgba(255,255,255,0.90) !important;
+          border-left: 1px solid rgba(255,255,255,0.75) !important;
+          border-right: 1px solid rgba(255,255,255,0.45) !important;
+          border-bottom: 1px solid rgba(255,255,255,0.35) !important;
           box-shadow:
-            0 24px 60px rgba(38,60,120,0.18),
-            0 6px 20px rgba(107,85,240,0.12),
-            inset 0 2px 0 rgba(255,255,255,0.70) !important;
+            0 18px 50px rgba(38,60,120,0.12),
+            0 4px 14px rgba(107,85,240,0.07),
+            inset 0 1px 0 rgba(255,255,255,0.60) !important;
         }
 
         /* Header: glass row */
