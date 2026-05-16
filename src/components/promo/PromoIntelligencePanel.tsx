@@ -98,7 +98,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
             background:
               "linear-gradient(135deg, rgba(0,196,180,0.18) 0%, rgba(108,99,255,0.14) 100%)",
             border: "1px solid rgba(0,196,180,0.35)",
-            animationDelay: "0.1s",
+            animationDelay: "0.10s",
           }}
         >
           <div className="flex items-center justify-between mb-1.5">
@@ -132,7 +132,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           {/* 1. RADAR — Competencia detectada */}
           <ModuleCard
             className="col-span-2"
-            delay="0.25s"
+            delay="0.18s"
             tone="warning"
             icon={<Crosshair className="w-3 h-3" />}
             label="Radar de competencia"
@@ -158,7 +158,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           </ModuleCard>
 
           {/* 2. PREDICCIÓN — Tendencia */}
-          <ModuleCard delay="0.4s" tone="primary" label="Predicción de mercado">
+          <ModuleCard delay="0.26s" tone="primary" label="Predicción de mercado">
             <div className="flex items-end justify-between">
               <div>
                 <div className="text-[11.5px] text-white/85 leading-tight">
@@ -174,7 +174,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           </ModuleCard>
 
           {/* 3. INSIGHT — Tu negocio vs sector */}
-          <ModuleCard delay="0.55s" tone="primary" label="Tu negocio vs sector">
+          <ModuleCard delay="0.34s" tone="primary" label="Tu negocio vs sector">
             <div className="space-y-1.5 mt-1">
               <CompareBar label="Vos" value={62} color="#6C63FF" delay="0.7s" />
               <CompareBar
@@ -191,7 +191,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
 
           {/* 4. ALERTA — Web perdiendo clientes */}
           <ModuleCard
-            delay="0.7s"
+            delay="0.42s"
             tone="warning"
             icon={<Eye className="w-3 h-3" />}
             label="Tu web pierde clientes"
@@ -207,7 +207,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           </ModuleCard>
 
           {/* 5. RESEÑAS — Patrón detectado */}
-          <ModuleCard delay="0.85s" tone="neutral" label="Reseñas Google">
+          <ModuleCard delay="0.50s" tone="neutral" label="Reseñas Google">
             <div className="flex items-center gap-1 mb-1">
               <span className="text-[12px] font-bold text-white">4.2</span>
               <span className="text-[10px] text-white/50">/5</span>
@@ -223,7 +223,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           {/* 6. MISIÓN — col-span-2 */}
           <ModuleCard
             className="col-span-2"
-            delay="1s"
+            delay="0.58s"
             tone="success"
             icon={<Target className="w-3 h-3" />}
             label="Misión prioritaria"
@@ -248,7 +248,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           style={{
             background: "linear-gradient(135deg, #6C63FF 0%, #00C4B4 100%)",
             boxShadow: "0 12px 32px rgba(108,99,255,0.45)",
-            animationDelay: "1.15s",
+            animationDelay: "0.70s",
           }}
         >
           <Zap className="w-4 h-4" />
