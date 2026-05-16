@@ -555,7 +555,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           font-weight: 700 !important;
           background: linear-gradient(135deg, #2B6CE6 0%, #4D72EE 50%, #6B55F0 100%) !important;
           border-top: 1px solid rgba(255,255,255,0.30) !important;
-          box-shadow: 0 10px 36px rgba(77,114,238,0.45) !important;
+          box-shadow: 0 6px 22px rgba(77,114,238,0.28) !important;
         }
         .lbi-light .lbi-cta::after {
           content: "";
