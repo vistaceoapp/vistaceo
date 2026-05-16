@@ -265,12 +265,12 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-float { animation: lbiFloat 5s ease-in-out infinite; }
 
         @keyframes lbiStagger {
-          from { opacity: 0; transform: translateY(8px); }
+          from { opacity: 0; transform: translateY(18px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .lbi-stagger {
           opacity: 0;
-          animation: lbiStagger 0.55s cubic-bezier(0.16,1,0.3,1) forwards;
+          animation: lbiStagger 0.65s cubic-bezier(0.16,1,0.3,1) forwards;
         }
 
         @keyframes lbiBarFill {
