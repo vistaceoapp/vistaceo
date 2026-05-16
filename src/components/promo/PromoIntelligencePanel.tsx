@@ -98,7 +98,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
             background:
               "linear-gradient(135deg, rgba(0,196,180,0.18) 0%, rgba(108,99,255,0.14) 100%)",
             border: "1px solid rgba(0,196,180,0.35)",
-            animationDelay: "0.1s",
+            animationDelay: "0.10s",
           }}
         >
           <div className="flex items-center justify-between mb-1.5">
@@ -132,7 +132,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           {/* 1. RADAR — Competencia detectada */}
           <ModuleCard
             className="col-span-2"
-            delay="0.25s"
+            delay="0.18s"
             tone="warning"
             icon={<Crosshair className="w-3 h-3" />}
             label="Radar de competencia"
@@ -158,7 +158,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           </ModuleCard>
 
           {/* 2. PREDICCIÓN — Tendencia */}
-          <ModuleCard delay="0.4s" tone="primary" label="Predicción de mercado">
+          <ModuleCard delay="0.26s" tone="primary" label="Predicción de mercado">
             <div className="flex items-end justify-between">
               <div>
                 <div className="text-[11.5px] text-white/85 leading-tight">
@@ -174,7 +174,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           </ModuleCard>
 
           {/* 3. INSIGHT — Tu negocio vs sector */}
-          <ModuleCard delay="0.55s" tone="primary" label="Tu negocio vs sector">
+          <ModuleCard delay="0.34s" tone="primary" label="Tu negocio vs sector">
             <div className="space-y-1.5 mt-1">
               <CompareBar label="Vos" value={62} color="#6C63FF" delay="0.7s" />
               <CompareBar
@@ -191,7 +191,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
 
           {/* 4. ALERTA — Web perdiendo clientes */}
           <ModuleCard
-            delay="0.7s"
+            delay="0.42s"
             tone="warning"
             icon={<Eye className="w-3 h-3" />}
             label="Tu web pierde clientes"
@@ -207,7 +207,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           </ModuleCard>
 
           {/* 5. RESEÑAS — Patrón detectado */}
-          <ModuleCard delay="0.85s" tone="neutral" label="Reseñas Google">
+          <ModuleCard delay="0.50s" tone="neutral" label="Reseñas Google">
             <div className="flex items-center gap-1 mb-1">
               <span className="text-[12px] font-bold text-white">4.2</span>
               <span className="text-[10px] text-white/50">/5</span>
@@ -223,7 +223,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           {/* 6. MISIÓN — col-span-2 */}
           <ModuleCard
             className="col-span-2"
-            delay="1s"
+            delay="0.58s"
             tone="success"
             icon={<Target className="w-3 h-3" />}
             label="Misión prioritaria"
@@ -248,7 +248,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           style={{
             background: "linear-gradient(135deg, #6C63FF 0%, #00C4B4 100%)",
             boxShadow: "0 12px 32px rgba(108,99,255,0.45)",
-            animationDelay: "1.15s",
+            animationDelay: "0.70s",
           }}
         >
           <Zap className="w-4 h-4" />
@@ -265,12 +265,12 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-float { animation: lbiFloat 5s ease-in-out infinite; }
 
         @keyframes lbiStagger {
-          from { opacity: 0; transform: translateY(8px); }
+          from { opacity: 0; transform: translateY(18px); }
           to { opacity: 1; transform: translateY(0); }
         }
         .lbi-stagger {
           opacity: 0;
-          animation: lbiStagger 0.55s cubic-bezier(0.16,1,0.3,1) forwards;
+          animation: lbiStagger 0.65s cubic-bezier(0.16,1,0.3,1) forwards;
         }
 
         @keyframes lbiBarFill {
@@ -308,37 +308,39 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .lbi-orb {
           position: absolute;
           border-radius: 9999px;
-          filter: blur(72px);
-          opacity: 0.85;
+          filter: blur(80px);
           z-index: 0;
           pointer-events: none;
         }
         .lbi-light .lbi-orb-1 {
           top: -40px; left: -30px; width: 220px; height: 220px;
-          background: radial-gradient(circle, rgba(43,108,230,0.55) 0%, rgba(43,108,230,0) 70%);
-          animation: lbiOrb1 9s ease-in-out infinite;
+          background: radial-gradient(circle, rgba(43,108,230,0.85) 0%, rgba(43,108,230,0) 70%);
+          opacity: 0.22;
+          animation: lbiOrb1 11s ease-in-out infinite alternate;
         }
         .lbi-light .lbi-orb-2 {
           top: 20%; right: -50px; width: 240px; height: 240px;
-          background: radial-gradient(circle, rgba(107,85,240,0.50) 0%, rgba(107,85,240,0) 70%);
-          animation: lbiOrb2 11s ease-in-out infinite;
+          background: radial-gradient(circle, rgba(107,85,240,0.85) 0%, rgba(107,85,240,0) 70%);
+          opacity: 0.18;
+          animation: lbiOrb2 13s ease-in-out infinite alternate;
         }
         .lbi-light .lbi-orb-3 {
           bottom: -40px; left: 30%; width: 200px; height: 200px;
-          background: radial-gradient(circle, rgba(43,108,230,0.40) 0%, rgba(107,85,240,0.25) 60%, transparent 80%);
-          animation: lbiOrb3 8s ease-in-out infinite;
+          background: radial-gradient(circle, rgba(43,108,230,0.70) 0%, rgba(107,85,240,0.45) 60%, transparent 80%);
+          opacity: 0.13;
+          animation: lbiOrb3 10s ease-in-out infinite alternate;
         }
         @keyframes lbiOrb1 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(20px,30px) scale(1.08); }
+          from { transform: translate(0,0) scale(1); }
+          to { transform: translate(24px,32px) scale(1.08); }
         }
         @keyframes lbiOrb2 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(-25px,20px) scale(1.1); }
+          from { transform: translate(0,0) scale(1); }
+          to { transform: translate(-28px,22px) scale(1.10); }
         }
         @keyframes lbiOrb3 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(15px,-20px) scale(1.06); }
+          from { transform: translate(0,0) scale(1); }
+          to { transform: translate(18px,-22px) scale(1.06); }
         }
 
         /* Outer panel: liquid gradient base + radial overlays */
@@ -422,64 +424,28 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .lbi-stagger .mt-1\\.5 { margin-top: 4px !important; }
         .lbi-light .lbi-stagger .mt-1 { margin-top: 3px !important; }
 
-        /* ===== TINTED CARDS — keep glass blur, change tint ===== */
-        /* SUCCESS / PRIMARY → blue tint */
+        /* ===== ALL CARDS UNIFORM WHITE GLASS — tint only on accents ===== */
+        .lbi-light .lbi-stagger,
         .lbi-light .lbi-stagger[data-tone="primary"],
+        .lbi-light .lbi-stagger[data-tone="success"],
+        .lbi-light .lbi-stagger[data-tone="warning"],
+        .lbi-light .lbi-stagger[data-tone="neutral"],
+        .lbi-light .lbi-hero-insight,
         .lbi-light .lbi-chat-ceo {
-          background: rgba(200,224,255,0.72) !important;
+          background: rgba(255,255,255,0.68) !important;
           box-shadow:
             inset 0 2px 0 rgba(255,255,255,0.70),
-            0 12px 40px rgba(43,108,230,0.18),
-            0 3px 8px rgba(43,108,230,0.10) !important;
+            0 12px 36px rgba(43,60,120,0.10),
+            0 3px 8px rgba(43,60,120,0.06) !important;
         }
-        .lbi-light .lbi-stagger[data-tone="primary"] *:not(.lbi-keep-white):not(.lbi-cta):not(svg):not(path):not(circle):not(stop),
+        .lbi-light .lbi-stagger *:not(.lbi-keep-white):not(.lbi-cta):not(svg):not(path):not(circle):not(stop),
+        .lbi-light .lbi-hero-insight *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop),
         .lbi-light .lbi-chat-ceo *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
           color: #0E1229 !important;
         }
-        .lbi-light .lbi-stagger[data-tone="primary"] [class*="text-white\\/"],
+        .lbi-light .lbi-stagger [class*="text-white\\/"],
+        .lbi-light .lbi-hero-insight [class*="text-white\\/"],
         .lbi-light .lbi-chat-ceo [class*="text-white\\/"] { color: #3A3F60 !important; }
-
-        /* SUCCESS (hero insight + misión) → violet tint */
-        .lbi-light .lbi-stagger[data-tone="success"],
-        .lbi-light .lbi-hero-insight {
-          background: rgba(226,220,255,0.72) !important;
-          box-shadow:
-            inset 0 2px 0 rgba(255,255,255,0.70),
-            0 12px 40px rgba(107,85,240,0.16),
-            0 3px 8px rgba(107,85,240,0.10) !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="success"] *:not(.lbi-keep-white):not(.lbi-cta):not(svg):not(path):not(circle):not(stop),
-        .lbi-light .lbi-hero-insight *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
-          color: #0E1229 !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="success"] [class*="text-white\\/"],
-        .lbi-light .lbi-hero-insight [class*="text-white\\/"] { color: #3A3F60 !important; }
-
-        /* WARNING → amber tint */
-        .lbi-light .lbi-stagger[data-tone="warning"] {
-          background: rgba(255,239,200,0.76) !important;
-          box-shadow:
-            inset 0 2px 0 rgba(255,255,255,0.70),
-            0 12px 40px rgba(184,114,0,0.14),
-            0 3px 8px rgba(184,114,0,0.08) !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="warning"] *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
-          color: #0E1229 !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="warning"] [class*="text-white\\/"] { color: #3A3F60 !important; }
-
-        /* NEUTRAL (reseñas) → red tint when contains "demora" */
-        .lbi-light .lbi-stagger[data-tone="neutral"] {
-          background: rgba(255,225,215,0.74) !important;
-          box-shadow:
-            inset 0 2px 0 rgba(255,255,255,0.70),
-            0 12px 40px rgba(192,50,10,0.12),
-            0 3px 8px rgba(192,50,10,0.08) !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="neutral"] *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
-          color: #0E1229 !important;
-        }
-        .lbi-light .lbi-stagger[data-tone="neutral"] [class*="text-white\\/"] { color: #3A3F60 !important; }
 
         /* ===== BADGES: premium tonal solid pills, white text, per-tone ===== */
         .lbi-light .lbi-stagger > div:first-child > span:first-child,
