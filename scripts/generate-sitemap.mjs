@@ -19,6 +19,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(__dirname, '../dist');
+const PUBLIC_DIR = path.resolve(__dirname, '../public');
 const CANONICAL_DOMAIN = 'https://www.vistaceo.com';
 const BLOG_DOMAIN = 'https://blog.vistaceo.com';
 const INDEXNOW_KEY = '8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d';
@@ -30,12 +31,12 @@ const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://nlewrgmcawzcdazhf
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sZXdyZ21jYXd6Y2RhemhmaXl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY1MDg0NjksImV4cCI6MjA4MjA4NDQ2OX0.fWTySDGOsNNvddTJSj39qVq5gAWwXOVXf-dBzfDDJl0';
 
 // IMPORTANT: only public, indexable URLs.
-// Excluded: /auth, /checkout, /setup*, /app/*, /admin/*, /promo (paid traffic),
+// Excluded: /auth, /checkout, /setup*, /app/*, /admin/*,
 // /v2, /v3, /ultra, /minimalista (variants), /reset-password, /unsubscribe,
-// /bienvenido-pro (post-purchase).
+// /bienvenido-pro (post-purchase), /blog/* (canonical blog subdomain redirects).
 const STATIC_PAGES = [
   { path: '/', priority: '1.0', changefreq: 'daily', hreflang: true },
-  { path: '/blog', priority: '0.9', changefreq: 'daily' },
+  { path: '/promo', priority: '0.8', changefreq: 'weekly' },
   { path: '/politicas', priority: '0.5', changefreq: 'monthly' },
   { path: '/condiciones', priority: '0.5', changefreq: 'monthly' },
 ];
@@ -151,20 +152,16 @@ async function pingIndexNow(urls) {
 async function main() {
   console.log('\n🗺️  VistaSEOOS — Sitemap Generator\n' + '='.repeat(50));
 
-  if (!fs.existsSync(DIST_DIR)) {
-    console.error('❌ Error: dist/ directory not found. Run "vite build" first.');
-    process.exit(1);
-  }
+  const outputDirs = [PUBLIC_DIR, ...(fs.existsSync(DIST_DIR) ? [DIST_DIR] : [])];
 
   const today = formatDate(new Date().toISOString());
 
-  // 1. Sitemap index
-  fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), buildSitemapIndex(), 'utf-8');
-  console.log('✅ sitemap.xml (index) written');
-
-  // 2. Pages sitemap
-  fs.writeFileSync(path.join(DIST_DIR, 'sitemap-pages.xml'), buildPagesSitemap(today), 'utf-8');
-  console.log(`✅ sitemap-pages.xml written (${STATIC_PAGES.length} URLs)`);
+  // 1. Sitemap index + pages sitemap (public for preview, dist for published build)
+  for (const dir of outputDirs) {
+    fs.writeFileSync(path.join(dir, 'sitemap.xml'), buildSitemapIndex(), 'utf-8');
+    fs.writeFileSync(path.join(dir, 'sitemap-pages.xml'), buildPagesSitemap(today), 'utf-8');
+  }
+  console.log(`✅ sitemaps written to ${outputDirs.map((d) => path.basename(d)).join(' + ')} (${STATIC_PAGES.length} URLs)`);
 
   // 3. IndexNow ping for main-domain URLs
   const urls = STATIC_PAGES.map((p) => `${CANONICAL_DOMAIN}${p.path}`);
