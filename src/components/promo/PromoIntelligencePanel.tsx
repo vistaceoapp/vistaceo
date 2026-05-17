@@ -704,7 +704,7 @@ const ModuleCard = ({
           }}
         >
           {icon}
-          <span className="truncate">{label}</span>
+          <span className="truncate lbi-keep-white">{label}</span>
         </span>
         {badge && (
           <span
