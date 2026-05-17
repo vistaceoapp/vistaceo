@@ -476,6 +476,8 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:last-child:not(:first-child) {
           position: relative !important;
           overflow: hidden !important;
+          display: inline-flex !important;
+          align-items: center !important;
           font-size: 9px !important;
           font-weight: 700 !important;
           letter-spacing: 0.07em !important;
@@ -490,6 +492,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .lbi-premium-badge,
         .lbi-light .lbi-premium-badge * {
           color: #ffffff !important;
+          fill: #ffffff !important;
           -webkit-text-fill-color: #ffffff !important;
           text-shadow: 0 1px 1px rgba(10,16,40,0.18) !important;
         }
