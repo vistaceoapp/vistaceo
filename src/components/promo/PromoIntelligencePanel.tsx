@@ -103,7 +103,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         >
           <div className="flex items-center justify-between mb-1.5">
             <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider"
+              className="lbi-premium-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider"
               style={{
                 background: "rgba(0,196,180,0.2)",
                 color: "#5DEAD4",
@@ -296,6 +296,18 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         }
         .lbi-dot { animation: lbiDot 1.4s ease-in-out infinite; }
 
+        @keyframes lbiBadgeSheen {
+          0% { transform: translateX(-145%) skewX(-18deg); opacity: 0; }
+          18% { opacity: 0.42; }
+          38% { transform: translateX(145%) skewX(-18deg); opacity: 0; }
+          100% { transform: translateX(145%) skewX(-18deg); opacity: 0; }
+        }
+
+        @keyframes lbiBadgeBreath {
+          0%, 100% { box-shadow: 0 2px 7px rgba(43,108,230,0.14), inset 0 1px 0 rgba(255,255,255,0.26); }
+          50% { box-shadow: 0 4px 12px rgba(43,108,230,0.20), inset 0 1px 0 rgba(255,255,255,0.34); }
+        }
+
         .lbi-cta:hover {
           transform: translateY(-2px);
           box-shadow: 0 16px 40px rgba(108,99,255,0.55) !important;
@@ -441,8 +453,8 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
             0 6px 22px rgba(43,60,120,0.06),
             0 1px 3px rgba(43,60,120,0.04) !important;
         }
-        .lbi-light .lbi-stagger *:not(.lbi-keep-white):not(.lbi-cta):not(svg):not(path):not(circle):not(stop),
-        .lbi-light .lbi-hero-insight *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop),
+        .lbi-light .lbi-stagger *:not(.lbi-keep-white):not(.lbi-cta):not(.lbi-premium-badge):not(svg):not(path):not(circle):not(stop),
+        .lbi-light .lbi-hero-insight *:not(.lbi-keep-white):not(.lbi-premium-badge):not(svg):not(path):not(circle):not(stop),
         .lbi-light .lbi-chat-ceo *:not(.lbi-keep-white):not(svg):not(path):not(circle):not(stop) {
           color: #0E1229 !important;
         }
@@ -462,6 +474,10 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         .lbi-light .lbi-stagger > div:first-child > span:first-child,
         .lbi-light .lbi-hero-insight > div:first-child > span:first-child,
         .lbi-light .lbi-stagger[data-tone="success"] > div:first-child > span:last-child:not(:first-child) {
+          position: relative !important;
+          overflow: hidden !important;
+          display: inline-flex !important;
+          align-items: center !important;
           font-size: 9px !important;
           font-weight: 700 !important;
           letter-spacing: 0.07em !important;
@@ -471,6 +487,28 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
           border: 1px solid rgba(255,255,255,0.22) !important;
           backdrop-filter: none !important;
           -webkit-backdrop-filter: none !important;
+          animation: lbiBadgeBreath 3.4s ease-in-out infinite !important;
+        }
+        .lbi-light .lbi-premium-badge,
+        .lbi-light .lbi-premium-badge * {
+          color: #ffffff !important;
+          fill: #ffffff !important;
+          -webkit-text-fill-color: #ffffff !important;
+          text-shadow: 0 1px 1px rgba(10,16,40,0.18) !important;
+        }
+        .lbi-light .lbi-premium-badge svg,
+        .lbi-light .lbi-premium-badge svg * {
+          color: #ffffff !important;
+          stroke: #ffffff !important;
+        }
+        .lbi-light .lbi-premium-badge::after {
+          content: "";
+          position: absolute;
+          inset: -40% auto -40% -45%;
+          width: 42%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.44), transparent);
+          animation: lbiBadgeSheen 4.6s ease-in-out infinite;
+          pointer-events: none;
         }
 
         /* HERO insight (Oportunidad crítica) → brand gradient (subtle) */
@@ -657,8 +695,8 @@ const ModuleCard = ({
       }}
     >
       <div className="flex items-center justify-between mb-1.5 gap-2">
-        <span
-          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold min-w-0"
+          <span
+            className="lbi-premium-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold min-w-0"
           style={{
             background: t.chipBg,
             color: t.chipText,
@@ -666,11 +704,11 @@ const ModuleCard = ({
           }}
         >
           {icon}
-          <span className="truncate">{label}</span>
+          <span className="truncate lbi-keep-white">{label}</span>
         </span>
         {badge && (
           <span
-            className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white lbi-keep-white flex-shrink-0"
+            className="lbi-premium-badge text-[9px] font-bold px-1.5 py-0.5 rounded text-white lbi-keep-white flex-shrink-0"
             style={{
               background: "linear-gradient(135deg, #6C63FF, #00C4B4)",
             }}
