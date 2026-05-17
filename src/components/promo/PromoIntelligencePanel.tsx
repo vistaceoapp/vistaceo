@@ -103,7 +103,7 @@ export const PromoIntelligencePanel = ({ variant = "dark" }: { variant?: "dark" 
         >
           <div className="flex items-center justify-between mb-1.5">
             <span
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider"
+              className="lbi-premium-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider"
               style={{
                 background: "rgba(0,196,180,0.2)",
                 color: "#5DEAD4",
@@ -657,8 +657,8 @@ const ModuleCard = ({
       }}
     >
       <div className="flex items-center justify-between mb-1.5 gap-2">
-        <span
-          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold min-w-0"
+          <span
+            className="lbi-premium-badge inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold min-w-0"
           style={{
             background: t.chipBg,
             color: t.chipText,
@@ -670,7 +670,7 @@ const ModuleCard = ({
         </span>
         {badge && (
           <span
-            className="text-[9px] font-bold px-1.5 py-0.5 rounded text-white lbi-keep-white flex-shrink-0"
+            className="lbi-premium-badge text-[9px] font-bold px-1.5 py-0.5 rounded text-white lbi-keep-white flex-shrink-0"
             style={{
               background: "linear-gradient(135deg, #6C63FF, #00C4B4)",
             }}
