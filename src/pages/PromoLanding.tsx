@@ -133,7 +133,6 @@ const PromoLanding = () => {
         title="Crea tu cuenta gratis · VISTACEO"
         description="VISTACEO analiza tu negocio, detecta prioridades y te entrega misiones para actuar hoy. Gratis, sin tarjeta."
         path="/promo"
-        noindex
       />
 
       <PromoHeader onCtaClick={() => handleCtaClick("header")} />
