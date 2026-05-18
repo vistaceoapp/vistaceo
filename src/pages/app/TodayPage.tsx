@@ -172,17 +172,11 @@ const TodayPage = () => {
           </GlassCard>
         )}
 
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">
-              {getGreeting()}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {currentBusiness.name} · <span className="capitalize">{dateStr}</span>
-            </p>
-          </div>
-          
+        {/* Hero premium — primer wow */}
+        <DashboardHero />
+
+        {/* Acciones de edición del dashboard (sutil, alineado a la derecha) */}
+        <div className="flex justify-end">
           <DashboardEditor 
             widgets={widgets}
             onSave={saveConfig}
@@ -191,8 +185,6 @@ const TodayPage = () => {
             onReset={resetToDefaults}
           />
         </div>
-
-        {/* Intelligent Question Prompt — debajo del Centro de Inteligencia */}
 
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
