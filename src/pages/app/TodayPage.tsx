@@ -23,6 +23,7 @@ import { DashboardEditor } from "@/components/app/DashboardEditor";
 import { IntelligentQuestionPrompt } from "@/components/app/IntelligentQuestionPrompt";
 import { AIDailySummary } from "@/components/app/AIDailySummary";
 import { SmartNextSteps } from "@/components/app/SmartNextSteps";
+import { DashboardHero } from "@/components/app/DashboardHero";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useHealthSync } from "@/hooks/use-health-sync";
