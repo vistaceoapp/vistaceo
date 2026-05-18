@@ -1115,13 +1115,39 @@ MESSAGE_JSON:
       }
     }
 
+    // ---------- EFICIENCIA IA: selector dinámico de modelo ----------
+    // Mensajes simples → Flash Lite (~4x más barato). Complejos/multimodales → Flash.
+    const lastUserMsg = [...recentMessages].reverse().find((m: any) => m.role === "user");
+    const lastText = typeof lastUserMsg?.content === "string"
+      ? lastUserMsg.content
+      : (lastUserMsg?.content?.[0]?.text || "");
+    const isShort = lastText.length < 220;
+    const hasImages = imageAttachments.length > 0;
+    const complexHints = /(crisis|urgente|estrategia|plan|análisis|analiza|presupuesto|forecast|expansión|despido|legal|pricing|precio|margen|caja|equipo|conflict)/i;
+    const isComplex = hasImages || complexHints.test(lastText) || lastText.length > 600;
+    const selectedModel = isComplex
+      ? "google/gemini-2.5-flash"
+      : "google/gemini-2.5-flash-lite";
+
+    // Directiva de brevedad inyectada al final del system para forzar respuestas directas.
+    const brevityDirective = {
+      role: "system" as const,
+      content: `MODO ULTRA-DIRECTO (obligatorio):
+- Máximo 6-8 líneas en USER_REPLY salvo que el usuario pida análisis profundo explícito.
+- Sin preámbulos, sin "claro", sin repetir la pregunta.
+- 1 decisión + 2-3 viñetas accionables + 1 próximo paso. Nada más.
+- Si la consulta es trivial (saludo, confirmación, dato puntual) respondé en 1-2 líneas.
+- Siempre devolvé los 4 bloques estructurados (USER_REPLY, CEO_AUDIO_SCRIPT, AVATAR_CUES, LEARNING_EXTRACT) aunque USER_REPLY sea corto.`,
+    };
+
     const aiMessages = [
       { role: "system", content: CEO_SYSTEM_PROMPT },
       { role: "system", content: contextInjection },
+      brevityDirective,
       ...recentMessages,
     ];
 
-    console.log("Calling VistaCEO AI with", messages.length, "messages, MVC:", brainJson.mvc_completion_pct || 0);
+    console.log("Calling VistaCEO AI:", { msgs: messages.length, model: selectedModel, complex: isComplex, short: isShort });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -1130,15 +1156,14 @@ MESSAGE_JSON:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        // Cost-optimized: gemini-2.5-flash is the stable, cheaper choice for high-volume chat
-        // (preview models cost ~2-3x more). Quality remains identical for conversational use.
-        model: "google/gemini-2.5-flash",
+        model: selectedModel,
         messages: aiMessages,
         stream: false,
-        temperature: 0.7,
-        max_tokens: 1500,
+        temperature: 0.6,
+        max_tokens: isComplex ? 1100 : 700,
       }),
     });
+
 
     if (!response.ok) {
       const errorText = await response.text();
