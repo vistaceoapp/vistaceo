@@ -23,6 +23,7 @@ import { DashboardEditor } from "@/components/app/DashboardEditor";
 import { IntelligentQuestionPrompt } from "@/components/app/IntelligentQuestionPrompt";
 import { AIDailySummary } from "@/components/app/AIDailySummary";
 import { SmartNextSteps } from "@/components/app/SmartNextSteps";
+import { DashboardHero } from "@/components/app/DashboardHero";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useHealthSync } from "@/hooks/use-health-sync";
@@ -171,17 +172,11 @@ const TodayPage = () => {
           </GlassCard>
         )}
 
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">
-              {getGreeting()}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {currentBusiness.name} · <span className="capitalize">{dateStr}</span>
-            </p>
-          </div>
-          
+        {/* Hero premium — primer wow */}
+        <DashboardHero />
+
+        {/* Acciones de edición del dashboard (sutil, alineado a la derecha) */}
+        <div className="flex justify-end">
           <DashboardEditor 
             widgets={widgets}
             onSave={saveConfig}
@@ -190,8 +185,6 @@ const TodayPage = () => {
             onReset={resetToDefaults}
           />
         </div>
-
-        {/* Intelligent Question Prompt — debajo del Centro de Inteligencia */}
 
         <div className="grid grid-cols-3 gap-6">
           {/* Main Content - 2 columns */}
@@ -240,17 +233,10 @@ const TodayPage = () => {
         </GlassCard>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-foreground tracking-tight">
-            {getGreeting()}
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {currentBusiness.name} · <span className="capitalize">{dateStr}</span>
-          </p>
-        </div>
-        
+      {/* Hero premium móvil */}
+      <DashboardHero isMobile />
+
+      <div className="flex justify-end -mt-2">
         <DashboardEditor 
           widgets={widgets}
           onSave={saveConfig}
