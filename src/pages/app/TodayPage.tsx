@@ -233,17 +233,10 @@ const TodayPage = () => {
         </GlassCard>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-foreground tracking-tight">
-            {getGreeting()}
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {currentBusiness.name} · <span className="capitalize">{dateStr}</span>
-          </p>
-        </div>
-        
+      {/* Hero premium móvil */}
+      <DashboardHero isMobile />
+
+      <div className="flex justify-end -mt-2">
         <DashboardEditor 
           widgets={widgets}
           onSave={saveConfig}
