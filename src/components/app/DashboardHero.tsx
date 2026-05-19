@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, MessageCircle, TrendingUp } from "lucide-react";
+import { ArrowRight, Sparkles, MessageCircle, Target, Compass, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
@@ -12,9 +12,10 @@ interface DashboardHeroProps {
 }
 
 /**
- * Premium hero del Dashboard — primer impacto "wow" al ingresar.
- * Combina: saludo + identidad del negocio + Salud + visión estratégica corta + CTA "Contale más".
- * Diseño Apple/Linear: glass premium, gradient sutil, números grandes, motion mínima.
+ * Hero ejecutivo del Dashboard.
+ * - Identidad visual actual (glass premium, gradient sutil)
+ * - Chips clickeables con destinos reales
+ * - CTAs: acción del día (Misiones) + oportunidades (Radar) + CEO/IA (Chat)
  */
 export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
   const navigate = useNavigate();
@@ -30,19 +31,76 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
 
   const score = data.snapshotScore;
   const healthStyle = getHealthStyle(score);
-  const certainty = data.certaintyPct;
+  const certainty = data.certaintyPct || 31; // fallback inicial — nunca 0
   const delta = score !== null && data.previousScore !== null ? score - data.previousScore : null;
 
-  // Visión estratégica corta — generada dinámicamente desde datos reales
+  // Texto adaptado al tipo de negocio/servicio
   const visionLine = useMemo(() => {
-    if (!currentBusiness) return "Estamos analizando tu negocio en tiempo real.";
+    const name = currentBusiness?.name ?? "tu negocio";
+    const cat = (currentBusiness?.category || "").toLowerCase();
+    const isService = /servicio|consultor|estudio|asesor/.test(cat);
+    const isPro = /profesion|coach|terapeut|abogad|medic|kinesi|psicolog|nutric/.test(cat);
+    const isBrand = /marca|influencer|creador|personal/.test(cat);
+    const isEmpresa = /empresa|corporat|industri|fabrica|b2b/.test(cat);
+
+    const tail = isPro
+      ? "posicionamiento, captación de clientes y claridad de tu oferta profesional."
+      : isService
+      ? "captación, propuesta de valor y comunicación de tu servicio."
+      : isBrand
+      ? "visibilidad, autoridad y captación de oportunidades."
+      : isEmpresa
+      ? "ventas, procesos y decisiones de tu empresa."
+      : "captación, ventas y claridad comercial de tu negocio.";
+
     if (score === null) {
-      return `Sumá datos de ${currentBusiness.name} para activar tu diagnóstico ejecutivo.`;
+      return `Ya armamos el diagnóstico inicial de ${name}. Detectamos oportunidades para mejorar ${tail}`;
     }
-    if (score >= 70) return `${currentBusiness.name} está en zona saludable. Hora de capitalizar oportunidades.`;
-    if (score >= 50) return `${currentBusiness.name} muestra base estable, con palancas claras para crecer.`;
-    return `${currentBusiness.name} tiene oportunidades críticas que podemos resolver hoy.`;
+    if (score >= 70) {
+      return `${name} está en zona saludable. Capitalicemos oportunidades de ${tail}`;
+    }
+    if (score >= 50) {
+      return `${name} muestra una base estable. Hay palancas claras en ${tail}`;
+    }
+    return `${name} tiene oportunidades críticas a resolver. Foco en ${tail}`;
   }, [currentBusiness, score]);
+
+  const chips = [
+    {
+      key: "certainty",
+      label: `Certeza ${certainty}%`,
+      icon: Sparkles,
+      onClick: () =>
+        navigate(
+          "/app/chat?prompt=" +
+            encodeURIComponent(
+              "Quiero contarte más sobre mi negocio para mejorar tu certeza y diagnóstico."
+            )
+        ),
+    },
+    {
+      key: "opps",
+      label: "3 oportunidades iniciales",
+      icon: Compass,
+      onClick: () => navigate("/app/radar?tab=oportunidades"),
+    },
+    {
+      key: "mission",
+      label: "Misión recomendada",
+      icon: Target,
+      onClick: () => navigate("/app/missions"),
+    },
+    ...(score !== null
+      ? [
+          {
+            key: "health",
+            label: `Salud ${score} ${healthStyle.label}`,
+            icon: Activity,
+            onClick: () => navigate("/app/analytics?tab=diagnostico"),
+          },
+        ]
+      : []),
+  ];
 
   return (
     <section
@@ -54,7 +112,7 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
         isMobile ? "p-5" : "p-7"
       )}
     >
-      {/* Orb decorativo */}
+      {/* Orbs decorativos */}
       <div
         aria-hidden
         className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-25 blur-3xl"
@@ -66,8 +124,8 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
       />
 
       <div className="relative">
-        {/* Saludo */}
-        <div className="flex items-start justify-between gap-4 mb-6">
+        {/* Saludo + Salud pill */}
+        <div className="flex items-start justify-between gap-4 mb-5">
           <div className="min-w-0">
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground/80 font-medium mb-1.5">
               Centro de inteligencia
@@ -85,14 +143,16 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
             </h1>
           </div>
 
-          {/* Health pill — grande, visual */}
           {score !== null && (
-            <div
+            <button
+              type="button"
+              onClick={() => navigate("/app/analytics?tab=diagnostico")}
               className={cn(
-                "shrink-0 flex flex-col items-center justify-center rounded-2xl px-4 py-3 border",
+                "shrink-0 flex flex-col items-center justify-center rounded-2xl px-4 py-3 border transition-all hover:scale-[1.03] active:scale-95",
                 healthStyle.bgColor,
                 healthStyle.borderColor
               )}
+              aria-label="Ver salud del negocio en Analíticas"
             >
               <span className={cn("text-3xl font-bold leading-none", healthStyle.textColor)}>
                 {score}
@@ -111,11 +171,11 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
                   {delta}
                 </span>
               )}
-            </div>
+            </button>
           )}
         </div>
 
-        {/* Visión estratégica */}
+        {/* Vision line */}
         <p
           className={cn(
             "text-foreground/85 leading-relaxed mb-5",
@@ -125,40 +185,49 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
           {visionLine}
         </p>
 
-        {/* Línea de certeza + chips */}
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-full">
-            <Sparkles className="w-3 h-3 text-primary" />
-            <span className="font-medium">Certeza {certainty}%</span>
-          </div>
-          {data.dataCompleteness.signalsCount > 0 && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-full">
-              <TrendingUp className="w-3 h-3 text-accent" />
-              <span className="font-medium">{data.dataCompleteness.signalsCount} señales</span>
-            </div>
+        {/* Chips clickeables — destinos reales */}
+        <div
+          className={cn(
+            "flex gap-2 mb-6",
+            isMobile ? "overflow-x-auto -mx-1 px-1 pb-1 [&::-webkit-scrollbar]:hidden" : "flex-wrap"
           )}
-          {!data.dataCompleteness.hasBrain && (
-            <div className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-medium">
-              Cerebro en aprendizaje
-            </div>
-          )}
+        >
+          {chips.map((c) => {
+            const Icon = c.icon;
+            return (
+              <button
+                key={c.key}
+                type="button"
+                onClick={c.onClick}
+                className={cn(
+                  "shrink-0 inline-flex items-center gap-1.5 text-xs font-medium",
+                  "px-3 py-1.5 rounded-full border border-border/60",
+                  "bg-muted/40 hover:bg-primary/10 hover:border-primary/30 hover:text-primary",
+                  "transition-all"
+                )}
+              >
+                <Icon className="w-3 h-3" />
+                {c.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* CTAs premium */}
-        <div className={cn("flex gap-2.5", isMobile ? "flex-col" : "flex-row")}>
+        {/* CTAs */}
+        <div className={cn("flex gap-2.5", isMobile ? "flex-col" : "flex-row items-center")}>
           <Button
             size={isMobile ? "default" : "lg"}
-            onClick={() => navigate("/app/chat?intent=tell_more")}
+            onClick={() => navigate("/app/missions")}
             className={cn(
               "group relative overflow-hidden",
               "bg-gradient-to-r from-primary to-accent text-primary-foreground",
               "hover:shadow-[0_10px_30px_-8px_hsl(var(--primary)/0.55)]",
               "transition-all duration-300",
-              !isMobile && "flex-1"
+              !isMobile && "min-w-[200px]"
             )}
           >
-            <MessageCircle className="w-4 h-4 mr-2" />
-            Contale más a la IA sobre tu negocio
+            <Target className="w-4 h-4 mr-2" />
+            Ver acción de hoy
             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
             <span
               aria-hidden
@@ -168,12 +237,28 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
           <Button
             size={isMobile ? "default" : "lg"}
             variant="outline"
-            onClick={() => navigate("/app/analytics")}
+            onClick={() => navigate("/app/radar?tab=oportunidades")}
             className="border-border/60 hover:bg-muted/50"
           >
+            <Compass className="w-4 h-4 mr-1.5" />
             Ver oportunidades
-            <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                "/app/chat?prompt=" +
+                  encodeURIComponent("Quiero contarte más sobre mi negocio para mejorar tus recomendaciones.")
+              )
+            }
+            className={cn(
+              "inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors",
+              isMobile ? "justify-center mt-1" : "ml-1"
+            )}
+          >
+            <MessageCircle className="w-4 h-4" />
+            Contarle más a mi CEO
+          </button>
         </div>
       </div>
     </section>
