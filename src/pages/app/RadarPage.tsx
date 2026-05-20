@@ -50,6 +50,11 @@ import {
   Opportunity as OpportunityType
 } from "@/lib/radarQualityGates";
 import { useBrain } from "@/hooks/use-brain";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+
+// Estandarización de títulos: primera letra mayúscula + sanitizado
+const fmtTitle = (t: string | null | undefined) => sanitizeAIOutput(t || "");
+
 
 // Helper to check if opportunity passes quality gates (simple version)
 const passesQualityGate = (opportunity: OpportunityType, business?: BusinessContext): boolean => {
