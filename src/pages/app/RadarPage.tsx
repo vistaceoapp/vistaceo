@@ -50,6 +50,11 @@ import {
   Opportunity as OpportunityType
 } from "@/lib/radarQualityGates";
 import { useBrain } from "@/hooks/use-brain";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+
+// Estandarización de títulos: primera letra mayúscula + sanitizado
+const fmtTitle = (t: string | null | undefined) => sanitizeAIOutput(t || "");
+
 
 // Helper to check if opportunity passes quality gates (simple version)
 const passesQualityGate = (opportunity: OpportunityType, business?: BusinessContext): boolean => {
@@ -794,7 +799,7 @@ const RadarPage = () => {
                         <Building2 className="w-3 h-3 mr-1" />
                         Tu negocio
                       </Badge>
-                      <h3 className="font-semibold text-foreground text-sm">{opp.title}</h3>
+                      <h3 className="font-semibold text-foreground text-sm">{fmtTitle(opp.title)}</h3>
                       <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                         <span className="text-success">↑{opp.impact_score}</span>
                         <span>•</span>
@@ -829,7 +834,7 @@ const RadarPage = () => {
                         <ExternalLink className="w-3 h-3 mr-1" />
                         EXTERNO
                       </Badge>
-                      <h3 className="font-semibold text-foreground text-sm">{item.title}</h3>
+                      <h3 className="font-semibold text-foreground text-sm">{fmtTitle(item.title)}</h3>
                       <p className="text-xs text-muted-foreground mt-1">{translateItemType(item.item_type)}</p>
                     </div>
                     <Eye className="w-4 h-4 text-muted-foreground" />
@@ -1166,21 +1171,21 @@ const RadarPage = () => {
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-foreground">
-                        Tenés oportunidades pendientes hace {oldestOpportunityAge} días
+                        Tienes oportunidades pendientes hace {oldestOpportunityAge} días
                       </h4>
                       <p className="text-sm text-muted-foreground">
-                        Revisalas y decidí si las convertís en misiones o las descartás para mejorar futuras sugerencias
+                        Revisalas y decide si las convertís en misiones o las descartás para mejorar futuras sugerencias.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" className="gradient-primary">
-                        <Rocket className="w-4 h-4 mr-1" />
-                        Aplicar
-                      </Button>
-                      <Button size="sm" variant="outline" className="text-muted-foreground">
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={() => setOldestOpportunityAge(0)}
+                      aria-label="Cerrar aviso"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
                 </GlassCard>
               )}
@@ -1221,7 +1226,7 @@ const RadarPage = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-foreground leading-tight line-clamp-2">
-                            {opportunity.title}
+                            {fmtTitle(opportunity.title)}
                           </h4>
                           {opportunity.description && (
                             <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
@@ -1390,7 +1395,7 @@ const RadarPage = () => {
                     </Button>
                   </div>
                   
-                  <h3 className="font-semibold text-foreground mb-2 line-clamp-2">{item.title}</h3>
+                  <h3 className="font-semibold text-foreground mb-2 line-clamp-2">{fmtTitle(item.title)}</h3>
                   
                   {item.content && (
                     <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
@@ -1444,7 +1449,7 @@ const RadarPage = () => {
                     <div className="flex items-start gap-3">
                       <BookmarkCheck className="w-4 h-4 text-primary mt-1 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-foreground text-sm line-clamp-2">{item.title}</h4>
+                        <h4 className="font-medium text-foreground text-sm line-clamp-2">{fmtTitle(item.title)}</h4>
                         <p className="text-xs text-muted-foreground mt-1">{translateItemType(item.item_type)}</p>
                       </div>
                     </div>

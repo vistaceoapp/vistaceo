@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Home, MessageCircle, Target, Radar, BarChart3, Orbit, Settings, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,12 @@ const MobileLayout = () => {
   const { isPro } = useSubscription();
   
   useAutoSync();
+
+  // Título de pestaña dinámico
+  useEffect(() => {
+    const name = currentBusiness?.name?.trim();
+    document.title = name ? `${name} · VISTACEO` : "VISTACEO · Inteligencia ejecutiva";
+  }, [currentBusiness?.name]);
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col">
