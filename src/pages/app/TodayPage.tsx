@@ -11,10 +11,10 @@ import { ActionsListPanel } from "@/components/app/ActionsListPanel";
 import { HealthScoreWidget } from "@/components/app/HealthScoreWidget";
 import { MissionsWidget } from "@/components/app/MissionsWidget";
 import { DashboardHero } from "@/components/app/DashboardHero";
-import { TodayActionCard } from "@/components/app/TodayActionCard";
 import { OpportunitiesPreview } from "@/components/app/OpportunitiesPreview";
 import { TalkToCEOCard } from "@/components/app/TalkToCEOCard";
 import { ProUpgradeBanner } from "@/components/app/ProUpgradeBanner";
+import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useHealthSync } from "@/hooks/use-health-sync";
@@ -123,56 +123,64 @@ const TodayPage = () => {
     />
   );
 
-  // Desktop
+  // Sidebar derecha (desktop): conversación con tu CEO + conocimiento de negocio
+  const rightSidebar = (
+    <aside className="space-y-5 lg:sticky lg:top-16 self-start">
+      <TalkToCEOCard />
+      <BrainKnowledgeWidget compact />
+    </aside>
+  );
+
+  // Desktop — layout 2 columnas: feed principal + sidebar
   if (!isMobile) {
     return (
       <div className="space-y-6">
         {setupBanner}
 
-        {/* 1. Hero ejecutivo */}
-        <DashboardHero />
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+          {/* Columna principal */}
+          <div className="space-y-6 min-w-0">
+            {/* 1. Resumen ejecutivo del negocio (texto + salud) */}
+            <DashboardHero />
 
-        {/* 2. Acción recomendada de hoy */}
-        <TodayActionCard />
+            {/* 2. Salud del negocio (detalle) */}
+            {healthBlock}
 
-        {/* 3. Radar de oportunidades (mínimo 3) */}
-        <OpportunitiesPreview />
+            {/* 3. Oportunidades: internas, tendencias, I+D */}
+            <OpportunitiesPreview />
 
-        {/* 4. Salud del negocio + 5. Misiones */}
-        <div className="grid grid-cols-3 gap-6">
-          <div className="col-span-2">{healthBlock}</div>
-          <div>
+            {/* 4. Misiones */}
             <MissionsWidget />
+
+            {/* 5. Pro (suave) */}
+            {!isPro && <ProUpgradeBanner variant="compact" />}
           </div>
+
+          {/* Sidebar derecha */}
+          {rightSidebar}
         </div>
-
-        {/* 6. Hablar con tu CEO/IA */}
-        <TalkToCEOCard />
-
-        {/* 7. Pro suave */}
-        {!isPro && <ProUpgradeBanner variant="compact" />}
 
         <ActionsListPanel open={showActionsPanel} onOpenChange={setShowActionsPanel} />
       </div>
     );
   }
 
-  // Mobile — feed ejecutivo
+  // Mobile — feed ejecutivo (mismo orden, apilado)
   return (
     <div className="space-y-5">
       {setupBanner}
 
       <DashboardHero isMobile />
 
-      <TodayActionCard />
+      {healthBlock}
 
       <OpportunitiesPreview />
-
-      {healthBlock}
 
       <MissionsWidget />
 
       <TalkToCEOCard />
+
+      <BrainKnowledgeWidget compact />
 
       {!isPro && <ProUpgradeBanner variant="compact" />}
 
