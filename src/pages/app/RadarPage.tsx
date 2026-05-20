@@ -1166,21 +1166,21 @@ const RadarPage = () => {
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold text-foreground">
-                        Tenés oportunidades pendientes hace {oldestOpportunityAge} días
+                        Tienes oportunidades pendientes hace {oldestOpportunityAge} días
                       </h4>
                       <p className="text-sm text-muted-foreground">
-                        Revisalas y decidí si las convertís en misiones o las descartás para mejorar futuras sugerencias
+                        Revisalas y decide si las convertís en misiones o las descartás para mejorar futuras sugerencias.
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" className="gradient-primary">
-                        <Rocket className="w-4 h-4 mr-1" />
-                        Aplicar
-                      </Button>
-                      <Button size="sm" variant="outline" className="text-muted-foreground">
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={() => setOldestOpportunityAge(0)}
+                      aria-label="Cerrar aviso"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
                 </GlassCard>
               )}

@@ -40,6 +40,12 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
     fetchProfile();
   }, [user]);
 
+  // Título de pestaña dinámico: nombre del negocio en lugar de "Iniciar sesión"
+  useEffect(() => {
+    const name = currentBusiness?.name?.trim();
+    document.title = name ? `${name} · VISTACEO` : "VISTACEO · Inteligencia ejecutiva";
+  }, [currentBusiness?.name]);
+
   const getInitials = () => {
     if (fullName) {
       return fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
