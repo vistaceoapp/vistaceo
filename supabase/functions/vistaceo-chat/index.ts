@@ -286,7 +286,9 @@ Devuelve SIEMPRE estos 4 bloques, en este orden exacto.
 No agregues texto fuera de los bloques.
 
 <USER_REPLY>
-(aquí va la respuesta visible al usuario)
+(aquí va la respuesta visible al usuario — SOLO texto natural en markdown limpio.
+PROHIBIDO dentro de USER_REPLY: bloques ```json, objetos JSON crudos, llaves { } con claves entrecomilladas, etiquetas <...>, palabras clave técnicas como "facts_to_add" / "decisions" / "missions_suggested" / "learningExtract".
+Si necesitas estructurar datos, usá viñetas con guiones; el JSON SOLO va en LEARNING_EXTRACT.)
 </USER_REPLY>
 
 <CEO_AUDIO_SCRIPT>
