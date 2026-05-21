@@ -179,7 +179,17 @@ const TodayPage = () => {
   // Mobile — feed ejecutivo (mismo orden, apilado)
   return (
     <div className="space-y-5">
+      <div className="flex justify-end">
+        <DashboardEditor
+          widgets={widgets}
+          onSave={saveConfig}
+          onToggle={toggleWidget}
+          onReorder={reorderWidgets}
+          onReset={resetToDefaults}
+        />
+      </div>
       {setupBanner}
+
 
       <DashboardHero isMobile />
 
