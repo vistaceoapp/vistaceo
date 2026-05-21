@@ -136,7 +136,17 @@ const TodayPage = () => {
   if (!isMobile) {
     return (
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <DashboardEditor
+            widgets={widgets}
+            onSave={saveConfig}
+            onToggle={toggleWidget}
+            onReorder={reorderWidgets}
+            onReset={resetToDefaults}
+          />
+        </div>
         {setupBanner}
+
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
           {/* Columna principal */}
