@@ -26,7 +26,7 @@ const TodayPage = () => {
   const { currentBusiness } = useBusiness();
   const { data: dashboardData, loading: dashboardLoading } = useDashboardData();
   const { syncHealth, isSyncing } = useHealthSync();
-  const { loading: widgetsLoading, isPro } = useWidgetConfig();
+  const { widgets, loading: widgetsLoading, isPro, saveConfig, toggleWidget, reorderWidgets, resetToDefaults } = useWidgetConfig();
 
   const [showActionsPanel, setShowActionsPanel] = useState(false);
   const setupCompleted = dashboardData.setupCompleted;
