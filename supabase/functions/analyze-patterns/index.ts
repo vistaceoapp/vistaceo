@@ -561,10 +561,11 @@ serve(async (req) => {
     }
 
     // ========================================================
-    // FREE PLAN ENFORCEMENT (server-side, before AI call)
-    // Free: 3 opportunities/mes y 3 research items/mes
+    // PLAN ENFORCEMENT (server-side, before AI call)
+    // Free: 1 escaneo/mes  ·  Pro: 5 escaneos manuales/mes
     // ========================================================
-    const FREE_LIMIT = 3;
+    const FREE_LIMIT = 1;
+    const PRO_LIMIT = 5;
     const earlyMode = typeof type === "string" ? type : "opportunities";
     try {
       const { data: sub } = await supabase
@@ -576,39 +577,42 @@ serve(async (req) => {
         .maybeSingle();
 
       const isPro = !!sub;
-      if (!isPro) {
-        const startOfMonth = new Date();
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
+      const cap = isPro ? PRO_LIMIT : FREE_LIMIT;
 
-        const table = earlyMode === "research" ? "learning_items" : "opportunities";
-        const { count } = await supabase
-          .from(table)
-          .select("id", { count: "exact", head: true })
-          .eq("business_id", businessId)
-          .gte("created_at", startOfMonth.toISOString());
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
 
-        if ((count || 0) >= FREE_LIMIT) {
-          console.log(`[analyze-patterns] Free limit reached on ${table}: ${count}/${FREE_LIMIT}`);
-          return new Response(
-            JSON.stringify({
-              error: "free_limit_reached",
-              limit: FREE_LIMIT,
-              used: count,
-              mode: earlyMode,
-              upgrade_url: "/checkout",
-              message: earlyMode === "research"
-                ? "Llegaste al límite de 3 investigaciones del Radar este mes en el plan Free."
-                : "Llegaste al límite de 3 oportunidades del Radar este mes en el plan Free.",
-            }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
+      const table = earlyMode === "research" ? "learning_items" : "opportunities";
+      const { count } = await supabase
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", businessId)
+        .gte("created_at", startOfMonth.toISOString());
+
+      if ((count || 0) >= cap) {
+        console.log(`[analyze-patterns] Limit reached on ${table}: ${count}/${cap} (pro=${isPro})`);
+        return new Response(
+          JSON.stringify({
+            error: isPro ? "pro_limit_reached" : "free_limit_reached",
+            limit: cap,
+            used: count,
+            mode: earlyMode,
+            upgrade_url: isPro ? null : "/checkout",
+            message: isPro
+              ? `Alcanzaste el tope de ${PRO_LIMIT} escaneos manuales del Radar este mes. Se reinicia el día 1.`
+              : earlyMode === "research"
+              ? `En el plan Free hay ${FREE_LIMIT} escaneo de investigación por mes. Pasá a Pro para hasta ${PRO_LIMIT}.`
+              : `En el plan Free hay ${FREE_LIMIT} escaneo de oportunidades por mes. Pasá a Pro para hasta ${PRO_LIMIT}.`,
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
     } catch (quotaErr) {
-      // Fail-open: nunca bloquear Pro por un error de chequeo
+      // Fail-open: nunca bloquear por error de chequeo
       console.warn("[analyze-patterns] Quota check failed (fail-open):", quotaErr);
     }
+
 
     // Detect locale
     const locale = detectLocaleProfile(business.country);
