@@ -16,6 +16,7 @@ import { TalkToCEOCard } from "@/components/app/TalkToCEOCard";
 import { ProUpgradeBanner } from "@/components/app/ProUpgradeBanner";
 import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
 import { DashboardEditor } from "@/components/app/DashboardEditor";
+import { PredictionsWidget } from "@/components/app/PredictionsWidget";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useHealthSync } from "@/hooks/use-health-sync";
