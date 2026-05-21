@@ -15,6 +15,7 @@ import { OpportunitiesPreview } from "@/components/app/OpportunitiesPreview";
 import { TalkToCEOCard } from "@/components/app/TalkToCEOCard";
 import { ProUpgradeBanner } from "@/components/app/ProUpgradeBanner";
 import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
+import { DashboardEditor } from "@/components/app/DashboardEditor";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useHealthSync } from "@/hooks/use-health-sync";
@@ -25,7 +26,7 @@ const TodayPage = () => {
   const { currentBusiness } = useBusiness();
   const { data: dashboardData, loading: dashboardLoading } = useDashboardData();
   const { syncHealth, isSyncing } = useHealthSync();
-  const { loading: widgetsLoading, isPro } = useWidgetConfig();
+  const { widgets, loading: widgetsLoading, isPro, saveConfig, toggleWidget, reorderWidgets, resetToDefaults } = useWidgetConfig();
 
   const [showActionsPanel, setShowActionsPanel] = useState(false);
   const setupCompleted = dashboardData.setupCompleted;
@@ -135,7 +136,17 @@ const TodayPage = () => {
   if (!isMobile) {
     return (
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <DashboardEditor
+            widgets={widgets}
+            onSave={saveConfig}
+            onToggle={toggleWidget}
+            onReorder={reorderWidgets}
+            onReset={resetToDefaults}
+          />
+        </div>
         {setupBanner}
+
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
           {/* Columna principal */}
@@ -168,7 +179,17 @@ const TodayPage = () => {
   // Mobile — feed ejecutivo (mismo orden, apilado)
   return (
     <div className="space-y-5">
+      <div className="flex justify-end">
+        <DashboardEditor
+          widgets={widgets}
+          onSave={saveConfig}
+          onToggle={toggleWidget}
+          onReorder={reorderWidgets}
+          onReset={resetToDefaults}
+        />
+      </div>
       {setupBanner}
+
 
       <DashboardHero isMobile />
 
