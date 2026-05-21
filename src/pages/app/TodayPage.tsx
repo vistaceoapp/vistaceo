@@ -164,7 +164,10 @@ const TodayPage = () => {
             {/* 4. Misiones */}
             <MissionsWidget />
 
-            {/* 5. Pro (suave) */}
+            {/* 5. Predicciones (exclusivo Pro) */}
+            {isPro && <PredictionsWidget />}
+
+            {/* 6. Pro (suave) */}
             {!isPro && <ProUpgradeBanner variant="compact" />}
           </div>
 
