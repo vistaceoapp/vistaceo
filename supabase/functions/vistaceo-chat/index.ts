@@ -738,8 +738,14 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
       // Orphan tags
       cleaned = cleaned.replace(new RegExp(`<\\/?${tag}[^>]*>`, 'gi'), '');
     }
+    // Remove fenced code blocks that contain JSON or internal markers
+    cleaned = cleaned.replace(/```(?:json|jsonc|js|ts)?\s*[\s\S]*?```/gi, (block) => {
+      return /"(facts_to_add|decisions|risks|missions_suggested|mood|pace|gestures|moments|userReply|audioScript|learningExtract|BRAIN_JSON|STATE_JSON|CONFIG_JSON)"|<\/?(USER_REPLY|CEO_AUDIO_SCRIPT|AVATAR_CUES|LEARNING_EXTRACT)/i.test(block) ? '' : block;
+    });
     // Remove orphan JSON blobs left over from internal blocks
-    cleaned = cleaned.replace(/\{\s*"(facts_to_add|decisions|risks|missions_suggested|mood|pace|gestures|interruptions_allowed|moments|attachment_id|message_id|scope|definition_of_done|due_hint)"[\s\S]*?\}\s*\}?/gi, '');
+    cleaned = cleaned.replace(/\{\s*"(facts_to_add|decisions|risks|missions_suggested|mood|pace|gestures|interruptions_allowed|moments|attachment_id|message_id|scope|definition_of_done|due_hint|userReply|audioScript|learningExtract|avatarCues)"[\s\S]*?\}\s*\}?/gi, '');
+    // Strip any standalone JSON object that takes a whole line block at start/end
+    cleaned = cleaned.replace(/^\s*\{[\s\S]*?"[a-z_]+"\s*:[\s\S]*?\}\s*$/i, '');
     // Cleanup orphan whitespace and stray symbols
     cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim();
     result.userReply = cleaned;
