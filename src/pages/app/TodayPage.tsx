@@ -203,6 +203,8 @@ const TodayPage = () => {
 
       <MissionsWidget />
 
+      {isPro && <PredictionsWidget />}
+
       <TalkToCEOCard />
 
       <BrainKnowledgeWidget compact />
