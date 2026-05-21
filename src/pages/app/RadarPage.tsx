@@ -338,17 +338,17 @@ const RadarPage = () => {
         },
       });
 
-      // 402: límite Free alcanzado
-      if (data?.error === "free_limit_reached") {
+      // 402: límite alcanzado (Free o Pro)
+      if (data?.error === "free_limit_reached" || data?.error === "pro_limit_reached") {
         toast({
-          title: "Llegaste al límite del plan Free",
-          description: data.message || "3 investigaciones del Radar por mes. Pasá a Pro para ilimitado.",
+          title: data.error === "pro_limit_reached" ? "Tope mensual del Radar" : "Llegaste al límite del plan Free",
+          description: data.message,
           variant: "destructive",
-          action: (
+          action: data.error === "free_limit_reached" ? (
             <Button size="sm" variant="default" onClick={() => navigate("/checkout")}>
               Ver Pro
             </Button>
-          ) as any,
+          ) as any : undefined,
         });
         return;
       }
