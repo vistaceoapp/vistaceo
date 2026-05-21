@@ -7,8 +7,8 @@ import { useSubscription } from "@/hooks/use-subscription";
 export const FREE_LIMITS = {
   missions: 3,
   chatMessages: 3,
-  radarOpportunities: 3,
-  radarResearch: 3,
+  radarOpportunities: 1,
+  radarResearch: 1,
 } as const;
 
 interface UsageData {
