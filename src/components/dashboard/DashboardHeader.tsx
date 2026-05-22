@@ -72,7 +72,17 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
       )}
     >
       <div className="flex items-center gap-1.5">
+        {isDashboard && (
+          <DashboardEditor
+            widgets={widgets}
+            onSave={saveConfig}
+            onToggle={toggleWidget}
+            onReorder={reorderWidgets}
+            onReset={resetToDefaults}
+          />
+        )}
         <InsightNotificationBell />
+
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
