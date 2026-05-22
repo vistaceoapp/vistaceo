@@ -4,8 +4,30 @@ import { ArrowRight, Sparkles, MessageCircle, Target, Compass, Activity } from "
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { useBrain } from "@/hooks/use-brain";
 import { getHealthStyle } from "@/lib/health-score-utils";
 import { cn } from "@/lib/utils";
+
+const DIMENSION_LABELS: Record<string, string> = {
+  reputation: "reputación",
+  profitability: "rentabilidad",
+  finances: "finanzas",
+  efficiency: "eficiencia operativa",
+  traffic: "captación de clientes",
+  team: "equipo",
+  growth: "crecimiento",
+};
+
+const FOCUS_LABELS: Record<string, string> = {
+  ventas: "aumentar ventas",
+  marketing: "atraer más clientes",
+  reputacion: "mejorar reputación",
+  eficiencia: "optimizar operación",
+  equipo: "fortalecer al equipo",
+  producto: "potenciar producto",
+  costos: "mejorar rentabilidad",
+  expansion: "abrir nuevos canales",
+};
 
 interface DashboardHeroProps {
   isMobile?: boolean;
