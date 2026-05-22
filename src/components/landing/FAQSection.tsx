@@ -41,7 +41,7 @@ const faqs = [
   {
     icon: GraduationCap,
     question: "¿Necesito saber de inteligencia artificial para usarlo?",
-    answer: `No. Está pensado para usarse de forma simple. **No necesitás conocimientos técnicos**. Compartís información, hacés preguntas y recibís análisis, ideas, alertas, misiones y recomendaciones claras para accionar.`,
+    answer: `No. Está pensado para usarse de forma simple. **No necesitás conocimientos técnicos**. Compartís información, haces preguntas y recibís análisis, ideas, alertas, misiones y recomendaciones claras para accionar.`,
   },
   {
     icon: Rocket,
@@ -51,7 +51,7 @@ const faqs = [
   {
     icon: CreditCard,
     question: "¿Hay versión gratis, planes pagos y posibilidad de cancelar?",
-    answer: `Sí. Podés **empezar gratis** para probar la plataforma y ver cómo puede ayudarte. Los planes pagos permiten usarla con más profundidad, frecuencia y capacidad. Además, **podés cancelar cuando quieras**, sin permanencias forzadas ni compromisos innecesarios.`,
+    answer: `Sí. Puedes **empezar gratis** para probar la plataforma y ver cómo puede ayudarte. Los planes pagos permiten usarla con más profundidad, frecuencia y capacidad. Además, **puedes cancelar cuando quieras**, sin permanencias forzadas ni compromisos innecesarios.`,
   },
   {
     icon: Shield,

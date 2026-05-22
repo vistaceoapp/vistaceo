@@ -8,11 +8,11 @@ import {
 const FAQ = [
   {
     q: "¿La cuenta es realmente gratis?",
-    a: "Sí. Podés crear tu cuenta y empezar sin tarjeta. El plan gratuito incluye diagnóstico, misiones y chat CEO.",
+    a: "Sí. Puedes crear tu cuenta y empezar sin tarjeta. El plan gratuito incluye diagnóstico, misiones y chat CEO.",
   },
   {
     q: "¿Necesito cargar muchos datos al registrarme?",
-    a: "No. Primero te pedimos lo mínimo para entender tu negocio. En 2 minutos tenés tu primer resultado.",
+    a: "No. Primero te pedimos lo mínimo para entender tu negocio. En 2 minutos tienes tu primer resultado.",
   },
   {
     q: "¿Qué pasa después de crear la cuenta?",

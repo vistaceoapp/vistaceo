@@ -212,7 +212,7 @@ export const MockupHealthDashboard = () => {
               <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
                 {dim.name === "Tráfico" 
                   ? "Analiza el volumen y distribución de clientes: qué canales generan más tráfico, cuáles son tus horarios pico."
-                  : "Mide qué tan eficiente sos convirtiendo ventas en ganancia. Incluye food cost, márgenes por plato."
+                  : "Mide qué tan eficiente eres convirtiendo ventas en ganancia. Incluye food cost, márgenes por plato."
                 }
               </p>
 

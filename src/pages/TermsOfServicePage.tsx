@@ -36,7 +36,7 @@ const quickSummary = [
   "Hay una versión Gratis (sin tarjeta) y una versión Pro paga con más funcionalidades.",
   "Los precios se muestran en USD. El tipo de cambio puede variar.",
   "No somos responsables por impuestos, comisiones del procesador o diferencias de tipo de cambio.",
-  "Sos responsable del contenido que subís y de validar las decisiones que tomés.",
+  "Eres responsable del contenido que subís y de validar las decisiones que tomés.",
   "No reemplazamos asesoramiento profesional (legal, contable, fiscal, etc.).",
   "Podemos cambiar precios, planes y funcionalidades en el tiempo.",
   "Cancelás cuando quieras, pero los cargos procesados pueden no ser reembolsables.",
@@ -61,11 +61,11 @@ const faqQuestions = [
   },
   {
     q: "¿Puedo cancelar mi suscripción en cualquier momento?",
-    a: "Sí, podés cancelar cuando quieras. Sin embargo, los cargos ya procesados pueden no ser reembolsables, y las comisiones de terceros generalmente no se devuelven. Consultá las condiciones de tu plan específico.",
+    a: "Sí, puedes cancelar cuando quieras. Sin embargo, los cargos ya procesados pueden no ser reembolsables, y las comisiones de terceros generalmente no se devuelven. Consultá las condiciones de tu plan específico.",
   },
   {
     q: "¿Qué pasa si subo contenido que no me pertenece?",
-    a: "Sos responsable de tener los derechos o autorizaciones sobre todo el contenido que subís. Si subís contenido ajeno sin permiso, podés violar estos términos y enfrentar consecuencias legales.",
+    a: "Eres responsable de tener los derechos o autorizaciones sobre todo el contenido que subís. Si subís contenido ajeno sin permiso, puedes violar estos términos y enfrentar consecuencias legales.",
   },
 ];
 
@@ -112,7 +112,7 @@ const TermsOfServicePage = () => {
              Política de Privacidad. Si no estás de acuerdo, no uses el servicio.
           </p>
           <WhatThisMeans>
-            Al usar VISTACEO, aceptás estas reglas. Si algo no te parece, podés no usar 
+            Al usar VISTACEO, aceptás estas reglas. Si algo no te parece, puedes no usar 
             el servicio.
           </WhatThisMeans>
         </LegalSection>
@@ -149,7 +149,7 @@ const TermsOfServicePage = () => {
 
         <LegalSection id="cuenta" title="4. Cuenta y seguridad">
           <p className="text-muted-foreground mb-4">
-            Sos responsable de:
+            Eres responsable de:
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
             <li>Mantener la confidencialidad de tus credenciales de acceso</li>
@@ -176,7 +176,7 @@ const TermsOfServicePage = () => {
             cualquier pago.
           </p>
           <WhatThisMeans>
-            Hay un plan gratis sin compromiso. Si querés más, podés contratar Pro. Los precios 
+            Hay un plan gratis sin compromiso. Si quieres más, puedes contratar Pro. Los precios 
             pueden cambiar, pero siempre vas a ver el precio actual antes de pagar.
           </WhatThisMeans>
         </LegalSection>
@@ -213,7 +213,7 @@ const TermsOfServicePage = () => {
             <strong>Tus responsabilidades:</strong>
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-            <li>Sos el único responsable del contenido que subís</li>
+            <li>Eres el único responsable del contenido que subís</li>
             <li>Debés tener los derechos o autorizaciones necesarias sobre ese contenido</li>
             <li>No debés violar confidencialidad, privacidad de terceros ni leyes aplicables</li>
             <li>Garantizás que el contenido no infringe derechos de propiedad intelectual de terceros</li>
@@ -247,7 +247,7 @@ const TermsOfServicePage = () => {
             <strong>Tu responsabilidad:</strong>
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-            <li>Sos responsable de <strong>validar toda información</strong> antes de actuar</li>
+            <li>Eres responsable de <strong>validar toda información</strong> antes de actuar</li>
             <li>Debés consultar profesionales cuando corresponda</li>
             <li>Las decisiones que tomes basadas en el servicio son <strong>tu responsabilidad exclusiva</strong></li>
           </ul>
@@ -392,7 +392,7 @@ const TermsOfServicePage = () => {
             <strong>Cancelación:</strong>
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-            <li>Podés cancelar tu suscripción en cualquier momento desde la configuración de tu cuenta</li>
+            <li>Puedes cancelar tu suscripción en cualquier momento desde la configuración de tu cuenta</li>
             <li>La cancelación evita renovaciones futuras pero no afecta el período ya pagado</li>
           </ul>
           <p className="text-muted-foreground mt-4 mb-4">
@@ -414,7 +414,7 @@ const TermsOfServicePage = () => {
              original y marca, es propiedad exclusiva de VISTACEO o sus licenciantes.
           </p>
           <p className="text-muted-foreground mb-4">
-            No podés:
+            No puedes:
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
             <li>Copiar, modificar o distribuir el servicio sin autorización</li>
@@ -471,7 +471,7 @@ const TermsOfServicePage = () => {
             <li><strong>Acuerdo completo:</strong> Estas Condiciones, junto con la Política de Privacidad, constituyen el acuerdo completo entre vos y VISTACEO.</li>
             <li><strong>Separabilidad:</strong> Si alguna disposición es inválida o inaplicable, las demás permanecen vigentes.</li>
             <li><strong>Renuncia:</strong> No ejercer un derecho no implica renunciar a él.</li>
-            <li><strong>Cesión:</strong> No podés ceder tus derechos u obligaciones sin nuestro consentimiento. Nosotros podemos ceder este acuerdo a un sucesor o afiliado.</li>
+            <li><strong>Cesión:</strong> No puedes ceder tus derechos u obligaciones sin nuestro consentimiento. Nosotros podemos ceder este acuerdo a un sucesor o afiliado.</li>
             <li><strong>Idioma:</strong> Estas Condiciones están redactadas en español. En caso de traducción, prevalece la versión en español.</li>
             <li><strong>Resolución de disputas:</strong> Cualquier disputa se resolverá conforme a la normativa aplicable, en la máxima medida permitida por la ley.</li>
           </ul>

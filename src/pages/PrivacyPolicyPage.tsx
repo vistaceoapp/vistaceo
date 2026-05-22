@@ -30,11 +30,11 @@ const quickSummary = [
   "No vendemos tus datos personales a terceros.",
   "Recopilamos solo la información necesaria para brindarte el servicio.",
   "Usamos medidas de seguridad razonables para proteger tus datos.",
-  "Podés acceder, corregir o eliminar tus datos contactándonos.",
+  "Puedes acceder, corregir o eliminar tus datos contactándonos.",
   "La IA procesa tu contenido para darte respuestas, pero no somos responsables de la exactitud.",
   "Usamos proveedores externos para operar el servicio (hosting, pagos, analytics).",
   "No está destinado a menores de 18 años.",
-  "Podés ejercer tus derechos escribiendo a info@vistaceo.com.",
+  "Puedes ejercer tus derechos escribiendo a info@vistaceo.com.",
 ];
 
 const faqQuestions = [
@@ -44,7 +44,7 @@ const faqQuestions = [
   },
   {
     q: "¿Cómo puedo eliminar mi cuenta y datos?",
-    a: "Podés solicitar la eliminación de tu cuenta y datos personales escribiendo a info@vistaceo.com. Procesaremos tu solicitud en un plazo razonable, sujeto a obligaciones legales de retención.",
+    a: "Puedes solicitar la eliminación de tu cuenta y datos personales escribiendo a info@vistaceo.com. Procesaremos tu solicitud en un plazo razonable, sujeto a obligaciones legales de retención.",
   },
   {
     q: "¿Mis conversaciones con la IA son privadas?",
@@ -52,7 +52,7 @@ const faqQuestions = [
   },
   {
     q: "¿Qué pasa con mis datos si cancelo mi suscripción?",
-    a: "Tu cuenta y datos se mantienen según nuestra política de retención. Podés solicitar su eliminación en cualquier momento contactándonos.",
+    a: "Tu cuenta y datos se mantienen según nuestra política de retención. Puedes solicitar su eliminación en cualquier momento contactándonos.",
   },
   {
     q: "¿Usan mis datos para entrenar la IA?",
@@ -113,7 +113,7 @@ const PrivacyPolicyPage = () => {
             <li><strong>IA:</strong> Los sistemas de inteligencia artificial integrados en VISTACEO.</li>
           </ul>
           <WhatThisMeans>
-            Este documento aplica a todo lo que hacés en VistaCEO. Si usás nuestra plataforma, 
+            Este documento aplica a todo lo que haces en VistaCEO. Si usás nuestra plataforma, 
             aceptás las prácticas descritas aquí.
           </WhatThisMeans>
         </LegalSection>
@@ -215,7 +215,7 @@ const PrivacyPolicyPage = () => {
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
             <li>Las respuestas de la IA son sugerencias automatizadas y pueden contener errores, inexactitudes o información incompleta.</li>
             <li>La IA no reemplaza el asesoramiento profesional (legal, contable, fiscal, financiero, etc.).</li>
-            <li>Sos responsable de validar cualquier información antes de actuar en base a ella.</li>
+            <li>Eres responsable de validar cualquier información antes de actuar en base a ella.</li>
             <li>Procesamos tu contenido para generar respuestas relevantes a tus consultas.</li>
           </ul>
           <p className="text-muted-foreground mt-4">
@@ -306,7 +306,7 @@ const PrivacyPolicyPage = () => {
             <li>Existan intereses legítimos que lo justifiquen</li>
           </ul>
           <p className="text-muted-foreground mt-4">
-            Podés solicitar la eliminación de tu cuenta y datos personales en cualquier 
+            Puedes solicitar la eliminación de tu cuenta y datos personales en cualquier 
             momento contactándonos a <strong>info@vistaceo.com</strong>. Procesaremos tu 
             solicitud en un plazo razonable, sujeto a obligaciones legales de retención.
           </p>
@@ -325,7 +325,7 @@ const PrivacyPolicyPage = () => {
           </ul>
           <p className="text-muted-foreground mt-4 p-3 bg-warning/10 border border-warning/20 rounded-lg">
             ⚠️ <strong>Importante:</strong> Ningún sistema es 100% invulnerable. Aunque tomamos 
-            precauciones razonables, no podemos garantizar seguridad absoluta. También sos 
+            precauciones razonables, no podemos garantizar seguridad absoluta. También eres 
             responsable de mantener seguras tus credenciales de acceso.
           </p>
           <WhatThisMeans>
@@ -336,7 +336,7 @@ const PrivacyPolicyPage = () => {
 
         <LegalSection id="derechos" title="10. Tus derechos">
           <p className="text-muted-foreground mb-4">
-            Dependiendo de la normativa aplicable, podés tener derecho a:
+            Dependiendo de la normativa aplicable, puedes tener derecho a:
           </p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-2">
             <li><strong>Acceso:</strong> Saber qué datos tenemos sobre vos.</li>
@@ -363,7 +363,7 @@ const PrivacyPolicyPage = () => {
             <li><strong>Analytics:</strong> Entender cómo se usa el servicio para mejorarlo.</li>
           </ul>
           <p className="text-muted-foreground mt-4">
-            Podés configurar tu navegador para rechazar cookies, aunque esto puede afectar 
+            Puedes configurar tu navegador para rechazar cookies, aunque esto puede afectar 
             la funcionalidad del servicio.
           </p>
         </LegalSection>
@@ -393,7 +393,7 @@ const PrivacyPolicyPage = () => {
 
         <LegalSection id="contacto" title="14. Contacto">
           <p className="text-muted-foreground mb-4">
-            Si tenés preguntas, comentarios o solicitudes relacionadas con esta política 
+            Si tienes preguntas, comentarios o solicitudes relacionadas con esta política 
             o tus datos personales, contactanos:
           </p>
           <div className="bg-card border border-border rounded-lg p-4">

@@ -76,7 +76,7 @@ const MorePage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
-  const [userMode, setUserMode] = useState<"nano" | "standard" | "proactive" | "sos">("standard");
+  const [userMode, setUserMode] = useState<"nano" | "standard" | "proactive" | "eres">("standard");
 
   useEffect(() => {
     if (currentBusiness) {
@@ -208,7 +208,7 @@ const MorePage = () => {
       nano: "Nano - Mínimo",
       standard: "Estándar",
       proactive: "Proactivo",
-      sos: "SOS - Crisis"
+      eres: "SOS - Crisis"
     };
     return labels[mode] || "Estándar";
   };
@@ -1061,7 +1061,7 @@ const MorePage = () => {
               Modo de operación
             </DialogTitle>
             <DialogDescription>
-              Elegí cómo querés que el asistente interactúe con vos
+              Elige cómo quieres que el asistente interactúe con vos
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">

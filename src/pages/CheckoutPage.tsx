@@ -128,7 +128,7 @@ const CheckoutPage = () => {
       if (authMode === "login") {
         const { error } = await signIn(authEmail, authPassword);
         if (error) throw error;
-        toast.success("Sesión iniciada. Ya podés pagar.");
+        toast.success("Sesión iniciada. Ya puedes pagar.");
       } else {
         const { error, requiresEmailConfirmation } = await signUp(authEmail, authPassword, authFullName);
         if (error) throw error;
@@ -136,7 +136,7 @@ const CheckoutPage = () => {
         if (requiresEmailConfirmation) {
           toast.success("Te enviamos un email para confirmar tu cuenta antes de pagar.");
         } else {
-          toast.success("Cuenta creada. Ya podés pagar.");
+          toast.success("Cuenta creada. Ya puedes pagar.");
         }
       }
     } catch (error) {
@@ -259,7 +259,7 @@ const CheckoutPage = () => {
               </div>
               <h2 className="text-2xl font-bold text-foreground mb-2">Pago no completado</h2>
               <p className="text-muted-foreground mb-6">
-                Hubo un problema con tu pago. Podés intentar nuevamente.
+                Hubo un problema con tu pago. Puedes intentar nuevamente.
               </p>
               <div className="space-y-3">
                 <Button className="w-full" size="lg" onClick={() => setStatus("idle")}>
@@ -451,7 +451,7 @@ const CheckoutPage = () => {
                        Te mostramos los precios en <strong>{country.currency}</strong>, pero siempre abonarás en <strong>USD ${isYearly ? 290 : 49}</strong>.
                       <br />
                       <span className="text-muted-foreground/80">
-                        Podés pagar con tarjeta de débito/crédito o con tu cuenta PayPal.
+                        Puedes pagar con tarjeta de débito/crédito o con tu cuenta PayPal.
                       </span>
                     </p>
                   </div>
@@ -546,7 +546,7 @@ const CheckoutPage = () => {
                     <Card className="border-primary/20 bg-primary/5">
                       <CardContent className="p-5 sm:p-6 space-y-4">
                         <div className="text-center space-y-1">
-                          <h3 className="text-lg font-semibold text-foreground">Entrá o creá tu cuenta para pagar</h3>
+                          <h3 className="text-lg font-semibold text-foreground">Entrá o crea tu cuenta para pagar</h3>
                           <p className="text-sm text-muted-foreground">El plan Pro quedará asociado automáticamente a tu perfil y a tu negocio, incluso si completás el setup después.</p>
                         </div>
 

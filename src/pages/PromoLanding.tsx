@@ -322,7 +322,7 @@ const PromoLanding = () => {
 
           <div className="mt-12 grid md:grid-cols-3 gap-5">
             {[
-              { n: "01", t: "Contás qué hacés", d: "Tu negocio, servicio o profesión y tu objetivo." },
+              { n: "01", t: "Contás qué haces", d: "Tu negocio, servicio o profesión y tu objetivo." },
               { n: "02", t: "VISTACEO lo analiza", d: "IA detecta prioridades y oportunidades." },
               { n: "03", t: "Recibís claridad", d: "Diagnóstico, misiones y próximos pasos." },
             ].map((s) => (
@@ -429,7 +429,7 @@ const PromoLanding = () => {
           </div>
 
           <p className="mt-10 text-center text-[18px] font-medium text-[#0F172A] max-w-[680px] mx-auto leading-relaxed">
-            Si tenés un negocio y necesitás más claridad para crecer, VISTACEO te dice qué hacer hoy.
+            Si tienes un negocio y necesitás más claridad para crecer, VISTACEO te dice qué hacer hoy.
           </p>
         </div>
       </section>
@@ -453,7 +453,7 @@ const PromoLanding = () => {
             {[
               { icon: Brain, t: "Diagnóstico inicial", d: "Entendé dónde estás parado y qué deberías atacar primero.", badge: "Inmediato" },
               { icon: Rocket, t: "Misiones inteligentes", d: "Acciones concretas para vender más, ordenar procesos o mejorar resultados." },
-              { icon: Radar, t: "Radar de oportunidades", d: "Señales de mejoras, riesgos y movimientos que podés aprovechar ahora." },
+              { icon: Radar, t: "Radar de oportunidades", d: "Señales de mejoras, riesgos y movimientos que puedes aprovechar ahora." },
               { icon: MessageSquare, t: "Chat CEO con IA", d: "Un asistente ejecutivo para tomar mejores decisiones, 24/7." },
             ].map((b) => {
               const Icon = b.icon;
@@ -539,7 +539,7 @@ const PromoLanding = () => {
               letterSpacing: "-0.025em",
             }}
           >
-            Empezá gratis. Sabé qué hacer hoy para{" "}
+            Empieza gratis. Sabé qué hacer hoy para{" "}
             <span
               style={{
                 background: "linear-gradient(90deg, #6C63FF, #00C4B4)",
@@ -590,7 +590,7 @@ const PromoLanding = () => {
             </Link>{" "}
             ·{" "}
             <Link to="/auth?mode=login" className="hover:text-white transition-colors">
-              ¿Ya tenés cuenta? Ingresá →
+              ¿Ya tienes cuenta? Ingresa →
             </Link>
           </p>
         </div>

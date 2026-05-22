@@ -98,7 +98,7 @@ VistaCEO está diseñado para crecer contigo. Empieza gratis, y cuando estés li
 • Identifica oportunidades de innovación
 • Sugiere nuevos productos o servicios basados en demanda real
 
-Cada oportunidad viene con un **plan de acción detallado** que podés convertir en una Misión ejecutable.`,
+Cada oportunidad viene con un **plan de acción detallado** que puedes convertir en una Misión ejecutable.`,
   },
   {
     icon: Target,
@@ -108,7 +108,7 @@ Cada oportunidad viene con un **plan de acción detallado** que podés convertir
 **Características de las Misiones:**
 • **Personalizadas**: Basadas en los datos de tu negocio, no genéricas
 • **Paso a paso**: Cada misión tiene etapas claras y ejecutables
-• **Con impacto medible**: Sabés exactamente qué resultado esperar
+• **Con impacto medible**: Sabes exactamente qué resultado esperar
 • **Adaptadas a tu tiempo**: Indicamos el esfuerzo estimado de cada una
 
 **Ejemplos de Misiones:**
@@ -165,7 +165,7 @@ Tus decisiones y acciones diarias alimentan el sistema continuamente
   {
     icon: TrendingUp,
     question: "¿Puedo tener diferentes objetivos para mi negocio?",
-    answer: `¡Absolutamente! Cada negocio es único y VistaCEO se adapta a **tus objetivos específicos**. Podés enfocarte en:
+    answer: `¡Absolutamente! Cada negocio es único y VistaCEO se adapta a **tus objetivos específicos**. Puedes enfocarte en:
 
 **Objetivos de Crecimiento:**
 • Aumentar ventas mensuales
@@ -208,7 +208,7 @@ VistaCEO prioriza las misiones y recomendaciones según el objetivo que elijas c
 • Investiga tendencias del mercado
 • Te presenta todo en acciones concretas
 
-**No tenés que ser experto en nada.** VistaCEO traduce análisis complejos a pasos simples que podés ejecutar sin conocimientos técnicos.`,
+**No tienes que ser experto en nada.** VistaCEO traduce análisis complejos a pasos simples que puedes ejecutar sin conocimientos técnicos.`,
   },
   {
     icon: Shield,
@@ -218,7 +218,7 @@ VistaCEO prioriza las misiones y recomendaciones según el objetivo que elijas c
 • **Encriptación de extremo a extremo** en tránsito y en reposo
 • **Infraestructura cloud** de clase empresarial
 • **Sin acceso de terceros**: Nunca vendemos ni compartimos tu información
-• **Control total**: Podés exportar o eliminar tus datos cuando quieras
+• **Control total**: Puedes exportar o eliminar tus datos cuando quieras
 
 **Importante:**
 VistaCEO **no requiere acceso a tu cuenta bancaria ni sistema de punto de venta**. Trabajamos con rangos y estimaciones que vos proporcionás, nunca datos financieros exactos.
@@ -298,7 +298,7 @@ export const FAQSection = memo(() => {
           className="text-center mt-12"
         >
           <p className="text-muted-foreground text-sm">
-            ¿Tenés más preguntas?{" "}
+            ¿Tienes más preguntas?{" "}
             <a href="#" className="text-primary hover:underline font-medium">
               Contactanos
             </a>
