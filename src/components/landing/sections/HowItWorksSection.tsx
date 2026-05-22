@@ -253,7 +253,7 @@ export const HowItWorksSection = memo(() => {
           viewport={{ once: true }}
           className="max-w-3xl mx-auto text-center mb-10 md:mb-12"
         >
-          <p className="text-sm text-muted-foreground mb-4">Áreas que podés mejorar</p>
+          <p className="text-sm text-muted-foreground mb-4">Áreas que puedes mejorar</p>
           <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {improvementAreas.map((area) => (
               <div

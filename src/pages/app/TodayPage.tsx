@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Brain } from "lucide-react";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -15,8 +15,13 @@ import { OpportunitiesPreview } from "@/components/app/OpportunitiesPreview";
 import { TalkToCEOCard } from "@/components/app/TalkToCEOCard";
 import { ProUpgradeBanner } from "@/components/app/ProUpgradeBanner";
 import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
-import { DashboardEditor } from "@/components/app/DashboardEditor";
 import { PredictionsWidget } from "@/components/app/PredictionsWidget";
+import { SmartNextSteps } from "@/components/app/SmartNextSteps";
+import { PulseCheckinCard } from "@/components/app/PulseCheckinCard";
+import { WeeklyMetricsWidget } from "@/components/app/WeeklyMetricsWidget";
+import { RadarWidget } from "@/components/app/RadarWidget";
+import { FocusWidget } from "@/components/app/FocusWidget";
+import { ReputationWidget } from "@/components/app/ReputationWidget";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useHealthSync } from "@/hooks/use-health-sync";
@@ -27,7 +32,7 @@ const TodayPage = () => {
   const { currentBusiness } = useBusiness();
   const { data: dashboardData, loading: dashboardLoading } = useDashboardData();
   const { syncHealth, isSyncing } = useHealthSync();
-  const { widgets, loading: widgetsLoading, isPro, saveConfig, toggleWidget, reorderWidgets, resetToDefaults } = useWidgetConfig();
+  const { loading: widgetsLoading, isPro, getVisibleWidgets } = useWidgetConfig();
 
   const [showActionsPanel, setShowActionsPanel] = useState(false);
   const setupCompleted = dashboardData.setupCompleted;
@@ -44,6 +49,48 @@ const TodayPage = () => {
       navigate("/setup");
     }
   }, [dashboardLoading, currentBusiness, setupCompleted, navigate]);
+
+  // Registry: widget id → renderer
+  const renderWidget = useCallback((id: string): React.ReactNode => {
+    switch (id) {
+      case "aiSummary":
+        return <DashboardHero isMobile={isMobile} />;
+      case "health":
+        return (
+          <HealthScoreWidget
+            subScores={dashboardData.subScores}
+            snapshotScore={dashboardData.snapshotScore}
+            previousScore={dashboardData.previousScore}
+            precisionPct={dashboardData.certaintyPct}
+            onSync={handleSync}
+            isSyncing={isSyncing}
+          />
+        );
+      case "missions":
+        return <MissionsWidget />;
+      case "nextSteps":
+        return <SmartNextSteps />;
+      case "pulse":
+        return <PulseCheckinCard />;
+      case "weeklyMetrics":
+        return <WeeklyMetricsWidget />;
+      case "predictions":
+        return isPro ? <PredictionsWidget /> : null;
+      case "brain":
+        return <BrainKnowledgeWidget compact />;
+      case "radar":
+        return <RadarWidget isPro={isPro} />;
+      case "focus":
+        return <FocusWidget />;
+      case "reputation":
+        return <ReputationWidget isPro={isPro} />;
+      default:
+        return null;
+    }
+  }, [isMobile, dashboardData, handleSync, isSyncing, isPro]);
+
+  const mainVisible = useMemo(() => getVisibleWidgets("main"), [getVisibleWidgets]);
+  const sidebarVisible = useMemo(() => getVisibleWidgets("sidebar"), [getVisibleWidgets]);
 
   if (dashboardLoading || widgetsLoading) {
     return (
@@ -86,7 +133,6 @@ const TodayPage = () => {
     );
   }
 
-  // Bloques compartidos (mismos para desktop y mobile)
   const setupBanner = !setupCompleted && (
     <GlassCard
       interactive
@@ -99,7 +145,7 @@ const TodayPage = () => {
         </div>
         <div className="flex-1">
           <h3 className="font-semibold text-foreground mb-0.5 sm:mb-1 text-sm sm:text-base">
-            Completá el Setup Inteligente
+            Completa el Setup Inteligente
           </h3>
           <p className="text-xs sm:text-sm text-muted-foreground">
             El sistema se personaliza a tu negocio en 7-12 min
@@ -114,65 +160,44 @@ const TodayPage = () => {
     </GlassCard>
   );
 
-  const healthBlock = (
-    <HealthScoreWidget
-      subScores={dashboardData.subScores}
-      snapshotScore={dashboardData.snapshotScore}
-      previousScore={dashboardData.previousScore}
-      precisionPct={dashboardData.certaintyPct}
-      onSync={handleSync}
-      isSyncing={isSyncing}
-    />
-  );
+  // Helper: render visible widgets + insert Opportunities after missions (fixed pin)
+  const renderMain = () => {
+    const nodes: React.ReactNode[] = [];
+    mainVisible.forEach((w) => {
+      const node = renderWidget(w.id);
+      if (node) {
+        nodes.push(<div key={w.id}>{node}</div>);
+        if (w.id === "missions") {
+          nodes.push(<OpportunitiesPreview key="__opps__" />);
+        }
+      }
+    });
+    return nodes;
+  };
 
-  // Sidebar derecha (desktop): conversación con tu CEO + conocimiento de negocio
-  const rightSidebar = (
-    <aside className="space-y-5 lg:sticky lg:top-16 self-start">
-      <TalkToCEOCard />
-      <BrainKnowledgeWidget compact />
-    </aside>
-  );
+  const renderSidebar = () => {
+    const nodes: React.ReactNode[] = [<TalkToCEOCard key="__ceo__" />];
+    sidebarVisible.forEach((w) => {
+      const node = renderWidget(w.id);
+      if (node) nodes.push(<div key={w.id}>{node}</div>);
+    });
+    return nodes;
+  };
 
-  // Desktop — layout 2 columnas: feed principal + sidebar
+  // Desktop — 2 columnas
   if (!isMobile) {
     return (
       <div className="space-y-6">
-        <div className="flex justify-end">
-          <DashboardEditor
-            widgets={widgets}
-            onSave={saveConfig}
-            onToggle={toggleWidget}
-            onReorder={reorderWidgets}
-            onReset={resetToDefaults}
-          />
-        </div>
         {setupBanner}
 
-
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-          {/* Columna principal */}
           <div className="space-y-6 min-w-0">
-            {/* 1. Resumen ejecutivo del negocio (texto + salud) */}
-            <DashboardHero />
-
-            {/* 2. Salud del negocio (detalle) */}
-            {healthBlock}
-
-            {/* 3. Oportunidades: internas, tendencias, I+D */}
-            <OpportunitiesPreview />
-
-            {/* 4. Misiones */}
-            <MissionsWidget />
-
-            {/* 5. Predicciones (exclusivo Pro) */}
-            {isPro && <PredictionsWidget />}
-
-            {/* 6. Pro (suave) */}
+            {renderMain()}
             {!isPro && <ProUpgradeBanner variant="compact" />}
           </div>
-
-          {/* Sidebar derecha */}
-          {rightSidebar}
+          <aside className="space-y-5 lg:sticky lg:top-16 self-start">
+            {renderSidebar()}
+          </aside>
         </div>
 
         <ActionsListPanel open={showActionsPanel} onOpenChange={setShowActionsPanel} />
@@ -180,35 +205,12 @@ const TodayPage = () => {
     );
   }
 
-  // Mobile — feed ejecutivo (mismo orden, apilado)
+  // Mobile — feed
   return (
     <div className="space-y-5">
-      <div className="flex justify-end">
-        <DashboardEditor
-          widgets={widgets}
-          onSave={saveConfig}
-          onToggle={toggleWidget}
-          onReorder={reorderWidgets}
-          onReset={resetToDefaults}
-        />
-      </div>
       {setupBanner}
-
-
-      <DashboardHero isMobile />
-
-      {healthBlock}
-
-      <OpportunitiesPreview />
-
-      <MissionsWidget />
-
-      {isPro && <PredictionsWidget />}
-
-      <TalkToCEOCard />
-
-      <BrainKnowledgeWidget compact />
-
+      {renderMain()}
+      {renderSidebar()}
       {!isPro && <ProUpgradeBanner variant="compact" />}
 
       <ActionsListPanel open={showActionsPanel} onOpenChange={setShowActionsPanel} />

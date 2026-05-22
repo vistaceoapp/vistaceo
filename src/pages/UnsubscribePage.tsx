@@ -80,7 +80,7 @@ export default function UnsubscribePage() {
           {state.kind === "valid" && (
             <>
               <p className="text-muted-foreground">
-                ¿Confirmás que querés dejar de recibir nuestros emails?
+                ¿Confirmás que quieres dejar de recibir nuestros emails?
               </p>
               <Button onClick={confirm} className="w-full">
                 Confirmar cancelación

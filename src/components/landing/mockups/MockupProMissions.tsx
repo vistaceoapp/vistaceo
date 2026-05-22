@@ -60,7 +60,7 @@ const missionsData: Record<BusinessKey, {
         status: "completed",
         area: "Reputación",
         priority: "media",
-        detail: "Tu rating actual es 4.2, con respuestas podés llegar a 4.5"
+        detail: "Tu rating actual es 4.2, con respuestas puedes llegar a 4.5"
       },
       {
         title: "Implementar reservas sábados noche",

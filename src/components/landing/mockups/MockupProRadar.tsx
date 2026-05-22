@@ -20,7 +20,7 @@ const radarData: Record<BusinessKey, {
     internal: [
       { title: "Tu horario de sábados tiene 23% menos tráfico que la competencia", impact: "+$45.000/mes", source: "Análisis interno", priority: "high" },
       { title: "3 reseñas mencionan 'espera larga' - tiempo promedio 18min", impact: "Prioridad alta", source: "Google Reviews", priority: "high" },
-      { title: "El 40% de clientes piden postre pero solo tenés 3 opciones", impact: "+$28.000/mes", source: "Análisis ventas", priority: "medium" },
+      { title: "El 40% de clientes piden postre pero solo tienes 3 opciones", impact: "+$28.000/mes", source: "Análisis ventas", priority: "medium" },
     ],
     external: [
       { title: "Tendencia: Cortes premium con vino maridaje +35% en Palermo", impact: "Oportunidad I+D", source: "Google Trends", priority: "medium" },

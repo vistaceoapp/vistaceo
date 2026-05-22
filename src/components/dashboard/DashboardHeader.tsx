@@ -14,8 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { InsightNotificationBell } from "@/components/app/InsightNotificationBell";
+import { DashboardEditor } from "@/components/app/DashboardEditor";
+import { useWidgetConfig } from "@/hooks/use-widget-config";
 
 interface DashboardHeaderProps {
   sidebarCollapsed: boolean;
@@ -25,6 +27,9 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
   const { currentBusiness } = useBusiness();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isDashboard = location.pathname === "/app" || location.pathname === "/app/";
+  const { widgets, saveConfig, toggleWidget, reorderWidgets, resetToDefaults } = useWidgetConfig();
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
@@ -67,7 +72,17 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
       )}
     >
       <div className="flex items-center gap-1.5">
+        {isDashboard && (
+          <DashboardEditor
+            widgets={widgets}
+            onSave={saveConfig}
+            onToggle={toggleWidget}
+            onReorder={reorderWidgets}
+            onReset={resetToDefaults}
+          />
+        )}
         <InsightNotificationBell />
+
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

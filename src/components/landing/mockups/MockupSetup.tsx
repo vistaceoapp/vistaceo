@@ -12,7 +12,7 @@ const setupData = {
     name: "Tu Negocio",
     step: 2,
     totalSteps: 5,
-    currentQuestion: "¿Cuántos empleados tenés?",
+    currentQuestion: "¿Cuántos empleados tienes?",
     options: [
       { label: "Solo yo", selected: false },
       { label: "2-5 personas", selected: true },

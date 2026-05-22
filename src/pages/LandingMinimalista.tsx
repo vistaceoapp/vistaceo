@@ -482,9 +482,9 @@ const mockupTabs = [
   { key: "radar", label: "Radar", icon: Radar, desc: "Oportunidades, riesgos y tendencias detectadas por IA.", benefit: "Anticipate a lo que viene antes que tu competencia." },
   { key: "chat", label: "Chat ejecutivo", icon: MessageCircle, desc: "Preguntá lo que quieras sobre tu negocio en lenguaje natural.", benefit: "Tu consultor estratégico disponible las 24 horas." },
   { key: "analytics", label: "Métricas", icon: BarChart3, desc: "Dashboards que se adaptan a tu industria.", benefit: "Las métricas que importan, sin ruido." },
-  { key: "predictions", label: "Futuro", icon: Eye, desc: "Predicciones a 7, 14 y 30 días con niveles de certeza.", benefit: "Tomá decisiones hoy con la información de mañana." },
+  { key: "predictions", label: "Futuro", icon: Eye, desc: "Predicciones a 7, 14 y 30 días con niveles de certeza.", benefit: "Toma decisiones hoy con la información de mañana." },
   { key: "insights", label: "Insights", icon: Lightbulb, desc: "Oportunidades, alertas y tendencias detectadas por IA.", benefit: "Decisiones informadas con inteligencia accionable." },
-  { key: "competencia", label: "Competencia", icon: Users, desc: "Análisis en tiempo real de tu entorno competitivo.", benefit: "Sabé quién compite con vos y dónde tenés ventaja." },
+  { key: "competencia", label: "Competencia", icon: Users, desc: "Análisis en tiempo real de tu entorno competitivo.", benefit: "Sabé quién compite con vos y dónde tienes ventaja." },
 ] as const;
 type TabKey = typeof mockupTabs[number]["key"];
 
@@ -1080,10 +1080,10 @@ const SmartFinder = () => {
           <div className="text-center mb-10">
             <AccentLabel>PROBALO AHORA</AccentLabel>
             <h2 className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-semibold text-[#0a0a0a] tracking-[-0.03em] mt-5">
-              ¿Qué tipo de negocio tenés?
+              ¿Qué tipo de negocio tienes?
             </h2>
             <p className="text-[14px] text-[#aaa] mt-3">
-              Escribí tu rubro y recibí un insight estratégico personalizado al instante.
+              Escribe tu rubro y recibe un insight estratégico personalizado al instante.
             </p>
           </div>
         </Reveal>
@@ -1271,7 +1271,7 @@ const FeaturesGrid = () => {
           <div className="text-center mb-3">
             <AccentLabel>FUNCIONALIDADES</AccentLabel>
             <h2 className="text-[clamp(1.5rem,3.2vw,2.2rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5">
-              Empezá cada día sabiendo qué importa
+              Empieza cada día sabiendo qué importa
             </h2>
           </div>
         </Reveal>
@@ -1736,7 +1736,7 @@ const PricingSection = () => {
           <div className="text-center mb-10 md:mb-14">
             <AccentLabel>PRECIOS</AccentLabel>
             <h2 className="text-[clamp(1.5rem,3vw,2.1rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5">
-              Empezá gratis. Crecé cuando lo necesites.
+              Empieza gratis. Crecé cuando lo necesites.
             </h2>
             <p className="text-[14.5px] text-[#999] mt-4 max-w-[400px] mx-auto leading-[1.7]">
               Sin compromisos. Sin tarjeta de crédito. Cancelá cuando quieras.
@@ -1827,7 +1827,7 @@ const PricingSection = () => {
                 {/* Mensaje de detección — sólo si auto-detectado y no fue cambiado manualmente */}
                 {showDetectionMessage && !isDetecting && (
                   <p className="text-[11.5px] text-[#999] mt-3 leading-[1.55]">
-                    Detectamos {country.flag} <span className="font-medium text-[#666]">{country.name}</span>. El checkout usará esta moneda y el medio de pago correcto. Podés cambiarlo arriba.
+                    Detectamos {country.flag} <span className="font-medium text-[#666]">{country.name}</span>. El checkout usará esta moneda y el medio de pago correcto. Puedes cambiarlo arriba.
                   </p>
                 )}
                 {isDetecting && (
@@ -1854,7 +1854,7 @@ const PricingSection = () => {
 
         <Reveal delay={150}>
           <p className="text-center text-[12.5px] text-[#bbb] mt-8 px-4">
-            El plan anual está preseleccionado porque maximiza el ahorro real. Si ya tenés cuenta, seguís directo; si no, la creás en el checkout y el Pro queda asociado.
+            El plan anual está preseleccionado porque maximiza el ahorro real. Si ya tienes cuenta, seguís directo; si no, la creás en el checkout y el Pro queda asociado.
           </p>
         </Reveal>
       </div>
@@ -1905,9 +1905,9 @@ const FAQSection = () => {
     { q: "¿Qué puede hacer por mi negocio?", a: "Puede ayudarte a mejorar ventas, marketing, operaciones, finanzas, atención al cliente, productividad, estrategia y toma de decisiones. También puede detectar cuellos de botella, oportunidades ocultas, riesgos, tendencias, movimientos de la competencia y próximos pasos para avanzar." },
     { q: "¿Qué son el Radar, las Misiones y los Insights?", a: "El Radar muestra señales importantes como oportunidades, riesgos, tendencias, competencia o puntos críticos. Las Misiones convierten esas señales en acciones concretas. Los Insights te ayudan a entender qué está pasando, por qué pasa y qué conviene hacer." },
     { q: "¿Puede analizar competencia, tendencias y predicciones?", a: "Sí. Puede ayudarte a observar competidores, detectar cambios del mercado, identificar oportunidades de posicionamiento, proyectar escenarios y anticipar posibles riesgos o movimientos relevantes para tu rubro." },
-    { q: "¿Necesito saber de inteligencia artificial para usarlo?", a: "No. Está pensado para usarse de forma simple. No necesitás conocimientos técnicos. Compartís información, hacés preguntas y recibís análisis, ideas, alertas, misiones y recomendaciones claras para accionar." },
+    { q: "¿Necesito saber de inteligencia artificial para usarlo?", a: "No. Está pensado para usarse de forma simple. No necesitás conocimientos técnicos. Compartís información, haces preguntas y recibís análisis, ideas, alertas, misiones y recomendaciones claras para accionar." },
     { q: "¿Puedo usarlo si mi negocio recién empieza o si ya está funcionando?", a: "Sí. Si estás empezando, te ayuda a ordenar propuesta, prioridades, ventas, comunicación y próximos pasos. Si tu negocio ya funciona, puede analizar lo que sucede, detectar mejoras, revisar puntos críticos y ayudarte a decidir mejor cada día." },
-    { q: "¿Hay versión gratis, planes pagos y posibilidad de cancelar?", a: "Sí. Podés empezar gratis para probar la plataforma y ver cómo puede ayudarte. Los planes pagos permiten usarla con más profundidad, frecuencia y capacidad. Además, podés cancelar cuando quieras, sin permanencias forzadas ni compromisos innecesarios." },
+    { q: "¿Hay versión gratis, planes pagos y posibilidad de cancelar?", a: "Sí. Puedes empezar gratis para probar la plataforma y ver cómo puede ayudarte. Los planes pagos permiten usarla con más profundidad, frecuencia y capacidad. Además, puedes cancelar cuando quieras, sin permanencias forzadas ni compromisos innecesarios." },
     { q: "¿Es seguro cargar información de mi negocio?", a: "Sí. La plataforma está pensada para trabajar con información importante de empresas, negocios y servicios. Tus datos se usan para personalizar tu experiencia y generar mejores análisis para vos, no para exponer ni compartir información sensible de tu empresa." },
   ];
 
@@ -1965,7 +1965,7 @@ const FinalCTA = memo(forwardRef<HTMLElement>((_props, _ref) => {
             Tu negocio merece decisiones con más claridad
           </h2>
           <p className="text-[15px] text-[#999] mb-8 leading-[1.7]">
-            Empezá gratis y descubrí cómo VISTACEO puede transformar la forma en que tomás decisiones.
+            Empieza gratis y descubrí cómo VISTACEO puede transformar la forma en que tomás decisiones.
           </p>
           <button onClick={() => navigate("/auth?mode=signup")}
             className="text-white px-10 py-4 rounded-xl text-[14.5px] font-medium transition-all duration-300 inline-flex items-center gap-2.5 hover:shadow-[0_12px_32px_rgba(38,146,220,0.2)] active:scale-[0.98] hover:-translate-y-0.5"
@@ -2073,7 +2073,7 @@ export default function LandingMinimalista() {
     <>
       <SiteHead
         title="VISTACEO — Inteligencia ejecutiva para tu negocio"
-        description="Centralizá la información de tu negocio, detectá prioridades y recibí acciones concretas cada día. Empezá gratis."
+        description="Centralizá la información de tu negocio, detectá prioridades y recibe acciones concretas cada día. Empieza gratis."
         path="/"
       />
 

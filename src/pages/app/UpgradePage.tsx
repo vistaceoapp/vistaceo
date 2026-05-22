@@ -106,7 +106,7 @@ const UpgradePage = () => {
               <PartyPopper className="w-10 h-10 text-success" />
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-2">¡Bienvenido a Pro!</h2>
-            <p className="text-muted-foreground mb-6">Tu pago fue procesado correctamente. Ya tenés acceso a todas las funciones premium.</p>
+            <p className="text-muted-foreground mb-6">Tu pago fue procesado correctamente. Ya tienes acceso a todas las funciones premium.</p>
             <Button className="w-full gradient-primary" onClick={() => navigate("/app")}>
               <Sparkles className="w-4 h-4 mr-2" />
               Ir al Dashboard
@@ -126,7 +126,7 @@ const UpgradePage = () => {
               <AlertCircle className="w-10 h-10 text-destructive" />
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-2">Pago no completado</h2>
-            <p className="text-muted-foreground mb-6">Hubo un problema con tu pago. Podés intentar nuevamente.</p>
+            <p className="text-muted-foreground mb-6">Hubo un problema con tu pago. Puedes intentar nuevamente.</p>
             <Button variant="outline" className="w-full" onClick={() => setPaymentStatus(null)}>Volver a intentar</Button>
           </CardContent>
         </Card>
@@ -143,7 +143,7 @@ const UpgradePage = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">Plan Pro Activo</h1>
-            <p className="text-muted-foreground">Tenés acceso a todas las funciones premium</p>
+            <p className="text-muted-foreground">Tienes acceso a todas las funciones premium</p>
           </div>
         </div>
         <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30">

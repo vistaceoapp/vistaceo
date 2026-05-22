@@ -4,8 +4,30 @@ import { ArrowRight, Sparkles, MessageCircle, Target, Compass, Activity } from "
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { useBrain } from "@/hooks/use-brain";
 import { getHealthStyle } from "@/lib/health-score-utils";
 import { cn } from "@/lib/utils";
+
+const DIMENSION_LABELS: Record<string, string> = {
+  reputation: "reputación",
+  profitability: "rentabilidad",
+  finances: "finanzas",
+  efficiency: "eficiencia operativa",
+  traffic: "captación de clientes",
+  team: "equipo",
+  growth: "crecimiento",
+};
+
+const FOCUS_LABELS: Record<string, string> = {
+  ventas: "aumentar ventas",
+  marketing: "atraer más clientes",
+  reputacion: "mejorar reputación",
+  eficiencia: "optimizar operación",
+  equipo: "fortalecer al equipo",
+  producto: "potenciar producto",
+  costos: "mejorar rentabilidad",
+  expansion: "abrir nuevos canales",
+};
 
 interface DashboardHeroProps {
   isMobile?: boolean;
@@ -21,6 +43,7 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
   const navigate = useNavigate();
   const { currentBusiness } = useBusiness();
   const { data } = useDashboardData();
+  const { brain } = useBrain();
 
   const greeting = useMemo(() => {
     const h = new Date().getHours();
@@ -31,39 +54,73 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
 
   const score = data.snapshotScore;
   const healthStyle = getHealthStyle(score);
-  const certainty = data.certaintyPct || 31; // fallback inicial — nunca 0
+  const certainty = data.certaintyPct || 31;
   const delta = score !== null && data.previousScore !== null ? score - data.previousScore : null;
 
-  // Texto adaptado al tipo de negocio/servicio
+  // Texto hiper-personalizado usando brain + dimensiones reales
   const visionLine = useMemo(() => {
     const name = currentBusiness?.name ?? "tu negocio";
     const cat = (currentBusiness?.category || "").toLowerCase();
     const isService = /servicio|consultor|estudio|asesor/.test(cat);
     const isPro = /profesion|coach|terapeut|abogad|medic|kinesi|psicolog|nutric/.test(cat);
     const isBrand = /marca|influencer|creador|personal/.test(cat);
-    const isEmpresa = /empresa|corporat|industri|fabrica|b2b/.test(cat);
+    const noun = isPro ? "tu práctica" : isService ? "tu servicio" : isBrand ? "tu marca" : "tu negocio";
 
-    const tail = isPro
-      ? "posicionamiento, captación de clientes y claridad de tu oferta profesional."
-      : isService
-      ? "captación, propuesta de valor y comunicación de tu servicio."
-      : isBrand
-      ? "visibilidad, autoridad y captación de oportunidades."
-      : isEmpresa
-      ? "ventas, procesos y decisiones de tu empresa."
-      : "captación, ventas y claridad comercial de tu negocio.";
+    // Identificar dimensión más débil y más fuerte de los sub-scores
+    const dims = Object.entries(data.subScores)
+      .filter(([, v]) => typeof v === "number") as [string, number][];
+    const sorted = [...dims].sort((a, b) => a[1] - b[1]);
+    const weakest = sorted[0];
+    const strongest = sorted[sorted.length - 1];
 
+    const focusKey = brain?.current_focus || "";
+    const focusLabel = FOCUS_LABELS[focusKey] || "";
+
+    // Señales concretas: rating, integraciones, señales procesadas
+    const rating = currentBusiness?.avg_rating;
+    const signals = brain?.total_signals || 0;
+    const mvc = brain?.mvc_completion_pct || 0;
+
+    const parts: string[] = [];
+
+    // Apertura con score real
     if (score === null) {
-      return `Ya armamos el diagnóstico inicial de ${name}. Detectamos oportunidades para mejorar ${tail}`;
+      parts.push(`${name} acaba de completar su diagnóstico inicial.`);
+    } else if (score >= 70) {
+      parts.push(`${name} está en zona saludable con ${score}/100.`);
+    } else if (score >= 50) {
+      parts.push(`${name} muestra una base estable con ${score}/100.`);
+    } else if (score >= 30) {
+      parts.push(`${name} tiene oportunidades claras de mejora (${score}/100).`);
+    } else {
+      parts.push(`${name} necesita atención urgente (${score}/100).`);
     }
-    if (score >= 70) {
-      return `${name} está en zona saludable. Capitalicemos oportunidades de ${tail}`;
+
+    // Palanca más urgente (dimensión débil)
+    if (weakest && weakest[1] < 60) {
+      const label = DIMENSION_LABELS[weakest[0]] || weakest[0];
+      parts.push(`Hoy la palanca más urgente es ${label} (${weakest[1]}/100).`);
+    } else if (focusLabel) {
+      parts.push(`Tu foco actual es ${focusLabel}.`);
+    } else {
+      parts.push(`Detectamos palancas en captación y claridad comercial.`);
     }
-    if (score >= 50) {
-      return `${name} muestra una base estable. Hay palancas claras en ${tail}`;
+
+    // Fortaleza para capitalizar
+    if (strongest && strongest[1] >= 65 && strongest[0] !== weakest?.[0]) {
+      const label = DIMENSION_LABELS[strongest[0]] || strongest[0];
+      parts.push(`Capitalicemos tu fortaleza en ${label}.`);
+    } else if (rating && rating >= 4.3) {
+      parts.push(`Tu reputación (${rating}★) es un activo a usar.`);
+    } else if (signals >= 10 && mvc >= 40) {
+      parts.push(`Con ${signals} señales procesadas, ya sé cómo recomendarte mejor.`);
+    } else if (certainty < 50) {
+      parts.push(`Contame más sobre ${noun} para subir mi certeza (hoy ${certainty}%).`);
     }
-    return `${name} tiene oportunidades críticas a resolver. Foco en ${tail}`;
-  }, [currentBusiness, score]);
+
+    return parts.join(" ");
+  }, [currentBusiness, score, data.subScores, brain, certainty]);
+
 
   const chips = [
     {
