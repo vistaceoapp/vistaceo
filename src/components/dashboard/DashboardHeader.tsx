@@ -27,6 +27,9 @@ export const DashboardHeader = ({ sidebarCollapsed }: DashboardHeaderProps) => {
   const { currentBusiness } = useBusiness();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isDashboard = location.pathname === "/app" || location.pathname === "/app/";
+  const { widgets, saveConfig, toggleWidget, reorderWidgets, resetToDefaults } = useWidgetConfig();
   const [fullName, setFullName] = useState("");
 
   useEffect(() => {
