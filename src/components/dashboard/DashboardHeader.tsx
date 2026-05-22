@@ -14,8 +14,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { InsightNotificationBell } from "@/components/app/InsightNotificationBell";
+import { DashboardEditor } from "@/components/app/DashboardEditor";
+import { useWidgetConfig } from "@/hooks/use-widget-config";
 
 interface DashboardHeaderProps {
   sidebarCollapsed: boolean;
