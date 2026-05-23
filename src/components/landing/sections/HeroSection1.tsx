@@ -213,7 +213,7 @@ const SIGNAL_CARDS = [
   { icon: AlertTriangle, label: "Riesgo detectado", title: "Tiempo de respuesta alto", detail: "Está afectando tu tasa de recompra en -8%", accentBg: "bg-destructive", accentText: "text-destructive" },
 ];
 
-export const HeroSection = memo(() => {
+export const HeroSection1 = memo(() => {
   const navigate = useNavigate();
   const activeUsers = useRealtimeCounter();
 
@@ -366,5 +366,5 @@ export const HeroSection = memo(() => {
   );
 });
 
-HeroSection.displayName = "HeroSection";
-export default HeroSection;
+HeroSection1.displayName = "HeroSection1";
+export default HeroSection1;
