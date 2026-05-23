@@ -1297,7 +1297,7 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
 
       if (!insertError) {
         opportunitiesInserted++;
-        areaSeenThisRun.add(area);
+        areaCountThisRun[area] = (areaCountThisRun[area] || 0) + 1;
         existingHashes.add(conceptHash);
         existingSignatures.add(intentSignature);
         existingItems.push({ id: "", title, description, source: opp.source });
