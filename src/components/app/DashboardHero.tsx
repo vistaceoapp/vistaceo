@@ -57,16 +57,13 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
   const certainty = data.certaintyPct || 31;
   const delta = score !== null && data.previousScore !== null ? score - data.previousScore : null;
 
-  // Texto hiper-personalizado usando brain + dimensiones reales
+  // Texto directo, hiper-personalizado: nombre + país + sector + palanca real
   const visionLine = useMemo(() => {
     const name = currentBusiness?.name ?? "tu negocio";
+    const country = (currentBusiness?.country || "").toUpperCase();
     const cat = (currentBusiness?.category || "").toLowerCase();
-    const isService = /servicio|consultor|estudio|asesor/.test(cat);
-    const isPro = /profesion|coach|terapeut|abogad|medic|kinesi|psicolog|nutric/.test(cat);
-    const isBrand = /marca|influencer|creador|personal/.test(cat);
-    const noun = isPro ? "tu práctica" : isService ? "tu servicio" : isBrand ? "tu marca" : "tu negocio";
 
-    // Identificar dimensión más débil y más fuerte de los sub-scores
+    // Dimensión más débil/fuerte
     const dims = Object.entries(data.subScores)
       .filter(([, v]) => typeof v === "number") as [string, number][];
     const sorted = [...dims].sort((a, b) => a[1] - b[1]);
@@ -75,50 +72,42 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
 
     const focusKey = brain?.current_focus || "";
     const focusLabel = FOCUS_LABELS[focusKey] || "";
-
-    // Señales concretas: rating, integraciones, señales procesadas
     const rating = currentBusiness?.avg_rating;
-    const signals = brain?.total_signals || 0;
-    const mvc = brain?.mvc_completion_pct || 0;
 
-    const parts: string[] = [];
-
-    // Apertura con score real
+    // CASO 1: sin datos todavía → directo y honesto
     if (score === null) {
-      parts.push(`${name} acaba de completar su diagnóstico inicial.`);
-    } else if (score >= 70) {
-      parts.push(`${name} está en zona saludable con ${score}/100.`);
-    } else if (score >= 50) {
-      parts.push(`${name} muestra una base estable con ${score}/100.`);
-    } else if (score >= 30) {
-      parts.push(`${name} tiene oportunidades claras de mejora (${score}/100).`);
-    } else {
-      parts.push(`${name} necesita atención urgente (${score}/100).`);
+      return `${name} todavía no tiene diagnóstico. Completá 3 datos clave y en 2 minutos te muestro dónde estás perdiendo plata.`;
     }
 
-    // Palanca más urgente (dimensión débil)
-    if (weakest && weakest[1] < 60) {
+    // CASO 2: certeza muy baja → pedir info concreta
+    if (certainty < 35) {
+      return `Sé poco de ${name} (${certainty}% de certeza). Contame 3 cosas: cómo vendés hoy, quién es tu cliente y qué te frena. Con eso te doy una jugada real esta semana.`;
+    }
+
+    // CASO 3: hay palanca clara y débil → ir directo a ella
+    if (weakest && weakest[1] < 50) {
       const label = DIMENSION_LABELS[weakest[0]] || weakest[0];
-      parts.push(`Hoy la palanca más urgente es ${label} (${weakest[1]}/100).`);
-    } else if (focusLabel) {
-      parts.push(`Tu foco actual es ${focusLabel}.`);
-    } else {
-      parts.push(`Detectamos palancas en captación y claridad comercial.`);
+      const fortaleza = strongest && strongest[1] >= 65 && strongest[0] !== weakest[0]
+        ? ` Usá tu ${DIMENSION_LABELS[strongest[0]] || strongest[0]} como motor.`
+        : rating && rating >= 4.3
+        ? ` Tu reputación (${rating}★) es la palanca para empujar.`
+        : "";
+      return `${name}: el problema hoy es ${label} (${weakest[1]}/100). Si lo resolvés esta semana, subís 10+ puntos de salud.${fortaleza}`;
     }
 
-    // Fortaleza para capitalizar
-    if (strongest && strongest[1] >= 65 && strongest[0] !== weakest?.[0]) {
-      const label = DIMENSION_LABELS[strongest[0]] || strongest[0];
-      parts.push(`Capitalicemos tu fortaleza en ${label}.`);
-    } else if (rating && rating >= 4.3) {
-      parts.push(`Tu reputación (${rating}★) es un activo a usar.`);
-    } else if (signals >= 10 && mvc >= 40) {
-      parts.push(`Con ${signals} señales procesadas, ya sé cómo recomendarte mejor.`);
-    } else if (certainty < 50) {
-      parts.push(`Contame más sobre ${noun} para subir mi certeza (hoy ${certainty}%).`);
+    // CASO 4: salud alta → empujar crecimiento
+    if (score >= 70) {
+      const next = focusLabel ? ` Próximo paso: ${focusLabel}.` : ` Es momento de escalar lo que ya funciona.`;
+      return `${name} está fuerte (${score}/100). Acá no se trata de arreglar, se trata de crecer.${next}`;
     }
 
-    return parts.join(" ");
+    // CASO 5: zona media → palanca + acción concreta
+    const palanca = weakest
+      ? `Hoy te conviene atacar ${DIMENSION_LABELS[weakest[0]] || weakest[0]}`
+      : focusLabel
+      ? `Tu foco esta semana es ${focusLabel}`
+      : `Falta empujar captación y conversión`;
+    return `${name} está en ${score}/100 — terreno para crecer. ${palanca} para mover la aguja rápido.`;
   }, [currentBusiness, score, data.subScores, brain, certainty]);
 
 
