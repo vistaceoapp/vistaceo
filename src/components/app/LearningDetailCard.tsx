@@ -47,50 +47,28 @@ interface LearningDetailCardProps {
 }
 
 // Get type-specific info
+import { translateTag } from "@/lib/i18nTags";
+
 const getTypeInfo = (itemType: string) => {
   switch (itemType) {
     case "trend":
-      return { 
-        icon: TrendingUp, 
-        label: "Tendencia", 
-        color: "text-accent",
-        category: "Investigación"
-      };
+      return { icon: TrendingUp, label: "Tendencia", color: "text-accent", category: "Investigación" };
     case "benchmark":
-      return { 
-        icon: BarChart3, 
-        label: "Benchmark", 
-        color: "text-primary",
-        category: "Análisis"
-      };
+      return { icon: BarChart3, label: "Comparativa", color: "text-primary", category: "Análisis" };
     case "opportunity":
-      return { 
-        icon: Target, 
-        label: "Oportunidad", 
-        color: "text-success",
-        category: "Desarrollo"
-      };
+      return { icon: Target, label: "Oportunidad", color: "text-success", category: "Desarrollo" };
     case "tactic":
-      return { 
-        icon: Zap, 
-        label: "Táctica", 
-        color: "text-warning",
-        category: "Desarrollo"
-      };
+      return { icon: Zap, label: "Táctica", color: "text-warning", category: "Desarrollo" };
     case "insight":
-      return { 
-        icon: Lightbulb, 
-        label: "Insight", 
-        color: "text-primary",
-        category: "Investigación"
-      };
+      return { icon: Lightbulb, label: "Hallazgo", color: "text-primary", category: "Investigación" };
+    case "innovation":
+      return { icon: Lightbulb, label: "Innovación", color: "text-accent", category: "I+D" };
+    case "market_signal":
+      return { icon: TrendingUp, label: "Señal de mercado", color: "text-primary", category: "Análisis" };
+    case "case_study":
+      return { icon: BarChart3, label: "Caso de estudio", color: "text-primary", category: "Investigación" };
     default:
-      return { 
-        icon: Globe, 
-        label: "Externo", 
-        color: "text-accent",
-        category: "I+D"
-      };
+      return { icon: Globe, label: translateTag(itemType, "Externo"), color: "text-accent", category: "I+D" };
   }
 };
 
