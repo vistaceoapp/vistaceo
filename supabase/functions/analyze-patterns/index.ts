@@ -1061,41 +1061,51 @@ ${analysisContext}
     // OPPORTUNITIES MODE (INTERNO)
     // =====================================================================
     
-    const opportunitiesPrompt = `Sos un asesor de negocios experto para ${brain?.primary_business_type || "restaurantes"}. Analizá el contexto y generá oportunidades de mejora ULTRA-ESPECÍFICAS.
+    const opportunitiesPrompt = `Sos el CEO digital de ${business.name} (${brain?.primary_business_type || "negocio"}). Tu trabajo: detectar oportunidades INTERNAS accionables que ataquen el punto más débil del negocio y diversifiquen las áreas trabajadas.
 
 ${analysisContext}
 
-## REGLAS DE ORO:
-1. ❌ PROHIBIDO títulos genéricos tipo "Mejorar X" o "Optimizar Y"
-2. ✅ OBLIGATORIO incluir DATOS CONCRETOS en cada título (%, números, días, productos)
-3. ${locale.voice === "voseo" ? "✅ Hablale de VOS (implementá, creá, probá, fijate)" : "✅ Háblale de TÚ (implementa, crea, prueba, fíjate)"}
-4. ❌ PROHIBIDO tercera persona (El dueño, Se detectó, El negocio)
-5. 📊 Máximo 3 oportunidades de ALTA calidad
-6. 🎯 Cada oportunidad resuelve UN problema específico
-7. ❌ NO repetir conceptos de items existentes
+## 🔐 GATES DE CALIDAD (cumplir TODOS o descartar):
+- Gate 1 — Cero genérico: PROHIBIDO títulos vagos ("Mejorar X", "Optimizar Y"). Cada título lleva un dato concreto (%, número, día, producto, área).
+- Gate 2 — Cero solapamiento: ninguna oportunidad puede parecerse a otra dentro del lote ni a items existentes (ver lista de "ITEMS EXISTENTES" y "CONCEPTOS RECHAZADOS").
+- Gate 3 — Cero monocultivo: NO todas al mismo objetivo (no 3 promociones, no 3 descuentos, no 3 acciones de redes). Máximo 1 por área.
+- Gate 4 — Diversidad obligatoria entre estas áreas: ventas, marketing, operaciones, reputación, finanzas, equipo, producto, retención, web, local_maps. Priorizar áreas listadas como "poco trabajadas" en el diagnóstico.
+- Gate 5 — Anclaje a datos: cada oportunidad cita un dato/hipótesis del contexto en su campo "evidence.trigger".
+- Gate 6 — Acción → beneficio → impacto: cada oportunidad tiene acción clara, beneficio explícito y un impacto lógico medible.
+- Gate 7 — Sin inventar métricas: si falta información, declarar la hipótesis ("hipótesis prudente: ...") en vez de fabricar cifras duras.
+- Gate 8 — Priorizar alto impacto + esfuerzo bajo/medio + conexión directa con el punto débil principal (${priorities.weakest_dimension}).
 
-## FORMATO DE TÍTULO (minúsculas naturales):
-"[Acción específica]: [dato concreto del negocio]"
+## 🥇 OPORTUNIDAD RECOMENDADA (obligatorio):
+- Marcar EXACTAMENTE una con \`"is_recommended": true\`.
+- Esa oportunidad DEBE atacar la dimensión más débil: **${priorities.weakest_dimension}** (${priorities.weakest_score}/100).
+- Incluir \`"recommendation_reason"\` breve, tipo: "Recomendada primero porque ataca tu punto más débil (${priorities.weakest_dimension}) y puede destrabar mejoras en ${priorities.strongest_dimension}."
 
-Ejemplos CORRECTOS:
-✅ "Lanzar combo de mediodía: el 85% de tus clientes viene entre 12-14hs"
-✅ "Responder las 4 reseñas negativas de esta semana"
-✅ "Promoción para miércoles: es tu peor día con solo 2.1/5 de tráfico"
+## ESTILO:
+- ${locale.voice === "voseo" ? "Hablale de VOS al dueño (implementá, creá, probá, fijate)." : "Háblale de TÚ al dueño (implementa, crea, prueba, fíjate)."}
+- Prohibido tercera persona ("El dueño", "Se detectó", "El negocio").
+- Máximo 3 oportunidades de altísima calidad.
+- Capacidad de ejecución del negocio: ${priorities.effort_capacity} → calibrar effort_score.
 
-## FORMATO JSON:
+## CATEGORÍAS PERMITIDAS PARA "source" (en español, sin códigos):
+ventas | marketing | operaciones | reputación | finanzas | equipo | producto | retención | web | local_maps
+
+## FORMATO JSON ESTRICTO:
 {
   "opportunities": [
     {
       "title": "Título ultra-específico con dato concreto",
-      "description": "Explicación basada en evidencia real, hablando directo al dueño",
-      "impact_score": 1-10 (NO usar 5 por defecto),
-      "effort_score": 1-10 (NO usar 5 por defecto),
-      "source": "diagnóstico|tráfico|reseñas|ventas|marketing|equipo",
+      "description": "Acción → beneficio → impacto, hablando directo al dueño",
+      "impact_score": 1-10,
+      "effort_score": 1-10,
+      "source": "ventas|marketing|operaciones|reputación|finanzas|equipo|producto|retención|web|local_maps",
+      "area_tag": "misma categoría que source",
+      "is_recommended": true|false,
+      "recommendation_reason": "Solo si is_recommended=true",
       "evidence": {
-        "trigger": "¿Qué dato disparó esto?",
+        "trigger": "Dato/hipótesis concreto que disparó esto",
         "signals": ["señal 1", "señal 2"],
-        "dataPoints": número,
-        "basedOn": ["fuente específica"]
+        "dataPoints": 0,
+        "basedOn": ["fuente específica del contexto"]
       },
       "ai_plan": {
         "version": 1,
