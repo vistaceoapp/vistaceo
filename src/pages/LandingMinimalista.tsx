@@ -120,9 +120,9 @@ const Header = memo(() => {
       className={cn("vc-nav fixed top-0 left-0 right-0 z-50", scrolled && "scrolled")}
       style={{
         transition: "background-color 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease",
-        background: scrolled ? "rgba(255,255,255,0.85)" : "transparent",
-        backdropFilter: scrolled ? "saturate(180%) blur(18px)" : "none",
-        WebkitBackdropFilter: scrolled ? "saturate(180%) blur(18px)" : "none",
+        background: scrolled || mobileOpen ? "rgba(255,255,255,0.95)" : "transparent",
+        backdropFilter: scrolled || mobileOpen ? "saturate(180%) blur(18px)" : "none",
+        WebkitBackdropFilter: scrolled || mobileOpen ? "saturate(180%) blur(18px)" : "none",
         boxShadow: scrolled ? "0 1px 0 rgba(0,0,0,0.06), 0 2px 12px rgba(0,0,0,0.06)" : "none",
         borderBottom: "1px solid transparent",
       }}
