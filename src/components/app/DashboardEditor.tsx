@@ -73,25 +73,32 @@ export const DashboardEditor = ({
     setDraggedItem(widgetId);
     dragSection.current = section;
     e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", widgetId); } catch {}
   };
 
   const handleDragOver = (e: React.DragEvent, index: number, section: "main" | "sidebar") => {
     e.preventDefault();
-    if (dragSection.current === section) {
-      setDragOverIndex(index);
+    e.dataTransfer.dropEffect = "move";
+    if (dragSection.current === section) setDragOverIndex(index);
+  };
+
+  const handleDrop = (e: React.DragEvent, index: number, section: "main" | "sidebar") => {
+    e.preventDefault();
+    if (!draggedItem || dragSection.current !== section) {
+      setDraggedItem(null);
+      setDragOverIndex(null);
+      return;
     }
+    const sectionWidgets = section === "main" ? mainWidgets : sidebarWidgets;
+    const fromIndex = sectionWidgets.findIndex(w => w.id === draggedItem);
+    if (fromIndex !== -1 && fromIndex !== index) {
+      onReorder(section, fromIndex, index);
+    }
+    setDraggedItem(null);
+    setDragOverIndex(null);
   };
 
   const handleDragEnd = () => {
-    if (draggedItem !== null && dragOverIndex !== null) {
-      const section = dragSection.current;
-      const sectionWidgets = section === "main" ? mainWidgets : sidebarWidgets;
-      const fromIndex = sectionWidgets.findIndex(w => w.id === draggedItem);
-      
-      if (fromIndex !== -1 && fromIndex !== dragOverIndex) {
-        onReorder(section, fromIndex, dragOverIndex);
-      }
-    }
     setDraggedItem(null);
     setDragOverIndex(null);
   };
