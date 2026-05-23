@@ -475,7 +475,7 @@ const ChatPage = () => {
           isMobile ? "px-3 py-2.5" : "px-5 py-3"
         )}>
           <div className="flex items-center gap-3">
-            <CEOAvatar size={isMobile ? "sm" : "md"} isSpeaking={isPlayingAudio} isThinking={loading} />
+            <CEOAvatar size={isMobile ? "sm" : "md"} isThinking={loading} />
             <div className="min-w-0">
               <h1 className={cn(
                 "font-bold text-foreground truncate",
