@@ -1184,8 +1184,14 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
     let opportunitiesInserted = 0;
     let opportunitiesFiltered = 0;
 
-    // ── DIVERSITY GATE: max 1 oportunidad por área en este lote ──
-    const areaSeenThisRun = new Set<string>();
+    // ── DIVERSITY GATE: max 1 por área, salvo área(s) más débil(es) (hasta 2-3) ──
+    // Determinar áreas "débiles" donde se permite mayor concentración:
+    //   - weakest_score < 40 → hasta 3 oportunidades en esa área
+    //   - weakest_score < 55 → hasta 2 oportunidades en esa área
+    //   - resto de áreas → máximo 1
+    const weakArea = inferAreaFromSource(priorities.weakest_dimension);
+    const weakAreaQuota = priorities.weakest_score < 40 ? 3 : (priorities.weakest_score < 55 ? 2 : 1);
+    const areaCountThisRun: Record<string, number> = {};
     const rawOpps: any[] = Array.isArray(analysis.opportunities) ? [...analysis.opportunities] : [];
 
     rawOpps.sort((a, b) => {
@@ -1214,8 +1220,10 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
       }
 
       const area = inferAreaFromSource(opp?.area_tag || opp?.source || title);
-      if (areaSeenThisRun.has(area)) {
-        console.log(`Filtered (diversity gate, área ya cubierta "${area}"): "${title}"`);
+      const quota = area === weakArea ? weakAreaQuota : 1;
+      const seen = areaCountThisRun[area] || 0;
+      if (seen >= quota) {
+        console.log(`Filtered (diversity gate, área "${area}" llena ${seen}/${quota}): "${title}"`);
         opportunitiesFiltered++;
         continue;
       }
