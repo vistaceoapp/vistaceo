@@ -76,7 +76,7 @@ const MorePage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
-  const [userMode, setUserMode] = useState<"nano" | "standard" | "proactive" | "eres">("standard");
+  const [userMode, setUserMode] = useState<"nano" | "standard" | "proactive" | "sos">("standard");
 
   useEffect(() => {
     if (currentBusiness) {
