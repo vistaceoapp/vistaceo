@@ -279,13 +279,13 @@ const FLOATING_INSIGHTS = [
 
 const StatueIntelligenceScene = memo(() => {
   return (
-    <div className="relative w-full aspect-[4/5] max-w-[560px] mx-auto">
-      {/* Ambient glow behind the statue */}
+    <div className="relative w-full aspect-[4/5] max-w-[560px] mx-auto overflow-visible">
+      {/* Ambient glow behind the statue — extended beyond bounds so it never gets cropped */}
       <div
-        className="absolute inset-0 rounded-[40%] blur-[100px] opacity-60 pointer-events-none"
+        className="absolute -inset-[18%] rounded-[40%] blur-[110px] opacity-60 pointer-events-none"
         style={{
           background:
-            "radial-gradient(60% 60% at 50% 50%, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.18) 45%, transparent 75%)",
+            "radial-gradient(60% 60% at 50% 50%, hsl(var(--primary) / 0.32) 0%, hsl(var(--accent) / 0.18) 45%, transparent 75%)",
         }}
       />
       <div
@@ -303,6 +303,7 @@ const StatueIntelligenceScene = memo(() => {
           WebkitMask: "radial-gradient(circle, transparent 62%, black 63%, black 64%, transparent 65%)",
         }}
       />
+
 
       {/* The protagonist — Greek strategist */}
       <img
