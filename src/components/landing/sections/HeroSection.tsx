@@ -1,12 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, ChevronDown, Target, Eye, BarChart3, AlertTriangle, Lightbulb, Zap, Radar, TrendingUp } from "lucide-react";
+import { ArrowRight, Sparkles, ChevronDown, Target, Eye, BarChart3, AlertTriangle, Lightbulb, Zap, Radar, TrendingUp, Star, FlaskConical, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState, useRef, useEffect, memo, useMemo, useCallback, lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
-
-// Lazy-load the protagonist scene so it never blocks LCP / FCP
-const IntelligenceFlow = lazy(() => import("@/components/landing/IntelligenceFlow"));
+import figuraVistaceo from "@/assets/figura-vistaceo.png";
 
 // Business photos - optimized WebP at 2x carousel display size (230px)
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=230&format=webp";
@@ -236,20 +234,6 @@ export const HeroSection = memo(() => {
         <div className="absolute bottom-0 -right-1/4 w-[60%] h-[50%] bg-accent/8 rounded-full blur-[150px]" />
       </div>
 
-      {/* FULL-WIDTH INTELLIGENCE SCENE — cinematic hero canvas */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <Suspense fallback={null}>
-          <IntelligenceFlow />
-        </Suspense>
-        {/* Veil to keep copy crisp on the left third (desktop only) */}
-        <div
-          className="hidden lg:block absolute inset-y-0 left-0 w-[55%] pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(90deg, hsl(var(--background) / 0.85) 0%, hsl(var(--background) / 0.6) 45%, hsl(var(--background) / 0) 100%)",
-          }}
-        />
-      </div>
 
       {/* Main Hero Content — copy left, scene full-bleed behind */}
       <div className="container mx-auto px-4 relative z-10">
@@ -317,8 +301,10 @@ export const HeroSection = memo(() => {
             </div>
           </div>
 
-          {/* RIGHT spacer — scene already lives full-bleed behind */}
-          <div className="hidden lg:block lg:col-span-6" aria-hidden="true" />
+          {/* RIGHT: Greek statue protagonist + floating insight microcards */}
+          <div className="lg:col-span-6 relative" aria-hidden="true">
+            <StatueIntelligenceScene />
+          </div>
         </div>
 
         {/* Executive Intelligence Signal Cards - condensed below */}
