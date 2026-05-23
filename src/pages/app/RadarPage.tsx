@@ -325,7 +325,7 @@ const RadarPage = () => {
     } finally {
       setGeneratingOpportunities(false);
     }
-  }, [currentBusiness, generatingOpportunities, fetchData, navigate]);
+  }, [currentBusiness, generatingOpportunities, fetchData, navigate, isPro]);
   
   // Generate research items proactively
   const generateResearchItems = useCallback(async () => {
@@ -405,7 +405,7 @@ const RadarPage = () => {
     } finally {
       setGeneratingResearch(false);
     }
-  }, [currentBusiness, brain, generatingResearch, fetchData, navigate]);
+  }, [currentBusiness, brain, generatingResearch, fetchData, navigate, isPro]);
 
   // Auto-scan effect: triggers ONLY if daily debounce in fetchData allowed it
   useEffect(() => {
