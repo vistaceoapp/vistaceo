@@ -187,7 +187,7 @@ const ChatPage = () => {
         variant: "destructive",
       });
     }
-  }, [stopAudio]);
+  }, []);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
