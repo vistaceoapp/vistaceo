@@ -23,7 +23,7 @@ import { ChatLearningPanel } from "@/components/chat/ChatLearningPanel";
 import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
 import { ChatSuggestedQuestions } from "@/components/chat/ChatSuggestedQuestions";
 import { SuggestedQuestionsButton } from "@/components/chat/SuggestedQuestionsButton";
-import { AudioSettings } from "@/components/chat/AudioSettingsPopover";
+
 
 interface MissionSuggestion {
   title: string;
