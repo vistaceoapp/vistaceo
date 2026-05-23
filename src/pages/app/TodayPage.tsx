@@ -16,7 +16,7 @@ import { TalkToCEOCard } from "@/components/app/TalkToCEOCard";
 import { ProUpgradeBanner } from "@/components/app/ProUpgradeBanner";
 import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
 import { PredictionsWidget } from "@/components/app/PredictionsWidget";
-import { SmartNextSteps } from "@/components/app/SmartNextSteps";
+
 import { PulseCheckinCard } from "@/components/app/PulseCheckinCard";
 import { WeeklyMetricsWidget } from "@/components/app/WeeklyMetricsWidget";
 import { RadarWidget } from "@/components/app/RadarWidget";
