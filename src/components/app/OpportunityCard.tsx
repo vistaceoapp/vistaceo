@@ -237,7 +237,7 @@ export const OpportunityCard = ({
           <div className="flex gap-1 flex-wrap">
             {drivers.slice(0, 3).map((driver, i) => (
               <Badge key={i} variant="secondary" className="text-[10px]">
-                {driver}
+                {translateTag(driver, "")}
               </Badge>
             ))}
           </div>
