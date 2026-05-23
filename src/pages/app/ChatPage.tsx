@@ -9,7 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
-import { safeLocalStorage } from "@/lib/safe-storage";
+
 
 // Chat components
 import { ChatWelcome } from "@/components/chat/ChatWelcome";
@@ -23,7 +23,7 @@ import { ChatLearningPanel } from "@/components/chat/ChatLearningPanel";
 import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
 import { ChatSuggestedQuestions } from "@/components/chat/ChatSuggestedQuestions";
 import { SuggestedQuestionsButton } from "@/components/chat/SuggestedQuestionsButton";
-import { AudioSettings } from "@/components/chat/AudioSettingsPopover";
+
 
 interface MissionSuggestion {
   title: string;
@@ -68,36 +68,11 @@ const ChatPage = () => {
 - Motivá sin exagerar
 - Adaptate al contexto: más técnico para métricas, más cercano para problemas personales`);
 
-  // Audio states
+  // Audio recording states (envío de audio de usuario; sin reproducción de voz del CEO)
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
-  
-  // Load audio settings from localStorage
-  const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => {
-    try {
-      const saved = safeLocalStorage.getItem("vistaceo-audio-settings");
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.log("Failed to load audio settings");
-    }
-    return {
-      enabled: true,
-      speed: 1.0,
-      autoPlay: true,
-    };
-  });
-  
+
   const [learningIndicator, setLearningIndicator] = useState(false);
-  
-  // Persist audio settings
-  useEffect(() => {
-    safeLocalStorage.setItem("vistaceo-audio-settings", JSON.stringify(audioSettings));
-    console.log("Audio settings updated:", audioSettings);
-  }, [audioSettings]);
 
   // File attachments
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
@@ -163,116 +138,9 @@ const ChatPage = () => {
     }
   };
 
-  // Use ref to always have current audio settings (avoids stale closure)
-  const audioSettingsRef = useRef(audioSettings);
-  useEffect(() => {
-    audioSettingsRef.current = audioSettings;
-  }, [audioSettings]);
-
-  // TTS Playback - uses ref to get current settings
-  const playAudioResponse = useCallback(
-    async (audioScript: string, messageId?: string) => {
-      const currentSettings = audioSettingsRef.current;
-      
-      // Check if audio is enabled
-      if (!currentSettings.enabled) {
-        console.log("Audio disabled, skipping TTS");
-        return;
-      }
-      
-      if (!audioScript) {
-        console.log("No audio script provided");
-        return;
-      }
-
-      try {
-        setIsPlayingAudio(true);
-        if (messageId) setPlayingMessageId(messageId);
-
-        // Use the user's session JWT so the edge function can identify the caller
-        // and enforce per-user limits. Falls back to publishable key for anon contexts.
-        const { data: { session } } = await supabase.auth.getSession();
-        const accessToken = session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({ 
-              text: audioScript,
-              speed: currentSettings.speed,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          console.log("TTS request failed, continuing without audio");
-          setIsPlayingAudio(false);
-          setPlayingMessageId(null);
-          return;
-        }
-
-        const data = await response.json();
-
-        if (!data.audioContent) {
-          console.log("TTS unavailable:", data.message || "No audio returned");
-          setIsPlayingAudio(false);
-          setPlayingMessageId(null);
-          return;
-        }
-
-        const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
-        const audio = new Audio(audioUrl);
-        
-        // Apply client-side playback rate for speeds > 1.2x
-        if (data.clientPlaybackRate && data.clientPlaybackRate > 1) {
-          audio.playbackRate = data.clientPlaybackRate;
-        }
-        
-        currentAudioRef.current = audio;
-
-        audio.onended = () => {
-          setIsPlayingAudio(false);
-          setPlayingMessageId(null);
-          currentAudioRef.current = null;
-        };
-
-        audio.onerror = () => {
-          setIsPlayingAudio(false);
-          setPlayingMessageId(null);
-          currentAudioRef.current = null;
-        };
-
-        await audio.play();
-      } catch (error) {
-        console.log("TTS error (silent fallback):", error);
-        setIsPlayingAudio(false);
-        setPlayingMessageId(null);
-      }
-    },
-    [] // No dependencies needed - uses ref
-  );
-
-  const stopAudio = useCallback(() => {
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current = null;
-      setIsPlayingAudio(false);
-      setPlayingMessageId(null);
-    }
-  }, []);
-
-  // Voice Recording
+  // Voice Recording (envío de audio del usuario → transcripción a texto)
   const startRecording = useCallback(async () => {
     try {
-      // Stop any playing audio first
-      stopAudio();
-      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: { echoCancellation: true, noiseSuppression: true } 
       });
@@ -319,7 +187,7 @@ const ChatPage = () => {
         variant: "destructive",
       });
     }
-  }, [stopAudio]);
+  }, []);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -541,18 +409,7 @@ const ChatPage = () => {
         newAssistantMsg,
       ]);
 
-      // Check current settings via ref for autoplay
-      const currentSettings = audioSettingsRef.current;
-      if (audioScript && currentSettings.enabled && currentSettings.autoPlay) {
-        console.log("Auto-playing audio response");
-        playAudioResponse(audioScript, newAssistantMsg.id);
-      } else {
-        console.log("Skipping auto-play:", { 
-          hasAudioScript: !!audioScript, 
-          enabled: currentSettings.enabled, 
-          autoPlay: currentSettings.autoPlay 
-        });
-      }
+      // Voz del CEO desactivada — el chat es 100% texto. Sólo se admite envío de audio del usuario.
 
       // Messages already updated via setMessages above — skip redundant fetch
     } catch (error) {
@@ -618,7 +475,7 @@ const ChatPage = () => {
           isMobile ? "px-3 py-2.5" : "px-5 py-3"
         )}>
           <div className="flex items-center gap-3">
-            <CEOAvatar size={isMobile ? "sm" : "md"} isSpeaking={isPlayingAudio} isThinking={loading} />
+            <CEOAvatar size={isMobile ? "sm" : "md"} isThinking={loading} />
             <div className="min-w-0">
               <h1 className={cn(
                 "font-bold text-foreground truncate",
@@ -696,14 +553,9 @@ const ChatPage = () => {
                   content={message.content}
                   timestamp={message.created_at}
                   hasLearning={message.hasLearning}
-                  audioScript={message.audioScript}
-                  isPlaying={playingMessageId === message.id}
-                  onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
-                  onReplayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
                   businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
                   businessId={currentBusiness.id}
                   index={idx}
-                  isSpeaking={playingMessageId === message.id}
                   attachments={message.attachments}
                   missionSuggestions={message.missionSuggestions}
                   isNew={message.isNew}
@@ -767,10 +619,6 @@ const ChatPage = () => {
             isRecording={isRecording}
             isTranscribing={isTranscribing}
             isLoading={loading}
-            audioSettings={audioSettings}
-            onAudioSettingsChange={setAudioSettings}
-            isPlayingAudio={isPlayingAudio}
-            onStopAudio={stopAudio}
             attachedFiles={attachedFiles}
             onAttachFiles={setAttachedFiles}
             onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}

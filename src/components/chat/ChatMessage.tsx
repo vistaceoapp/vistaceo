@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Brain, Volume2, Loader2, Check, CheckCheck, FileText, VolumeX } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Brain, Check, CheckCheck, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CEOAvatar } from "./CEOAvatar";
 import { cn } from "@/lib/utils";
@@ -131,22 +130,9 @@ export const ChatMessage = ({
             "inline-block rounded-2xl px-4 py-3 relative group transition-all duration-200",
             isUser
               ? "gradient-primary text-primary-foreground rounded-tr-md shadow-[var(--shadow-glow)]"
-              : "bg-card border border-border/40 text-foreground rounded-tl-md shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]",
-            audioScript && !isUser && "cursor-pointer"
+              : "bg-card border border-border/40 text-foreground rounded-tl-md shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]"
           )}
-          onClick={audioScript && !isUser && onReplayAudio ? onReplayAudio : undefined}
         >
-          {/* Replay audio badge */}
-          {audioScript && !isUser && (
-            <div className={cn(
-              "absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-all duration-200",
-              "gradient-primary text-primary-foreground rounded-full p-1.5 shadow-lg",
-              isPlaying && "opacity-100 animate-pulse"
-            )}>
-              {isPlaying ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
-            </div>
-          )}
-
           {isUser ? (
             <p className="text-sm leading-relaxed whitespace-pre-wrap">{content}</p>
           ) : (
@@ -195,25 +181,6 @@ export const ChatMessage = ({
               <Brain className="w-2.5 h-2.5" />
               Aprendido
             </Badge>
-          )}
-
-          {audioScript && !isUser && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "h-5 px-2 text-[10px] gap-1 rounded-full",
-                isPlaying ? "text-primary bg-primary/10" : "text-muted-foreground/50 hover:text-primary"
-              )}
-              onClick={onPlayAudio}
-              disabled={isPlaying}
-            >
-              {isPlaying ? (
-                <><Loader2 className="w-2.5 h-2.5 animate-spin" /><span>Reproduciendo</span></>
-              ) : (
-                <><Volume2 className="w-2.5 h-2.5" /><span>Escuchar</span></>
-              )}
-            </Button>
           )}
         </div>
       </div>

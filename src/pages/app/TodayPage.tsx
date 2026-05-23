@@ -50,6 +50,22 @@ const TodayPage = () => {
     }
   }, [dashboardLoading, currentBusiness, setupCompleted, navigate]);
 
+  // Scroll to widget when hash is present (e.g. /app#brain)
+  useEffect(() => {
+    if (dashboardLoading || widgetsLoading) return;
+    const hash = window.location.hash.replace("#", "");
+    if (!hash) return;
+    const t = setTimeout(() => {
+      const el = document.getElementById(`widget-${hash}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.classList.add("ring-2", "ring-primary/40", "rounded-3xl");
+        setTimeout(() => el.classList.remove("ring-2", "ring-primary/40", "rounded-3xl"), 2200);
+      }
+    }, 200);
+    return () => clearTimeout(t);
+  }, [dashboardLoading, widgetsLoading]);
+
   // Registry: widget id → renderer
   const renderWidget = useCallback((id: string): React.ReactNode => {
     switch (id) {
@@ -167,7 +183,7 @@ const TodayPage = () => {
     const nodes: React.ReactNode[] = [];
     mainVisible.forEach((w) => {
       const node = renderWidget(w.id);
-      if (node) nodes.push(<div key={w.id}>{node}</div>);
+      if (node) nodes.push(<div key={w.id} id={`widget-${w.id}`} className="scroll-mt-24">{node}</div>);
     });
     return nodes;
   };
@@ -176,7 +192,7 @@ const TodayPage = () => {
     const nodes: React.ReactNode[] = [];
     sidebarVisible.forEach((w) => {
       const node = renderWidget(w.id);
-      if (node) nodes.push(<div key={w.id}>{node}</div>);
+      if (node) nodes.push(<div key={w.id} id={`widget-${w.id}`} className="scroll-mt-24">{node}</div>);
     });
     return nodes;
   };

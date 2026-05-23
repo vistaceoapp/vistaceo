@@ -8,7 +8,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AudioSettingsPopover, AudioSettings } from "./AudioSettingsPopover";
 
 export interface AttachedFile {
   id: string;
@@ -26,10 +25,6 @@ interface ChatInputProps {
   isRecording: boolean;
   isTranscribing: boolean;
   isLoading: boolean;
-  audioSettings: AudioSettings;
-  onAudioSettingsChange: (settings: AudioSettings) => void;
-  isPlayingAudio?: boolean;
-  onStopAudio?: () => void;
   isMobile?: boolean;
   attachedFiles?: AttachedFile[];
   onAttachFiles?: (files: AttachedFile[]) => void;
@@ -45,10 +40,6 @@ export const ChatInput = ({
   isRecording,
   isTranscribing,
   isLoading,
-  audioSettings,
-  onAudioSettingsChange,
-  isPlayingAudio,
-  onStopAudio,
   isMobile,
   attachedFiles = [],
   onAttachFiles,
@@ -181,14 +172,8 @@ export const ChatInput = ({
 
         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
 
-        {/* Audio Settings */}
-        <AudioSettingsPopover
-          settings={audioSettings}
-          onSettingsChange={onAudioSettingsChange}
-          isPlaying={isPlayingAudio}
-          onStop={onStopAudio}
-          compact={isMobile}
-        />
+
+
 
         {/* Text input */}
         <div className="flex-1 min-w-0 relative">

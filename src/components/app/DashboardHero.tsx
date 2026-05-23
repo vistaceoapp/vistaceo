@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, MessageCircle, Target, Compass, Activity } from "lucide-react";
+import { ArrowRight, Sparkles, Target, Compass, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
@@ -111,18 +111,24 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
   }, [currentBusiness, score, data.subScores, brain, certainty]);
 
 
+  const scrollToWidget = (id: string) => {
+    const el = document.getElementById(`widget-${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.classList.add("ring-2", "ring-primary/40", "rounded-3xl");
+      setTimeout(() => el.classList.remove("ring-2", "ring-primary/40", "rounded-3xl"), 2200);
+    } else {
+      // Si el widget no está visible, llevar a la página con hash para que TodayPage lo monte y haga scroll
+      navigate(`/app#${id}`);
+    }
+  };
+
   const chips = [
     {
       key: "certainty",
       label: `Certeza ${certainty}%`,
       icon: Sparkles,
-      onClick: () =>
-        navigate(
-          "/app/chat?prompt=" +
-            encodeURIComponent(
-              "Quiero contarte más sobre mi negocio para mejorar tu certeza y diagnóstico."
-            )
-        ),
+      onClick: () => scrollToWidget("brain"),
     },
     {
       key: "opps",
@@ -289,22 +295,6 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
             <Compass className="w-4 h-4 mr-1.5" />
             Ver oportunidades
           </Button>
-          <button
-            type="button"
-            onClick={() =>
-              navigate(
-                "/app/chat?prompt=" +
-                  encodeURIComponent("Quiero contarte más sobre mi negocio para mejorar tus recomendaciones.")
-              )
-            }
-            className={cn(
-              "inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors",
-              isMobile ? "justify-center mt-1" : "ml-1"
-            )}
-          >
-            <MessageCircle className="w-4 h-4" />
-            Contarle más a mi CEO
-          </button>
         </div>
       </div>
     </section>
