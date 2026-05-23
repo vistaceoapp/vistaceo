@@ -125,7 +125,6 @@ const ID_NATURES = [
 ];
 
 // Helper: translate item_type to Spanish (delegado al traductor central)
-import { translateTag } from "@/lib/i18nTags";
 const translateItemType = (itemType: string | null): string => {
   return translateTag(itemType, "General");
 };
