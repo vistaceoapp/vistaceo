@@ -409,18 +409,7 @@ const ChatPage = () => {
         newAssistantMsg,
       ]);
 
-      // Check current settings via ref for autoplay
-      const currentSettings = audioSettingsRef.current;
-      if (audioScript && currentSettings.enabled && currentSettings.autoPlay) {
-        console.log("Auto-playing audio response");
-        playAudioResponse(audioScript, newAssistantMsg.id);
-      } else {
-        console.log("Skipping auto-play:", { 
-          hasAudioScript: !!audioScript, 
-          enabled: currentSettings.enabled, 
-          autoPlay: currentSettings.autoPlay 
-        });
-      }
+      // Voz del CEO desactivada — el chat es 100% texto. Sólo se admite envío de audio del usuario.
 
       // Messages already updated via setMessages above — skip redundant fetch
     } catch (error) {
