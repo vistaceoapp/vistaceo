@@ -436,10 +436,10 @@ const HeroSection = () => {
             </Reveal>
           </div>
 
-          {/* ── Visual: Intelligence Panel ── */}
+          {/* ── Visual: Greek strategist (VISTACEO brain) ── */}
           <Reveal delay={120} distance={24}>
             <div className="relative">
-              <PromoIntelligencePanel variant="light" />
+              <StatueIntelligenceScene />
             </div>
           </Reveal>
         </div>
