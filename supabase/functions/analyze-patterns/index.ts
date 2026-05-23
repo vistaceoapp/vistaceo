@@ -1181,20 +1181,45 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
     let opportunitiesInserted = 0;
     let opportunitiesFiltered = 0;
 
-    for (const opp of analysis.opportunities || []) {
+    // ── DIVERSITY GATE: max 1 oportunidad por área en este lote ──
+    const areaSeenThisRun = new Set<string>();
+    const rawOpps: any[] = Array.isArray(analysis.opportunities) ? [...analysis.opportunities] : [];
+
+    rawOpps.sort((a, b) => {
+      const ar = a?.is_recommended ? 1 : 0;
+      const br = b?.is_recommended ? 1 : 0;
+      if (ar !== br) return br - ar;
+      const aScore = (a?.impact_score || 5) * 2 - (a?.effort_score || 5);
+      const bScore = (b?.impact_score || 5) * 2 - (b?.effort_score || 5);
+      return bScore - aScore;
+    });
+
+    if (rawOpps.length > 0 && !rawOpps.some(o => o?.is_recommended)) {
+      rawOpps[0].is_recommended = true;
+      rawOpps[0].recommendation_reason = priorities.recommended_reason;
+    }
+
+    let recommendedAlreadyAssigned = false;
+
+    for (const opp of rawOpps) {
       const title = String(opp?.title || "").trim();
       const description = String(opp?.description || "").trim();
-      
+
       if (!title || title.length < 10 || !description || description.length < 20) {
         opportunitiesFiltered++;
         continue;
       }
 
-      // Generate hashes
+      const area = inferAreaFromSource(opp?.area_tag || opp?.source || title);
+      if (areaSeenThisRun.has(area)) {
+        console.log(`Filtered (diversity gate, área ya cubierta "${area}"): "${title}"`);
+        opportunitiesFiltered++;
+        continue;
+      }
+
       const conceptHash = generateConceptHash(title, description, opp.source);
       const intentSignature = generateIntentSignature(title, description);
 
-      // Run quality gates
       const gateResult = runQualityGates(
         {
           title,
@@ -1217,8 +1242,7 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
         continue;
       }
 
-      // Check semantic similarity as final check
-      const isDupe = existingItems.some(ex => 
+      const isDupe = existingItems.some(ex =>
         calculateSimilarity(title, ex.title) > 0.5 ||
         calculateSimilarity(`${title} ${description}`, `${ex.title} ${ex.description || ""}`) > 0.55
       );
@@ -1228,7 +1252,23 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
         continue;
       }
 
-      // Insert opportunity with all new fields
+      const isRecommended = !!opp.is_recommended && !recommendedAlreadyAssigned;
+      if (isRecommended) recommendedAlreadyAssigned = true;
+
+      const enrichedEvidence = {
+        ...(opp.evidence || {}),
+        area_tag: area,
+        is_recommended: isRecommended,
+        recommendation_reason: isRecommended
+          ? (opp.recommendation_reason || priorities.recommended_reason)
+          : undefined,
+        priority_context: {
+          weakest_dimension: priorities.weakest_dimension,
+          weakest_score: priorities.weakest_score,
+          main_goal: priorities.main_goal,
+        },
+      };
+
       const { error: insertError } = await supabase.from("opportunities").insert({
         business_id: businessId,
         title,
@@ -1236,20 +1276,21 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
         source: opp.source || "diagnóstico",
         impact_score: opp.impact_score || 5,
         effort_score: opp.effort_score || 5,
-        evidence: opp.evidence || {},
+        evidence: enrichedEvidence,
         concept_hash: conceptHash,
         intent_signature: intentSignature,
         ai_plan_json: opp.ai_plan || {},
         quality_gate_score: gateResult.score,
-        quality_gate_details: { gates: gateResult.gates }
+        quality_gate_details: { gates: gateResult.gates, area_tag: area, is_recommended: isRecommended }
       });
 
       if (!insertError) {
         opportunitiesInserted++;
+        areaSeenThisRun.add(area);
         existingHashes.add(conceptHash);
         existingSignatures.add(intentSignature);
         existingItems.push({ id: "", title, description, source: opp.source });
-        console.log(`Inserted opportunity: "${title}" (score: ${gateResult.score})`);
+        console.log(`Inserted opportunity [${area}${isRecommended ? " ⭐ recommended" : ""}]: "${title}" (score: ${gateResult.score})`);
       }
     }
 
