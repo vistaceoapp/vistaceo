@@ -825,7 +825,18 @@ serve(async (req) => {
 
     const mode = typeof type === "string" ? type : "opportunities";
 
-    // Build context
+    // Build context + priorities diagnosis
+    const priorities = computeBusinessPriorities(
+      business,
+      brain,
+      snapshotsRes.data || [],
+      checkinsRes.data || [],
+      externalDataRes.data || [],
+      existingItems,
+      focusConfigRes.data
+    );
+    console.log(`[analyze-patterns] Priorities → weakest=${priorities.weakest_dimension}(${priorities.weakest_score}) goal=${priorities.main_goal} covered=[${priorities.covered_areas.join(",")}]`);
+
     const analysisContext = buildAnalysisContext(
       business,
       brain,
@@ -840,7 +851,7 @@ serve(async (req) => {
       existingItems,
       rejectedConcepts,
       locale
-    );
+    ) + buildPrioritiesBlock(priorities);
 
     // =====================================================================
     // RESEARCH MODE (I+D EXTERNO)
