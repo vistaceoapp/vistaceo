@@ -111,18 +111,24 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
   }, [currentBusiness, score, data.subScores, brain, certainty]);
 
 
+  const scrollToWidget = (id: string) => {
+    const el = document.getElementById(`widget-${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.classList.add("ring-2", "ring-primary/40", "rounded-3xl");
+      setTimeout(() => el.classList.remove("ring-2", "ring-primary/40", "rounded-3xl"), 2200);
+    } else {
+      // Si el widget no está visible, llevar a la página con hash para que TodayPage lo monte y haga scroll
+      navigate(`/app#${id}`);
+    }
+  };
+
   const chips = [
     {
       key: "certainty",
       label: `Certeza ${certainty}%`,
       icon: Sparkles,
-      onClick: () =>
-        navigate(
-          "/app/chat?prompt=" +
-            encodeURIComponent(
-              "Quiero contarte más sobre mi negocio para mejorar tu certeza y diagnóstico."
-            )
-        ),
+      onClick: () => scrollToWidget("brain"),
     },
     {
       key: "opps",
