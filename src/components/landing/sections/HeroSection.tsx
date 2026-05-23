@@ -464,9 +464,10 @@ export const HeroSection = memo(() => {
           </div>
 
           {/* RIGHT: Greek statue protagonist + floating insight microcards */}
-          <div className="lg:col-span-6 relative" aria-hidden="true">
+          <div className="lg:col-span-6 relative overflow-visible" aria-hidden="true">
             <StatueIntelligenceScene />
           </div>
+
         </div>
 
         {/* Executive Intelligence Signal Cards - condensed below */}
