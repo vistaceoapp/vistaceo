@@ -76,23 +76,23 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
 
     // CASO 1: sin datos todavía → directo y honesto
     if (score === null) {
-      return `${name} todavía no tiene diagnóstico. Completá 3 datos clave y en 2 minutos te muestro dónde estás perdiendo plata.`;
+      return `${name} todavía no tiene diagnóstico. Completa 3 datos clave y en 2 minutos te muestro dónde estás perdiendo plata.`;
     }
 
     // CASO 2: certeza muy baja → pedir info concreta
     if (certainty < 35) {
-      return `Sé poco de ${name} (${certainty}% de certeza). Contame 3 cosas: cómo vendés hoy, quién es tu cliente y qué te frena. Con eso te doy una jugada real esta semana.`;
+      return `Sé poco de ${name} (${certainty}% de certeza). Cuéntame 3 cosas: cómo vendes hoy, quién es tu cliente y qué te frena. Con eso te doy una jugada real esta semana.`;
     }
 
     // CASO 3: hay palanca clara y débil → ir directo a ella
     if (weakest && weakest[1] < 50) {
       const label = DIMENSION_LABELS[weakest[0]] || weakest[0];
       const fortaleza = strongest && strongest[1] >= 65 && strongest[0] !== weakest[0]
-        ? ` Usá tu ${DIMENSION_LABELS[strongest[0]] || strongest[0]} como motor.`
+        ? ` Usa tu ${DIMENSION_LABELS[strongest[0]] || strongest[0]} como motor.`
         : rating && rating >= 4.3
         ? ` Tu reputación (${rating}★) es la palanca para empujar.`
         : "";
-      return `${name}: el problema hoy es ${label} (${weakest[1]}/100). Si lo resolvés esta semana, subís 10+ puntos de salud.${fortaleza}`;
+      return `${name}: el problema hoy es ${label} (${weakest[1]}/100). Si lo resuelves esta semana, subes 10+ puntos de salud.${fortaleza}`;
     }
 
     // CASO 4: salud alta → empujar crecimiento
@@ -103,7 +103,7 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
 
     // CASO 5: zona media → palanca + acción concreta
     const palanca = weakest
-      ? `Hoy te conviene atacar ${DIMENSION_LABELS[weakest[0]] || weakest[0]}`
+      ? `Hoy conviene atacar ${DIMENSION_LABELS[weakest[0]] || weakest[0]}`
       : focusLabel
       ? `Tu foco esta semana es ${focusLabel}`
       : `Falta empujar captación y conversión`;
