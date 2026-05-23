@@ -25,6 +25,17 @@
       ]
     }
   ],
+  "redirects": [
+    { "source": "/minimalista", "destination": "/", "permanent": true },
+    { "source": "/onboarding", "destination": "/setup", "permanent": true },
+    { "source": "/welcome-pro", "destination": "/bienvenido-pro", "permanent": true },
+    { "source": "/dashboard", "destination": "/app", "permanent": true },
+    { "source": "/blog", "destination": "https://blog.vistaceo.com/", "permanent": true },
+    { "source": "/blog/:path*", "destination": "https://blog.vistaceo.com/:path*", "permanent": true },
+    { "source": "/v2", "destination": "/", "permanent": true },
+    { "source": "/v3", "destination": "/", "permanent": true },
+    { "source": "/ultra", "destination": "/", "permanent": true }
+  ],
   "routes": [
     { "handle": "filesystem" },
     { "src": "^(.*)$", "dest": "/index.html" }
