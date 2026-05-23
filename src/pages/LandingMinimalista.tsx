@@ -120,9 +120,9 @@ const Header = memo(() => {
       className={cn("vc-nav fixed top-0 left-0 right-0 z-50", scrolled && "scrolled")}
       style={{
         transition: "background-color 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease",
-        background: scrolled ? "rgba(255,255,255,0.85)" : "transparent",
-        backdropFilter: scrolled ? "saturate(180%) blur(18px)" : "none",
-        WebkitBackdropFilter: scrolled ? "saturate(180%) blur(18px)" : "none",
+        background: scrolled || mobileOpen ? "rgba(255,255,255,0.95)" : "transparent",
+        backdropFilter: scrolled || mobileOpen ? "saturate(180%) blur(18px)" : "none",
+        WebkitBackdropFilter: scrolled || mobileOpen ? "saturate(180%) blur(18px)" : "none",
         boxShadow: scrolled ? "0 1px 0 rgba(0,0,0,0.06), 0 2px 12px rgba(0,0,0,0.06)" : "none",
         borderBottom: "1px solid transparent",
       }}
@@ -163,19 +163,29 @@ const Header = memo(() => {
         </button>
       </div>
 
-      <div className={cn(
-        "md:hidden overflow-hidden transition-all duration-500 bg-white/80 backdrop-blur-2xl border-t border-[#f0f0f0] shadow-[0_8px_24px_rgba(0,0,0,0.06)]",
-        mobileOpen ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0"
-      )}>
-        <div className="px-6 py-5 space-y-1">
+      <div
+        className={cn(
+          "md:hidden absolute left-0 right-0 top-full overflow-hidden transition-[max-height,opacity] duration-400 ease-out",
+          mobileOpen ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+        )}
+        style={{
+          background: "#ffffff",
+          WebkitBackdropFilter: "saturate(180%) blur(20px)",
+          backdropFilter: "saturate(180%) blur(20px)",
+          borderTop: "1px solid #efefef",
+          boxShadow: "0 14px 32px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.04)",
+          zIndex: 60,
+        }}
+      >
+        <div className="px-6 py-5 space-y-1 bg-white">
           {NAV_LINKS.map(item => (
-            <button key={item.label} onClick={() => scrollTo(item.href)} className="block w-full text-left text-[15px] text-[#444] py-3 border-b border-[#f5f5f5] last:border-0 bg-transparent">
+            <button key={item.label} onClick={() => scrollTo(item.href)} className="block w-full text-left text-[15px] text-[#222] py-3 border-b border-[#eee] last:border-0 bg-transparent">
               {item.label}
             </button>
           ))}
           <div className="pt-4 flex flex-col gap-2.5">
             <button onClick={() => { navigate("/auth"); setMobileOpen(false); }} className="text-[15px] text-[#666] py-2.5 text-left bg-transparent">Ingresar</button>
-            <button onClick={() => { navigate("/auth?mode=signup"); setMobileOpen(false); }} 
+            <button onClick={() => { navigate("/auth?mode=signup"); setMobileOpen(false); }}
               className="text-[15px] text-white px-5 py-3.5 rounded-xl font-medium w-full"
               style={{ background: ACCENT_GRADIENT }}>
               Empezar gratis

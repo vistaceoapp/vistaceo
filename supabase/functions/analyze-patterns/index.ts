@@ -385,8 +385,151 @@ function getSectorQueries(businessType: string, focus: string): string[] {
 }
 
 // =====================================================================
+// BUSINESS PRIORITIES ENGINE (Diagnóstico previo a la generación)
+// =====================================================================
+
+interface BusinessPriorities {
+  weakest_dimension: string;
+  weakest_score: number;
+  strongest_dimension: string;
+  strongest_score: number;
+  main_goal: string;
+  covered_areas: string[]; // áreas ya saturadas por oportunidades previas
+  underworked_areas: string[]; // áreas poco trabajadas → priorizar diversidad
+  effort_capacity: "baja" | "media" | "alta";
+  risks: string[];
+  recommended_focus: string; // dimensión a atacar primero
+  recommended_reason: string;
+}
+
+const ALL_AREAS = [
+  "ventas", "marketing", "operaciones", "reputacion", "finanzas",
+  "equipo", "producto", "retencion", "web", "local_maps", "ide"
+];
+
+function inferAreaFromSource(source: string | null | undefined): string {
+  const s = (source || "").toLowerCase();
+  if (s.includes("venta") || s.includes("trafico") || s.includes("tráfico")) return "ventas";
+  if (s.includes("reseñ") || s.includes("reseña") || s.includes("review") || s.includes("reputa")) return "reputacion";
+  if (s.includes("marketing") || s.includes("redes") || s.includes("social")) return "marketing";
+  if (s.includes("operac") || s.includes("proceso")) return "operaciones";
+  if (s.includes("finan") || s.includes("costo") || s.includes("margen")) return "finanzas";
+  if (s.includes("equipo") || s.includes("personal")) return "equipo";
+  if (s.includes("producto") || s.includes("menu") || s.includes("menú")) return "producto";
+  if (s.includes("retencion") || s.includes("retención") || s.includes("fideliz")) return "retencion";
+  if (s.includes("web") || s.includes("sitio") || s.includes("seo")) return "web";
+  if (s.includes("maps") || s.includes("local") || s.includes("google business")) return "local_maps";
+  if (s.includes("i+d") || s.includes("innov") || s.includes("research")) return "ide";
+  return "ventas";
+}
+
+function computeBusinessPriorities(
+  business: any,
+  brain: any,
+  snapshots: any[],
+  checkins: any[],
+  externalData: any[],
+  existingItems: any[],
+  focusConfig: any
+): BusinessPriorities {
+  // 1) Dimensiones: del snapshot más reciente o derivado
+  const latestSnap = snapshots?.[0];
+  const dims: Record<string, number> = {};
+  const snapDims = latestSnap?.dimensions || latestSnap?.health_dimensions || latestSnap?.scores || {};
+  for (const [k, v] of Object.entries(snapDims)) {
+    const num = typeof v === "number" ? v : (typeof v === "object" && v !== null && "score" in v ? Number((v as any).score) : NaN);
+    if (!Number.isNaN(num)) dims[k.toLowerCase()] = num;
+  }
+  // Fallbacks heurísticos
+  if (!dims["reputacion"] && business?.avg_rating) {
+    dims["reputacion"] = Math.round((Number(business.avg_rating) / 5) * 100);
+  }
+  if (!dims["ventas"] && checkins.length > 0) {
+    const avgTraffic = checkins.reduce((a, c) => a + (c.traffic_level || 3), 0) / checkins.length;
+    dims["ventas"] = Math.round((avgTraffic / 5) * 100);
+  }
+
+  const dimEntries = Object.entries(dims);
+  let weakest_dimension = "ventas";
+  let weakest_score = 50;
+  let strongest_dimension = "reputacion";
+  let strongest_score = 50;
+  if (dimEntries.length > 0) {
+    const sorted = dimEntries.sort((a, b) => a[1] - b[1]);
+    weakest_dimension = sorted[0][0];
+    weakest_score = sorted[0][1];
+    strongest_dimension = sorted[sorted.length - 1][0];
+    strongest_score = sorted[sorted.length - 1][1];
+  }
+
+  // 2) Objetivo principal
+  const main_goal = String(
+    focusConfig?.primary_goal ||
+    brain?.current_focus ||
+    brain?.factual_memory?.objetivo_principal ||
+    "crecimiento sostenido"
+  );
+
+  // 3) Áreas ya cubiertas/saturadas (≥2 items en esa área)
+  const areaCount: Record<string, number> = {};
+  for (const it of existingItems) {
+    const area = inferAreaFromSource(it.source || it.title || "");
+    areaCount[area] = (areaCount[area] || 0) + 1;
+  }
+  const covered_areas = Object.entries(areaCount).filter(([, c]) => c >= 2).map(([a]) => a);
+  const underworked_areas = ALL_AREAS.filter(a => !areaCount[a] || areaCount[a] === 0);
+
+  // 4) Capacidad de esfuerzo
+  const teamSize = Number(brain?.factual_memory?.team_size || brain?.factual_memory?.empleados || 1);
+  const effortPref = String(brain?.preferences_memory?.effort_capacity || "").toLowerCase();
+  let effort_capacity: "baja" | "media" | "alta" = "media";
+  if (effortPref.includes("baja") || teamSize <= 1) effort_capacity = "baja";
+  else if (effortPref.includes("alta") || teamSize >= 5) effort_capacity = "alta";
+
+  // 5) Riesgos
+  const risks: string[] = [];
+  const negativeReviews = externalData.filter(d => d.data_type === "review" && (d.sentiment_score || 0) < -0.2).length;
+  if (negativeReviews >= 3) risks.push(`${negativeReviews} reseñas negativas recientes sin respuesta`);
+  if (weakest_score < 40) risks.push(`Dimensión ${weakest_dimension} en zona crítica (${weakest_score}/100)`);
+  if (checkins.length === 0) risks.push("Sin registros de tráfico → ceguera operativa");
+  if ((brain?.confidence_score || 0) < 30) risks.push("Cerebro con baja confianza → faltan datos clave");
+
+  // 6) Foco recomendado
+  const recommended_focus = weakest_dimension;
+  const recommended_reason = `Atacar ${weakest_dimension} (${weakest_score}/100) porque es la palanca más urgente del negocio y puede destrabar mejoras en otras áreas como ${strongest_dimension}.`;
+
+  return {
+    weakest_dimension,
+    weakest_score,
+    strongest_dimension,
+    strongest_score,
+    main_goal,
+    covered_areas,
+    underworked_areas,
+    effort_capacity,
+    risks,
+    recommended_focus,
+    recommended_reason,
+  };
+}
+
+function buildPrioritiesBlock(p: BusinessPriorities): string {
+  return `\n## 🎯 DIAGNÓSTICO PRIORITARIO (usar para priorizar y diversificar)
+- Punto más débil: **${p.weakest_dimension}** (${p.weakest_score}/100) ← atacar primero
+- Mayor fortaleza: ${p.strongest_dimension} (${p.strongest_score}/100)
+- Objetivo principal del usuario: ${p.main_goal}
+- Capacidad de ejecución: ${p.effort_capacity}
+- Áreas ya saturadas (NO repetir): ${p.covered_areas.length ? p.covered_areas.join(", ") : "ninguna"}
+- Áreas poco trabajadas (PRIORIZAR diversidad): ${p.underworked_areas.slice(0, 6).join(", ") || "ninguna"}
+- Riesgos detectados: ${p.risks.length ? p.risks.join(" · ") : "sin riesgos críticos"}
+- 👉 Foco recomendado: **${p.recommended_focus}** — ${p.recommended_reason}
+`;
+}
+
+// =====================================================================
 // CONTEXT BUILDER
 // =====================================================================
+
 
 function buildAnalysisContext(
   business: any,
@@ -682,7 +825,18 @@ serve(async (req) => {
 
     const mode = typeof type === "string" ? type : "opportunities";
 
-    // Build context
+    // Build context + priorities diagnosis
+    const priorities = computeBusinessPriorities(
+      business,
+      brain,
+      snapshotsRes.data || [],
+      checkinsRes.data || [],
+      externalDataRes.data || [],
+      existingItems,
+      focusConfigRes.data
+    );
+    console.log(`[analyze-patterns] Priorities → weakest=${priorities.weakest_dimension}(${priorities.weakest_score}) goal=${priorities.main_goal} covered=[${priorities.covered_areas.join(",")}]`);
+
     const analysisContext = buildAnalysisContext(
       business,
       brain,
@@ -697,7 +851,7 @@ serve(async (req) => {
       existingItems,
       rejectedConcepts,
       locale
-    );
+    ) + buildPrioritiesBlock(priorities);
 
     // =====================================================================
     // RESEARCH MODE (I+D EXTERNO)
@@ -737,9 +891,12 @@ ${analysisContext}
 1. Generá máximo 4 insights de I+D de alta calidad
 2. Cada insight DEBE incluir al menos 1 fuente real (URL de las noticias)
 3. ${locale.voice === "voseo" ? "Hablale de VOS al dueño" : "Háblale de TÚ al dueño"}
-4. NO generar recomendaciones internas (responder reseñas, optimizar procesos)
-5. Enfocate en TENDENCIAS EXTERNAS aplicables al negocio
-6. Cada título debe ser específico y mencionar la tendencia concreta
+4. PROHIBIDO recomendaciones operativas internas (responder reseñas, optimizar procesos): eso lo cubre el Radar interno.
+5. Enfocate SOLO en: innovación, experimentos, nuevos canales, nuevos productos, modelos recurrentes, automatizaciones, diferenciación, tendencias externas y casos de estudio adaptables.
+6. Diversidad obligatoria: no repetir el mismo tipo de insight; mezclar tendencias, casos, innovaciones y señales de mercado.
+7. Ningún insight puede solaparse con items existentes ni con áreas saturadas (${priorities.covered_areas.join(", ") || "ninguna"}).
+8. Conectar siempre al objetivo principal: "${priorities.main_goal}" y al punto débil: "${priorities.weakest_dimension}".
+9. Cada título debe ser específico y mencionar la tendencia concreta (sin tecnicismos en inglés).
 
 ## FORMATO JSON:
 {
@@ -907,41 +1064,51 @@ ${analysisContext}
     // OPPORTUNITIES MODE (INTERNO)
     // =====================================================================
     
-    const opportunitiesPrompt = `Sos un asesor de negocios experto para ${brain?.primary_business_type || "restaurantes"}. Analizá el contexto y generá oportunidades de mejora ULTRA-ESPECÍFICAS.
+    const opportunitiesPrompt = `Sos el CEO digital de ${business.name} (${brain?.primary_business_type || "negocio"}). Tu trabajo: detectar oportunidades INTERNAS accionables que ataquen el punto más débil del negocio y diversifiquen las áreas trabajadas.
 
 ${analysisContext}
 
-## REGLAS DE ORO:
-1. ❌ PROHIBIDO títulos genéricos tipo "Mejorar X" o "Optimizar Y"
-2. ✅ OBLIGATORIO incluir DATOS CONCRETOS en cada título (%, números, días, productos)
-3. ${locale.voice === "voseo" ? "✅ Hablale de VOS (implementá, creá, probá, fijate)" : "✅ Háblale de TÚ (implementa, crea, prueba, fíjate)"}
-4. ❌ PROHIBIDO tercera persona (El dueño, Se detectó, El negocio)
-5. 📊 Máximo 3 oportunidades de ALTA calidad
-6. 🎯 Cada oportunidad resuelve UN problema específico
-7. ❌ NO repetir conceptos de items existentes
+## 🔐 GATES DE CALIDAD (cumplir TODOS o descartar):
+- Gate 1 — Cero genérico: PROHIBIDO títulos vagos ("Mejorar X", "Optimizar Y"). Cada título lleva un dato concreto (%, número, día, producto, área).
+- Gate 2 — Cero solapamiento: ninguna oportunidad puede parecerse a otra dentro del lote ni a items existentes (ver lista de "ITEMS EXISTENTES" y "CONCEPTOS RECHAZADOS").
+- Gate 3 — Cero monocultivo: NO todas al mismo objetivo (no 3 promociones, no 3 descuentos, no 3 acciones de redes). Máximo 1 por área.
+- Gate 4 — Diversidad obligatoria entre estas áreas: ventas, marketing, operaciones, reputación, finanzas, equipo, producto, retención, web, local_maps. Priorizar áreas listadas como "poco trabajadas" en el diagnóstico.
+- Gate 5 — Anclaje a datos: cada oportunidad cita un dato/hipótesis del contexto en su campo "evidence.trigger".
+- Gate 6 — Acción → beneficio → impacto: cada oportunidad tiene acción clara, beneficio explícito y un impacto lógico medible.
+- Gate 7 — Sin inventar métricas: si falta información, declarar la hipótesis ("hipótesis prudente: ...") en vez de fabricar cifras duras.
+- Gate 8 — Priorizar alto impacto + esfuerzo bajo/medio + conexión directa con el punto débil principal (${priorities.weakest_dimension}).
 
-## FORMATO DE TÍTULO (minúsculas naturales):
-"[Acción específica]: [dato concreto del negocio]"
+## 🥇 OPORTUNIDAD RECOMENDADA (obligatorio):
+- Marcar EXACTAMENTE una con \`"is_recommended": true\`.
+- Esa oportunidad DEBE atacar la dimensión más débil: **${priorities.weakest_dimension}** (${priorities.weakest_score}/100).
+- Incluir \`"recommendation_reason"\` breve, tipo: "Recomendada primero porque ataca tu punto más débil (${priorities.weakest_dimension}) y puede destrabar mejoras en ${priorities.strongest_dimension}."
 
-Ejemplos CORRECTOS:
-✅ "Lanzar combo de mediodía: el 85% de tus clientes viene entre 12-14hs"
-✅ "Responder las 4 reseñas negativas de esta semana"
-✅ "Promoción para miércoles: es tu peor día con solo 2.1/5 de tráfico"
+## ESTILO:
+- ${locale.voice === "voseo" ? "Hablale de VOS al dueño (implementá, creá, probá, fijate)." : "Háblale de TÚ al dueño (implementa, crea, prueba, fíjate)."}
+- Prohibido tercera persona ("El dueño", "Se detectó", "El negocio").
+- Máximo 3 oportunidades de altísima calidad.
+- Capacidad de ejecución del negocio: ${priorities.effort_capacity} → calibrar effort_score.
 
-## FORMATO JSON:
+## CATEGORÍAS PERMITIDAS PARA "source" (en español, sin códigos):
+ventas | marketing | operaciones | reputación | finanzas | equipo | producto | retención | web | local_maps
+
+## FORMATO JSON ESTRICTO:
 {
   "opportunities": [
     {
       "title": "Título ultra-específico con dato concreto",
-      "description": "Explicación basada en evidencia real, hablando directo al dueño",
-      "impact_score": 1-10 (NO usar 5 por defecto),
-      "effort_score": 1-10 (NO usar 5 por defecto),
-      "source": "diagnóstico|tráfico|reseñas|ventas|marketing|equipo",
+      "description": "Acción → beneficio → impacto, hablando directo al dueño",
+      "impact_score": 1-10,
+      "effort_score": 1-10,
+      "source": "ventas|marketing|operaciones|reputación|finanzas|equipo|producto|retención|web|local_maps",
+      "area_tag": "misma categoría que source",
+      "is_recommended": true|false,
+      "recommendation_reason": "Solo si is_recommended=true",
       "evidence": {
-        "trigger": "¿Qué dato disparó esto?",
+        "trigger": "Dato/hipótesis concreto que disparó esto",
         "signals": ["señal 1", "señal 2"],
-        "dataPoints": número,
-        "basedOn": ["fuente específica"]
+        "dataPoints": 0,
+        "basedOn": ["fuente específica del contexto"]
       },
       "ai_plan": {
         "version": 1,
@@ -1017,20 +1184,45 @@ Ejemplos CORRECTOS:
     let opportunitiesInserted = 0;
     let opportunitiesFiltered = 0;
 
-    for (const opp of analysis.opportunities || []) {
+    // ── DIVERSITY GATE: max 1 oportunidad por área en este lote ──
+    const areaSeenThisRun = new Set<string>();
+    const rawOpps: any[] = Array.isArray(analysis.opportunities) ? [...analysis.opportunities] : [];
+
+    rawOpps.sort((a, b) => {
+      const ar = a?.is_recommended ? 1 : 0;
+      const br = b?.is_recommended ? 1 : 0;
+      if (ar !== br) return br - ar;
+      const aScore = (a?.impact_score || 5) * 2 - (a?.effort_score || 5);
+      const bScore = (b?.impact_score || 5) * 2 - (b?.effort_score || 5);
+      return bScore - aScore;
+    });
+
+    if (rawOpps.length > 0 && !rawOpps.some(o => o?.is_recommended)) {
+      rawOpps[0].is_recommended = true;
+      rawOpps[0].recommendation_reason = priorities.recommended_reason;
+    }
+
+    let recommendedAlreadyAssigned = false;
+
+    for (const opp of rawOpps) {
       const title = String(opp?.title || "").trim();
       const description = String(opp?.description || "").trim();
-      
+
       if (!title || title.length < 10 || !description || description.length < 20) {
         opportunitiesFiltered++;
         continue;
       }
 
-      // Generate hashes
+      const area = inferAreaFromSource(opp?.area_tag || opp?.source || title);
+      if (areaSeenThisRun.has(area)) {
+        console.log(`Filtered (diversity gate, área ya cubierta "${area}"): "${title}"`);
+        opportunitiesFiltered++;
+        continue;
+      }
+
       const conceptHash = generateConceptHash(title, description, opp.source);
       const intentSignature = generateIntentSignature(title, description);
 
-      // Run quality gates
       const gateResult = runQualityGates(
         {
           title,
@@ -1053,8 +1245,7 @@ Ejemplos CORRECTOS:
         continue;
       }
 
-      // Check semantic similarity as final check
-      const isDupe = existingItems.some(ex => 
+      const isDupe = existingItems.some(ex =>
         calculateSimilarity(title, ex.title) > 0.5 ||
         calculateSimilarity(`${title} ${description}`, `${ex.title} ${ex.description || ""}`) > 0.55
       );
@@ -1064,7 +1255,23 @@ Ejemplos CORRECTOS:
         continue;
       }
 
-      // Insert opportunity with all new fields
+      const isRecommended = !!opp.is_recommended && !recommendedAlreadyAssigned;
+      if (isRecommended) recommendedAlreadyAssigned = true;
+
+      const enrichedEvidence = {
+        ...(opp.evidence || {}),
+        area_tag: area,
+        is_recommended: isRecommended,
+        recommendation_reason: isRecommended
+          ? (opp.recommendation_reason || priorities.recommended_reason)
+          : undefined,
+        priority_context: {
+          weakest_dimension: priorities.weakest_dimension,
+          weakest_score: priorities.weakest_score,
+          main_goal: priorities.main_goal,
+        },
+      };
+
       const { error: insertError } = await supabase.from("opportunities").insert({
         business_id: businessId,
         title,
@@ -1072,20 +1279,21 @@ Ejemplos CORRECTOS:
         source: opp.source || "diagnóstico",
         impact_score: opp.impact_score || 5,
         effort_score: opp.effort_score || 5,
-        evidence: opp.evidence || {},
+        evidence: enrichedEvidence,
         concept_hash: conceptHash,
         intent_signature: intentSignature,
         ai_plan_json: opp.ai_plan || {},
         quality_gate_score: gateResult.score,
-        quality_gate_details: { gates: gateResult.gates }
+        quality_gate_details: { gates: gateResult.gates, area_tag: area, is_recommended: isRecommended }
       });
 
       if (!insertError) {
         opportunitiesInserted++;
+        areaSeenThisRun.add(area);
         existingHashes.add(conceptHash);
         existingSignatures.add(intentSignature);
         existingItems.push({ id: "", title, description, source: opp.source });
-        console.log(`Inserted opportunity: "${title}" (score: ${gateResult.score})`);
+        console.log(`Inserted opportunity [${area}${isRecommended ? " ⭐ recommended" : ""}]: "${title}" (score: ${gateResult.score})`);
       }
     }
 
