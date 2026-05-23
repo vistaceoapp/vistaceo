@@ -183,25 +183,6 @@ export const ChatMessage = ({
               Aprendido
             </Badge>
           )}
-
-          {audioScript && !isUser && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "h-5 px-2 text-[10px] gap-1 rounded-full",
-                isPlaying ? "text-primary bg-primary/10" : "text-muted-foreground/50 hover:text-primary"
-              )}
-              onClick={onPlayAudio}
-              disabled={isPlaying}
-            >
-              {isPlaying ? (
-                <><Loader2 className="w-2.5 h-2.5 animate-spin" /><span>Reproduciendo</span></>
-              ) : (
-                <><Volume2 className="w-2.5 h-2.5" /><span>Escuchar</span></>
-              )}
-            </Button>
-          )}
         </div>
       </div>
     </div>
