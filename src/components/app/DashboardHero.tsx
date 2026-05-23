@@ -295,22 +295,6 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
             <Compass className="w-4 h-4 mr-1.5" />
             Ver oportunidades
           </Button>
-          <button
-            type="button"
-            onClick={() =>
-              navigate(
-                "/app/chat?prompt=" +
-                  encodeURIComponent("Quiero contarte más sobre mi negocio para mejorar tus recomendaciones.")
-              )
-            }
-            className={cn(
-              "inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors",
-              isMobile ? "justify-center mt-1" : "ml-1"
-            )}
-          >
-            <MessageCircle className="w-4 h-4" />
-            Contarle más a mi CEO
-          </button>
         </div>
       </div>
     </section>
