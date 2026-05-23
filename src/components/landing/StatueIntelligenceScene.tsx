@@ -120,12 +120,7 @@ export const StatueIntelligenceScene = memo(() => {
           filter:
             "drop-shadow(0 38px 44px rgba(38,146,220,0.28)) drop-shadow(0 14px 22px rgba(116,108,230,0.20)) drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
           animation: "statueFloat 7s ease-in-out infinite",
-          WebkitMaskImage:
-            "linear-gradient(to bottom, black 0%, black 92%, rgba(0,0,0,0.55) 97%, transparent 100%)",
-          maskImage:
-            "linear-gradient(to bottom, black 0%, black 92%, rgba(0,0,0,0.55) 97%, transparent 100%)",
         }}
-
         loading="eager"
         decoding="async"
       />
