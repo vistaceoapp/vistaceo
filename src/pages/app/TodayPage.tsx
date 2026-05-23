@@ -160,17 +160,12 @@ const TodayPage = () => {
     </GlassCard>
   );
 
-  // Helper: render visible widgets + insert Opportunities after missions (fixed pin)
+  // Render visible widgets respetando orden del usuario (Personalizar)
   const renderMain = () => {
     const nodes: React.ReactNode[] = [];
     mainVisible.forEach((w) => {
       const node = renderWidget(w.id);
-      if (node) {
-        nodes.push(<div key={w.id}>{node}</div>);
-        if (w.id === "missions") {
-          nodes.push(<OpportunitiesPreview key="__opps__" />);
-        }
-      }
+      if (node) nodes.push(<div key={w.id}>{node}</div>);
     });
     return nodes;
   };
