@@ -280,14 +280,15 @@ const FLOATING_INSIGHTS = [
 const StatueIntelligenceScene = memo(() => {
   return (
     <div className="relative w-full aspect-[4/5] max-w-[560px] mx-auto overflow-visible">
-      {/* Ambient glow behind the statue — extended beyond bounds so it never gets cropped */}
+      {/* Ambient glow — extended sideways/upward but soft-faded so it never collides with the next section */}
       <div
-        className="absolute -inset-[18%] rounded-[40%] blur-[110px] opacity-60 pointer-events-none"
+        className="absolute -left-[18%] -right-[18%] -top-[18%] bottom-0 rounded-[40%] blur-[110px] opacity-60 pointer-events-none"
         style={{
           background:
-            "radial-gradient(60% 60% at 50% 50%, hsl(var(--primary) / 0.32) 0%, hsl(var(--accent) / 0.18) 45%, transparent 75%)",
+            "radial-gradient(55% 50% at 50% 45%, hsl(var(--primary) / 0.32) 0%, hsl(var(--accent) / 0.16) 45%, transparent 72%)",
         }}
       />
+
       <div
         className="absolute inset-x-[18%] bottom-[6%] h-[14%] rounded-full blur-2xl opacity-40 pointer-events-none"
         style={{ background: "radial-gradient(ellipse, hsl(var(--primary) / 0.5), transparent 70%)" }}
@@ -388,12 +389,15 @@ export const HeroSection = memo(() => {
   }, [advanceTopLine]);
 
   return (
-    <section className="relative min-h-[100svh] flex flex-col justify-center pt-20 pb-6">
+    <section className="relative min-h-[100svh] flex flex-col justify-center pt-20 pb-20 md:pb-24">
       {/* Static background gradients - contained so they don't bleed page-wide, but the statue halo is NEVER clipped */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 -left-1/4 w-[70%] h-[60%] bg-primary/10 rounded-full blur-[150px]" />
         <div className="absolute bottom-0 -right-1/4 w-[60%] h-[50%] bg-accent/8 rounded-full blur-[150px]" />
       </div>
+      {/* Soft transition to next section — eliminates the visible horizontal seam */}
+      <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none bg-gradient-to-b from-transparent to-background" aria-hidden />
+
 
 
 
