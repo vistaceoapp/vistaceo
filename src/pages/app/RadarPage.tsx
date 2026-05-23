@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { translateTag } from "@/lib/i18nTags";
 import {
   Dialog,
   DialogContent,
