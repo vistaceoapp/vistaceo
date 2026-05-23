@@ -10,7 +10,6 @@ import type { CountryCode } from "@/lib/countryPacks";
 
 // Import REAL mockup components
 import { PromoIntelligencePanel } from "@/components/promo/PromoIntelligencePanel";
-import { StatueIntelligenceScene } from "@/components/landing/StatueIntelligenceScene";
 import { MockupProDashboard } from "@/components/landing/mockups/MockupProDashboard";
 import { MockupProMissions } from "@/components/landing/mockups/MockupProMissions";
 import { MockupProRadar } from "@/components/landing/mockups/MockupProRadar";
@@ -437,10 +436,10 @@ const HeroSection = () => {
             </Reveal>
           </div>
 
-          {/* ── Visual: Greek strategist (VISTACEO brain) ── */}
+          {/* ── Visual: Intelligence Panel ── */}
           <Reveal delay={120} distance={24}>
             <div className="relative">
-              <StatueIntelligenceScene />
+              <PromoIntelligencePanel variant="light" />
             </div>
           </Reveal>
         </div>
