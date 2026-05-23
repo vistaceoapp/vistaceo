@@ -172,14 +172,8 @@ export const ChatInput = ({
 
         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
 
-        {/* Audio Settings */}
-        <AudioSettingsPopover
-          settings={audioSettings}
-          onSettingsChange={onAudioSettingsChange}
-          isPlaying={isPlayingAudio}
-          onStop={onStopAudio}
-          compact={isMobile}
-        />
+
+
 
         {/* Text input */}
         <div className="flex-1 min-w-0 relative">
