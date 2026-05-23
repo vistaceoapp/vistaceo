@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { translateTag } from "@/lib/i18nTags";
 import { 
   QualityGateResult, 
   getTimeEstimate, 
