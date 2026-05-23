@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, MessageCircle, Target, Compass, Activity } from "lucide-react";
+import { ArrowRight, Sparkles, Target, Compass, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
