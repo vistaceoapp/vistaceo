@@ -173,7 +173,7 @@ const TodayPage = () => {
   };
 
   const renderSidebar = () => {
-    const nodes: React.ReactNode[] = [<TalkToCEOCard key="__ceo__" />];
+    const nodes: React.ReactNode[] = [];
     sidebarVisible.forEach((w) => {
       const node = renderWidget(w.id);
       if (node) nodes.push(<div key={w.id}>{node}</div>);
