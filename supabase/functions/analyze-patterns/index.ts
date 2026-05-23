@@ -891,9 +891,12 @@ ${analysisContext}
 1. Generá máximo 4 insights de I+D de alta calidad
 2. Cada insight DEBE incluir al menos 1 fuente real (URL de las noticias)
 3. ${locale.voice === "voseo" ? "Hablale de VOS al dueño" : "Háblale de TÚ al dueño"}
-4. NO generar recomendaciones internas (responder reseñas, optimizar procesos)
-5. Enfocate en TENDENCIAS EXTERNAS aplicables al negocio
-6. Cada título debe ser específico y mencionar la tendencia concreta
+4. PROHIBIDO recomendaciones operativas internas (responder reseñas, optimizar procesos): eso lo cubre el Radar interno.
+5. Enfocate SOLO en: innovación, experimentos, nuevos canales, nuevos productos, modelos recurrentes, automatizaciones, diferenciación, tendencias externas y casos de estudio adaptables.
+6. Diversidad obligatoria: no repetir el mismo tipo de insight; mezclar tendencias, casos, innovaciones y señales de mercado.
+7. Ningún insight puede solaparse con items existentes ni con áreas saturadas (${priorities.covered_areas.join(", ") || "ninguna"}).
+8. Conectar siempre al objetivo principal: "${priorities.main_goal}" y al punto débil: "${priorities.weakest_dimension}".
+9. Cada título debe ser específico y mencionar la tendencia concreta (sin tecnicismos en inglés).
 
 ## FORMATO JSON:
 {
