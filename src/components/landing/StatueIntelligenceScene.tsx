@@ -233,16 +233,23 @@ export const StatueIntelligenceScene = memo(() => {
 
       <style>{`
         @keyframes statueFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+          0%, 100% { transform: translate3d(0,0,0); }
+          50% { transform: translate3d(0,-10px,0); }
         }
         @keyframes cardFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
+          0%, 100% { transform: translate3d(0,0,0); }
+          50% { transform: translate3d(0,-8px,0); }
         }
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(14px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translate3d(0,14px,0); }
+          to { opacity: 1; transform: translate3d(0,0,0); }
+        }
+        @media (max-width: 768px), (prefers-reduced-motion: reduce) {
+          /* Disable heavy infinite floats on mobile + reduced motion (CWV/TBT) */
+          [style*="statueFloat"], [style*="cardFloat"] {
+            animation-iteration-count: 1 !important;
+            animation-duration: 0.8s !important;
+          }
         }
       `}</style>
     </div>
