@@ -167,7 +167,7 @@ const TodayPage = () => {
     const nodes: React.ReactNode[] = [];
     mainVisible.forEach((w) => {
       const node = renderWidget(w.id);
-      if (node) nodes.push(<div key={w.id}>{node}</div>);
+      if (node) nodes.push(<div key={w.id} id={`widget-${w.id}`} className="scroll-mt-24">{node}</div>);
     });
     return nodes;
   };
@@ -176,7 +176,7 @@ const TodayPage = () => {
     const nodes: React.ReactNode[] = [];
     sidebarVisible.forEach((w) => {
       const node = renderWidget(w.id);
-      if (node) nodes.push(<div key={w.id}>{node}</div>);
+      if (node) nodes.push(<div key={w.id} id={`widget-${w.id}`} className="scroll-mt-24">{node}</div>);
     });
     return nodes;
   };
