@@ -553,14 +553,9 @@ const ChatPage = () => {
                   content={message.content}
                   timestamp={message.created_at}
                   hasLearning={message.hasLearning}
-                  audioScript={message.audioScript}
-                  isPlaying={playingMessageId === message.id}
-                  onPlayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
-                  onReplayAudio={() => message.audioScript && playAudioResponse(message.audioScript, message.id)}
                   businessInitial={currentBusiness.name.charAt(0).toUpperCase()}
                   businessId={currentBusiness.id}
                   index={idx}
-                  isSpeaking={playingMessageId === message.id}
                   attachments={message.attachments}
                   missionSuggestions={message.missionSuggestions}
                   isNew={message.isNew}
