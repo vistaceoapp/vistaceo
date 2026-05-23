@@ -1,7 +1,8 @@
 import { memo } from "react";
 import { TrendingUp, AlertTriangle, Radar, Star, Target, FlaskConical, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
-import figuraVistaceo from "@/assets/figura-vistaceo.png";
+import figuraVistaceo from "@/assets/figura-vistaceo.png?w=560;1120&format=webp&as=srcset";
+import figuraVistaceoFallback from "@/assets/figura-vistaceo.png?w=720&format=webp";
 
 const INSIGHTS = [
   {
@@ -111,17 +112,22 @@ export const StatueIntelligenceScene = memo(() => {
         aria-hidden
       />
 
-      {/* Protagonist — sin máscara, imagen completa */}
+      {/* Protagonist — sin máscara, imagen completa, webp + srcset */}
       <img
-        src={figuraVistaceo}
+        src={figuraVistaceoFallback}
+        srcSet={figuraVistaceo}
+        sizes="(max-width: 768px) 90vw, 560px"
+        width={922}
+        height={1152}
         alt="VISTACEO: cerebro estratégico que piensa tu negocio 24/7"
-        className="relative z-10 w-[82%] mx-auto block select-none pointer-events-none"
+        className="relative z-10 w-[92%] mx-auto block select-none pointer-events-none"
         style={{
           filter:
             "drop-shadow(0 38px 44px rgba(38,146,220,0.28)) drop-shadow(0 14px 22px rgba(116,108,230,0.20)) drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
           animation: "statueFloat 7s ease-in-out infinite",
         }}
         loading="eager"
+        fetchPriority="high"
         decoding="async"
       />
 

@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { useState, useRef, useEffect, memo, useMemo, useCallback, lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
-import figuraVistaceo from "@/assets/figura-vistaceo.png";
+import figuraVistaceoSrcSet from "@/assets/figura-vistaceo.png?w=560;1120&format=webp&as=srcset";
+import figuraVistaceo from "@/assets/figura-vistaceo.png?w=720&format=webp";
 
 // Business photos - optimized WebP at 2x carousel display size (230px)
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=230&format=webp";
@@ -306,13 +307,18 @@ const StatueIntelligenceScene = memo(() => {
       {/* The protagonist — Greek strategist */}
       <img
         src={figuraVistaceo}
+        srcSet={figuraVistaceoSrcSet}
+        sizes="(max-width: 768px) 85vw, 560px"
+        width={922}
+        height={1152}
         alt="VISTACEO: cerebro estratégico que piensa tu negocio 24/7"
-        className="relative z-10 w-[78%] mx-auto block select-none pointer-events-none"
+        className="relative z-10 w-[88%] mx-auto block select-none pointer-events-none"
         style={{
           filter: "drop-shadow(0 30px 40px hsl(var(--primary) / 0.25)) drop-shadow(0 8px 16px hsl(var(--accent) / 0.15))",
           animation: "float 6s ease-in-out infinite",
         }}
         loading="eager"
+        fetchPriority="high"
         decoding="async"
       />
 
