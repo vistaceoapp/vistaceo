@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Brain, Volume2, Loader2, Check, CheckCheck, FileText, VolumeX } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Brain, Check, CheckCheck, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CEOAvatar } from "./CEOAvatar";
 import { cn } from "@/lib/utils";
