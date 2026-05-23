@@ -347,8 +347,8 @@ const HeroSection = () => {
                 className="font-semibold text-[#0a0a0a] tracking-[-0.03em]"
                 style={{
                   marginTop: 16,
-                  fontSize: "clamp(2.1rem, 5.4vw, 4.6rem)",
-                  lineHeight: 1.05,
+                  fontSize: "clamp(2.6rem, 5.4vw, 4.6rem)",
+                  lineHeight: 1.04,
                 }}
               >
                 Saber qué hacer{" "}

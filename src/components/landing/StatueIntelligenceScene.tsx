@@ -169,21 +169,43 @@ export const StatueIntelligenceScene = memo(() => {
         );
       })}
 
-      {/* Mobile-only "thinking" chip */}
-      <div
-        className="md:hidden absolute top-3 right-2 z-20 rounded-full px-3 py-1.5 flex items-center gap-1.5"
-        style={{
-          background: "rgba(255,255,255,0.85)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255,255,255,0.6)",
-          boxShadow: "0 8px 20px -6px rgba(38,146,220,0.25)",
-        }}
-      >
-        <Brain className="w-3 h-3" style={{ color: "#2692DC" }} />
-        <span className="text-[10px] font-medium text-[#0a0a0a]">
-          Pensando tu negocio…
-        </span>
-      </div>
+      {/* Mobile-only floating chips around the statue (compact, readable) */}
+      {[
+        { ...INSIGHTS[0], position: "top-[3%] left-[-2%]" },
+        { ...INSIGHTS[1], position: "top-[22%] right-[-2%]" },
+        { ...INSIGHTS[3], position: "bottom-[28%] left-[-3%]" },
+        { ...INSIGHTS[4], position: "bottom-[6%] right-[-2%]" },
+      ].map((card, i) => {
+        const Icon = card.icon;
+        return (
+          <div
+            key={`m-${i}`}
+            className={cn(
+              "md:hidden absolute z-20 rounded-full pl-1.5 pr-3 py-1.5 flex items-center gap-2 max-w-[170px]",
+              card.position
+            )}
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.7)",
+              boxShadow: "0 10px 28px -10px rgba(38,146,220,0.35), 0 2px 6px rgba(0,0,0,0.05)",
+              animation: `cardFloat 7s ease-in-out ${card.delay} infinite, fadeUp 0.6s ease-out ${card.delay} both`,
+            }}
+          >
+            <span
+              className="w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+              style={{ backgroundColor: `${card.color}1A`, color: card.color }}
+            >
+              <Icon className="w-3 h-3" />
+            </span>
+            <span className="text-[11px] font-semibold text-[#0a0a0a] leading-tight truncate">
+              {card.title}
+            </span>
+          </div>
+        );
+      })}
+
 
       <style>{`
         @keyframes statueFloat {
