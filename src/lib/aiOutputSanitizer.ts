@@ -111,6 +111,31 @@ export function sanitizeAIOutput(text: string | null | undefined): string {
     const re = new RegExp(`\\b${code}\\b`, 'gi');
     result = result.replace(re, label);
   }
+
+  // Inline tag translation (innovation, market_signal, quick win, benchmark, etc.)
+  const INLINE_TAG_MAP: Record<string, string> = {
+    market_signal: "señal de mercado",
+    market_signals: "señales de mercado",
+    case_study: "caso de estudio",
+    case_studies: "casos de estudio",
+    quick_win: "logro rápido",
+    "quick win": "logro rápido",
+    innovation: "innovación",
+    innovations: "innovaciones",
+    benchmark: "comparativa",
+    benchmarks: "comparativas",
+    insight: "hallazgo",
+    insights: "hallazgos",
+    trend: "tendencia",
+    trends: "tendencias",
+    growth_loop: "ciclo de crecimiento",
+    funnel_top: "parte alta del embudo",
+  };
+  for (const [code, label] of Object.entries(INLINE_TAG_MAP)) {
+    const re = new RegExp(`\\b${code.replace(/ /g, "[ _]")}\\b`, 'gi');
+    result = result.replace(re, label);
+  }
+
   
   // Remove code patterns
   for (const pattern of AI_LEAK_PATTERNS) {
