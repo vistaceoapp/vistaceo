@@ -385,8 +385,151 @@ function getSectorQueries(businessType: string, focus: string): string[] {
 }
 
 // =====================================================================
+// BUSINESS PRIORITIES ENGINE (Diagnóstico previo a la generación)
+// =====================================================================
+
+interface BusinessPriorities {
+  weakest_dimension: string;
+  weakest_score: number;
+  strongest_dimension: string;
+  strongest_score: number;
+  main_goal: string;
+  covered_areas: string[]; // áreas ya saturadas por oportunidades previas
+  underworked_areas: string[]; // áreas poco trabajadas → priorizar diversidad
+  effort_capacity: "baja" | "media" | "alta";
+  risks: string[];
+  recommended_focus: string; // dimensión a atacar primero
+  recommended_reason: string;
+}
+
+const ALL_AREAS = [
+  "ventas", "marketing", "operaciones", "reputacion", "finanzas",
+  "equipo", "producto", "retencion", "web", "local_maps", "ide"
+];
+
+function inferAreaFromSource(source: string | null | undefined): string {
+  const s = (source || "").toLowerCase();
+  if (s.includes("venta") || s.includes("trafico") || s.includes("tráfico")) return "ventas";
+  if (s.includes("reseñ") || s.includes("reseña") || s.includes("review") || s.includes("reputa")) return "reputacion";
+  if (s.includes("marketing") || s.includes("redes") || s.includes("social")) return "marketing";
+  if (s.includes("operac") || s.includes("proceso")) return "operaciones";
+  if (s.includes("finan") || s.includes("costo") || s.includes("margen")) return "finanzas";
+  if (s.includes("equipo") || s.includes("personal")) return "equipo";
+  if (s.includes("producto") || s.includes("menu") || s.includes("menú")) return "producto";
+  if (s.includes("retencion") || s.includes("retención") || s.includes("fideliz")) return "retencion";
+  if (s.includes("web") || s.includes("sitio") || s.includes("seo")) return "web";
+  if (s.includes("maps") || s.includes("local") || s.includes("google business")) return "local_maps";
+  if (s.includes("i+d") || s.includes("innov") || s.includes("research")) return "ide";
+  return "ventas";
+}
+
+function computeBusinessPriorities(
+  business: any,
+  brain: any,
+  snapshots: any[],
+  checkins: any[],
+  externalData: any[],
+  existingItems: any[],
+  focusConfig: any
+): BusinessPriorities {
+  // 1) Dimensiones: del snapshot más reciente o derivado
+  const latestSnap = snapshots?.[0];
+  const dims: Record<string, number> = {};
+  const snapDims = latestSnap?.dimensions || latestSnap?.health_dimensions || latestSnap?.scores || {};
+  for (const [k, v] of Object.entries(snapDims)) {
+    const num = typeof v === "number" ? v : (typeof v === "object" && v !== null && "score" in v ? Number((v as any).score) : NaN);
+    if (!Number.isNaN(num)) dims[k.toLowerCase()] = num;
+  }
+  // Fallbacks heurísticos
+  if (!dims["reputacion"] && business?.avg_rating) {
+    dims["reputacion"] = Math.round((Number(business.avg_rating) / 5) * 100);
+  }
+  if (!dims["ventas"] && checkins.length > 0) {
+    const avgTraffic = checkins.reduce((a, c) => a + (c.traffic_level || 3), 0) / checkins.length;
+    dims["ventas"] = Math.round((avgTraffic / 5) * 100);
+  }
+
+  const dimEntries = Object.entries(dims);
+  let weakest_dimension = "ventas";
+  let weakest_score = 50;
+  let strongest_dimension = "reputacion";
+  let strongest_score = 50;
+  if (dimEntries.length > 0) {
+    const sorted = dimEntries.sort((a, b) => a[1] - b[1]);
+    weakest_dimension = sorted[0][0];
+    weakest_score = sorted[0][1];
+    strongest_dimension = sorted[sorted.length - 1][0];
+    strongest_score = sorted[sorted.length - 1][1];
+  }
+
+  // 2) Objetivo principal
+  const main_goal = String(
+    focusConfig?.primary_goal ||
+    brain?.current_focus ||
+    brain?.factual_memory?.objetivo_principal ||
+    "crecimiento sostenido"
+  );
+
+  // 3) Áreas ya cubiertas/saturadas (≥2 items en esa área)
+  const areaCount: Record<string, number> = {};
+  for (const it of existingItems) {
+    const area = inferAreaFromSource(it.source || it.title || "");
+    areaCount[area] = (areaCount[area] || 0) + 1;
+  }
+  const covered_areas = Object.entries(areaCount).filter(([, c]) => c >= 2).map(([a]) => a);
+  const underworked_areas = ALL_AREAS.filter(a => !areaCount[a] || areaCount[a] === 0);
+
+  // 4) Capacidad de esfuerzo
+  const teamSize = Number(brain?.factual_memory?.team_size || brain?.factual_memory?.empleados || 1);
+  const effortPref = String(brain?.preferences_memory?.effort_capacity || "").toLowerCase();
+  let effort_capacity: "baja" | "media" | "alta" = "media";
+  if (effortPref.includes("baja") || teamSize <= 1) effort_capacity = "baja";
+  else if (effortPref.includes("alta") || teamSize >= 5) effort_capacity = "alta";
+
+  // 5) Riesgos
+  const risks: string[] = [];
+  const negativeReviews = externalData.filter(d => d.data_type === "review" && (d.sentiment_score || 0) < -0.2).length;
+  if (negativeReviews >= 3) risks.push(`${negativeReviews} reseñas negativas recientes sin respuesta`);
+  if (weakest_score < 40) risks.push(`Dimensión ${weakest_dimension} en zona crítica (${weakest_score}/100)`);
+  if (checkins.length === 0) risks.push("Sin registros de tráfico → ceguera operativa");
+  if ((brain?.confidence_score || 0) < 30) risks.push("Cerebro con baja confianza → faltan datos clave");
+
+  // 6) Foco recomendado
+  const recommended_focus = weakest_dimension;
+  const recommended_reason = `Atacar ${weakest_dimension} (${weakest_score}/100) porque es la palanca más urgente del negocio y puede destrabar mejoras en otras áreas como ${strongest_dimension}.`;
+
+  return {
+    weakest_dimension,
+    weakest_score,
+    strongest_dimension,
+    strongest_score,
+    main_goal,
+    covered_areas,
+    underworked_areas,
+    effort_capacity,
+    risks,
+    recommended_focus,
+    recommended_reason,
+  };
+}
+
+function buildPrioritiesBlock(p: BusinessPriorities): string {
+  return `\n## 🎯 DIAGNÓSTICO PRIORITARIO (usar para priorizar y diversificar)
+- Punto más débil: **${p.weakest_dimension}** (${p.weakest_score}/100) ← atacar primero
+- Mayor fortaleza: ${p.strongest_dimension} (${p.strongest_score}/100)
+- Objetivo principal del usuario: ${p.main_goal}
+- Capacidad de ejecución: ${p.effort_capacity}
+- Áreas ya saturadas (NO repetir): ${p.covered_areas.length ? p.covered_areas.join(", ") : "ninguna"}
+- Áreas poco trabajadas (PRIORIZAR diversidad): ${p.underworked_areas.slice(0, 6).join(", ") || "ninguna"}
+- Riesgos detectados: ${p.risks.length ? p.risks.join(" · ") : "sin riesgos críticos"}
+- 👉 Foco recomendado: **${p.recommended_focus}** — ${p.recommended_reason}
+`;
+}
+
+// =====================================================================
 // CONTEXT BUILDER
 // =====================================================================
+
 
 function buildAnalysisContext(
   business: any,
