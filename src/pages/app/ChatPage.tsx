@@ -68,36 +68,11 @@ const ChatPage = () => {
 - Motivá sin exagerar
 - Adaptate al contexto: más técnico para métricas, más cercano para problemas personales`);
 
-  // Audio states
+  // Audio recording states (envío de audio de usuario; sin reproducción de voz del CEO)
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
-  
-  // Load audio settings from localStorage
-  const [audioSettings, setAudioSettings] = useState<AudioSettings>(() => {
-    try {
-      const saved = safeLocalStorage.getItem("vistaceo-audio-settings");
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (e) {
-      console.log("Failed to load audio settings");
-    }
-    return {
-      enabled: true,
-      speed: 1.0,
-      autoPlay: true,
-    };
-  });
-  
+
   const [learningIndicator, setLearningIndicator] = useState(false);
-  
-  // Persist audio settings
-  useEffect(() => {
-    safeLocalStorage.setItem("vistaceo-audio-settings", JSON.stringify(audioSettings));
-    console.log("Audio settings updated:", audioSettings);
-  }, [audioSettings]);
 
   // File attachments
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
