@@ -3,18 +3,17 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import MobileLayout from "./MobileLayout";
 import { DashboardLayout } from "./DashboardLayout";
 import { useDOMLeakScanner } from "@/hooks/useDOMLeakScanner";
+import { WidgetConfigProvider } from "@/hooks/use-widget-config";
 
 const AppLayout = () => {
   const isMobile = useIsMobile();
-  
-  // P0 Zero Leakage: DOM scanner activo en runtime
   useDOMLeakScanner();
 
-  if (isMobile) {
-    return <MobileLayout />;
-  }
-
-  return <DashboardLayout />;
+  return (
+    <WidgetConfigProvider>
+      {isMobile ? <MobileLayout /> : <DashboardLayout />}
+    </WidgetConfigProvider>
+  );
 };
 
 export default AppLayout;
