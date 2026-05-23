@@ -307,13 +307,18 @@ const StatueIntelligenceScene = memo(() => {
       {/* The protagonist — Greek strategist */}
       <img
         src={figuraVistaceo}
+        srcSet={figuraVistaceoSrcSet}
+        sizes="(max-width: 768px) 85vw, 560px"
+        width={922}
+        height={1152}
         alt="VISTACEO: cerebro estratégico que piensa tu negocio 24/7"
-        className="relative z-10 w-[78%] mx-auto block select-none pointer-events-none"
+        className="relative z-10 w-[88%] mx-auto block select-none pointer-events-none"
         style={{
           filter: "drop-shadow(0 30px 40px hsl(var(--primary) / 0.25)) drop-shadow(0 8px 16px hsl(var(--accent) / 0.15))",
           animation: "float 6s ease-in-out infinite",
         }}
         loading="eager"
+        fetchPriority="high"
         decoding="async"
       />
 
