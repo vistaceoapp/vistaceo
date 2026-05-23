@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, ChevronDown, Target, Eye, BarChart3, AlertTriangle, Lightbulb, Zap, Radar, TrendingUp, Star, FlaskConical, Brain } from "lucide-react";
+import { ArrowRight, Sparkles, ChevronDown, Target, Eye, BarChart3, AlertTriangle, Lightbulb, Zap, Radar, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState, useRef, useEffect, memo, useMemo, useCallback, lazy, Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { useRealtimeCounter } from "@/hooks/use-realtime-counter";
-import figuraVistaceo from "@/assets/figura-vistaceo.png";
+
+// Lazy-load the protagonist scene so it never blocks LCP / FCP
+const IntelligenceFlow = lazy(() => import("@/components/landing/IntelligenceFlow"));
 
 // Business photos - optimized WebP at 2x carousel display size (230px)
 import parrillaImg from "@/assets/testimonials/parrilla-argentina.jpg?w=230&format=webp";
@@ -211,161 +213,7 @@ const SIGNAL_CARDS = [
   { icon: AlertTriangle, label: "Riesgo detectado", title: "Tiempo de respuesta alto", detail: "Está afectando tu tasa de recompra en -8%", accentBg: "bg-destructive", accentText: "text-destructive" },
 ];
 
-// Floating insight microcards positioned around the statue.
-// Each card is one "thought" the AI is having about the business.
-const FLOATING_INSIGHTS = [
-  {
-    icon: TrendingUp,
-    label: "Oportunidad crítica",
-    title: "Ticket promedio +18%",
-    detail: "Activar combo premium en horario pico",
-    accent: "text-primary",
-    dot: "bg-primary",
-    position: "top-[4%] left-[-4%]",
-    delay: "0s",
-  },
-  {
-    icon: AlertTriangle,
-    label: "Punto débil",
-    title: "Conversión web 2,1%",
-    detail: "Checkout pierde 38% de visitas",
-    accent: "text-destructive",
-    dot: "bg-destructive",
-    position: "top-[22%] right-[-6%]",
-    delay: "0.8s",
-  },
-  {
-    icon: Radar,
-    label: "Radar competencia",
-    title: "Rival lanzó suscripción",
-    detail: "Respuesta sugerida en 48hs",
-    accent: "text-warning",
-    dot: "bg-warning",
-    position: "top-[48%] left-[-8%]",
-    delay: "1.4s",
-  },
-  {
-    icon: Star,
-    label: "Reseñas",
-    title: "4,91 ★ esta semana",
-    detail: "+12 reseñas nuevas verificadas",
-    accent: "text-accent",
-    dot: "bg-accent",
-    position: "top-[56%] right-[-4%]",
-    delay: "2s",
-  },
-  {
-    icon: Target,
-    label: "Misión prioritaria",
-    title: "Recuperar 47 clientes",
-    detail: "Campaña lista para activar hoy",
-    accent: "text-primary",
-    dot: "bg-primary",
-    position: "bottom-[8%] left-[-2%]",
-    delay: "2.6s",
-  },
-  {
-    icon: FlaskConical,
-    label: "I+D",
-    title: "Probar canal TikTok Ads",
-    detail: "Audiencia coincide en 84%",
-    accent: "text-accent",
-    dot: "bg-accent",
-    position: "bottom-[2%] right-[-6%]",
-    delay: "3.2s",
-  },
-];
-
-const StatueIntelligenceScene = memo(() => {
-  return (
-    <div className="relative w-full aspect-[4/5] max-w-[560px] mx-auto">
-      {/* Ambient glow behind the statue */}
-      <div
-        className="absolute inset-0 rounded-[40%] blur-[100px] opacity-60 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(60% 60% at 50% 50%, hsl(var(--primary) / 0.35) 0%, hsl(var(--accent) / 0.18) 45%, transparent 75%)",
-        }}
-      />
-      <div
-        className="absolute inset-x-[18%] bottom-[6%] h-[14%] rounded-full blur-2xl opacity-40 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse, hsl(var(--primary) / 0.5), transparent 70%)" }}
-      />
-
-      {/* Soft orbital ring (decorative, premium) */}
-      <div
-        className="absolute inset-[6%] rounded-full pointer-events-none opacity-40"
-        style={{
-          background:
-            "conic-gradient(from 120deg, transparent 0%, hsl(var(--primary) / 0.25) 25%, transparent 50%, hsl(var(--accent) / 0.2) 75%, transparent 100%)",
-          mask: "radial-gradient(circle, transparent 62%, black 63%, black 64%, transparent 65%)",
-          WebkitMask: "radial-gradient(circle, transparent 62%, black 63%, black 64%, transparent 65%)",
-        }}
-      />
-
-      {/* The protagonist — Greek strategist */}
-      <img
-        src={figuraVistaceo}
-        alt="VISTACEO: cerebro estratégico que piensa tu negocio 24/7"
-        className="relative z-10 w-[78%] mx-auto block select-none pointer-events-none"
-        style={{
-          filter: "drop-shadow(0 30px 40px hsl(var(--primary) / 0.25)) drop-shadow(0 8px 16px hsl(var(--accent) / 0.15))",
-          animation: "float 6s ease-in-out infinite",
-        }}
-        loading="eager"
-        decoding="async"
-      />
-
-      {/* Floating insight microcards */}
-      {FLOATING_INSIGHTS.map((card, i) => {
-        const Icon = card.icon;
-        return (
-          <div
-            key={i}
-            className={cn(
-              "absolute z-20 w-[210px] rounded-2xl border border-white/40 bg-white/70 backdrop-blur-xl shadow-[0_10px_40px_-12px_hsl(var(--primary)/0.25)] hidden md:block",
-              card.position
-            )}
-            style={{
-              animation: `float 7s ease-in-out ${card.delay} infinite, fade-in 0.7s ease-out ${card.delay} both`,
-            }}
-          >
-            <div className="p-3">
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className={cn("relative flex h-1.5 w-1.5", card.accent)}>
-                  <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-60", card.dot)} />
-                  <span className={cn("relative inline-flex rounded-full h-1.5 w-1.5", card.dot)} />
-                </span>
-                <span className={cn("text-[9px] font-semibold uppercase tracking-[0.08em]", card.accent)}>
-                  {card.label}
-                </span>
-              </div>
-              <div className="flex items-start gap-2">
-                <div className={cn("mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center bg-foreground/[0.04]", card.accent)}>
-                  <Icon className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-semibold text-foreground leading-tight truncate">{card.title}</p>
-                  <p className="text-[10.5px] text-muted-foreground mt-0.5 leading-snug line-clamp-2">{card.detail}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Mobile-only condensed thought chip — keeps composition clean on small screens */}
-      <div className="md:hidden absolute top-4 right-2 z-20 rounded-full bg-white/80 backdrop-blur-md border border-white/50 shadow-lg px-3 py-1.5 flex items-center gap-1.5">
-        <Brain className="w-3 h-3 text-primary" />
-        <span className="text-[10px] font-medium text-foreground">Pensando tu negocio…</span>
-      </div>
-    </div>
-  );
-});
-StatueIntelligenceScene.displayName = "StatueIntelligenceScene";
-
-
-export const HeroSection = memo(() => {
+export const HeroSection1 = memo(() => {
   const navigate = useNavigate();
   const activeUsers = useRealtimeCounter();
 
@@ -388,6 +236,20 @@ export const HeroSection = memo(() => {
         <div className="absolute bottom-0 -right-1/4 w-[60%] h-[50%] bg-accent/8 rounded-full blur-[150px]" />
       </div>
 
+      {/* FULL-WIDTH INTELLIGENCE SCENE — cinematic hero canvas */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Suspense fallback={null}>
+          <IntelligenceFlow />
+        </Suspense>
+        {/* Veil to keep copy crisp on the left third (desktop only) */}
+        <div
+          className="hidden lg:block absolute inset-y-0 left-0 w-[55%] pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(90deg, hsl(var(--background) / 0.85) 0%, hsl(var(--background) / 0.6) 45%, hsl(var(--background) / 0) 100%)",
+          }}
+        />
+      </div>
 
       {/* Main Hero Content — copy left, scene full-bleed behind */}
       <div className="container mx-auto px-4 relative z-10">
@@ -455,10 +317,8 @@ export const HeroSection = memo(() => {
             </div>
           </div>
 
-          {/* RIGHT: Greek statue protagonist + floating insight microcards */}
-          <div className="lg:col-span-6 relative" aria-hidden="true">
-            <StatueIntelligenceScene />
-          </div>
+          {/* RIGHT spacer — scene already lives full-bleed behind */}
+          <div className="hidden lg:block lg:col-span-6" aria-hidden="true" />
         </div>
 
         {/* Executive Intelligence Signal Cards - condensed below */}
@@ -506,5 +366,5 @@ export const HeroSection = memo(() => {
   );
 });
 
-HeroSection.displayName = "HeroSection";
-export default HeroSection;
+HeroSection1.displayName = "HeroSection1";
+export default HeroSection1;
