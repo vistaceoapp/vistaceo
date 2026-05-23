@@ -291,7 +291,14 @@ const RadarPage = () => {
       if ((error as any)?.context?.status === 429 || data?.error === "Rate limit exceeded") {
         toast({
           title: "El radar está procesando muchas señales",
-          description: "Esperá unos segundos y volvé a escanear. Tu negocio ya quedó en cola.",
+          description: isPro
+            ? "Esperá unos segundos y volvé a escanear. Tu negocio ya quedó en cola con prioridad Pro."
+            : "Esperá unos segundos y volvé a escanear. Con VISTACEO Pro tenés prioridad de cómputo y no chocás con estos topes.",
+          action: !isPro ? (
+            <Button size="sm" variant="default" onClick={() => navigate("/checkout")}>
+              Ver Pro
+            </Button>
+          ) as any : undefined,
         });
         return;
       }
@@ -359,7 +366,14 @@ const RadarPage = () => {
       if ((error as any)?.context?.status === 429 || data?.error === "Rate limit exceeded") {
         toast({
           title: "I+D procesando muchas fuentes",
-          description: "Esperá unos segundos y volvé a escanear. Sigo monitoreando en segundo plano.",
+          description: isPro
+            ? "Esperá unos segundos y volvé a escanear. Tu cola tiene prioridad Pro."
+            : "Esperá unos segundos y volvé a escanear. Con VISTACEO Pro tu cola va con prioridad y evitás estos cuellos de botella.",
+          action: !isPro ? (
+            <Button size="sm" variant="default" onClick={() => navigate("/checkout")}>
+              Ver Pro
+            </Button>
+          ) as any : undefined,
         });
         return;
       }
