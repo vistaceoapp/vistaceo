@@ -1,7 +1,8 @@
 import { memo } from "react";
 import { TrendingUp, AlertTriangle, Radar, Star, Target, FlaskConical, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
-import figuraVistaceo from "@/assets/figura-vistaceo.png";
+import figuraVistaceo from "@/assets/figura-vistaceo.png?w=560;1120&format=webp&as=srcset";
+import figuraVistaceoFallback from "@/assets/figura-vistaceo.png?w=720&format=webp";
 
 const INSIGHTS = [
   {
