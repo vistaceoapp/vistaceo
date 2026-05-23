@@ -388,12 +388,13 @@ export const HeroSection = memo(() => {
   }, [advanceTopLine]);
 
   return (
-    <section className="relative min-h-[100svh] flex flex-col justify-center pt-20 pb-6 overflow-hidden">
-      {/* Static background gradients - CSS only, no Framer Motion */}
+    <section className="relative min-h-[100svh] flex flex-col justify-center pt-20 pb-6">
+      {/* Static background gradients - contained so they don't bleed page-wide, but the statue halo is NEVER clipped */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 -left-1/4 w-[70%] h-[60%] bg-primary/10 rounded-full blur-[150px]" />
         <div className="absolute bottom-0 -right-1/4 w-[60%] h-[50%] bg-accent/8 rounded-full blur-[150px]" />
       </div>
+
 
 
       {/* Main Hero Content — copy left, scene full-bleed behind */}
