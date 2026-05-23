@@ -280,14 +280,15 @@ const FLOATING_INSIGHTS = [
 const StatueIntelligenceScene = memo(() => {
   return (
     <div className="relative w-full aspect-[4/5] max-w-[560px] mx-auto overflow-visible">
-      {/* Ambient glow behind the statue — extended beyond bounds so it never gets cropped */}
+      {/* Ambient glow — extended sideways/upward but soft-faded so it never collides with the next section */}
       <div
-        className="absolute -inset-[18%] rounded-[40%] blur-[110px] opacity-60 pointer-events-none"
+        className="absolute -left-[18%] -right-[18%] -top-[18%] bottom-0 rounded-[40%] blur-[110px] opacity-60 pointer-events-none"
         style={{
           background:
-            "radial-gradient(60% 60% at 50% 50%, hsl(var(--primary) / 0.32) 0%, hsl(var(--accent) / 0.18) 45%, transparent 75%)",
+            "radial-gradient(55% 50% at 50% 45%, hsl(var(--primary) / 0.32) 0%, hsl(var(--accent) / 0.16) 45%, transparent 72%)",
         }}
       />
+
       <div
         className="absolute inset-x-[18%] bottom-[6%] h-[14%] rounded-full blur-2xl opacity-40 pointer-events-none"
         style={{ background: "radial-gradient(ellipse, hsl(var(--primary) / 0.5), transparent 70%)" }}
