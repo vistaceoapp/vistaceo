@@ -17,7 +17,7 @@ const INSIGHTS = [
     icon: AlertTriangle,
     label: "Punto débil detectado",
     title: "41% de ventas no cierran",
-    detail: "Seguimiento débil tras 1ª consulta",
+    detail: "Seguimiento débil tras 1ª consulta recibida",
     color: "#E0457B",
     position: "top-[20%] right-[-8%]",
     delay: "0.7s",
@@ -116,7 +116,7 @@ export const StatueIntelligenceScene = memo(() => {
           <div
             key={i}
             className={cn(
-              "absolute z-20 w-[218px] rounded-2xl hidden md:block",
+              "absolute z-20 w-[238px] rounded-2xl hidden md:block",
               card.position
             )}
             style={{
@@ -156,7 +156,7 @@ export const StatueIntelligenceScene = memo(() => {
                   <Icon className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12.5px] font-semibold text-[#0a0a0a] leading-tight">
+                  <p className="text-[12.5px] font-semibold text-[#0a0a0a] leading-tight whitespace-nowrap">
                     {card.title}
                   </p>
                   <p className="text-[10.5px] text-[#666] mt-0.5 leading-snug line-clamp-2">
