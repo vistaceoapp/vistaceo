@@ -287,6 +287,15 @@ const RadarPage = () => {
         return;
       }
 
+      // 429: rate limit del modelo de IA — temporal, no es un error real
+      if ((error as any)?.context?.status === 429 || data?.error === "Rate limit exceeded") {
+        toast({
+          title: "El radar está procesando muchas señales",
+          description: "Esperá unos segundos y volvé a escanear. Tu negocio ya quedó en cola.",
+        });
+        return;
+      }
+
       if (error) throw error;
 
       toast({
@@ -298,9 +307,13 @@ const RadarPage = () => {
     } catch (error) {
       console.error("Error generating opportunities:", error);
       toast({
-        title: "Error al escanear",
-        description: "No se pudieron generar oportunidades. Intenta de nuevo.",
-        variant: "destructive",
+        title: "No pudimos completar el escaneo",
+        description: "Puede ser una pausa temporal de conexión. Probá de nuevo en un momento.",
+        action: (
+          <Button size="sm" variant="default" onClick={() => generateOpportunities()}>
+            Reintentar
+          </Button>
+        ) as any,
       });
     } finally {
       setGeneratingOpportunities(false);
@@ -342,6 +355,15 @@ const RadarPage = () => {
         return;
       }
 
+      // 429: rate limit del modelo de IA — temporal
+      if ((error as any)?.context?.status === 429 || data?.error === "Rate limit exceeded") {
+        toast({
+          title: "I+D procesando muchas fuentes",
+          description: "Esperá unos segundos y volvé a escanear. Sigo monitoreando en segundo plano.",
+        });
+        return;
+      }
+
       if (error) throw error;
 
       const created = typeof data?.learningCreated === "number" ? data.learningCreated : 0;
@@ -358,9 +380,13 @@ const RadarPage = () => {
     } catch (error) {
       console.error("Error generating research:", error);
       toast({
-        title: "Error al escanear I+D",
-        description: "No se pudieron generar insights externos. Intenta de nuevo.",
-        variant: "destructive",
+        title: "No pudimos completar el escaneo de I+D",
+        description: "Puede ser una pausa temporal de las fuentes externas. Probá de nuevo en un momento.",
+        action: (
+          <Button size="sm" variant="default" onClick={() => generateResearchItems()}>
+            Reintentar
+          </Button>
+        ) as any,
       });
     } finally {
       setGeneratingResearch(false);
