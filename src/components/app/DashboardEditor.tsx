@@ -142,6 +142,7 @@ export const DashboardEditor = ({
         draggable={!widget.locked}
         onDragStart={(e) => handleDragStart(e, widget.id, section)}
         onDragOver={(e) => handleDragOver(e, index, section)}
+        onDrop={(e) => handleDrop(e, index, section)}
         onDragEnd={handleDragEnd}
         className={cn(
           "flex items-center gap-3 p-3 rounded-xl border transition-all",
