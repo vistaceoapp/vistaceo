@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { translateTag } from "@/lib/i18nTags";
 import { 
   QualityGateResult, 
   getTimeEstimate, 
@@ -114,7 +115,7 @@ export const OpportunityCard = ({
               {isQuickWin && (
                 <Badge className="text-[10px] bg-success/10 text-success border-success/20">
                   <Zap className="w-2.5 h-2.5 mr-1" />
-                  Quick Win
+                  Logro rápido
                 </Badge>
               )}
             </div>
@@ -161,7 +162,7 @@ export const OpportunityCard = ({
           {isQuickWin && (
             <Badge className="text-[10px] bg-success/10 text-success border-success/20">
               <Zap className="w-2.5 h-2.5 mr-1" />
-              Quick Win
+              Logro rápido
             </Badge>
           )}
         </div>
@@ -236,7 +237,7 @@ export const OpportunityCard = ({
           <div className="flex gap-1 flex-wrap">
             {drivers.slice(0, 3).map((driver, i) => (
               <Badge key={i} variant="secondary" className="text-[10px]">
-                {driver}
+                {translateTag(driver, "")}
               </Badge>
             ))}
           </div>
