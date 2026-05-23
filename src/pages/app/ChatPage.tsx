@@ -619,10 +619,6 @@ const ChatPage = () => {
             isRecording={isRecording}
             isTranscribing={isTranscribing}
             isLoading={loading}
-            audioSettings={audioSettings}
-            onAudioSettingsChange={setAudioSettings}
-            isPlayingAudio={isPlayingAudio}
-            onStopAudio={stopAudio}
             attachedFiles={attachedFiles}
             onAttachFiles={setAttachedFiles}
             onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}
