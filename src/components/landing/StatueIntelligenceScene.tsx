@@ -82,55 +82,49 @@ export const StatueIntelligenceScene = memo(() => {
         aria-hidden
       />
 
-      {/* Soft orbital ring (decorative) */}
+      {/* Soft orbital glow (decorative, no hard ring that crosses the figure) */}
       <div
-        className="absolute inset-[8%] rounded-full pointer-events-none opacity-50"
+        className="absolute inset-[10%] rounded-full pointer-events-none opacity-40 blur-2xl"
         style={{
           background:
-            "conic-gradient(from 120deg, transparent 0%, rgba(38,146,220,0.35) 25%, transparent 50%, rgba(116,108,230,0.30) 75%, transparent 100%)",
-          WebkitMask:
-            "radial-gradient(circle, transparent 62%, black 63%, black 64%, transparent 65%)",
-          mask: "radial-gradient(circle, transparent 62%, black 63%, black 64%, transparent 65%)",
+            "conic-gradient(from 120deg, transparent 0%, rgba(38,146,220,0.28) 25%, transparent 50%, rgba(116,108,230,0.24) 75%, transparent 100%)",
         }}
         aria-hidden
       />
 
       {/* Premium floor glow under statue */}
       <div
-        className="absolute left-1/2 -translate-x-1/2 bottom-[6%] w-[58%] h-[7%] rounded-[50%] blur-2xl pointer-events-none z-[5]"
+        className="absolute left-1/2 -translate-x-1/2 bottom-[1%] w-[64%] h-[8%] rounded-[50%] blur-3xl pointer-events-none z-[5]"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(38,146,220,0.45) 0%, rgba(116,108,230,0.30) 45%, transparent 75%)",
+            "radial-gradient(ellipse at center, rgba(38,146,220,0.42) 0%, rgba(116,108,230,0.28) 45%, transparent 75%)",
           opacity: 0.85,
         }}
         aria-hidden
       />
       <div
-        className="absolute left-1/2 -translate-x-1/2 bottom-[7.5%] w-[38%] h-[2.5%] rounded-[50%] blur-md pointer-events-none z-[5]"
+        className="absolute left-1/2 -translate-x-1/2 bottom-[2.5%] w-[42%] h-[2.5%] rounded-[50%] blur-md pointer-events-none z-[5]"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(10,10,30,0.28) 0%, transparent 75%)",
+            "radial-gradient(ellipse at center, rgba(10,10,30,0.22) 0%, transparent 75%)",
         }}
         aria-hidden
       />
 
-      {/* Protagonist with bottom fade mask for premium floating feel */}
+      {/* Protagonist — sin máscara, imagen completa */}
       <img
         src={figuraVistaceo}
         alt="VISTACEO: cerebro estratégico que piensa tu negocio 24/7"
-        className="relative z-10 w-[80%] mx-auto block select-none pointer-events-none"
+        className="relative z-10 w-[82%] mx-auto block select-none pointer-events-none"
         style={{
           filter:
-            "drop-shadow(0 38px 44px rgba(38,146,220,0.30)) drop-shadow(0 14px 22px rgba(116,108,230,0.22)) drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
+            "drop-shadow(0 38px 44px rgba(38,146,220,0.28)) drop-shadow(0 14px 22px rgba(116,108,230,0.20)) drop-shadow(0 4px 8px rgba(0,0,0,0.10))",
           animation: "statueFloat 7s ease-in-out infinite",
-          WebkitMaskImage:
-            "linear-gradient(to bottom, black 0%, black 82%, rgba(0,0,0,0.7) 92%, transparent 100%)",
-          maskImage:
-            "linear-gradient(to bottom, black 0%, black 82%, rgba(0,0,0,0.7) 92%, transparent 100%)",
         }}
         loading="eager"
         decoding="async"
       />
+
 
 
       {/* Floating insight microcards */}
