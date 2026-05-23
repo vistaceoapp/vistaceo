@@ -17,7 +17,7 @@ const INSIGHTS = [
     icon: AlertTriangle,
     label: "Punto débil detectado",
     title: "41% de ventas no cierran",
-    detail: "Seguimiento débil tras 1ª consulta recibida",
+    detail: "Seguimiento débil tras 1ª consulta",
     color: "#E0457B",
     position: "top-[20%] right-[-8%]",
     delay: "0.7s",
