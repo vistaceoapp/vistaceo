@@ -14,19 +14,24 @@ export interface WidgetConfig {
   locked?: boolean; // Non-removable widgets
 }
 
+// Orden y visibilidad predeterminados.
+// Solo `aiSummary` (Centro de inteligencia) queda fijo (locked).
+// El resto se puede ocultar y reordenar libremente desde "Personalizar".
 const DEFAULT_WIDGETS: WidgetConfig[] = [
-  // Núcleo: siempre visibles. Su orden/visibilidad están fijos.
+  // Main column
   { id: "aiSummary", name: "Centro de inteligencia", icon: "Sparkles", visible: true, order: 0, section: "main", locked: true },
-  { id: "health", name: "Salud del negocio", icon: "Heart", visible: true, order: 1, section: "main", locked: true },
-  { id: "missions", name: "Misiones activas", icon: "Target", visible: true, order: 2, section: "main", locked: true },
-  { id: "opportunities", name: "Radar de oportunidades", icon: "Radar", visible: true, order: 3, section: "main", locked: true },
-  { id: "brain", name: "Conocimiento del negocio", icon: "Brain", visible: true, order: 0, section: "sidebar", locked: true },
-  // Opcionales: el usuario los activa desde Personalizar.
-  { id: "predictions", name: "Predicciones", icon: "Orbit", visible: false, order: 4, section: "main" },
-  { id: "weeklyMetrics", name: "Métricas semanales", icon: "BarChart3", visible: false, order: 5, section: "main" },
-  { id: "pulse", name: "Registro rápido", icon: "TrendingUp", visible: false, order: 6, section: "main" },
-  { id: "radar", name: "Radar Pro", icon: "Radar", visible: false, order: 1, section: "sidebar" },
-  { id: "focus", name: "Foco actual", icon: "Crosshair", visible: false, order: 2, section: "sidebar" },
+  { id: "health", name: "Salud del negocio", icon: "Heart", visible: true, order: 1, section: "main" },
+  { id: "opportunities", name: "Radar de oportunidades", icon: "Radar", visible: true, order: 2, section: "main" },
+  { id: "missions", name: "Misiones en curso", icon: "Target", visible: true, order: 3, section: "main" },
+  // Sidebar
+  { id: "focus", name: "Foco actual del negocio", icon: "Crosshair", visible: true, order: 0, section: "sidebar" },
+  { id: "brain", name: "Conocimiento del negocio", icon: "Brain", visible: true, order: 1, section: "sidebar" },
+  // Opcionales (apagados por defecto)
+  { id: "talkToCEO", name: "Contarle más a tu CEO", icon: "MessageCircle", visible: false, order: 4, section: "main" },
+  { id: "predictions", name: "Predicciones", icon: "Orbit", visible: false, order: 5, section: "main" },
+  { id: "weeklyMetrics", name: "Métricas semanales", icon: "BarChart3", visible: false, order: 6, section: "main" },
+  { id: "pulse", name: "Registro rápido", icon: "TrendingUp", visible: false, order: 7, section: "main" },
+  { id: "radar", name: "Radar Pro", icon: "Radar", visible: false, order: 2, section: "sidebar" },
   { id: "reputation", name: "Reputación", icon: "Star", visible: false, order: 3, section: "sidebar" },
 ];
 
@@ -56,21 +61,30 @@ export const useWidgetConfig = () => {
       if (business?.settings) {
         const settings = business.settings as Record<string, any>;
         if (settings.widgetConfig && Array.isArray(settings.widgetConfig)) {
-          // Merge saved config with defaults (in case new widgets were added)
           const savedConfig = settings.widgetConfig as WidgetConfig[];
           const mergedConfig = DEFAULT_WIDGETS.map(defaultWidget => {
             const saved = savedConfig.find(w => w.id === defaultWidget.id);
-            // Force locked widgets to use default order/section/visible (system-managed)
-            // Esto garantiza que viejos usuarios vean el Centro de Inteligencia (aiSummary)
-            // primero, aunque tengan una config previa guardada.
+            // Locked widgets siempre fuerzan defaults del sistema
             if (defaultWidget.locked) {
               return { ...defaultWidget, visible: true };
             }
-            return saved ? { ...defaultWidget, ...saved } : defaultWidget;
+            // Para no-locked, respetamos visible/order/section del usuario
+            if (saved) {
+              return {
+                ...defaultWidget,
+                visible: saved.visible,
+                order: typeof saved.order === "number" ? saved.order : defaultWidget.order,
+                section: saved.section || defaultWidget.section,
+              };
+            }
+            return defaultWidget;
           });
           setWidgets(mergedConfig);
+          setLoading(false);
+          return;
         }
       }
+      setWidgets(DEFAULT_WIDGETS);
     } catch (error) {
       console.error("Error loading widget config:", error);
     } finally {
@@ -82,7 +96,6 @@ export const useWidgetConfig = () => {
     if (!currentBusiness) return;
 
     try {
-      // Get current settings
       const { data: business } = await supabase
         .from("businesses")
         .select("settings")
@@ -90,8 +103,7 @@ export const useWidgetConfig = () => {
         .single();
 
       const currentSettings = (business?.settings as Record<string, unknown>) || {};
-      
-      // Update with new widget config - convert to JSON-safe format
+
       const widgetConfigJson = newWidgets.map(w => ({
         id: w.id,
         name: w.name,
@@ -101,7 +113,7 @@ export const useWidgetConfig = () => {
         section: w.section,
         locked: w.locked ?? false,
       }));
-      
+
       const updatedSettings = {
         ...currentSettings,
         widgetConfig: widgetConfigJson,
@@ -115,29 +127,35 @@ export const useWidgetConfig = () => {
       setWidgets(newWidgets);
     } catch (error) {
       console.error("Error saving widget config:", error);
+      throw error;
     }
   }, [currentBusiness]);
 
   const toggleWidget = useCallback((widgetId: string) => {
-    const updated = widgets.map(w => 
-      w.id === widgetId && !w.locked ? { ...w, visible: !w.visible } : w
-    );
-    setWidgets(updated);
+    let updated: WidgetConfig[] = [];
+    setWidgets(prev => {
+      updated = prev.map(w =>
+        w.id === widgetId && !w.locked ? { ...w, visible: !w.visible } : w
+      );
+      return updated;
+    });
     return updated;
-  }, [widgets]);
+  }, []);
 
   const reorderWidgets = useCallback((section: "main" | "sidebar", fromIndex: number, toIndex: number) => {
-    const sectionWidgets = widgets.filter(w => w.section === section).sort((a, b) => a.order - b.order);
-    const otherWidgets = widgets.filter(w => w.section !== section);
-    
-    const [removed] = sectionWidgets.splice(fromIndex, 1);
-    sectionWidgets.splice(toIndex, 0, removed);
-    
-    const reordered = sectionWidgets.map((w, idx) => ({ ...w, order: idx }));
-    const updated = [...otherWidgets, ...reordered];
-    setWidgets(updated);
+    let updated: WidgetConfig[] = [];
+    setWidgets(prev => {
+      const sectionWidgets = prev.filter(w => w.section === section).sort((a, b) => a.order - b.order);
+      const otherWidgets = prev.filter(w => w.section !== section);
+      const [removed] = sectionWidgets.splice(fromIndex, 1);
+      if (!removed) return prev;
+      sectionWidgets.splice(toIndex, 0, removed);
+      const reordered = sectionWidgets.map((w, idx) => ({ ...w, order: idx }));
+      updated = [...otherWidgets, ...reordered];
+      return updated;
+    });
     return updated;
-  }, [widgets]);
+  }, []);
 
   const getVisibleWidgets = useCallback((section: "main" | "sidebar") => {
     return widgets
@@ -145,10 +163,31 @@ export const useWidgetConfig = () => {
       .sort((a, b) => a.order - b.order);
   }, [widgets]);
 
-  const resetToDefaults = useCallback(() => {
+  const resetToDefaults = useCallback(async () => {
     setWidgets(DEFAULT_WIDGETS);
+    // Persistir reset al backend para que no vuelva la config vieja
+    if (currentBusiness) {
+      try {
+        const { data: business } = await supabase
+          .from("businesses")
+          .select("settings")
+          .eq("id", currentBusiness.id)
+          .single();
+        const currentSettings = (business?.settings as Record<string, unknown>) || {};
+        const updatedSettings = {
+          ...currentSettings,
+          widgetConfig: DEFAULT_WIDGETS.map(w => ({ ...w, locked: w.locked ?? false })),
+        };
+        await supabase
+          .from("businesses")
+          .update({ settings: updatedSettings as Json })
+          .eq("id", currentBusiness.id);
+      } catch (e) {
+        console.error("Error resetting widget config:", e);
+      }
+    }
     return DEFAULT_WIDGETS;
-  }, []);
+  }, [currentBusiness]);
 
   return {
     widgets,
