@@ -68,8 +68,8 @@ const TodayPage = () => {
         );
       case "missions":
         return <MissionsWidget />;
-      case "nextSteps":
-        return <SmartNextSteps />;
+      case "opportunities":
+        return <OpportunitiesPreview />;
       case "pulse":
         return <PulseCheckinCard />;
       case "weeklyMetrics":
