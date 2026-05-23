@@ -16,7 +16,7 @@ import { TalkToCEOCard } from "@/components/app/TalkToCEOCard";
 import { ProUpgradeBanner } from "@/components/app/ProUpgradeBanner";
 import { BrainKnowledgeWidget } from "@/components/app/BrainKnowledgeWidget";
 import { PredictionsWidget } from "@/components/app/PredictionsWidget";
-import { SmartNextSteps } from "@/components/app/SmartNextSteps";
+
 import { PulseCheckinCard } from "@/components/app/PulseCheckinCard";
 import { WeeklyMetricsWidget } from "@/components/app/WeeklyMetricsWidget";
 import { RadarWidget } from "@/components/app/RadarWidget";
@@ -68,8 +68,8 @@ const TodayPage = () => {
         );
       case "missions":
         return <MissionsWidget />;
-      case "nextSteps":
-        return <SmartNextSteps />;
+      case "opportunities":
+        return <OpportunitiesPreview />;
       case "pulse":
         return <PulseCheckinCard />;
       case "weeklyMetrics":
@@ -160,17 +160,12 @@ const TodayPage = () => {
     </GlassCard>
   );
 
-  // Helper: render visible widgets + insert Opportunities after missions (fixed pin)
+  // Render visible widgets respetando orden del usuario (Personalizar)
   const renderMain = () => {
     const nodes: React.ReactNode[] = [];
     mainVisible.forEach((w) => {
       const node = renderWidget(w.id);
-      if (node) {
-        nodes.push(<div key={w.id}>{node}</div>);
-        if (w.id === "missions") {
-          nodes.push(<OpportunitiesPreview key="__opps__" />);
-        }
-      }
+      if (node) nodes.push(<div key={w.id}>{node}</div>);
     });
     return nodes;
   };
