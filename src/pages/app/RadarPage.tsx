@@ -123,21 +123,10 @@ const ID_NATURES = [
   "Nueva táctica", "Estacionalidad", "Insight de audiencia", "Movimiento de competidores"
 ];
 
-// Helper: translate item_type to Spanish
+// Helper: translate item_type to Spanish (delegado al traductor central)
+import { translateTag } from "@/lib/i18nTags";
 const translateItemType = (itemType: string | null): string => {
-  const translations: Record<string, string> = {
-    trend: "Tendencia",
-    benchmark: "Referencia",
-    platform: "Plataforma",
-    competitive: "Competencia",
-    product: "Producto",
-    macro: "Macro",
-    opportunity: "Oportunidad",
-    general: "General",
-    consumo: "Consumo",
-    operacion_externa: "Operación externa",
-  };
-  return translations[itemType || "general"] || itemType || "General";
+  return translateTag(itemType, "General");
 };
 
 // Helper: get source icon
