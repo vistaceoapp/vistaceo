@@ -31,7 +31,7 @@ interface DashboardEditorProps {
   onSave: (widgets: WidgetConfig[]) => Promise<void>;
   onToggle: (widgetId: string) => WidgetConfig[];
   onReorder: (section: "main" | "sidebar", fromIndex: number, toIndex: number) => WidgetConfig[];
-  onReset: () => WidgetConfig[];
+  onReset: () => WidgetConfig[] | Promise<WidgetConfig[]>;
 }
 
 const ICON_MAP: Record<string, typeof Heart> = {
