@@ -207,7 +207,7 @@ const SetupPage = () => {
     switch (stepId) {
       case 'country': return !!data.countryCode;
       case 'identity': return !!data.businessTypeId; // Set by AI selection or manual
-      case 'business': return data.businessName.trim().length >= 2;
+      case 'business': return true; // Nunca bloquear — el usuario puede continuar siempre
       case 'mode': return true;
       case 'questionnaire': return true;
       
