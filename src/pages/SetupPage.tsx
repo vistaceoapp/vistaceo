@@ -207,7 +207,7 @@ const SetupPage = () => {
     switch (stepId) {
       case 'country': return !!data.countryCode;
       case 'identity': return !!data.businessTypeId; // Set by AI selection or manual
-      case 'business': return data.businessName.trim().length >= 2;
+      case 'business': return true; // Nunca bloquear — el usuario puede continuar siempre
       case 'mode': return true;
       case 'questionnaire': return true;
       
@@ -259,8 +259,26 @@ const SetupPage = () => {
     }
   };
 
+  const deriveBusinessName = (): string => {
+    const direct = data.businessName?.trim();
+    if (direct) return direct;
+    // Fallback: derive from web/linkedin URL or generic label
+    const url = (data.websiteUrl || data.linkedinUrl || '').trim();
+    if (url) {
+      try {
+        const host = new URL(url.startsWith('http') ? url : `https://${url}`).hostname.replace('www.', '');
+        const slug = host.split('.')[0];
+        if (slug) return slug.charAt(0).toUpperCase() + slug.slice(1);
+      } catch {
+        if (url.length > 0) return url.slice(0, 60);
+      }
+    }
+    return 'Mi negocio';
+  };
+
   const createBusiness = async () => {
-    if (!user || !data.businessName.trim()) return;
+    if (!user) return;
+    const finalName = deriveBusinessName();
     
     setCreatingBusiness(true);
     setCreateProgress(10);
@@ -274,7 +292,7 @@ const SetupPage = () => {
         ? supabase
             .from('businesses')
             .update({
-              name: data.businessName.trim(),
+              name: finalName,
               category: mapAreaToCategory(data.areaId) as any,
               country: data.countryCode,
               owner_id: user.id,
@@ -298,7 +316,7 @@ const SetupPage = () => {
         : supabase
             .from('businesses')
             .insert({
-              name: data.businessName.trim(),
+              name: finalName,
               category: mapAreaToCategory(data.areaId) as any,
               country: data.countryCode,
               owner_id: user.id,
@@ -617,6 +635,7 @@ const SetupPage = () => {
         return (
           <SetupStepBusiness
             countryCode={data.countryCode}
+            areaId={data.areaId}
             currentName={data.businessName}
             currentPlaceId={data.googlePlaceId}
             onUpdate={(update) => setData(d => ({
