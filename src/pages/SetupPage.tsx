@@ -292,7 +292,7 @@ const SetupPage = () => {
         ? supabase
             .from('businesses')
             .update({
-              name: data.businessName.trim(),
+              name: finalName,
               category: mapAreaToCategory(data.areaId) as any,
               country: data.countryCode,
               owner_id: user.id,
@@ -316,7 +316,7 @@ const SetupPage = () => {
         : supabase
             .from('businesses')
             .insert({
-              name: data.businessName.trim(),
+              name: finalName,
               category: mapAreaToCategory(data.areaId) as any,
               country: data.countryCode,
               owner_id: user.id,
