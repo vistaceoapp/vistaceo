@@ -91,16 +91,36 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
     }
   }, [text]);
 
-  // Quita repeticiones inmediatas de palabras y frases cortas (típico glitch del dictado)
+  // Quita repeticiones inmediatas + interpreta comandos por voz ("punto", "coma", "borrar todo", "nueva línea")
   const dedupeSpeech = (raw: string): string => {
     if (!raw) return raw;
     let out = raw.replace(/\s+/g, ' ').trim();
+
+    // Comando: "borrar todo" / "borra todo" / "empezar de nuevo" → limpia el buffer
+    if (/\b(borrar|borra|borr[áa]|elimina|elimin[áa])\s+todo\b/iu.test(out) ||
+        /\bempezar\s+de\s+nuevo\b/iu.test(out) ||
+        /\bempec[ée]mos\s+de\s+cero\b/iu.test(out)) {
+      baseTextRef.current = '';
+      return '';
+    }
+
+    // Comandos de puntuación habladas
+    out = out.replace(/\s*\b(punto y aparte|punto aparte)\b\s*/giu, '.\n\n');
+    out = out.replace(/\s*\b(nueva l[íi]nea|salto de l[íi]nea)\b\s*/giu, '\n');
+    out = out.replace(/\s*\bpunto y coma\b\s*/giu, '; ');
+    out = out.replace(/\s*\bdos puntos\b\s*/giu, ': ');
+    out = out.replace(/\s*\bpunto\b\s*/giu, '. ');
+    out = out.replace(/\s*\bcoma\b\s*/giu, ', ');
+    out = out.replace(/\s*\b(signo de )?interrogaci[óo]n\b\s*/giu, '? ');
+    out = out.replace(/\s*\b(signo de )?exclamaci[óo]n\b\s*/giu, '! ');
+
     // Quita palabras repetidas inmediatas: "hola hola" → "hola"
     out = out.replace(/\b(\p{L}+)(\s+\1\b)+/giu, '$1');
     // Quita frases cortas de 2-5 palabras duplicadas seguidas
     out = out.replace(/\b((?:\p{L}+\s+){1,4}\p{L}+)\s+\1\b/giu, '$1');
-    // Quita espacios antes de puntuación
+    // Quita espacios antes de puntuación y normaliza
     out = out.replace(/\s+([,.;:!?])/g, '$1');
+    out = out.replace(/[ \t]{2,}/g, ' ');
     return out.trim();
   };
 
