@@ -482,15 +482,20 @@ export const BusinessHealthAnalytics = () => {
             <h3 className="text-sm font-semibold text-foreground">Fortalezas</h3>
           </div>
           <div className="space-y-1.5">
-            {(latestSnapshot.strengths || []).map((s, i) => (
-              <div key={i} className="flex items-start gap-2 p-2.5 rounded-xl bg-success/5 border border-success/10">
-                <CheckCircle2 className="w-3 h-3 text-success mt-0.5 flex-shrink-0" />
-                <span className="text-xs text-foreground leading-relaxed">{String(s).replace(/\(Q_[A-Z_]+\d*\)/g, '').replace(/Q_[A-Z]{2,}_\d+/g, '').trim()}</span>
-              </div>
-            ))}
-            {(!latestSnapshot.strengths || latestSnapshot.strengths.length === 0) && (
-              <p className="text-xs text-muted-foreground">Aún no identificadas</p>
-            )}
+            {(() => {
+              const cleaned = sanitizeSignals(latestSnapshot.strengths || [])
+                .map(s => String(s).replace(/\(Q_[A-Z_]+\d*\)/g, '').replace(/Q_[A-Z]{2,}_\d+/g, '').trim())
+                .filter(s => s.length > 3 && !isLeakedLabel(s));
+              if (cleaned.length === 0) {
+                return <p className="text-xs text-muted-foreground">Aún no identificadas</p>;
+              }
+              return cleaned.map((s, i) => (
+                <div key={i} className="flex items-start gap-2 p-2.5 rounded-xl bg-success/5 border border-success/10">
+                  <CheckCircle2 className="w-3 h-3 text-success mt-0.5 flex-shrink-0" />
+                  <span className="text-xs text-foreground leading-relaxed">{s}</span>
+                </div>
+              ));
+            })()}
           </div>
         </div>
 
