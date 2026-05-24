@@ -35,6 +35,22 @@ const GENERIC_OPPS: FallbackOpp[] = [
   },
 ];
 
+const GENERIC_MISSION = {
+  title: "Activá tu presencia digital en 7 días",
+  description:
+    "Misión inicial diseñada para que en una semana ya tengas el cimiento digital que toda decisión posterior necesita: perfil de Google verificado, oferta clara y primera prueba de comunicación. Es la base sobre la que se apoya todo el resto del plan.",
+  area: "growth",
+  impact_score: 9,
+  effort_score: 3,
+  steps: [
+    { id: 1, text: "Verificar y completar tu Perfil de Empresa en Google (fotos, horarios, categoría).", done: false },
+    { id: 2, text: "Definir tu oferta estrella en una frase de 10 palabras o menos.", done: false },
+    { id: 3, text: "Publicar la oferta en tu red principal (Instagram, LinkedIn o WhatsApp Estados).", done: false },
+    { id: 4, text: "Pedir 2 reseñas reales a clientes recurrentes.", done: false },
+    { id: 5, text: "Revisar los resultados al día 7 y anotar qué funcionó mejor.", done: false },
+  ],
+};
+
 const GENERIC_TREND = {
   title: "El 73% de los consumidores investiga online antes de comprar",
   content:
