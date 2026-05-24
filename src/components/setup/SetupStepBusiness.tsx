@@ -1,6 +1,6 @@
 // Step: Business Name + Google Search (Combined)
 import { motion } from 'framer-motion';
-import { MapPin, Star, MessageSquare, Search, X, Check, Loader2, Building2, Pencil } from 'lucide-react';
+import { MapPin, Star, MessageSquare, Search, X, Check, Loader2, Building2, Pencil, Linkedin, Globe } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -29,6 +29,9 @@ interface SetupStepBusinessProps {
     googleAddress?: string;
     googleLat?: number;
     googleLng?: number;
+    linkedinUrl?: string;
+    websiteUrl?: string;
+    sourcePreference?: 'google' | 'linkedin' | 'website' | 'manual';
   }) => void;
 }
 
@@ -62,6 +65,8 @@ export const SetupStepBusiness = ({
   const [suggestions, setSuggestions] = useState<PlacePrediction[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlaceData | null>(null);
   const [manualMode, setManualMode] = useState(false);
+  const [linkedinUrl, setLinkedinUrl] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const sessionTokenRef = useRef(createSessionToken());
 
@@ -77,7 +82,7 @@ export const SetupStepBusiness = ({
     
     // Update parent with manual name if in manual mode
     if (manualMode) {
-      onUpdate({ businessName: query });
+      onUpdate({ businessName: query, linkedinUrl, websiteUrl, sourcePreference: 'manual' });
       return;
     }
     
@@ -147,6 +152,9 @@ export const SetupStepBusiness = ({
           googleAddress: placeData.address,
           googleLat: placeData.lat,
           googleLng: placeData.lng,
+          linkedinUrl,
+          websiteUrl,
+          sourcePreference: 'google',
         });
       }
     } catch (err) {
@@ -167,7 +175,26 @@ export const SetupStepBusiness = ({
     setManualMode(true);
     setSuggestions([]);
     // Keep current search as manual name
-    onUpdate({ businessName: search });
+    onUpdate({ businessName: search, linkedinUrl, websiteUrl, sourcePreference: 'manual' });
+  };
+
+  const updateExternalSource = (field: 'linkedinUrl' | 'websiteUrl', value: string) => {
+    if (field === 'linkedinUrl') setLinkedinUrl(value);
+    if (field === 'websiteUrl') setWebsiteUrl(value);
+    const nextLinkedin = field === 'linkedinUrl' ? value : linkedinUrl;
+    const nextWebsite = field === 'websiteUrl' ? value : websiteUrl;
+    onUpdate({
+      businessName: search,
+      googlePlaceId: selectedPlace?.placeId,
+      googleRating: selectedPlace?.rating,
+      googleReviewCount: selectedPlace?.reviewCount,
+      googleAddress: selectedPlace?.address,
+      googleLat: selectedPlace?.lat,
+      googleLng: selectedPlace?.lng,
+      linkedinUrl: nextLinkedin,
+      websiteUrl: nextWebsite,
+      sourcePreference: selectedPlace ? 'google' : nextLinkedin ? 'linkedin' : nextWebsite ? 'website' : 'manual',
+    });
   };
 
   const lang = countryCode === 'BR' ? 'pt' : 'es';
