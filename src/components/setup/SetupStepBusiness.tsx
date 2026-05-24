@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 import { MapPin, Star, MessageSquare, Search, X, Loader2, Building2, Globe, Linkedin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
