@@ -78,6 +78,9 @@ interface SetupData {
   googleAddress?: string;
   googleLat?: number;
   googleLng?: number;
+  linkedinUrl?: string;
+  websiteUrl?: string;
+  sourcePreference?: 'google' | 'linkedin' | 'website' | 'manual';
   answers: Record<string, any>;
   questionIndex: number;
   integrationsProfiled: {
