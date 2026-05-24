@@ -96,6 +96,8 @@ const SetupPage = () => {
   const [creatingBusiness, setCreatingBusiness] = useState(false);
   const [createProgress, setCreateProgress] = useState(0);
   const setupStartTracked = useRef(false);
+  const { yearlySavings } = useCountryDetection();
+  const realSavingsPct = Math.max(0, Math.min(99, yearlySavings().percentage || 0));
   
   // Check if user already has Pro (from pre-setup purchase stored in localStorage)
   const hasPendingProPurchase = safeLocalStorage.getItem('proPurchaseCompleted') === 'true';
