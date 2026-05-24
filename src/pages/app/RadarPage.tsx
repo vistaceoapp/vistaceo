@@ -777,20 +777,23 @@ const RadarPage = () => {
   // Mobile Layout
   if (isMobile) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
+      <div className="space-y-6 max-w-full overflow-x-hidden">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <RadarIcon className="w-6 h-6 text-accent" />
+              <RadarIcon className="w-6 h-6 text-accent flex-shrink-0" />
               Radar
             </h1>
-            <p className="text-muted-foreground text-sm">Señales detectadas en tu negocio y mercado</p>
+            <p className="text-muted-foreground text-sm leading-snug">
+              Señales detectadas en tu negocio y mercado
+            </p>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={generateAnalysis}
             disabled={actionLoading || generatingResearch}
+            className="flex-shrink-0 whitespace-nowrap"
           >
             <Sparkles className={cn("w-4 h-4 mr-2", (actionLoading || generatingResearch) && "animate-spin")} />
             {activeTab === "id" ? "Escanear I+D" : "Escanear"}
@@ -799,13 +802,14 @@ const RadarPage = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="oportunidades" className="text-xs">
-              Oportunidades de mejora
+            <TabsTrigger value="oportunidades" className="text-[11px] px-1.5 py-2 truncate">
+              Oportunidades
             </TabsTrigger>
-            <TabsTrigger value="id" className="text-xs">
+            <TabsTrigger value="id" className="text-[11px] px-1.5 py-2 truncate">
               I+D
             </TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="oportunidades" className="space-y-4">
             {filteredOpportunities.length === 0 ? (
