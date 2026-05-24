@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { sanitizeAIOutput, sanitizeSignals, isLeakedLabel } from "@/lib/aiOutputSanitizer";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
