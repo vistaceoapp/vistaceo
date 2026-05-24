@@ -926,12 +926,12 @@ const RadarPage = () => {
 
   // Desktop Layout
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-            <RadarIcon className="w-6 h-6 text-accent" />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3 flex-wrap">
+            <RadarIcon className="w-6 h-6 text-accent flex-shrink-0" />
             Radar
             <TooltipProvider>
               <Tooltip>
@@ -953,19 +953,19 @@ const RadarPage = () => {
           </h1>
           <p className="text-muted-foreground">Señales que valen la pena mirar antes de actuar</p>
         </div>
-        <Button 
+        <Button
           onClick={generateAnalysis}
           disabled={actionLoading || generatingResearch}
           className={cn(
-            "shadow-lg",
+            "shadow-lg flex-shrink-0 whitespace-nowrap",
             activeTab === "id" ? "gradient-accent shadow-accent/20" : "gradient-primary shadow-primary/20"
           )}
         >
           <Sparkles className={cn("w-4 h-4 mr-2", (actionLoading || generatingResearch) && "animate-spin")} />
-          {actionLoading || generatingResearch 
-            ? "Analizando..." 
-            : activeTab === "id" 
-              ? "Escanear tendencias externas" 
+          {actionLoading || generatingResearch
+            ? "Analizando..."
+            : activeTab === "id"
+              ? "Escanear tendencias"
               : "Escanear oportunidades"}
         </Button>
       </div>
