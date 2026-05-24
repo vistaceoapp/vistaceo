@@ -613,6 +613,9 @@ const SetupPage = () => {
               googleAddress: update.googleAddress,
               googleLat: update.googleLat,
               googleLng: update.googleLng,
+              linkedinUrl: update.linkedinUrl,
+              websiteUrl: update.websiteUrl,
+              sourcePreference: update.sourcePreference,
             }))}
           />
         );
