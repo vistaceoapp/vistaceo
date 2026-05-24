@@ -77,6 +77,8 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const baseTextRef = useRef<string>('');
+  const finalsRef = useRef<string>('');
   const speechSupported = typeof window !== 'undefined' && (
     (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
   );
@@ -89,6 +91,19 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
     }
   }, [text]);
 
+  // Quita repeticiones inmediatas de palabras y frases cortas (típico glitch del dictado)
+  const dedupeSpeech = (raw: string): string => {
+    if (!raw) return raw;
+    let out = raw.replace(/\s+/g, ' ').trim();
+    // Quita palabras repetidas inmediatas: "hola hola" → "hola"
+    out = out.replace(/\b(\p{L}+)(\s+\1\b)+/giu, '$1');
+    // Quita frases cortas de 2-5 palabras duplicadas seguidas
+    out = out.replace(/\b((?:\p{L}+\s+){1,4}\p{L}+)\s+\1\b/giu, '$1');
+    // Quita espacios antes de puntuación
+    out = out.replace(/\s+([,.;:!?])/g, '$1');
+    return out.trim();
+  };
+
   const toggleVoice = () => {
     if (!speechSupported) return;
     if (isListening) {
@@ -100,16 +115,41 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
       const Ctor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const rec = new Ctor();
       rec.lang = 'es-AR';
-      rec.continuous = false;
+      rec.continuous = true;
       rec.interimResults = true;
+      rec.maxAlternatives = 1;
+
+      // Guarda lo que ya había escrito el usuario para no machacarlo
+      baseTextRef.current = text.trim();
+      finalsRef.current = '';
+
       rec.onresult = (e: any) => {
-        let finalText = '';
+        let interim = '';
+        // Recorre TODOS los resultados — los marcados isFinal se acumulan una sola vez
         for (let i = e.resultIndex; i < e.results.length; i++) {
-          finalText += e.results[i][0].transcript;
+          const r = e.results[i];
+          const transcript = r[0]?.transcript || '';
+          if (r.isFinal) {
+            finalsRef.current = dedupeSpeech(
+              (finalsRef.current ? finalsRef.current + ' ' : '') + transcript
+            );
+          } else {
+            interim += transcript;
+          }
         }
-        setText((prev) => (prev ? prev + ' ' : '') + finalText.trim());
+        const composed = dedupeSpeech(
+          [baseTextRef.current, finalsRef.current, interim.trim()].filter(Boolean).join(' ')
+        );
+        setText(composed);
       };
-      rec.onend = () => setIsListening(false);
+      rec.onend = () => {
+        // Commit final limpio al detener
+        const final = dedupeSpeech(
+          [baseTextRef.current, finalsRef.current].filter(Boolean).join(' ')
+        );
+        setText(final);
+        setIsListening(false);
+      };
       rec.onerror = () => setIsListening(false);
       recognitionRef.current = rec;
       rec.start();

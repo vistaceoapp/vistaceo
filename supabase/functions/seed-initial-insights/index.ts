@@ -35,6 +35,22 @@ const GENERIC_OPPS: FallbackOpp[] = [
   },
 ];
 
+const GENERIC_MISSION = {
+  title: "Activá tu presencia digital en 7 días",
+  description:
+    "Misión inicial diseñada para que en una semana ya tengas el cimiento digital que toda decisión posterior necesita: perfil de Google verificado, oferta clara y primera prueba de comunicación. Es la base sobre la que se apoya todo el resto del plan.",
+  area: "growth",
+  impact_score: 9,
+  effort_score: 3,
+  steps: [
+    { id: 1, text: "Verificar y completar tu Perfil de Empresa en Google (fotos, horarios, categoría).", done: false },
+    { id: 2, text: "Definir tu oferta estrella en una frase de 10 palabras o menos.", done: false },
+    { id: 3, text: "Publicar la oferta en tu red principal (Instagram, LinkedIn o WhatsApp Estados).", done: false },
+    { id: 4, text: "Pedir 2 reseñas reales a clientes recurrentes.", done: false },
+    { id: 5, text: "Revisar los resultados al día 7 y anotar qué funcionó mejor.", done: false },
+  ],
+};
+
 const GENERIC_TREND = {
   title: "El 73% de los consumidores investiga online antes de comprar",
   content:
@@ -95,7 +111,7 @@ Deno.serve(async (req) => {
     await Promise.all([callAnalyze("opportunities"), callAnalyze("research")]);
 
     // Verify counts and seed fallbacks if AI produced nothing.
-    const [{ count: oppCount }, { count: learnCount }] = await Promise.all([
+    const [{ count: oppCount }, { count: learnCount }, { count: missionCount }] = await Promise.all([
       supabase
         .from("opportunities")
         .select("id", { count: "exact", head: true })
@@ -104,10 +120,15 @@ Deno.serve(async (req) => {
         .from("learning_items")
         .select("id", { count: "exact", head: true })
         .eq("business_id", businessId),
+      supabase
+        .from("missions")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", businessId),
     ]);
 
     let seededOpps = 0;
     let seededTrends = 0;
+    let seededMissions = 0;
 
     if ((oppCount || 0) < 1) {
       // Insert 2 generic opportunities so user lands on a populated radar.
@@ -139,8 +160,24 @@ Deno.serve(async (req) => {
       if (!error) seededTrends++;
     }
 
+    // Guarantee at least 1 mission so missions page never appears empty.
+    if ((missionCount || 0) < 1) {
+      const { error } = await supabase.from("missions").insert({
+        business_id: businessId,
+        title: GENERIC_MISSION.title,
+        description: GENERIC_MISSION.description,
+        area: GENERIC_MISSION.area,
+        impact_score: GENERIC_MISSION.impact_score,
+        effort_score: GENERIC_MISSION.effort_score,
+        steps: GENERIC_MISSION.steps,
+        status: "active",
+      });
+      if (!error) seededMissions++;
+      else console.warn("[seed-initial-insights] mission insert failed:", error);
+    }
+
     console.log(
-      `[seed-initial-insights] Done. AI opps=${oppCount} trends=${learnCount} | seeded opps=${seededOpps} trends=${seededTrends}`,
+      `[seed-initial-insights] Done. AI opps=${oppCount} trends=${learnCount} missions=${missionCount} | seeded opps=${seededOpps} trends=${seededTrends} missions=${seededMissions}`,
     );
 
     return new Response(
@@ -148,8 +185,10 @@ Deno.serve(async (req) => {
         success: true,
         ai_opportunities: oppCount || 0,
         ai_trends: learnCount || 0,
+        ai_missions: missionCount || 0,
         fallback_opportunities_inserted: seededOpps,
         fallback_trends_inserted: seededTrends,
+        fallback_missions_inserted: seededMissions,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
