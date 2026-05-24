@@ -259,8 +259,26 @@ const SetupPage = () => {
     }
   };
 
+  const deriveBusinessName = (): string => {
+    const direct = data.businessName?.trim();
+    if (direct) return direct;
+    // Fallback: derive from web/linkedin URL or generic label
+    const url = (data.websiteUrl || data.linkedinUrl || '').trim();
+    if (url) {
+      try {
+        const host = new URL(url.startsWith('http') ? url : `https://${url}`).hostname.replace('www.', '');
+        const slug = host.split('.')[0];
+        if (slug) return slug.charAt(0).toUpperCase() + slug.slice(1);
+      } catch {
+        if (url.length > 0) return url.slice(0, 60);
+      }
+    }
+    return 'Mi negocio';
+  };
+
   const createBusiness = async () => {
-    if (!user || !data.businessName.trim()) return;
+    if (!user) return;
+    const finalName = deriveBusinessName();
     
     setCreatingBusiness(true);
     setCreateProgress(10);
