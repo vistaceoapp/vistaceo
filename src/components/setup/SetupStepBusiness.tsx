@@ -1,10 +1,9 @@
-// Step: Business Name + Google Search (Combined)
+// Step: Business Name — Google + Web/LinkedIn siempre disponibles, nunca bloquea
 import { motion } from 'framer-motion';
-import { MapPin, Star, MessageSquare, Search, X, Check, Loader2, Building2, Pencil, Linkedin, Globe } from 'lucide-react';
+import { MapPin, Star, MessageSquare, Search, X, Loader2, Building2, Globe, Linkedin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface GooglePlaceData {
@@ -19,6 +18,7 @@ interface GooglePlaceData {
 
 interface SetupStepBusinessProps {
   countryCode: string;
+  areaId?: string;
   currentName: string;
   currentPlaceId?: string;
   onUpdate: (data: {
@@ -42,6 +42,12 @@ interface PlacePrediction {
   secondaryText?: string;
 }
 
+// Áreas que son servicios/profesionales — la web/LinkedIn es prioridad
+const SERVICE_AREAS = new Set([
+  'A5_TECH', 'A6_B2B', 'A7_HOGAR_SERV', 'A11_FINANZAS', 'A12_LEGAL',
+  'A13_CREATIVO', 'A14_TURISMO', 'A19_SOCIAL', 'A20_FREELANCE',
+]);
+
 const createSessionToken = () => {
   try {
     if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.randomUUID === 'function') {
@@ -50,49 +56,88 @@ const createSessionToken = () => {
   } catch {
     // Fallback below
   }
-
   return `session_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
 };
 
-export const SetupStepBusiness = ({ 
-  countryCode, 
+export const SetupStepBusiness = ({
+  countryCode,
+  areaId,
   currentName,
   currentPlaceId,
-  onUpdate 
+  onUpdate,
 }: SetupStepBusinessProps) => {
-  const [search, setSearch] = useState(currentName || '');
+  const isService = useMemo(() => (areaId ? SERVICE_AREAS.has(areaId) : false), [areaId]);
+  const lang = countryCode === 'BR' ? 'pt' : 'es';
+
+  const [manualName, setManualName] = useState(currentName || '');
+  const [googleQuery, setGoogleQuery] = useState(currentPlaceId ? currentName : '');
+  const [webOrLinkedin, setWebOrLinkedin] = useState('');
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<PlacePrediction[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlaceData | null>(null);
-  const [manualMode, setManualMode] = useState(false);
-  const [linkedinUrl, setLinkedinUrl] = useState('');
-  const [websiteUrl, setWebsiteUrl] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const sessionTokenRef = useRef(createSessionToken());
 
-  // If we have a current name but no placeId, we're in manual mode
-  useEffect(() => {
-    if (currentName && !currentPlaceId) {
-      setManualMode(true);
-    }
-  }, [currentName, currentPlaceId]);
+  // Empujar updates al padre — siempre, con lo que haya
+  const pushUpdate = (partial: {
+    name?: string;
+    place?: GooglePlaceData | null;
+    web?: string;
+    linkedin?: string;
+  }) => {
+    const name = (partial.name ?? manualName).trim();
+    const place = partial.place !== undefined ? partial.place : selectedPlace;
+    const web = (partial.web ?? '').trim();
+    const linkedin = (partial.linkedin ?? '').trim();
 
-  const handleSearch = async (query: string) => {
-    setSearch(query);
-    
-    // Update parent with manual name if in manual mode
-    if (manualMode) {
-      onUpdate({ businessName: query, linkedinUrl, websiteUrl, sourcePreference: 'manual' });
-      return;
-    }
-    
+    const finalName = place?.name || name || '';
+    let source: 'google' | 'linkedin' | 'website' | 'manual' = 'manual';
+    if (place) source = 'google';
+    else if (linkedin) source = 'linkedin';
+    else if (web) source = 'website';
+
+    onUpdate({
+      businessName: finalName,
+      googlePlaceId: place?.placeId,
+      googleRating: place?.rating,
+      googleReviewCount: place?.reviewCount,
+      googleAddress: place?.address,
+      googleLat: place?.lat,
+      googleLng: place?.lng,
+      linkedinUrl: linkedin || undefined,
+      websiteUrl: web || undefined,
+      sourcePreference: source,
+    });
+  };
+
+  // Detectar si el input externo es LinkedIn o web
+  const splitExternal = (value: string) => {
+    const isLinkedin = /linkedin\.com/i.test(value);
+    return {
+      web: isLinkedin ? '' : value,
+      linkedin: isLinkedin ? value : '',
+    };
+  };
+
+  const handleManualName = (value: string) => {
+    setManualName(value);
+    const ext = splitExternal(webOrLinkedin);
+    pushUpdate({ name: value, web: ext.web, linkedin: ext.linkedin });
+  };
+
+  const handleExternal = (value: string) => {
+    setWebOrLinkedin(value);
+    const ext = splitExternal(value);
+    pushUpdate({ name: manualName, web: ext.web, linkedin: ext.linkedin });
+  };
+
+  const handleGoogleSearch = (query: string) => {
+    setGoogleQuery(query);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    
     if (query.length < 3) {
       setSuggestions([]);
       return;
     }
-
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       try {
@@ -104,10 +149,7 @@ export const SetupStepBusiness = ({
             sessionToken: sessionTokenRef.current,
           },
         });
-
-        if (!error && data?.predictions) {
-          setSuggestions(data.predictions);
-        }
+        if (!error && data?.predictions) setSuggestions(data.predictions);
       } catch (err) {
         console.error('Search error:', err);
       } finally {
@@ -119,15 +161,10 @@ export const SetupStepBusiness = ({
   const handleSelectPlace = async (prediction: PlacePrediction) => {
     setLoading(true);
     setSuggestions([]);
-    
     try {
       const { data, error } = await supabase.functions.invoke('google-place-details', {
-        body: {
-          placeId: prediction.placeId,
-          sessionToken: sessionTokenRef.current,
-        },
+        body: { placeId: prediction.placeId, sessionToken: sessionTokenRef.current },
       });
-
       if (!error && data?.place) {
         const place = data.place;
         const placeData: GooglePlaceData = {
@@ -140,22 +177,11 @@ export const SetupStepBusiness = ({
           lng: place.location?.longitude || place.lng,
         };
         setSelectedPlace(placeData);
-        setSearch(placeData.name);
+        setGoogleQuery(placeData.name);
+        setManualName(placeData.name);
         sessionTokenRef.current = createSessionToken();
-        
-        // Update parent immediately
-        onUpdate({
-          businessName: placeData.name,
-          googlePlaceId: placeData.placeId,
-          googleRating: placeData.rating,
-          googleReviewCount: placeData.reviewCount,
-          googleAddress: placeData.address,
-          googleLat: placeData.lat,
-          googleLng: placeData.lng,
-          linkedinUrl,
-          websiteUrl,
-          sourcePreference: 'google',
-        });
+        const ext = splitExternal(webOrLinkedin);
+        pushUpdate({ name: placeData.name, place: placeData, web: ext.web, linkedin: ext.linkedin });
       }
     } catch (err) {
       console.error('Place details error:', err);
@@ -164,235 +190,181 @@ export const SetupStepBusiness = ({
     }
   };
 
-  const handleClear = () => {
+  const clearPlace = () => {
     setSelectedPlace(null);
-    setSearch('');
-    setManualMode(false);
-    onUpdate({ businessName: '' });
+    setGoogleQuery('');
+    const ext = splitExternal(webOrLinkedin);
+    pushUpdate({ name: manualName, place: null, web: ext.web, linkedin: ext.linkedin });
   };
 
-  const handleManualMode = () => {
-    setManualMode(true);
-    setSuggestions([]);
-    // Keep current search as manual name
-    onUpdate({ businessName: search, linkedinUrl, websiteUrl, sourcePreference: 'manual' });
-  };
+  // Render de los dos bloques (los reordenamos según servicio/físico)
+  const googleBlock = (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Search className="w-4 h-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">
+          {lang === 'pt' ? 'Buscar no Google' : 'Buscar en Google'}
+        </h3>
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70">
+          {lang === 'pt' ? 'opcional' : 'opcional'}
+        </span>
+      </div>
 
-  const updateExternalSource = (field: 'linkedinUrl' | 'websiteUrl', value: string) => {
-    if (field === 'linkedinUrl') setLinkedinUrl(value);
-    if (field === 'websiteUrl') setWebsiteUrl(value);
-    const nextLinkedin = field === 'linkedinUrl' ? value : linkedinUrl;
-    const nextWebsite = field === 'websiteUrl' ? value : websiteUrl;
-    onUpdate({
-      businessName: search,
-      googlePlaceId: selectedPlace?.placeId,
-      googleRating: selectedPlace?.rating,
-      googleReviewCount: selectedPlace?.reviewCount,
-      googleAddress: selectedPlace?.address,
-      googleLat: selectedPlace?.lat,
-      googleLng: selectedPlace?.lng,
-      linkedinUrl: nextLinkedin,
-      websiteUrl: nextWebsite,
-      sourcePreference: selectedPlace ? 'google' : nextLinkedin ? 'linkedin' : nextWebsite ? 'website' : 'manual',
-    });
-  };
+      {selectedPlace ? (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-xl border-2 border-primary bg-primary/5 space-y-3"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center shrink-0">
+                <MapPin className="w-4 h-4 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-semibold text-foreground truncate">{selectedPlace.name}</h4>
+                {selectedPlace.address && (
+                  <p className="text-xs text-muted-foreground truncate">{selectedPlace.address}</p>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={clearPlace}
+              className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          {(selectedPlace.rating || selectedPlace.reviewCount) && (
+            <div className="flex items-center gap-3 pt-1">
+              {selectedPlace.rating && (
+                <div className="flex items-center gap-1">
+                  <Star className="w-4 h-4 text-warning fill-warning" />
+                  <span className="text-sm font-medium">{selectedPlace.rating.toFixed(1)}</span>
+                </div>
+              )}
+              {selectedPlace.reviewCount && (
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span className="text-xs">{selectedPlace.reviewCount}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </motion.div>
+      ) : (
+        <div className="space-y-2">
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder={lang === 'pt' ? 'Nome do negócio no Google' : 'Nombre del negocio en Google'}
+              value={googleQuery}
+              onChange={(e) => handleGoogleSearch(e.target.value)}
+              className="pl-10 h-12 text-sm bg-secondary/50"
+            />
+            {loading && (
+              <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />
+            )}
+          </div>
+          {suggestions.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="border border-border rounded-lg overflow-hidden bg-card shadow-md max-h-56 overflow-y-auto"
+            >
+              {suggestions.map((s) => (
+                <button
+                  key={s.placeId}
+                  onClick={() => handleSelectPlace(s)}
+                  className="w-full p-3 text-left hover:bg-secondary/60 transition-colors border-b border-border/60 last:border-0"
+                >
+                  <p className="text-sm font-medium text-foreground truncate">{s.mainText || s.description}</p>
+                  {s.secondaryText && (
+                    <p className="text-xs text-muted-foreground truncate">{s.secondaryText}</p>
+                  )}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
-  const lang = countryCode === 'BR' ? 'pt' : 'es';
+  const externalBlock = (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Linkedin className="w-4 h-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">
+          {lang === 'pt' ? 'Site ou LinkedIn' : 'Web o LinkedIn'}
+        </h3>
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70">
+          {lang === 'pt' ? 'opcional' : 'opcional'}
+        </span>
+      </div>
+      <div className="relative">
+        <Globe className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          type="text"
+          inputMode="text"
+          placeholder={lang === 'pt' ? 'tudominio.com ou linkedin.com/in/...' : 'tudominio.com o linkedin.com/in/...'}
+          value={webOrLinkedin}
+          onChange={(e) => handleExternal(e.target.value)}
+          className="pl-10 h-12 text-sm bg-secondary/50"
+        />
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6 max-w-lg mx-auto">
-      <div className="text-center mb-8">
+      <div className="text-center mb-2">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mx-auto mb-4 shadow-lg">
           <Building2 className="w-8 h-8 text-primary-foreground" />
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">
           {lang === 'pt' ? 'Qual é o nome do seu negócio?' : '¿Cómo se llama tu negocio?'}
         </h2>
-        <p className="text-muted-foreground">
-          {lang === 'pt' 
-            ? 'Busque no Google ou digite manualmente'
-            : 'Buscalo en Google o ingresalo manualmente'
-          }
+        <p className="text-sm text-muted-foreground">
+          {lang === 'pt'
+            ? 'Podés deixar tudo vazio e seguir — nós completamos depois.'
+            : 'Podés dejarlo vacío y avanzar — completamos después.'}
         </p>
       </div>
 
-      {selectedPlace ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-2xl border-2 border-primary bg-primary/5 space-y-4"
-        >
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center">
-                <MapPin className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground text-lg">{selectedPlace.name}</h3>
-                {selectedPlace.address && (
-                  <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{selectedPlace.address}</p>
-                )}
-              </div>
-            </div>
-            <button
-              onClick={handleClear}
-              className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+      {/* Nombre — siempre primero, simple */}
+      <div className="space-y-2">
+        <Input
+          type="text"
+          placeholder={lang === 'pt' ? 'Nome do seu negócio' : 'Nombre de tu negocio'}
+          value={manualName}
+          onChange={(e) => handleManualName(e.target.value)}
+          className="h-14 text-base bg-secondary/40"
+          autoFocus
+        />
+      </div>
 
-          {(selectedPlace.rating || selectedPlace.reviewCount) && (
-            <div className="flex items-center gap-4 pt-2 border-t border-border/50">
-              {selectedPlace.rating && (
-                <div className="flex items-center gap-1.5">
-                  <Star className="w-5 h-5 text-warning fill-warning" />
-                  <span className="font-semibold text-foreground">{selectedPlace.rating.toFixed(1)}</span>
-                </div>
-              )}
-              {selectedPlace.reviewCount && (
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <MessageSquare className="w-4 h-4" />
-                  <span className="text-sm">{selectedPlace.reviewCount} {lang === 'pt' ? 'avaliações' : 'reseñas'}</span>
-                </div>
-              )}
-            </div>
-          )}
-        </motion.div>
-      ) : manualMode ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
-        >
-          <div className="relative">
-            <Pencil className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder={lang === 'pt' ? 'Nome do seu negócio' : 'Nombre de tu negocio'}
-              value={search}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-12 h-14 text-base bg-secondary/50"
-              autoFocus
-            />
-          </div>
+      {/* Bloques en orden según servicio o físico */}
+      <div className="space-y-5">
+        {isService ? (
+          <>
+            {externalBlock}
+            {googleBlock}
+          </>
+        ) : (
+          <>
+            {googleBlock}
+            {externalBlock}
+          </>
+        )}
+      </div>
 
-          <div className="rounded-xl border border-border/60 bg-secondary/30 p-4 space-y-3">
-            <p className="text-xs text-muted-foreground">
-              {lang === 'pt'
-                ? 'Opcional — cole seu site, LinkedIn, ou só seu nome. Nós buscamos o resto:'
-                : 'Opcional — pegá tu web, LinkedIn, o solo tu nombre. Nosotros buscamos el resto:'}
-            </p>
-            <div className="relative">
-              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="text"
-                inputMode="text"
-                placeholder={lang === 'pt'
-                  ? 'Site, LinkedIn ou seu nome'
-                  : 'Web, LinkedIn o tu nombre'}
-                value={websiteUrl || linkedinUrl}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  const isLinkedin = /linkedin\.com/i.test(v);
-                  if (isLinkedin) {
-                    setWebsiteUrl('');
-                    updateExternalSource('linkedinUrl', v);
-                  } else {
-                    setLinkedinUrl('');
-                    updateExternalSource('websiteUrl', v);
-                  }
-                }}
-                className="pl-11 h-12 text-sm bg-background/60"
-              />
-            </div>
-            <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
-              {lang === 'pt'
-                ? 'Pode deixar vazio e seguir — tudo bem.'
-                : 'Podés dejarlo vacío y seguir — está perfecto.'}
-            </p>
-          </div>
-
-
-          <button
-            onClick={() => {
-              setManualMode(false);
-              setSearch('');
-            }}
-            className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-2 mx-auto"
-          >
-            <Search className="w-4 h-4" />
-            {lang === 'pt' ? 'Buscar no Google' : 'Buscar en Google'}
-          </button>
-        </motion.div>
-      ) : (
-        <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder={lang === 'pt' ? 'Buscar seu negócio no Google...' : 'Buscar tu negocio en Google...'}
-              value={search}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-12 h-14 text-base bg-secondary/50"
-              autoFocus
-            />
-            {loading && (
-              <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary animate-spin" />
-            )}
-          </div>
-
-          {suggestions.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="border border-border rounded-xl overflow-hidden bg-card shadow-lg max-h-[300px] overflow-y-auto"
-            >
-              {suggestions.map((suggestion) => (
-                <button
-                  key={suggestion.placeId}
-                  onClick={() => handleSelectPlace(suggestion)}
-                  className="w-full p-4 text-left hover:bg-secondary/50 transition-colors border-b border-border last:border-0"
-                >
-                  <p className="font-medium text-foreground">
-                    {suggestion.mainText || suggestion.description}
-                  </p>
-                  {suggestion.secondaryText && (
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      {suggestion.secondaryText}
-                    </p>
-                  )}
-                </button>
-              ))}
-            </motion.div>
-          )}
-
-          {search.length >= 2 && suggestions.length === 0 && !loading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-4"
-            >
-              <p className="text-sm text-muted-foreground mb-3">
-                {lang === 'pt' ? 'Não encontrou?' : '¿No lo encontrás?'}
-              </p>
-              <Button variant="outline" onClick={handleManualMode} size="sm">
-                <Pencil className="w-4 h-4 mr-2" />
-                {lang === 'pt' ? 'Digitar manualmente' : 'Ingresar manualmente'}
-              </Button>
-            </motion.div>
-          )}
-
-          <div className="text-center pt-2">
-            <button
-              onClick={handleManualMode}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {lang === 'pt' ? 'Digitar o nome manualmente' : 'Ingresar el nombre manualmente'}
-            </button>
-          </div>
-        </div>
-      )}
+      <p className="text-[11px] text-center text-muted-foreground/70">
+        {lang === 'pt'
+          ? 'Completá o que quiseres — o sistema descobre o resto.'
+          : 'Completá lo que quieras — el sistema descubre el resto.'}
+      </p>
     </div>
   );
 };
