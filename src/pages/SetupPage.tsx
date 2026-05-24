@@ -771,7 +771,7 @@ const SetupPage = () => {
                 <Crown className="w-4 h-4" />
                 <span className="hidden sm:inline">{lang === 'pt' ? 'Quero Pro' : 'Quiero Pro'}</span>
                 <Badge className="bg-primary-foreground/20 text-primary-foreground text-[10px] px-1.5 py-0 border-0">
-                  -17%
+                  -{realSavingsPct}%
                 </Badge>
               </Button>
             )}
