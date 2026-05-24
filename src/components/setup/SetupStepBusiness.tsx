@@ -280,37 +280,39 @@ export const SetupStepBusiness = ({
           <div className="rounded-xl border border-border/60 bg-secondary/30 p-4 space-y-3">
             <p className="text-xs text-muted-foreground">
               {lang === 'pt'
-                ? 'Opcional — nos ajuda a personalizar tudo melhor (se você tiver):'
-                : 'Opcional — nos ayuda a personalizar todo mejor (si tenés):'}
+                ? 'Opcional — cole seu site, LinkedIn, ou só seu nome. Nós buscamos o resto:'
+                : 'Opcional — pegá tu web, LinkedIn, o solo tu nombre. Nosotros buscamos el resto:'}
             </p>
             <div className="relative">
               <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                type="url"
-                inputMode="url"
-                placeholder={lang === 'pt' ? 'Site (ex: https://...)' : 'Sitio web (ej: https://...)'}
-                value={websiteUrl}
-                onChange={(e) => updateExternalSource('websiteUrl', e.target.value)}
-                className="pl-11 h-12 text-sm bg-background/60"
-              />
-            </div>
-            <div className="relative">
-              <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="url"
-                inputMode="url"
-                placeholder={lang === 'pt' ? 'LinkedIn (perfil ou empresa)' : 'LinkedIn (perfil o empresa)'}
-                value={linkedinUrl}
-                onChange={(e) => updateExternalSource('linkedinUrl', e.target.value)}
+                type="text"
+                inputMode="text"
+                placeholder={lang === 'pt'
+                  ? 'Site, LinkedIn ou seu nome'
+                  : 'Web, LinkedIn o tu nombre'}
+                value={websiteUrl || linkedinUrl}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const isLinkedin = /linkedin\.com/i.test(v);
+                  if (isLinkedin) {
+                    setWebsiteUrl('');
+                    updateExternalSource('linkedinUrl', v);
+                  } else {
+                    setLinkedinUrl('');
+                    updateExternalSource('websiteUrl', v);
+                  }
+                }}
                 className="pl-11 h-12 text-sm bg-background/60"
               />
             </div>
             <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
               {lang === 'pt'
-                ? 'Se você não tem nenhum, tudo bem — seguimos só com o nome.'
-                : 'Si no tenés ninguno, está perfecto — seguimos solo con el nombre.'}
+                ? 'Pode deixar vazio e seguir — tudo bem.'
+                : 'Podés dejarlo vacío y seguir — está perfecto.'}
             </p>
           </div>
+
 
           <button
             onClick={() => {
