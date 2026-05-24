@@ -287,6 +287,9 @@ const SetupPage = () => {
                 ...(existingIncompleteBusiness.settings && typeof existingIncompleteBusiness.settings === 'object' ? existingIncompleteBusiness.settings : {}),
                 setup_version: '7.0',
                 setup_mode: data.setupMode,
+                web_url: data.websiteUrl || null,
+                linkedin_url: data.linkedinUrl || null,
+                source_preference: data.sourcePreference || (data.googlePlaceId ? 'google' : 'manual'),
               },
             })
             .eq('id', existingIncompleteBusiness.id)
@@ -307,6 +310,9 @@ const SetupPage = () => {
               settings: {
                 setup_version: '7.0',
                 setup_mode: data.setupMode,
+                web_url: data.websiteUrl || null,
+                linkedin_url: data.linkedinUrl || null,
+                source_preference: data.sourcePreference || (data.googlePlaceId ? 'google' : 'manual'),
               },
             })
             .select()
