@@ -218,12 +218,38 @@ export function fixSpanishWriting(text: string): string {
 }
 
 /**
- * Sanitize an array of strings (signals, basedOn, etc.)
- * Filters out items that are purely internal codes.
+ * Words/tokens that should NEVER appear standalone in user-facing UI.
+ * Used to drop leaked labels coming from option ids or AI placeholders.
+ */
+const LEAKED_STANDALONE_TOKENS = new Set([
+  'manual', 'none', 'null', 'undefined', 'nan', 'n/a', 'na', 'tbd',
+  'draft', 'pending', 'loading', 'error', 'unknown', 'other', 'otros',
+  'true', 'false', 'yes', 'no', 'sí', 'si',
+  'placeholder', 'todo', 'fixme', 'lorem', 'ipsum',
+  'first_clients', 'first_sale', 'brand_draft', 'landing_draft', 'mvp',
+  'opt_high', 'opt_low', 'opt_mid', 'opt_none',
+]);
+
+/** True if a sanitized string is just a leaked internal token (no real content). */
+export function isLeakedLabel(text: string | null | undefined): boolean {
+  if (!text) return true;
+  const norm = String(text).trim().toLowerCase().replace(/[\s._-]+/g, '');
+  if (!norm) return true;
+  if (norm.length < 3) return true;
+  if (LEAKED_STANDALONE_TOKENS.has(norm)) return true;
+  // Pure snake_case id with no spaces (likely a leaked enum)
+  if (/^[a-z]+(_[a-z0-9]+)+$/.test(text.trim()) && !/\s/.test(text.trim())) return true;
+  return false;
+}
+
+/**
+ * Sanitize an array of strings (signals, basedOn, weaknesses, etc.)
+ * Filters out items that are purely internal codes or leaked labels.
  */
 export function sanitizeSignals(signals: string[] | null | undefined): string[] {
   if (!signals || !Array.isArray(signals)) return [];
   return signals
     .map(s => sanitizeAIOutput(s))
-    .filter(s => s.length > 3); // remove empty/near-empty results
+    .filter(s => s.length > 3 && !isLeakedLabel(s));
 }
+

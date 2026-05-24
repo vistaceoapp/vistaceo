@@ -17,6 +17,7 @@ import { useActivityTracker } from '@/hooks/use-activity-tracker';
 import { CountryCode, COUNTRY_PACKS } from '@/lib/countryPacks';
 import { analyzeHealthFromAnswers } from '@/lib/gastroQuestionsEngine';
 import { safeLocalStorage } from '@/lib/safe-storage';
+import { useCountryDetection } from '@/hooks/use-country-detection';
 
 // Map area IDs to valid business_category enum values
 const AREA_TO_CATEGORY: Record<string, string> = {
@@ -95,6 +96,8 @@ const SetupPage = () => {
   const [creatingBusiness, setCreatingBusiness] = useState(false);
   const [createProgress, setCreateProgress] = useState(0);
   const setupStartTracked = useRef(false);
+  const { yearlySavings } = useCountryDetection();
+  const realSavingsPct = Math.max(0, Math.min(99, yearlySavings().percentage || 0));
   
   // Check if user already has Pro (from pre-setup purchase stored in localStorage)
   const hasPendingProPurchase = safeLocalStorage.getItem('proPurchaseCompleted') === 'true';
@@ -768,7 +771,7 @@ const SetupPage = () => {
                 <Crown className="w-4 h-4" />
                 <span className="hidden sm:inline">{lang === 'pt' ? 'Quero Pro' : 'Quiero Pro'}</span>
                 <Badge className="bg-primary-foreground/20 text-primary-foreground text-[10px] px-1.5 py-0 border-0">
-                  -17%
+                  -{realSavingsPct}%
                 </Badge>
               </Button>
             )}
