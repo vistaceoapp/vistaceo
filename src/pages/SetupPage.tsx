@@ -388,6 +388,9 @@ const SetupPage = () => {
               answers: data.answers,
               integrationsProfiled: data.integrationsProfiled,
               googleAddress: data.googleAddress,
+              websiteUrl: data.websiteUrl,
+              linkedinUrl: data.linkedinUrl,
+              sourcePreference: data.sourcePreference,
             },
             googleData: {
               placeId: data.googlePlaceId,
