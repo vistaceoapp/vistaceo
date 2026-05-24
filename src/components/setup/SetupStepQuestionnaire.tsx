@@ -498,7 +498,7 @@ export const SetupStepQuestionnaire = ({
 
   const handleNoneOfThese = () => {
     setShowCustomInput(true);
-    handleAnswer('__NONE__');
+    handleAnswer({ type: '__NONE__', text: 'Ninguna de estas' });
   };
 
   const handleCustomSubmit = () => {
@@ -520,7 +520,8 @@ export const SetupStepQuestionnaire = ({
     if (!currentQuestion) return true;
     const value = getCurrentValue();
     if (!currentQuestion.required) return true;
-    if (value === '__NONE__') return false; // Must write custom text
+    if (value === '__NONE__') return true;
+    if (typeof value === 'object' && value?.type === '__NONE__') return true;
     if (typeof value === 'object' && value?.type === '__CUSTOM__') return true;
     if (Array.isArray(value)) return value.length > 0;
     return value !== undefined && value !== '' && value !== null;
@@ -708,7 +709,7 @@ export const SetupStepQuestionnaire = ({
     switch (currentQuestion.type) {
       case 'single': {
         const currentVal = getCurrentValue();
-        const isNone = currentVal === '__NONE__' || (typeof currentVal === 'object' && currentVal?.type === '__CUSTOM__');
+        const isNone = currentVal === '__NONE__' || (typeof currentVal === 'object' && (currentVal?.type === '__CUSTOM__' || currentVal?.type === '__NONE__'));
         return (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -764,7 +765,7 @@ export const SetupStepQuestionnaire = ({
                     <Check className="w-4 h-4 mr-1" />
                     {lang === 'pt-BR' ? 'Confirmar' : 'Confirmar'}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); handleAnswer(undefined); }}>
+                  <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); }}>
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
@@ -776,7 +777,7 @@ export const SetupStepQuestionnaire = ({
 
       case 'multi': {
         const selectedItems = (getCurrentValue() as string[]) || [];
-        const hasCustomMulti = typeof getCurrentValue() === 'object' && getCurrentValue()?.type === '__CUSTOM__';
+        const hasCustomMulti = typeof getCurrentValue() === 'object' && ['__CUSTOM__', '__NONE__'].includes(getCurrentValue()?.type);
         return (
           <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
