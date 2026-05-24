@@ -500,15 +500,20 @@ export const BusinessHealthAnalytics = () => {
             <h3 className="text-sm font-semibold text-foreground">Áreas de mejora</h3>
           </div>
           <div className="space-y-1.5">
-            {(latestSnapshot.weaknesses || []).map((w, i) => (
-              <div key={i} className="flex items-start gap-2 p-2.5 rounded-xl bg-warning/5 border border-warning/10">
-                <AlertTriangle className="w-3 h-3 text-warning mt-0.5 flex-shrink-0" />
-                <span className="text-xs text-foreground leading-relaxed">{String(w).replace(/\(Q_[A-Z_]+\d*\)/g, '').replace(/Q_[A-Z]{2,}_\d+/g, '').trim()}</span>
-              </div>
-            ))}
-            {(!latestSnapshot.weaknesses || latestSnapshot.weaknesses.length === 0) && (
-              <p className="text-xs text-muted-foreground">No identificadas</p>
-            )}
+            {(() => {
+              const cleaned = sanitizeSignals(latestSnapshot.weaknesses || [])
+                .map(w => String(w).replace(/\(Q_[A-Z_]+\d*\)/g, '').replace(/Q_[A-Z]{2,}_\d+/g, '').trim())
+                .filter(w => w.length > 3 && !isLeakedLabel(w));
+              if (cleaned.length === 0) {
+                return <p className="text-xs text-muted-foreground">No identificadas</p>;
+              }
+              return cleaned.map((w, i) => (
+                <div key={i} className="flex items-start gap-2 p-2.5 rounded-xl bg-warning/5 border border-warning/10">
+                  <AlertTriangle className="w-3 h-3 text-warning mt-0.5 flex-shrink-0" />
+                  <span className="text-xs text-foreground leading-relaxed">{w}</span>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </div>
