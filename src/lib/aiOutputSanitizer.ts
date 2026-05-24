@@ -168,6 +168,10 @@ export function sanitizeAIOutput(text: string | null | undefined): string {
   // Fix common Spanish writing issues
   result = fixSpanishWriting(result);
 
+  // ===== CAPA FINAL: descartar si el resultado es solo un token leakeado =====
+  // Evita renderizar "Manual", "None", "first_sale", "opt_high", etc.
+  if (isLeakedLabel(result)) return '';
+
   return result;
 }
 
