@@ -635,6 +635,7 @@ const SetupPage = () => {
         return (
           <SetupStepBusiness
             countryCode={data.countryCode}
+            areaId={data.areaId}
             currentName={data.businessName}
             currentPlaceId={data.googlePlaceId}
             onUpdate={(update) => setData(d => ({
