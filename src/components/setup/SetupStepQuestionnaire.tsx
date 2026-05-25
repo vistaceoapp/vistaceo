@@ -502,10 +502,16 @@ export const SetupStepQuestionnaire = ({
   };
 
   const handleCustomSubmit = () => {
-    if (customText.trim()) {
-      handleAnswer({ type: '__CUSTOM__', text: customText.trim() });
-      setShowCustomInput(false);
+    const trimmed = customText.trim();
+    if (trimmed) {
+      handleAnswer({ type: '__CUSTOM__', text: trimmed });
+    } else {
+      handleAnswer({ type: '__NONE__', text: 'Ninguna de estas' });
     }
+    setShowCustomInput(false);
+    // Avanzar siempre, con o sin texto
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = setTimeout(() => handleNext(), 120);
   };
 
   const handleMultiSelect = (optionId: string) => {
@@ -761,9 +767,11 @@ export const SetupStepQuestionnaire = ({
                   autoFocus
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleCustomSubmit} disabled={!customText.trim()} className="flex-1">
+                  <Button size="sm" onClick={handleCustomSubmit} className="flex-1">
                     <Check className="w-4 h-4 mr-1" />
-                    {lang === 'pt-BR' ? 'Confirmar' : 'Confirmar'}
+                    {customText.trim()
+                      ? (lang === 'pt-BR' ? 'Confirmar' : 'Confirmar')
+                      : (lang === 'pt-BR' ? 'Continuar' : 'Continuar')}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); }}>
                     <X className="w-4 h-4" />
@@ -832,9 +840,11 @@ export const SetupStepQuestionnaire = ({
                   autoFocus
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleCustomSubmit} disabled={!customText.trim()} className="flex-1">
+                  <Button size="sm" onClick={handleCustomSubmit} className="flex-1">
                     <Check className="w-4 h-4 mr-1" />
-                    {lang === 'pt-BR' ? 'Confirmar' : 'Confirmar'}
+                    {customText.trim()
+                      ? (lang === 'pt-BR' ? 'Confirmar' : 'Confirmar')
+                      : (lang === 'pt-BR' ? 'Continuar' : 'Continuar')}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); }}>
                     <X className="w-4 h-4" />
@@ -1047,7 +1057,7 @@ export const SetupStepQuestionnaire = ({
           {lang === 'pt-BR' ? 'Anterior' : 'Anterior'}
         </Button>
         {/* Show Continue only for non-single types (multi/number/etc) or at the end */}
-        {(currentQuestion.type !== 'single' || (currentIndex >= totalQuestions - 1 && allBatchesDone.current)) && (
+        {(currentQuestion.type !== 'single' || showCustomInput || (currentIndex >= totalQuestions - 1 && allBatchesDone.current)) && (
           <Button
             onClick={handleNext}
             disabled={!canProceed() || isWaitingForMore}
