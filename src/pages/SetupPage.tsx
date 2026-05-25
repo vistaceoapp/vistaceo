@@ -626,6 +626,7 @@ const SetupPage = () => {
                 _precision_percent: option.precision_percent,
               };
               safeLocalStorage.setItem('setupUniversalProfile', JSON.stringify(profileToStore));
+              try { localStorage.removeItem('setupIdentityDraft'); } catch { /* noop */ }
               // Auto-advance
               setTimeout(() => setCurrentStep(prev => prev + 1), 200);
             }}
