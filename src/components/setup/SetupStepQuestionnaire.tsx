@@ -502,10 +502,16 @@ export const SetupStepQuestionnaire = ({
   };
 
   const handleCustomSubmit = () => {
-    if (customText.trim()) {
-      handleAnswer({ type: '__CUSTOM__', text: customText.trim() });
-      setShowCustomInput(false);
+    const trimmed = customText.trim();
+    if (trimmed) {
+      handleAnswer({ type: '__CUSTOM__', text: trimmed });
+    } else {
+      handleAnswer({ type: '__NONE__', text: 'Ninguna de estas' });
     }
+    setShowCustomInput(false);
+    // Avanzar siempre, con o sin texto
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = setTimeout(() => handleNext(), 120);
   };
 
   const handleMultiSelect = (optionId: string) => {
