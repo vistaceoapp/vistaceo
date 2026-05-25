@@ -65,8 +65,12 @@ const EXAMPLE_CHIPS = [
 
 type UIState = 'writing' | 'thinking' | 'clarifying' | 'results' | 'error';
 
+const IDENTITY_DRAFT_KEY = 'setupIdentityDraft';
+
 export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
-  const [text, setText] = useState('');
+  const [text, setText] = useState(() => {
+    try { return localStorage.getItem(IDENTITY_DRAFT_KEY) || ''; } catch { return ''; }
+  });
   const [state, setState] = useState<UIState>('writing');
   const [options, setOptions] = useState<ProfileOption[]>([]);
   const [thinkingProgress, setThinkingProgress] = useState(0);
@@ -82,6 +86,14 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
   const speechSupported = typeof window !== 'undefined' && (
     (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
   );
+
+  // Persistí el borrador — si volvés atrás no se pierde lo que escribiste
+  useEffect(() => {
+    try {
+      if (text) localStorage.setItem(IDENTITY_DRAFT_KEY, text);
+      else localStorage.removeItem(IDENTITY_DRAFT_KEY);
+    } catch { /* noop */ }
+  }, [text]);
 
   // Auto-resize textarea
   useEffect(() => {
