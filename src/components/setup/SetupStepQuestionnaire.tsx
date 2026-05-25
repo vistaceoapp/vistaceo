@@ -1057,7 +1057,7 @@ export const SetupStepQuestionnaire = ({
           {lang === 'pt-BR' ? 'Anterior' : 'Anterior'}
         </Button>
         {/* Show Continue only for non-single types (multi/number/etc) or at the end */}
-        {(currentQuestion.type !== 'single' || (currentIndex >= totalQuestions - 1 && allBatchesDone.current)) && (
+        {(currentQuestion.type !== 'single' || showCustomInput || (currentIndex >= totalQuestions - 1 && allBatchesDone.current)) && (
           <Button
             onClick={handleNext}
             disabled={!canProceed() || isWaitingForMore}
