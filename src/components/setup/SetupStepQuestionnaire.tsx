@@ -767,9 +767,11 @@ export const SetupStepQuestionnaire = ({
                   autoFocus
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleCustomSubmit} disabled={!customText.trim()} className="flex-1">
+                  <Button size="sm" onClick={handleCustomSubmit} className="flex-1">
                     <Check className="w-4 h-4 mr-1" />
-                    {lang === 'pt-BR' ? 'Confirmar' : 'Confirmar'}
+                    {customText.trim()
+                      ? (lang === 'pt-BR' ? 'Confirmar' : 'Confirmar')
+                      : (lang === 'pt-BR' ? 'Continuar' : 'Continuar')}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); }}>
                     <X className="w-4 h-4" />
