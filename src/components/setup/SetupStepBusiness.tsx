@@ -328,8 +328,8 @@ export const SetupStepBusiness = ({
         </h2>
         <p className="text-sm text-muted-foreground">
           {lang === 'pt'
-            ? 'Podés deixar tudo vazio e seguir — nós completamos depois.'
-            : 'Podés dejarlo vacío y avanzar — completamos después.'}
+            ? 'Tranquilo — escrevé como quiseres, mesmo com erros. Podés deixar vazio e seguir; depois completamos juntos.'
+            : 'Tranqui — escribilo como quieras, incluso con errores. Podés dejarlo vacío y avanzar; después lo completamos juntos.'}
         </p>
       </div>
 
@@ -337,7 +337,7 @@ export const SetupStepBusiness = ({
       <div className="space-y-2">
         <Input
           type="text"
-          placeholder={lang === 'pt' ? 'Nome do seu negócio' : 'Nombre de tu negocio'}
+          placeholder={lang === 'pt' ? 'Nome do seu negócio (opcional)' : 'Nombre de tu negocio (opcional)'}
           value={manualName}
           onChange={(e) => handleManualName(e.target.value)}
           className="h-14 text-base bg-secondary/40"
@@ -360,11 +360,13 @@ export const SetupStepBusiness = ({
         )}
       </div>
 
-      <p className="text-[11px] text-center text-muted-foreground/70">
-        {lang === 'pt'
-          ? 'Completá o que quiseres — o sistema descobre o resto.'
-          : 'Completá lo que quieras — el sistema descubre el resto.'}
-      </p>
+      <div className="rounded-xl bg-primary/5 border border-primary/15 px-4 py-3">
+        <p className="text-[12px] text-center text-muted-foreground leading-relaxed">
+          {lang === 'pt'
+            ? '✨ No te preocupes se escrevés mal ou deixás vazio — vas a poder completar e corrigir tudo depois. O sistema se encarrega do resto.'
+            : '✨ No te preocupes si lo escribís mal o lo dejás vacío — vas a poder completar y corregir todo después. El sistema se encarga del resto.'}
+        </p>
+      </div>
     </div>
   );
 };
