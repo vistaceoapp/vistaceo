@@ -65,6 +65,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (loading) setLoading(false);
         initializedRef.current = true;
 
+        // 🔥 Track login on EVERY SIGNED_IN — only once per browser session
+        if (event === 'SIGNED_IN' && newSession?.user) {
+          try {
+            const sessionKey = `va_login_tracked_${newSession.user.id}`;
+            if (!sessionStorage.getItem(sessionKey)) {
+              sessionStorage.setItem(sessionKey, '1');
+              // Fire login event (updates profiles.last_login_at + login_count)
+              setTimeout(() => {
+                supabase.functions.invoke('track-user-activity', {
+                  body: {
+                    event_type: 'login',
+                    event_data: {
+                      provider: newSession.user.app_metadata?.provider || 'email',
+                    },
+                    page_path: window.location.pathname,
+                  },
+                }).catch((err) => console.debug('[login tracking] failed:', err));
+              }, 0);
+            }
+          } catch {
+            // sessionStorage might be unavailable — still try to track
+          }
+        }
+
         // Send welcome email for new Google signups
         if (event === 'SIGNED_IN' && newSession?.user && !welcomeEmailSentRef.current) {
           const provider = newSession.user.app_metadata?.provider;
@@ -110,6 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     );
+
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session: existingSession } }) => {

@@ -289,6 +289,20 @@ const ChatPage = () => {
         content: fullContent,
       });
 
+      // 🔥 Track chat_message engagement
+      try {
+        supabase.functions.invoke('track-user-activity', {
+          body: {
+            event_type: 'chat_message',
+            event_data: { inputType, hasAttachments },
+            business_id: currentBusiness.id,
+            page_path: '/app/chat',
+          },
+        }).catch(() => {});
+      } catch {}
+
+
+
       const messagesForAI = [...messages, tempUserMsg].map((m) => ({
         role: m.role,
         content: m.content,
