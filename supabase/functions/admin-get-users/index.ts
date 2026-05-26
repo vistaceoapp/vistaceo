@@ -135,17 +135,64 @@ Deno.serve(async (req) => {
     }
 
     const userIds = profiles?.map(p => p.id) || [];
-    
-    const [businessesRes, subscriptionsRes] = await Promise.all([
+    const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const [businessesRes, subscriptionsRes, activityRes] = await Promise.all([
       supabase.from("businesses").select("*").in("owner_id", userIds),
       supabase.from("subscriptions").select("*").in("user_id", userIds),
+      supabase.from("user_activity_logs")
+        .select("user_id, event_type, created_at")
+        .in("user_id", userIds)
+        .gte("created_at", since7d)
+        .order("created_at", { ascending: false })
+        .limit(5000),
     ]);
 
-    const users = profiles?.map(profile => ({
-      ...profile,
-      businesses: businessesRes.data?.filter(b => b.owner_id === profile.id) || [],
-      subscriptions: subscriptionsRes.data?.filter(s => s.user_id === profile.id) || [],
-    })) || [];
+    // Build per-user activity summary: events count 7d, last event, post-setup engagement
+    const POST_SETUP_EVENTS = new Set([
+      "login", "page_view", "chat_message", "mission_start",
+      "mission_complete", "radar_view", "checkin", "feature_use",
+    ]);
+    const activityByUser: Record<string, {
+      events7d: number;
+      postSetupEvents7d: number;
+      lastEventAt: string | null;
+      lastEventType: string | null;
+    }> = {};
+    (activityRes.data || []).forEach((row: any) => {
+      const u = row.user_id;
+      if (!u) return;
+      if (!activityByUser[u]) {
+        activityByUser[u] = { events7d: 0, postSetupEvents7d: 0, lastEventAt: null, lastEventType: null };
+      }
+      activityByUser[u].events7d += 1;
+      if (POST_SETUP_EVENTS.has(row.event_type)) {
+        activityByUser[u].postSetupEvents7d += 1;
+      }
+      if (!activityByUser[u].lastEventAt || row.created_at > activityByUser[u].lastEventAt!) {
+        activityByUser[u].lastEventAt = row.created_at;
+        activityByUser[u].lastEventType = row.event_type;
+      }
+    });
+
+    const users = profiles?.map(profile => {
+      const act = activityByUser[profile.id] || { events7d: 0, postSetupEvents7d: 0, lastEventAt: null, lastEventType: null };
+      const businessesForUser = businessesRes.data?.filter(b => b.owner_id === profile.id) || [];
+      const setupDone = businessesForUser.some(b => b.setup_completed);
+      return {
+        ...profile,
+        businesses: businessesForUser,
+        subscriptions: subscriptionsRes.data?.filter(s => s.user_id === profile.id) || [],
+        activity_events_7d: act.events7d,
+        post_setup_events_7d: act.postSetupEvents7d,
+        last_event_at: act.lastEventAt,
+        last_event_type: act.lastEventType,
+        setup_completed: setupDone,
+        // Heuristic: completed setup but no post-setup engagement = churned
+        churned_after_setup: setupDone && act.postSetupEvents7d === 0,
+      };
+    }) || [];
+
 
     const [totalUsersRes, proUsersRes, activeUsersRes] = await Promise.all([
       supabase.from("profiles").select("*", { count: "exact", head: true }),

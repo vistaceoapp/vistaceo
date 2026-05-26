@@ -360,8 +360,10 @@ export default function AdminUsersPage() {
         <div className="px-4 py-2.5 border-b border-border bg-muted/30 flex items-center text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
           <span className="flex-1">Usuario</span>
           <span className="w-32 hidden md:block">Negocio</span>
-          <span className="w-20 hidden lg:block text-center">Logins</span>
-          <span className="w-28 hidden md:block text-right">Registro</span>
+          <span className="w-16 hidden lg:block text-center">Logins</span>
+          <span className="w-20 hidden lg:block text-center">Eventos 7d</span>
+          <span className="w-24 hidden lg:block text-center">Estado</span>
+          <span className="w-24 hidden md:block text-right">Registro</span>
           <span className="w-32 text-right">Última actividad</span>
           <span className="w-20" />
         </div>
@@ -377,8 +379,20 @@ export default function AdminUsersPage() {
             {!isLoading && !usersData?.users?.length && (
               <div className="p-12 text-center text-sm text-muted-foreground">No se encontraron usuarios</div>
             )}
-            {usersData?.users?.map((user: UserData) => {
+            {usersData?.users?.map((user: any) => {
               const biz = user.businesses?.[0];
+              const setupDone = !!user.setup_completed;
+              const events7d = user.activity_events_7d || 0;
+              const postSetup = user.post_setup_events_7d || 0;
+              const churned = user.churned_after_setup;
+              const lastActivityAt = user.last_event_at || user.last_active_at;
+              // Derive estado label
+              let estado: { label: string; cls: string } = { label: 'Nuevo', cls: 'bg-muted text-muted-foreground' };
+              if (!setupDone && events7d > 0) estado = { label: 'En setup', cls: 'bg-blue-50 text-blue-700 border-blue-200' };
+              else if (!setupDone && events7d === 0) estado = { label: 'Sin entrar', cls: 'bg-muted text-muted-foreground' };
+              else if (setupDone && postSetup >= 5) estado = { label: 'Activo', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+              else if (setupDone && postSetup > 0) estado = { label: 'Tibio', cls: 'bg-amber-50 text-amber-700 border-amber-200' };
+              else if (churned) estado = { label: 'Se fue', cls: 'bg-rose-50 text-rose-700 border-rose-200' };
               return (
                 <div
                   key={user.id}
@@ -412,14 +426,28 @@ export default function AdminUsersPage() {
                       <span className="text-[11px] text-muted-foreground/60">Sin negocio</span>
                     )}
                   </div>
-                  <span className="w-20 hidden lg:block text-center text-[12px] text-foreground tabular-nums">
-                    {(user as any).login_count || 0}
+                  <span className="w-16 hidden lg:block text-center text-[12px] text-foreground tabular-nums">
+                    {user.login_count || 0}
                   </span>
-                  <span className="w-28 hidden md:block text-right text-[11px] text-muted-foreground">
+                  <span className="w-20 hidden lg:block text-center text-[12px] text-foreground tabular-nums">
+                    {events7d}
+                    {postSetup > 0 && (
+                      <span className="text-[9px] text-muted-foreground ml-1">·{postSetup}</span>
+                    )}
+                  </span>
+                  <span className="w-24 hidden lg:flex justify-center">
+                    <Badge variant="outline" className={cn('text-[9px] px-1.5 py-0 h-4 border', estado.cls)}>
+                      {estado.label}
+                    </Badge>
+                  </span>
+                  <span className="w-24 hidden md:block text-right text-[11px] text-muted-foreground">
                     {user.created_at ? format(new Date(user.created_at), 'dd MMM yy', { locale: es }) : '—'}
                   </span>
                   <span className="w-32 text-right text-[11px] text-muted-foreground">
-                    {user.last_active_at ? formatDistanceToNow(new Date(user.last_active_at), { locale: es, addSuffix: true }) : 'Nunca'}
+                    {lastActivityAt ? formatDistanceToNow(new Date(lastActivityAt), { locale: es, addSuffix: true }) : 'Nunca'}
+                    {user.last_event_type && (
+                      <span className="block text-[9px] text-muted-foreground/70 truncate">{user.last_event_type}</span>
+                    )}
                   </span>
                   <div className="w-20 flex items-center justify-end gap-1">
                     <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -438,6 +466,7 @@ export default function AdminUsersPage() {
           </div>
         </ScrollArea>
       </div>
+
 
       {/* Delete Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
