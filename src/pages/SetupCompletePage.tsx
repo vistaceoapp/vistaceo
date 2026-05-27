@@ -216,14 +216,11 @@ const SetupCompletePage = () => {
             </div>
 
             <h1 className="text-4xl font-bold text-foreground mb-3">
-              {hasPendingPlan ? "¡Excelente! Tu negocio está listo" : "¡Listo! Tu negocio está configurado"}
+              {personalizedTitle}
             </h1>
             
             <p className="text-lg text-muted-foreground mb-8">
-              {hasPendingPlan 
-                ? "Solo falta activar tu plan Pro para desbloquear todo el poder de VISTACEO."
-                : "VISTACEO ya está analizando tu negocio y preparando recomendaciones personalizadas."
-              }
+              {personalizedSubtitle}
             </p>
 
             {/* Countdown for Pro redirect (cancellable) */}
