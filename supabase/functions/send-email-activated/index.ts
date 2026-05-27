@@ -211,7 +211,7 @@ function generateActivatedEmail(
                 </tr>
                 <tr>
                   <td style="font-size: 11px; color: ${BRAND.textMuted}; padding-top: 16px;">
-                    © ${new Date().getFullYear()} VISTACEO Latinoamérica
+                    © ${new Date().getFullYear()} VISTACEO Plataforma IA
                   </td>
                 </tr>
               </table>
@@ -250,7 +250,7 @@ Tu próximo paso:
 ¿Tenés dudas? Respondé este email y te ayudamos.
 info@vistaceo.com
 
-© ${new Date().getFullYear()} VISTACEO Latinoamérica. Todos los derechos reservados.
+© ${new Date().getFullYear()} VISTACEO Plataforma IA. Todos los derechos reservados.
 `;
 
   return { html, text };
@@ -328,7 +328,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const resend = new Resend(RESEND_API_KEY);
     const emailResponse = await resend.emails.send({
-      from: "VISTACEO® Latinoamérica <info@vistaceo.com>",
+      from: "VISTACEO® Plataforma IA <info@vistaceo.com>",
       replyTo: "info@vistaceo.com",
       to: [email],
       subject: "¡Cuenta creada! ✅ CEO activado: tu inteligencia suprema ya está operativa",

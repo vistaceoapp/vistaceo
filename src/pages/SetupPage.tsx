@@ -203,18 +203,29 @@ const SetupPage = () => {
   const [manualIdentityMode, setManualIdentityMode] = useState(false);
   const [manualSubStep, setManualSubStep] = useState<'sector' | 'type' | null>(null);
 
+  // Áreas de servicio/profesión — el nombre es obligatorio
+  const SERVICE_AREAS_PAGE = new Set([
+    'A5_TECH','A6_B2B','A7_HOGAR_SERV','A11_FINANZAS','A12_LEGAL',
+    'A13_CREATIVO','A14_TURISMO','A19_SOCIAL','A20_FREELANCE',
+  ]);
+  const isServiceArea = SERVICE_AREAS_PAGE.has(data.areaId);
+
   const canProceed = useCallback(() => {
     switch (stepId) {
       case 'country': return !!data.countryCode;
-      case 'identity': return !!data.businessTypeId; // Set by AI selection or manual
-      case 'business': return true; // Nunca bloquear — el usuario puede continuar siempre
+      case 'identity': return !!data.businessTypeId;
+      case 'business': {
+        // Servicio/profesión: nombre obligatorio (mínimo 2 chars).
+        // Físico: nombre manual o ficha de Google.
+        if (isServiceArea) return (data.businessName?.trim().length ?? 0) >= 2;
+        return !!data.googlePlaceId || (data.businessName?.trim().length ?? 0) >= 2;
+      }
       case 'mode': return true;
       case 'questionnaire': return true;
-      
       case 'create': return true;
       default: return false;
     }
-  }, [stepId, data]);
+  }, [stepId, data, isServiceArea]);
 
   const handleNext = async () => {
     if (stepId === 'create') {
@@ -802,20 +813,33 @@ const SetupPage = () => {
         <div className="container max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <VistaceoLogo size={32} variant="full" />
           <div className="flex items-center gap-3">
-            {/* Upgrade to Pro button - only show if user hasn't paid */}
-            {showUpgradeButton && (
-              <Button
-                size="sm"
-                onClick={() => navigate(`/checkout?plan=pro_yearly&country=${data.countryCode}`)}
-                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
-              >
-                <Crown className="w-4 h-4" />
-                <span className="hidden sm:inline">{lang === 'pt' ? 'Quero Pro' : 'Quiero Pro'}</span>
-                <Badge className="bg-primary-foreground/20 text-primary-foreground text-[10px] px-1.5 py-0 border-0">
-                  -{realSavingsPct}%
-                </Badge>
-              </Button>
-            )}
+            {/* Upgrade to Pro button - solo se habilita tras responder al menos una pregunta */}
+            {showUpgradeButton && (() => {
+              const hasStarted = !!data.areaId || !!data.businessTypeId || (data.businessName?.trim().length ?? 0) >= 2 || Object.keys(data.answers || {}).length > 0;
+              return (
+                <Button
+                  size="sm"
+                  disabled={!hasStarted}
+                  onClick={() => {
+                    // Persistir explícitamente para volver exactamente aquí si el usuario regresa
+                    try {
+                      safeLocalStorage.setItem('setupProgress', JSON.stringify({
+                        step: currentStep, data, timestamp: Date.now(),
+                      }));
+                    } catch { /* noop */ }
+                    navigate(`/checkout?plan=pro_yearly&country=${data.countryCode}&return=setup`);
+                  }}
+                  className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={!hasStarted ? (lang === 'pt' ? 'Responde al menos una pregunta para continuar' : 'Responde al menos una pregunta para continuar') : undefined}
+                >
+                  <Crown className="w-4 h-4" />
+                  <span className="hidden sm:inline">{lang === 'pt' ? 'Quero Pro' : 'Quiero Pro'}</span>
+                  <Badge className="bg-primary-foreground/20 text-primary-foreground text-[10px] px-1.5 py-0 border-0">
+                    -{realSavingsPct}%
+                  </Badge>
+                </Button>
+              );
+            })()}
             {/* Subtle back to auth link - only on first step */}
             {currentStep === 0 && (
               <button

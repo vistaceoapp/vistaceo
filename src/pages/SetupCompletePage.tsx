@@ -109,22 +109,53 @@ const SetupCompletePage = () => {
     navigate("/app", { replace: true });
   };
 
-  const features = [
-    {
-      icon: Target,
-      title: "Misiones personalizadas",
-      description: "Acciones concretas para hacer crecer tu negocio",
-    },
-    {
-      icon: TrendingUp,
-      title: "Oportunidades y crecimiento",
-      description: "Descubrí oportunidades únicas para tu sector",
-    },
-    {
-      icon: Sparkles,
-      title: "IA que aprende de vos",
-      description: "Cada día más inteligente y precisa",
-    },
+  // Detectar tipo (servicio/profesión vs negocio físico) desde setupProgress para personalizar
+  const SERVICE_AREAS = new Set([
+    'A5_TECH','A6_B2B','A7_HOGAR_SERV','A11_FINANZAS','A12_LEGAL',
+    'A13_CREATIVO','A14_TURISMO','A19_SOCIAL','A20_FREELANCE',
+  ]);
+  let detectedType: 'service' | 'physical' | 'business' = 'business';
+  let detectedLabel = '';
+  try {
+    const raw = safeLocalStorage.getItem('setupProgress');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const areaId = parsed?.data?.areaId as string | undefined;
+      detectedLabel = parsed?.data?.businessTypeLabel || '';
+      if (areaId) {
+        detectedType = SERVICE_AREAS.has(areaId) ? 'service' : (areaId === 'A1_GASTRO' || areaId === 'A2_RETAIL' || areaId === 'A3_SALUD' ? 'physical' : 'business');
+      }
+    }
+  } catch { /* noop */ }
+
+  const personalizedTitle = hasPendingPlan
+    ? '¡Excelente! Todo está listo'
+    : detectedType === 'service'
+      ? `¡Listo! Tu ${detectedLabel || 'servicio'} ya está configurado`
+      : detectedType === 'physical'
+        ? `¡Listo! Tu ${detectedLabel || 'local'} ya está configurado`
+        : `¡Listo! Tu ${detectedLabel || 'negocio'} ya está configurado`;
+
+  const personalizedSubtitle = hasPendingPlan
+    ? 'Solo falta activar tu plan Pro para desbloquear todo el poder de VISTACEO.'
+    : detectedType === 'service'
+      ? 'VISTACEO ya está analizando tu actividad profesional y preparando recomendaciones a tu medida.'
+      : detectedType === 'physical'
+        ? 'VISTACEO ya está analizando tu local, reseñas y oportunidades cercanas.'
+        : 'VISTACEO ya está analizando tu negocio y preparando recomendaciones personalizadas.';
+
+  const features = detectedType === 'service' ? [
+    { icon: Target, title: 'Acciones para captar clientes', description: 'Pasos concretos para hacer crecer tu cartera profesional' },
+    { icon: TrendingUp, title: 'Oportunidades de tu sector', description: 'Detectamos demanda y tendencias específicas de tu servicio' },
+    { icon: Sparkles, title: 'IA que aprende de ti', description: 'Cada interacción la hace más precisa para tu profesión' },
+  ] : detectedType === 'physical' ? [
+    { icon: Target, title: 'Misiones para tu local', description: 'Acciones para atraer y fidelizar más clientes' },
+    { icon: TrendingUp, title: 'Reseñas y reputación', description: 'Monitoreo y mejora continua de tu Google Business' },
+    { icon: Sparkles, title: 'IA que aprende de tu zona', description: 'Más inteligente con cada cliente y cada reseña' },
+  ] : [
+    { icon: Target, title: 'Misiones personalizadas', description: 'Acciones concretas para hacer crecer tu negocio' },
+    { icon: TrendingUp, title: 'Oportunidades y crecimiento', description: 'Descubre oportunidades únicas para tu sector' },
+    { icon: Sparkles, title: 'IA que aprende de ti', description: 'Cada día más inteligente y precisa' },
   ];
 
   return (
@@ -185,14 +216,11 @@ const SetupCompletePage = () => {
             </div>
 
             <h1 className="text-4xl font-bold text-foreground mb-3">
-              {hasPendingPlan ? "¡Excelente! Tu negocio está listo" : "¡Listo! Tu negocio está configurado"}
+              {personalizedTitle}
             </h1>
             
             <p className="text-lg text-muted-foreground mb-8">
-              {hasPendingPlan 
-                ? "Solo falta activar tu plan Pro para desbloquear todo el poder de VISTACEO."
-                : "VISTACEO ya está analizando tu negocio y preparando recomendaciones personalizadas."
-              }
+              {personalizedSubtitle}
             </p>
 
             {/* Countdown for Pro redirect (cancellable) */}

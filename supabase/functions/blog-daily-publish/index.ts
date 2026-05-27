@@ -454,7 +454,7 @@ async function sendFailureEmail(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'VISTACEO® Latinoamérica <info@vistaceo.com>',
+        from: 'VISTACEO® Plataforma IA <info@vistaceo.com>',
         to: ['info@vistaceo.com'],
         subject: `🚨 Blog Alert: ${subject}`,
         html: `

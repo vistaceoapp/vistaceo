@@ -210,7 +210,7 @@ function generateSetupReminderEmail(
                 </tr>
                 <tr>
                   <td style="font-size: 11px; color: ${BRAND.textMuted}; padding-top: 16px;">
-                    © ${new Date().getFullYear()} VISTACEO Latinoamérica
+                    © ${new Date().getFullYear()} VISTACEO Plataforma IA
                   </td>
                 </tr>
               </table>
@@ -249,7 +249,7 @@ Lo que desbloqueás con la configuración:
 Respondé este email y te ayudamos a configurar tu cuenta.
 info@vistaceo.com
 
-© ${new Date().getFullYear()} VISTACEO Latinoamérica. Todos los derechos reservados.
+© ${new Date().getFullYear()} VISTACEO Plataforma IA. Todos los derechos reservados.
 `;
 
   return { html, text };
@@ -291,7 +291,7 @@ async function sendReminderToUser(
   const { html, text } = generateSetupReminderEmail(firstName, setupUrl, dashboardUrl);
 
   const emailResponse = await resend.emails.send({
-    from: "VISTACEO® Latinoamérica <info@vistaceo.com>",
+    from: "VISTACEO® Plataforma IA <info@vistaceo.com>",
     replyTo: "info@vistaceo.com",
     to: [email],
     subject: "Tu cuenta está casi lista ⚠️ …falta calibrar tu contexto.",
