@@ -203,18 +203,29 @@ const SetupPage = () => {
   const [manualIdentityMode, setManualIdentityMode] = useState(false);
   const [manualSubStep, setManualSubStep] = useState<'sector' | 'type' | null>(null);
 
+  // Áreas de servicio/profesión — el nombre es obligatorio
+  const SERVICE_AREAS_PAGE = new Set([
+    'A5_TECH','A6_B2B','A7_HOGAR_SERV','A11_FINANZAS','A12_LEGAL',
+    'A13_CREATIVO','A14_TURISMO','A19_SOCIAL','A20_FREELANCE',
+  ]);
+  const isServiceArea = SERVICE_AREAS_PAGE.has(data.areaId);
+
   const canProceed = useCallback(() => {
     switch (stepId) {
       case 'country': return !!data.countryCode;
-      case 'identity': return !!data.businessTypeId; // Set by AI selection or manual
-      case 'business': return true; // Nunca bloquear — el usuario puede continuar siempre
+      case 'identity': return !!data.businessTypeId;
+      case 'business': {
+        // Servicio/profesión: nombre obligatorio (mínimo 2 chars).
+        // Físico: nombre manual o ficha de Google.
+        if (isServiceArea) return (data.businessName?.trim().length ?? 0) >= 2;
+        return !!data.googlePlaceId || (data.businessName?.trim().length ?? 0) >= 2;
+      }
       case 'mode': return true;
       case 'questionnaire': return true;
-      
       case 'create': return true;
       default: return false;
     }
-  }, [stepId, data]);
+  }, [stepId, data, isServiceArea]);
 
   const handleNext = async () => {
     if (stepId === 'create') {
