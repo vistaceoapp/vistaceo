@@ -416,7 +416,7 @@ export default function AdminUsersPage() {
                       <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
                     </div>
                   </div>
-                  <div className="w-32 hidden md:block min-w-0">
+                  <div className="w-32 hidden md:block min-w-0" title={user.answers_summary || ''}>
                     {biz ? (
                       <div className="flex items-center gap-1 text-[12px] text-foreground truncate">
                         <Building2 className="w-3 h-3 text-muted-foreground flex-shrink-0" />
@@ -426,7 +426,17 @@ export default function AdminUsersPage() {
                     ) : (
                       <span className="text-[11px] text-muted-foreground/60">Sin negocio</span>
                     )}
+                    {user.answers_count > 0 && (
+                      <span className="block text-[9px] text-muted-foreground/70 truncate">
+                        {user.answers_count} respuestas · {user.business_type_label || ''}
+                      </span>
+                    )}
                   </div>
+                  <span className="w-14 hidden lg:flex justify-center" title={user.google_connected ? 'Ficha de Google conectada' : 'Sin ficha de Google'}>
+                    <Badge variant="outline" className={cn('text-[9px] px-1.5 py-0 h-4 border', user.google_connected ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-muted text-muted-foreground')}>
+                      {user.google_connected ? 'Sí' : 'No'}
+                    </Badge>
+                  </span>
                   <span className="w-16 hidden lg:block text-center text-[12px] text-foreground tabular-nums">
                     {user.login_count || 0}
                   </span>
