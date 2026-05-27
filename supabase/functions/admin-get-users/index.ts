@@ -148,7 +148,14 @@ Deno.serve(async (req) => {
         .limit(5000),
     ]);
 
-    // Build per-user activity summary: events count 7d, last event, post-setup engagement
+    // Brains for richer "Detalle" column (EASY_* answers, google_connected, etc.)
+    const businessIds = (businessesRes.data || []).map((b: any) => b.id);
+    const brainsRes = businessIds.length
+      ? await supabase.from("business_brains").select("business_id, factual_memory").in("business_id", businessIds)
+      : { data: [] as any[] };
+    const brainByBusiness: Record<string, any> = {};
+    (brainsRes.data || []).forEach((b: any) => { brainByBusiness[b.business_id] = b.factual_memory || {}; });
+
     const POST_SETUP_EVENTS = new Set([
       "login", "page_view", "chat_message", "mission_start",
       "mission_complete", "radar_view", "checkin", "feature_use",
@@ -175,10 +182,25 @@ Deno.serve(async (req) => {
       }
     });
 
+    const buildAnswersSummary = (answers: any): string => {
+      if (!answers || typeof answers !== "object") return "";
+      const parts: string[] = [];
+      for (const [k, v] of Object.entries(answers as Record<string, any>)) {
+        if (v === null || v === undefined || v === "") continue;
+        const val = Array.isArray(v) ? v.join(",") : (typeof v === "object" ? JSON.stringify(v) : String(v));
+        parts.push(`${k}:${val.length > 40 ? val.slice(0, 40) + "…" : val}`);
+      }
+      return parts.join(" | ");
+    };
+
     const users = profiles?.map(profile => {
       const act = activityByUser[profile.id] || { events7d: 0, postSetupEvents7d: 0, lastEventAt: null, lastEventType: null };
       const businessesForUser = businessesRes.data?.filter(b => b.owner_id === profile.id) || [];
       const setupDone = businessesForUser.some(b => b.setup_completed);
+      const primaryBusiness = businessesForUser[0];
+      const brain = primaryBusiness ? brainByBusiness[primaryBusiness.id] : null;
+      const googleConnected = !!primaryBusiness?.google_place_id || !!brain?.has_google;
+      const answersSummary = brain?.answers ? buildAnswersSummary(brain.answers) : "";
       return {
         ...profile,
         businesses: businessesForUser,
@@ -188,8 +210,13 @@ Deno.serve(async (req) => {
         last_event_at: act.lastEventAt,
         last_event_type: act.lastEventType,
         setup_completed: setupDone,
-        // Heuristic: completed setup but no post-setup engagement = churned
         churned_after_setup: setupDone && act.postSetupEvents7d === 0,
+        // Nuevos campos para columnas "Google conectado" y "Detalle"
+        google_connected: googleConnected,
+        answers_count: brain?.answers ? Object.keys(brain.answers).length : 0,
+        answers_summary: answersSummary,
+        business_type_label: brain?.business_type_label || primaryBusiness?.category || null,
+        area_id: brain?.area_id || null,
       };
     }) || [];
 
