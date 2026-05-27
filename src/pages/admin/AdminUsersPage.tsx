@@ -360,6 +360,7 @@ export default function AdminUsersPage() {
         <div className="px-4 py-2.5 border-b border-border bg-muted/30 flex items-center text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
           <span className="flex-1">Usuario</span>
           <span className="w-32 hidden md:block">Negocio</span>
+          <span className="w-14 hidden lg:block text-center">Google</span>
           <span className="w-16 hidden lg:block text-center">Logins</span>
           <span className="w-20 hidden lg:block text-center">Eventos 7d</span>
           <span className="w-24 hidden lg:block text-center">Estado</span>
