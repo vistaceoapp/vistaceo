@@ -1721,14 +1721,14 @@ const PricingSection = () => {
     "3 misiones estratégicas por mes",
     "5 señales Radar por mes",
     "Análisis base de tu industria",
-    "Sin chat IA ilimitado",
+    "Sin chat IA de alta capacidad",
     "Sin predicciones avanzadas",
   ];
 
   const proFeatures = [
     "Todo del plan Gratis",
-    "Chat ejecutivo con IA ilimitado",
-    "Misiones avanzadas ilimitadas",
+    "Chat ejecutivo con IA de alta capacidad",
+    "Misiones avanzadas de alta capacidad",
     "Predicciones a 7, 14 y 30 días",
     "Analíticas profundas",
     "Análisis de fotos y documentos",

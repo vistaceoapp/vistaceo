@@ -11,6 +11,15 @@ export const FREE_LIMITS = {
   radarResearch: 1,
 } as const;
 
+// Pro plan limits (per month) — alta capacidad, no ilimitado.
+// Topes altos para proteger costos sin afectar la experiencia real.
+export const PRO_LIMITS = {
+  missions: 500,
+  chatMessages: 100,
+  radarOpportunities: 200,
+  radarResearch: 200,
+} as const;
+
 interface UsageData {
   missions: number;
   chatMessages: number;
@@ -65,12 +74,8 @@ export const useFreeLimits = (): FreeLimitsState => {
       return;
     }
 
-    // Pro users don't have limits
-    if (isPro) {
-      setUsage({ missions: 0, chatMessages: 0, radarOpportunities: 0, radarResearch: 0 });
-      setIsLoading(false);
-      return;
-    }
+    // Pro users still get usage tracked (alta capacidad, no ilimitado)
+    // so we fall through to count real usage below.
 
     try {
       // Get start of current month
@@ -137,28 +142,29 @@ export const useFreeLimits = (): FreeLimitsState => {
   }, [currentBusiness, isPro]);
 
   return useMemo(() => {
-    // Pro users get unlimited
+    // Pro users: alta capacidad (topes altos), no ilimitado
     if (isPro) {
+      const remainingPro = {
+        missions: Math.max(0, PRO_LIMITS.missions - usage.missions),
+        chatMessages: Math.max(0, PRO_LIMITS.chatMessages - usage.chatMessages),
+        radarOpportunities: Math.max(0, PRO_LIMITS.radarOpportunities - usage.radarOpportunities),
+        radarResearch: Math.max(0, PRO_LIMITS.radarResearch - usage.radarResearch),
+      };
       return {
-        usage: { missions: 0, chatMessages: 0, radarOpportunities: 0, radarResearch: 0 },
-        limits: FREE_LIMITS,
-        remaining: {
-          missions: Infinity,
-          chatMessages: Infinity,
-          radarOpportunities: Infinity,
-          radarResearch: Infinity,
-        },
+        usage,
+        limits: PRO_LIMITS as unknown as typeof FREE_LIMITS,
+        remaining: remainingPro,
         canCreate: {
-          mission: true,
-          chat: true,
-          opportunity: true,
-          research: true,
+          mission: remainingPro.missions > 0,
+          chat: remainingPro.chatMessages > 0,
+          opportunity: remainingPro.radarOpportunities > 0,
+          research: remainingPro.radarResearch > 0,
         },
         percentUsed: {
-          missions: 0,
-          chatMessages: 0,
-          radarOpportunities: 0,
-          radarResearch: 0,
+          missions: Math.min(100, (usage.missions / PRO_LIMITS.missions) * 100),
+          chatMessages: Math.min(100, (usage.chatMessages / PRO_LIMITS.chatMessages) * 100),
+          radarOpportunities: Math.min(100, (usage.radarOpportunities / PRO_LIMITS.radarOpportunities) * 100),
+          radarResearch: Math.min(100, (usage.radarResearch / PRO_LIMITS.radarResearch) * 100),
         },
         isLoading,
         isPro: true,
@@ -200,17 +206,16 @@ export const useFreeLimits = (): FreeLimitsState => {
  * Component to display usage limit indicator
  */
 export const formatLimitText = (used: number, limit: number, isPro: boolean): string => {
-  if (isPro) return "Ilimitado";
+  if (isPro) return "Alta capacidad";
   return `${used}/${limit}`;
 };
 
 /**
  * Returns real mission usage for the current month.
- * Pro users get { used: 0, limit: Infinity, remaining: Infinity }.
+ * Pro users get the Pro cap (alta capacidad).
  */
 export const useRemainingMissions = (): { used: number; limit: number; remaining: number } => {
-  const { usage, limits, remaining, isPro } = useFreeLimits();
-  if (isPro) return { used: 0, limit: Infinity, remaining: Infinity };
+  const { usage, limits, remaining } = useFreeLimits();
   return {
     used: usage.missions,
     limit: limits.missions,
@@ -240,6 +245,6 @@ export const getFreeLimitMessage = (error: unknown): { title: string; descriptio
   else if (/learning_items/i.test(msg)) resource = "tus 3 ítems de investigación";
   return {
     title: "Límite del plan Gratis alcanzado",
-    description: `Ya usaste ${resource} de este mes. Pasate a Pro para acceso ilimitado.`,
+    description: `Ya usaste ${resource} de este mes. Pasate a Pro para acceder a alta capacidad.`,
   };
 };

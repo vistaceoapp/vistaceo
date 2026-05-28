@@ -653,7 +653,7 @@ export const OpportunityDetailEnhanced = ({
                   </p>
                   <Button variant="outline" size="sm" className="text-xs">
                     <Sparkles className="w-3 h-3 mr-1" />
-                    Con Pro: Misiones ilimitadas
+                    Con Pro: Misiones de alta capacidad
                   </Button>
                 </div>
               </div>

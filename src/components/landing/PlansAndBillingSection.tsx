@@ -99,7 +99,7 @@ export const PlansAndBillingSection = () => {
               </li>
               <li className="flex items-start gap-3 text-sm text-muted-foreground">
                 <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                <span>Chat ilimitado con el CEO digital</span>
+                <span>Chat de alta capacidad con el CEO digital</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-muted-foreground">
                 <Check className="w-4 h-4 text-primary mt-0.5 shrink-0" />

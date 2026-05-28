@@ -252,7 +252,17 @@ const ChatPage = () => {
     if (!isPro && !canCreate.chat) {
       toast({
         title: "Límite alcanzado",
-        description: "Usaste tus 3 mensajes gratis este mes. Actualizá a Pro para mensajes ilimitados.",
+        description: "Usaste tus 3 mensajes gratis este mes. Pasate a Pro para alta capacidad de conversación.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Pro user soft-cap check (alta capacidad = 100/mes)
+    if (isPro && !canCreate.chat) {
+      toast({
+        title: "Alcanzaste el tope mensual del plan Pro",
+        description: "Tu plan Pro incluye alta capacidad de chat (100 mensajes/mes). El contador se reinicia el día 1.",
         variant: "destructive",
       });
       return;
@@ -614,7 +624,7 @@ const ChatPage = () => {
               onClick={() => navigate("/checkout")}
             >
               <Crown className="w-3 h-3" />
-              Pro = ilimitados
+              Pro = alta capacidad
             </Button>
           </div>
         )}

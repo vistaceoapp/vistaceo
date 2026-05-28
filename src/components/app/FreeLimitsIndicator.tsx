@@ -60,12 +60,12 @@ export const FreeLimitsIndicator = ({
   const left = remaining[config.limitKey];
   const percent = percentUsed[config.limitKey];
   
-  // Pro users don't see limits
+  // Pro users: alta capacidad — mostramos progreso real pero con tono premium
   if (isPro) {
     return (
       <Badge variant="secondary" className={cn("bg-primary/10 text-primary border-primary/20", className)}>
         <Crown className="w-3 h-3 mr-1" />
-        Ilimitado
+        {type === "chat" ? `${used}/${limit} · Alta capacidad` : "Alta capacidad"}
       </Badge>
     );
   }
@@ -158,7 +158,7 @@ export const FreeLimitsIndicator = ({
             onClick={() => navigate("/checkout")}
           >
             <Crown className="w-4 h-4 mr-2" />
-            Desbloquear ilimitado con Pro
+            Desbloquear alta capacidad con Pro
           </Button>
         </div>
       )}
@@ -203,7 +203,7 @@ export const LimitReachedBanner = ({ type, onUpgrade }: LimitReachedBannerProps)
           </h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
             Este mes ya usaste tus {FREE_LIMITS[config.limitKey]} {config.label.toLowerCase()} del plan Free. 
-            Desbloqueá ilimitado con Pro.
+            Pasate a Pro para alta capacidad.
           </p>
         </div>
 

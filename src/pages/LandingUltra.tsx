@@ -921,7 +921,7 @@ const LandingUltra = () => {
                     <ul className="space-y-4 mb-8">
                       {[
                         "Todo lo del plan Free",
-                        "Chat ilimitado con VistaCEO",
+                        "Chat con VistaCEO de alta capacidad",
                         "Análisis de fotos y documentos",
                         "Radar I+D completo",
                         "Diagnóstico inteligente avanzado",

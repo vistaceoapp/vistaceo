@@ -114,7 +114,7 @@ export const ProUpgradeBanner = ({
 
         {/* Features preview */}
         <div className="grid grid-cols-2 gap-2 mb-4">
-          {["Misiones ilimitadas", "Analytics IA", "Voz y fotos", "Radar completo"].map((feature, i) => (
+          {["Misiones de alta capacidad", "Analytics IA", "Voz y fotos", "Radar completo"].map((feature, i) => (
             <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
               <Sparkles className="w-3 h-3 text-amber-500" />
               <span>{feature}</span>

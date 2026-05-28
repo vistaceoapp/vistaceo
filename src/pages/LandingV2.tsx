@@ -191,9 +191,9 @@ const LandingV2 = () => {
       description: "El cerebro completo para tu negocio",
       features: [
         "Dashboard de salud completo",
-        "Misiones estratégicas ilimitadas",
-        "Chat IA ilimitado",
-        "Radar de oportunidades ilimitado",
+        "Misiones estratégicas de alta capacidad",
+        "Chat IA con alta capacidad",
+        "Radar de oportunidades de alta capacidad",
         "Predicciones IA avanzadas",
         "Analytics y métricas completas",
         "Check-ins de pulso diarios",

@@ -31,9 +31,9 @@ const FREE_BLOCKED = [
 
 const PRO_FEATURES = [
   { name: "Dashboard de Salud", value: "Completo", icon: BarChart3 },
-  { name: "Misiones ilimitadas", value: "∞", icon: Target },
-  { name: "Chat IA ilimitado", value: "∞", icon: MessageSquare },
-  { name: "Radar ilimitado", value: "∞", icon: Eye },
+  { name: "Misiones", value: "Alta capacidad", icon: Target },
+  { name: "Chat IA", value: "Alta capacidad", icon: MessageSquare },
+  { name: "Radar de Oportunidades", value: "Alta capacidad", icon: Eye },
   { name: "Check-ins de Pulso", value: "Diarios", icon: Clock },
   { name: "Gemelo Digital predictivo", value: "✓", icon: Brain },
   { name: "Análisis de Competencia", value: "✓", icon: Users },
@@ -285,17 +285,17 @@ export const PricingSection = memo(() => {
             {/* Pro features */}
             <ul className="space-y-2.5 mb-6">
               {PRO_FEATURES.map((f, i) => {
-                const isUnlimited = f.value === "∞";
+                const isHighCapacity = f.value === "Alta capacidad";
                 return (
                   <li key={i} className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2 text-foreground">
                       <f.icon className="w-4 h-4 text-primary shrink-0" />
                       {f.name}
                     </span>
-                    {isUnlimited ? (
+                    {isHighCapacity ? (
                       <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20 py-0.5 px-2">
-                        <Infinity className="w-3 h-3 mr-1" />
-                        Ilimitado
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Alta capacidad
                       </Badge>
                     ) : (
                       <Check className="w-4 h-4 text-primary shrink-0" />

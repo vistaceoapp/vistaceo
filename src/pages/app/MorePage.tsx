@@ -779,7 +779,7 @@ const MorePage = () => {
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-foreground">Actualiza a Pro</h3>
-              <p className="text-xs text-muted-foreground">Funciones ilimitadas</p>
+              <p className="text-xs text-muted-foreground">Funciones de alta capacidad</p>
             </div>
             <Button size="sm" onClick={() => navigate("/checkout")}>
               Ver

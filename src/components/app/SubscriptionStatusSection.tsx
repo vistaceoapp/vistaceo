@@ -33,7 +33,7 @@ const FREE_FEATURES = [
 const PRO_FEATURES = [
   { name: "Chat IA ultra-inteligente", included: true },
   { name: "Análisis de fotos y documentos", included: true },
-  { name: "Misiones ilimitadas", included: true },
+  { name: "Misiones de alta capacidad", included: true },
   { name: "Radar I+D completo sin límites", included: true },
   { name: "Google Reviews integrado", included: true },
   { name: "Analytics avanzado + predicciones", included: true },
