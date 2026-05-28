@@ -1135,7 +1135,9 @@ MESSAGE_JSON:
     const hasImages = imageAttachments.length > 0;
     const complexHints = /(crisis|urgente|estrategia|plan|análisis|analiza|presupuesto|forecast|expansión|despido|legal|pricing|precio|margen|caja|equipo|conflict)/i;
     const isComplex = hasImages || complexHints.test(lastText) || lastText.length > 600;
-    const selectedModel = isComplex
+    // Cost optimization: Free users always use Lite (≈4× más barato).
+    // Pro users get Flash for queries complejas (alta calidad), Lite para las simples.
+    const selectedModel = isProPlan && isComplex
       ? "google/gemini-2.5-flash"
       : "google/gemini-2.5-flash-lite";
 
