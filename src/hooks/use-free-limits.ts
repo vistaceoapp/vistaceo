@@ -245,6 +245,6 @@ export const getFreeLimitMessage = (error: unknown): { title: string; descriptio
   else if (/learning_items/i.test(msg)) resource = "tus 3 ítems de investigación";
   return {
     title: "Límite del plan Gratis alcanzado",
-    description: `Ya usaste ${resource} de este mes. Pasate a Pro para acceso ilimitado.`,
+    description: `Ya usaste ${resource} de este mes. Pasate a Pro para acceder a alta capacidad.`,
   };
 };
