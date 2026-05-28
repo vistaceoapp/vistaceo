@@ -60,12 +60,12 @@ export const FreeLimitsIndicator = ({
   const left = remaining[config.limitKey];
   const percent = percentUsed[config.limitKey];
   
-  // Pro users don't see limits
+  // Pro users: alta capacidad — mostramos progreso real pero con tono premium
   if (isPro) {
     return (
       <Badge variant="secondary" className={cn("bg-primary/10 text-primary border-primary/20", className)}>
         <Crown className="w-3 h-3 mr-1" />
-        Ilimitado
+        {type === "chat" ? `${used}/${limit} · Alta capacidad` : "Alta capacidad"}
       </Badge>
     );
   }
