@@ -74,12 +74,8 @@ export const useFreeLimits = (): FreeLimitsState => {
       return;
     }
 
-    // Pro users don't have limits
-    if (isPro) {
-      setUsage({ missions: 0, chatMessages: 0, radarOpportunities: 0, radarResearch: 0 });
-      setIsLoading(false);
-      return;
-    }
+    // Pro users still get usage tracked (alta capacidad, no ilimitado)
+    // so we fall through to count real usage below.
 
     try {
       // Get start of current month
