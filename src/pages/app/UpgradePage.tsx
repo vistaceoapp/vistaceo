@@ -281,25 +281,25 @@ const UpgradePage = () => {
             {/* Features */}
             <ul className="space-y-2.5 mb-6">
               {[
-                { name: "Chat IA ilimitado", unlimited: true },
-                { name: "Misiones ilimitadas", unlimited: true },
-                { name: "Radar ilimitado", unlimited: true },
-                { name: "Predicciones IA", unlimited: true },
-                { name: "Gemelo Digital predictivo", unlimited: false },
-                { name: "Análisis de Competencia", unlimited: false },
-                { name: "Insights avanzados", unlimited: false },
-                { name: "Métricas y Evolución", unlimited: false },
-                { name: "Integraciones premium", unlimited: false },
-                { name: "Soporte prioritario 24/7", unlimited: false },
+                { name: "Chat IA", highCapacity: true },
+                { name: "Misiones", highCapacity: true },
+                { name: "Radar de Oportunidades", highCapacity: true },
+                { name: "Predicciones IA", highCapacity: true },
+                { name: "Gemelo Digital predictivo", highCapacity: false },
+                { name: "Análisis de Competencia", highCapacity: false },
+                { name: "Insights avanzados", highCapacity: false },
+                { name: "Métricas y Evolución", highCapacity: false },
+                { name: "Integraciones premium", highCapacity: false },
+                { name: "Soporte prioritario 24/7", highCapacity: false },
               ].map((f, i) => (
                 <li key={i} className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-2 text-foreground">
                     <Check className="w-4 h-4 text-primary shrink-0" />
                     {f.name}
                   </span>
-                  {f.unlimited && (
+                  {f.highCapacity && (
                     <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20 py-0.5 px-2">
-                      <Infinity className="w-3 h-3 mr-1" />Ilimitado
+                      <Sparkles className="w-3 h-3 mr-1" />Alta capacidad
                     </Badge>
                   )}
                 </li>
