@@ -192,8 +192,8 @@ const LandingV2 = () => {
       features: [
         "Dashboard de salud completo",
         "Misiones estratégicas ilimitadas",
-        "Chat IA ilimitado",
-        "Radar de oportunidades ilimitado",
+        "Chat IA con alta capacidad",
+        "Radar de oportunidades de alta capacidad",
         "Predicciones IA avanzadas",
         "Analytics y métricas completas",
         "Check-ins de pulso diarios",

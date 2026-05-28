@@ -23,7 +23,7 @@ const proFeatures = [
   { name: "Todo del plan Free", included: true, highlight: true },
   { name: "Chat ultra-inteligente con VistaCEO", included: true },
   { name: "Análisis de fotos, documentos y reportes", included: true },
-  { name: "Radar I+D completo e ilimitado", included: true },
+  { name: "Radar I+D completo y de alta capacidad", included: true },
   { name: "Misiones ilimitadas", included: true },
   { name: "Google Reviews integrado", included: true },
   { name: "Analytics avanzado + predicciones IA", included: true },

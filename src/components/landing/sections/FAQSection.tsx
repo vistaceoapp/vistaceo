@@ -76,8 +76,8 @@ El sistema adapta automáticamente las preguntas, métricas, misiones y recomend
 • ❌ **Analytics y Métricas Avanzadas**: Dashboards detallados con evolución histórica, comparativas de períodos, exportación de reportes y métricas por dimensión
 • ❌ **Predicciones IA**: Motor predictivo que anticipa tendencias de ventas, detecta riesgos antes de que ocurran y sugiere acciones preventivas basadas en patrones históricos
 • ❌ **Misiones Ilimitadas**: Sin límite en la cantidad de misiones activas simultáneas
-• ❌ **Radar de Oportunidades Ilimitado**: Análisis continuo sin restricciones de oportunidades internas y de mercado
-• ❌ **Chat IA Ilimitado**: Conversaciones sin límite incluyendo análisis de fotos, documentos y reportes
+• ❌ **Radar de Oportunidades de Alta Capacidad**: Análisis continuo sin restricciones de oportunidades internas y de mercado
+• ❌ **Chat IA de Alta Capacidad**: Conversaciones sin límite incluyendo análisis de fotos, documentos y reportes
 
 VistaCEO está diseñado para crecer contigo. Empieza gratis, y cuando estés listo para escalar, activa Pro.`,
   },
