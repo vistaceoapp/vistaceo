@@ -1728,7 +1728,7 @@ const PricingSection = () => {
   const proFeatures = [
     "Todo del plan Gratis",
     "Chat ejecutivo con IA de alta capacidad",
-    "Misiones avanzadas ilimitadas",
+    "Misiones avanzadas de alta capacidad",
     "Predicciones a 7, 14 y 30 días",
     "Analíticas profundas",
     "Análisis de fotos y documentos",

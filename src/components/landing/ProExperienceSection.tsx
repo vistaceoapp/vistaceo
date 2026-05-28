@@ -16,7 +16,7 @@ const proFeatures = [
   },
   { 
     icon: Radar, 
-    title: "Radar I+D completo e ilimitado",
+    title: "Radar I+D completo y de alta capacidad",
     description: "Detecta oportunidades de mercado, tendencias y competencia en tiempo real."
   },
   { 

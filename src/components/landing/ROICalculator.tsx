@@ -226,7 +226,7 @@ export const ROICalculator = () => {
                   <div className="flex flex-wrap gap-3">
                     {[
                       "Acciones diarias",
-                      "Misiones ilimitadas",
+                      "Misiones de alta capacidad",
                       "Chat con IA",
                       "Analytics avanzado",
                     ].map((feature, i) => (
