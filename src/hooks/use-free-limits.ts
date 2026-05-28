@@ -206,17 +206,16 @@ export const useFreeLimits = (): FreeLimitsState => {
  * Component to display usage limit indicator
  */
 export const formatLimitText = (used: number, limit: number, isPro: boolean): string => {
-  if (isPro) return "Ilimitado";
+  if (isPro) return "Alta capacidad";
   return `${used}/${limit}`;
 };
 
 /**
  * Returns real mission usage for the current month.
- * Pro users get { used: 0, limit: Infinity, remaining: Infinity }.
+ * Pro users get the Pro cap (alta capacidad).
  */
 export const useRemainingMissions = (): { used: number; limit: number; remaining: number } => {
-  const { usage, limits, remaining, isPro } = useFreeLimits();
-  if (isPro) return { used: 0, limit: Infinity, remaining: Infinity };
+  const { usage, limits, remaining } = useFreeLimits();
   return {
     used: usage.missions,
     limit: limits.missions,
