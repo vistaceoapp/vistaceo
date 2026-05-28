@@ -11,6 +11,15 @@ export const FREE_LIMITS = {
   radarResearch: 1,
 } as const;
 
+// Pro plan limits (per month) — alta capacidad, no ilimitado.
+// Topes altos para proteger costos sin afectar la experiencia real.
+export const PRO_LIMITS = {
+  missions: 500,
+  chatMessages: 100,
+  radarOpportunities: 200,
+  radarResearch: 200,
+} as const;
+
 interface UsageData {
   missions: number;
   chatMessages: number;
