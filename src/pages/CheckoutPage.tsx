@@ -27,17 +27,17 @@ import { safeLocalStorage } from "@/lib/safe-storage";
 // Pro features list - exact match with landing + infinity symbols
 const proFeatures = [
   { name: "Dashboard de Salud", detail: "Completo", hasInfinity: false },
-  { name: "Misiones", detail: "Ilimitadas", hasInfinity: true },
-  { name: "Chat IA", detail: "Ilimitado", hasInfinity: true },
-  { name: "Radar de Oportunidades", detail: "Ilimitado", hasInfinity: true },
+  { name: "Misiones", detail: "Alta capacidad", hasInfinity: false },
+  { name: "Chat IA", detail: "Alta capacidad", hasInfinity: false },
+  { name: "Radar de Oportunidades", detail: "Alta capacidad", hasInfinity: false },
   { name: "Check-ins de Pulso", detail: "Diarios", hasInfinity: false },
   { name: "Gemelo Digital predictivo", detail: "Completo", hasInfinity: false },
   { name: "Análisis de Competencia", detail: "Completo", hasInfinity: false },
-  { name: "Predicciones IA", detail: "Ilimitadas", hasInfinity: true },
+  { name: "Predicciones IA", detail: "Alta capacidad", hasInfinity: false },
   { name: "Insights avanzados", detail: "Completos", hasInfinity: false },
   { name: "Métricas y Evolución", detail: "Completas", hasInfinity: false },
   { name: "Integraciones premium", detail: "Completas", hasInfinity: false },
-  { name: "Soporte prioritario 24/7", detail: "Ilimitado", hasInfinity: true },
+  { name: "Soporte prioritario 24/7", detail: "Incluido", hasInfinity: false },
 ];
 
 const CheckoutPage = () => {
