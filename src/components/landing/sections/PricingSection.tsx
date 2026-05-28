@@ -31,9 +31,9 @@ const FREE_BLOCKED = [
 
 const PRO_FEATURES = [
   { name: "Dashboard de Salud", value: "Completo", icon: BarChart3 },
-  { name: "Misiones ilimitadas", value: "∞", icon: Target },
-  { name: "Chat IA ilimitado", value: "∞", icon: MessageSquare },
-  { name: "Radar ilimitado", value: "∞", icon: Eye },
+  { name: "Misiones", value: "Alta capacidad", icon: Target },
+  { name: "Chat IA", value: "Alta capacidad", icon: MessageSquare },
+  { name: "Radar de Oportunidades", value: "Alta capacidad", icon: Eye },
   { name: "Check-ins de Pulso", value: "Diarios", icon: Clock },
   { name: "Gemelo Digital predictivo", value: "✓", icon: Brain },
   { name: "Análisis de Competencia", value: "✓", icon: Users },
