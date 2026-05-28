@@ -624,7 +624,7 @@ const ChatPage = () => {
               onClick={() => navigate("/checkout")}
             >
               <Crown className="w-3 h-3" />
-              Pro = ilimitados
+              Pro = alta capacidad
             </Button>
           </div>
         )}
