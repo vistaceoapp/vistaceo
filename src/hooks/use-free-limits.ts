@@ -142,28 +142,29 @@ export const useFreeLimits = (): FreeLimitsState => {
   }, [currentBusiness, isPro]);
 
   return useMemo(() => {
-    // Pro users get unlimited
+    // Pro users: alta capacidad (topes altos), no ilimitado
     if (isPro) {
+      const remainingPro = {
+        missions: Math.max(0, PRO_LIMITS.missions - usage.missions),
+        chatMessages: Math.max(0, PRO_LIMITS.chatMessages - usage.chatMessages),
+        radarOpportunities: Math.max(0, PRO_LIMITS.radarOpportunities - usage.radarOpportunities),
+        radarResearch: Math.max(0, PRO_LIMITS.radarResearch - usage.radarResearch),
+      };
       return {
-        usage: { missions: 0, chatMessages: 0, radarOpportunities: 0, radarResearch: 0 },
-        limits: FREE_LIMITS,
-        remaining: {
-          missions: Infinity,
-          chatMessages: Infinity,
-          radarOpportunities: Infinity,
-          radarResearch: Infinity,
-        },
+        usage,
+        limits: PRO_LIMITS as unknown as typeof FREE_LIMITS,
+        remaining: remainingPro,
         canCreate: {
-          mission: true,
-          chat: true,
-          opportunity: true,
-          research: true,
+          mission: remainingPro.missions > 0,
+          chat: remainingPro.chatMessages > 0,
+          opportunity: remainingPro.radarOpportunities > 0,
+          research: remainingPro.radarResearch > 0,
         },
         percentUsed: {
-          missions: 0,
-          chatMessages: 0,
-          radarOpportunities: 0,
-          radarResearch: 0,
+          missions: Math.min(100, (usage.missions / PRO_LIMITS.missions) * 100),
+          chatMessages: Math.min(100, (usage.chatMessages / PRO_LIMITS.chatMessages) * 100),
+          radarOpportunities: Math.min(100, (usage.radarOpportunities / PRO_LIMITS.radarOpportunities) * 100),
+          radarResearch: Math.min(100, (usage.radarResearch / PRO_LIMITS.radarResearch) * 100),
         },
         isLoading,
         isPro: true,
