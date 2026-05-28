@@ -158,7 +158,7 @@ export const FreeLimitsIndicator = ({
             onClick={() => navigate("/checkout")}
           >
             <Crown className="w-4 h-4 mr-2" />
-            Desbloquear ilimitado con Pro
+            Desbloquear alta capacidad con Pro
           </Button>
         </div>
       )}
