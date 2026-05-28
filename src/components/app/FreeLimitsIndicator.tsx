@@ -203,7 +203,7 @@ export const LimitReachedBanner = ({ type, onUpgrade }: LimitReachedBannerProps)
           </h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
             Este mes ya usaste tus {FREE_LIMITS[config.limitKey]} {config.label.toLowerCase()} del plan Free. 
-            Desbloqueá ilimitado con Pro.
+            Pasate a Pro para alta capacidad.
           </p>
         </div>
 
