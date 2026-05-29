@@ -21,6 +21,14 @@ function withTrailingSlash(url: string): string {
   return base.endsWith('/') ? url : `${base}/${rest ?? ''}`;
 }
 
+// Minimum published posts a cluster must have to be listed in the sitemap.
+// Thin/empty cluster pages get "Crawled - currently not indexed" in GSC, so
+// we hide them until they reach the threshold.
+const MIN_POSTS_PER_CLUSTER = 3;
+// Minimum body length (chars) to expose a post in the sitemap. Anything
+// thinner is hidden until it is rewritten/expanded.
+const MIN_POST_LENGTH = 1500;
+
 async function generateSitemapXml(): Promise<string> {
   const posts = await getAllPublishedPosts();
   const clusters = getAllClusters();
@@ -45,7 +53,15 @@ async function generateSitemapXml(): Promise<string> {
     priority: '1.0',
   });
 
+  // Count published posts per cluster and only list clusters with enough depth.
+  const postsByCluster = posts.reduce<Record<string, number>>((acc, p) => {
+    const key = (p as any).category;
+    if (key) acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
   for (const cluster of clusters) {
+    if ((postsByCluster[cluster.slug] || 0) < MIN_POSTS_PER_CLUSTER) continue;
     urls.push({
       loc: withTrailingSlash(`${SITE_URL}/tema/${cluster.slug}/`),
       lastmod: today,
@@ -55,10 +71,15 @@ async function generateSitemapXml(): Promise<string> {
   }
 
   for (const post of posts) {
+    // Skip thin posts: Google flags them as "Crawled - currently not indexed".
+    const contentLen = ((post as any).content_md || '').length;
+    if (contentLen > 0 && contentLen < MIN_POST_LENGTH) continue;
+
     const lastmodIso = post.updated_at || post.publish_at || nowIso;
     const lastmod = lastmodIso.split('T')[0];
     const ageMs = Date.now() - new Date(lastmodIso).getTime();
     const isFresh = ageMs < TWO_DAYS;
+
 
     const entry: typeof urls[number] = {
       loc: withTrailingSlash(`${SITE_URL}/${post.slug}/`),

@@ -42,25 +42,28 @@ Deno.serve(async (req) => {
         });
       }
       
-      // Build URL list: home + clusters + all posts
+      // Compute clusters that have enough depth to be worth indexing.
+      // Empty/thin clusters end up as "Crawled - currently not indexed".
+      const { data: clusterRows } = await supabase
+        .from("blog_posts")
+        .select("category")
+        .eq("status", "published");
+
+      const MIN_POSTS_PER_CLUSTER = 3;
+      const clusterCounts: Record<string, number> = {};
+      for (const row of clusterRows || []) {
+        const k = (row as { category: string | null }).category;
+        if (k) clusterCounts[k] = (clusterCounts[k] || 0) + 1;
+      }
+      const eligibleClusters = Object.entries(clusterCounts)
+        .filter(([, n]) => n >= MIN_POSTS_PER_CLUSTER)
+        .map(([slug]) => `${BLOG_URL}/tema/${slug}/`);
+
+      // IndexNow only accepts indexable page URLs — never submit sitemap.xml.
       const allUrls = [
         `${BLOG_URL}/`,
-        `${BLOG_URL}/sitemap.xml`,
-        // 12 clusters
-        `${BLOG_URL}/tema/empleo-habilidades/`,
-        `${BLOG_URL}/tema/ia-para-pymes/`,
-        `${BLOG_URL}/tema/servicios-profesionales-rentabilidad/`,
-        `${BLOG_URL}/tema/marketing-crecimiento/`,
-        `${BLOG_URL}/tema/finanzas-cashflow/`,
-        `${BLOG_URL}/tema/operaciones-procesos/`,
-        `${BLOG_URL}/tema/ventas-negociacion/`,
-        `${BLOG_URL}/tema/liderazgo-management/`,
-        `${BLOG_URL}/tema/estrategia-latam/`,
-        `${BLOG_URL}/tema/herramientas-productividad/`,
-        `${BLOG_URL}/tema/data-analytics/`,
-        `${BLOG_URL}/tema/tendencias-ia-tech/`,
-        // All post URLs
-        ...(posts || []).map(p => `${BLOG_URL}/${p.slug}/`)
+        ...eligibleClusters,
+        ...(posts || []).map(p => `${BLOG_URL}/${p.slug}/`),
       ];
       
       console.log(`[IndexNow] Submitting ${allUrls.length} URLs...`);

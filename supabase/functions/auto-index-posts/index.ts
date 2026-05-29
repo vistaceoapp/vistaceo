@@ -44,12 +44,12 @@ Deno.serve(async (req) => {
 
     const postUrls = (recentPosts || []).map(p => `${BLOG_URL}/${p.slug}/`);
     
-    // Also include key pages that should always be fresh
+    // Also include key pages that should always be fresh.
+    // IMPORTANT: never submit sitemap.xml to IndexNow — the spec only accepts
+    // indexable page URLs and the entire batch can be silently rejected.
     const staticUrls = [
       `${BLOG_URL}/`,
-      `${BLOG_URL}/sitemap.xml`,
       `${MAIN_URL}/`,
-      `${MAIN_URL}/sitemap.xml`,
     ];
 
     const allUrls = [...new Set([...postUrls, ...staticUrls])];
