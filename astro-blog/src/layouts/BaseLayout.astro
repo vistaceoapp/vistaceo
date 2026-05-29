@@ -12,6 +12,7 @@ interface Props {
   modifiedTime?: string;
   author?: string;
   schemas?: object[];
+  noindex?: boolean;
 }
 
 const { 
@@ -23,7 +24,8 @@ const {
   publishedTime,
   modifiedTime,
   author,
-  schemas = []
+  schemas = [],
+  noindex = false
 } = Astro.props;
 
 const siteUrl = 'https://blog.vistaceo.com';
@@ -140,9 +142,18 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}
   ))}
   
   <!-- Additional SEO for maximum indexation -->
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-  <meta name="bingbot" content="index, follow">
+  {noindex ? (
+    <>
+      <meta name="robots" content="noindex, follow">
+      <meta name="googlebot" content="noindex, follow">
+    </>
+  ) : (
+    <>
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+      <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+      <meta name="bingbot" content="index, follow">
+    </>
+  )}
   <meta name="revisit-after" content="1 days">
   <meta name="author" content="VistaCEO">
   <meta name="generator" content="Astro">

@@ -26,6 +26,7 @@
     }
   ],
   "redirects": [
+    { "source": "/:path*", "has": [{ "type": "host", "value": "vistaceo.com" }], "destination": "https://www.vistaceo.com/:path*", "permanent": true },
     { "source": "/minimalista", "destination": "/", "permanent": true },
     { "source": "/onboarding", "destination": "/setup", "permanent": true },
     { "source": "/welcome-pro", "destination": "/bienvenido-pro", "permanent": true },
