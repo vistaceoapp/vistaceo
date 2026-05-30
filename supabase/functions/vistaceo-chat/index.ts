@@ -287,7 +287,7 @@ No agregues texto fuera de los bloques.
 
 <USER_REPLY>
 (aquí va la respuesta visible al usuario — SOLO texto natural en markdown limpio.
-PROHIBIDO dentro de USER_REPLY: bloques ```json, objetos JSON crudos, llaves { } con claves entrecomilladas, etiquetas <...>, palabras clave técnicas como "facts_to_add" / "decisions" / "missions_suggested" / "learningExtract".
+PROHIBIDO dentro de USER_REPLY: bloques de código JSON crudo, objetos JSON literales, llaves { } con claves entrecomilladas, etiquetas tipo XML, palabras clave técnicas como "facts_to_add" / "decisions" / "missions_suggested" / "learningExtract".
 Si necesitas estructurar datos, usá viñetas con guiones; el JSON SOLO va en LEARNING_EXTRACT.)
 </USER_REPLY>
 
@@ -1136,10 +1136,25 @@ MESSAGE_JSON:
     const complexHints = /(crisis|urgente|estrategia|plan|análisis|analiza|presupuesto|forecast|expansión|despido|legal|pricing|precio|margen|caja|equipo|conflict)/i;
     const isComplex = hasImages || complexHints.test(lastText) || lastText.length > 600;
     // Cost optimization: Free users always use Lite (≈4× más barato).
-    // Pro users get Flash for queries complejas (alta calidad), Lite para las simples.
+    // Pro users get Flash sólo para queries complejas (alta calidad), Lite para el resto.
     const selectedModel = isProPlan && isComplex
       ? "google/gemini-2.5-flash"
       : "google/gemini-2.5-flash-lite";
+
+    // Trivial detector: saludos, agradecimientos, confirmaciones cortas — gastan mínimo.
+    const trivialHints = /^(hola|hi|hey|buenas|gracias|ok|listo|dale|si|no|perfecto|genial|ya|👍|🙏)\b/i;
+    const isTrivial = !hasImages && lastText.length < 60 && trivialHints.test(lastText.trim());
+
+    // Cap dinámico de tokens (ahorro inteligente sin perder calidad):
+    //  · Trivial → 220 (saludo / confirmación, no necesita más)
+    //  · Free simple → 480 (cabe 1 decisión + viñetas + próximo paso, modo directo)
+    //  · Free complejo → 760 (análisis sin desperdicio)
+    //  · Pro simple → 600
+    //  · Pro complejo → 1100 (alta capacidad real)
+    let maxTokens: number;
+    if (isTrivial) maxTokens = 220;
+    else if (!isProPlan) maxTokens = isComplex ? 760 : 480;
+    else maxTokens = isComplex ? 1100 : 600;
 
     // Directiva de brevedad inyectada al final del system para forzar respuestas directas.
     const brevityDirective = {
@@ -1159,7 +1174,10 @@ MESSAGE_JSON:
       ...recentMessages,
     ];
 
-    console.log("Calling VistaCEO AI:", { msgs: messages.length, model: selectedModel, complex: isComplex, short: isShort });
+    console.log("Calling VistaCEO AI:", {
+      msgs: messages.length, model: selectedModel,
+      complex: isComplex, trivial: isTrivial, short: isShort, maxTokens, pro: isProPlan,
+    });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -1171,8 +1189,8 @@ MESSAGE_JSON:
         model: selectedModel,
         messages: aiMessages,
         stream: false,
-        temperature: 0.6,
-        max_tokens: isComplex ? 1100 : 700,
+        temperature: isTrivial ? 0.4 : 0.6,
+        max_tokens: maxTokens,
       }),
     });
 
