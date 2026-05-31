@@ -289,6 +289,71 @@ export default function AdminUsersPage() {
           </ScrollArea>
         </div>
 
+        {/* Emails */}
+        <div className="rounded-xl bg-card border border-border p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Mail className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">
+              Emails ({userDetail.emailsSent?.length || 0} enviados ·{' '}
+              {(userDetail.emailEvents || []).filter((e: any) => e.event_type === 'open').length} aperturas ·{' '}
+              {(userDetail.emailEvents || []).filter((e: any) => e.event_type === 'click').length} clics)
+            </h3>
+          </div>
+          {!userDetail.emailsSent?.length && (
+            <p className="text-sm text-muted-foreground text-center py-6">Sin emails enviados a este usuario</p>
+          )}
+          <ScrollArea className="max-h-[360px]">
+            <div className="space-y-1.5">
+              {userDetail.emailsSent?.map((em: any) => {
+                const events = (userDetail.emailEvents || []).filter((ev: any) => ev.template_name === em.template_name);
+                const opens = events.filter((ev: any) => ev.event_type === 'open');
+                const clicks = events.filter((ev: any) => ev.event_type === 'click');
+                const lastOpen = opens[0]?.created_at;
+                const lastClick = clicks[0]?.created_at;
+                const statusCls =
+                  em.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : em.status === 'dlq' || em.status === 'failed' || em.status === 'bounced' ? 'bg-rose-50 text-rose-700 border-rose-200'
+                  : 'bg-muted text-muted-foreground';
+                return (
+                  <div key={em.message_id} className="flex items-start justify-between gap-3 p-3 rounded-lg bg-accent/30 border border-border">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm text-foreground font-medium truncate">{em.template_name}</p>
+                        <Badge variant="outline" className={cn('text-[9px] px-1.5 py-0 h-4 border', statusCls)}>
+                          {em.status}
+                        </Badge>
+                        {opens.length > 0 && (
+                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border bg-blue-50 text-blue-700 border-blue-200">
+                            👁 {opens.length} {opens.length === 1 ? 'apertura' : 'aperturas'}
+                          </Badge>
+                        )}
+                        {clicks.length > 0 && (
+                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border bg-violet-50 text-violet-700 border-violet-200">
+                            👆 {clicks.length} {clicks.length === 1 ? 'clic' : 'clics'}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        Enviado {format(new Date(em.created_at), 'dd MMM HH:mm', { locale: es })}
+                        {lastOpen && <> · Abierto {formatDistanceToNow(new Date(lastOpen), { locale: es, addSuffix: true })}</>}
+                        {lastClick && <> · Clic {formatDistanceToNow(new Date(lastClick), { locale: es, addSuffix: true })}</>}
+                      </p>
+                      {em.error_message && (
+                        <p className="text-[10px] text-rose-600 mt-1 truncate">{em.error_message}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
+          <p className="text-[10px] text-muted-foreground/70 mt-3 leading-relaxed">
+            Las aperturas se registran cuando el cliente de correo carga la imagen de seguimiento;
+            algunos clientes (Apple Mail Privacy, Gmail con privacidad) pueden inflar o no reportar aperturas reales.
+            Los clics son reales (URL trackeable).
+          </p>
+        </div>
+
         {/* Subscriptions */}
         <div className="rounded-xl bg-card border border-border p-5">
           <div className="flex items-center gap-2 mb-4">

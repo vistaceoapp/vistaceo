@@ -38,7 +38,13 @@ Deno.serve(async (req) => {
         templateName: "user-activated",
         recipientEmail: email,
         idempotencyKey: `user-activated-${businessId}`,
-        templateData: { firstName, businessName, dashboardUrl: `${APP_BASE_URL}/app` },
+        templateData: {
+          firstName,
+          businessName,
+          dashboardUrl: `${APP_BASE_URL}/app`,
+          trackingId: `act-${businessId}`,
+          recipientEmail: email,
+        },
       }),
     });
 
