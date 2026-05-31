@@ -140,6 +140,8 @@ Deno.serve(async (req) => {
         missions,
         opportunities,
         chatMessages,
+        emailsSent,
+        emailEvents,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
