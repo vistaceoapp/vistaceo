@@ -69,6 +69,37 @@ Deno.serve(async (req) => {
         supabase.from("user_daily_metrics").select("*").eq("user_id", userId).order("metric_date", { ascending: false }).limit(30),
       ]);
 
+      // Email history (sent log + engagement events: opens/clicks)
+      const userEmail = (profileRes.data?.email || "").toLowerCase();
+      let emailsSent: any[] = [];
+      let emailEvents: any[] = [];
+      if (userEmail) {
+        const [sentRes, eventsRes] = await Promise.all([
+          supabase
+            .from("email_send_log")
+            .select("message_id, template_name, recipient_email, status, error_message, created_at")
+            .ilike("recipient_email", userEmail)
+            .order("created_at", { ascending: false })
+            .limit(200),
+          supabase
+            .from("email_engagement_events")
+            .select("tracking_id, template_name, event_type, url, user_agent, created_at")
+            .ilike("recipient_email", userEmail)
+            .order("created_at", { ascending: false })
+            .limit(200),
+        ]);
+        // Dedupe sent by message_id keeping latest status
+        const seen = new Set<string>();
+        emailsSent = (sentRes.data || []).filter((r: any) => {
+          if (!r.message_id) return true;
+          if (seen.has(r.message_id)) return false;
+          seen.add(r.message_id);
+          return true;
+        });
+        emailEvents = eventsRes.data || [];
+      }
+
+
       let businessBrain = null;
       let businessSnapshots = null;
       let missions = null;
