@@ -2121,6 +2121,45 @@ export type Database = {
           },
         ]
       }
+      email_engagement_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          ip: string | null
+          metadata: Json | null
+          recipient_email: string
+          template_name: string | null
+          tracking_id: string
+          url: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          ip?: string | null
+          metadata?: Json | null
+          recipient_email: string
+          template_name?: string | null
+          tracking_id: string
+          url?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip?: string | null
+          metadata?: Json | null
+          recipient_email?: string
+          template_name?: string | null
+          tracking_id?: string
+          url?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       email_events: {
         Row: {
           business_id: string | null
