@@ -34,7 +34,12 @@ Deno.serve(async (req) => {
         templateName: "user-welcome",
         recipientEmail: email,
         idempotencyKey: `user-welcome-${email}`,
-        templateData: { firstName, setupUrl: `${APP_BASE_URL}/setup` },
+        templateData: {
+          firstName,
+          setupUrl: `${APP_BASE_URL}/setup`,
+          trackingId: `wel-${email}`,
+          recipientEmail: email,
+        },
       }),
     });
     const data = await res.json().catch(() => ({}));
