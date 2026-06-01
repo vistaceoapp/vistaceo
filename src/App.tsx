@@ -40,6 +40,7 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage"));
 const CentroControlPage = lazy(() => import("./pages/admin/CentroControlPage"));
+const AdminEmailsPage = lazy(() => import("./pages/admin/AdminEmailsPage"));
 
 // App pages - lazy loaded
 const AppLayout = lazy(() => import("./layouts/AppLayout"));
@@ -199,6 +200,7 @@ const AppRoutes = () => {
           <Route path="usuarios" element={<AdminUsersPage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
           <Route path="centro-control" element={<CentroControlPage />} />
+          <Route path="emails" element={<AdminEmailsPage />} />
         </Route>
         
         {/* Checkout - standalone payment page (public; handles auth inline if needed) */}

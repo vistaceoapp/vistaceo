@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { 
   LayoutDashboard, Users, BarChart3, Brain, Home, LogOut, 
-  Menu, X, ChevronRight
+  Menu, X, ChevronRight, Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, desc: 'KPIs y resumen' },
   { label: 'Usuarios', href: '/admin/usuarios', icon: Users, desc: 'Gestión completa' },
+  { label: 'Emails', href: '/admin/emails', icon: Mail, desc: 'Envíos y aperturas' },
   { label: 'Analytics', href: '/admin/analytics', icon: BarChart3, desc: 'Métricas web y app' },
   { label: 'Blog Engine', href: '/admin/centro-control', icon: Brain, desc: 'Control autónomo' },
 ];
