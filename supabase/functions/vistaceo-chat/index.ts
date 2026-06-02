@@ -666,9 +666,31 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
     learningExtract: {},
   };
 
-  // Extract USER_REPLY
-  const userReplyMatch = rawResponse.match(/<USER_REPLY>([\s\S]*?)<\/USER_REPLY>/);
-  if (userReplyMatch) {
+  // ===== JSON FALLBACK: model returned {"USER_REPLY": "...", ...} instead of XML =====
+  let workingRaw = rawResponse;
+  const fencedJson = rawResponse.match(/```(?:json|jsonc)?\s*(\{[\s\S]*?\})\s*```/i);
+  const trimmedRaw = rawResponse.trim();
+  const jsonCandidate = fencedJson ? fencedJson[1] : (trimmedRaw.startsWith("{") ? trimmedRaw : null);
+  if (jsonCandidate && /"(USER_REPLY|userReply)"\s*:/.test(jsonCandidate)) {
+    try {
+      const parsed = JSON.parse(jsonCandidate);
+      const reply = parsed.USER_REPLY ?? parsed.userReply ?? "";
+      const audio = parsed.CEO_AUDIO_SCRIPT ?? parsed.audioScript ?? "";
+      const cues = parsed.AVATAR_CUES ?? parsed.avatarCues ?? {};
+      const learn = parsed.LEARNING_EXTRACT ?? parsed.learningExtract ?? {};
+      if (typeof reply === "string" && reply.trim()) result.userReply = reply.trim();
+      if (typeof audio === "string") result.audioScript = audio.trim();
+      if (cues && typeof cues === "object") result.avatarCues = cues as Record<string, unknown>;
+      if (learn && typeof learn === "object") result.learningExtract = learn as Record<string, unknown>;
+      workingRaw = ""; // already handled, skip XML extraction
+    } catch (e) {
+      console.warn("Failed to parse JSON-wrapped CEO response:", e);
+    }
+  }
+
+  // Extract USER_REPLY (XML format)
+  const userReplyMatch = workingRaw.match(/<USER_REPLY>([\s\S]*?)<\/USER_REPLY>/);
+  if (userReplyMatch && !result.userReply) {
     result.userReply = userReplyMatch[1].trim();
   }
 
