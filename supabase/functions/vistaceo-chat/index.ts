@@ -695,14 +695,14 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
   }
 
   // Extract CEO_AUDIO_SCRIPT
-  const audioScriptMatch = rawResponse.match(/<CEO_AUDIO_SCRIPT>([\s\S]*?)<\/CEO_AUDIO_SCRIPT>/);
-  if (audioScriptMatch) {
+  const audioScriptMatch = workingRaw.match(/<CEO_AUDIO_SCRIPT>([\s\S]*?)<\/CEO_AUDIO_SCRIPT>/);
+  if (audioScriptMatch && !result.audioScript) {
     result.audioScript = audioScriptMatch[1].trim();
   }
 
   // Extract AVATAR_CUES
-  const avatarCuesMatch = rawResponse.match(/<AVATAR_CUES>([\s\S]*?)<\/AVATAR_CUES>/);
-  if (avatarCuesMatch) {
+  const avatarCuesMatch = workingRaw.match(/<AVATAR_CUES>([\s\S]*?)<\/AVATAR_CUES>/);
+  if (avatarCuesMatch && Object.keys(result.avatarCues).length === 0) {
     try {
       result.avatarCues = JSON.parse(avatarCuesMatch[1].trim());
     } catch (e) {
@@ -711,20 +711,17 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
   }
 
   // Extract LEARNING_EXTRACT
-  const learningExtractMatch = rawResponse.match(/<LEARNING_EXTRACT>([\s\S]*?)<\/LEARNING_EXTRACT>/);
-  if (learningExtractMatch) {
+  const learningExtractMatch = workingRaw.match(/<LEARNING_EXTRACT>([\s\S]*?)<\/LEARNING_EXTRACT>/);
+  if (learningExtractMatch && Object.keys(result.learningExtract).length === 0) {
     try {
       let jsonStr = learningExtractMatch[1].trim();
-      // Try direct parse first
       try {
         result.learningExtract = JSON.parse(jsonStr);
       } catch {
-        // Attempt to repair truncated JSON
         jsonStr = jsonStr
           .replace(/,\s*}/g, '}')
           .replace(/,\s*]/g, ']')
           .replace(/[\x00-\x1F\x7F]/g, '');
-        // Close unclosed brackets/braces
         const openBraces = (jsonStr.match(/{/g) || []).length;
         const closeBraces = (jsonStr.match(/}/g) || []).length;
         const openBrackets = (jsonStr.match(/\[/g) || []).length;
@@ -738,9 +735,14 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
     }
   }
 
-  // Fallback: if no structured response, use raw as userReply
+  // Fallback: if no structured response and raw doesn't look like a JSON envelope, use raw as userReply
   if (!result.userReply && rawResponse) {
-    result.userReply = rawResponse.trim();
+    const fallback = rawResponse.trim();
+    if (!/^\s*[\{\[]/.test(fallback) && !/"(USER_REPLY|userReply|facts_to_add|learningExtract)"/i.test(fallback)) {
+      result.userReply = fallback;
+    } else {
+      result.userReply = "Disculpá, tuve un problema procesando la respuesta. ¿Podés repetir el mensaje?";
+    }
   }
 
   // ============================================================
