@@ -1176,19 +1176,22 @@ MESSAGE_JSON:
     //  · Pro simple → 600
     //  · Pro complejo → 1100 (alta capacidad real)
     let maxTokens: number;
-    if (isTrivial) maxTokens = 220;
-    else if (!isProPlan) maxTokens = isComplex ? 760 : 480;
-    else maxTokens = isComplex ? 1100 : 600;
+    if (isTrivial) maxTokens = 260;
+    else if (!isProPlan) maxTokens = isComplex ? 1100 : 650;
+    else maxTokens = isComplex ? 1800 : 900;
 
-    // Directiva de brevedad inyectada al final del system para forzar respuestas directas.
+    // Directiva CEO limpio + anti-leak inyectada al final del system.
     const brevityDirective = {
       role: "system" as const,
-      content: `MODO ULTRA-DIRECTO (obligatorio):
-- Máximo 6-8 líneas en USER_REPLY salvo que el usuario pida análisis profundo explícito.
-- Sin preámbulos, sin "claro", sin repetir la pregunta.
-- 1 decisión + 2-3 viñetas accionables + 1 próximo paso. Nada más.
-- Si la consulta es trivial (saludo, confirmación, dato puntual) respondé en 1-2 líneas.
-- Siempre devolvé los 4 bloques estructurados (USER_REPLY, CEO_AUDIO_SCRIPT, AVATAR_CUES, LEARNING_EXTRACT) aunque USER_REPLY sea corto.`,
+      content: `MODO CEO LIMPIO (obligatorio):
+- Respondé SIEMPRE con el contrato XML exacto: <USER_REPLY>...</USER_REPLY><CEO_AUDIO_SCRIPT>...</CEO_AUDIO_SCRIPT><AVATAR_CUES>{...}</AVATAR_CUES><LEARNING_EXTRACT>{...}</LEARNING_EXTRACT>.
+- PROHIBIDO devolver la respuesta como objeto JSON ({"USER_REPLY": ...}) o envuelta en \`\`\`json. Eso rompe el chat.
+- Dentro de USER_REPLY: SOLO prosa natural en markdown limpio. NUNCA muestres códigos internos tipo EASY_06_PROFITABLE, Q_BIO_104, opt_high, claves snake_case entre comillas, ni JSON crudo.
+- NO repitas literal lo que el usuario ya escribió. Asumí que lo sabe; arrancá por el insight, no por el resumen.
+- NUNCA cortes una oración a mitad. Si te falta espacio, priorizá lo accionable y cerrá las frases.
+- Estructura USER_REPLY: 1 diagnóstico (1-2 líneas) + 1 decisión principal + 2-4 prioridades concretas + 1 próximo paso hoy. Máximo 1 pregunta solo si es crítica.
+- Si es saludo o confirmación trivial, respondé en 1-2 líneas naturales (sin estructura).
+- Cuando propongas una misión, hacela hiper-específica al negocio (usá nombre, sector, ciudad y datos reales del Brain). Sin frases genéricas.`,
     };
 
     const aiMessages = [
