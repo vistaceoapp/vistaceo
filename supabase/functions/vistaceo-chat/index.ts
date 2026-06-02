@@ -658,6 +658,97 @@ interface ParsedCEOResponse {
   learningExtract: Record<string, unknown>;
 }
 
+// =====================
+// QUALITY GATE — Capa de calidad UX premium
+// =====================
+
+/** Patrones que NUNCA deben aparecer en USER_REPLY. */
+const LEAK_PATTERNS_HARD: RegExp[] = [
+  /\bEASY_\d+_[A-Z_]+/i,
+  /\bQ_[A-Z]{2,}_\d{2,}\b/,
+  /\bopt_[a-z_]+\b/i,
+  /\bfacts_to_add\b/i,
+  /\blearningExtract\b/i,
+  /\bmissions_suggested\b/i,
+  /\bdefinition_of_done\b/i,
+  /\bconcept_hash\b/i,
+  /\bintent_signature\b/i,
+  /<\/?(USER_REPLY|CEO_AUDIO_SCRIPT|AVATAR_CUES|LEARNING_EXTRACT|BRAIN_JSON|STATE_JSON|CONFIG_JSON)[^>]*>/i,
+  /```\s*json[\s\S]*?```/i,
+  /^\s*\{[\s\S]*"[a-zA-Z_]+"\s*:/m,
+];
+
+/** Recorta el texto a la última oración completa (evita cortes a mitad). */
+function trimToCompleteSentence(text: string): string {
+  if (!text) return text;
+  const t = text.trim();
+  if (/[.!?…"'»\)\]]$/.test(t)) return t;
+  // Buscar último cierre de oración fuerte
+  const lastEnd = Math.max(
+    t.lastIndexOf("."),
+    t.lastIndexOf("!"),
+    t.lastIndexOf("?"),
+    t.lastIndexOf("…"),
+  );
+  // Si está razonablemente lejos del final, cortar ahí
+  if (lastEnd > t.length * 0.55) {
+    return t.slice(0, lastEnd + 1).trim();
+  }
+  // Si no hay buen punto, cerrar con punto suspensivo de forma elegante
+  return t.replace(/[,;:\-—\s]+$/, "") + "…";
+}
+
+/** Quita la primera oración si es un eco textual del mensaje del usuario. */
+function removeEcho(reply: string, userText: string): string {
+  if (!reply || !userText) return reply;
+  const userNorm = userText.trim().toLowerCase().replace(/\s+/g, " ");
+  if (userNorm.length < 20) return reply;
+  const firstChunk = reply.split(/(?<=[.!?])\s+/)[0] || "";
+  const replyNorm = firstChunk.toLowerCase().replace(/\s+/g, " ");
+  // Si la primera oración contiene >70% del texto del usuario, es eco
+  const minLen = Math.min(userNorm.length, replyNorm.length);
+  if (minLen > 30 && (replyNorm.includes(userNorm.slice(0, Math.min(80, userNorm.length))) ||
+      userNorm.includes(replyNorm.slice(0, Math.min(80, replyNorm.length))))) {
+    return reply.slice(firstChunk.length).trimStart();
+  }
+  return reply;
+}
+
+/** Evalúa si una respuesta es de baja calidad (debe descartarse o reintentar). */
+export function isLowQualityReply(reply: string): { bad: boolean; reason?: string } {
+  if (!reply || reply.trim().length < 12) return { bad: true, reason: "too_short" };
+  for (const p of LEAK_PATTERNS_HARD) {
+    if (p.test(reply)) return { bad: true, reason: `leak:${p.source.slice(0, 30)}` };
+  }
+  // Demasiados símbolos sospechosos
+  const symbolRatio = (reply.match(/[{}\[\]<>]/g) || []).length / reply.length;
+  if (symbolRatio > 0.04) return { bad: true, reason: "symbol_ratio" };
+  // Empieza como JSON
+  if (/^\s*[\{\[]/.test(reply)) return { bad: true, reason: "starts_json" };
+  return { bad: false };
+}
+
+/** Aplica todas las reparaciones de calidad al userReply. */
+function qualityRepairReply(reply: string, userText: string): string {
+  if (!reply) return reply;
+  let out = reply;
+  // 1) Quitar fences JSON sueltos
+  out = out.replace(/```\s*(?:json|jsonc|js|ts)?[\s\S]*?```/gi, "").trim();
+  // 2) Quitar líneas que son solo un objeto JSON
+  out = out
+    .split("\n")
+    .filter((line) => !/^\s*\{[\s\S]*"[a-zA-Z_]+"\s*:/.test(line))
+    .join("\n");
+  // 3) Eco del input del usuario
+  out = removeEcho(out, userText);
+  // 4) Colapsar saltos
+  out = out.replace(/\n{3,}/g, "\n\n").trim();
+  // 5) Anti-truncación: cerrar oración si quedó cortada
+  out = trimToCompleteSentence(out);
+  return out;
+}
+
+
 function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
   const result: ParsedCEOResponse = {
     userReply: "",
