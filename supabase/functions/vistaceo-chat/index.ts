@@ -868,6 +868,7 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
     result.userReply = cleaned;
   }
 
+
   // CRITICAL: Auto-generate audio script if missing but we have userReply
   // This ensures TTS always works even if the model forgets the audio block
   if (!result.audioScript && result.userReply) {
