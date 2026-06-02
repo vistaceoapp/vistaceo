@@ -1350,15 +1350,57 @@ MESSAGE_JSON:
       throw new Error("No response from AI");
     }
 
-    // Parse the structured response
-    const parsed = parseCEOResponse(rawResponse);
+    // Parse the structured response (pasamos texto de usuario para anti-eco)
+    let parsed = parseCEOResponse(rawResponse, lastText);
+
+    // ===== QUALITY GATE: auto-retry si la respuesta es de baja calidad =====
+    const quality = isLowQualityReply(parsed.userReply);
+    if (quality.bad) {
+      console.warn("Quality gate failed, retrying:", quality.reason);
+      try {
+        const retryResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: selectedModel,
+            messages: [
+              ...aiMessages,
+              { role: "system", content: `RETRY: tu respuesta anterior falló el control de calidad (${quality.reason}). Devolvé el contrato XML exacto con <USER_REPLY>...</USER_REPLY> en markdown limpio, sin JSON, sin códigos internos, sin cortar oraciones, sin repetir el mensaje del usuario.` },
+            ],
+            stream: false,
+            temperature: 0.4,
+            max_tokens: maxTokens,
+          }),
+        });
+        if (retryResp.ok) {
+          const retryData = await retryResp.json();
+          const retryRaw = retryData.choices?.[0]?.message?.content;
+          if (retryRaw) {
+            const retryParsed = parseCEOResponse(retryRaw, lastText);
+            if (!isLowQualityReply(retryParsed.userReply).bad) {
+              parsed = retryParsed;
+              console.log("Quality retry succeeded");
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Quality retry failed:", e);
+      }
+    }
+
+    // Último fallback: mensaje amigable si aún está vacío
+    if (!parsed.userReply || parsed.userReply.trim().length < 8) {
+      parsed.userReply = "Disculpá, no pude generar una respuesta clara esta vez. ¿Podés reformular o darme un poco más de contexto?";
+    }
 
     console.log("VistaCEO response parsed:", {
       hasUserReply: !!parsed.userReply,
       hasAudioScript: !!parsed.audioScript,
       hasAvatarCues: Object.keys(parsed.avatarCues).length > 0,
       hasLearning: Object.keys(parsed.learningExtract).length > 0,
+      qualityRetried: quality.bad,
     });
+
 
     // Process learning extract asynchronously
     if (supabase && businessContext?.id && Object.keys(parsed.learningExtract).length > 0) {
