@@ -869,6 +869,13 @@ function parseCEOResponse(rawResponse: string, userText: string = ""): ParsedCEO
     result.userReply = cleaned;
   }
 
+  // ===== QUALITY REPAIR — anti-eco, anti-truncación, anti-JSON =====
+  if (result.userReply) {
+    result.userReply = qualityRepairReply(result.userReply, userText);
+  }
+
+
+
 
   // CRITICAL: Auto-generate audio script if missing but we have userReply
   // This ensures TTS always works even if the model forgets the audio block
