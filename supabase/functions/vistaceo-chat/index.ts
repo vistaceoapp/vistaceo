@@ -666,21 +666,43 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
     learningExtract: {},
   };
 
-  // Extract USER_REPLY
-  const userReplyMatch = rawResponse.match(/<USER_REPLY>([\s\S]*?)<\/USER_REPLY>/);
-  if (userReplyMatch) {
+  // ===== JSON FALLBACK: model returned {"USER_REPLY": "...", ...} instead of XML =====
+  let workingRaw = rawResponse;
+  const fencedJson = rawResponse.match(/```(?:json|jsonc)?\s*(\{[\s\S]*?\})\s*```/i);
+  const trimmedRaw = rawResponse.trim();
+  const jsonCandidate = fencedJson ? fencedJson[1] : (trimmedRaw.startsWith("{") ? trimmedRaw : null);
+  if (jsonCandidate && /"(USER_REPLY|userReply)"\s*:/.test(jsonCandidate)) {
+    try {
+      const parsed = JSON.parse(jsonCandidate);
+      const reply = parsed.USER_REPLY ?? parsed.userReply ?? "";
+      const audio = parsed.CEO_AUDIO_SCRIPT ?? parsed.audioScript ?? "";
+      const cues = parsed.AVATAR_CUES ?? parsed.avatarCues ?? {};
+      const learn = parsed.LEARNING_EXTRACT ?? parsed.learningExtract ?? {};
+      if (typeof reply === "string" && reply.trim()) result.userReply = reply.trim();
+      if (typeof audio === "string") result.audioScript = audio.trim();
+      if (cues && typeof cues === "object") result.avatarCues = cues as Record<string, unknown>;
+      if (learn && typeof learn === "object") result.learningExtract = learn as Record<string, unknown>;
+      workingRaw = ""; // already handled, skip XML extraction
+    } catch (e) {
+      console.warn("Failed to parse JSON-wrapped CEO response:", e);
+    }
+  }
+
+  // Extract USER_REPLY (XML format)
+  const userReplyMatch = workingRaw.match(/<USER_REPLY>([\s\S]*?)<\/USER_REPLY>/);
+  if (userReplyMatch && !result.userReply) {
     result.userReply = userReplyMatch[1].trim();
   }
 
   // Extract CEO_AUDIO_SCRIPT
-  const audioScriptMatch = rawResponse.match(/<CEO_AUDIO_SCRIPT>([\s\S]*?)<\/CEO_AUDIO_SCRIPT>/);
-  if (audioScriptMatch) {
+  const audioScriptMatch = workingRaw.match(/<CEO_AUDIO_SCRIPT>([\s\S]*?)<\/CEO_AUDIO_SCRIPT>/);
+  if (audioScriptMatch && !result.audioScript) {
     result.audioScript = audioScriptMatch[1].trim();
   }
 
   // Extract AVATAR_CUES
-  const avatarCuesMatch = rawResponse.match(/<AVATAR_CUES>([\s\S]*?)<\/AVATAR_CUES>/);
-  if (avatarCuesMatch) {
+  const avatarCuesMatch = workingRaw.match(/<AVATAR_CUES>([\s\S]*?)<\/AVATAR_CUES>/);
+  if (avatarCuesMatch && Object.keys(result.avatarCues).length === 0) {
     try {
       result.avatarCues = JSON.parse(avatarCuesMatch[1].trim());
     } catch (e) {
@@ -689,20 +711,17 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
   }
 
   // Extract LEARNING_EXTRACT
-  const learningExtractMatch = rawResponse.match(/<LEARNING_EXTRACT>([\s\S]*?)<\/LEARNING_EXTRACT>/);
-  if (learningExtractMatch) {
+  const learningExtractMatch = workingRaw.match(/<LEARNING_EXTRACT>([\s\S]*?)<\/LEARNING_EXTRACT>/);
+  if (learningExtractMatch && Object.keys(result.learningExtract).length === 0) {
     try {
       let jsonStr = learningExtractMatch[1].trim();
-      // Try direct parse first
       try {
         result.learningExtract = JSON.parse(jsonStr);
       } catch {
-        // Attempt to repair truncated JSON
         jsonStr = jsonStr
           .replace(/,\s*}/g, '}')
           .replace(/,\s*]/g, ']')
           .replace(/[\x00-\x1F\x7F]/g, '');
-        // Close unclosed brackets/braces
         const openBraces = (jsonStr.match(/{/g) || []).length;
         const closeBraces = (jsonStr.match(/}/g) || []).length;
         const openBrackets = (jsonStr.match(/\[/g) || []).length;
@@ -716,9 +735,14 @@ function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
     }
   }
 
-  // Fallback: if no structured response, use raw as userReply
+  // Fallback: if no structured response and raw doesn't look like a JSON envelope, use raw as userReply
   if (!result.userReply && rawResponse) {
-    result.userReply = rawResponse.trim();
+    const fallback = rawResponse.trim();
+    if (!/^\s*[\{\[]/.test(fallback) && !/"(USER_REPLY|userReply|facts_to_add|learningExtract)"/i.test(fallback)) {
+      result.userReply = fallback;
+    } else {
+      result.userReply = "Disculpá, tuve un problema procesando la respuesta. ¿Podés repetir el mensaje?";
+    }
   }
 
   // ============================================================
@@ -1152,19 +1176,22 @@ MESSAGE_JSON:
     //  · Pro simple → 600
     //  · Pro complejo → 1100 (alta capacidad real)
     let maxTokens: number;
-    if (isTrivial) maxTokens = 220;
-    else if (!isProPlan) maxTokens = isComplex ? 760 : 480;
-    else maxTokens = isComplex ? 1100 : 600;
+    if (isTrivial) maxTokens = 260;
+    else if (!isProPlan) maxTokens = isComplex ? 1100 : 650;
+    else maxTokens = isComplex ? 1800 : 900;
 
-    // Directiva de brevedad inyectada al final del system para forzar respuestas directas.
+    // Directiva CEO limpio + anti-leak inyectada al final del system.
     const brevityDirective = {
       role: "system" as const,
-      content: `MODO ULTRA-DIRECTO (obligatorio):
-- Máximo 6-8 líneas en USER_REPLY salvo que el usuario pida análisis profundo explícito.
-- Sin preámbulos, sin "claro", sin repetir la pregunta.
-- 1 decisión + 2-3 viñetas accionables + 1 próximo paso. Nada más.
-- Si la consulta es trivial (saludo, confirmación, dato puntual) respondé en 1-2 líneas.
-- Siempre devolvé los 4 bloques estructurados (USER_REPLY, CEO_AUDIO_SCRIPT, AVATAR_CUES, LEARNING_EXTRACT) aunque USER_REPLY sea corto.`,
+      content: `MODO CEO LIMPIO (obligatorio):
+- Respondé SIEMPRE con el contrato XML exacto: <USER_REPLY>...</USER_REPLY><CEO_AUDIO_SCRIPT>...</CEO_AUDIO_SCRIPT><AVATAR_CUES>{...}</AVATAR_CUES><LEARNING_EXTRACT>{...}</LEARNING_EXTRACT>.
+- PROHIBIDO devolver la respuesta como objeto JSON ({"USER_REPLY": ...}) o envuelta en \`\`\`json. Eso rompe el chat.
+- Dentro de USER_REPLY: SOLO prosa natural en markdown limpio. NUNCA muestres códigos internos tipo EASY_06_PROFITABLE, Q_BIO_104, opt_high, claves snake_case entre comillas, ni JSON crudo.
+- NO repitas literal lo que el usuario ya escribió. Asumí que lo sabe; arrancá por el insight, no por el resumen.
+- NUNCA cortes una oración a mitad. Si te falta espacio, priorizá lo accionable y cerrá las frases.
+- Estructura USER_REPLY: 1 diagnóstico (1-2 líneas) + 1 decisión principal + 2-4 prioridades concretas + 1 próximo paso hoy. Máximo 1 pregunta solo si es crítica.
+- Si es saludo o confirmación trivial, respondé en 1-2 líneas naturales (sin estructura).
+- Cuando propongas una misión, hacela hiper-específica al negocio (usá nombre, sector, ciudad y datos reales del Brain). Sin frases genéricas.`,
     };
 
     const aiMessages = [
