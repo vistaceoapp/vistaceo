@@ -168,12 +168,31 @@ export function sanitizeAIOutput(text: string | null | undefined): string {
   // Fix common Spanish writing issues
   result = fixSpanishWriting(result);
 
+  // Anti-truncación visual: si quedó cortado a mitad, cerrar elegante
+  result = closeDanglingSentence(result);
+
   // ===== CAPA FINAL: descartar si el resultado es solo un token leakeado =====
-  // Evita renderizar "Manual", "None", "first_sale", "opt_high", etc.
   if (isLeakedLabel(result)) return '';
 
   return result;
 }
+
+/** Cierra oraciones colgadas (sin punto final) con elipsis elegante. */
+function closeDanglingSentence(text: string): string {
+  if (!text) return text;
+  const t = text.trimEnd();
+  if (!t) return t;
+  // Si ya termina en signo de cierre, ok
+  if (/[.!?…:"'»\)\]]$/.test(t)) return t;
+  // Si la última "palabra" es muy corta o termina en conjunción, cerrar con elipsis
+  const lastWord = t.split(/\s+/).pop() || "";
+  const danglers = /^(y|o|u|e|de|en|con|por|para|el|la|los|las|un|una|que|del|al|si|pero|ni|sin|sobre|entre|hacia|tras|según)$/i;
+  if (danglers.test(lastWord)) {
+    return t.replace(new RegExp(`\\s*${lastWord}\\s*$`, "i"), "…");
+  }
+  return t + "…";
+}
+
 
 /**
  * Fix common writing issues in Spanish AI output:
