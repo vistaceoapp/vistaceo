@@ -749,13 +749,14 @@ function qualityRepairReply(reply: string, userText: string): string {
 }
 
 
-function parseCEOResponse(rawResponse: string): ParsedCEOResponse {
+function parseCEOResponse(rawResponse: string, userText: string = ""): ParsedCEOResponse {
   const result: ParsedCEOResponse = {
     userReply: "",
     audioScript: "",
     avatarCues: {},
     learningExtract: {},
   };
+
 
   // ===== JSON FALLBACK: model returned {"USER_REPLY": "...", ...} instead of XML =====
   let workingRaw = rawResponse;
