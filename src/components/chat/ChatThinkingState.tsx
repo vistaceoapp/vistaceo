@@ -7,10 +7,14 @@ interface ChatThinkingStateProps {
 }
 
 const thinkingPhrases = [
-  "Analizando tu negocio...",
-  "Consultando datos...",
-  "Preparando respuesta...",
-  "Pensando estratégicamente...",
+  "Analizando tu negocio…",
+  "Cruzando señales del brain…",
+  "Revisando métricas relevantes…",
+  "Detectando oportunidades reales…",
+  "Conectando contexto y decisiones…",
+  "Ordenando la mejor respuesta…",
+  "Validando calidad antes de mostrar…",
+  "Preparando el próximo paso…",
 ];
 
 export const ChatThinkingState = ({ compact = false }: ChatThinkingStateProps) => {
@@ -19,7 +23,7 @@ export const ChatThinkingState = ({ compact = false }: ChatThinkingStateProps) =
   useEffect(() => {
     const timer = setInterval(() => {
       setPhraseIndex(prev => (prev + 1) % thinkingPhrases.length);
-    }, 2500);
+    }, 1800);
     return () => clearInterval(timer);
   }, []);
 
