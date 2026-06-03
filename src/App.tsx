@@ -41,6 +41,7 @@ const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage"));
 const CentroControlPage = lazy(() => import("./pages/admin/CentroControlPage"));
 const AdminEmailsPage = lazy(() => import("./pages/admin/AdminEmailsPage"));
+const AdminUserTimelinePage = lazy(() => import("./pages/admin/AdminUserTimelinePage"));
 
 // App pages - lazy loaded
 const AppLayout = lazy(() => import("./layouts/AppLayout"));
@@ -198,6 +199,7 @@ const AppRoutes = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="usuarios" element={<AdminUsersPage />} />
+          <Route path="usuarios/:userId/timeline" element={<AdminUserTimelinePage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
           <Route path="centro-control" element={<CentroControlPage />} />
           <Route path="emails" element={<AdminEmailsPage />} />
