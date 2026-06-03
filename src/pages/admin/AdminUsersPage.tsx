@@ -150,7 +150,12 @@ export default function AdminUsersPage() {
               <p className="text-sm text-muted-foreground flex items-center gap-1.5"><Mail className="w-3 h-3" /> {profile?.email}</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button asChild size="sm" variant="default">
+              <a href={`/admin/usuarios/${selectedUserId}/timeline`}>
+                <Activity className="w-3 h-3 mr-1" /> Ver timeline
+              </a>
+            </Button>
             <Button size="sm" variant="outline" onClick={() => { setPlanTarget({ id: selectedUserId, email: profile?.email }); setShowPlanDialog(true); }}>
               <Crown className="w-3 h-3 mr-1" /> Cambiar plan
             </Button>
