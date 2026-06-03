@@ -714,17 +714,53 @@ function removeEcho(reply: string, userText: string): string {
   return reply;
 }
 
+/** Frases prohibidas del Prompt Maestro VISTACEO (suenan a IA o a plantilla). */
+const BANNED_PHRASES: RegExp[] = [
+  /\bcomo modelo de ia\b/i,
+  /\bcomo (?:una )?inteligencia artificial\b/i,
+  /\bprocesando tu solicitud\b/i,
+  /\baqu[íi] tienes la respuesta\b/i,
+  /disculp[áa],?\s+tuve un problema procesando/i,
+  /¿pod[ée]s repetir el mensaje\?/i,
+  /\bno tengo suficiente informaci[óo]n\b/i,
+  /\bno puedo ayudarte con eso\b/i,
+  /\bdecisi[óo]n principal\b/i,
+  /\bprioridades 48[\s-]*(?:a\s*)?72\s*h(?:oras|s)?\b/i,
+  /\brecomendaci[óo]n ejecutiva\b/i,
+  /\ben conclusi[óo]n\b/i,
+  /\bespero que esto te ayude\b/i,
+  /\bseg[úu]n los datos proporcionados\b/i,
+  /\bsolicitud recibida\b/i,
+  /\blamento los inconvenientes\b/i,
+  /\btu estrategia est[áa] fallando\b/i,
+];
+
 /** Evalúa si una respuesta es de baja calidad (debe descartarse o reintentar). */
 export function isLowQualityReply(reply: string): { bad: boolean; reason?: string } {
   if (!reply || reply.trim().length < 12) return { bad: true, reason: "too_short" };
   for (const p of LEAK_PATTERNS_HARD) {
     if (p.test(reply)) return { bad: true, reason: `leak:${p.source.slice(0, 30)}` };
   }
+  for (const p of BANNED_PHRASES) {
+    if (p.test(reply)) return { bad: true, reason: `banned:${p.source.slice(0, 24)}` };
+  }
   // Demasiados símbolos sospechosos
   const symbolRatio = (reply.match(/[{}\[\]<>]/g) || []).length / reply.length;
   if (symbolRatio > 0.04) return { bad: true, reason: "symbol_ratio" };
   // Empieza como JSON
   if (/^\s*[\{\[]/.test(reply)) return { bad: true, reason: "starts_json" };
+  // Markdown bold suelto (** ... ) → la marca pide no usar negritas markdown
+  const boldMarkers = (reply.match(/\*\*/g) || []).length;
+  if (boldMarkers >= 4) return { bad: true, reason: "markdown_bold" };
+  // Viñetas con asterisco/guion al inicio de línea (la marca pide numeración)
+  if (/^[\s]*[*\-•]\s+\S/m.test(reply) && (reply.match(/^[\s]*[*\-•]\s+/gm) || []).length >= 3) {
+    return { bad: true, reason: "bullet_symbols" };
+  }
+  // Truncación obvia: termina sin signo de cierre y la última palabra es conjunción
+  const tail = reply.trim().split(/\s+/).slice(-1)[0] || "";
+  if (!/[.!?…"')\]]$/.test(reply.trim()) && /^(y|o|de|en|con|para|el|la|los|las|un|una|que|del|al|si|pero|por|sin|sobre|entre)$/i.test(tail)) {
+    return { bad: true, reason: "truncated_tail" };
+  }
   return { bad: false };
 }
 
@@ -741,9 +777,24 @@ function qualityRepairReply(reply: string, userText: string): string {
     .join("\n");
   // 3) Eco del input del usuario
   out = removeEcho(out, userText);
-  // 4) Colapsar saltos
+  // 4) Quitar negritas markdown (la marca pide no usar **bold**)
+  out = out.replace(/\*\*([^*\n]+)\*\*/g, "$1");
+  out = out.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "$1");
+  // 5) Convertir viñetas con * o - en numeración simple
+  const lines = out.split("\n");
+  let bulletCount = 0;
+  const renumbered = lines.map((ln) => {
+    const m = ln.match(/^(\s*)[*\-•]\s+(.*)$/);
+    if (m) {
+      bulletCount += 1;
+      return `${m[1]}${bulletCount}. ${m[2]}`;
+    }
+    return ln;
+  });
+  if (bulletCount >= 2) out = renumbered.join("\n");
+  // 6) Colapsar saltos
   out = out.replace(/\n{3,}/g, "\n\n").trim();
-  // 5) Anti-truncación: cerrar oración si quedó cortada
+  // 7) Anti-truncación: cerrar oración si quedó cortada
   out = trimToCompleteSentence(out);
   return out;
 }
