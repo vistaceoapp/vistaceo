@@ -1051,6 +1051,72 @@ export type Database = {
         }
         Relationships: []
       }
+      brain_relations: {
+        Row: {
+          brain_id: string | null
+          business_id: string
+          confidence: number
+          created_at: string
+          destination_key: string
+          destination_type: string
+          evidence: Json
+          id: string
+          origin_key: string
+          origin_type: string
+          relation_type: string
+          state: string
+          strength: number
+          updated_at: string
+        }
+        Insert: {
+          brain_id?: string | null
+          business_id: string
+          confidence?: number
+          created_at?: string
+          destination_key: string
+          destination_type: string
+          evidence?: Json
+          id?: string
+          origin_key: string
+          origin_type: string
+          relation_type: string
+          state?: string
+          strength?: number
+          updated_at?: string
+        }
+        Update: {
+          brain_id?: string | null
+          business_id?: string
+          confidence?: number
+          created_at?: string
+          destination_key?: string
+          destination_type?: string
+          evidence?: Json
+          id?: string
+          origin_key?: string
+          origin_type?: string
+          relation_type?: string
+          state?: string
+          strength?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brain_relations_brain_id_fkey"
+            columns: ["brain_id"]
+            isOneToOne: false
+            referencedRelation: "business_brains"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brain_relations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_brains: {
         Row: {
           business_id: string
@@ -1058,15 +1124,20 @@ export type Database = {
           confidence_score: number | null
           created_at: string
           current_focus: string
+          customer_profile: Json
           decisions_memory: Json
           dynamic_memory: Json
+          fact_states: Json
           factual_memory: Json
           focus_priority: number | null
           id: string
+          isolation_fingerprint: string | null
           last_learning_at: string | null
+          learning_log: Json
           locale_profile: Json | null
           mvc_completion_pct: number | null
           mvc_gaps: Json | null
+          offer_profile: Json
           preferences_memory: Json
           primary_business_type: string
           secondary_business_type: string | null
@@ -1084,15 +1155,20 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string
           current_focus?: string
+          customer_profile?: Json
           decisions_memory?: Json
           dynamic_memory?: Json
+          fact_states?: Json
           factual_memory?: Json
           focus_priority?: number | null
           id?: string
+          isolation_fingerprint?: string | null
           last_learning_at?: string | null
+          learning_log?: Json
           locale_profile?: Json | null
           mvc_completion_pct?: number | null
           mvc_gaps?: Json | null
+          offer_profile?: Json
           preferences_memory?: Json
           primary_business_type?: string
           secondary_business_type?: string | null
@@ -1110,15 +1186,20 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string
           current_focus?: string
+          customer_profile?: Json
           decisions_memory?: Json
           dynamic_memory?: Json
+          fact_states?: Json
           factual_memory?: Json
           focus_priority?: number | null
           id?: string
+          isolation_fingerprint?: string | null
           last_learning_at?: string | null
+          learning_log?: Json
           locale_profile?: Json | null
           mvc_completion_pct?: number | null
           mvc_gaps?: Json | null
+          offer_profile?: Json
           preferences_memory?: Json
           primary_business_type?: string
           secondary_business_type?: string | null
