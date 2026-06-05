@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
+import { sanitizeForUser } from "../_shared/brain-core/sanitize-output.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -84,7 +86,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Eres un analista experto en negocios gastronómicos con 20 años de experiencia. Tu trabajo es evaluar la salud de un negocio basándote en TODOS los datos disponibles: setup inicial, respuestas del cuestionario, integraciones, señales del "cerebro" del negocio, historial de acciones, etc.
+            content: `${ANTI_GENERIC_SYSTEM}\n\nEres un analista experto en negocios gastronómicos con 20 años de experiencia. Tu trabajo es evaluar la salud de un negocio basándote en TODOS los datos disponibles: setup inicial, respuestas del cuestionario, integraciones, señales del "cerebro" del negocio, historial de acciones, etc.
 
 DEBES responder con JSON válido en este formato EXACTO:
 {
@@ -273,7 +275,7 @@ DEBES responder con JSON válido en este formato EXACTO:
     return new Response(
       JSON.stringify({
         success: true,
-        analysis,
+        analysis: sanitizeForUser(analysis),
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

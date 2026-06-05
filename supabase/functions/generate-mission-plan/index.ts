@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
+import { sanitizeForUser } from "../_shared/brain-core/sanitize-output.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -580,7 +583,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite", // Cost-optimized: structured plan generation
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: `${SYSTEM_PROMPT}\n\n${ANTI_GENERIC_SYSTEM}` },
           { role: "user", content: contextPrompt },
         ],
         stream: false,
@@ -688,9 +691,10 @@ serve(async (req) => {
 
     console.log("Generated plan with", planData.steps?.length || 0, "steps, passed QG:", passed);
 
+    const cleanPlan = sanitizeForUser(planData);
     return new Response(
       JSON.stringify({ 
-        plan: planData,
+        plan: cleanPlan,
         qualityGate: {
           passed,
           genericPhrasesFound: genericPhrases,

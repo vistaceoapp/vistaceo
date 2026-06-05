@@ -1,0 +1,1 @@
+ALTER TABLE public.business_brains ADD COLUMN IF NOT EXISTS dashboard_seed jsonb NOT NULL DEFAULT '{}'::jsonb;
