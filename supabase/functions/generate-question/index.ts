@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { SECTOR_CONTEXTS, getSectorContext, getFollowUpTrigger } from "./sectorContexts.ts";
+import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
+import { sanitizeForUser } from "../_shared/brain-core/sanitize-output.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -344,7 +346,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite", // Cost-optimized: simple question generation
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}` },
           { role: "user", content: contextPrompt },
         ],
         temperature: 0.7,
@@ -423,8 +425,9 @@ serve(async (req) => {
 
     console.log(`[generate-question] Generated: "${questionData.question}" [${questionData.category}] for ${businessType}`);
 
+    const cleanQuestion = sanitizeForUser(questionData);
     return new Response(
-      JSON.stringify({ question: questionData }),
+      JSON.stringify({ question: cleanQuestion }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
