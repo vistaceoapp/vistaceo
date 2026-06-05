@@ -1125,6 +1125,7 @@ export type Database = {
           created_at: string
           current_focus: string
           customer_profile: Json
+          dashboard_seed: Json
           decisions_memory: Json
           dynamic_memory: Json
           fact_states: Json
@@ -1156,6 +1157,7 @@ export type Database = {
           created_at?: string
           current_focus?: string
           customer_profile?: Json
+          dashboard_seed?: Json
           decisions_memory?: Json
           dynamic_memory?: Json
           fact_states?: Json
@@ -1187,6 +1189,7 @@ export type Database = {
           created_at?: string
           current_focus?: string
           customer_profile?: Json
+          dashboard_seed?: Json
           decisions_memory?: Json
           dynamic_memory?: Json
           fact_states?: Json
