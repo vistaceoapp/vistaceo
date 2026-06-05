@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
+import { sanitizeForUser } from "../_shared/brain-core/sanitize-output.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -353,7 +355,7 @@ Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite", // Cost-optimized: plan generation with structured prompts
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}` },
           { role: "user", content: userPrompt }
         ],
         temperature: regenerate ? 0.85 : 0.7, // Higher temp for regeneration = more variety
@@ -434,8 +436,9 @@ Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
 
     console.log(`[generate-opportunity-plan] Generated plan v${version} with ${plan.steps?.length || 0} steps`);
 
+    const cleanPlan = sanitizeForUser(plan);
     return new Response(JSON.stringify({ 
-      plan, 
+      plan: cleanPlan, 
       success: true,
       cached: false,
       version
