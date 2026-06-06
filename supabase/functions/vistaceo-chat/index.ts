@@ -1,5 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import {
+  ANTI_GENERIC_SYSTEM,
+  sanitizeVisibleString,
+  extremeQualityCheck,
+  safeUserFacingError,
+  safeRateLimitMessage,
+  safeCreditMessage,
+} from "../_shared/brain-core/index.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1398,6 +1407,7 @@ Si alguna falla, reescribilo antes de devolver.`,
 
     const aiMessages = [
       { role: "system", content: CEO_SYSTEM_PROMPT },
+      { role: "system", content: ANTI_GENERIC_SYSTEM },
       { role: "system", content: contextInjection },
       brevityDirective,
       ...recentMessages,
@@ -1430,15 +1440,15 @@ Si alguna falla, reescribilo antes de devolver.`,
 
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Límite de solicitudes excedido. Intenta de nuevo en unos segundos." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ message: safeRateLimitMessage() }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Se requiere agregar créditos a la cuenta." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ message: safeCreditMessage() }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -1490,9 +1500,22 @@ Si alguna falla, reescribilo antes de devolver.`,
       }
     }
 
-    // Último fallback: mensaje amigable si aún está vacío
+    // Sanitiza la salida visible (Parte 3 §8): remueve snake_case, JSON, inglés técnico
+    parsed.userReply = sanitizeVisibleString(parsed.userReply || "");
+
+    // Quality gate extremo (Parte 3 §7)
+    const extreme = extremeQualityCheck({
+      text: parsed.userReply,
+      hasBrainEvidence: !!(businessContext?.id),
+      hasConcreteAction: /\b(haz|hacé|hacer|prob[áa]|revis[áa]|cre[áa]|defin[íi]|envi[áa]|mid[ée]|llam[áa]|escrib[íi]|ofrec[ée]|publica|prepara|ajusta|ordena)\b/i.test(parsed.userReply),
+    });
+    if (!extreme.ok) {
+      console.warn("extreme-quality-gate flagged:", extreme.reasons.join(" | "));
+    }
+
+    // Último fallback seguro (Parte 3 §12)
     if (!parsed.userReply || parsed.userReply.trim().length < 8) {
-      parsed.userReply = "Disculpá, no pude generar una respuesta clara esta vez. ¿Podés reformular o darme un poco más de contexto?";
+      parsed.userReply = safeUserFacingError(lastText);
     }
 
     console.log("VistaCEO response parsed:", {
@@ -1542,7 +1565,7 @@ Si alguna falla, reescribilo antes de devolver.`,
   } catch (error) {
     console.error("VistaCEO chat error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Error desconocido" }),
+      JSON.stringify({ message: safeUserFacingError(String(error)) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
