@@ -1566,7 +1566,7 @@ Si alguna falla, reescribilo antes de devolver.`,
     console.error("VistaCEO chat error:", error);
     return new Response(
       JSON.stringify({ message: safeUserFacingError(String(error)) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
