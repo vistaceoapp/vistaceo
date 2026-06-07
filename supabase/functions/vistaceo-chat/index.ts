@@ -1405,9 +1405,20 @@ CHEQUEO INTERNO ANTES DE CERRAR USER_REPLY
 Si alguna falla, reescribilo antes de devolver.`,
     };
 
+    // Capa de terminología profesional contextual por país y actividad
+    const { buildTerminologyContext } = await import("../_shared/brain-core/contextual-terminology.ts");
+    const terminology = buildTerminologyContext({
+      activity: (brain?.primary_business_type as string) || business.category || null,
+      offer: (brain?.factual_memory as any)?.offer ?? null,
+      customer: (brain?.factual_memory as any)?.customer ?? null,
+      channel: (brain?.factual_memory as any)?.channel ?? null,
+      country: business.country ?? null,
+    });
+
     const aiMessages = [
       { role: "system", content: CEO_SYSTEM_PROMPT },
       { role: "system", content: ANTI_GENERIC_SYSTEM },
+      { role: "system", content: terminology.promptFragment },
       { role: "system", content: contextInjection },
       brevityDirective,
       ...recentMessages,

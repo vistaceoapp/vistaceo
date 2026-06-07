@@ -355,7 +355,7 @@ Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite", // Cost-optimized: plan generation with structured prompts
         messages: [
-          { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}` },
+          { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: (context.brain?.primary_business_type as string) || context.business?.category || null, country: context.business?.country || null, offer: (context.brain?.factual_memory as any)?.offer ?? null, customer: (context.brain?.factual_memory as any)?.customer ?? null, channel: (context.brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
           { role: "user", content: userPrompt }
         ],
         temperature: regenerate ? 0.85 : 0.7, // Higher temp for regeneration = more variety

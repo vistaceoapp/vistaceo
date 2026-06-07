@@ -346,7 +346,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite", // Cost-optimized: simple question generation
         messages: [
-          { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}` },
+          { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: businessType, country, offer: (context?.brain?.factual_memory as any)?.offer ?? null, customer: (context?.brain?.factual_memory as any)?.customer ?? null, channel: (context?.brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
           { role: "user", content: contextPrompt },
         ],
         temperature: 0.7,

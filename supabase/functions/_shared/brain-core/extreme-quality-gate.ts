@@ -20,8 +20,15 @@ const GENERIC_PHRASES = [
   /crece exponencialmente/i,
   /estrategia integral/i,
   /soluciones innovadoras/i,
-  /transformacion digital/i,
+  /transformaci[oó]n digital/i,
   /presencia online/i,
+  /genera m[aá]s leads/i,
+  /optimiza tu marketing/i,
+  /crea contenido de valor/i,
+  /conoce mejor a tu cliente/i,
+  /aprovecha la ia/i,
+  /publica m[aá]s contenido/i,
+  /automatiza procesos/i,
 ];
 
 const TECH_LEAKS = [
