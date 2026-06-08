@@ -604,7 +604,7 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-lite', // Cost-optimized: prediction generation with structured output
         messages: [
-          { role: 'system', content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
+          { role: 'system', content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("prediction")}\n\n${buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.3,

@@ -86,7 +86,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: brainData?.primary_business_type || setupData?.businessTypeId || null, country: setupData?.countryCode || null, offer: (brainData?.factual_memory as any)?.offer ?? null, customer: (brainData?.factual_memory as any)?.customer ?? null, channel: (brainData?.factual_memory as any)?.channel ?? null }).promptFragment}\n\nEres un analista experto en negocios gastronómicos con 20 años de experiencia. Tu trabajo es evaluar la salud de un negocio basándote en TODOS los datos disponibles: setup inicial, respuestas del cuestionario, integraciones, señales del "cerebro" del negocio, historial de acciones, etc.
+            content: `${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("health")}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: brainData?.primary_business_type || setupData?.businessTypeId || null, country: setupData?.countryCode || null, offer: (brainData?.factual_memory as any)?.offer ?? null, customer: (brainData?.factual_memory as any)?.customer ?? null, channel: (brainData?.factual_memory as any)?.channel ?? null }).promptFragment}\n\nEres un analista experto en negocios gastronómicos con 20 años de experiencia. Tu trabajo es evaluar la salud de un negocio basándote en TODOS los datos disponibles: setup inicial, respuestas del cuestionario, integraciones, señales del "cerebro" del negocio, historial de acciones, etc.
 
 DEBES responder con JSON válido en este formato EXACTO:
 {

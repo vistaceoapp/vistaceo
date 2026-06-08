@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { SECTOR_CONTEXTS, getSectorContext, getFollowUpTrigger } from "./sectorContexts.ts";
 import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
 import { sanitizeForUser } from "../_shared/brain-core/sanitize-output.ts";
+import { prompt2Rules, isGenericDirectQuestion } from "../_shared/brain-core/prompt2-rules.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -346,7 +347,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite", // Cost-optimized: simple question generation
         messages: [
-          { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: businessType, country, offer: (context?.brain?.factual_memory as any)?.offer ?? null, customer: (context?.brain?.factual_memory as any)?.customer ?? null, channel: (context?.brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
+          { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${prompt2Rules("question")}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: businessType, country, offer: (context?.brain?.factual_memory as any)?.offer ?? null, customer: (context?.brain?.factual_memory as any)?.customer ?? null, channel: (context?.brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
           { role: "user", content: contextPrompt },
         ],
         temperature: 0.7,
@@ -424,6 +425,16 @@ serve(async (req) => {
     }
 
     console.log(`[generate-question] Generated: "${questionData.question}" [${questionData.category}] for ${businessType}`);
+
+    // Gate Prompt 2: si la pregunta es genérica directa, devolver fallback estratégico.
+    if (isGenericDirectQuestion(questionData.question || "")) {
+      console.warn("[generate-question] Blocked generic direct question, using fallback");
+      const fallback = getFallbackQuestion(businessType || "default", 0, new Set());
+      return new Response(
+        JSON.stringify({ question: sanitizeForUser(fallback) }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const cleanQuestion = sanitizeForUser(questionData);
     return new Response(
