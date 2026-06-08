@@ -426,6 +426,16 @@ serve(async (req) => {
 
     console.log(`[generate-question] Generated: "${questionData.question}" [${questionData.category}] for ${businessType}`);
 
+    // Gate Prompt 2: si la pregunta es genérica directa, devolver fallback estratégico.
+    if (isGenericDirectQuestion(questionData.question || "")) {
+      console.warn("[generate-question] Blocked generic direct question, using fallback");
+      const fallback = getFallbackQuestion(businessType || "default", 0, new Set());
+      return new Response(
+        JSON.stringify({ question: sanitizeForUser(fallback) }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const cleanQuestion = sanitizeForUser(questionData);
     return new Response(
       JSON.stringify({ question: cleanQuestion }),
