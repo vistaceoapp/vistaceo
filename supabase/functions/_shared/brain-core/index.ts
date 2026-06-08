@@ -16,3 +16,4 @@ export * from "./extreme-quality-gate.ts";
 export * from "./recalibration.ts";
 export * from "./safe-error-messages.ts";
 export * from "./contextual-terminology.ts";
+export * from "./prompt2-rules.ts";
