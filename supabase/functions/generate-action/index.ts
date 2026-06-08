@@ -282,7 +282,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite", // Cost-optimized: simple action generation
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: `${SYSTEM_PROMPT}\n\n${ANTI_GENERIC_SYSTEM}\n\n${buildTerminologyContext({ activity: context?.brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (context?.brain?.factual_memory as any)?.offer ?? null, customer: (context?.brain?.factual_memory as any)?.customer ?? null, channel: (context?.brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
           { role: "user", content: contextPrompt },
         ],
         stream: false,
