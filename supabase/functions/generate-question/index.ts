@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { SECTOR_CONTEXTS, getSectorContext, getFollowUpTrigger } from "./sectorContexts.ts";
 import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
 import { sanitizeForUser } from "../_shared/brain-core/sanitize-output.ts";
+import { prompt2Rules, isGenericDirectQuestion } from "../_shared/brain-core/prompt2-rules.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
