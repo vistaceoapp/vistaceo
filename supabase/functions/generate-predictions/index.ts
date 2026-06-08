@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
+import { buildTerminologyContext } from "../_shared/brain-core/contextual-terminology.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -602,7 +604,7 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-lite', // Cost-optimized: prediction generation with structured output
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.3,
