@@ -669,6 +669,24 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
 
     console.log(`[generate-predictions] Generated ${predictions.length} predictions, ${calibrationEvents.length} calibrations`);
 
+    // Runtime gate: filtrar predicciones genéricas / con leaks
+    const { runtimeOutputGate } = await import("../_shared/brain-core/runtime-output-gate.ts");
+    const filteredPredictions = predictions.filter((p: any) => {
+      const text = `${p.title ?? ""}\n${p.summary ?? ""}`;
+      const g = runtimeOutputGate({ text, kind: "prediction", hasBrainEvidence: !!brain, hasConcreteAction: true });
+      if (!g.ok) {
+        console.warn(`[runtime-output-gate:prediction] dropped: "${p.title}" -> ${g.reasons.join(", ")}`);
+        return false;
+      }
+      return true;
+    });
+    if (filteredPredictions.length !== predictions.length) {
+      console.warn(`[generate-predictions] gate dropped ${predictions.length - filteredPredictions.length} predictions`);
+    }
+    predictions.length = 0;
+    predictions.push(...filteredPredictions);
+
+
     // Insert predictions into database
     const now = new Date().toISOString();
     const predictionsToInsert = predictions.map((pred: any) => ({
