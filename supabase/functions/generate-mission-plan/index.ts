@@ -675,10 +675,27 @@ serve(async (req) => {
       );
     }
 
-    // Quality Gate: Check for generic phrases
+    // Quality Gate: Check for generic phrases + runtime title gate
     const genericPhrases = checkForGenericPhrases(planData);
-    const passed = genericPhrases.length === 0;
-    
+    const { runtimeOutputGate, safeFallback } = await import("../_shared/brain-core/runtime-output-gate.ts");
+    const titleGate = runtimeOutputGate({
+      text: `${planData?.planTitle ?? ""}\n${planData?.planDescription ?? ""}`,
+      kind: "mission",
+      hasBrainEvidence: !!(context?.brain),
+      hasConcreteAction: Array.isArray(planData?.steps) && planData.steps.length > 0,
+    });
+    const passed = genericPhrases.length === 0 && titleGate.ok;
+
+    if (!titleGate.ok) {
+      console.warn("[runtime-output-gate:mission] blocked:", titleGate.reasons);
+      // Reemplazar título plantilla por uno conectado al brain
+      if (titleGate.reasons.some(r => r.includes("plantilla"))) {
+        planData.planTitle = "Mapear la fricción real del proceso comercial actual";
+        planData.planDescription = safeFallback("mission");
+      }
+      planData._gateReasons = titleGate.reasons;
+    }
+
     if (!passed) {
       console.warn("Quality Gate: Generic phrases detected:", genericPhrases);
       planData._genericPhrases = genericPhrases;
