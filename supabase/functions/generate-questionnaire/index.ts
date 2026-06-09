@@ -1,6 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
 import { buildTerminologyContext } from "../_shared/brain-core/contextual-terminology.ts";
+import { prompt2Rules, isGenericDirectQuestion } from "../_shared/brain-core/prompt2-rules.ts";
+import { extremeQualityCheck } from "../_shared/brain-core/extreme-quality-gate.ts";
+
+// Patrones extra de preguntas genéricas detectadas en runtime (más amplios que los del prompt2-rules,
+// que sólo cubren el comienzo exacto). Cubrimos variantes "¿Qué te diferencia de la competencia?",
+// "Cuéntanos sobre tu negocio", etc.
+const RUNTIME_GENERIC_QUESTION_PATTERNS: RegExp[] = [
+  /\bqu[eé]\s+vendes\b/i,
+  /\ba\s+qui[eé]n\s+(le\s+)?vendes\b/i,
+  /\bcu[aá]l\s+es\s+tu\s+negocio\b/i,
+  /\bcu[eé]ntanos?\s+(sobre|de)\s+tu\s+negocio\b/i,
+  /\bdescr[ií]benos?\s+tu\s+negocio\b/i,
+  /\bcu[aá]l\s+es\s+tu\s+objetivo\b/i,
+  /\bcu[aá]l\s+es\s+tu\s+(mayor|principal)\s+problema\b/i,
+  /\bqu[eé]\s+quieres\s+mejorar\b/i,
+  /\bc[oó]mo\s+(consigues|obtienes|captas)\s+clientes\b/i,
+  /\bqu[eé]\s+te\s+diferencia\b/i,
+  /\bcu[aá]l\s+es\s+tu\s+canal\s+principal\b/i,
+  /\bcu[aá]l\s+es\s+tu\s+ticket\s+promedio\b/i,
+  /\bc[oó]mo\s+describir[ií]as\s+tu\s+negocio\b/i,
+  /\bqu[eé]\s+tipo\s+de\s+negocio\s+tienes\b/i,
+];
+
+function isGenericQuestionTitle(title: string): boolean {
+  if (!title) return true;
+  if (isGenericDirectQuestion(title)) return true;
+  return RUNTIME_GENERIC_QUESTION_PATTERNS.some((rx) => rx.test(title));
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -165,7 +193,7 @@ Responde usando la función generate_questions.`;
       body: JSON.stringify({
         model,
         messages: [
-          { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${buildTerminologyContext({ activity: businessTypeLabel || null, country: countryCode || null, offer: null, customer: null, channel: null }).promptFragment}` },
+          { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${prompt2Rules("question")}\n\n${buildTerminologyContext({ activity: businessTypeLabel || null, country: countryCode || null, offer: null, customer: null, channel: null }).promptFragment}` },
           { role: "user", content: userPrompt },
         ],
         tools: [
@@ -303,7 +331,7 @@ Responde usando la función generate_questions.`;
           body: JSON.stringify({
             model: "google/gemini-2.5-flash-lite", // Cost-optimized: retry with same cheap model
             messages: [
-              { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${buildTerminologyContext({ activity: businessTypeLabel || null, country: countryCode || null, offer: null, customer: null, channel: null }).promptFragment}` },
+              { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${prompt2Rules("question")}\n\n${buildTerminologyContext({ activity: businessTypeLabel || null, country: countryCode || null, offer: null, customer: null, channel: null }).promptFragment}` },
               { role: "user", content: userPrompt },
             ],
             tools: [
@@ -385,7 +413,28 @@ Responde usando la función generate_questions.`;
             'pt-BR': opt.label?.['pt-BR'] || opt.label?.es || opt.label || '',
           },
         })),
-      }));
+      }))
+      // RUNTIME GATE: filtrar preguntas genéricas directas y leaks técnicos
+      .filter((q: any) => {
+        const titleEs = q.title?.es || '';
+        if (isGenericQuestionTitle(titleEs)) {
+          console.warn(`[gate] dropped generic question: "${titleEs}"`);
+          return false;
+        }
+        const qc = extremeQualityCheck({ text: titleEs, hasBrainEvidence: true, hasConcreteAction: true });
+        if (!qc.ok) {
+          // Sólo eliminar si hay leak técnico o etiqueta interna; las frases "genéricas" del
+          // gate apuntan a misiones/respuestas, no a preguntas, así que las toleramos.
+          const blocking = qc.reasons.filter(r =>
+            r.includes('técnico') || r.includes('interna') || r.includes('inglés') || r.includes('vacía')
+          );
+          if (blocking.length > 0) {
+            console.warn(`[gate] dropped question (${blocking.join(',')}): "${titleEs}"`);
+            return false;
+          }
+        }
+        return true;
+      });
 
     // Validate dimension coverage
     const dimensionCounts: Record<string, number> = {};
