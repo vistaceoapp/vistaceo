@@ -413,7 +413,28 @@ Responde usando la función generate_questions.`;
             'pt-BR': opt.label?.['pt-BR'] || opt.label?.es || opt.label || '',
           },
         })),
-      }));
+      }))
+      // RUNTIME GATE: filtrar preguntas genéricas directas y leaks técnicos
+      .filter((q: any) => {
+        const titleEs = q.title?.es || '';
+        if (isGenericQuestionTitle(titleEs)) {
+          console.warn(`[gate] dropped generic question: "${titleEs}"`);
+          return false;
+        }
+        const qc = extremeQualityCheck({ text: titleEs, hasBrainEvidence: true, hasConcreteAction: true });
+        if (!qc.ok) {
+          // Sólo eliminar si hay leak técnico o etiqueta interna; las frases "genéricas" del
+          // gate apuntan a misiones/respuestas, no a preguntas, así que las toleramos.
+          const blocking = qc.reasons.filter(r =>
+            r.includes('técnico') || r.includes('interna') || r.includes('inglés') || r.includes('vacía')
+          );
+          if (blocking.length > 0) {
+            console.warn(`[gate] dropped question (${blocking.join(',')}): "${titleEs}"`);
+            return false;
+          }
+        }
+        return true;
+      });
 
     // Validate dimension coverage
     const dimensionCounts: Record<string, number> = {};
