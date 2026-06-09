@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
 import { buildTerminologyContext } from "../_shared/brain-core/contextual-terminology.ts";
 import { prompt2Rules } from "../_shared/brain-core/prompt2-rules.ts";
+import { runtimeOutputGate, safeFallback } from "../_shared/brain-core/runtime-output-gate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
