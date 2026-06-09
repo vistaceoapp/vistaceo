@@ -331,7 +331,7 @@ Responde usando la función generate_questions.`;
           body: JSON.stringify({
             model: "google/gemini-2.5-flash-lite", // Cost-optimized: retry with same cheap model
             messages: [
-              { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${buildTerminologyContext({ activity: businessTypeLabel || null, country: countryCode || null, offer: null, customer: null, channel: null }).promptFragment}` },
+              { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${prompt2Rules("question")}\n\n${buildTerminologyContext({ activity: businessTypeLabel || null, country: countryCode || null, offer: null, customer: null, channel: null }).promptFragment}` },
               { role: "user", content: userPrompt },
             ],
             tools: [
