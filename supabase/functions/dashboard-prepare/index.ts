@@ -97,6 +97,25 @@ serve(async (req) => {
     const flat = JSON.stringify(seed);
     const v = validateForUser(flat, ctx);
 
+    // Runtime gate: bloquear narrativa de dashboard con frases genéricas/leaks
+    const { runtimeOutputGate, safeFallback } = await import("../_shared/brain-core/runtime-output-gate.ts");
+    const narrativeText = [seed.headline, seed.summary, seed.focus_justification, seed.next_step]
+      .filter((x) => typeof x === "string").join("\n");
+    if (narrativeText) {
+      const dashGate = runtimeOutputGate({
+        text: narrativeText,
+        kind: "dashboard",
+        hasBrainEvidence: !!(brainRow.factual_memory || brainRow.offer_profile),
+        hasConcreteAction: true,
+      });
+      if (!dashGate.ok) {
+        console.warn("[runtime-output-gate:dashboard] flagged:", dashGate.reasons);
+        (seed as any).headline = `Estoy construyendo la lectura real de ${business.name ?? "este negocio"}.`;
+        (seed as any).summary = safeFallback("dashboard");
+        (seed as any)._gateReasons = dashGate.reasons;
+      }
+    }
+
     const clean = sanitizeForUser(seed);
 
     // Persistimos en brain.dashboard_seed

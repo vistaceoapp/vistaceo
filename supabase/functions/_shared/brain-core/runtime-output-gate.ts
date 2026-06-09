@@ -1,0 +1,133 @@
+// Brain Core — Runtime Output Gate.
+// Gate único y reutilizable para validar TEXTO VISIBLE antes de devolverlo
+// al usuario. Combina extremeQualityCheck + reglas anti-pregunta-genérica +
+// reglas anti-misión-plantilla. Soporta regeneración con un callback.
+
+import { extremeQualityCheck } from "./extreme-quality-gate.ts";
+import {
+  isGenericDirectQuestion,
+  isForbiddenMissionTitle,
+} from "./prompt2-rules.ts";
+
+export type GateKind =
+  | "question"     // títulos de preguntas del onboarding / próxima mejor pregunta
+  | "mission"      // títulos / descripciones de misiones
+  | "action"       // acción de hoy
+  | "opportunity"  // oportunidades / radar
+  | "prediction"   // predicciones prudentes
+  | "chat"         // respuestas del chat ejecutivo
+  | "dashboard"    // narrativas del dashboard / foco
+  | "generic";
+
+export interface GateInput {
+  text: string;
+  kind: GateKind;
+  hasBrainEvidence?: boolean;
+  hasConcreteAction?: boolean;
+}
+
+export interface GateResult {
+  ok: boolean;
+  reasons: string[];
+}
+
+const SAFE_FALLBACK_BY_KIND: Record<GateKind, string> = {
+  question:
+    "Para no recomendarte algo genérico, necesito ubicar dónde se pierde más valor hoy: cuando alguien consulta, cuando ve el precio, antes de pagar, después de comprar o cuando debería volver.",
+  mission:
+    "Detectá dónde se frena la decisión del cliente: en la primera consulta, al ver el precio, en la confianza, en la documentación o en el seguimiento. Ese dato define la próxima acción.",
+  action:
+    "Revisá los últimos 10 contactos del negocio y marcá en qué momento se frenó cada uno: consulta, precio, confianza, pago o recompra.",
+  opportunity:
+    "Estoy evitando mostrarte una oportunidad genérica. Necesito un dato más del negocio (canal, cliente o fricción) para abrir una oportunidad aplicable a tu caso.",
+  prediction:
+    "Si la mayoría de las ventas viene de clientes nuevos, existe riesgo de depender demasiado de captación constante. Conviene observar cuántos vuelven a comprar.",
+  chat:
+    "Estoy evitando darte una respuesta genérica. Con la información actual, lo más útil es ubicar dónde se pierde la decisión del cliente. Si me confirmás ese punto, te doy una acción mucho más precisa.",
+  dashboard:
+    "Estoy construyendo la lectura real del negocio. Antes de recomendar acciones, necesito confirmar si la oportunidad está en atraer más clientes, convertir mejor, aumentar ticket o activar recompra.",
+  generic:
+    "Necesito un dato más del negocio para darte una recomendación útil y específica.",
+};
+
+export function runtimeOutputGate(input: GateInput): GateResult {
+  const reasons: string[] = [];
+  const t = (input.text ?? "").trim();
+
+  // 1) base extrema (frases genéricas, leaks técnicos, inglés residual, etc.)
+  const base = extremeQualityCheck({
+    text: t,
+    hasBrainEvidence: input.hasBrainEvidence,
+    hasConcreteAction: input.hasConcreteAction,
+  });
+  reasons.push(...base.reasons);
+
+  // 2) reglas específicas por tipo
+  switch (input.kind) {
+    case "question":
+      if (isGenericDirectQuestion(t)) reasons.push("pregunta genérica directa");
+      break;
+    case "mission":
+      // Detectar título prohibido en cualquier parte del texto
+      if (isForbiddenMissionTitle(t)) reasons.push("título de misión plantilla");
+      break;
+    case "action":
+      if (t.length < 30) reasons.push("acción demasiado corta para ser concreta");
+      break;
+    case "chat":
+      if (/^\s*necesito m[aá]s informaci[oó]n\.?\s*$/i.test(t)) {
+        reasons.push("chat respondió pidiendo más info como respuesta principal");
+      }
+      if (/tuve un problema|intenta de nuevo/i.test(t)) {
+        reasons.push("chat expuso error crudo");
+      }
+      break;
+  }
+
+  return { ok: reasons.length === 0, reasons: Array.from(new Set(reasons)) };
+}
+
+export function safeFallback(kind: GateKind): string {
+  return SAFE_FALLBACK_BY_KIND[kind] ?? SAFE_FALLBACK_BY_KIND.generic;
+}
+
+/**
+ * Intenta generar una salida válida ejecutando `produce` hasta `maxAttempts`.
+ * Si todos los intentos fallan, devuelve `safeFallback(kind)`.
+ */
+export async function withRegeneration(
+  kind: GateKind,
+  produce: (attempt: number) => Promise<string>,
+  opts: {
+    maxAttempts?: number;
+    hasBrainEvidence?: boolean;
+    hasConcreteAction?: boolean;
+  } = {},
+): Promise<{ text: string; regenerated: number; fellBack: boolean; lastReasons: string[] }> {
+  const maxAttempts = Math.max(1, Math.min(3, opts.maxAttempts ?? 3));
+  let lastReasons: string[] = [];
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    let text = "";
+    try {
+      text = await produce(attempt);
+    } catch (e) {
+      lastReasons = [`producer error: ${(e as Error).message}`];
+      continue;
+    }
+    const r = runtimeOutputGate({
+      text,
+      kind,
+      hasBrainEvidence: opts.hasBrainEvidence,
+      hasConcreteAction: opts.hasConcreteAction,
+    });
+    if (r.ok) return { text, regenerated: attempt, fellBack: false, lastReasons: [] };
+    lastReasons = r.reasons;
+    console.warn(`[runtime-output-gate:${kind}] attempt ${attempt + 1} blocked:`, r.reasons);
+  }
+  return {
+    text: safeFallback(kind),
+    regenerated: maxAttempts,
+    fellBack: true,
+    lastReasons,
+  };
+}

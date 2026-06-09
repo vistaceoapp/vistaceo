@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
 import { buildTerminologyContext } from "../_shared/brain-core/contextual-terminology.ts";
 import { prompt2Rules } from "../_shared/brain-core/prompt2-rules.ts";
+import { runtimeOutputGate, safeFallback } from "../_shared/brain-core/runtime-output-gate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -340,10 +341,26 @@ serve(async (req) => {
       };
     }
 
-    // Quality Gate check
+    // Quality Gate check (legacy + nuevo runtimeOutputGate)
     const genericPhrases = checkForGenericPhrases(actionData);
-    const passed = genericPhrases.length === 0;
-    
+    const combinedText = `${actionData?.title ?? ""}\n${actionData?.description ?? ""}`;
+    const gate = runtimeOutputGate({
+      text: combinedText,
+      kind: "action",
+      hasBrainEvidence: !!(context?.brain?.factual_memory),
+      hasConcreteAction: true,
+    });
+    const passed = genericPhrases.length === 0 && gate.ok;
+
+    if (!gate.ok) {
+      console.warn("[runtime-output-gate:action] blocked, applying safe fallback:", gate.reasons);
+      actionData.title = actionData.title && !gate.reasons.some(r => r.includes("título"))
+        ? actionData.title
+        : "Mapear dónde se frena hoy la decisión del cliente";
+      actionData.description = safeFallback("action");
+      actionData._gateReasons = gate.reasons;
+    }
+
     if (!passed) {
       console.warn("Quality Gate: Generic phrases in action:", genericPhrases);
       actionData._genericPhrases = genericPhrases;

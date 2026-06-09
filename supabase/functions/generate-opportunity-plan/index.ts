@@ -417,6 +417,20 @@ Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
     plan.generated_at = new Date().toISOString();
     plan.based_on_context_hash = context.brain?.id || businessId;
 
+    // Runtime gate: bloquear oportunidades genéricas / leaks técnicos
+    const { runtimeOutputGate, safeFallback } = await import("../_shared/brain-core/runtime-output-gate.ts");
+    const oppGate = runtimeOutputGate({
+      text: `${plan?.planSummary ?? ""}\n${plan?.expectedResult ?? ""}`,
+      kind: "opportunity",
+      hasBrainEvidence: !!(context?.brain),
+      hasConcreteAction: Array.isArray(plan?.steps) && plan.steps.length > 0,
+    });
+    if (!oppGate.ok) {
+      console.warn("[runtime-output-gate:opportunity] flagged:", oppGate.reasons);
+      plan.planSummary = safeFallback("opportunity");
+      plan._gateReasons = oppGate.reasons;
+    }
+
     // COGNITIVE OS v5: Persist the generated plan to the opportunity
     if (opportunityId) {
       const { error: updateError } = await supabase

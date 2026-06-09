@@ -1514,14 +1514,24 @@ Si alguna falla, reescribilo antes de devolver.`,
     // Sanitiza la salida visible (Parte 3 §8): remueve snake_case, JSON, inglés técnico
     parsed.userReply = sanitizeVisibleString(parsed.userReply || "");
 
-    // Quality gate extremo (Parte 3 §7)
+    // Quality gate extremo (Parte 3 §7) + runtime gate por tipo "chat"
+    const concreteActionRx = /\b(haz|hacé|hacer|prob[áa]|revis[áa]|cre[áa]|defin[íi]|envi[áa]|mid[ée]|llam[áa]|escrib[íi]|ofrec[ée]|publica|prepara|ajusta|ordena|mape[áa]|ubica|detect[áa])\b/i;
     const extreme = extremeQualityCheck({
       text: parsed.userReply,
       hasBrainEvidence: !!(businessContext?.id),
-      hasConcreteAction: /\b(haz|hacé|hacer|prob[áa]|revis[áa]|cre[áa]|defin[íi]|envi[áa]|mid[ée]|llam[áa]|escrib[íi]|ofrec[ée]|publica|prepara|ajusta|ordena)\b/i.test(parsed.userReply),
+      hasConcreteAction: concreteActionRx.test(parsed.userReply),
     });
-    if (!extreme.ok) {
-      console.warn("extreme-quality-gate flagged:", extreme.reasons.join(" | "));
+    const chatGate = (await import("../_shared/brain-core/runtime-output-gate.ts")).runtimeOutputGate({
+      text: parsed.userReply,
+      kind: "chat",
+      hasBrainEvidence: !!(businessContext?.id),
+      hasConcreteAction: concreteActionRx.test(parsed.userReply),
+    });
+    if (!extreme.ok || !chatGate.ok) {
+      console.warn("chat gate flagged:", [...extreme.reasons, ...chatGate.reasons].join(" | "));
+      // Fallback contextual premium (Parte 3 §12) en lugar de mostrar texto genérico
+      const sf = (await import("../_shared/brain-core/runtime-output-gate.ts")).safeFallback("chat");
+      parsed.userReply = sf;
     }
 
     // Último fallback seguro (Parte 3 §12)
