@@ -5,10 +5,13 @@
  *  - BATCH_CONFIG viola los caps por modo.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const FILE = resolve(__dirname, '../SetupStepQuestionnaire.tsx');
+const __filename = fileURLToPath(import.meta.url);
+const __dirnameLocal = dirname(__filename);
+const FILE = resolve(__dirnameLocal, '../SetupStepQuestionnaire.tsx');
 const SOURCE = readFileSync(FILE, 'utf8');
 
 const BANNED_DIRECT_QUESTIONS = [
