@@ -47,21 +47,22 @@ const LOADING_MESSAGES_PT = [
   'Quase pronto...',
 ];
 
-// Batch configuration - QUICK = inteligencia concentrada, COMPLETE = inteligencia extendida.
-// Mismo motor (generate-questionnaire), distinta profundidad. Sin listas fijas.
+// Batch configuration - QUICK = inteligencia concentrada (máx 10 visibles),
+// COMPLETE = inteligencia extendida (hasta 35 visibles). Mismo motor, distinta profundidad.
+// La promesa visual de "Rápido 10 preguntas" se respeta de forma absoluta.
 const BATCH_CONFIG = {
   quick: {
-    firstBatch: 12,
+    firstBatch: 10,
     remainingTarget: 0,
-    totalMin: 10,
-    totalMax: 14,
+    totalMin: 8,
+    totalMax: 10,
   },
   complete: {
     firstBatch: 18,
     parallelBatches: 1,
-    perBatch: 12,
-    totalMin: 24,
-    totalMax: 34,
+    perBatch: 14,
+    totalMin: 22,
+    totalMax: 35,
   },
 };
 
