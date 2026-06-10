@@ -145,7 +145,53 @@ const q = (
   ...(help ? { help: { es: help, 'pt-BR': help } } : {}),
 });
 
-function buildEasyQuestionnaire(mode: 'quick' | 'complete'): UniversalQuestion[] {
+// ============================================================================
+// FALLBACK PREMIUM DINÁMICO (visible si el motor AI falla 3 veces).
+// NO usa listas fijas. Una sola pregunta-pivote estratégica que captura
+// la fricción principal del negocio. Su respuesta se envía como contexto al
+// próximo intento de generate-questionnaire (que ahora sí debe responder
+// hiperpersonalizado).
+// ============================================================================
+function buildPremiumPivotFallback(): UniversalQuestion[] {
+  return [{
+    id: 'PIVOT_VALUE_LOSS',
+    category: 'goals',
+    mode: 'both',
+    dimension: 'growth',
+    weight: 10,
+    title: {
+      es: '¿Dónde se pierde más valor hoy en el negocio?',
+      'pt-BR': 'Onde se perde mais valor hoje no negócio?',
+    },
+    type: 'single',
+    required: true,
+    options: [
+      { id: 'arrival', label: { es: 'Llegada (no llegan suficientes prospectos)', 'pt-BR': 'Chegada' }, emoji: '👀', impactScore: 9 },
+      { id: 'inquiry', label: { es: 'Consulta (preguntan pero no avanzan)', 'pt-BR': 'Consulta' }, emoji: '💬', impactScore: 9 },
+      { id: 'price', label: { es: 'Precio (se caen al ver el valor)', 'pt-BR': 'Preço' }, emoji: '🏷️', impactScore: 9 },
+      { id: 'purchase', label: { es: 'Compra (intentan comprar y no concretan)', 'pt-BR': 'Compra' }, emoji: '🛒', impactScore: 9 },
+      { id: 'repeat', label: { es: 'Recompra (compran una vez y no vuelven)', 'pt-BR': 'Recompra' }, emoji: '🔁', impactScore: 9 },
+      { id: 'operation', label: { es: 'Operación (lo que se entrega cuesta caro o falla)', 'pt-BR': 'Operação' }, emoji: '⚙️', impactScore: 9 },
+    ],
+  }];
+}
+
+// ============================================================================
+// EMERGENCY QUESTIONNAIRE CANDIDATE - NO RENDERIZAR DIRECTO EN PRODUCCIÓN.
+// Solo se usa como semilla técnica para debug/desarrollo. En producción, el
+// flujo visible debe ser: AI motor → (fallback premium pivote) → AI motor.
+// Si por error algún código intenta usarlo directo, isProductionRuntime()
+// debe bloquearlo.
+// ============================================================================
+function isProductionRuntime(): boolean {
+  try {
+    // import.meta.env.PROD = true en build de producción
+    // @ts-ignore
+    return !!(import.meta?.env?.PROD);
+  } catch { return false; }
+}
+
+function buildEmergencyQuestionnaireCandidate(mode: 'quick' | 'complete'): UniversalQuestion[] {
   // Detect business stage from universal profile (set by SetupStepIdentityAI)
   let stage: string | undefined;
   try {
