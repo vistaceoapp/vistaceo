@@ -47,21 +47,21 @@ const LOADING_MESSAGES_PT = [
   'Quase pronto...',
 ];
 
-// Batch configuration - hard limits per user spec
-// Quick: 12 questions max | Complete: 30 questions max
+// Batch configuration - QUICK = inteligencia concentrada, COMPLETE = inteligencia extendida.
+// Mismo motor (generate-questionnaire), distinta profundidad. Sin listas fijas.
 const BATCH_CONFIG = {
   quick: {
     firstBatch: 12,
     remainingTarget: 0,
-    totalMin: 12,
-    totalMax: 12,
+    totalMin: 10,
+    totalMax: 14,
   },
   complete: {
-    firstBatch: 30,
-    parallelBatches: 0,
-    perBatch: 0,
-    totalMin: 30,
-    totalMax: 30,
+    firstBatch: 18,
+    parallelBatches: 1,
+    perBatch: 12,
+    totalMin: 24,
+    totalMax: 34,
   },
 };
 
