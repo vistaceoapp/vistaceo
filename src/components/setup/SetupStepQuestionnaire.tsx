@@ -314,7 +314,7 @@ export const SetupStepQuestionnaire = ({
   // Keep latestAnswersRef in sync
   useEffect(() => { latestAnswersRef.current = answers; }, [answers]);
 
-  // Generate first batch of questions
+  // Generate first batch of questions (motor AI hiperpersonalizado)
   const generateFirstBatch = useCallback(async () => {
     setIsLoadingFirst(true);
     setGenerationError(false);
@@ -326,9 +326,10 @@ export const SetupStepQuestionnaire = ({
 
     try {
       const firstQuestions = await fetchQuestions(`${firstCount}-${firstCount + 2}`, 0);
-      setQuestions(firstQuestions);
-      setCachedQuestions(firstQuestions, businessTypeId, setupMode, false);
-      // Only reset index if we don't have a saved position
+      const capped = capQuestions(firstQuestions, setupMode);
+      setQuestions(capped);
+      setCachedQuestions(capped, businessTypeId, setupMode, setupMode === 'quick');
+      if (setupMode === 'quick') allBatchesDone.current = true;
       if (questionIndex === 0) {
         setCurrentIndex(0);
       }
@@ -338,13 +339,18 @@ export const SetupStepQuestionnaire = ({
       console.warn('AI questionnaire first batch failed (attempt ' + attempt + '):', err);
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
-        setTimeout(() => generateFirstBatch(), 2000);
+        setTimeout(() => generateFirstBatch(), 1500);
         return;
       }
-      setGenerationError(true);
+      // Último recurso: usar lista easy para no bloquear al usuario, pero loguear como warning.
+      console.warn('[Setup] Motor AI no respondió tras reintentos. Usando fallback easy questionnaire.');
+      setQuestions(easyQuestions);
+      setCachedQuestions(easyQuestions, businessTypeId, setupMode, true);
+      allBatchesDone.current = true;
+      setGenerationError(false);
       setIsLoadingFirst(false);
     }
-  }, [fetchQuestions, setupMode, questionIndex, businessTypeId]);
+  }, [fetchQuestions, setupMode, questionIndex, businessTypeId, easyQuestions]);
 
   // Generate remaining batches in background - PARALLEL for speed
   const generateRemainingBatches = useCallback(async () => {
