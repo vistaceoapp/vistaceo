@@ -295,8 +295,13 @@ export const SetupStepQuestionnaire = ({
   const cacheData = useMemo(() => getCachedQuestions(businessTypeId, setupMode), [businessTypeId, setupMode]);
   const hasCache = !!cacheData && cacheData.questions.length > 0;
   const cacheComplete = !!cacheData?.allBatchesDone;
-  // Lista hardcodeada SOLO como fallback de último recurso si el motor AI falla repetidamente.
-  const easyQuestions = useMemo(() => buildEasyQuestionnaire(setupMode), [setupMode]);
+  // Fallback premium dinámico (1 pregunta-pivote estratégica). NUNCA listas fijas visibles.
+  const pivotFallback = useMemo(() => buildPremiumPivotFallback(), []);
+  // Emergency seed: SOLO disponible en dev/debug. En producción es []. NUNCA se renderiza directo.
+  const emergencyCandidate = useMemo(
+    () => (isProductionRuntime() ? [] : buildEmergencyQuestionnaireCandidate(setupMode)),
+    [setupMode]
+  );
 
   const [currentIndex, setCurrentIndex] = useState(Math.max(0, questionIndex));
   const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cacheData!.questions : []);
