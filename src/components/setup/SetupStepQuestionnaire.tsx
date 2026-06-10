@@ -248,19 +248,22 @@ export const SetupStepQuestionnaire = ({
   const cacheData = useMemo(() => getCachedQuestions(businessTypeId, setupMode), [businessTypeId, setupMode]);
   const hasCache = !!cacheData && cacheData.questions.length > 0;
   const cacheComplete = !!cacheData?.allBatchesDone;
+  // Lista hardcodeada SOLO como fallback de último recurso si el motor AI falla repetidamente.
   const easyQuestions = useMemo(() => buildEasyQuestionnaire(setupMode), [setupMode]);
 
-  const [currentIndex, setCurrentIndex] = useState(Math.max(0, Math.min(questionIndex, easyQuestions.length - 1)));
-  const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cacheData!.questions : easyQuestions);
-  const [isLoadingFirst, setIsLoadingFirst] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(Math.max(0, questionIndex));
+  const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cacheData!.questions : []);
+  // Si no hay cache, mostramos loading e invocamos el motor inteligente (no la lista fija).
+  const [isLoadingFirst, setIsLoadingFirst] = useState(!hasCache);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [generationError, setGenerationError] = useState(false);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
-  // Only skip background fetch if cache has ALL batches done
-  const backgroundFetchStarted = useRef(true);
-  const allBatchesDone = useRef(true);
+  // Empezamos en false: el motor AI DEBE correr salvo que el cache ya esté completo.
+  const backgroundFetchStarted = useRef(false);
+  const allBatchesDone = useRef(cacheComplete);
+  const firstBatchStarted = useRef(hasCache); // si hay cache, no re-pedimos el primer batch
   const latestAnswersRef = useRef(answers);
 
   const lang = COUNTRY_PACKS[countryCode]?.locale?.startsWith('pt') ? 'pt-BR' : 'es';
