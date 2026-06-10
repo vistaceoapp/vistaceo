@@ -497,8 +497,10 @@ export const SetupStepQuestionnaire = ({
       generateRemainingBatches();
       return;
     }
-    // Si no, esperar a que el usuario haya respondido al menos 1 pregunta para enviar contexto real.
-    if (!isLoadingFirst && questions.length > 0 && currentIndex >= 1) {
+    // Esperar contexto real: ≥3 respuestas y al menos identidad/canal/fricción tocados.
+    // Esto garantiza que el batch 2 profundice causas, no repita preguntas decorativas.
+    const answeredCount = Object.keys(latestAnswersRef.current || {}).length;
+    if (!isLoadingFirst && questions.length > 0 && answeredCount >= 3 && currentIndex >= 2) {
       generateRemainingBatches();
     }
   }, [isLoadingFirst, questions.length, currentIndex, generateRemainingBatches, hasCache, cacheComplete, setupMode]);
