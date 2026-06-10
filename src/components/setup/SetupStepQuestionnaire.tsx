@@ -747,7 +747,8 @@ export const SetupStepQuestionnaire = ({
     return null;
   }
   if (!currentQuestion && !isLoadingFirst) {
-    setQuestions(easyQuestions);
+    // Sin preguntas y sin loading: forzar fallback premium pivote (nunca lista fija).
+    setQuestions(pivotFallback);
     return null;
   }
   if (!currentQuestion) return null;
