@@ -420,27 +420,33 @@ export const SetupStepQuestionnaire = ({
     }
   }, [fetchQuestions, setupMode, businessTypeId]);
 
-  // Setup must be fast and safe: use a curated, easy questionnaire instead of runtime-generated questions.
+  // Motor inteligente: si no hay cache válido, generar preguntas hiperpersonalizadas vía AI.
+  // Tanto Rápido como Completo usan el MISMO motor (generate-questionnaire).
+  // Rápido = inteligencia concentrada. Completo = inteligencia extendida.
   useEffect(() => {
-    if (!hasCache) {
-      setQuestions(easyQuestions);
-      setCachedQuestions(easyQuestions, businessTypeId, setupMode, true);
+    if (firstBatchStarted.current) return;
+    if (hasCache && questions.length > 0) {
+      firstBatchStarted.current = true;
+      return;
     }
-  }, [businessTypeId, easyQuestions, hasCache, setupMode]);
+    firstBatchStarted.current = true;
+    generateFirstBatch();
+  }, [generateFirstBatch, hasCache, questions.length]);
 
-  // Start background fetch: immediately if returning with incomplete cache, or after first answer
+  // Background batches (solo modo Completo): profundizar tras primera respuesta.
   useEffect(() => {
     if (backgroundFetchStarted.current || allBatchesDone.current) return;
-    // If we have cached questions but batches aren't done, start immediately
+    if (setupMode !== 'complete') return;
+    // Si volvemos con cache incompleto, empezar ya.
     if (hasCache && !cacheComplete && questions.length > 0) {
       generateRemainingBatches();
       return;
     }
-    // Otherwise wait until user answers first question
+    // Si no, esperar a que el usuario haya respondido al menos 1 pregunta para enviar contexto real.
     if (!isLoadingFirst && questions.length > 0 && currentIndex >= 1) {
       generateRemainingBatches();
     }
-  }, [isLoadingFirst, questions.length, currentIndex, generateRemainingBatches, hasCache, cacheComplete]);
+  }, [isLoadingFirst, questions.length, currentIndex, generateRemainingBatches, hasCache, cacheComplete, setupMode]);
 
   // Cycle loading messages
   useEffect(() => {
