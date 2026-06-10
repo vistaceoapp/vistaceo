@@ -512,11 +512,12 @@ Responde usando la función generate_questions.`;
     }
 
     return new Response(JSON.stringify({ 
-      questions: validQuestions,
+      questions: finalQuestions,
       meta: {
         businessType: businessTypeLabel,
         mode: setupMode,
-        count: validQuestions.length,
+        count: finalQuestions.length,
+        hardCap: HARD_CAP,
         dimensionCoverage: dimensionCounts,
         missingDimensions,
         generated_at: new Date().toISOString(),
