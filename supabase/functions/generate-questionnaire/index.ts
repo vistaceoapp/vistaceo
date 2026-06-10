@@ -436,29 +436,88 @@ Responde usando la función generate_questions.`;
         return true;
       });
 
+    // ========================================================================
+    // NO DUPLICATE QUESTION GATE — filtra preguntas redundantes vs. previousAnswers.
+    // Bloquea preguntas cuya intención ya fue cubierta (por keywords en título o id).
+    // ========================================================================
+    const previousIntents = new Set<string>();
+    if (previousAnswers && typeof previousAnswers === 'object') {
+      for (const key of Object.keys(previousAnswers)) {
+        previousIntents.add(key.toLowerCase());
+      }
+    }
+    const intentKeywords = (txt: string) =>
+      txt.toLowerCase()
+        .replace(/[¿?¡!,.:;()]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length > 4)
+        .slice(0, 8)
+        .join('|');
+
+    const deduped = validQuestions.filter((q: any) => {
+      const idLow = String(q.id || '').toLowerCase();
+      if (previousIntents.has(idLow)) {
+        console.warn(`[gate] dropped duplicate id: ${q.id}`);
+        return false;
+      }
+      // Bloquear si comparte ≥3 keywords con alguna respuesta previa (intención repetida).
+      const titleKw = intentKeywords(q.title?.es || '');
+      if (titleKw && previousAnswers) {
+        for (const prevKey of Object.keys(previousAnswers)) {
+          const overlap = prevKey.toLowerCase().split('_').filter(w => titleKw.includes(w)).length;
+          if (overlap >= 3) {
+            console.warn(`[gate] dropped duplicate intent: "${q.title?.es}"`);
+            return false;
+          }
+        }
+      }
+      return true;
+    });
+
+    // ========================================================================
+    // BRAIN IMPACT GATE — cada pregunta debe declarar dimension + category.
+    // Sin dimension válida no aporta al brain → se elimina.
+    // ========================================================================
+    const brainGated = deduped.filter((q: any) => {
+      const hasDim = q.dimension && (DIMENSIONS as readonly string[]).includes(q.dimension);
+      const hasCat = q.category && (CATEGORIES as readonly string[]).includes(q.category);
+      if (!hasDim || !hasCat) {
+        console.warn(`[gate] dropped no-brain-impact: "${q.title?.es}" (dim=${q.dimension}, cat=${q.category})`);
+        return false;
+      }
+      return true;
+    });
+
+    // ========================================================================
+    // MODE DEPTH GATE — hard caps por modo. Rápido ≤10, Completo ≤35.
+    // ========================================================================
+    const HARD_CAP = isQuick ? 10 : 35;
+    const finalQuestions = brainGated.slice(0, HARD_CAP);
+
     // Validate dimension coverage
     const dimensionCounts: Record<string, number> = {};
     for (const dim of DIMENSIONS) dimensionCounts[dim] = 0;
-    for (const q of validQuestions) {
+    for (const q of finalQuestions) {
       if (q.dimension && dimensionCounts[q.dimension] !== undefined) {
         dimensionCounts[q.dimension]++;
       }
     }
-    
+
     const missingDimensions = DIMENSIONS.filter(d => dimensionCounts[d] === 0);
 
-    console.log(`Generated ${validQuestions.length} questions for "${businessTypeLabel}" (${setupMode})`);
+    console.log(`Generated ${finalQuestions.length} questions for "${businessTypeLabel}" (${setupMode}) [cap=${HARD_CAP}]`);
     console.log('Dimension coverage:', dimensionCounts);
     if (missingDimensions.length > 0) {
       console.warn('Missing dimensions:', missingDimensions);
     }
 
     return new Response(JSON.stringify({ 
-      questions: validQuestions,
+      questions: finalQuestions,
       meta: {
         businessType: businessTypeLabel,
         mode: setupMode,
-        count: validQuestions.length,
+        count: finalQuestions.length,
+        hardCap: HARD_CAP,
         dimensionCoverage: dimensionCounts,
         missingDimensions,
         generated_at: new Date().toISOString(),

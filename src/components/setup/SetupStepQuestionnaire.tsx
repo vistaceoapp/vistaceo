@@ -47,21 +47,22 @@ const LOADING_MESSAGES_PT = [
   'Quase pronto...',
 ];
 
-// Batch configuration - QUICK = inteligencia concentrada, COMPLETE = inteligencia extendida.
-// Mismo motor (generate-questionnaire), distinta profundidad. Sin listas fijas.
+// Batch configuration - QUICK = inteligencia concentrada (máx 10 visibles),
+// COMPLETE = inteligencia extendida (hasta 35 visibles). Mismo motor, distinta profundidad.
+// La promesa visual de "Rápido 10 preguntas" se respeta de forma absoluta.
 const BATCH_CONFIG = {
   quick: {
-    firstBatch: 12,
+    firstBatch: 10,
     remainingTarget: 0,
-    totalMin: 10,
-    totalMax: 14,
+    totalMin: 8,
+    totalMax: 10,
   },
   complete: {
     firstBatch: 18,
     parallelBatches: 1,
-    perBatch: 12,
-    totalMin: 24,
-    totalMax: 34,
+    perBatch: 14,
+    totalMin: 22,
+    totalMax: 35,
   },
 };
 
@@ -144,7 +145,53 @@ const q = (
   ...(help ? { help: { es: help, 'pt-BR': help } } : {}),
 });
 
-function buildEasyQuestionnaire(mode: 'quick' | 'complete'): UniversalQuestion[] {
+// ============================================================================
+// FALLBACK PREMIUM DINÁMICO (visible si el motor AI falla 3 veces).
+// NO usa listas fijas. Una sola pregunta-pivote estratégica que captura
+// la fricción principal del negocio. Su respuesta se envía como contexto al
+// próximo intento de generate-questionnaire (que ahora sí debe responder
+// hiperpersonalizado).
+// ============================================================================
+function buildPremiumPivotFallback(): UniversalQuestion[] {
+  return [{
+    id: 'PIVOT_VALUE_LOSS',
+    category: 'goals',
+    mode: 'both',
+    dimension: 'growth',
+    weight: 10,
+    title: {
+      es: '¿Dónde se pierde más valor hoy en el negocio?',
+      'pt-BR': 'Onde se perde mais valor hoje no negócio?',
+    },
+    type: 'single',
+    required: true,
+    options: [
+      { id: 'arrival', label: { es: 'Llegada (no llegan suficientes prospectos)', 'pt-BR': 'Chegada' }, emoji: '👀', impactScore: 9 },
+      { id: 'inquiry', label: { es: 'Consulta (preguntan pero no avanzan)', 'pt-BR': 'Consulta' }, emoji: '💬', impactScore: 9 },
+      { id: 'price', label: { es: 'Precio (se caen al ver el valor)', 'pt-BR': 'Preço' }, emoji: '🏷️', impactScore: 9 },
+      { id: 'purchase', label: { es: 'Compra (intentan comprar y no concretan)', 'pt-BR': 'Compra' }, emoji: '🛒', impactScore: 9 },
+      { id: 'repeat', label: { es: 'Recompra (compran una vez y no vuelven)', 'pt-BR': 'Recompra' }, emoji: '🔁', impactScore: 9 },
+      { id: 'operation', label: { es: 'Operación (lo que se entrega cuesta caro o falla)', 'pt-BR': 'Operação' }, emoji: '⚙️', impactScore: 9 },
+    ],
+  }];
+}
+
+// ============================================================================
+// EMERGENCY QUESTIONNAIRE CANDIDATE - NO RENDERIZAR DIRECTO EN PRODUCCIÓN.
+// Solo se usa como semilla técnica para debug/desarrollo. En producción, el
+// flujo visible debe ser: AI motor → (fallback premium pivote) → AI motor.
+// Si por error algún código intenta usarlo directo, isProductionRuntime()
+// debe bloquearlo.
+// ============================================================================
+function isProductionRuntime(): boolean {
+  try {
+    // import.meta.env.PROD = true en build de producción
+    // @ts-ignore
+    return !!(import.meta?.env?.PROD);
+  } catch { return false; }
+}
+
+function buildEmergencyQuestionnaireCandidate(mode: 'quick' | 'complete'): UniversalQuestion[] {
   // Detect business stage from universal profile (set by SetupStepIdentityAI)
   let stage: string | undefined;
   try {
@@ -248,8 +295,13 @@ export const SetupStepQuestionnaire = ({
   const cacheData = useMemo(() => getCachedQuestions(businessTypeId, setupMode), [businessTypeId, setupMode]);
   const hasCache = !!cacheData && cacheData.questions.length > 0;
   const cacheComplete = !!cacheData?.allBatchesDone;
-  // Lista hardcodeada SOLO como fallback de último recurso si el motor AI falla repetidamente.
-  const easyQuestions = useMemo(() => buildEasyQuestionnaire(setupMode), [setupMode]);
+  // Fallback premium dinámico (1 pregunta-pivote estratégica). NUNCA listas fijas visibles.
+  const pivotFallback = useMemo(() => buildPremiumPivotFallback(), []);
+  // Emergency seed: SOLO disponible en dev/debug. En producción es []. NUNCA se renderiza directo.
+  const emergencyCandidate = useMemo(
+    () => (isProductionRuntime() ? [] : buildEmergencyQuestionnaireCandidate(setupMode)),
+    [setupMode]
+  );
 
   const [currentIndex, setCurrentIndex] = useState(Math.max(0, questionIndex));
   const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cacheData!.questions : []);
@@ -342,15 +394,18 @@ export const SetupStepQuestionnaire = ({
         setTimeout(() => generateFirstBatch(), 1500);
         return;
       }
-      // Último recurso: usar lista easy para no bloquear al usuario, pero loguear como warning.
-      console.warn('[Setup] Motor AI no respondió tras reintentos. Usando fallback easy questionnaire.');
-      setQuestions(easyQuestions);
-      setCachedQuestions(easyQuestions, businessTypeId, setupMode, true);
-      allBatchesDone.current = true;
+      // Último recurso: pregunta-pivote premium dinámica (NO lista fija). Su respuesta
+      // se inyecta como contexto y se reintenta el motor AI desde la próxima pregunta.
+      console.warn('[Setup] Motor AI no respondió tras reintentos. Activando fallback premium pivote.');
+      setQuestions(pivotFallback);
+      setCachedQuestions(pivotFallback, businessTypeId, setupMode, false);
+      // allBatchesDone NO se marca true: queremos que tras la primera respuesta
+      // se reintente el motor AI con ese contexto real.
+      backgroundFetchStarted.current = false;
       setGenerationError(false);
       setIsLoadingFirst(false);
     }
-  }, [fetchQuestions, setupMode, questionIndex, businessTypeId, easyQuestions]);
+  }, [fetchQuestions, setupMode, questionIndex, businessTypeId, pivotFallback]);
 
   // Generate remaining batches in background - PARALLEL for speed
   const generateRemainingBatches = useCallback(async () => {
@@ -442,8 +497,10 @@ export const SetupStepQuestionnaire = ({
       generateRemainingBatches();
       return;
     }
-    // Si no, esperar a que el usuario haya respondido al menos 1 pregunta para enviar contexto real.
-    if (!isLoadingFirst && questions.length > 0 && currentIndex >= 1) {
+    // Esperar contexto real: ≥3 respuestas y al menos identidad/canal/fricción tocados.
+    // Esto garantiza que el batch 2 profundice causas, no repita preguntas decorativas.
+    const answeredCount = Object.keys(latestAnswersRef.current || {}).length;
+    if (!isLoadingFirst && questions.length > 0 && answeredCount >= 3 && currentIndex >= 2) {
       generateRemainingBatches();
     }
   }, [isLoadingFirst, questions.length, currentIndex, generateRemainingBatches, hasCache, cacheComplete, setupMode]);
@@ -692,7 +749,8 @@ export const SetupStepQuestionnaire = ({
     return null;
   }
   if (!currentQuestion && !isLoadingFirst) {
-    setQuestions(easyQuestions);
+    // Sin preguntas y sin loading: forzar fallback premium pivote (nunca lista fija).
+    setQuestions(pivotFallback);
     return null;
   }
   if (!currentQuestion) return null;
