@@ -47,21 +47,21 @@ const LOADING_MESSAGES_PT = [
   'Quase pronto...',
 ];
 
-// Batch configuration - hard limits per user spec
-// Quick: 12 questions max | Complete: 30 questions max
+// Batch configuration - QUICK = inteligencia concentrada, COMPLETE = inteligencia extendida.
+// Mismo motor (generate-questionnaire), distinta profundidad. Sin listas fijas.
 const BATCH_CONFIG = {
   quick: {
     firstBatch: 12,
     remainingTarget: 0,
-    totalMin: 12,
-    totalMax: 12,
+    totalMin: 10,
+    totalMax: 14,
   },
   complete: {
-    firstBatch: 30,
-    parallelBatches: 0,
-    perBatch: 0,
-    totalMin: 30,
-    totalMax: 30,
+    firstBatch: 18,
+    parallelBatches: 1,
+    perBatch: 12,
+    totalMin: 24,
+    totalMax: 34,
   },
 };
 
@@ -248,19 +248,22 @@ export const SetupStepQuestionnaire = ({
   const cacheData = useMemo(() => getCachedQuestions(businessTypeId, setupMode), [businessTypeId, setupMode]);
   const hasCache = !!cacheData && cacheData.questions.length > 0;
   const cacheComplete = !!cacheData?.allBatchesDone;
+  // Lista hardcodeada SOLO como fallback de último recurso si el motor AI falla repetidamente.
   const easyQuestions = useMemo(() => buildEasyQuestionnaire(setupMode), [setupMode]);
 
-  const [currentIndex, setCurrentIndex] = useState(Math.max(0, Math.min(questionIndex, easyQuestions.length - 1)));
-  const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cacheData!.questions : easyQuestions);
-  const [isLoadingFirst, setIsLoadingFirst] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(Math.max(0, questionIndex));
+  const [questions, setQuestions] = useState<UniversalQuestion[]>(hasCache ? cacheData!.questions : []);
+  // Si no hay cache, mostramos loading e invocamos el motor inteligente (no la lista fija).
+  const [isLoadingFirst, setIsLoadingFirst] = useState(!hasCache);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [generationError, setGenerationError] = useState(false);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
-  // Only skip background fetch if cache has ALL batches done
-  const backgroundFetchStarted = useRef(true);
-  const allBatchesDone = useRef(true);
+  // Empezamos en false: el motor AI DEBE correr salvo que el cache ya esté completo.
+  const backgroundFetchStarted = useRef(false);
+  const allBatchesDone = useRef(cacheComplete);
+  const firstBatchStarted = useRef(hasCache); // si hay cache, no re-pedimos el primer batch
   const latestAnswersRef = useRef(answers);
 
   const lang = COUNTRY_PACKS[countryCode]?.locale?.startsWith('pt') ? 'pt-BR' : 'es';
@@ -311,7 +314,7 @@ export const SetupStepQuestionnaire = ({
   // Keep latestAnswersRef in sync
   useEffect(() => { latestAnswersRef.current = answers; }, [answers]);
 
-  // Generate first batch of questions
+  // Generate first batch of questions (motor AI hiperpersonalizado)
   const generateFirstBatch = useCallback(async () => {
     setIsLoadingFirst(true);
     setGenerationError(false);
@@ -323,9 +326,10 @@ export const SetupStepQuestionnaire = ({
 
     try {
       const firstQuestions = await fetchQuestions(`${firstCount}-${firstCount + 2}`, 0);
-      setQuestions(firstQuestions);
-      setCachedQuestions(firstQuestions, businessTypeId, setupMode, false);
-      // Only reset index if we don't have a saved position
+      const capped = capQuestions(firstQuestions, setupMode);
+      setQuestions(capped);
+      setCachedQuestions(capped, businessTypeId, setupMode, setupMode === 'quick');
+      if (setupMode === 'quick') allBatchesDone.current = true;
       if (questionIndex === 0) {
         setCurrentIndex(0);
       }
@@ -335,13 +339,18 @@ export const SetupStepQuestionnaire = ({
       console.warn('AI questionnaire first batch failed (attempt ' + attempt + '):', err);
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
-        setTimeout(() => generateFirstBatch(), 2000);
+        setTimeout(() => generateFirstBatch(), 1500);
         return;
       }
-      setGenerationError(true);
+      // Último recurso: usar lista easy para no bloquear al usuario, pero loguear como warning.
+      console.warn('[Setup] Motor AI no respondió tras reintentos. Usando fallback easy questionnaire.');
+      setQuestions(easyQuestions);
+      setCachedQuestions(easyQuestions, businessTypeId, setupMode, true);
+      allBatchesDone.current = true;
+      setGenerationError(false);
       setIsLoadingFirst(false);
     }
-  }, [fetchQuestions, setupMode, questionIndex, businessTypeId]);
+  }, [fetchQuestions, setupMode, questionIndex, businessTypeId, easyQuestions]);
 
   // Generate remaining batches in background - PARALLEL for speed
   const generateRemainingBatches = useCallback(async () => {
@@ -411,27 +420,33 @@ export const SetupStepQuestionnaire = ({
     }
   }, [fetchQuestions, setupMode, businessTypeId]);
 
-  // Setup must be fast and safe: use a curated, easy questionnaire instead of runtime-generated questions.
+  // Motor inteligente: si no hay cache válido, generar preguntas hiperpersonalizadas vía AI.
+  // Tanto Rápido como Completo usan el MISMO motor (generate-questionnaire).
+  // Rápido = inteligencia concentrada. Completo = inteligencia extendida.
   useEffect(() => {
-    if (!hasCache) {
-      setQuestions(easyQuestions);
-      setCachedQuestions(easyQuestions, businessTypeId, setupMode, true);
+    if (firstBatchStarted.current) return;
+    if (hasCache && questions.length > 0) {
+      firstBatchStarted.current = true;
+      return;
     }
-  }, [businessTypeId, easyQuestions, hasCache, setupMode]);
+    firstBatchStarted.current = true;
+    generateFirstBatch();
+  }, [generateFirstBatch, hasCache, questions.length]);
 
-  // Start background fetch: immediately if returning with incomplete cache, or after first answer
+  // Background batches (solo modo Completo): profundizar tras primera respuesta.
   useEffect(() => {
     if (backgroundFetchStarted.current || allBatchesDone.current) return;
-    // If we have cached questions but batches aren't done, start immediately
+    if (setupMode !== 'complete') return;
+    // Si volvemos con cache incompleto, empezar ya.
     if (hasCache && !cacheComplete && questions.length > 0) {
       generateRemainingBatches();
       return;
     }
-    // Otherwise wait until user answers first question
+    // Si no, esperar a que el usuario haya respondido al menos 1 pregunta para enviar contexto real.
     if (!isLoadingFirst && questions.length > 0 && currentIndex >= 1) {
       generateRemainingBatches();
     }
-  }, [isLoadingFirst, questions.length, currentIndex, generateRemainingBatches, hasCache, cacheComplete]);
+  }, [isLoadingFirst, questions.length, currentIndex, generateRemainingBatches, hasCache, cacheComplete, setupMode]);
 
   // Cycle loading messages
   useEffect(() => {
