@@ -394,15 +394,18 @@ export const SetupStepQuestionnaire = ({
         setTimeout(() => generateFirstBatch(), 1500);
         return;
       }
-      // Último recurso: usar lista easy para no bloquear al usuario, pero loguear como warning.
-      console.warn('[Setup] Motor AI no respondió tras reintentos. Usando fallback easy questionnaire.');
-      setQuestions(easyQuestions);
-      setCachedQuestions(easyQuestions, businessTypeId, setupMode, true);
-      allBatchesDone.current = true;
+      // Último recurso: pregunta-pivote premium dinámica (NO lista fija). Su respuesta
+      // se inyecta como contexto y se reintenta el motor AI desde la próxima pregunta.
+      console.warn('[Setup] Motor AI no respondió tras reintentos. Activando fallback premium pivote.');
+      setQuestions(pivotFallback);
+      setCachedQuestions(pivotFallback, businessTypeId, setupMode, false);
+      // allBatchesDone NO se marca true: queremos que tras la primera respuesta
+      // se reintente el motor AI con ese contexto real.
+      backgroundFetchStarted.current = false;
       setGenerationError(false);
       setIsLoadingFirst(false);
     }
-  }, [fetchQuestions, setupMode, questionIndex, businessTypeId, easyQuestions]);
+  }, [fetchQuestions, setupMode, questionIndex, businessTypeId, pivotFallback]);
 
   // Generate remaining batches in background - PARALLEL for speed
   const generateRemainingBatches = useCallback(async () => {
