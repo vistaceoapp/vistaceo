@@ -798,16 +798,20 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
       data_quality_score: dataQuality.overallScore,
       business_type: businessType,
       sector_context_used: true,
+      quality: { passed: true },
+      fallbackUsed: false,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('[generate-predictions] Error:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    return new Response(JSON.stringify({
+      error: 'temporary_unavailable',
+      quality: { passed: false, reasons: ['edge_function_failed'] },
+      fallbackUsed: true,
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
