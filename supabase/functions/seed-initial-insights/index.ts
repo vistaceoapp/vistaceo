@@ -290,24 +290,50 @@ Deno.serve(async (req) => {
         console.warn("[seed-initial-insights] AI mission personalization failed, using fallback:", aiErr);
       }
 
-      const { error } = await supabase.from("missions").insert({
-        business_id: businessId,
+      // PROMPT 4: server-side validateBeforeStore — a mission with thin/leaky
+      // steps must never reach storage. If the AI mission fails, fall back to
+      // the curated GENERIC_MISSION (which passes the gate by construction).
+      let missionAudit = validateBeforeStore({
+        module: 'mission',
         title: mission.title,
         description: mission.description,
-        area: mission.area,
-        impact_score: mission.impact_score,
-        effort_score: mission.effort_score,
-        steps: mission.steps,
-        status: "active",
+        steps: mission.steps.map((s: any) => ({ title: s.text, description: s.text })),
       });
-      if (!error) seededMissions++;
-      else console.warn("[seed-initial-insights] mission insert failed:", error);
+      if (!missionAudit.passed) {
+        console.warn("[seed-initial-insights] AI mission blocked by gate:", missionAudit.reasons);
+        qualityReasons.push(...missionAudit.reasons);
+        mission = { ...GENERIC_MISSION };
+        missionAudit = validateBeforeStore({
+          module: 'mission',
+          title: mission.title,
+          description: mission.description,
+          steps: mission.steps.map((s: any) => ({ title: s.text, description: s.text })),
+        });
+      }
+
+      if (missionAudit.passed) {
+        const { error } = await supabase.from("missions").insert({
+          business_id: businessId,
+          title: mission.title,
+          description: mission.description,
+          area: mission.area,
+          impact_score: mission.impact_score,
+          effort_score: mission.effort_score,
+          steps: mission.steps,
+          status: "active",
+        });
+        if (!error) seededMissions++;
+        else console.warn("[seed-initial-insights] mission insert failed:", error);
+      } else {
+        console.warn("[seed-initial-insights] mission blocked entirely:", missionAudit.reasons);
+      }
     }
 
     console.log(
       `[seed-initial-insights] Done. AI opps=${oppCount} trends=${learnCount} missions=${missionCount} | seeded opps=${seededOpps} trends=${seededTrends} missions=${seededMissions}`,
     );
 
+    const dedupedReasons = Array.from(new Set(qualityReasons));
     return new Response(
       JSON.stringify({
         success: true,
@@ -317,17 +343,29 @@ Deno.serve(async (req) => {
         fallback_opportunities_inserted: seededOpps,
         fallback_trends_inserted: seededTrends,
         fallback_missions_inserted: seededMissions,
+        quality: { passed: dedupedReasons.length === 0, reasons: dedupedReasons },
+        fallbackUsed: seededOpps + seededTrends + seededMissions > 0,
+        eventsToEmit: [
+          { eventType: 'dashboard_generated', modulesToRecalculate: ['dashboard'] },
+          ...(seededOpps > 0 || (oppCount || 0) > 0
+            ? [{ eventType: 'opportunity_generated', modulesToRecalculate: ['radar', 'dashboard'] }]
+            : []),
+          { eventType: 'analytics_updated', modulesToRecalculate: ['analytics'] },
+          ...(seededOpps + seededTrends + seededMissions > 0
+            ? [{ eventType: 'fallback_used', modulesToRecalculate: [] }]
+            : []),
+        ],
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
-    console.error("[seed-initial-insights] Error:", err);
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "unknown" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+    return failResponse(err, {
+      module: 'seed_insight',
+      fallbackText: 'Estamos preparando tus primeras oportunidades. El radar se completa automáticamente en unos minutos.',
+      reasons: ['seed_initial_insights_failed'],
+    });
+  }
+});
     );
   }
 });
