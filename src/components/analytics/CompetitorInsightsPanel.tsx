@@ -14,6 +14,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { ScanCompetitorsResponse } from '@/lib/edge-function-response-types';
 
 interface Competitor {
   id: string;
