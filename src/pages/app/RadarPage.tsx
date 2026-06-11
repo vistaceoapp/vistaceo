@@ -530,17 +530,51 @@ const RadarPage = () => {
     setActionLoading(true);
 
     try {
+      // 1. Intentar generar misión hyper-personalizada con el motor IA "cero hardcode".
+      //    Si falla o no pasa el gate, caemos a los steps locales contextuales.
+      let aiTitle = opportunity.title;
+      let aiDescription = opportunity.description;
+      let aiSteps: unknown = buildInitialMissionSteps(opportunity, currentBusiness);
+
+      try {
+        const pack = await buildContextPack("missions", currentBusiness.id, {
+          userId: currentBusiness.owner_id,
+        });
+        const forged = await forgeArtifact<{
+          title: string;
+          description: string;
+          steps: Array<Record<string, unknown>>;
+        }>({
+          businessId: currentBusiness.id,
+          artifactType: "radar_mission",
+          artifactKey: `opp:${opportunity.id}`,
+          contextPack: pack as unknown as Record<string, unknown>,
+          seed: {
+            insightTitle: opportunity.title,
+            insightSummary: opportunity.description ?? "",
+            insightUrl: opportunity.source_url ?? undefined,
+          },
+        });
+        if (forged.ok && forged.payload) {
+          aiTitle = forged.payload.title || aiTitle;
+          aiDescription = forged.payload.description || aiDescription;
+          aiSteps = forged.payload.steps ?? aiSteps;
+        }
+      } catch (forgeErr) {
+        console.warn("[radar] forge fallback to local steps:", forgeErr);
+      }
+
       const { data: missionData, error: missionError } = await supabase
         .from("missions")
         .insert({
           business_id: currentBusiness.id,
-          title: opportunity.title,
-          description: opportunity.description,
+          title: aiTitle,
+          description: aiDescription,
           area: opportunity.source || "general",
           impact_score: opportunity.impact_score,
           effort_score: opportunity.effort_score,
           status: "active",
-          steps: buildInitialMissionSteps(opportunity, currentBusiness) as unknown as any,
+          steps: aiSteps as unknown as any,
         })
         .select()
         .single();
