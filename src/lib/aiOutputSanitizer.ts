@@ -354,3 +354,16 @@ export function sanitizeSignals(signals: string[] | null | undefined): string[] 
     .filter(s => s.length > 3 && !isLeakedLabel(s));
 }
 
+/**
+ * Sanitiza un array de items estructurados (pasos, tips, checklist).
+ * - Usa modo 'structured' (no agrega elipsis).
+ * - Descarta items vacíos, cortados, o con tokens de la Red List.
+ * - Descarta items con longitud < 10 caracteres.
+ */
+export function sanitizeStructuredList(items: string[] | null | undefined): string[] {
+  if (!items || !Array.isArray(items)) return [];
+  return items
+    .map(s => sanitizeAIOutput(s, { mode: 'structured' }))
+    .filter(s => s.length >= 10 && !isLeakedLabel(s) && !containsForbidden(s));
+}
+
