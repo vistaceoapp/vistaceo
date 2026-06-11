@@ -437,6 +437,53 @@ const SetupPage = () => {
 
       await supabase.from('business_brains').upsert(brainData as never, { onConflict: 'business_id' });
 
+      // Step 2b: Persist every setup answer as a brain signal, categorized
+      // by health dimension. These become the permanent foundation that
+      // Radar / Missions / Predictions / Analytics use forever to hyper-
+      // personalize. They keep flowing as the user advances and the brain
+      // can refine them — but they are never auto-deleted.
+      try {
+        const catalog = readQuestionCatalog();
+        const semantic = buildSemanticAnswerMap(data.answers ?? {}, catalog);
+        const signalRows = semantic
+          .filter(s => s.rawAnswer !== null && s.rawAnswer !== undefined && s.rawAnswer !== '')
+          .map(s => ({
+            business_id: business.id,
+            signal_type: 'setup_answer',
+            source: 'setup_questionnaire',
+            importance: s.wasClarification ? 9 : (s.wasUnknown ? 3 : 7),
+            confidence: s.wasUnknown ? 'low' : (s.wasClarification ? 'high' : 'medium'),
+            content: {
+              question_id: s.questionId,
+              question_text: s.questionText ?? null,
+              option_text: s.optionText ?? null,
+              raw_answer: s.rawAnswer,
+              normalized_answer: s.normalizedAnswer ?? null,
+              semantic_value: s.semanticValue ?? null,
+              health_dimension: s.healthDimension ?? 'growth',
+              target_brain_field: s.targetBrainField ?? null,
+              intent_key: s.intentKey ?? null,
+              affected_modules: s.affectedModules ?? ['dashboard', 'radar', 'missions', 'predictions', 'analytics'],
+              answer_type: s.answerType,
+              was_unknown: s.wasUnknown,
+              was_clarification: s.wasClarification,
+              setup_mode: data.setupMode,
+              country_code: data.countryCode,
+              business_type_id: data.businessTypeId,
+            },
+          }));
+        if (signalRows.length > 0) {
+          // Chunked insert to avoid payload limits with 30+ answers.
+          const CHUNK = 25;
+          for (let i = 0; i < signalRows.length; i += CHUNK) {
+            await supabase.from('signals').insert(signalRows.slice(i, i + CHUNK) as never);
+          }
+        }
+      } catch (signalErr) {
+        console.warn('[Setup] persistir respuestas como signals falló (no bloqueante):', signalErr);
+      }
+
+
       // Brain Event: setup completado — dispara recalibración de dashboard,
       // health, radar, missions, predictions y analytics.
       emitBrainEvent({
