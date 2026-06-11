@@ -421,8 +421,6 @@ const SetupPage = () => {
           answers_semantic: buildSemanticAnswerMap(data.answers ?? {}, readQuestionCatalog()),
           integrations_profiled: data.integrationsProfiled,
         },
-          integrations_profiled: data.integrationsProfiled,
-        },
         preferences_memory: {
           language: 'es',
           autopilot_mode: 'standard',
