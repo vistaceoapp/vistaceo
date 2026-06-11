@@ -1024,10 +1024,25 @@ ${analysisContext}
 
         const enrichedContent = `${content}\n\n**Por qué aplica a tu negocio:** ${it.why_applies || "Relevante para tu sector."}\n\n**Fuente:** [${firstSource?.title || sourcePublisher}](${resolvedUrl || "#"})`;
 
+        // PROMPT 4 — validateBeforeStore para research/learning_items.
+        const audit = validateBeforeStore({
+          module: "opportunity",
+          title,
+          description: enrichedContent,
+          source_url: resolvedUrl,
+        });
+        if (!audit.passed) {
+          console.log(`[validateBeforeStore] dropped research (${audit.reasons.join(",")}): "${title}"`);
+          learningFiltered++;
+          continue;
+        }
+        const safeTitle = sanitizeAIOutput(audit.sanitized.title ?? title, { mode: "label" });
+        const safeContent = sanitizeAIOutput(audit.sanitized.description ?? enrichedContent, { mode: "prose" });
+
         const { error: insertErr } = await supabase.from("learning_items").insert({
           business_id: businessId,
-          title,
-          content: enrichedContent,
+          title: safeTitle,
+          content: safeContent,
           item_type: it.item_type || "insight",
           source: resolvedUrl || "mercado",
           action_steps: Array.isArray(it.action_steps) ? it.action_steps : [],
@@ -1036,6 +1051,7 @@ ${analysisContext}
           concept_hash: conceptHash,
           intent_signature: intentSignature,
         });
+
 
         if (!insertErr) {
           learningInserted++;
