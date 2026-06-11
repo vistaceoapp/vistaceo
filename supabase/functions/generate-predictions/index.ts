@@ -744,14 +744,14 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
           'Content-Type': 'application/json',
           'Prefer': 'return=representation',
         },
-        body: JSON.stringify(predictionsToInsert),
+        body: JSON.stringify(validatedPredictions),
       });
 
       if (!insertRes.ok) {
         const errText = await insertRes.text();
         console.error('[generate-predictions] Insert error:', errText);
       } else {
-        console.log(`[generate-predictions] Inserted ${predictionsToInsert.length} predictions`);
+        console.log(`[generate-predictions] Inserted ${validatedPredictions.length} predictions`);
       }
     }
 
