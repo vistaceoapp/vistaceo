@@ -314,6 +314,14 @@ export const OpportunityDetailEnhanced = ({
       </div>
 
       <div className="space-y-5 pb-6">
+          <StaleContentBanner
+            show={staleness.isStale}
+            loading={planLoading}
+            onRegenerate={() => { staleness.dismiss(); regeneratePlan(); }}
+            onDismiss={staleness.dismiss}
+            label="Tu negocio cambió desde que se generó esta oportunidad"
+          />
+
           {/* Qué es */}
           <div className="p-4 rounded-xl bg-secondary/30 border border-border">
             <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2 text-sm">
