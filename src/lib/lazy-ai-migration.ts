@@ -46,7 +46,13 @@ async function markServerArtifactsLegacy(userId: string): Promise<void> {
       .eq("user_id", userId);
     const ids = (bizs ?? []).map((b) => b.id).filter(Boolean);
     if (ids.length === 0) return;
-    await supabase
+    await (supabase as unknown as {
+      from: (t: string) => {
+        update: (v: Record<string, unknown>) => {
+          in: (col: string, vals: string[]) => Promise<unknown>;
+        };
+      };
+    })
       .from("ai_artifacts_cache")
       .update({ legacy: true })
       .in("business_id", ids);
