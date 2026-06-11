@@ -68,7 +68,7 @@ export const ReputationAnalyticsPanel = ({ className }: { className?: string }) 
       });
       if (error) throw error;
       if (data?.analysis) {
-        setAnalysis(data.analysis);
+        setAnalysis(data.analysis as ReputationAnalysis);
         toast({ title: "Análisis completado", description: `Score: ${data.analysis.overall_score}/100` });
       }
     } catch (e) {

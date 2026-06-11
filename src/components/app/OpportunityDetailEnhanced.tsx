@@ -220,7 +220,7 @@ export const OpportunityDetailEnhanced = ({
 
         if (error) throw error;
         if (data?.plan) {
-          setAIPlan(data.plan);
+          setAIPlan(data.plan as AIPlan);
         }
       } catch (err) {
         console.error("Error fetching AI plan:", err);
@@ -248,7 +248,7 @@ export const OpportunityDetailEnhanced = ({
 
       if (error) throw error;
       if (data?.plan) {
-        setAIPlan(data.plan);
+        setAIPlan(data.plan as AIPlan);
         toast({ title: "Plan regenerado", description: "Se generó un nuevo plan personalizado" });
       }
     } catch (err) {
