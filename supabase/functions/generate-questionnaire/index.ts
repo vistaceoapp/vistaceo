@@ -147,16 +147,27 @@ REGLAS CRÍTICAS DE PERSONALIZACIÓN:
 
 REGLAS ABSOLUTAS DE IDIOMA Y CALIDAD:
 6. TODO el texto DEBE estar en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. PROHIBIDO TERMINANTEMENTE usar palabras en inglés. Ni en títulos, ni en opciones, ni en textos de ayuda. CERO inglés. Ejemplos de lo que NO debe aparecer: "feedback", "marketing mix", "target", "branding", "check-in", "delivery", "staff", etc. Siempre usar el equivalente en español.
-7. OPCIONES INCLUSIVAS PARA NEGOCIOS NUEVOS: En TODA pregunta tipo "single" donde se pregunte por cantidad de clientes, empleados, ventas, facturación o cualquier métrica operativa, SIEMPRE debe existir al menos una opción para negocios que recién arrancan o no tienen eso todavía. Ejemplos: "Todavía no tengo clientes", "Recién empiezo", "No aplica a mi caso", "Aún no lo mido". Esto es OBLIGATORIO.
-8. CALIDAD DE REDACCIÓN: Las preguntas deben ser gramaticalmente perfectas, claras, completas y profesionales. Sin frases cortadas, sin errores de sintaxis, sin ambigüedades. Cada pregunta debe leerse como escrita por un consultor senior.
+7. CALIDAD DE REDACCIÓN: Las preguntas deben ser gramaticalmente perfectas, claras, completas y profesionales. Sin frases cortadas, sin errores de sintaxis, sin ambigüedades. Cada pregunta debe leerse como escrita por un consultor senior.
+
+REGLAS DE SIMPLICIDAD (CRÍTICAS - NO NEGOCIABLES):
+8. PREGUNTAS CORTAS: máximo 12 palabras por título. Una sola idea por pregunta. PROHIBIDO mezclar varias preguntas en una.
+9. PROHIBIDO "Ej:", "Por ejemplo", "(ejemplo...)" dentro del título de la pregunta. Los ejemplos van en el campo "help".
+10. PROHIBIDO pedir cálculos, porcentajes exactos, ni "3 principales canales". Las preguntas deben responderse en 2 segundos tocando una opción.
+11. FORMATO PRINCIPAL: "single" (selección única con autoavance). Usá "multi" sólo si realmente corresponde elegir varias. "text" SOLO como excepción (≤10% del cuestionario, sólo si es imposible con opciones).
+12. OPCIONES: EXACTAMENTE 4 ó 6 opciones normales. NUNCA más de 6. NUNCA menos de 3.
+13. NO incluyas opciones tipo "No sé", "No aplica", "Otra", "Ninguna", "Recién empiezo" dentro del array de opciones. La UI agrega automáticamente una opción horizontal secundaria "No sé / Quiero aclarar algo" para TODAS las preguntas. Tus opciones deben ser sólo respuestas reales y diferenciadas.
+14. CADA OPCIÓN: primera letra MAYÚSCULA, texto corto (máx 4 palabras), sin punto final, sin minúscula inicial, sin frases largas, sin "N/A", sin "Otro...". Ejemplos válidos: "Mayoría nuevos", "Honorarios", "WhatsApp", "Holgado".
+15. EMOJIS: máximo 1 por opción y SOLO si suma claridad visual. Negocios formales (legal, financiero, médico, B2B serio): SIN emojis. Negocios informales (gastronomía, ecommerce, turismo, bienestar): pueden usarse con sobriedad.
+16. EXPLICADORES: si la pregunta usa concepto económico/operativo difícil (flujo de caja, ticket promedio, margen, rentabilidad, recompra, conversión, checkout, pipeline, ciclo de venta, capital de trabajo, retención, rotación, ocupación, propuesta comercial, recurrencia, lead), COMPLETÁ el campo "help" con UNA frase corta (≤120 caracteres) definiéndolo en lenguaje llano. NO metas la definición en el título.
+17. SIN preguntas que asuman datos que el usuario probablemente no tiene precisos (ej: porcentajes exactos, montos exactos). Usá tramos (Holgado/Suficiente/Ajustado/Preocupante) o frecuencias (Siempre/A veces/Pocas/Nunca).
 
 TIPOS DE INPUT:
-- "single": Selección única (3-6 opciones con emoji, label bilingüe, impactScore)
-- "multi": Selección múltiple (3-6 opciones con emoji, label bilingüe)
-- "number": Valor numérico (incluir unit)
-- "slider": Rango deslizable (incluir min, max, unit)
-- "text": Respuesta abierta
-- "money": Valor monetario (incluir unit con moneda local)
+- "single": Selección única (4 ó 6 opciones con emoji opcional, label bilingüe, impactScore). FORMATO PRINCIPAL.
+- "multi": Selección múltiple (4 ó 6 opciones). Sólo cuando varias respuestas tengan sentido.
+- "number": Valor numérico (incluir unit). Sólo si el dato es trivial.
+- "slider": Rango deslizable (incluir min, max, unit). Sólo si simplifica.
+- "text": Respuesta abierta. EXCEPCIÓN: ≤10% del cuestionario.
+- "money": Valor monetario. Sólo si el usuario sabe el dato exacto.
 
 CATEGORÍAS: identity, operation, sales, finance, team, marketing, reputation, goals.
 
