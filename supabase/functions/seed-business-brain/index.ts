@@ -109,7 +109,7 @@ async function callLovableAI(prompt: string, apiKey: string): Promise<AISeedResp
       "Lovable-API-Key": apiKey,
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash-lite",
+      model: "google/gemini-2.5-pro",
       messages: [
         { role: "system", content: "Devolvés exclusivamente JSON válido, sin texto extra ni code fences." },
         { role: "user", content: prompt },

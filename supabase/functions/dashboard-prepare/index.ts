@@ -182,7 +182,7 @@ async function generateSeed(apiKey: string, ctx: string): Promise<Record<string,
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-2.5-pro",
       messages: [
         { role: "system", content: `${SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("dashboard")}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("focus")}` },
         { role: "user", content: `Contexto del brain:\n${ctx}\n\nGenerá el JSON de primera lectura.` },
