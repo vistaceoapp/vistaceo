@@ -203,6 +203,37 @@ async function scanDataHealth(businessId: string): Promise<GuardianIssue[]> {
 }
 
 // ============================================
+// CRITICAL PERSISTENCE
+// ============================================
+
+/**
+ * Persist critical Guardian issues to admin_audit_log for offline review.
+ * Warnings/info stay in memory only.
+ */
+async function persistCriticalIssue(issue: GuardianIssue): Promise<void> {
+  if (issue.severity !== 'critical') return;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    const businessId = (typeof window !== 'undefined'
+      ? window.localStorage.getItem('vistaceo:current-business-id')
+      : null) || null;
+    await supabase.from('admin_audit_log').insert({
+      action_type: 'guardian_critical_issue',
+      action_data: {
+        issue,
+        route: typeof window !== 'undefined' ? window.location.pathname : null,
+        component_hint: issue.type,
+        business_id: businessId,
+        user_id: user?.id ?? null,
+        timestamp: new Date().toISOString(),
+      } as never,
+    } as never);
+  } catch (err) {
+    console.warn('[Guardian] Failed to persist critical issue', err);
+  }
+}
+
+// ============================================
 // ERROR INTERCEPTION
 // ============================================
 
@@ -226,14 +257,16 @@ function installGlobalErrorHandlers() {
 
     if (message.includes('Objects are not valid as a React child')) {
       console.error('[Guardian] React render error — object leaked to UI');
-      state.log.push({
+      const issue: GuardianIssue = {
         id: `react-child-${Date.now()}`,
         type: 'render_error',
         severity: 'critical',
         description: `React child error: ${message.substring(0, 100)}`,
         autoFixed: false,
         timestamp: new Date(),
-      });
+      };
+      state.log.push(issue);
+      persistCriticalIssue(issue).catch(() => {});
       event.preventDefault();
       return;
     }
