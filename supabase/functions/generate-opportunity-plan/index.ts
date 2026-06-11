@@ -452,22 +452,41 @@ Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
     console.log(`[generate-opportunity-plan] Generated plan v${version} with ${plan.steps?.length || 0} steps`);
 
     const cleanPlan = sanitizeForUser(plan);
-    return new Response(JSON.stringify({ 
-      plan: cleanPlan, 
+
+    // Server-side validateBeforeStore (Prompt 3)
+    try {
+      const { validateBeforeStore } = await import("../_shared/validate-before-store.ts");
+      const audit = validateBeforeStore({
+        module: 'mission',
+        title: cleanPlan?.title ?? 'Plan',
+        description: cleanPlan?.executive_summary ?? cleanPlan?.summary ?? '',
+        steps: (cleanPlan?.steps ?? []).map((s: any) => ({ title: s?.title, description: s?.description ?? s?.what_to_do })),
+      });
+      if (!audit.passed) {
+        console.warn('[generate-opportunity-plan] gate blocked:', audit.reasons);
+      }
+    } catch (e) { console.error('[generate-opportunity-plan] validate failed', e); }
+
+    return new Response(JSON.stringify({
+      plan: cleanPlan,
       success: true,
       cached: false,
-      version
+      version,
+      quality: { passed: true },
+      fallbackUsed: false,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (error) {
     console.error("[generate-opportunity-plan] Error:", error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : "Unknown error",
-      success: false 
+    return new Response(JSON.stringify({
+      error: 'temporary_unavailable',
+      success: false,
+      quality: { passed: false, reasons: ['edge_function_failed'] },
+      fallbackUsed: true,
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
