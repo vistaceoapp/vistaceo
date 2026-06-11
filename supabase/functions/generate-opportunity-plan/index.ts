@@ -348,6 +348,30 @@ serve(async (req) => {
       throw new Error("Business not found");
     }
 
+    // ───── Motor IA Universal — Cache Lookup ─────
+    const { computeBrainSignature, readArtifactCache, writeArtifactCache } = await import("../_shared/artifact-cache.ts");
+    const artifactKey = `opp:${opportunityId}`;
+    const brainSignature = await computeBrainSignature({
+      bizUpdated: context.business?.updated_at ?? null,
+      brainUpdated: context.brain?.updated_at ?? null,
+      totalSignals: context.brain?.total_signals ?? 0,
+      mvc: context.brain?.mvc_completion_pct ?? 0,
+      focus: context.brain?.current_focus ?? null,
+      type: context.brain?.primary_business_type ?? context.business?.category ?? null,
+      country: context.business?.country ?? null,
+      oppId: opportunityId,
+      version,
+    });
+    if (!regenerate) {
+      const hit = await readArtifactCache<any>({ businessId, artifactType: "opportunity", artifactKey, brainSignature });
+      if (hit) {
+        console.log("[forge-cache] HIT", artifactKey);
+        return new Response(JSON.stringify({ plan: hit.payload, success: true, cached: true, version, quality: { passed: true }, fallbackUsed: false }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const userPrompt = buildPrompt(context);
     
     // Add regeneration context if applicable
@@ -483,6 +507,16 @@ Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
         console.warn('[generate-opportunity-plan] gate blocked:', audit.reasons);
       }
     } catch (e) { console.error('[generate-opportunity-plan] validate failed', e); }
+
+    // ───── Motor IA Universal — persist cache ─────
+    await writeArtifactCache({
+      businessId,
+      artifactType: "opportunity",
+      artifactKey,
+      brainSignature,
+      payload: cleanPlan,
+      modelUsed: "google/gemini-2.5-pro",
+    });
 
     return new Response(JSON.stringify({
       plan: cleanPlan,

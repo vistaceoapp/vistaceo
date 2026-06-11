@@ -575,6 +575,31 @@ serve(async (req) => {
       console.log(`MVC Completion: ${mvcCompletion}%`);
     }
 
+    // ───── Motor IA Universal — Cache Lookup ─────
+    const { computeBrainSignature, readArtifactCache, writeArtifactCache } = await import("../_shared/artifact-cache.ts");
+    const artifactKey = `mission:${(missionTitle ?? "").slice(0, 120)}::${missionArea ?? "general"}`;
+    const brainSignature = await computeBrainSignature({
+      bizUpdated: context?.business?.updated_at ?? null,
+      brainUpdated: context?.brain?.updated_at ?? null,
+      totalSignals: context?.brain?.total_signals ?? 0,
+      mvc: context?.brain?.mvc_completion_pct ?? 0,
+      focus: context?.brain?.current_focus ?? null,
+      type: context?.brain?.primary_business_type ?? context?.business?.category ?? null,
+      country: context?.business?.country ?? null,
+      title: missionTitle,
+      area: missionArea,
+    });
+    if (businessId && !regenerate) {
+      const hit = await readArtifactCache<any>({ businessId, artifactType: "mission", artifactKey, brainSignature });
+      if (hit) {
+        console.log("[forge-cache] HIT", artifactKey);
+        return new Response(
+          JSON.stringify({ plan: hit.payload, qualityGate: { passed: true, cached: true, modelUsed: hit.modelUsed }, quality: { passed: true }, fallbackUsed: false, cached: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
     // Build context prompt
     const contextPrompt = buildContextPrompt(
       missionTitle,
@@ -587,6 +612,8 @@ serve(async (req) => {
     console.log("Generating mission plan for:", missionTitle);
     console.log("Context length:", contextPrompt.length, "chars");
 
+    const brain = context?.brain ?? null;
+    const business = context?.business ?? null;
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -769,6 +796,18 @@ serve(async (req) => {
         console.warn('[generate-mission-plan] gate blocked:', audit.reasons);
       }
     } catch (e) { console.error('[generate-mission-plan] validate failed', e); }
+
+    // ───── Motor IA Universal — persist cache ─────
+    if (businessId && passed) {
+      await writeArtifactCache({
+        businessId,
+        artifactType: "mission",
+        artifactKey,
+        brainSignature,
+        payload: cleanPlan,
+        modelUsed: "google/gemini-2.5-pro",
+      });
+    }
 
     return new Response(
       JSON.stringify({
