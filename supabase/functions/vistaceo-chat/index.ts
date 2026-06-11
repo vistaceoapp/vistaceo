@@ -372,6 +372,15 @@ Si necesitas estructurar datos, usá viñetas con guiones; el JSON SOLO va en LE
       "due_hint": "YYYY-MM-DD or '48h'"
     }
   ],
+  "missions_to_create": [
+    {
+      "title": "string (acción concreta, máx 80 chars)",
+      "description": "string (1-2 oraciones de por qué + cómo)",
+      "priority": "high|medium|low",
+      "category": "growth|service|tech|custom",
+      "only_when_user_asks": "Incluir SOLO si el usuario pidió explícitamente crear/agregar/armar una misión en este mensaje. Si no, dejar este array vacío []."
+    }
+  ],
   "preferences": [
     {
       "preference": "string",
@@ -1114,6 +1123,33 @@ async function processLearningExtract(
       const existingRisks = (dynamicMemory.identified_risks as unknown[]) || [];
       dynamicMemory.identified_risks = [...risks.slice(0, 5), ...existingRisks.slice(0, 10)];
       updates.dynamic_memory = dynamicMemory;
+    }
+
+    // Process missions_to_create — auto-crea misión cuando el usuario lo pidió
+    // explícitamente. El trigger Free (límite=1) bloqueará automáticamente si excede.
+    const missionsToCreate = learningExtract.missions_to_create as Array<{
+      title: string;
+      description?: string;
+      priority?: string;
+      category?: string;
+    }> | undefined;
+    if (missionsToCreate && Array.isArray(missionsToCreate) && missionsToCreate.length > 0) {
+      const valid = missionsToCreate.filter(m => m && typeof m.title === "string" && m.title.trim().length > 3).slice(0, 3);
+      for (const m of valid) {
+        const { error: mErr } = await supabase.from("missions").insert({
+          business_id: businessId,
+          title: m.title.trim().slice(0, 120),
+          description: (m.description ?? "").slice(0, 600),
+          status: "pending",
+          priority: ["high", "medium", "low"].includes(m.priority ?? "") ? m.priority : "medium",
+          category: ["growth", "service", "tech", "custom"].includes(m.category ?? "") ? m.category : "custom",
+        });
+        if (mErr) {
+          console.warn("[chat] missions_to_create insert blocked:", mErr.message);
+          break; // probable free-limit; cortamos y no spammeamos
+        }
+        learningCount++;
+      }
     }
 
     // Update brain if there are changes
