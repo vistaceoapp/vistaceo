@@ -13,6 +13,7 @@ import type {
   PREDICTION_DOMAINS 
 } from '@/lib/predictions/types';
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { GeneratePredictionsResponse } from '@/lib/edge-function-response-types';
 
 interface UsePredictionsReturn {
   predictions: Prediction[];

@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { AnalyzePatternsResponse } from '@/lib/edge-function-response-types';
 
 interface MarketInsight {
   id: string;

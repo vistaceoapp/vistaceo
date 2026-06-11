@@ -93,7 +93,7 @@ export const AIDailySummary = () => {
 
     try {
       const contextPack = await buildContextPack('dashboard', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe('generate-daily-summary', {
+      const { data, error } = await invokeEdgeFunctionSafe<GenerateDailySummaryResponse>('generate-daily-summary', {
         body: { businessId: currentBusiness.id, module: 'dashboard', contextPack, outputContract: 'daily_summary_v1' }
       });
 

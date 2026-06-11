@@ -26,6 +26,7 @@ import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
 import { ChatSuggestedQuestions } from "@/components/chat/ChatSuggestedQuestions";
 import { SuggestedQuestionsButton } from "@/components/chat/SuggestedQuestionsButton";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { VistaceoChatResponse } from '@/lib/edge-function-response-types';
 
 
 interface MissionSuggestion {

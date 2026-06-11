@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { GooglePlacesInlineEditor } from "./GooglePlacesInlineEditor";
 import { useNavigate } from "react-router-dom";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { AnalyzeReputationResponse } from '@/lib/edge-function-response-types';
 
 interface ReputationAnalysis {
   overall_score: number;

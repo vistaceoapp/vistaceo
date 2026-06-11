@@ -47,6 +47,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { safeLocalStorage } from "@/lib/safe-storage";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { BrainAnalyzeGapsResponse, GenerateMissionPlanResponse } from '@/lib/edge-function-response-types';
 
 interface Mission {
   id: string;

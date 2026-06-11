@@ -18,6 +18,7 @@ import {
   UniversalQuestion
 } from '@/lib/universalQuestionsEngine';
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { GenerateQuestionnaireResponse } from '@/lib/edge-function-response-types';
 
 interface SetupStepQuestionnaireProps {
   countryCode: CountryCode;

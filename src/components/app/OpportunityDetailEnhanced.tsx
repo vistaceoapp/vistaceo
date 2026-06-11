@@ -26,6 +26,7 @@ import {
   OpportunityEvidence
 } from "@/lib/radarQualityGates";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { GenerateOpportunityPlanResponse } from '@/lib/edge-function-response-types';
 
 interface Opportunity {
   id: string;
