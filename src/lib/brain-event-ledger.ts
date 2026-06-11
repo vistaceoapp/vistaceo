@@ -49,6 +49,20 @@ export type BrainEventType =
   | 'edge_function_failed'
   | 'fallback_used'
   | 'repair_event'
+  | 'needs_repair'
+  | 'context_pack_missing_data'
+  | 'module_recalculated'
+  | 'brain_stale_detected'
+  | 'classification_uncertain'
+  | 'business_classification_corrected'
+  | 'business_brain_migrated'
+  | 'business_insight_generated'
+  | 'business_insight_blocked'
+  | 'business_insight_regenerated'
+  | 'opportunity_regenerated'
+  | 'prediction_regenerated'
+  | 'prediction_generation_failed'
+  | 'business_insight_generation_failed'
   | 'guardian_critical_issue';
 
 export type ModuleName =
