@@ -324,7 +324,10 @@ export function startGuardian(businessId?: string) {
       state.issuesFound += domIssues.length;
       state.issuesFixed += domIssues.filter(i => i.autoFixed).length;
       state.log.push(...domIssues);
-      
+      domIssues.filter(i => i.severity === 'critical').forEach(i => {
+        persistCriticalIssue(i).catch(() => {});
+      });
+
       // Keep log manageable
       if (state.log.length > 100) {
         state.log = state.log.slice(-50);
