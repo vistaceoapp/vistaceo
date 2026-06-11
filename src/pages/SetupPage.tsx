@@ -392,7 +392,7 @@ const SetupPage = () => {
         version: 1,
       };
 
-      await supabase.from('business_brains').upsert(brainData, { onConflict: 'business_id' });
+      await supabase.from('business_brains').upsert(brainData as never, { onConflict: 'business_id' });
 
       // Brain Event: setup completado — dispara recalibración de dashboard,
       // health, radar, missions, predictions y analytics.
