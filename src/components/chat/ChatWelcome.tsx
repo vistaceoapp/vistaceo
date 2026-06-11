@@ -48,7 +48,7 @@ export const ChatWelcome = ({
 
       {/* Welcome Text */}
       <h2 className="text-xl font-bold text-foreground mb-1.5 text-center">
-        Hola, {firstName} 👋
+        {firstName === "hola" ? "Hola 👋" : `Hola, ${firstName} 👋`}
       </h2>
       <p className="text-sm text-muted-foreground text-center mb-6 max-w-md leading-relaxed">
         Soy tu CEO virtual. Preguntame, pedime análisis, subí fotos o documentos de tu negocio.
