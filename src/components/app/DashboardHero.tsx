@@ -8,6 +8,7 @@ import { useBrain } from "@/hooks/use-brain";
 import { getHealthStyle } from "@/lib/health-score-utils";
 import { useSanitizedContent } from "@/hooks/use-sanitized-content";
 import { cn } from "@/lib/utils";
+import { SectorSignatureStrip } from "./SectorSignatureStrip";
 
 const DIMENSION_LABELS: Record<string, string> = {
   reputation: "reputación",
