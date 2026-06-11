@@ -558,6 +558,17 @@ const RadarPage = () => {
         })
         .eq("id", opportunity.id);
 
+      recordAction(
+        "radar_item_applied",
+        {
+          opportunityId: opportunity.id,
+          missionId: missionData.id,
+          title: opportunity.title,
+          source: opportunity.source,
+        },
+        { importance: 8, confidence: "high" },
+      );
+
       toast({
         title: "¡Misión creada!",
         description: "La oportunidad se convirtió en una misión activa.",
