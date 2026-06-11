@@ -280,9 +280,10 @@ serve(async (req) => {
     const resolvedBusinessId = business_id ?? businessId;
     console.log('[generate-predictions] module=', module ?? 'predictions', 'hasContextPack=', !!contextPack);
 
-    if (!business_id) {
+    if (!resolvedBusinessId) {
       throw new Error('business_id is required');
     }
+    const business_id_eff = resolvedBusinessId;
 
     console.log(`[generate-predictions] Starting for business ${business_id}`);
 
