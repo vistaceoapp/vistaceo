@@ -1,11 +1,18 @@
 /**
  * seed-business-brain
  *
- * Inserta signals semilla sectoriales en el Brain de un negocio.
- * Idempotente: si ya existen signals con source='sector_baseline' para ese
- * negocio, no hace nada.
+ * Genera signals semilla HIPER-PERSONALIZADAS para el Brain de un negocio
+ * usando Lovable AI (Gemini). No usa familias ni catálogos fijos: cada
+ * negocio recibe señales únicas basadas en su propio contexto declarado
+ * en setup (categoría exacta libre, país, ticket, dayparts, canales, etc.).
+ *
+ * También produce una `personalized_signature` (línea contextual por
+ * daypart) y un `personalized_label` que se guardan en `businesses.settings`
+ * para que la UI hable en el idioma específico de ese negocio.
  *
  * Body: { businessId: string, force?: boolean }
+ * Idempotente: si ya hay signals `source='ai_personalized'` para el negocio
+ * y `force` no es true, no regenera.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -15,117 +22,116 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// === Catálogo sectorial duplicado para edge runtime (no se pueden importar src/) ===
-type DayPart = "early_morning" | "morning" | "midday" | "afternoon" | "evening" | "late_night";
+const DAYPARTS = ["early_morning", "morning", "midday", "afternoon", "evening", "late_night"] as const;
+type DayPart = typeof DAYPARTS[number];
 
-interface SectorSeedSignal {
-  signal_type: string;
-  importance: number;
-  confidence: "low" | "medium" | "high";
-  content: Record<string, unknown>;
-  raw_text: string;
+interface AISeedResponse {
+  label: string;
+  peak_dayparts: DayPart[];
+  signature_by_daypart: Partial<Record<DayPart, string>>;
+  signals: Array<{
+    signal_type: string;
+    importance: number;
+    confidence: "low" | "medium" | "high";
+    content: Record<string, unknown>;
+    raw_text: string;
+  }>;
 }
 
-interface SectorBaseline {
-  key: string;
-  displayName: string;
-  peakDayparts: DayPart[];
-  seedSignals: SectorSeedSignal[];
+function buildPrompt(biz: Record<string, unknown>): string {
+  // Compactar todo el contexto declarado, sin recortes innecesarios.
+  const ctx = {
+    nombre: biz.name,
+    categoria_libre: biz.category,
+    pais: biz.country,
+    moneda: biz.currency,
+    modelo_servicio: biz.service_model,
+    canales: biz.channel_mix,
+    rango_facturacion_mensual: biz.monthly_revenue_range,
+    rango_ticket_promedio: biz.avg_ticket_range,
+    ticket_promedio: biz.avg_ticket,
+    rango_transacciones_diarias: biz.daily_transactions_range,
+    rango_food_cost: biz.food_cost_range,
+    dayparts_activos: biz.active_dayparts,
+    plataformas_delivery: biz.delivery_platforms,
+    plataformas_reserva: biz.reservation_platforms,
+    radio_competitivo_km: biz.competitive_radius_km,
+    direccion: biz.address,
+    settings: biz.settings,
+  };
+
+  return `Sos un analista estratégico senior. Vas a generar el "seed" inicial del cerebro analítico de UN negocio concreto.
+
+CONTEXTO REAL DEL NEGOCIO (datos declarados por el dueño, NO inventes nada extra):
+${JSON.stringify(ctx, null, 2)}
+
+REGLAS DURAS:
+1. Español 100% profesional. Sin anglicismos ("feedback", "insight", "tips", "core"). Sin emojis.
+2. NUNCA inventes cifras propias del negocio (no fabriques ventas, clientes, ratings). Sí podés citar rangos referenciales de la INDUSTRIA específica de este negocio, marcados como referencia.
+3. Personalización máxima: cada signal debe ser relevante para ESTE negocio (categoría exacta, país, ticket, canales). Nada genérico tipo "medir KPIs".
+4. NO uses familias amplias ("gastronomía", "retail"). Hablá del tipo exacto que declaró el usuario.
+5. Tono ejecutivo, directo, sin relleno.
+
+DEVOLVÉ ESTRICTAMENTE UN JSON con esta forma (sin texto fuera del JSON, sin code fences):
+
+{
+  "label": "Etiqueta corta (4-9 palabras) que describe este negocio con precisión, incluyendo ciudad/país si suma. Ej: 'Cafetería de especialidad en Palermo, AR'.",
+  "peak_dayparts": ["array con 1-4 de: early_morning, morning, midday, afternoon, evening, late_night — los reales de ESTE negocio según los datos"],
+  "signature_by_daypart": {
+    "early_morning": "Línea contextual <=120 chars sobre QUÉ pasa en este negocio a esa hora (qué mirar, qué palanca jugar). Vacía si no aplica.",
+    "morning": "...",
+    "midday": "...",
+    "afternoon": "...",
+    "evening": "...",
+    "late_night": "..."
+  },
+  "signals": [
+    {
+      "signal_type": "sector_benchmark | sector_lever | sector_risk | opportunity_seed",
+      "importance": 1-10,
+      "confidence": "low | medium | high",
+      "content": { "metric": "...", "min": 0, "max": 0, "unidad": "...", "fuente": "referencia_industria" },
+      "raw_text": "Frase ejecutiva en español, una sola oración, específica al rubro del negocio."
+    }
+  ]
 }
 
-const SECTOR_BASELINES: Record<string, SectorBaseline> = {
-  cafeteria: {
-    key: "cafeteria",
-    displayName: "Cafetería",
-    peakDayparts: ["early_morning", "morning", "afternoon"],
-    seedSignals: [
-      { signal_type: "sector_benchmark", importance: 6, confidence: "medium", content: { metric: "ticket_promedio_referencia", min: 1800, max: 5200 }, raw_text: "Ticket referencia cafetería de especialidad: 1.800–5.200." },
-      { signal_type: "sector_benchmark", importance: 6, confidence: "medium", content: { metric: "recurrencia_clientes_pct", min: 35, max: 55 }, raw_text: "Recurrencia típica: 35–55%." },
-      { signal_type: "sector_benchmark", importance: 7, confidence: "high", content: { metric: "dayparts_pico", value: ["early_morning","morning","afternoon"] }, raw_text: "Tres picos: 7–9, 10–12 y 16–18." },
-      { signal_type: "sector_benchmark", importance: 5, confidence: "medium", content: { metric: "food_cost_pct", min: 28, max: 38 }, raw_text: "Food cost objetivo: 28–38%." },
-      { signal_type: "sector_benchmark", importance: 5, confidence: "medium", content: { metric: "mix_pasteleria_pct", min: 25, max: 45 }, raw_text: "Pastelería: 25–45% del ticket." },
-      { signal_type: "sector_lever", importance: 7, confidence: "medium", content: { lever: "programa_fidelizacion", impact: "alto" }, raw_text: "Fidelización digital sube recurrencia 8–15 pts en 90 días." },
-      { signal_type: "sector_risk", importance: 6, confidence: "medium", content: { risk: "competencia_radio_500m", impact: "medio" }, raw_text: "Alta densidad de competencia en 500 m presiona ticket." },
-      { signal_type: "sector_lever", importance: 6, confidence: "medium", content: { lever: "menu_engineering", impact: "medio" }, raw_text: "Menú destacando 3 estrellas sube ticket 4–9%." },
-    ],
-  },
-  restaurante: {
-    key: "restaurante",
-    displayName: "Restaurante",
-    peakDayparts: ["midday", "evening"],
-    seedSignals: [
-      { signal_type: "sector_benchmark", importance: 6, confidence: "medium", content: { metric: "rotacion_mesas_servicio", min: 1.5, max: 2.8 }, raw_text: "Rotación de mesas por servicio: 1.5–2.8." },
-      { signal_type: "sector_benchmark", importance: 7, confidence: "high", content: { metric: "dayparts_pico", value: ["midday","evening"] }, raw_text: "Picos: 13–15 y 21–23." },
-      { signal_type: "sector_benchmark", importance: 6, confidence: "medium", content: { metric: "food_cost_pct", min: 30, max: 38 }, raw_text: "Food cost saludable: 30–38%." },
-      { signal_type: "sector_benchmark", importance: 5, confidence: "medium", content: { metric: "labor_cost_pct", min: 28, max: 35 }, raw_text: "Costo personal: 28–35% de venta." },
-      { signal_type: "sector_lever", importance: 7, confidence: "medium", content: { lever: "reservas_propias", impact: "alto" }, raw_text: "Reservas en canal propio bajan comisiones 6–12%." },
-      { signal_type: "sector_risk", importance: 6, confidence: "medium", content: { risk: "dependencia_apps_delivery", impact: "alto" }, raw_text: "Más de 30% por apps erosiona margen." },
-      { signal_type: "sector_lever", importance: 6, confidence: "medium", content: { lever: "carta_estacional", impact: "medio" }, raw_text: "Carta estacional con 3 destacados sube ticket 5–10%." },
-    ],
-  },
-  retail: {
-    key: "retail",
-    displayName: "Retail",
-    peakDayparts: ["midday", "afternoon", "evening"],
-    seedSignals: [
-      { signal_type: "sector_benchmark", importance: 6, confidence: "medium", content: { metric: "conversion_rate_pct", min: 12, max: 28 }, raw_text: "Conversión retail físico: 12–28%." },
-      { signal_type: "sector_benchmark", importance: 6, confidence: "medium", content: { metric: "upt_unidades_por_ticket", min: 1.4, max: 2.6 }, raw_text: "UPT saludable: 1.4–2.6." },
-      { signal_type: "sector_benchmark", importance: 5, confidence: "medium", content: { metric: "rotacion_inventario_anual", min: 4, max: 8 }, raw_text: "Rotación inventario anual: 4–8x." },
-      { signal_type: "sector_lever", importance: 7, confidence: "medium", content: { lever: "clienteling_whatsapp", impact: "alto" }, raw_text: "Clienteling segmentado sube recurrencia 10–20%." },
-      { signal_type: "sector_lever", importance: 6, confidence: "medium", content: { lever: "vidriera_semanal", impact: "medio" }, raw_text: "Vidriera semanal: tráfico +5–12%." },
-      { signal_type: "sector_risk", importance: 6, confidence: "medium", content: { risk: "stock_dormido", impact: "medio" }, raw_text: "25%+ SKUs sin venta 90 días erosiona capital." },
-    ],
-  },
-  servicios: {
-    key: "servicios",
-    displayName: "Servicios profesionales",
-    peakDayparts: ["morning", "midday", "afternoon"],
-    seedSignals: [
-      { signal_type: "sector_benchmark", importance: 6, confidence: "medium", content: { metric: "horas_facturables_pct", min: 55, max: 75 }, raw_text: "Horas facturables sobre disponibles: 55–75%." },
-      { signal_type: "sector_benchmark", importance: 6, confidence: "medium", content: { metric: "tasa_renovacion_cliente_pct", min: 60, max: 85 }, raw_text: "Renovación de clientes: 60–85%." },
-      { signal_type: "sector_lever", importance: 7, confidence: "medium", content: { lever: "paquetizar_servicios", impact: "alto" }, raw_text: "Paquetizar sube ticket 15–30%." },
-      { signal_type: "sector_lever", importance: 6, confidence: "medium", content: { lever: "proceso_onboarding", impact: "medio" }, raw_text: "Onboarding claro reduce churn temprano." },
-      { signal_type: "sector_risk", importance: 6, confidence: "medium", content: { risk: "dependencia_pocos_clientes", impact: "alto" }, raw_text: "+40% en 1 cliente = riesgo." },
-      { signal_type: "sector_benchmark", importance: 5, confidence: "medium", content: { metric: "ciclo_cobro_dias", min: 7, max: 30 }, raw_text: "Ciclo de cobro: 7–30 días." },
-    ],
-  },
-  digital: {
-    key: "digital",
-    displayName: "Negocio digital",
-    peakDayparts: ["morning", "midday", "afternoon", "evening"],
-    seedSignals: [
-      { signal_type: "sector_benchmark", importance: 6, confidence: "medium", content: { metric: "conversion_landing_pct", min: 1.5, max: 6 }, raw_text: "Conversión landing LATAM: 1.5–6%." },
-      { signal_type: "sector_benchmark", importance: 7, confidence: "medium", content: { metric: "churn_mensual_pct", min: 3, max: 8 }, raw_text: "Churn aceptable PyME SaaS: 3–8%." },
-      { signal_type: "sector_lever", importance: 7, confidence: "medium", content: { lever: "activacion_primeros_7_dias", impact: "alto" }, raw_text: "Activación 7d predice retención 90d." },
-      { signal_type: "sector_lever", importance: 6, confidence: "medium", content: { lever: "contenido_seo_evergreen", impact: "alto" }, raw_text: "SEO evergreen compone tráfico en 3–6 meses." },
-      { signal_type: "sector_risk", importance: 6, confidence: "medium", content: { risk: "dependencia_un_canal", impact: "alto" }, raw_text: "+60% tráfico desde 1 canal = frágil." },
-    ],
-  },
-  _default: {
-    key: "_default",
-    displayName: "Negocio",
-    peakDayparts: ["morning", "midday", "afternoon"],
-    seedSignals: [
-      { signal_type: "sector_benchmark", importance: 5, confidence: "medium", content: { metric: "recurrencia_clientes_pct", min: 25, max: 50 }, raw_text: "Recurrencia PyME estable: 25–50%." },
-      { signal_type: "sector_lever", importance: 6, confidence: "medium", content: { lever: "foco_3_palancas", impact: "alto" }, raw_text: "Foco 3 palancas/mes > 10 iniciativas paralelas." },
-      { signal_type: "sector_lever", importance: 6, confidence: "medium", content: { lever: "medicion_semanal_kpis", impact: "medio" }, raw_text: "Medir 3–5 KPIs semanales acelera decisiones." },
-      { signal_type: "sector_risk", importance: 5, confidence: "medium", content: { risk: "decision_por_intuicion", impact: "medio" }, raw_text: "Decidir sin números chicos = corregir tarde." },
-    ],
-  },
-};
+CANTIDAD: entre 8 y 12 signals. Variedad: al menos 3 benchmarks, 3 palancas, 2 riesgos. El resto pueden ser semillas de oportunidades específicas detectadas en el contexto.
 
-const ALIAS_MAP: Record<string, string> = {
-  cafe: "cafeteria", cafetería: "cafeteria", coffee: "cafeteria",
-  resto: "restaurante", bistro: "restaurante", bistró: "restaurante",
-  tienda: "retail", boutique: "retail",
-  ecommerce: "digital", saas: "digital",
-  agencia: "servicios", estudio: "servicios", consultoria: "servicios", consultoría: "servicios", b2b: "servicios",
-};
+Si algún daypart no es relevante para este negocio, devolvelo como "" (string vacío). No incluyas claves extra.`;
+}
 
-function resolveBaseline(category?: string | null): SectorBaseline {
-  if (!category) return SECTOR_BASELINES._default;
-  const k = category.toLowerCase().trim();
-  return SECTOR_BASELINES[ALIAS_MAP[k] ?? k] ?? SECTOR_BASELINES._default;
+async function callLovableAI(prompt: string, apiKey: string): Promise<AISeedResponse> {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": apiKey,
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash-lite",
+      messages: [
+        { role: "system", content: "Devolvés exclusivamente JSON válido, sin texto extra ni code fences." },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.4,
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`AI gateway ${res.status}: ${text.slice(0, 400)}`);
+  }
+  const json = await res.json();
+  const raw = json?.choices?.[0]?.message?.content ?? "";
+  const cleaned = String(raw).replace(/^```json\s*|\s*```$/g, "").trim();
+  const parsed = JSON.parse(cleaned) as AISeedResponse;
+
+  if (!parsed || !Array.isArray(parsed.signals) || parsed.signals.length === 0) {
+    throw new Error("Respuesta de IA inválida: faltan signals");
+  }
+  return parsed;
 }
 
 serve(async (req: Request) => {
@@ -134,8 +140,14 @@ serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceKey);
+    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!lovableKey) {
+      return new Response(JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
+    const supabase = createClient(supabaseUrl, serviceKey);
     const body = await req.json().catch(() => ({}));
     const businessId = String(body?.businessId ?? "").trim();
     const force = Boolean(body?.force);
@@ -145,10 +157,14 @@ serve(async (req: Request) => {
       });
     }
 
-    // Cargar negocio
     const { data: biz, error: bizErr } = await supabase
       .from("businesses")
-      .select("id, name, category, country, settings")
+      .select(
+        "id, name, category, country, currency, settings, service_model, channel_mix, " +
+        "monthly_revenue_range, avg_ticket_range, avg_ticket, daily_transactions_range, " +
+        "food_cost_range, active_dayparts, delivery_platforms, reservation_platforms, " +
+        "competitive_radius_km, address"
+      )
       .eq("id", businessId)
       .maybeSingle();
 
@@ -158,15 +174,15 @@ serve(async (req: Request) => {
       });
     }
 
-    // Idempotencia: ya hay seed para este negocio
+    // Idempotencia
     if (!force) {
       const { count } = await supabase
         .from("signals")
         .select("id", { count: "exact", head: true })
         .eq("business_id", businessId)
-        .eq("source", "sector_baseline");
+        .in("source", ["ai_personalized", "sector_baseline"]);
       if ((count ?? 0) > 0) {
-        return new Response(JSON.stringify({ skipped: true, reason: "ya existe seed", existing: count }), {
+        return new Response(JSON.stringify({ skipped: true, reason: "ya sembrado", existing: count }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -193,18 +209,26 @@ serve(async (req: Request) => {
       brain = created;
     }
 
-    const baseline = resolveBaseline(biz.category as string | null | undefined);
+    // Llamado a Lovable AI
+    const ai = await callLovableAI(buildPrompt(biz as Record<string, unknown>), lovableKey);
 
-    // Insertar signals seed
-    const rows = baseline.seedSignals.map((s) => ({
+    // Filtrar signature daypart vacíos
+    const cleanSignature: Record<string, string> = {};
+    for (const dp of DAYPARTS) {
+      const v = ai.signature_by_daypart?.[dp];
+      if (typeof v === "string" && v.trim().length > 0) cleanSignature[dp] = v.trim();
+    }
+
+    // Insertar signals personalizadas
+    const rows = ai.signals.slice(0, 12).map((s) => ({
       business_id: businessId,
       brain_id: brain!.id,
-      signal_type: s.signal_type,
-      source: "sector_baseline",
-      content: { ...s.content, sector_key: baseline.key, sector_display: baseline.displayName },
-      raw_text: s.raw_text,
-      confidence: s.confidence,
-      importance: s.importance,
+      signal_type: String(s.signal_type || "sector_benchmark"),
+      source: "ai_personalized",
+      content: { ...(s.content || {}), generated_by: "seed-business-brain" },
+      raw_text: String(s.raw_text || "").slice(0, 1000),
+      confidence: ["low", "medium", "high"].includes(s.confidence) ? s.confidence : "medium",
+      importance: Math.max(1, Math.min(10, Number(s.importance) || 5)),
     }));
 
     const { error: insErr, count } = await supabase
@@ -217,19 +241,28 @@ serve(async (req: Request) => {
       });
     }
 
-    // Marcar negocio como seeded
+    // Persistir signature y label personalizados
     const settings = (biz.settings as Record<string, unknown>) || {};
     await supabase
       .from("businesses")
       .update({
-        settings: { ...settings, brain_seeded_at: new Date().toISOString(), brain_seed_sector: baseline.key, needs_seed: false },
+        settings: {
+          ...settings,
+          brain_seeded_at: new Date().toISOString(),
+          brain_seed_source: "ai_personalized",
+          personalized_label: String(ai.label || "").slice(0, 120),
+          personalized_signature: cleanSignature,
+          peak_dayparts: Array.isArray(ai.peak_dayparts) ? ai.peak_dayparts.filter((d) => DAYPARTS.includes(d as DayPart)) : [],
+          needs_seed: false,
+        },
       })
       .eq("id", businessId);
 
     return new Response(JSON.stringify({
       ok: true,
-      sector: baseline.key,
       inserted: count ?? rows.length,
+      label: ai.label,
+      personalized: true,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     return new Response(JSON.stringify({ error: "fallo inesperado", detail: e instanceof Error ? e.message : String(e) }), {
