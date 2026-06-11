@@ -230,11 +230,13 @@ async function fetchMemoryContext(supabase: any, businessId: string) {
       }
     }
 
-    // Format insights
+    // Format insights (humanized — no Q_AI_ / [Setup_answer] codes reach the prompt)
     const insights: string[] = [];
     if (insightsRes.data) {
       for (const insight of insightsRes.data) {
-        insights.push(`${insight.question}: ${insight.answer}`);
+        const q = humanizeEvidence(insight.question);
+        const a = humanizeEvidence(insight.answer);
+        if (q && a) insights.push(`${q}: ${a}`);
       }
     }
 
