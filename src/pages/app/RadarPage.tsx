@@ -10,6 +10,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { buildContextPack } from "@/lib/context-pack-builder";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useRecordBrainView, useRecordBrainAction } from "@/hooks/use-brain-signal";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -153,6 +154,9 @@ const RadarPage = () => {
   const { currentBusiness } = useBusiness();
   const { brain } = useBrain();
   const { canCreate, remaining, isPro, usage, limits } = useFreeLimits();
+  const recordAction = useRecordBrainAction();
+  useRecordBrainView("radar_viewed");
+
   
   // Opportunities (INTERNO)
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -195,6 +199,24 @@ const RadarPage = () => {
       setLoading(false);
     }
   }, [currentBusiness]);
+
+  // Alimenta el Brain cuando el usuario abre una oportunidad para verla.
+  useEffect(() => {
+    if (!selectedOpportunity) return;
+    recordAction(
+      "radar_item_viewed",
+      {
+        opportunityId: selectedOpportunity.id,
+        title: selectedOpportunity.title,
+        source: selectedOpportunity.source,
+        impact: selectedOpportunity.impact_score,
+        effort: selectedOpportunity.effort_score,
+      },
+      { importance: 4, confidence: "medium" },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOpportunity?.id]);
+
 
   const fetchData = async () => {
     if (!currentBusiness) return;
@@ -535,6 +557,17 @@ const RadarPage = () => {
           converted_to_mission_id: missionData.id,
         })
         .eq("id", opportunity.id);
+
+      recordAction(
+        "radar_item_applied",
+        {
+          opportunityId: opportunity.id,
+          missionId: missionData.id,
+          title: opportunity.title,
+          source: opportunity.source,
+        },
+        { importance: 8, confidence: "high" },
+      );
 
       toast({
         title: "¡Misión creada!",
