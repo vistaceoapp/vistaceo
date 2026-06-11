@@ -142,9 +142,12 @@ Deno.serve(async (req) => {
 
     const qualityReasons: string[] = [];
 
-    if ((oppCount || 0) < 1) {
-      // Insert fallback opportunities — ONLY if they pass the seed gate + validateBeforeStore.
+    // Target: 2 opportunities (Free plan ships with 2 from day one)
+    if ((oppCount || 0) < 2) {
+      const needed = 2 - (oppCount || 0);
+      let inserted = 0;
       for (const opp of GENERIC_OPPS) {
+        if (inserted >= needed) break;
         const seedGate = gateSeedInsight({ title: opp.title, description: opp.description });
         const audit = validateBeforeStore({
           module: 'opportunity',
@@ -165,7 +168,7 @@ Deno.serve(async (req) => {
           effort_score: opp.effort_score,
           evidence: { origin: "setup_seed", server_validated: true },
         });
-        if (!error) seededOpps++;
+        if (!error) { seededOpps++; inserted++; }
       }
     }
 
