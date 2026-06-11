@@ -552,7 +552,7 @@ const RadarPage = () => {
           seed: {
             insightTitle: opportunity.title,
             insightSummary: opportunity.description ?? "",
-            insightUrl: opportunity.source_url ?? undefined,
+            insightUrl: (opportunity as { source_url?: string }).source_url ?? undefined,
           },
         });
         if (forged.ok && forged.payload) {
