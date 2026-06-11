@@ -2,8 +2,14 @@
 // Strategy: invoke analyze-patterns (opportunities + research) and, if AI
 // returned nothing, insert deterministic fallbacks so the user never lands
 // on an empty Radar.
+// PROMPT 4: every insert passes server-side validateBeforeStore + seed gates.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { validateBeforeStore } from "../_shared/validate-before-store.ts";
+import { gateSeedInsight } from "../_shared/quality-gates.ts";
+import { sanitizeAIOutput } from "../_shared/ai-output-sanitizer.ts";
+import { hasMinimumContext, type EdgeContextPack } from "../_shared/context-pack-types.ts";
+import { failResponse } from "../_shared/edge-safe-response.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
