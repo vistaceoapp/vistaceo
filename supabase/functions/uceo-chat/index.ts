@@ -96,7 +96,8 @@ function buildContextMessage(businessContext: any, memoryContext: any, brainCont
     if (memoryContext.recentSignals && memoryContext.recentSignals.length > 0) {
       context += `\n\n## Señales Recientes`;
       memoryContext.recentSignals.slice(0, 5).forEach((signal: any) => {
-        context += `\n- [${signal.signal_type}] ${signal.raw_text || JSON.stringify(signal.content).slice(0, 80)}`;
+        const human = humanizeEvidence(signal.raw_text || signal.content);
+        if (human && human.length > 6) context += `\n- ${human}`;
       });
     }
 
