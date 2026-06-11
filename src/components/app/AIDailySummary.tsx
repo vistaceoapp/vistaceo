@@ -103,10 +103,10 @@ export const AIDailySummary = () => {
         setSummary({
           summary_text: data.summary.summary_text || '',
           headline: data.summary.headline || '',
-          priorities: data.summary.priorities || [],
+          priorities: (data.summary.priorities as string[] | undefined) || [],
           mood: data.summary.mood || 'neutral',
           confidence_note: data.summary.confidence_note || '',
-          signals: Array.isArray(data.summary.signals) ? data.summary.signals : [],
+          signals: Array.isArray(data.summary.signals) ? (data.summary.signals as any[]) : [],
         });
       }
     } catch (err) {
