@@ -473,14 +473,17 @@ serve(async (req) => {
   }
 
   try {
-    const { 
-      businessId, 
-      missionTitle, 
-      missionDescription, 
+    const {
+      businessId,
+      missionTitle,
+      missionDescription,
       missionArea,
       regenerate = false,
       enhanceExisting = false,
+      contextPack,
+      module,
     } = await req.json();
+    console.log('[generate-mission-plan] module=', module ?? 'missions', 'hasContextPack=', !!contextPack);
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
