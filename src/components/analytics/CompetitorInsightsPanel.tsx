@@ -14,6 +14,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { ScanCompetitorsResponse } from '@/lib/edge-function-response-types';
 
 interface Competitor {
   id: string;
@@ -102,7 +103,7 @@ export const CompetitorInsightsPanel = () => {
     setScanning(true);
     try {
       const cp = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe("scan-competitors", {
+      const { data, error } = await invokeEdgeFunctionSafe<ScanCompetitorsResponse>("scan-competitors", {
         body: { businessId: currentBusiness.id, module: 'analytics', contextPack: cp, outputContract: 'competitors_v1' }
       });
       if (error) throw error;

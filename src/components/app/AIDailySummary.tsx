@@ -9,6 +9,7 @@ import { useBusiness } from '@/contexts/BusinessContext';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { GenerateDailySummaryResponse } from '@/lib/edge-function-response-types';
 
 interface Signal {
   type: 'opportunity' | 'competitive' | 'prediction' | 'mission' | 'trend' | 'risk';
@@ -92,7 +93,7 @@ export const AIDailySummary = () => {
 
     try {
       const contextPack = await buildContextPack('dashboard', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe('generate-daily-summary', {
+      const { data, error } = await invokeEdgeFunctionSafe<GenerateDailySummaryResponse>('generate-daily-summary', {
         body: { businessId: currentBusiness.id, module: 'dashboard', contextPack, outputContract: 'daily_summary_v1' }
       });
 
@@ -102,10 +103,10 @@ export const AIDailySummary = () => {
         setSummary({
           summary_text: data.summary.summary_text || '',
           headline: data.summary.headline || '',
-          priorities: data.summary.priorities || [],
+          priorities: (data.summary.priorities as string[] | undefined) || [],
           mood: data.summary.mood || 'neutral',
           confidence_note: data.summary.confidence_note || '',
-          signals: Array.isArray(data.summary.signals) ? data.summary.signals : [],
+          signals: Array.isArray(data.summary.signals) ? (data.summary.signals as any[]) : [],
         });
       }
     } catch (err) {

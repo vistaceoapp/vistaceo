@@ -26,6 +26,7 @@ import {
   OpportunityEvidence
 } from "@/lib/radarQualityGates";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { GenerateOpportunityPlanResponse } from '@/lib/edge-function-response-types';
 
 interface Opportunity {
   id: string;
@@ -213,13 +214,13 @@ export const OpportunityDetailEnhanced = ({
 
       try {
         const contextPack = await buildContextPack('radar', business.id).catch(() => null);
-        const { data, error } = await invokeEdgeFunctionSafe("generate-opportunity-plan", {
+        const { data, error } = await invokeEdgeFunctionSafe<GenerateOpportunityPlanResponse>("generate-opportunity-plan", {
           body: { businessId: business.id, opportunityId: opportunity.id, module: 'radar', contextPack, outputContract: 'opportunity_plan_v1' }
         });
 
         if (error) throw error;
         if (data?.plan) {
-          setAIPlan(data.plan);
+          setAIPlan(data.plan as AIPlan);
         }
       } catch (err) {
         console.error("Error fetching AI plan:", err);
@@ -241,13 +242,13 @@ export const OpportunityDetailEnhanced = ({
 
     try {
       const contextPack = await buildContextPack('radar', business.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe("generate-opportunity-plan", {
+      const { data, error } = await invokeEdgeFunctionSafe<GenerateOpportunityPlanResponse>("generate-opportunity-plan", {
         body: { businessId: business.id, opportunityId: opportunity.id, module: 'radar', contextPack, outputContract: 'opportunity_plan_v1' }
       });
 
       if (error) throw error;
       if (data?.plan) {
-        setAIPlan(data.plan);
+        setAIPlan(data.plan as AIPlan);
         toast({ title: "Plan regenerado", description: "Se generó un nuevo plan personalizado" });
       }
     } catch (err) {

@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { GooglePlacesInlineEditor } from "./GooglePlacesInlineEditor";
 import { useNavigate } from "react-router-dom";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { AnalyzeReputationResponse } from '@/lib/edge-function-response-types';
 
 interface ReputationAnalysis {
   overall_score: number;
@@ -62,12 +63,12 @@ export const ReputationAnalyticsPanel = ({ className }: { className?: string }) 
     setAnalyzing(true);
     try {
       const cpRep = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe("analyze-reputation", {
+      const { data, error } = await invokeEdgeFunctionSafe<AnalyzeReputationResponse>("analyze-reputation", {
         body: { businessId: currentBusiness.id, module: 'analytics', contextPack: cpRep, outputContract: 'reputation_v1', forceRefresh: true }
       });
       if (error) throw error;
       if (data?.analysis) {
-        setAnalysis(data.analysis);
+        setAnalysis(data.analysis as unknown as ReputationAnalysis);
         toast({ title: "Análisis completado", description: `Score: ${data.analysis.overall_score}/100` });
       }
     } catch (e) {

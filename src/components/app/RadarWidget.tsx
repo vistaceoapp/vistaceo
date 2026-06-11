@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { AnalyzePatternsResponse } from '@/lib/edge-function-response-types';
 
 interface MarketInsight {
   id: string;
@@ -161,7 +162,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
 
     try {
       const cpRW = await buildContextPack('radar', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe("analyze-patterns", {
+      const { data, error } = await invokeEdgeFunctionSafe<AnalyzePatternsResponse>("analyze-patterns", {
         body: {
           businessId: currentBusiness.id,
           type: "research",
