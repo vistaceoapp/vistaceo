@@ -9,6 +9,7 @@ import { useBusiness } from '@/contexts/BusinessContext';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { GenerateDailySummaryResponse } from '@/lib/edge-function-response-types';
 
 interface Signal {
   type: 'opportunity' | 'competitive' | 'prediction' | 'mission' | 'trend' | 'risk';
