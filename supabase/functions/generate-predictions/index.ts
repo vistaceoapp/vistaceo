@@ -268,12 +268,17 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { 
-      business_id, 
-      horizons = ['H0', 'H1', 'H2', 'H3'], 
+    const {
+      business_id,
+      businessId,
+      horizons = ['H0', 'H1', 'H2', 'H3'],
       domains = ['cashflow', 'demand', 'operations', 'customer', 'sales', 'risk'],
-      force_refresh = false
+      force_refresh = false,
+      contextPack,
+      module,
     } = await req.json();
+    const resolvedBusinessId = business_id ?? businessId;
+    console.log('[generate-predictions] module=', module ?? 'predictions', 'hasContextPack=', !!contextPack);
 
     if (!business_id) {
       throw new Error('business_id is required');
