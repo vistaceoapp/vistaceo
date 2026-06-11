@@ -60,11 +60,14 @@ const BATCH_CONFIG = {
     totalMax: 10,
   },
   complete: {
-    firstBatch: 18,
-    parallelBatches: 1,
-    perBatch: 14,
-    totalMin: 22,
-    totalMax: 35,
+    // Modo completo: 30 preguntas reales, cargadas en 3 batches paralelos
+    // para que el usuario pueda empezar a responder con las primeras 12
+    // mientras se generan las otras 18 en background.
+    firstBatch: 12,
+    parallelBatches: 2,
+    perBatch: 11, // 12 + 2x11 = 34 generadas → cap a 30
+    totalMin: 28,
+    totalMax: 30,
   },
 };
 
@@ -519,7 +522,8 @@ export const SetupStepQuestionnaire = ({
     generateFirstBatch();
   }, [generateFirstBatch, hasCache, questions.length]);
 
-  // Background batches (solo modo Completo): profundizar tras primera respuesta.
+  // Background batches (solo modo Completo): arrancan APENAS llega el primer batch
+  // para que las 18 preguntas restantes estén listas mientras el usuario responde.
   useEffect(() => {
     if (backgroundFetchStarted.current || allBatchesDone.current) return;
     if (setupMode !== 'complete') return;
@@ -528,13 +532,11 @@ export const SetupStepQuestionnaire = ({
       generateRemainingBatches();
       return;
     }
-    // Esperar contexto real: ≥3 respuestas y al menos identidad/canal/fricción tocados.
-    // Esto garantiza que el batch 2 profundice causas, no repita preguntas decorativas.
-    const answeredCount = Object.keys(latestAnswersRef.current || {}).length;
-    if (!isLoadingFirst && questions.length > 0 && answeredCount >= 3 && currentIndex >= 2) {
+    // Disparar inmediatamente al tener el primer batch (no esperar respuestas).
+    if (!isLoadingFirst && questions.length > 0) {
       generateRemainingBatches();
     }
-  }, [isLoadingFirst, questions.length, currentIndex, generateRemainingBatches, hasCache, cacheComplete, setupMode]);
+  }, [isLoadingFirst, questions.length, generateRemainingBatches, hasCache, cacheComplete, setupMode]);
 
   // Cycle loading messages
   useEffect(() => {

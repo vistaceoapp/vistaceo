@@ -283,6 +283,7 @@ Responde usando la función generate_questions.`;
         ],
         tool_choice: { type: "function", function: { name: "generate_questions" } },
         temperature: 0.4,
+        max_tokens: 8192,
       }),
     });
 
@@ -387,6 +388,7 @@ Responde usando la función generate_questions.`;
             ],
             tool_choice: { type: "function", function: { name: "generate_questions" } },
             temperature: 0.4,
+            max_tokens: 8192,
           }),
         });
 
@@ -550,9 +552,10 @@ Responde usando la función generate_questions.`;
     });
 
     // ========================================================================
-    // MODE DEPTH GATE — hard caps por modo. Rápido ≤10, Completo ≤35.
+    // MODE DEPTH GATE — hard caps por modo. Rápido ≤12, Completo ≤40.
+    // Permitimos más margen para que el cap del cliente recorte sin descartar válidas.
     // ========================================================================
-    const HARD_CAP = isQuick ? 10 : 35;
+    const HARD_CAP = isQuick ? 12 : 40;
     const capped = brainGated.slice(0, HARD_CAP);
 
     // ========================================================================
