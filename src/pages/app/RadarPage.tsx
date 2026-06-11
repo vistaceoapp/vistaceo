@@ -269,8 +269,9 @@ const RadarPage = () => {
     setGeneratingOpportunities(true);
     
     try {
+      const cpRad = await buildContextPack('radar', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("analyze-patterns", {
-        body: { businessId: currentBusiness.id, type: "opportunities" }
+        body: { businessId: currentBusiness.id, type: "opportunities", module: 'radar', contextPack: cpRad, outputContract: 'radar_opportunities_v1' }
       });
 
       // 402: límite alcanzado (Free o Pro)
