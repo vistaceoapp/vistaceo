@@ -272,7 +272,7 @@ const RadarPage = () => {
     
     try {
       const cpRad = await buildContextPack('radar', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe("analyze-patterns", {
+      const { data, error } = await invokeEdgeFunctionSafe<AnalyzePatternsResponse>("analyze-patterns", {
         body: { businessId: currentBusiness.id, type: "opportunities", module: 'radar', contextPack: cpRad, outputContract: 'radar_opportunities_v1' }
       });
 
@@ -338,7 +338,7 @@ const RadarPage = () => {
 
     try {
       const cpResearch = await buildContextPack('radar', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe("analyze-patterns", {
+      const { data, error } = await invokeEdgeFunctionSafe<AnalyzePatternsResponse>("analyze-patterns", {
         body: {
           businessId: currentBusiness.id,
           type: "research",
