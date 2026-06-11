@@ -264,14 +264,35 @@ FORMATO JSON (todo en español, SIN excepciones):
       response_rate: Math.round(responseRate),
       avg_response_time_hours: null,
       trend: aiAnalysis.trend || "stable",
-      ai_summary: aiAnalysis.ai_summary || (reviewTexts.length > 0 
-        ? `Análisis basado en ${reviewTexts.length} reseñas reales.`
-        : "Análisis basado en la información proporcionada al Brain. Vinculá tu negocio en Google Maps para un análisis más preciso con reseñas reales."),
-      recommendations: aiAnalysis.recommendations || [],
+      ai_summary: sanitizeAIOutput(
+        aiAnalysis.ai_summary || (reviewTexts.length > 0
+          ? `Análisis basado en ${reviewTexts.length} reseñas reales.`
+          : REPUTATION_FALLBACK),
+        { mode: "prose" },
+      ),
+      recommendations: (aiAnalysis.recommendations || []).map((r: string) => sanitizeAIOutput(r, { mode: "prose" })),
       analyzed_reviews_count: reviewTexts.length,
       last_analysis: new Date().toISOString(),
       source: analysisMode,
     };
+
+    // QUALITY GATE — bloquear reputación inventada.
+    const gate = gateReputation({
+      reviewsCount: reviewTexts.length,
+      score: overallScore,
+      summary: analysis.ai_summary,
+    });
+    const hasRedListLeak = containsForbidden(analysis.ai_summary);
+    if (!gate.passed || hasRedListLeak) {
+      console.warn("[analyze-reputation] gate failed:", gate.reasons, { hasRedListLeak });
+      return okResponse({
+        data: { analysis: null, source: analysisMode },
+        visibleText: REPUTATION_FALLBACK,
+        quality: { passed: false, reasons: [...gate.reasons, ...(hasRedListLeak ? ["red_list_leak"] : [])] },
+        fallbackUsed: true,
+        eventsToEmit: [{ eventType: "reputation_insufficient_data", payload: { businessId, reasons: gate.reasons } }],
+      });
+    }
 
     // Save to brain
     if (brain) {
@@ -286,7 +307,6 @@ FORMATO JSON (todo en español, SIN excepciones):
         },
         updated_at: new Date().toISOString(),
       }).eq("id", brain.id);
-      console.log("[analyze-reputation] Brain updated");
     } else {
       await supabase.from("business_brains").insert({
         business_id: businessId,
@@ -297,20 +317,26 @@ FORMATO JSON (todo en español, SIN excepciones):
           last_reputation_scan: new Date().toISOString(),
         },
       });
-      console.log("[analyze-reputation] Brain created");
     }
 
     console.log(`[analyze-reputation] Done: Score ${overallScore}/100, mode: ${analysisMode}`);
 
-    return new Response(JSON.stringify({ success: true, analysis }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return okResponse({
+      data: { analysis },
+      quality: { passed: true },
+      fallbackUsed: false,
+      eventsToEmit: [{
+        eventType: "reputation_analyzed",
+        payload: { businessId, score: overallScore, source: analysisMode },
+        modulesToRecalculate: ["analytics", "dashboard"],
+      }],
+    });
 
   } catch (error) {
-    console.error("[analyze-reputation] Error:", error);
-    return new Response(JSON.stringify({ error: "Failed to analyze", details: String(error) }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return failResponse(error, { module: "reputation", fallbackText: REPUTATION_FALLBACK });
   }
 });
+
 
 /** Build Brain context string from factual/dynamic memory */
 function buildBrainContext(factual: Record<string, any>, dynamic: Record<string, any>, business: any): string {
