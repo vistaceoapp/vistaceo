@@ -720,7 +720,22 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
       updated_at: now,
     }));
 
-    if (predictionsToInsert.length > 0) {
+    // Server-side validateBeforeStore (Prompt 3): drop predictions without evidence or with leaks.
+    let validatedPredictions = predictionsToInsert;
+    try {
+      const { validateBeforeStore } = await import("../_shared/validate-before-store.ts");
+      validatedPredictions = predictionsToInsert.filter((p: any) => {
+        const audit = validateBeforeStore({
+          module: 'prediction',
+          title: p.title,
+          baseEvidence: (p.evidence?.signals_internal_top ?? []).concat(p.evidence?.signals_external_top ?? []).join('; ') || p.summary,
+        });
+        if (!audit.passed) console.warn('[generate-predictions] dropped prediction:', audit.reasons, p.title);
+        return audit.passed;
+      });
+    } catch (e) { console.error('[generate-predictions] validate failed', e); }
+
+    if (validatedPredictions.length > 0) {
       const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/predictions`, {
         method: 'POST',
         headers: {
