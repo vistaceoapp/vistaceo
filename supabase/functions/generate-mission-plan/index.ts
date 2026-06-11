@@ -575,6 +575,31 @@ serve(async (req) => {
       console.log(`MVC Completion: ${mvcCompletion}%`);
     }
 
+    // ───── Motor IA Universal — Cache Lookup ─────
+    const { computeBrainSignature, readArtifactCache, writeArtifactCache } = await import("../_shared/artifact-cache.ts");
+    const artifactKey = `mission:${(missionTitle ?? "").slice(0, 120)}::${missionArea ?? "general"}`;
+    const brainSignature = await computeBrainSignature({
+      bizUpdated: context?.business?.updated_at ?? null,
+      brainUpdated: context?.brain?.updated_at ?? null,
+      totalSignals: context?.brain?.total_signals ?? 0,
+      mvc: context?.brain?.mvc_completion_pct ?? 0,
+      focus: context?.brain?.current_focus ?? null,
+      type: context?.brain?.primary_business_type ?? context?.business?.category ?? null,
+      country: context?.business?.country ?? null,
+      title: missionTitle,
+      area: missionArea,
+    });
+    if (businessId && !regenerate) {
+      const hit = await readArtifactCache<any>({ businessId, artifactType: "mission", artifactKey, brainSignature });
+      if (hit) {
+        console.log("[forge-cache] HIT", artifactKey);
+        return new Response(
+          JSON.stringify({ plan: hit.payload, qualityGate: { passed: true, cached: true, modelUsed: hit.modelUsed }, quality: { passed: true }, fallbackUsed: false, cached: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
     // Build context prompt
     const contextPrompt = buildContextPrompt(
       missionTitle,
