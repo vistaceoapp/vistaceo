@@ -103,7 +103,7 @@ export const CompetitorInsightsPanel = () => {
     setScanning(true);
     try {
       const cp = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe("scan-competitors", {
+      const { data, error } = await invokeEdgeFunctionSafe<ScanCompetitorsResponse>("scan-competitors", {
         body: { businessId: currentBusiness.id, module: 'analytics', contextPack: cp, outputContract: 'competitors_v1' }
       });
       if (error) throw error;
