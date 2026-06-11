@@ -2,11 +2,19 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
 import { sanitizeForUser } from "../_shared/brain-core/sanitize-output.ts";
+import { sanitizeAIOutput, containsForbidden } from "../_shared/ai-output-sanitizer.ts";
+import { validateBeforeStore } from "../_shared/validate-before-store.ts";
+import { gateHealthScore } from "../_shared/quality-gates.ts";
+import { hasMinimumContext, type EdgeContextPack } from "../_shared/context-pack-types.ts";
+import { failResponse } from "../_shared/edge-safe-response.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const NO_DATA_MESSAGE =
+  "Todavía no hay datos suficientes para medir esta dimensión con precisión. VISTACEO la puede estimar mejor cuando registres más información, avances de misión o métricas reales.";
 
 interface HealthDimension {
   score: number;
@@ -37,7 +45,11 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, setupData, googleData, brainData, integrationsData, signalsData } = await req.json();
+    const { businessId, setupData, googleData, brainData, integrationsData, signalsData, contextPack } = await req.json();
+    const pack = contextPack as EdgeContextPack | undefined;
+    if (pack && !hasMinimumContext(pack)) {
+      console.warn("[analyze-health-score] ContextPack received but lacks minimum context");
+    }
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
