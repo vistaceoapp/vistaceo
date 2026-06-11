@@ -263,16 +263,19 @@ NIVEL DE CONTEXTO (MVC): ${brain.mvc_completion_pct || 0}%`;
       Object.entries(groupedInsights).forEach(([category, insights]) => {
         prompt += `\n[${category.toUpperCase()}]`;
         insights.slice(0, 5).forEach((insight: any) => {
-          prompt += `\n• ${insight.question}: ${insight.answer}`;
+          const q = humanizeEvidence(insight.question);
+          const a = humanizeEvidence(insight.answer);
+          if (q && a) prompt += `\n• ${q}: ${a}`;
         });
       });
     }
 
-    // Recent signals for latest context
+    // Recent signals for latest context (humanized — no raw JSON or internal IDs)
     if (context.recentSignals?.length > 0) {
       prompt += "\n\n===== SEÑALES RECIENTES =====";
       context.recentSignals.slice(0, 5).forEach((signal: any) => {
-        prompt += `\n• [${signal.signal_type}/${signal.source}]: ${signal.raw_text || JSON.stringify(signal.content).slice(0, 100)}`;
+        const human = humanizeEvidence(signal.raw_text || signal.content);
+        if (human && human.length > 6) prompt += `\n• ${human}`;
       });
     }
 
