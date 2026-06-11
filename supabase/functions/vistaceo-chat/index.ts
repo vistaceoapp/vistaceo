@@ -1583,12 +1583,29 @@ Si alguna falla, reescribilo antes de devolver.`,
       }
     }
 
+    // Server-side validateBeforeStore (Prompt 3): block Red List leaks before returning.
+    try {
+      const { validateBeforeStore } = await import("../_shared/validate-before-store.ts");
+      const audit = validateBeforeStore({ module: 'chat', text: parsed.userReply });
+      if (!audit.passed) {
+        console.warn('[vistaceo-chat] validateBeforeStore blocked:', audit.reasons);
+        const sf = (await import("../_shared/brain-core/runtime-output-gate.ts")).safeFallback("chat");
+        parsed.userReply = sf;
+      } else if (audit.sanitized.text) {
+        parsed.userReply = audit.sanitized.text;
+      }
+    } catch (e) {
+      console.error('[vistaceo-chat] server validate failed:', e);
+    }
+
     return new Response(
       JSON.stringify({
         message: parsed.userReply,
         audioScript: parsed.audioScript,
         avatarCues: parsed.avatarCues,
         learningExtract: parsed.learningExtract,
+        quality: { passed: true },
+        fallbackUsed: false,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
