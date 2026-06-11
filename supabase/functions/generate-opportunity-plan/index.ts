@@ -366,7 +366,7 @@ Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash", // Más capacidad de razonamiento para plan rico y profundo
+        model: "google/gemini-2.5-pro", // Más capacidad de razonamiento para plan rico y profundo
         messages: [
           { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("radar")}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: (context.brain?.primary_business_type as string) || context.business?.category || null, country: context.business?.country || null, offer: (context.brain?.factual_memory as any)?.offer ?? null, customer: (context.brain?.factual_memory as any)?.customer ?? null, channel: (context.brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
           { role: "user", content: userPrompt }

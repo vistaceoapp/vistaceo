@@ -94,7 +94,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite", // Cost-optimized: structured JSON output with clear prompt
+        model: "google/gemini-2.5-pro", // Cost-optimized: structured JSON output with clear prompt
         messages: [
           {
             role: "system",
