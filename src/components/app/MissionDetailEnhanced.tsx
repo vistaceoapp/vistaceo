@@ -49,6 +49,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useContentStaleness } from "@/hooks/use-content-staleness";
+import { StaleContentBanner } from "@/components/app/StaleContentBanner";
 
 interface Step {
   text: string;
@@ -342,6 +344,8 @@ export const MissionDetailEnhanced = ({
     onToggleStep(mission.id, expandedStep);
   };
 
+  const staleness = useContentStaleness(businessId, mission.id, mission.created_at);
+
   return (
     <div 
       ref={containerRef}
@@ -511,6 +515,14 @@ export const MissionDetailEnhanced = ({
 
       {/* Main content - single scrollable area */}
       <main className="flex-1 p-4 md:p-5 space-y-5">
+        <StaleContentBanner
+          show={staleness.isStale}
+          loading={loading}
+          onRegenerate={() => { staleness.dismiss(); fetchEnhancedPlan(true); }}
+          onDismiss={staleness.dismiss}
+          label="Tu negocio cambió desde que se creó esta misión"
+        />
+
         {/* Loading state */}
         {loading && !enhancedPlan ? (
           <div className="space-y-4">
