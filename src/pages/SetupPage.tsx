@@ -418,7 +418,9 @@ const SetupPage = () => {
           answers: data.answers,
           // Versión semántica: cada respuesta enriquecida con intentKey,
           // targetBrainField, healthDimension, wasUnknown, wasClarification, etc.
-          answers_semantic: buildSemanticAnswerMap(data.answers ?? {}),
+          answers_semantic: buildSemanticAnswerMap(data.answers ?? {}, readQuestionCatalog()),
+          integrations_profiled: data.integrationsProfiled,
+        },
           integrations_profiled: data.integrationsProfiled,
         },
         preferences_memory: {
