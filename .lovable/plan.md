@@ -1,83 +1,94 @@
+# Fix integral: setup completo, tono humano, radar y misiones inmersivas
 
-# Plan: Personalización total del sistema post-setup
+Atacamos 4 problemas reales que detectaste en el negocio "Abogado prueba":
 
-Objetivo: que cualquier negocio que termine el setup vea un **Inicio + Brain + Radar + Misiones + Analíticas + Predicciones** que se sientan hechos a medida del **sector + país + tamaño + nombre** desde el segundo 1 — sin estados vacíos ni copys genéricos.
+1. Setup "completo" devuelve 18 de 30 preguntas
+2. Hay que esperar a que carguen todas para arrancar
+3. Dashboard habla en métricas frías ("30/100", "Crítico") en vez de lenguaje humano
+4. Radar y Misiones se quedan cortos: poca info, sin despliegue inmersivo, sin pasos completos
 
-## Diagnóstico actual (del QA con `Café Aurora Palermo`)
+---
 
-- Brain arranca en **0 signals / 0% confianza** → Salud queda en rojo crítico sin razón.
-- Radar muestra **"Analizando…" indefinido** si la edge function tarda o falla; KPIs en 0.
-- Chat saludaba `"Hola, Café"` (truncaba nombre del negocio en vez de usar el usuario) — **ya corregido**.
-- Dashboard Inicio usa el mismo layout para todos los sectores: no hay "wow" de personalización.
-- Misiones / Predicciones / Analíticas muestran ceros y candados Pro, pero sin ningún gancho previo que justifique el upgrade.
+## 1. Setup completo: 30/30 preguntas garantizadas + carga progresiva
 
-## Cambios
+**Problema técnico:** `generate-questionnaire` pide a Gemini 65-75 preguntas en un solo shot. El modelo trunca por `maxOutputTokens` y devuelve 18-25. No hay reintentos ni completado.
 
-### 1. Brain — semilla automática por sector (al crear negocio)
+**Cambios:**
+- `supabase/functions/generate-questionnaire/index.ts`
+  - Modo `complete` pasa a generar en **batches de 10** preguntas (3 batches paralelos para llegar a 30 rápido).
+  - Subir `maxOutputTokens` por batch.
+  - Validar cantidad recibida y, si falta, llamar un batch extra de completado pidiendo solo "N preguntas restantes en las dimensiones X, Y".
+  - Garantía dura: nunca devolver menos de lo pedido. Si el modelo falla 2 veces, completar con plantillas hyper-personalizadas del sector.
+- `src/components/setup/SetupStepQuestionnaire.tsx` / `src/lib/setupV7.ts`
+  - **Streaming progresivo real:** mostrar las primeras 10 preguntas apenas llega el primer batch, permitir responder mientras los siguientes 2 batches cargan en background.
+  - Indicador sutil "Cargando más preguntas…" en el footer, no bloqueante.
+  - Si el usuario termina las primeras 10 antes de que llegue el siguiente batch, mostrar skeleton 1.5s máx.
 
-- Nuevo edge function `seed-business-brain` que se dispara al completar setup.
-- Inserta **8–12 signals iniciales** desde `business_type_configs` para el `category` elegido (ej. cafetería AR: ticket promedio típico, % delivery, dayparts pico, mix de productos, KPIs de referencia).
-- Marca `source = 'sector_seed'` para diferenciarlas de signals reales del usuario.
-- Recalcula `confidence_score` automáticamente vía trigger existente → arranca en ~25–35%.
-- Hook `useBusinessLifecycle` invoca la función una sola vez (idempotente por `business_id`).
+## 2. Dashboard con voz humana (no métricas crudas)
 
-### 2. Radar — fallback de oportunidades base + estado claro
+**Problema:** "30/100", "40 Crítico", "Abogado prueba: el problema hoy es reputación (30/100)". Eso es un report, no un asistente.
 
-- En `radar-generate` edge function: si tras 25s no hay output del motor v14, devolver **3 oportunidades base** del Mega Sector Engine (ya existe el catálogo de 180+ sectores) marcadas `source: 'sector_baseline'`.
-- UI Radar: si `status === 'analyzing'` por > 45s, mostrar las baselines con badge "Base sectorial — refinando con datos reales".
-- Nunca dejar la pantalla en "Analizando…" perpetuo.
+**Cambios en `src/components/app/DashboardHero.tsx` + `supabase/functions/dashboard-prepare/index.ts`:**
+- Mapear scores numéricos a frases humanas (ya existe `business-health-semantic-system-v5-es` en memoria — usarla):
+  - 0-30 → "reputación muy baja" / "necesita atención urgente"
+  - 31-50 → "reputación floja"
+  - 51-70 → "reputación correcta, hay margen"
+  - 71-85 → "reputación sólida"
+  - 86-100 → "reputación excelente"
+- Eliminar el número crudo del hero. Mantenerlo solo en analytics si el usuario abre detalle.
+- Mensaje hero reescrito por IA con tono cálido + emojis sutiles (1 por mensaje, no decoración):
+  - "Buenas tardes, Abogado prueba 👋 Hoy tu reputación está floja y es lo que más te frena. Si la trabajamos esta semana, vas a sentir un salto real en confianza de clientes."
+- Quitar la palabra "Crítico" como badge. Reemplazar por "Prioridad de la semana" en tono neutro.
 
-### 3. Dashboard Inicio — hero personalizado por sector
+## 3. Radar de oportunidades inmersivo
 
-- Nuevo componente `SectorHeroCard` reemplaza el bloque `Buenos días {nombre}` genérico.
-- Lee `business.category` + `country` + hora local + `daypart` actual.
-- Renderiza:
-  - Saludo contextual ("Buenos días, equipo de Café Aurora — turno de la mañana en Palermo").
-  - 1 KPI sectorial relevante al daypart (ej. "Hora pico de cafetería: 8–10am").
-  - 1 acción concreta sugerida según hora + sector.
-- Variantes visuales por familia de sector (gastronomía / retail / servicios / digital) con gradientes y patrones sutiles distintos — manteniendo el design system minimalista premium.
+**Problema:** Se ven tarjetas chicas, al abrir una oportunidad la info es pobre.
 
-### 4. Chat CEO — system prompt enriquecido
+**Cambios:**
+- `supabase/functions/radar-deep-dive/index.ts` (nuevo o ampliar existente): cuando el usuario abre una oportunidad/tendencia, llamar a Gemini 2.5 Pro con el brain completo del negocio y generar:
+  - Resumen ejecutivo (2 líneas)
+  - Por qué le importa a *este* negocio específico (justificación con datos del brain)
+  - Tamaño de mercado / urgencia (cualitativo, no inventar números)
+  - 3-5 movimientos concretos para capturarla
+  - Riesgos / contraindicaciones
+  - Fuentes externas reales (Gate 0 de `radar-external-source-validation-es`)
+- `src/pages/app/RadarPage.tsx` + nuevo `src/components/radar/OpportunityDeepDive.tsx`:
+  - Al click, abrir Sheet/Dialog full-height con secciones colapsables animadas (framer-motion)
+  - Skeleton mientras carga el deep-dive
+  - CTA "Convertir en misión" destacado al final
+- Filtro de calidad: si una oportunidad no pasa el Gate 0 (sin fuente real) o el score < 75, no se muestra. Cero ruido.
 
-- `chat-stream` edge function: inyectar en el system prompt el **resumen estructurado del negocio** (categoría, país, ticket, dayparts, top 3 signals, foco actual) ya extraído del Brain.
-- Sugerencias iniciales (`ChatSuggestedQuestions`) ya son contextuales — verificar que usen el nuevo seed.
+## 4. Misiones con guía paso a paso completa
 
-### 5. Migración usuarios existentes
+**Problema:** Misiones quedan superficiales.
 
-- Migración SQL: para cada `business` con `setup_completed=true` y `total_signals=0`, encolar `seed-business-brain` (vía `pg_net` o flag `needs_seed=true` que el frontend lee al cargar).
-- Nadie pierde datos reales; sólo se suman baselines marcadas.
+**Cambios:**
+- `supabase/functions/generate-mission-plan/index.ts`: forzar estructura completa, 8-12 pasos, cada paso con:
+  - Título corto
+  - Por qué (1 línea conectada al brain)
+  - Cómo hacerlo (3-6 sub-bullets concretos)
+  - Tiempo estimado
+  - Resultado esperado
+  - Checklist de validación
+- Añadir "Resumen ejecutivo" + "Qué vas a lograr" + "Indicadores de éxito" en el header de la misión.
+- `src/pages/app/MissionsPage.tsx` / `MissionDetail`:
+  - Layout tipo "manual operativo": índice lateral sticky, paso activo expandido, animaciones suaves entre pasos.
+  - Botón "Marcar paso completado" que escribe al brain (ya conectado).
 
-### 6. Guard rails
+---
 
-- Respetar **Data Persistence Guard**: las baselines tienen `source` distinto y nunca pisan signals reales.
-- Respetar **Health Semantic System**: 6 niveles, sin verde para health.
-- 100% español, sin anglicismos, marca VISTACEO mayúscula.
-- Sin claims inventados: si no hay datos, decirlo ("Estimado sectorial, refinamos con tus datos reales").
+## Orden de implementación
 
-## Archivos a tocar
+1. Setup batching + progresivo (desbloquea pruebas reales)
+2. Dashboard tono humano (cambio visible inmediato)
+3. Radar deep-dive
+4. Misiones manual operativo
 
-```text
-supabase/functions/seed-business-brain/index.ts          NUEVO
-supabase/functions/radar-generate/index.ts               EDIT (timeout + baseline fallback)
-supabase/migrations/<ts>_brain_seed_backfill.sql         NUEVO
-src/components/dashboard/SectorHeroCard.tsx              NUEVO
-src/pages/app/InicioPage.tsx                             EDIT (montar SectorHeroCard)
-src/hooks/use-business-lifecycle.ts                      EDIT (trigger seed una vez)
-src/pages/app/RadarPage.tsx                              EDIT (mostrar baselines tras 45s)
-src/lib/sector-baselines.ts                              NUEVO (catálogo seed por sector)
-```
+## Detalles técnicos clave
 
-## QA al cerrar
+- IA: `google/gemini-2.5-pro` para deep-dives (radar + misiones), `gemini-3-flash-preview` para batches de setup (rápido).
+- Todos los nuevos eventos siguen escribiendo al brain vía `brain-record-signal` (ya está el hook `use-brain-signal`).
+- Sin nuevas tablas. Reutilizamos `opportunities.deep_dive_json` y `missions.plan_json` (agregamos columnas si faltan vía migración mínima).
+- Respeta memoria: nada de verde para salud, 100% español, sin anglicismos, "VISTACEO" uppercase.
 
-1. Crear negocio nuevo (sector distinto: ej. boutique MX) → confirmar Brain >20%, Radar con 3+ oportunidades, Inicio con hero sectorial distinto.
-2. Reusar `Café Aurora Palermo` → re-correr seed por backfill y confirmar diferencias visibles.
-3. Comparar lado a lado 2 negocios de sectores distintos → el dashboard tiene que verse claramente diferente.
-
-## Fuera de alcance (lo digo explícito)
-
-- Rediseño completo del sidebar / navegación.
-- Cambios al sistema de pago / Pro tiers.
-- Tocar `Auth` o `Setup` (ya validados en QA previo).
-- Reescribir el motor Radar v14 o el Cognitive OS v5 — sólo añadimos fallback + seed.
-
-¿Apruebo y arranco por el orden 1 → 2 → 3 → 4 → 5?
+¿Confirmás que arranque por el orden 1→4, o querés que empiece por otro (ej: dashboard primero para verlo ya)?
