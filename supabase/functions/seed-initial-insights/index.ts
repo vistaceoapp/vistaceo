@@ -80,12 +80,16 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    const { businessId } = await req.json();
+    const { businessId, contextPack } = await req.json();
     if (!businessId) {
       return new Response(JSON.stringify({ error: "businessId required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    const pack = contextPack as EdgeContextPack | undefined;
+    if (pack && !hasMinimumContext(pack)) {
+      console.warn("[seed-initial-insights] ContextPack received but lacks minimum context");
     }
 
     console.log(`[seed-initial-insights] Starting for business: ${businessId}`);
@@ -136,34 +140,57 @@ Deno.serve(async (req) => {
     let seededTrends = 0;
     let seededMissions = 0;
 
+    const qualityReasons: string[] = [];
+
     if ((oppCount || 0) < 1) {
-      // Insert 2 generic opportunities so user lands on a populated radar.
+      // Insert fallback opportunities — ONLY if they pass the seed gate + validateBeforeStore.
       for (const opp of GENERIC_OPPS) {
-        const { error } = await supabase.from("opportunities").insert({
-          business_id: businessId,
+        const seedGate = gateSeedInsight({ title: opp.title, description: opp.description });
+        const audit = validateBeforeStore({
+          module: 'opportunity',
           title: opp.title,
           description: opp.description,
+        });
+        if (!seedGate.passed || !audit.passed) {
+          console.warn(`[seed-initial-insights] blocked seed opp "${opp.title}":`, [...seedGate.reasons, ...audit.reasons]);
+          qualityReasons.push(...seedGate.reasons, ...audit.reasons);
+          continue;
+        }
+        const { error } = await supabase.from("opportunities").insert({
+          business_id: businessId,
+          title: audit.sanitized.title ?? opp.title,
+          description: audit.sanitized.description ?? opp.description,
           source: "diagnóstico inicial",
           impact_score: opp.impact_score,
           effort_score: opp.effort_score,
-          evidence: { origin: "setup_seed" },
+          evidence: { origin: "setup_seed", server_validated: true },
         });
         if (!error) seededOpps++;
       }
     }
 
     if ((learnCount || 0) < 1) {
-      const { error } = await supabase.from("learning_items").insert({
-        business_id: businessId,
+      const trendAudit = validateBeforeStore({
+        module: 'radar',
         title: GENERIC_TREND.title,
-        content: GENERIC_TREND.content,
-        item_type: GENERIC_TREND.item_type,
-        source: GENERIC_TREND.source,
-        action_steps: GENERIC_TREND.action_steps,
-        is_read: false,
-        is_saved: false,
+        description: sanitizeAIOutput(GENERIC_TREND.content, { mode: 'prose' }),
       });
-      if (!error) seededTrends++;
+      if (trendAudit.passed) {
+        const { error } = await supabase.from("learning_items").insert({
+          business_id: businessId,
+          title: GENERIC_TREND.title,
+          content: GENERIC_TREND.content,
+          item_type: GENERIC_TREND.item_type,
+          source: GENERIC_TREND.source,
+          action_steps: GENERIC_TREND.action_steps,
+          is_read: false,
+          is_saved: false,
+        });
+        if (!error) seededTrends++;
+      } else {
+        console.warn("[seed-initial-insights] blocked seed trend:", trendAudit.reasons);
+        qualityReasons.push(...trendAudit.reasons);
+      }
     }
 
     // Guarantee at least 1 mission so missions page never appears empty.
