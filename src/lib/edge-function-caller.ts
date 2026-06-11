@@ -163,7 +163,7 @@ export async function callEdgeFunctionWithSafety<T = unknown>(
  * while still benefitting from ContextPack injection, retries, sanitization,
  * `success:false` handling and fallback events.
  */
-export async function invokeEdgeFunctionSafe<T = unknown>(
+export async function invokeEdgeFunctionSafe<T = any>(
   functionName: string,
   args: { body?: Record<string, unknown> } = {},
   options: SafeEdgeOptions = {},
