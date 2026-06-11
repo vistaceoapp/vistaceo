@@ -136,36 +136,51 @@ export function getModulesToRecalculate(eventType: BrainEventType): RecalcModule
 }
 
 /**
- * Emite un evento del Brain. No bloquea la UI: si falla la persistencia,
- * se loguea en consola y se sigue.
+ * Emite un evento del Brain. Persiste en `brain_events` (canónico) y
+ * además deja un espejo en `admin_audit_log` para trazabilidad legada.
+ * No bloquea la UI: si falla la persistencia, loguea en consola y sigue.
  */
 export async function emitBrainEvent(event: BrainEvent): Promise<void> {
   const modules = event.modulesToRecalculate ?? getModulesToRecalculate(event.eventType);
-  const payload = {
-    event_type: event.eventType,
+  const createdAt = event.createdAt ?? new Date().toISOString();
+
+  const brainEventRow = {
     business_id: event.businessId,
     user_id: event.userId ?? null,
+    event_type: event.eventType,
     source_module: event.sourceModule,
-    raw_input: event.rawInput ?? null,
-    normalized_input: event.normalizedInput ?? null,
+    raw_input: (event.rawInput ?? null) as never,
+    normalized_input: (event.normalizedInput ?? null) as never,
     brain_fields_updated: event.brainFieldsUpdated ?? [],
     confidence_delta: event.confidenceDelta ?? 0,
     modules_to_recalculate: modules,
-    quality_result: event.quality ?? null,
-    metadata: event.metadata ?? null,
-    created_at: event.createdAt ?? new Date().toISOString(),
+    quality: (event.quality ?? null) as never,
+    metadata: (event.metadata ?? null) as never,
+    created_at: createdAt,
   };
 
   try {
-    await supabase.from('admin_audit_log').insert({
-      action_type: `brain_event:${event.eventType}`,
-      target_business_id: event.businessId,
-      target_user_id: event.userId ?? null,
-      action_data: payload as never,
-    } as never);
+    // Fuente principal — tabla dedicada con RLS por business.
+    const { error: beError } = await supabase
+      .from('brain_events' as never)
+      .insert(brainEventRow as never);
 
-    // Dispara recálculo client-side notificando vía CustomEvent (los hooks
-    // que escuchan pueden invalidar cachés sin acoplamiento directo).
+    if (beError) {
+      console.warn('[BrainEventLedger] brain_events insert failed', event.eventType, beError);
+    }
+
+    // Espejo opcional en admin_audit_log (no bloqueante; ayuda a auditoría legada).
+    try {
+      await supabase.from('admin_audit_log').insert({
+        action_type: `brain_event:${event.eventType}`,
+        target_business_id: event.businessId,
+        target_user_id: event.userId ?? null,
+        action_data: brainEventRow as never,
+      } as never);
+    } catch {
+      /* mirror best-effort */
+    }
+
     if (typeof window !== 'undefined' && modules.length > 0) {
       window.dispatchEvent(
         new CustomEvent('vistaceo:brain-event', {
