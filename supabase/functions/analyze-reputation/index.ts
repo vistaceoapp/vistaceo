@@ -1,10 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { handlePreflight, okResponse, failResponse, corsHeaders } from "../_shared/edge-safe-response.ts";
+import { gateReputation } from "../_shared/quality-gates.ts";
+import { sanitizeAIOutput, containsForbidden } from "../_shared/ai-output-sanitizer.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const REPUTATION_FALLBACK =
+  "Todavía no hay datos suficientes de reputación. Para medirla mejor, agregá reseñas, menciones o comentarios frecuentes de clientes.";
+
 
 interface ReputationAnalysis {
   overall_score: number;
