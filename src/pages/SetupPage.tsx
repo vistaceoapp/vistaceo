@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, ArrowLeft, Loader2, Brain, Sparkles, Check, Crown } from 'lucide-react';
 import { VistaceoLogo } from '@/components/ui/VistaceoLogo';
+import { buildContextPack } from '@/lib/context-pack-builder';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { useAuth } from '@/contexts/AuthContext';
