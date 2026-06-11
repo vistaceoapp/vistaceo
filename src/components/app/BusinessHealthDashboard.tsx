@@ -27,6 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface Snapshot {
   id: string;
@@ -162,7 +163,7 @@ export const BusinessHealthDashboard = () => {
 
     try {
       const cpBHD = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
-      await supabase.functions.invoke("analyze-patterns", {
+      await invokeEdgeFunctionSafe("analyze-patterns", {
         body: { businessId: currentBusiness.id, generateDiagnostic: true, module: 'analytics', contextPack: cpBHD, outputContract: 'health_dimensions_v1' }
       });
 

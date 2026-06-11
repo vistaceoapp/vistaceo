@@ -62,6 +62,7 @@ import { SetupStepQuestionnaire } from '@/components/setup/SetupStepQuestionnair
 
 import { SetupProgress } from '@/components/setup/SetupProgress';
 import { collectSignupTrackingContext } from '@/lib/signup-tracking';
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 // Steps: country -> identity (AI) -> business (name+google) -> mode -> questionnaire -> create
 // Manual fallback inserts sector+type steps dynamically
@@ -429,7 +430,7 @@ const SetupPage = () => {
       // Step 4: Use AI to calculate intelligent health score
       try {
         const cpSetup = await buildContextPack('analytics', business.id).catch(() => null);
-        const { data: aiAnalysis, error: aiError } = await supabase.functions.invoke('analyze-health-score', {
+        const { data: aiAnalysis, error: aiError } = await invokeEdgeFunctionSafe('analyze-health-score', {
           body: {
             businessId: business.id,
             module: 'analytics',
@@ -490,7 +491,7 @@ const SetupPage = () => {
       // returns nothing.
       try {
         buildContextPack('dashboard', business.id).then(cpSeed => {
-          supabase.functions.invoke('seed-initial-insights', {
+          invokeEdgeFunctionSafe('seed-initial-insights', {
             body: { businessId: business.id, module: 'dashboard', contextPack: cpSeed, outputContract: 'initial_insights_v1' },
           }).catch(err => {
             console.warn('[Setup] seed-initial-insights failed (non-blocking):', err);

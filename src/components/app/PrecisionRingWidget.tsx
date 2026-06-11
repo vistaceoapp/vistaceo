@@ -31,6 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface PrecisionRingWidgetProps {
   healthScore: number;
@@ -195,7 +196,7 @@ export const PrecisionRingWidget = ({
         // Lee businessId del contexto vía localStorage para no acoplar el hook
         const stored = localStorage.getItem('currentBusinessId');
         if (stored) {
-          supabase.functions.invoke('brain-analyze-gaps', {
+          invokeEdgeFunctionSafe('brain-analyze-gaps', {
             body: { businessId: stored },
           }).catch(() => { /* best effort */ });
         }

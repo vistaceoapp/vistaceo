@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { validateBeforeStore } from "../_shared/validate-before-store.ts";
+import { sanitizeAIOutput, containsForbidden } from "../_shared/ai-output-sanitizer.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
 
 // =====================================================================
 // COGNITIVE ENGINE V5 - INLINE (Deno doesn't support local imports well)
@@ -1021,10 +1024,25 @@ ${analysisContext}
 
         const enrichedContent = `${content}\n\n**Por qué aplica a tu negocio:** ${it.why_applies || "Relevante para tu sector."}\n\n**Fuente:** [${firstSource?.title || sourcePublisher}](${resolvedUrl || "#"})`;
 
+        // PROMPT 4 — validateBeforeStore para research/learning_items.
+        const audit = validateBeforeStore({
+          module: "opportunity",
+          title,
+          description: enrichedContent,
+          source_url: resolvedUrl,
+        });
+        if (!audit.passed) {
+          console.log(`[validateBeforeStore] dropped research (${audit.reasons.join(",")}): "${title}"`);
+          learningFiltered++;
+          continue;
+        }
+        const safeTitle = sanitizeAIOutput(audit.sanitized.title ?? title, { mode: "label" });
+        const safeContent = sanitizeAIOutput(audit.sanitized.description ?? enrichedContent, { mode: "prose" });
+
         const { error: insertErr } = await supabase.from("learning_items").insert({
           business_id: businessId,
-          title,
-          content: enrichedContent,
+          title: safeTitle,
+          content: safeContent,
           item_type: it.item_type || "insight",
           source: resolvedUrl || "mercado",
           action_steps: Array.isArray(it.action_steps) ? it.action_steps : [],
@@ -1033,6 +1051,7 @@ ${analysisContext}
           concept_hash: conceptHash,
           intent_signature: intentSignature,
         });
+
 
         if (!insertErr) {
           learningInserted++;
@@ -1280,10 +1299,29 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
         },
       };
 
-      const { error: insertError } = await supabase.from("opportunities").insert({
-        business_id: businessId,
+      // PROMPT 4 — validateBeforeStore: bloquea market_signal, URLs crudas, [object Object], etc.
+      const safeAudit = validateBeforeStore({
+        module: "opportunity",
         title,
         description,
+        source_url: typeof opp.source === "string" && /^https?:\/\//.test(opp.source) ? opp.source : undefined,
+      });
+      if (!safeAudit.passed) {
+        console.log(`[validateBeforeStore] dropped opportunity (${safeAudit.reasons.join(",")}): "${title}"`);
+        opportunitiesFiltered++;
+        continue;
+      }
+      const safeTitle = sanitizeAIOutput(safeAudit.sanitized.title ?? title, { mode: "label" });
+      const safeDescription = sanitizeAIOutput(safeAudit.sanitized.description ?? description, { mode: "prose" });
+      if (containsForbidden(safeTitle) || containsForbidden(safeDescription)) {
+        opportunitiesFiltered++;
+        continue;
+      }
+
+      const { error: insertError } = await supabase.from("opportunities").insert({
+        business_id: businessId,
+        title: safeTitle,
+        description: safeDescription,
         source: opp.source || "diagnóstico",
         impact_score: opp.impact_score || 5,
         effort_score: opp.effort_score || 5,
@@ -1300,10 +1338,11 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
         areaCountThisRun[area] = (areaCountThisRun[area] || 0) + 1;
         existingHashes.add(conceptHash);
         existingSignatures.add(intentSignature);
-        existingItems.push({ id: "", title, description, source: opp.source });
-        console.log(`Inserted opportunity [${area}${isRecommended ? " ⭐ recommended" : ""}]: "${title}" (score: ${gateResult.score})`);
+        existingItems.push({ id: "", title: safeTitle, description: safeDescription, source: opp.source });
+        console.log(`Inserted opportunity [${area}${isRecommended ? " ⭐ recommended" : ""}]: "${safeTitle}" (score: ${gateResult.score})`);
       }
     }
+
 
     // Create notification if items inserted
     if (opportunitiesInserted > 0) {

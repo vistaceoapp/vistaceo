@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { safeLocalStorage } from "@/lib/safe-storage";
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface Mission {
   id: string;
@@ -73,7 +74,7 @@ interface Step {
 // Check if we have enough data for personalized missions using Brain
 const checkHasEnoughData = async (businessId: string): Promise<{ hasData: boolean; mvcCompletion: number }> => {
   try {
-    const { data, error } = await supabase.functions.invoke("brain-analyze-gaps", {
+    const { data, error } = await invokeEdgeFunctionSafe("brain-analyze-gaps", {
       body: { businessId }
     });
 
@@ -246,7 +247,7 @@ const MissionsPage = () => {
 
     try {
       const contextPack = await buildContextPack('missions', currentBusiness.id).catch(() => null);
-      const { data, error } = await supabase.functions.invoke("generate-mission-plan", {
+      const { data, error } = await invokeEdgeFunctionSafe("generate-mission-plan", {
         body: {
           businessId: currentBusiness.id,
           module: 'missions',

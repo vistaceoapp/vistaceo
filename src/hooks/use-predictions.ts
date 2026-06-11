@@ -12,6 +12,7 @@ import type {
   HORIZON_RINGS,
   PREDICTION_DOMAINS 
 } from '@/lib/predictions/types';
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface UsePredictionsReturn {
   predictions: Prediction[];
@@ -173,7 +174,7 @@ export const usePredictions = (): UsePredictionsReturn => {
       setLoading(true);
       
       const contextPack = await buildContextPack('predictions', currentBusiness.id).catch(() => null);
-      const { data, error: fnError } = await supabase.functions.invoke('generate-predictions', {
+      const { data, error: fnError } = await invokeEdgeFunctionSafe('generate-predictions', {
         body: {
           business_id: currentBusiness.id,
           businessId: currentBusiness.id,

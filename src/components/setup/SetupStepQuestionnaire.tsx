@@ -17,6 +17,7 @@ import {
   getUniversalCategoryLabel,
   UniversalQuestion
 } from '@/lib/universalQuestionsEngine';
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface SetupStepQuestionnaireProps {
   countryCode: CountryCode;
@@ -369,7 +370,7 @@ export const SetupStepQuestionnaire = ({
 
   // Shared function to call the edge function
   const fetchQuestions = useCallback(async (questionCount: string, batchIndex: number, previousAnswersCtx?: Record<string, any>) => {
-    const { data, error } = await supabase.functions.invoke('generate-questionnaire', {
+    const { data, error } = await invokeEdgeFunctionSafe('generate-questionnaire', {
       body: {
         module: 'setup',
         outputContract: 'questionnaire_v1',

@@ -3,6 +3,8 @@ import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.t
 import { buildTerminologyContext } from "../_shared/brain-core/contextual-terminology.ts";
 import { prompt2Rules, isGenericDirectQuestion } from "../_shared/brain-core/prompt2-rules.ts";
 import { extremeQualityCheck } from "../_shared/brain-core/extreme-quality-gate.ts";
+import { validateQuestionServer, CLARIFY_OPTION } from "../_shared/questionnaire-gates.ts";
+
 
 // Patrones extra de preguntas genéricas detectadas en runtime (más amplios que los del prompt2-rules,
 // que sólo cubren el comienzo exacto). Cubrimos variantes "¿Qué te diferencia de la competencia?",
@@ -551,7 +553,30 @@ Responde usando la función generate_questions.`;
     // MODE DEPTH GATE — hard caps por modo. Rápido ≤10, Completo ≤35.
     // ========================================================================
     const HARD_CAP = isQuick ? 10 : 35;
-    const finalQuestions = brainGated.slice(0, HARD_CAP);
+    const capped = brainGated.slice(0, HARD_CAP);
+
+    // ========================================================================
+    // PROMPT 4 — validateQuestionServer + enriquecimiento (clarify, targetBrainField,
+    // affectedModules, intentKey, simplicityScore, mobileSafe, explainer).
+    // ========================================================================
+    const finalQuestions: any[] = [];
+    let questionsBlocked = 0;
+    for (const q of capped) {
+      const v = validateQuestionServer(q as any);
+      if (!v.passed) {
+        questionsBlocked++;
+        console.warn(`[validateQuestionServer] dropped "${q.title?.es}":`, v.reasons.join(","));
+        continue;
+      }
+      finalQuestions.push({
+        ...v.question,
+        specialClarifyOption: CLARIFY_OPTION,
+        requiresExplainer: Boolean(q.help?.es),
+        explainerText: q.help?.es ?? undefined,
+      });
+    }
+    console.log(`[generate-questionnaire] ${questionsBlocked} blocked by validateQuestionServer`);
+
 
     // Validate dimension coverage
     const dimensionCounts: Record<string, number> = {};
