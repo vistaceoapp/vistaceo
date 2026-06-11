@@ -403,6 +403,50 @@ Responde usando la función generate_questions.`;
       }
     }
 
+    // --- Helpers de simplicidad / clarify ---
+    const CLARIFY_OPT_IDS = new Set([
+      'not_sure','no_se','no_sé','dont_know','idk','unknown','na','n_a',
+      'other','otro','otra','none','ninguna','ninguno','no_aplica','recien_empiezo',
+    ]);
+    const CLARIFY_LABEL_RX = [
+      /^no\s+(lo\s+)?s[eé]/i,/^no\s+aplica/i,/^otra?\s*(\.\.\.|$)/i,
+      /^ninguna?\s+de/i,/quiero\s+aclarar/i,/quiero\s+escribir/i,
+      /reci[eé]n\s+empiezo/i,/todav[ií]a\s+no/i,/^a[úu]n\s+no\s+lo\s+mido/i,
+    ];
+    const isClarifyOpt = (o: any): boolean => {
+      if (!o) return true;
+      if (CLARIFY_OPT_IDS.has(String(o.id || '').toLowerCase())) return true;
+      const lbl = String(o.label?.es || o.label || '').trim();
+      return CLARIFY_LABEL_RX.some(rx => rx.test(lbl));
+    };
+    const sanitizeOptionLabel = (s: string): string => {
+      let t = String(s || '').trim().replace(/\s+/g,' ');
+      if (!t) return t;
+      // Sin punto final.
+      t = t.replace(/[.。]+$/,'');
+      // Primera letra mayúscula.
+      t = t.charAt(0).toUpperCase() + t.slice(1);
+      return t;
+    };
+    const sanitizeOptions = (opts: any[] | undefined): any[] => {
+      if (!Array.isArray(opts)) return [];
+      const cleaned = opts
+        .filter(o => !isClarifyOpt(o))
+        .map(o => ({
+          ...o,
+          label: {
+            es: sanitizeOptionLabel(o.label?.es || ''),
+            'pt-BR': sanitizeOptionLabel(o.label?.['pt-BR'] || o.label?.es || ''),
+          },
+        }))
+        // Sin opciones demasiado largas (>40 chars).
+        .filter(o => (o.label.es || '').length <= 40);
+      // Cap a 6, preferir 4 ó 6.
+      if (cleaned.length > 6) return cleaned.slice(0, 6);
+      if (cleaned.length === 5) return cleaned.slice(0, 4);
+      return cleaned;
+    };
+
     // Validate and sanitize questions
     const validQuestions = questions
       .filter((q: any) => q.id && q.title?.es && q.type)
@@ -412,32 +456,34 @@ Responde usando la función generate_questions.`;
         required: q.required !== false,
         weight: Math.max(1, Math.min(10, q.weight || 5)),
         title: {
-          es: q.title.es,
-          'pt-BR': q.title['pt-BR'] || q.title.es,
+          es: String(q.title.es).replace(/\s*\(?ej\.?:?\s*[^)]*\)?/gi, '').replace(/\s+/g,' ').trim(),
+          'pt-BR': String(q.title['pt-BR'] || q.title.es).replace(/\s*\(?ex\.?:?\s*[^)]*\)?/gi, '').replace(/\s+/g,' ').trim(),
         },
         help: q.help ? {
           es: q.help.es || '',
           'pt-BR': q.help['pt-BR'] || q.help.es || '',
         } : undefined,
-        options: q.options?.map((opt: any) => ({
-          ...opt,
-          label: {
-            es: opt.label?.es || opt.label || '',
-            'pt-BR': opt.label?.['pt-BR'] || opt.label?.es || opt.label || '',
-          },
-        })),
+        options: sanitizeOptions(q.options),
       }))
       // RUNTIME GATE: filtrar preguntas genéricas directas y leaks técnicos
       .filter((q: any) => {
         const titleEs = q.title?.es || '';
+        // Bloquear si el título quedó demasiado largo o vacío tras limpieza.
+        if (!titleEs || titleEs.split(/\s+/).length > 22) {
+          console.warn(`[gate] dropped too-long/empty title: "${titleEs}"`);
+          return false;
+        }
         if (isGenericQuestionTitle(titleEs)) {
           console.warn(`[gate] dropped generic question: "${titleEs}"`);
           return false;
         }
+        // Si es single/multi y quedó sin opciones reales tras sanitize, descartar.
+        if ((q.type === 'single' || q.type === 'multi') && (!q.options || q.options.length < 3)) {
+          console.warn(`[gate] dropped ${q.type} with <3 normal options: "${titleEs}"`);
+          return false;
+        }
         const qc = extremeQualityCheck({ text: titleEs, hasBrainEvidence: true, hasConcreteAction: true });
         if (!qc.ok) {
-          // Sólo eliminar si hay leak técnico o etiqueta interna; las frases "genéricas" del
-          // gate apuntan a misiones/respuestas, no a preguntas, así que las toleramos.
           const blocking = qc.reasons.filter(r =>
             r.includes('técnico') || r.includes('interna') || r.includes('inglés') || r.includes('vacía')
           );
