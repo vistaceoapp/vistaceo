@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { startGuardian, stopGuardian } from "@/lib/self-healing-guardian";
+import { buildContextPack } from "@/lib/context-pack-builder";
 
 const SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 min — menos presión sobre la app
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
