@@ -108,15 +108,19 @@ export const RED_LIST_FORBIDDEN = [
   'gateway error',
   '**Origen**',
   '**Fuente**',
-  'Q_AI_',
 ] as const;
 
 const RED_LIST_REGEXES = [
-  /\bQ_AI_\d+/gi,
   /https?:\/\/news\.google\.com\/rss[^\s)\]]*/gi,
   /\bhttps?:\/\/\S{120,}/gi,           // URLs ridículamente largas
-  /\{[\s\S]{40,}\}/g,                   // JSON crudo visible
   /<[A-Z_]{3,}>[\s\S]*?<\/[A-Z_]{3,}>/g, // bloques XML internos
+];
+
+// Patrones inline a remover (sin descartar el texto entero).
+const INLINE_STRIP_REGEXES = [
+  /\(?\s*Q_AI_\d+\s*\)?/gi,                         // (Q_AI_004) / Q_AI_008
+  /\[?\s*setup_answer\s*\]?\s*\{[\s\S]*?\}/gi,      // [Setup_answer] {...}
+  /\{\s*"[a-z_]+"\s*:[\s\S]{0,200}?\}/gi,           // JSON inline corto
 ];
 
 export type SanitizeMode = 'prose' | 'structured' | 'label' | 'admin';
