@@ -32,6 +32,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { humanizeProse } from "@/lib/humanize-evidence";
 
 interface Step {
   text: string;
