@@ -111,6 +111,8 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
     return `${name} está en ${score}/100 — terreno para crecer. ${palanca} para mover la aguja rápido.`;
   }, [currentBusiness, score, data.subScores, brain, certainty]);
 
+  const safeVisionLine = useSanitizedContent(visionLine, 'prose') || visionLine;
+
 
   const scrollToWidget = (id: string) => {
     const el = document.getElementById(`widget-${id}`);
@@ -235,7 +237,7 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
             isMobile ? "text-[15px]" : "text-lg"
           )}
         >
-          {useSanitizedContent(visionLine, 'prose') || visionLine}
+          {safeVisionLine}
         </p>
 
         {/* Chips clickeables — destinos reales */}
