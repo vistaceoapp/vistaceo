@@ -49,6 +49,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useContentStaleness } from "@/hooks/use-content-staleness";
+import { StaleContentBanner } from "@/components/app/StaleContentBanner";
 
 interface Step {
   text: string;
