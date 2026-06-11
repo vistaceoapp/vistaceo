@@ -59,11 +59,23 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
   const certainty = data.certaintyPct || 31;
   const delta = score !== null && data.previousScore !== null ? score - data.previousScore : null;
 
-  // Texto directo, hiper-personalizado: nombre + país + sector + palanca real
+  // Texto humano: sin números crudos. Frases cortas, cálidas, con 1 emoji sutil.
   const visionLine = useMemo(() => {
     const name = currentBusiness?.name ?? "tu negocio";
-    const country = (currentBusiness?.country || "").toUpperCase();
-    const cat = (currentBusiness?.category || "").toLowerCase();
+
+    // Helpers de tono humano
+    const stateToPhrase = (s: number): { level: string; verb: string } => {
+      if (s >= 86) return { level: "excelente", verb: "está volando" };
+      if (s >= 71) return { level: "sólida", verb: "viene firme" };
+      if (s >= 51) return { level: "correcta", verb: "tiene margen para crecer" };
+      if (s >= 31) return { level: "floja", verb: "necesita atención" };
+      return { level: "muy baja", verb: "pide acción urgente" };
+    };
+    const dimToHuman = (key: string, score: number): string => {
+      const noun = DIMENSION_LABELS[key] || key;
+      const { level } = stateToPhrase(score);
+      return `tu ${noun} está ${level}`;
+    };
 
     // Dimensión más débil/fuerte
     const dims = Object.entries(data.subScores)
@@ -74,33 +86,30 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
 
     const focusKey = brain?.current_focus || "";
     const focusLabel = FOCUS_LABELS[focusKey] || "";
-    const rating = currentBusiness?.avg_rating;
 
-    // CASO 1: sin datos todavía → directo y honesto
+    // CASO 1: sin datos todavía → directo y cálido
     if (score === null) {
-      return `${name} todavía no tiene diagnóstico. Completa 3 datos clave y en 2 minutos te muestro dónde estás perdiendo plata.`;
+      return `${name}, todavía no tengo diagnóstico tuyo 👋 Completá 3 datos clave y en 2 minutos te muestro dónde estás dejando plata sobre la mesa.`;
     }
 
     // CASO 2: certeza muy baja → pedir info concreta
     if (certainty < 35) {
-      return `Sé poco de ${name} (${certainty}% de certeza). Cuéntame 3 cosas: cómo vendes hoy, quién es tu cliente y qué te frena. Con eso te doy una jugada real esta semana.`;
+      return `Aún te conozco poco, ${name} 🤝 Contame cómo vendés hoy, quién es tu cliente y qué te frena. Con eso te doy una jugada real para esta semana.`;
     }
 
-    // CASO 3: hay palanca clara y débil → ir directo a ella
+    // CASO 3: hay palanca clara y débil → ir directo a ella sin números
     if (weakest && weakest[1] < 50) {
-      const label = DIMENSION_LABELS[weakest[0]] || weakest[0];
+      const weakPhrase = dimToHuman(weakest[0], weakest[1]);
       const fortaleza = strongest && strongest[1] >= 65 && strongest[0] !== weakest[0]
-        ? ` Usa tu ${DIMENSION_LABELS[strongest[0]] || strongest[0]} como motor.`
-        : rating && rating >= 4.3
-        ? ` Tu reputación (${rating}★) es la palanca para empujar.`
+        ? ` Tu ${DIMENSION_LABELS[strongest[0]] || strongest[0]} es la palanca para empujar.`
         : "";
-      return `${name}: el problema hoy es ${label} (${weakest[1]}/100). Si lo resuelves esta semana, subes 10+ puntos de salud.${fortaleza}`;
+      return `${name}, hoy ${weakPhrase} y es lo que más te frena ⚡ Si lo trabajamos esta semana, vas a sentir un salto real.${fortaleza}`;
     }
 
     // CASO 4: salud alta → empujar crecimiento
     if (score >= 70) {
       const next = focusLabel ? ` Próximo paso: ${focusLabel}.` : ` Es momento de escalar lo que ya funciona.`;
-      return `${name} está fuerte (${score}/100). Acá no se trata de arreglar, se trata de crecer.${next}`;
+      return `${name} ${stateToPhrase(score).verb} 🚀 Acá no se trata de arreglar, se trata de crecer.${next}`;
     }
 
     // CASO 5: zona media → palanca + acción concreta
@@ -109,7 +118,7 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
       : focusLabel
       ? `Tu foco esta semana es ${focusLabel}`
       : `Falta empujar captación y conversión`;
-    return `${name} está en ${score}/100 — terreno para crecer. ${palanca} para mover la aguja rápido.`;
+    return `${name} ${stateToPhrase(score).verb} ✨ ${palanca} para mover la aguja rápido.`;
   }, [currentBusiness, score, data.subScores, brain, certainty]);
 
   const safeVisionLine = useSanitizedContent(visionLine, 'prose') || visionLine;
