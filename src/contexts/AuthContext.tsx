@@ -71,6 +71,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const sessionKey = `va_login_tracked_${newSession.user.id}`;
             if (!sessionStorage.getItem(sessionKey)) {
               sessionStorage.setItem(sessionKey, '1');
+              // Lazy AI migration — re-genera contenido viejo si el usuario
+              // vuelve después de >24h. Corre ANTES de track-user-activity
+              // para leer last_login_at sin pisarlo.
+              setTimeout(() => {
+                import("@/lib/lazy-ai-migration")
+                  .then((m) => m.runLazyAiMigrationIfNeeded(newSession.user.id))
+                  .catch((err) => console.debug('[lazy-migration] import failed:', err));
+              }, 0);
               // Fire login event (updates profiles.last_login_at + login_count)
               setTimeout(() => {
                 supabase.functions.invoke('track-user-activity', {
@@ -82,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     page_path: window.location.pathname,
                   },
                 }).catch((err) => console.debug('[login tracking] failed:', err));
-              }, 0);
+              }, 50);
             }
           } catch {
             // sessionStorage might be unavailable — still try to track
