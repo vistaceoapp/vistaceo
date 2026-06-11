@@ -22,6 +22,7 @@ import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { sanitizeAIOutput, sanitizeSignals, isLeakedLabel } from "@/lib/aiOutputSanitizer";
 import {
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 
@@ -172,7 +173,7 @@ export const BusinessHealthAnalytics = () => {
       } : null;
 
       const cpHA = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
-      const { data, error } = await supabase.functions.invoke("analyze-health-score", {
+      const { data, error } = await invokeEdgeFunctionSafe("analyze-health-score", {
         body: { businessId: currentBusiness.id, module: 'analytics', contextPack: cpHA, outputContract: 'health_score_v1', setupData: analysisSetupData, googleData, brainData: brainRes.data || null, integrationsData: integrationsRes.data || [], signalsData: signalsRes.data || [] }
       });
       if (error) throw error;

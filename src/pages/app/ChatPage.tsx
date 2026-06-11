@@ -25,6 +25,7 @@ import { ChatLearningPanel } from "@/components/chat/ChatLearningPanel";
 import { ChatHistoryPanel } from "@/components/chat/ChatHistoryPanel";
 import { ChatSuggestedQuestions } from "@/components/chat/ChatSuggestedQuestions";
 import { SuggestedQuestionsButton } from "@/components/chat/SuggestedQuestionsButton";
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 
 interface MissionSuggestion {
@@ -332,7 +333,7 @@ const ChatPage = () => {
         recentEventsLimit: 6,
       }).catch(() => null);
 
-      const { data: aiData, error: aiError } = await supabase.functions.invoke("vistaceo-chat", {
+      const { data: aiData, error: aiError } = await invokeEdgeFunctionSafe("vistaceo-chat", {
         body: {
           messages: messagesForAI,
           businessId: currentBusiness.id,

@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { CountryCode, COUNTRY_PACKS, getRevenueRanges, getCurrencyLabel } from '@/lib/countryPacks';
 import { supabase } from '@/integrations/supabase/client';
 import { 
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   getUniversalCategoryLabel,
   UniversalQuestion
 } from '@/lib/universalQuestionsEngine';
@@ -369,7 +370,7 @@ export const SetupStepQuestionnaire = ({
 
   // Shared function to call the edge function
   const fetchQuestions = useCallback(async (questionCount: string, batchIndex: number, previousAnswersCtx?: Record<string, any>) => {
-    const { data, error } = await supabase.functions.invoke('generate-questionnaire', {
+    const { data, error } = await invokeEdgeFunctionSafe('generate-questionnaire', {
       body: {
         module: 'setup',
         outputContract: 'questionnaire_v1',

@@ -8,6 +8,7 @@ import { buildContextPack } from '@/lib/context-pack-builder';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface Signal {
   type: 'opportunity' | 'competitive' | 'prediction' | 'mission' | 'trend' | 'risk';
@@ -91,7 +92,7 @@ export const AIDailySummary = () => {
 
     try {
       const contextPack = await buildContextPack('dashboard', currentBusiness.id).catch(() => null);
-      const { data, error } = await supabase.functions.invoke('generate-daily-summary', {
+      const { data, error } = await invokeEdgeFunctionSafe('generate-daily-summary', {
         body: { businessId: currentBusiness.id, module: 'dashboard', contextPack, outputContract: 'daily_summary_v1' }
       });
 

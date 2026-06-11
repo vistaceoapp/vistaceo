@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 import { GooglePlacesInlineEditor } from "./GooglePlacesInlineEditor";
 import { useNavigate } from "react-router-dom";
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface ReputationAnalysis {
   overall_score: number;
@@ -61,7 +62,7 @@ export const ReputationAnalyticsPanel = ({ className }: { className?: string }) 
     setAnalyzing(true);
     try {
       const cpRep = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
-      const { data, error } = await supabase.functions.invoke("analyze-reputation", {
+      const { data, error } = await invokeEdgeFunctionSafe("analyze-reputation", {
         body: { businessId: currentBusiness.id, module: 'analytics', contextPack: cpRep, outputContract: 'reputation_v1', forceRefresh: true }
       });
       if (error) throw error;

@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { sanitizeForUI } from "@/lib/presentationRegistry";
 import { GlassCard } from "./GlassCard";
 import {
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -162,7 +163,7 @@ export const BusinessHealthDashboard = () => {
 
     try {
       const cpBHD = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
-      await supabase.functions.invoke("analyze-patterns", {
+      await invokeEdgeFunctionSafe("analyze-patterns", {
         body: { businessId: currentBusiness.id, generateDiagnostic: true, module: 'analytics', contextPack: cpBHD, outputContract: 'health_dimensions_v1' }
       });
 

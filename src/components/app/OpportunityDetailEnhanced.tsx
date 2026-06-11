@@ -20,6 +20,7 @@ import { buildContextPack } from "@/lib/context-pack-builder";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { 
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   QualityGateResult, 
   getTimeEstimate, 
   getImpactedDrivers,
@@ -212,7 +213,7 @@ export const OpportunityDetailEnhanced = ({
 
       try {
         const contextPack = await buildContextPack('radar', business.id).catch(() => null);
-        const { data, error } = await supabase.functions.invoke("generate-opportunity-plan", {
+        const { data, error } = await invokeEdgeFunctionSafe("generate-opportunity-plan", {
           body: { businessId: business.id, opportunityId: opportunity.id, module: 'radar', contextPack, outputContract: 'opportunity_plan_v1' }
         });
 
@@ -240,7 +241,7 @@ export const OpportunityDetailEnhanced = ({
 
     try {
       const contextPack = await buildContextPack('radar', business.id).catch(() => null);
-      const { data, error } = await supabase.functions.invoke("generate-opportunity-plan", {
+      const { data, error } = await invokeEdgeFunctionSafe("generate-opportunity-plan", {
         body: { businessId: business.id, opportunityId: opportunity.id, module: 'radar', contextPack, outputContract: 'opportunity_plan_v1' }
       });
 

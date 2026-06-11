@@ -11,6 +11,7 @@ import { GlassCard } from "./GlassCard";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface MarketInsight {
   id: string;
@@ -160,7 +161,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
 
     try {
       const cpRW = await buildContextPack('radar', currentBusiness.id).catch(() => null);
-      const { data, error } = await supabase.functions.invoke("analyze-patterns", {
+      const { data, error } = await invokeEdgeFunctionSafe("analyze-patterns", {
         body: {
           businessId: currentBusiness.id,
           type: "research",
