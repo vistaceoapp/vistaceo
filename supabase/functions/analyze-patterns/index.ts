@@ -1,10 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { validateBeforeStore } from "../_shared/validate-before-store.ts";
+import { sanitizeAIOutput, containsForbidden } from "../_shared/ai-output-sanitizer.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
 
 // =====================================================================
 // COGNITIVE ENGINE V5 - INLINE (Deno doesn't support local imports well)
