@@ -44,6 +44,50 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_artifacts_cache: {
+        Row: {
+          artifact_key: string
+          artifact_type: string
+          brain_signature: string
+          business_id: string
+          generated_at: string
+          id: string
+          legacy: boolean
+          model_used: string | null
+          payload: Json
+        }
+        Insert: {
+          artifact_key: string
+          artifact_type: string
+          brain_signature: string
+          business_id: string
+          generated_at?: string
+          id?: string
+          legacy?: boolean
+          model_used?: string | null
+          payload: Json
+        }
+        Update: {
+          artifact_key?: string
+          artifact_type?: string
+          brain_signature?: string
+          business_id?: string
+          generated_at?: string
+          id?: string
+          legacy?: boolean
+          model_used?: string | null
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_artifacts_cache_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alerts: {
         Row: {
           ai_summary_json: Json | null
