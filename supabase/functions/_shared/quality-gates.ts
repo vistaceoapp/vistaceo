@@ -12,7 +12,12 @@ export type ModuleKind =
   | 'prediction'
   | 'analytics'
   | 'dashboard'
-  | 'radar';
+  | 'radar'
+  | 'health'
+  | 'reputation'
+  | 'competitor'
+  | 'seed_insight'
+  | 'question';
 
 export interface GateResult {
   passed: boolean;
@@ -83,6 +88,65 @@ export function gateAnalytics(payload: { interpretation?: string; metricsCount?:
   return { passed: reasons.length === 0, reasons };
 }
 
+// ============================================================
+// PROMPT 4 — gates for the remaining hardened Edge Functions
+// ============================================================
+
+/** Generic phrases that may NOT appear as the whole insight title unless developed with evidence. */
+export const GENERIC_SEED_TITLES: RegExp[] = [
+  /^mejor[aá]r?\s+(las\s+)?ventas\.?$/i,
+  /^public[aá]r?\s+en\s+redes(\s+sociales)?\.?$/i,
+  /^consegu[ií]r?\s+m[aá]s\s+clientes\.?$/i,
+  /^activ[aá]r?\s+(tu\s+)?presencia\s+digital\.?$/i,
+  /^aument[aá]r?\s+(tu\s+)?presencia\s+(online|digital)\.?$/i,
+  /^cre[aá]r?\s+contenido\.?$/i,
+  /^mejor[aá]r?\s+(el\s+)?marketing\.?$/i,
+];
+
+/** Seed insights (first experience after setup): block undeveloped generic titles. */
+export function gateSeedInsight(payload: { title?: string; description?: string }): GateResult {
+  const reasons = [...baseChecks(payload.title ?? ''), ...baseChecks(payload.description ?? '')];
+  const title = (payload.title ?? '').trim();
+  const desc = (payload.description ?? '').trim();
+  if (GENERIC_SEED_TITLES.some((re) => re.test(title)) && desc.length < 120) {
+    reasons.push('generic_seed_insight');
+  }
+  if (desc.length < 60) reasons.push('seed_description_too_thin');
+  return { passed: reasons.length === 0, reasons: Array.from(new Set(reasons)) };
+}
+
+/** Health score: never present 0 as a truth when there is no real data. */
+export function gateHealthScore(payload: { score?: number | null; hasData?: boolean; rationale?: string }): GateResult {
+  const reasons: string[] = [];
+  if (!payload.hasData && payload.score === 0) reasons.push('zero_as_truth_without_data');
+  if (!payload.rationale || payload.rationale.trim().length < 8) reasons.push('health_missing_rationale');
+  if (payload.rationale && containsForbidden(payload.rationale)) reasons.push('red_list_leak');
+  if (typeof payload.score === 'number' && (payload.score < 0 || payload.score > 100)) reasons.push('health_score_out_of_range');
+  return { passed: reasons.length === 0, reasons };
+}
+
+/** Competitors: never invent competitors — only verifiable sources pass. */
+export function gateCompetitor(payload: { name?: string; sourceType?: string }): GateResult {
+  const reasons: string[] = [];
+  if (!payload.name || payload.name.trim().length < 2) reasons.push('competitor_missing_name');
+  if (payload.name && containsForbidden(payload.name)) reasons.push('red_list_leak');
+  const src = (payload.sourceType ?? '').toLowerCase();
+  if (src === 'ai_estimated' || src === 'invented' || src === '') reasons.push('competitor_invented');
+  return { passed: reasons.length === 0, reasons };
+}
+
+/** Reputation: without real reviews, a positive score must be labeled as estimated/insufficient. */
+export function gateReputation(payload: { reviewsCount?: number; score?: number | null; summary?: string }): GateResult {
+  const reasons = baseChecks(payload.summary ?? '');
+  const reviews = payload.reviewsCount ?? 0;
+  if (reviews === 0 && typeof payload.score === 'number' && payload.score > 0) {
+    const s = payload.summary ?? '';
+    const labeled = /(informaci[oó]n proporcionada|todav[ií]a no hay datos|estimaci[oó]n|vincul[aá]|sin rese[ñn]as)/i.test(s);
+    if (!labeled) reasons.push('reputation_without_real_data_unlabeled');
+  }
+  return { passed: reasons.length === 0, reasons: Array.from(new Set(reasons)) };
+}
+
 export function gateByModule(module: ModuleKind, payload: Record<string, unknown>): GateResult {
   switch (module) {
     case 'chat': return gateChatResponse(String(payload.text ?? ''));
@@ -93,5 +157,10 @@ export function gateByModule(module: ModuleKind, payload: Record<string, unknown
     case 'analytics': return gateAnalytics(payload as never);
     case 'dashboard': return gateDashboardText(String(payload.text ?? ''));
     case 'radar': return gateOpportunity(payload as never);
+    case 'health': return gateHealthScore(payload as never);
+    case 'reputation': return gateReputation(payload as never);
+    case 'competitor': return gateCompetitor(payload as never);
+    case 'seed_insight': return gateSeedInsight(payload as never);
+    case 'question': return gateDashboardText(String(payload.text ?? ''));
   }
 }
