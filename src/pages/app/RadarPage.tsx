@@ -8,6 +8,7 @@ import {
   Shield, Clock, AlertCircle, RefreshCw, Rocket, Crown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { buildContextPack } from "@/lib/context-pack-builder";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -268,8 +269,9 @@ const RadarPage = () => {
     setGeneratingOpportunities(true);
     
     try {
+      const cpRad = await buildContextPack('radar', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("analyze-patterns", {
-        body: { businessId: currentBusiness.id, type: "opportunities" }
+        body: { businessId: currentBusiness.id, type: "opportunities", module: 'radar', contextPack: cpRad, outputContract: 'radar_opportunities_v1' }
       });
 
       // 402: límite alcanzado (Free o Pro)
@@ -333,17 +335,14 @@ const RadarPage = () => {
     setGeneratingResearch(true);
 
     try {
+      const cpResearch = await buildContextPack('radar', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("analyze-patterns", {
         body: {
           businessId: currentBusiness.id,
           type: "research",
-          brainContext: brain
-            ? {
-                primaryType: brain.primary_business_type,
-                focus: brain.current_focus,
-                factualMemory: brain.memory?.factual_memory,
-              }
-            : null,
+          module: 'radar',
+          contextPack: cpResearch,
+          outputContract: 'radar_research_v1',
         },
       });
 

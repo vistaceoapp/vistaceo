@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Radar, TrendingUp, ChevronRight, Lock, Sparkles, Lightbulb, ExternalLink, Globe, Building2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { buildContextPack } from "@/lib/context-pack-builder";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useBrain } from "@/hooks/use-brain";
 import { Button } from "@/components/ui/button";
@@ -158,14 +159,14 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
     setGenerating(true);
 
     try {
+      const cpRW = await buildContextPack('radar', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("analyze-patterns", {
         body: {
           businessId: currentBusiness.id,
           type: "research",
-          brainContext: brain ? {
-            primaryType: brain.primary_business_type,
-            focus: brain.current_focus,
-          } : null,
+          module: 'radar',
+          contextPack: cpRW,
+          outputContract: 'radar_research_v1',
         },
       });
 

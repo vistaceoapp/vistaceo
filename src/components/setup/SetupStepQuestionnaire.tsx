@@ -371,6 +371,8 @@ export const SetupStepQuestionnaire = ({
   const fetchQuestions = useCallback(async (questionCount: string, batchIndex: number, previousAnswersCtx?: Record<string, any>) => {
     const { data, error } = await supabase.functions.invoke('generate-questionnaire', {
       body: {
+        module: 'setup',
+        outputContract: 'questionnaire_v1',
         businessTypeLabel,
         businessTypeId,
         areaId,
@@ -379,7 +381,7 @@ export const SetupStepQuestionnaire = ({
         businessName,
         rawUserText,
         universalProfile,
-        questionCount, // Override the default
+        questionCount,
         batchIndex,
         previousAnswers: previousAnswersCtx,
       },

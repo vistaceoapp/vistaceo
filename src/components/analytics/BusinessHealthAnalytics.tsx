@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getScoreStyle } from '@/lib/dashboardCards';
 import { supabase } from "@/integrations/supabase/client";
+import { buildContextPack } from "@/lib/context-pack-builder";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -170,8 +171,9 @@ export const BusinessHealthAnalytics = () => {
         reviewCount: (brainRes.data?.factual_memory as any)?.google_review_count,
       } : null;
 
+      const cpHA = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("analyze-health-score", {
-        body: { businessId: currentBusiness.id, setupData: analysisSetupData, googleData, brainData: brainRes.data || null, integrationsData: integrationsRes.data || [], signalsData: signalsRes.data || [] }
+        body: { businessId: currentBusiness.id, module: 'analytics', contextPack: cpHA, outputContract: 'health_score_v1', setupData: analysisSetupData, googleData, brainData: brainRes.data || null, integrationsData: integrationsRes.data || [], signalsData: signalsRes.data || [] }
       });
       if (error) throw error;
       toast({ title: "Diagnóstico actualizado", description: `Score: ${data.analysis?.totalScore || 0} | Certeza: ${data.analysis?.certaintyPct || 0}%` });

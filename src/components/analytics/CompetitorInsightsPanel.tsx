@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { buildContextPack } from "@/lib/context-pack-builder";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -99,8 +100,9 @@ export const CompetitorInsightsPanel = () => {
     if (!currentBusiness) return;
     setScanning(true);
     try {
+      const cp = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("scan-competitors", {
-        body: { businessId: currentBusiness.id }
+        body: { businessId: currentBusiness.id, module: 'analytics', contextPack: cp, outputContract: 'competitors_v1' }
       });
       if (error) throw error;
       toast({ title: "Escaneo completado", description: `Se encontraron ${data?.competitorsFound || 0} competidores` });

@@ -14,6 +14,7 @@ import {
   Info
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { buildContextPack } from "@/lib/context-pack-builder";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -160,8 +161,9 @@ export const BusinessHealthDashboard = () => {
     setGenerating(true);
 
     try {
+      const cpBHD = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
       await supabase.functions.invoke("analyze-patterns", {
-        body: { businessId: currentBusiness.id, generateDiagnostic: true }
+        body: { businessId: currentBusiness.id, generateDiagnostic: true, module: 'analytics', contextPack: cpBHD, outputContract: 'health_dimensions_v1' }
       });
 
       // Generate realistic dimensions based on business type

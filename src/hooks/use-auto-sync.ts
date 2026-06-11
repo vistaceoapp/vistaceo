@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { startGuardian, stopGuardian } from "@/lib/self-healing-guardian";
+import { buildContextPack } from "@/lib/context-pack-builder";
 
 const SYNC_INTERVAL_MS = 15 * 60 * 1000; // 15 min — menos presión sobre la app
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -67,8 +68,9 @@ export const useAutoSync = () => {
 
     try {
       console.log("[auto-sync] Triggering brain-analyze-gaps for:", currentBusiness.id);
+      const cp = await buildContextPack('admin', currentBusiness.id).catch(() => null);
       const { error } = await supabase.functions.invoke("brain-analyze-gaps", {
-        body: { businessId: currentBusiness.id }
+        body: { businessId: currentBusiness.id, module: 'admin', contextPack: cp }
       });
       if (error) {
         console.warn("[auto-sync] Brain gaps error (non-blocking):", error);
@@ -105,9 +107,13 @@ export const useAutoSync = () => {
 
       if (!hasRecentSnapshot) {
         console.log("[auto-sync] No recent health snapshot, triggering analyze-health-score...");
+        const cpHealth = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
         const { error: healthErr } = await supabase.functions.invoke("analyze-health-score", {
-          body: { 
+          body: {
             businessId: currentBusiness.id,
+            module: 'analytics',
+            contextPack: cpHealth,
+            outputContract: 'health_score_v1',
             setupData: {
               businessName: currentBusiness.name,
               countryCode: currentBusiness.country,

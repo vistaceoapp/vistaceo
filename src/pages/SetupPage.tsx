@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, ArrowLeft, Loader2, Brain, Sparkles, Check, Crown } from 'lucide-react';
 import { VistaceoLogo } from '@/components/ui/VistaceoLogo';
+import { buildContextPack } from '@/lib/context-pack-builder';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -427,9 +428,13 @@ const SetupPage = () => {
 
       // Step 4: Use AI to calculate intelligent health score
       try {
+        const cpSetup = await buildContextPack('analytics', business.id).catch(() => null);
         const { data: aiAnalysis, error: aiError } = await supabase.functions.invoke('analyze-health-score', {
           body: {
             businessId: business.id,
+            module: 'analytics',
+            contextPack: cpSetup,
+            outputContract: 'health_score_v1',
             setupData: {
               businessName: data.businessName,
               countryCode: data.countryCode,
@@ -484,11 +489,13 @@ const SetupPage = () => {
       // guarantees at least 1-2 opportunities and 1 trend even if the AI
       // returns nothing.
       try {
-        supabase.functions.invoke('seed-initial-insights', {
-          body: { businessId: business.id },
-        }).catch(err => {
-          console.warn('[Setup] seed-initial-insights failed (non-blocking):', err);
-        });
+        buildContextPack('dashboard', business.id).then(cpSeed => {
+          supabase.functions.invoke('seed-initial-insights', {
+            body: { businessId: business.id, module: 'dashboard', contextPack: cpSeed, outputContract: 'initial_insights_v1' },
+          }).catch(err => {
+            console.warn('[Setup] seed-initial-insights failed (non-blocking):', err);
+          });
+        }).catch(() => {});
       } catch (scanErr) {
         console.warn('[Setup] Error triggering initial seed:', scanErr);
       }
