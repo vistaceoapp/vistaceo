@@ -28,15 +28,12 @@ interface ReputationAnalysis {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const pre = handlePreflight(req); if (pre) return pre;
 
   try {
     const { businessId, forceRefresh } = await req.json();
     if (!businessId) {
-      return new Response(JSON.stringify({ error: "businessId is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return failResponse("missing_businessId", { module: "reputation", fallbackText: REPUTATION_FALLBACK });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -49,9 +46,9 @@ serve(async (req) => {
     // Get business
     const { data: business } = await supabase.from("businesses").select("*").eq("id", businessId).single();
     if (!business) {
-      return new Response(JSON.stringify({ error: "Business not found" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return failResponse("business_not_found", { module: "reputation", fallbackText: REPUTATION_FALLBACK });
     }
+
 
     // Get brain
     const { data: brain } = await supabase
