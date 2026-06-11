@@ -140,10 +140,37 @@ const q = (
   weight: 7,
   title: { es: title, 'pt-BR': title },
   type,
-  options: [...options, opt('not_sure', 'No lo sé todavía', '🤷', 3)],
+  // Sin opciones "No sé" dentro del grid normal: la UI agrega la opción horizontal
+  // "No sé / Quiero aclarar algo" automáticamente para todas las preguntas single/multi.
+  options: options.slice(0, 6),
   required: true,
   ...(help ? { help: { es: help, 'pt-BR': help } } : {}),
 });
+
+// IDs/labels que NUNCA deben aparecer como opción normal: representan "no sé / aclarar"
+// y deben ir en la opción horizontal secundaria (sin autoavance).
+const CLARIFY_OPTION_IDS = new Set([
+  'not_sure', 'no_se', 'no_sé', 'dont_know', 'idk', 'unknown', 'na', 'n_a',
+  'other', 'otro', 'otra', 'none', 'ninguna', 'ninguno',
+]);
+const CLARIFY_LABEL_PATTERNS = [
+  /^no\s+(lo\s+)?s[eé]/i,
+  /^no\s+aplica/i,
+  /^otra?\s*(\.\.\.|$)/i,
+  /^ninguna?\s+de/i,
+  /quiero\s+aclarar/i,
+  /quiero\s+escribir/i,
+];
+function isClarifyOption(o: { id: string; label?: { es?: string } }): boolean {
+  if (!o) return true;
+  if (CLARIFY_OPTION_IDS.has(String(o.id || '').toLowerCase())) return true;
+  const lbl = o.label?.es || '';
+  return CLARIFY_LABEL_PATTERNS.some(rx => rx.test(lbl.trim()));
+}
+function getNormalOptions(opts: any[] | undefined): any[] {
+  if (!Array.isArray(opts)) return [];
+  return opts.filter(o => !isClarifyOption(o)).slice(0, 6);
+}
 
 // ============================================================================
 // FALLBACK PREMIUM DINÁMICO (visible si el motor AI falla 3 veces).
@@ -568,20 +595,29 @@ export const SetupStepQuestionnaire = ({
     onUpdate({ ...answers, [currentQuestion.id]: value });
   };
 
+  // "No sé / Quiero aclarar algo": NUNCA autoavanza. Solo abre input.
+  // No setea respuesta todavía: se decide en handleCustomSubmit según haya texto o no.
   const handleNoneOfThese = () => {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
     setShowCustomInput(true);
-    handleAnswer({ type: '__NONE__', text: 'Ninguna de estas' });
+    // Marcamos un placeholder para que canProceed() habilite Continuar,
+    // pero el contenido real se confirma en submit (vacío => "No sé", con texto => aclaración).
+    handleAnswer({ type: '__CLARIFY_PENDING__', text: '' });
   };
 
   const handleCustomSubmit = () => {
     const trimmed = customText.trim();
     if (trimmed) {
-      handleAnswer({ type: '__CUSTOM__', text: trimmed });
+      // Aclaración real del usuario: prioridad alta en el brain.
+      handleAnswer({ type: '__CLARIFY__', text: trimmed, source: 'user_clarification' });
     } else {
-      handleAnswer({ type: '__NONE__', text: 'Ninguna de estas' });
+      // Sin texto: se guarda como "No sé" (dato pendiente de validar, sin penalización).
+      handleAnswer({ type: '__NO_SE__', text: 'No sé', source: 'user_unknown' });
     }
     setShowCustomInput(false);
-    // Avanzar siempre, con o sin texto
     if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
     advanceTimerRef.current = setTimeout(() => handleNext(), 120);
   };
@@ -599,8 +635,9 @@ export const SetupStepQuestionnaire = ({
     const value = getCurrentValue();
     if (!currentQuestion.required) return true;
     if (value === '__NONE__') return true;
-    if (typeof value === 'object' && value?.type === '__NONE__') return true;
-    if (typeof value === 'object' && value?.type === '__CUSTOM__') return true;
+    if (typeof value === 'object' && value?.type && [
+      '__NONE__', '__CUSTOM__', '__CLARIFY__', '__CLARIFY_PENDING__', '__NO_SE__',
+    ].includes(value.type)) return true;
     if (Array.isArray(value)) return value.length > 0;
     return value !== undefined && value !== '' && value !== null;
   };
@@ -788,11 +825,14 @@ export const SetupStepQuestionnaire = ({
     switch (currentQuestion.type) {
       case 'single': {
         const currentVal = getCurrentValue();
-        const isNone = currentVal === '__NONE__' || (typeof currentVal === 'object' && (currentVal?.type === '__CUSTOM__' || currentVal?.type === '__NONE__'));
+        const isClarify = typeof currentVal === 'object' && currentVal?.type && [
+          '__CUSTOM__', '__NONE__', '__CLARIFY__', '__CLARIFY_PENDING__', '__NO_SE__',
+        ].includes(currentVal.type);
+        const normalOptions = getNormalOptions(currentQuestion.options as any[]);
         return (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              {currentQuestion.options?.map((option) => {
+              {normalOptions.map((option: any) => {
                 const isSelected = currentVal === option.id;
                 return (
                   <button
@@ -813,18 +853,18 @@ export const SetupStepQuestionnaire = ({
                 );
               })}
             </div>
-            {/* "Ninguna de estas" + custom text */}
+            {/* Opción horizontal secundaria: NUNCA autoavanza, abre input */}
             <button
               onClick={handleNoneOfThese}
               className={cn(
-                "w-full p-3 rounded-xl border-2 text-sm transition-all text-center flex items-center justify-center gap-2",
-                isNone
-                  ? "border-primary bg-primary/10 text-primary font-medium"
-                  : "border-border hover:border-primary/50 bg-card text-muted-foreground"
+                "w-full px-3 py-2.5 rounded-lg border text-xs sm:text-sm transition-all text-center flex items-center justify-center gap-2",
+                isClarify
+                  ? "border-primary/60 bg-primary/5 text-primary"
+                  : "border-border/60 hover:border-primary/40 bg-card/50 text-muted-foreground hover:text-foreground"
               )}
             >
-              <MessageSquare className="w-4 h-4" />
-              {lang === 'pt-BR' ? 'Nenhuma dessas / Quero escrever' : 'Ninguna de estas / Quiero escribir'}
+              <MessageSquare className="w-3.5 h-3.5 opacity-70" />
+              {lang === 'pt-BR' ? 'Não sei / Quero esclarecer algo' : 'No sé / Quiero aclarar algo'}
             </button>
             {showCustomInput && (
               <motion.div
@@ -835,7 +875,7 @@ export const SetupStepQuestionnaire = ({
                 <Textarea
                   value={customText}
                   onChange={(e) => setCustomText(e.target.value)}
-                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta aqui...' : 'Escribí tu respuesta acá...'}
+                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta ou deixe em branco para "Não sei"...' : 'Escribí tu aclaración o dejá vacío para "No sé"...'}
                   className="min-h-[80px] text-sm"
                   autoFocus
                 />
@@ -843,8 +883,8 @@ export const SetupStepQuestionnaire = ({
                   <Button size="sm" onClick={handleCustomSubmit} className="flex-1">
                     <Check className="w-4 h-4 mr-1" />
                     {customText.trim()
-                      ? (lang === 'pt-BR' ? 'Confirmar' : 'Confirmar')
-                      : (lang === 'pt-BR' ? 'Continuar' : 'Continuar')}
+                      ? (lang === 'pt-BR' ? 'Enviar esclarecimento' : 'Enviar aclaración')
+                      : (lang === 'pt-BR' ? 'Continuar como "Não sei"' : 'Continuar como "No sé"')}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); }}>
                     <X className="w-4 h-4" />
@@ -858,18 +898,21 @@ export const SetupStepQuestionnaire = ({
 
       case 'multi': {
         const selectedItems = (getCurrentValue() as string[]) || [];
-        const hasCustomMulti = typeof getCurrentValue() === 'object' && ['__CUSTOM__', '__NONE__'].includes(getCurrentValue()?.type);
+        const hasClarifyMulti = typeof getCurrentValue() === 'object' && getCurrentValue()?.type && [
+          '__CUSTOM__', '__NONE__', '__CLARIFY__', '__CLARIFY_PENDING__', '__NO_SE__',
+        ].includes(getCurrentValue()?.type);
+        const normalMultiOptions = getNormalOptions(currentQuestion.options as any[]);
         return (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {currentQuestion.options?.map((option) => {
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              {normalMultiOptions.map((option: any) => {
                 const isSelected = selectedItems.includes(option.id);
                 return (
                   <button
                     key={option.id}
                     onClick={() => handleMultiSelect(option.id)}
                     className={cn(
-                      "p-4 rounded-xl border-2 text-left transition-all relative",
+                      "p-3 sm:p-4 rounded-xl border-2 text-left transition-all relative min-h-[72px] flex flex-col justify-center",
                       isSelected
                         ? "border-primary bg-primary/10"
                         : "border-border hover:border-primary/50 bg-card"
@@ -878,26 +921,26 @@ export const SetupStepQuestionnaire = ({
                     {isSelected && (
                       <Check className="absolute top-2 right-2 w-4 h-4 text-primary" />
                     )}
-                    {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
-                    <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
+                    {option.emoji && <span className="text-lg sm:text-xl mb-1 block">{option.emoji}</span>}
+                    <span className={cn("font-medium text-xs sm:text-sm leading-tight", isSelected && "text-primary")}>
                       {option.label[lang] || option.label.es}
                     </span>
                   </button>
                 );
               })}
             </div>
-            {/* "Ninguna de estas" + custom text for multi */}
+            {/* Opción horizontal secundaria para multi: NUNCA autoavanza */}
             <button
               onClick={handleNoneOfThese}
               className={cn(
-                "w-full p-3 rounded-xl border-2 text-sm transition-all text-center flex items-center justify-center gap-2",
-                hasCustomMulti
-                  ? "border-primary bg-primary/10 text-primary font-medium"
-                  : "border-border hover:border-primary/50 bg-card text-muted-foreground"
+                "w-full px-3 py-2.5 rounded-lg border text-xs sm:text-sm transition-all text-center flex items-center justify-center gap-2",
+                hasClarifyMulti
+                  ? "border-primary/60 bg-primary/5 text-primary"
+                  : "border-border/60 hover:border-primary/40 bg-card/50 text-muted-foreground hover:text-foreground"
               )}
             >
-              <MessageSquare className="w-4 h-4" />
-              {lang === 'pt-BR' ? 'Outra resposta / Quero escrever' : 'Otra respuesta / Quiero escribir'}
+              <MessageSquare className="w-3.5 h-3.5 opacity-70" />
+              {lang === 'pt-BR' ? 'Não sei / Quero esclarecer algo' : 'No sé / Quiero aclarar algo'}
             </button>
             {showCustomInput && (
               <motion.div
@@ -908,7 +951,7 @@ export const SetupStepQuestionnaire = ({
                 <Textarea
                   value={customText}
                   onChange={(e) => setCustomText(e.target.value)}
-                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta aqui...' : 'Escribí tu respuesta acá...'}
+                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta ou deixe em branco para "Não sei"...' : 'Escribí tu aclaración o dejá vacío para "No sé"...'}
                   className="min-h-[80px] text-sm"
                   autoFocus
                 />
@@ -916,8 +959,8 @@ export const SetupStepQuestionnaire = ({
                   <Button size="sm" onClick={handleCustomSubmit} className="flex-1">
                     <Check className="w-4 h-4 mr-1" />
                     {customText.trim()
-                      ? (lang === 'pt-BR' ? 'Confirmar' : 'Confirmar')
-                      : (lang === 'pt-BR' ? 'Continuar' : 'Continuar')}
+                      ? (lang === 'pt-BR' ? 'Enviar esclarecimento' : 'Enviar aclaración')
+                      : (lang === 'pt-BR' ? 'Continuar como "Não sei"' : 'Continuar como "No sé"')}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); }}>
                     <X className="w-4 h-4" />

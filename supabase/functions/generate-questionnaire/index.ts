@@ -110,15 +110,17 @@ serve(async (req) => {
 
 DIMENSIONES (cobertura balanceada ${dimDist.min}-${dimDist.max} c/u): traffic, profitability, team, finances, efficiency, growth, reputation.
 
-TIPOS: single (3-6 opciones con emoji/impactScore 1-10), multi, number, slider, text, money.
+TIPOS PERMITIDOS: single (formato principal), multi (sólo si corresponde), number, slider, money. "text" sólo como excepción (≤10%).
 CATEGORÍAS: identity, operation, sales, finance, team, marketing, reputation, goals.
 
 REGLAS ABSOLUTAS:
 1. 100% específico para "${businessTypeLabel}". Terminología del sector.
-2. TODO el texto DEBE estar en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. PROHIBIDO usar palabras en inglés. Ni en títulos, ni en opciones, ni en ayudas. Cero inglés.
-3. En opciones de tipo single donde se pregunte por cantidad de clientes, empleados, etc: SIEMPRE incluir una opción para quien NO tiene (ej: "Todavía no tengo", "No aplica", "Recién empiezo"). 
-4. Rangos realistas. Datos accionables.
-5. Las preguntas deben ser gramaticalmente perfectas, claras y profesionales. Sin cortes, sin errores de redacción.
+2. TODO en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. CERO inglés en títulos, opciones o ayudas.
+3. PREGUNTAS CORTAS: máximo 12 palabras. Una sola idea. PROHIBIDO "Ej:" en el título.
+4. OPCIONES: EXACTAMENTE 4 ó 6 opciones por pregunta. NUNCA más de 6. Cada opción máx 4 palabras, primera letra MAYÚSCULA, sin punto final.
+5. NO incluyas "No sé", "No aplica", "Otra", "Ninguna" como opciones. La UI los agrega aparte.
+6. Para concepto difícil (flujo de caja, margen, ticket, conversión, recompra, capital de trabajo, etc.): completá "help" con UNA frase ≤120 chars que lo explique.
+7. Datos accionables. Rangos realistas. Gramática perfecta.
 ${learningContext}
 
 Responde con generate_questions.`
@@ -147,16 +149,27 @@ REGLAS CRÍTICAS DE PERSONALIZACIÓN:
 
 REGLAS ABSOLUTAS DE IDIOMA Y CALIDAD:
 6. TODO el texto DEBE estar en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. PROHIBIDO TERMINANTEMENTE usar palabras en inglés. Ni en títulos, ni en opciones, ni en textos de ayuda. CERO inglés. Ejemplos de lo que NO debe aparecer: "feedback", "marketing mix", "target", "branding", "check-in", "delivery", "staff", etc. Siempre usar el equivalente en español.
-7. OPCIONES INCLUSIVAS PARA NEGOCIOS NUEVOS: En TODA pregunta tipo "single" donde se pregunte por cantidad de clientes, empleados, ventas, facturación o cualquier métrica operativa, SIEMPRE debe existir al menos una opción para negocios que recién arrancan o no tienen eso todavía. Ejemplos: "Todavía no tengo clientes", "Recién empiezo", "No aplica a mi caso", "Aún no lo mido". Esto es OBLIGATORIO.
-8. CALIDAD DE REDACCIÓN: Las preguntas deben ser gramaticalmente perfectas, claras, completas y profesionales. Sin frases cortadas, sin errores de sintaxis, sin ambigüedades. Cada pregunta debe leerse como escrita por un consultor senior.
+7. CALIDAD DE REDACCIÓN: Las preguntas deben ser gramaticalmente perfectas, claras, completas y profesionales. Sin frases cortadas, sin errores de sintaxis, sin ambigüedades. Cada pregunta debe leerse como escrita por un consultor senior.
+
+REGLAS DE SIMPLICIDAD (CRÍTICAS - NO NEGOCIABLES):
+8. PREGUNTAS CORTAS: máximo 12 palabras por título. Una sola idea por pregunta. PROHIBIDO mezclar varias preguntas en una.
+9. PROHIBIDO "Ej:", "Por ejemplo", "(ejemplo...)" dentro del título de la pregunta. Los ejemplos van en el campo "help".
+10. PROHIBIDO pedir cálculos, porcentajes exactos, ni "3 principales canales". Las preguntas deben responderse en 2 segundos tocando una opción.
+11. FORMATO PRINCIPAL: "single" (selección única con autoavance). Usá "multi" sólo si realmente corresponde elegir varias. "text" SOLO como excepción (≤10% del cuestionario, sólo si es imposible con opciones).
+12. OPCIONES: EXACTAMENTE 4 ó 6 opciones normales. NUNCA más de 6. NUNCA menos de 3.
+13. NO incluyas opciones tipo "No sé", "No aplica", "Otra", "Ninguna", "Recién empiezo" dentro del array de opciones. La UI agrega automáticamente una opción horizontal secundaria "No sé / Quiero aclarar algo" para TODAS las preguntas. Tus opciones deben ser sólo respuestas reales y diferenciadas.
+14. CADA OPCIÓN: primera letra MAYÚSCULA, texto corto (máx 4 palabras), sin punto final, sin minúscula inicial, sin frases largas, sin "N/A", sin "Otro...". Ejemplos válidos: "Mayoría nuevos", "Honorarios", "WhatsApp", "Holgado".
+15. EMOJIS: máximo 1 por opción y SOLO si suma claridad visual. Negocios formales (legal, financiero, médico, B2B serio): SIN emojis. Negocios informales (gastronomía, ecommerce, turismo, bienestar): pueden usarse con sobriedad.
+16. EXPLICADORES: si la pregunta usa concepto económico/operativo difícil (flujo de caja, ticket promedio, margen, rentabilidad, recompra, conversión, checkout, pipeline, ciclo de venta, capital de trabajo, retención, rotación, ocupación, propuesta comercial, recurrencia, lead), COMPLETÁ el campo "help" con UNA frase corta (≤120 caracteres) definiéndolo en lenguaje llano. NO metas la definición en el título.
+17. SIN preguntas que asuman datos que el usuario probablemente no tiene precisos (ej: porcentajes exactos, montos exactos). Usá tramos (Holgado/Suficiente/Ajustado/Preocupante) o frecuencias (Siempre/A veces/Pocas/Nunca).
 
 TIPOS DE INPUT:
-- "single": Selección única (3-6 opciones con emoji, label bilingüe, impactScore)
-- "multi": Selección múltiple (3-6 opciones con emoji, label bilingüe)
-- "number": Valor numérico (incluir unit)
-- "slider": Rango deslizable (incluir min, max, unit)
-- "text": Respuesta abierta
-- "money": Valor monetario (incluir unit con moneda local)
+- "single": Selección única (4 ó 6 opciones con emoji opcional, label bilingüe, impactScore). FORMATO PRINCIPAL.
+- "multi": Selección múltiple (4 ó 6 opciones). Sólo cuando varias respuestas tengan sentido.
+- "number": Valor numérico (incluir unit). Sólo si el dato es trivial.
+- "slider": Rango deslizable (incluir min, max, unit). Sólo si simplifica.
+- "text": Respuesta abierta. EXCEPCIÓN: ≤10% del cuestionario.
+- "money": Valor monetario. Sólo si el usuario sabe el dato exacto.
 
 CATEGORÍAS: identity, operation, sales, finance, team, marketing, reputation, goals.
 
@@ -390,6 +403,50 @@ Responde usando la función generate_questions.`;
       }
     }
 
+    // --- Helpers de simplicidad / clarify ---
+    const CLARIFY_OPT_IDS = new Set([
+      'not_sure','no_se','no_sé','dont_know','idk','unknown','na','n_a',
+      'other','otro','otra','none','ninguna','ninguno','no_aplica','recien_empiezo',
+    ]);
+    const CLARIFY_LABEL_RX = [
+      /^no\s+(lo\s+)?s[eé]/i,/^no\s+aplica/i,/^otra?\s*(\.\.\.|$)/i,
+      /^ninguna?\s+de/i,/quiero\s+aclarar/i,/quiero\s+escribir/i,
+      /reci[eé]n\s+empiezo/i,/todav[ií]a\s+no/i,/^a[úu]n\s+no\s+lo\s+mido/i,
+    ];
+    const isClarifyOpt = (o: any): boolean => {
+      if (!o) return true;
+      if (CLARIFY_OPT_IDS.has(String(o.id || '').toLowerCase())) return true;
+      const lbl = String(o.label?.es || o.label || '').trim();
+      return CLARIFY_LABEL_RX.some(rx => rx.test(lbl));
+    };
+    const sanitizeOptionLabel = (s: string): string => {
+      let t = String(s || '').trim().replace(/\s+/g,' ');
+      if (!t) return t;
+      // Sin punto final.
+      t = t.replace(/[.。]+$/,'');
+      // Primera letra mayúscula.
+      t = t.charAt(0).toUpperCase() + t.slice(1);
+      return t;
+    };
+    const sanitizeOptions = (opts: any[] | undefined): any[] => {
+      if (!Array.isArray(opts)) return [];
+      const cleaned = opts
+        .filter(o => !isClarifyOpt(o))
+        .map(o => ({
+          ...o,
+          label: {
+            es: sanitizeOptionLabel(o.label?.es || ''),
+            'pt-BR': sanitizeOptionLabel(o.label?.['pt-BR'] || o.label?.es || ''),
+          },
+        }))
+        // Sin opciones demasiado largas (>40 chars).
+        .filter(o => (o.label.es || '').length <= 40);
+      // Cap a 6, preferir 4 ó 6.
+      if (cleaned.length > 6) return cleaned.slice(0, 6);
+      if (cleaned.length === 5) return cleaned.slice(0, 4);
+      return cleaned;
+    };
+
     // Validate and sanitize questions
     const validQuestions = questions
       .filter((q: any) => q.id && q.title?.es && q.type)
@@ -399,32 +456,34 @@ Responde usando la función generate_questions.`;
         required: q.required !== false,
         weight: Math.max(1, Math.min(10, q.weight || 5)),
         title: {
-          es: q.title.es,
-          'pt-BR': q.title['pt-BR'] || q.title.es,
+          es: String(q.title.es).replace(/\s*\(?ej\.?:?\s*[^)]*\)?/gi, '').replace(/\s+/g,' ').trim(),
+          'pt-BR': String(q.title['pt-BR'] || q.title.es).replace(/\s*\(?ex\.?:?\s*[^)]*\)?/gi, '').replace(/\s+/g,' ').trim(),
         },
         help: q.help ? {
           es: q.help.es || '',
           'pt-BR': q.help['pt-BR'] || q.help.es || '',
         } : undefined,
-        options: q.options?.map((opt: any) => ({
-          ...opt,
-          label: {
-            es: opt.label?.es || opt.label || '',
-            'pt-BR': opt.label?.['pt-BR'] || opt.label?.es || opt.label || '',
-          },
-        })),
+        options: sanitizeOptions(q.options),
       }))
       // RUNTIME GATE: filtrar preguntas genéricas directas y leaks técnicos
       .filter((q: any) => {
         const titleEs = q.title?.es || '';
+        // Bloquear si el título quedó demasiado largo o vacío tras limpieza.
+        if (!titleEs || titleEs.split(/\s+/).length > 22) {
+          console.warn(`[gate] dropped too-long/empty title: "${titleEs}"`);
+          return false;
+        }
         if (isGenericQuestionTitle(titleEs)) {
           console.warn(`[gate] dropped generic question: "${titleEs}"`);
           return false;
         }
+        // Si es single/multi y quedó sin opciones reales tras sanitize, descartar.
+        if ((q.type === 'single' || q.type === 'multi') && (!q.options || q.options.length < 3)) {
+          console.warn(`[gate] dropped ${q.type} with <3 normal options: "${titleEs}"`);
+          return false;
+        }
         const qc = extremeQualityCheck({ text: titleEs, hasBrainEvidence: true, hasConcreteAction: true });
         if (!qc.ok) {
-          // Sólo eliminar si hay leak técnico o etiqueta interna; las frases "genéricas" del
-          // gate apuntan a misiones/respuestas, no a preguntas, así que las toleramos.
           const blocking = qc.reasons.filter(r =>
             r.includes('técnico') || r.includes('interna') || r.includes('inglés') || r.includes('vacía')
           );
