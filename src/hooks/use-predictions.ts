@@ -77,7 +77,7 @@ export const usePredictions = (): UsePredictionsReturn => {
         recommended_actions: p.recommended_actions as unknown as Prediction['recommended_actions'],
         available_actions: p.available_actions as unknown as Prediction['available_actions'],
         visual_payload: p.visual_payload as unknown as Prediction['visual_payload'],
-      })) as Prediction[];
+      })) as unknown as Prediction[];
 
       const parsedCalibrations = (calibrationsRes.data || []).map(c => ({
         ...c,
