@@ -245,9 +245,13 @@ const MissionsPage = () => {
     setGeneratedPlan(null);
 
     try {
+      const contextPack = await buildContextPack('missions', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("generate-mission-plan", {
         body: {
           businessId: currentBusiness.id,
+          module: 'missions',
+          contextPack,
+          outputContract: 'mission_plan_v1',
           missionTitle: suggestion.title,
           missionDescription: suggestion.description,
           missionArea: suggestion.area,
