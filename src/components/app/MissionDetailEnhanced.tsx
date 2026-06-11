@@ -344,6 +344,8 @@ export const MissionDetailEnhanced = ({
     onToggleStep(mission.id, expandedStep);
   };
 
+  const staleness = useContentStaleness(businessId, mission.id, mission.created_at);
+
   return (
     <div 
       ref={containerRef}
