@@ -97,6 +97,21 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
     setCurrentBusinessState(business);
   }, []);
 
+  // Backfill: si el negocio activo está completado pero nunca se sembró el Brain,
+  // disparar el seed sectorial una sola vez (idempotente del lado del edge function).
+  const seededRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const b = currentBusiness;
+    if (!b?.id || !b.setup_completed) return;
+    if (seededRef.current.has(b.id)) return;
+    const settings = (b.settings as Record<string, unknown> | null) ?? {};
+    if (settings.brain_seeded_at) return;
+    seededRef.current.add(b.id);
+    supabase.functions
+      .invoke("seed-business-brain", { body: { businessId: b.id } })
+      .catch((err) => console.warn("[business] seed backfill falló:", err));
+  }, [currentBusiness]);
+
   const value = useMemo(
     () => ({ currentBusiness, businesses, loading, setCurrentBusiness, refreshBusinesses }),
     [currentBusiness, businesses, loading, setCurrentBusiness, refreshBusinesses]
