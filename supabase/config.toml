@@ -1,244 +1,167 @@
 project_id = "nlewrgmcawzcdazhfiyy"
 
-[functions.uceo-chat]
-verify_jwt = false
-
-[functions.vistaceo-chat]
-verify_jwt = false
-
-[functions.elevenlabs-tts]
-verify_jwt = false
-
-[functions.elevenlabs-stt]
-verify_jwt = false
-
-[functions.generate-action]
-verify_jwt = false
-
-[functions.analyze-patterns]
-verify_jwt = false
-
-[functions.generate-question]
-verify_jwt = false
-
-[functions.sync-external-data]
-verify_jwt = false
-
-[functions.google-oauth-start]
-verify_jwt = false
-
-[functions.google-oauth-callback]
-verify_jwt = false
-
-[functions.google-business-locations]
-verify_jwt = false
-
-[functions.google-select-location]
-verify_jwt = false
-
-[functions.google-sync-reviews]
-verify_jwt = false
-
-[functions.generate-mission-plan]
-verify_jwt = false
-
-[functions.brain-analyze-gaps]
-verify_jwt = false
-
-[functions.brain-quality-gate]
-verify_jwt = false
-
-[functions.brain-record-signal]
-verify_jwt = false
-
-[functions.brain-process-signals]
-verify_jwt = false
-
-[functions.brain-resolve-entity]
-verify_jwt = false
-
-[functions.brain-focus-engine]
-verify_jwt = false
-
-[functions.brain-playbook]
-verify_jwt = false
-
-[functions.google-places-autocomplete]
-verify_jwt = false
-
-[functions.google-place-details]
-verify_jwt = false
-
-[functions.google-nearby-competitors]
-verify_jwt = false
-
-[functions.analyze-health-score]
-verify_jwt = false
-
-[functions.send-welcome-email]
-verify_jwt = false
-
-[functions.generate-opportunity-plan]
-verify_jwt = false
-
-[functions.weekly-insight-scan]
-verify_jwt = false
-
-[functions.analyze-reputation]
-verify_jwt = false
-
-[functions.google-sync-youtube]
-verify_jwt = false
-
-[functions.meta-oauth-start]
-verify_jwt = false
-
-[functions.meta-oauth-callback]
-verify_jwt = false
-
-[functions.setup-web-analytics]
-verify_jwt = false
-
-[functions.web-analytics-tracker]
-verify_jwt = false
-
-[functions.tiktok-oauth-start]
-verify_jwt = false
-
-[functions.meta-sync-data]
-verify_jwt = false
-
-[functions.create-checkout]
-verify_jwt = false
-
-[functions.payment-webhook]
-verify_jwt = false
-
-[functions.scrape-social-profile]
-verify_jwt = false
-
-[functions.generate-blog-post]
-verify_jwt = false
-
-[functions.build-annual-calendar]
-verify_jwt = false
-
-[functions.seed-blog-topics]
-verify_jwt = false
-
-[functions.sitemap]
-verify_jwt = false
-
-[functions.generate-predictions]
-verify_jwt = false
-
-[functions.linkedin-publish]
-verify_jwt = false
-
-[functions.linkedin-oauth-start]
-verify_jwt = false
-
-[functions.linkedin-oauth-callback]
-verify_jwt = false
-
-[functions.linkedin-generate-copy]
-verify_jwt = false
-
-[functions.og-meta]
-verify_jwt = false
-
-[functions.blog-seo]
-verify_jwt = false
-
-[functions.generate-blog-og]
-verify_jwt = false
-
-[functions.fix-blog-images]
-verify_jwt = false
-
-[functions.trigger-site-deploy]
-verify_jwt = false
-
-[functions.generate-blog-ssg]
-verify_jwt = false
-
-[functions.seo-test-suite]
-verify_jwt = false
-
-[functions.trigger-blog-revalidate]
-verify_jwt = false
-
-[functions.indexnow-submit]
-verify_jwt = false
-
-[functions.admin-get-users]
-verify_jwt = false
-
-[functions.admin-get-analytics]
-verify_jwt = false
-
-[functions.blog-daily-publish]
-verify_jwt = false
-
-[functions.generate-blog-images]
-verify_jwt = false
-
-[functions.blog-improve-post]
-verify_jwt = false
-
-[functions.track-user-activity]
-verify_jwt = false
-
-[functions.track-analytics]
-verify_jwt = false
-
-[functions.send-email-activated]
-verify_jwt = false
-
-[functions.send-email-setup-reminder]
-verify_jwt = false
-
-[functions.send-email-pro-activated]
-verify_jwt = false
-
-[functions.backfill-blog-images]
-verify_jwt = false
-
-[functions.backfill-content-structure]
-verify_jwt = false
-
-[functions.backfill-seo-posts]
-verify_jwt = false
-
-[functions.google-sync-public-reviews]
-verify_jwt = false
-
-[functions.audit-user-state]
-verify_jwt = false
-
-[functions.seo-auto-indexer]
-verify_jwt = false
-
-[functions.paypal-create-order]
-verify_jwt = false
-
-[functions.paypal-client-config]
-verify_jwt = false
-
-[functions.process-email-queue]
-verify_jwt = true
-
-[functions.send-transactional-email]
-verify_jwt = false
-
-[functions.preview-transactional-email]
-verify_jwt = false
-
-[functions.handle-email-unsubscribe]
-verify_jwt = false
-
-[functions.handle-email-suppression]
-verify_jwt = false
-
-[functions.track-email]
-verify_jwt = false
+[functions]
+  [functions.admin-get-analytics]
+    verify_jwt = false
+  [functions.admin-get-users]
+    verify_jwt = false
+  [functions.analyze-health-score]
+    verify_jwt = false
+  [functions.analyze-patterns]
+    verify_jwt = false
+  [functions.analyze-reputation]
+    verify_jwt = false
+  [functions.audit-user-state]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.backfill-blog-images]
+    verify_jwt = false
+  [functions.backfill-content-structure]
+    verify_jwt = false
+  [functions.backfill-seo-posts]
+    verify_jwt = false
+  [functions.blog-daily-publish]
+    verify_jwt = false
+  [functions.blog-improve-post]
+    verify_jwt = false
+  [functions.blog-seo]
+    verify_jwt = false
+  [functions.brain-analyze-gaps]
+    verify_jwt = false
+  [functions.brain-focus-engine]
+    verify_jwt = false
+  [functions.brain-playbook]
+    verify_jwt = false
+  [functions.brain-process-signals]
+    verify_jwt = false
+  [functions.brain-quality-gate]
+    verify_jwt = false
+  [functions.brain-record-signal]
+    verify_jwt = false
+  [functions.brain-resolve-entity]
+    verify_jwt = false
+  [functions.build-annual-calendar]
+    verify_jwt = false
+  [functions.create-checkout]
+    verify_jwt = false
+  [functions.elevenlabs-stt]
+    verify_jwt = false
+  [functions.elevenlabs-tts]
+    verify_jwt = false
+  [functions.fix-blog-images]
+    verify_jwt = false
+  [functions.generate-action]
+    verify_jwt = false
+  [functions.generate-blog-images]
+    verify_jwt = false
+  [functions.generate-blog-og]
+    verify_jwt = false
+  [functions.generate-blog-post]
+    verify_jwt = false
+  [functions.generate-blog-ssg]
+    verify_jwt = false
+  [functions.generate-mission-plan]
+    verify_jwt = false
+  [functions.generate-opportunity-plan]
+    verify_jwt = false
+  [functions.generate-predictions]
+    verify_jwt = false
+  [functions.generate-question]
+    verify_jwt = false
+  [functions.google-business-locations]
+    verify_jwt = false
+  [functions.google-nearby-competitors]
+    verify_jwt = false
+  [functions.google-oauth-callback]
+    verify_jwt = false
+  [functions.google-oauth-start]
+    verify_jwt = false
+  [functions.google-place-details]
+    verify_jwt = false
+  [functions.google-places-autocomplete]
+    verify_jwt = false
+  [functions.google-select-location]
+    verify_jwt = false
+  [functions.google-sync-public-reviews]
+    verify_jwt = false
+  [functions.google-sync-reviews]
+    verify_jwt = false
+  [functions.google-sync-youtube]
+    verify_jwt = false
+  [functions.handle-email-suppression]
+    verify_jwt = false
+  [functions.handle-email-unsubscribe]
+    verify_jwt = false
+  [functions.indexnow-submit]
+    verify_jwt = false
+  [functions.linkedin-generate-copy]
+    verify_jwt = false
+  [functions.linkedin-oauth-callback]
+    verify_jwt = false
+  [functions.linkedin-oauth-start]
+    verify_jwt = false
+  [functions.linkedin-publish]
+    verify_jwt = false
+  [functions.meta-oauth-callback]
+    verify_jwt = false
+  [functions.meta-oauth-start]
+    verify_jwt = false
+  [functions.meta-sync-data]
+    verify_jwt = false
+  [functions.og-meta]
+    verify_jwt = false
+  [functions.payment-webhook]
+    verify_jwt = false
+  [functions.paypal-client-config]
+    verify_jwt = false
+  [functions.paypal-create-order]
+    verify_jwt = false
+  [functions.preview-transactional-email]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.scrape-social-profile]
+    verify_jwt = false
+  [functions.seed-blog-topics]
+    verify_jwt = false
+  [functions.send-email-activated]
+    verify_jwt = false
+  [functions.send-email-pro-activated]
+    verify_jwt = false
+  [functions.send-email-setup-reminder]
+    verify_jwt = false
+  [functions.send-transactional-email]
+    verify_jwt = false
+  [functions.send-welcome-email]
+    verify_jwt = false
+  [functions.seo-auto-indexer]
+    verify_jwt = false
+  [functions.seo-test-suite]
+    verify_jwt = false
+  [functions.setup-web-analytics]
+    verify_jwt = false
+  [functions.sitemap]
+    verify_jwt = false
+  [functions.sync-external-data]
+    verify_jwt = false
+  [functions.tiktok-oauth-start]
+    verify_jwt = false
+  [functions.track-analytics]
+    verify_jwt = false
+  [functions.track-email]
+    verify_jwt = false
+  [functions.track-user-activity]
+    verify_jwt = false
+  [functions.trigger-blog-revalidate]
+    verify_jwt = false
+  [functions.trigger-site-deploy]
+    verify_jwt = false
+  [functions.uceo-chat]
+    verify_jwt = false
+  [functions.vistaceo-chat]
+    verify_jwt = false
+  [functions.web-analytics-tracker]
+    verify_jwt = false
+  [functions.weekly-insight-scan]
+    verify_jwt = false
