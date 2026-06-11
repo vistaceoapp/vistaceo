@@ -17,12 +17,12 @@ const corsHeaders = {
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  signup: 'Confirmá tu cuenta en VISTACEO',
+  invite: 'Te invitamos a VISTACEO',
+  magiclink: 'Tu enlace de acceso a VISTACEO',
+  recovery: 'Restablecé tu contraseña de VISTACEO',
+  email_change: 'Confirmá el cambio de correo en VISTACEO',
+  reauthentication: 'Tu código de verificación VISTACEO',
 }
 
 // Template mapping
@@ -36,8 +36,9 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "vistaceo"
+const SITE_NAME = "VISTACEO"
 const SENDER_DOMAIN = "notify.www.vistaceo.com"
+
 const ROOT_DOMAIN = "www.vistaceo.com"
 const FROM_DOMAIN = "notify.www.vistaceo.com" // Domain shown in From address (may be root or sender subdomain)
 
