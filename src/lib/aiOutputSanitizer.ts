@@ -80,7 +80,67 @@ const BUSINESS_TYPE_LABELS: Record<string, string> = {
   restaurant: "restaurante",
 };
 
-export function sanitizeAIOutput(text: string | null | undefined): string {
+// ===== RED LIST GLOBAL (P0) — contenido prohibido visible =====
+// Si aparece cualquiera de estos tokens, el contenido se descarta.
+export const RED_LIST_FORBIDDEN = [
+  '[object Object]',
+  'undefined',
+  'null',
+  'NaN',
+  'factual_memory',
+  'business_brain',
+  'evidence_from_brain',
+  'market_signal',
+  'connected_mission',
+  'impact_score',
+  'effort_score',
+  'why_now',
+  'specific_action',
+  'certainty_score',
+  'CEO_AUDIO_SCRIPT',
+  'BRAIN_JSON',
+  'METADATA',
+  'Failed to send a request to the Edge Function',
+  'Edge Function error',
+  'FunctionsHttpError',
+  'FunctionsRelayError',
+  'FunctionsFetchError',
+  'gateway error',
+  '**Origen**',
+  '**Fuente**',
+  'Q_AI_',
+] as const;
+
+const RED_LIST_REGEXES = [
+  /\bQ_AI_\d+/gi,
+  /https?:\/\/news\.google\.com\/rss[^\s)\]]*/gi,
+  /\bhttps?:\/\/\S{120,}/gi,           // URLs ridículamente largas
+  /\{[\s\S]{40,}\}/g,                   // JSON crudo visible
+  /<[A-Z_]{3,}>[\s\S]*?<\/[A-Z_]{3,}>/g, // bloques XML internos
+];
+
+export type SanitizeMode = 'prose' | 'structured' | 'label' | 'admin';
+export interface SanitizeOptions { mode?: SanitizeMode }
+
+/** True si el texto contiene cualquier token de la Red List. */
+export function containsForbidden(text: string | null | undefined): boolean {
+  if (!text) return false;
+  const lower = String(text);
+  for (const token of RED_LIST_FORBIDDEN) {
+    if (lower.includes(token)) return true;
+  }
+  for (const re of RED_LIST_REGEXES) {
+    re.lastIndex = 0;
+    if (re.test(lower)) return true;
+  }
+  return false;
+}
+
+export function sanitizeAIOutput(
+  text: string | null | undefined,
+  options: SanitizeOptions = {}
+): string {
+  const mode: SanitizeMode = options.mode ?? 'prose';
   if (!text || typeof text !== 'string') return '';
   
   let result = text;
