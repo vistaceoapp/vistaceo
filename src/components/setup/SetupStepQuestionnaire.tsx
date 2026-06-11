@@ -595,20 +595,29 @@ export const SetupStepQuestionnaire = ({
     onUpdate({ ...answers, [currentQuestion.id]: value });
   };
 
+  // "No sé / Quiero aclarar algo": NUNCA autoavanza. Solo abre input.
+  // No setea respuesta todavía: se decide en handleCustomSubmit según haya texto o no.
   const handleNoneOfThese = () => {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
     setShowCustomInput(true);
-    handleAnswer({ type: '__NONE__', text: 'Ninguna de estas' });
+    // Marcamos un placeholder para que canProceed() habilite Continuar,
+    // pero el contenido real se confirma en submit (vacío => "No sé", con texto => aclaración).
+    handleAnswer({ type: '__CLARIFY_PENDING__', text: '' });
   };
 
   const handleCustomSubmit = () => {
     const trimmed = customText.trim();
     if (trimmed) {
-      handleAnswer({ type: '__CUSTOM__', text: trimmed });
+      // Aclaración real del usuario: prioridad alta en el brain.
+      handleAnswer({ type: '__CLARIFY__', text: trimmed, source: 'user_clarification' });
     } else {
-      handleAnswer({ type: '__NONE__', text: 'Ninguna de estas' });
+      // Sin texto: se guarda como "No sé" (dato pendiente de validar, sin penalización).
+      handleAnswer({ type: '__NO_SE__', text: 'No sé', source: 'user_unknown' });
     }
     setShowCustomInput(false);
-    // Avanzar siempre, con o sin texto
     if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
     advanceTimerRef.current = setTimeout(() => handleNext(), 120);
   };
