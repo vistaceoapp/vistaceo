@@ -234,12 +234,16 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
         {/* Vision line */}
         <p
           className={cn(
-            "text-foreground/85 leading-relaxed mb-5",
+            "text-foreground/85 leading-relaxed mb-4",
             isMobile ? "text-[15px]" : "text-lg"
           )}
         >
           {safeVisionLine}
         </p>
+
+        {/* Contexto sectorial por daypart */}
+        <SectorSignatureStrip className="mb-5" />
+
 
         {/* Chips clickeables — destinos reales */}
         <div
