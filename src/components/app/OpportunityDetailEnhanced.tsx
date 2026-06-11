@@ -28,6 +28,8 @@ import {
 } from "@/lib/radarQualityGates";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 import type { GenerateOpportunityPlanResponse } from '@/lib/edge-function-response-types';
+import { useContentStaleness } from '@/hooks/use-content-staleness';
+import { StaleContentBanner } from '@/components/app/StaleContentBanner';
 
 interface Opportunity {
   id: string;
