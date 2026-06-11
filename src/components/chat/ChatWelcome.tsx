@@ -2,6 +2,7 @@ import { CEOAvatar } from "./CEOAvatar";
 import { ChatSuggestedQuestions } from "./ChatSuggestedQuestions";
 import { Sparkles, Camera, FileText, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ChatWelcomeProps {
   businessId: string;
@@ -10,13 +11,30 @@ interface ChatWelcomeProps {
   disabled?: boolean;
 }
 
+const extractFirstName = (raw?: string | null): string | null => {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  // Si parece email, usar la parte previa al @ y limpiar
+  const base = trimmed.includes("@") ? trimmed.split("@")[0] : trimmed;
+  const first = base.split(/[\s._-]+/)[0];
+  if (!first) return null;
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+};
+
 export const ChatWelcome = ({
   businessId,
   businessName,
   onSelectSuggestion,
   disabled,
 }: ChatWelcomeProps) => {
-  const firstName = businessName.split(" ")[0];
+  const { user } = useAuth();
+  const fullName =
+    (user?.user_metadata as Record<string, unknown> | undefined)?.["full_name"] as string | undefined ??
+    (user?.user_metadata as Record<string, unknown> | undefined)?.["name"] as string | undefined ??
+    user?.email ??
+    null;
+  const firstName = extractFirstName(fullName) ?? extractFirstName(businessName) ?? "hola";
   
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 py-8">
@@ -30,7 +48,7 @@ export const ChatWelcome = ({
 
       {/* Welcome Text */}
       <h2 className="text-xl font-bold text-foreground mb-1.5 text-center">
-        Hola, {firstName} 👋
+        {firstName === "hola" ? "Hola 👋" : `Hola, ${firstName} 👋`}
       </h2>
       <p className="text-sm text-muted-foreground text-center mb-6 max-w-md leading-relaxed">
         Soy tu CEO virtual. Preguntame, pedime análisis, subí fotos o documentos de tu negocio.
