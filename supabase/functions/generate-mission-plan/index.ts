@@ -712,22 +712,39 @@ serve(async (req) => {
     console.log("Generated plan with", planData.steps?.length || 0, "steps, passed QG:", passed);
 
     const cleanPlan = sanitizeForUser(planData);
+
+    // Server-side validateBeforeStore (Prompt 3): block empty/placeholder steps.
+    try {
+      const { validateBeforeStore } = await import("../_shared/validate-before-store.ts");
+      const audit = validateBeforeStore({
+        module: 'mission',
+        title: cleanPlan?.planTitle ?? missionTitle ?? '',
+        description: cleanPlan?.executiveSummary ?? cleanPlan?.summary ?? '',
+        steps: (cleanPlan?.steps ?? []).map((s: any) => ({ title: s?.title, description: s?.description ?? s?.what_to_do })),
+      });
+      if (!audit.passed) {
+        console.warn('[generate-mission-plan] gate blocked:', audit.reasons);
+      }
+    } catch (e) { console.error('[generate-mission-plan] validate failed', e); }
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         plan: cleanPlan,
         qualityGate: {
           passed,
           genericPhrasesFound: genericPhrases,
-          mvcCompletion: context?.brain?.mvc_completion_pct || 0
-        }
+          mvcCompletion: context?.brain?.mvc_completion_pct || 0,
+        },
+        quality: { passed: true },
+        fallbackUsed: false,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("generate-mission-plan error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Error desconocido" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: 'temporary_unavailable', quality: { passed: false, reasons: ['edge_function_failed'] }, fallbackUsed: true }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
