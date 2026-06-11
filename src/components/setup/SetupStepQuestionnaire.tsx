@@ -898,18 +898,21 @@ export const SetupStepQuestionnaire = ({
 
       case 'multi': {
         const selectedItems = (getCurrentValue() as string[]) || [];
-        const hasCustomMulti = typeof getCurrentValue() === 'object' && ['__CUSTOM__', '__NONE__'].includes(getCurrentValue()?.type);
+        const hasClarifyMulti = typeof getCurrentValue() === 'object' && getCurrentValue()?.type && [
+          '__CUSTOM__', '__NONE__', '__CLARIFY__', '__CLARIFY_PENDING__', '__NO_SE__',
+        ].includes(getCurrentValue()?.type);
+        const normalMultiOptions = getNormalOptions(currentQuestion.options as any[]);
         return (
           <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {currentQuestion.options?.map((option) => {
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              {normalMultiOptions.map((option: any) => {
                 const isSelected = selectedItems.includes(option.id);
                 return (
                   <button
                     key={option.id}
                     onClick={() => handleMultiSelect(option.id)}
                     className={cn(
-                      "p-4 rounded-xl border-2 text-left transition-all relative",
+                      "p-3 sm:p-4 rounded-xl border-2 text-left transition-all relative min-h-[72px] flex flex-col justify-center",
                       isSelected
                         ? "border-primary bg-primary/10"
                         : "border-border hover:border-primary/50 bg-card"
@@ -918,26 +921,26 @@ export const SetupStepQuestionnaire = ({
                     {isSelected && (
                       <Check className="absolute top-2 right-2 w-4 h-4 text-primary" />
                     )}
-                    {option.emoji && <span className="text-xl mb-2 block">{option.emoji}</span>}
-                    <span className={cn("font-medium text-sm", isSelected && "text-primary")}>
+                    {option.emoji && <span className="text-lg sm:text-xl mb-1 block">{option.emoji}</span>}
+                    <span className={cn("font-medium text-xs sm:text-sm leading-tight", isSelected && "text-primary")}>
                       {option.label[lang] || option.label.es}
                     </span>
                   </button>
                 );
               })}
             </div>
-            {/* "Ninguna de estas" + custom text for multi */}
+            {/* Opción horizontal secundaria para multi: NUNCA autoavanza */}
             <button
               onClick={handleNoneOfThese}
               className={cn(
-                "w-full p-3 rounded-xl border-2 text-sm transition-all text-center flex items-center justify-center gap-2",
-                hasCustomMulti
-                  ? "border-primary bg-primary/10 text-primary font-medium"
-                  : "border-border hover:border-primary/50 bg-card text-muted-foreground"
+                "w-full px-3 py-2.5 rounded-lg border text-xs sm:text-sm transition-all text-center flex items-center justify-center gap-2",
+                hasClarifyMulti
+                  ? "border-primary/60 bg-primary/5 text-primary"
+                  : "border-border/60 hover:border-primary/40 bg-card/50 text-muted-foreground hover:text-foreground"
               )}
             >
-              <MessageSquare className="w-4 h-4" />
-              {lang === 'pt-BR' ? 'Outra resposta / Quero escrever' : 'Otra respuesta / Quiero escribir'}
+              <MessageSquare className="w-3.5 h-3.5 opacity-70" />
+              {lang === 'pt-BR' ? 'Não sei / Quero esclarecer algo' : 'No sé / Quiero aclarar algo'}
             </button>
             {showCustomInput && (
               <motion.div
@@ -948,7 +951,7 @@ export const SetupStepQuestionnaire = ({
                 <Textarea
                   value={customText}
                   onChange={(e) => setCustomText(e.target.value)}
-                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta aqui...' : 'Escribí tu respuesta acá...'}
+                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta ou deixe em branco para "Não sei"...' : 'Escribí tu aclaración o dejá vacío para "No sé"...'}
                   className="min-h-[80px] text-sm"
                   autoFocus
                 />
@@ -956,8 +959,8 @@ export const SetupStepQuestionnaire = ({
                   <Button size="sm" onClick={handleCustomSubmit} className="flex-1">
                     <Check className="w-4 h-4 mr-1" />
                     {customText.trim()
-                      ? (lang === 'pt-BR' ? 'Confirmar' : 'Confirmar')
-                      : (lang === 'pt-BR' ? 'Continuar' : 'Continuar')}
+                      ? (lang === 'pt-BR' ? 'Enviar esclarecimento' : 'Enviar aclaración')
+                      : (lang === 'pt-BR' ? 'Continuar como "Não sei"' : 'Continuar como "No sé"')}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); }}>
                     <X className="w-4 h-4" />
