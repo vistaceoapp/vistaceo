@@ -14,10 +14,10 @@ import { cn } from '@/lib/utils';
 import { CountryCode, COUNTRY_PACKS, getRevenueRanges, getCurrencyLabel } from '@/lib/countryPacks';
 import { supabase } from '@/integrations/supabase/client';
 import { 
-import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   getUniversalCategoryLabel,
   UniversalQuestion
 } from '@/lib/universalQuestionsEngine';
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface SetupStepQuestionnaireProps {
   countryCode: CountryCode;

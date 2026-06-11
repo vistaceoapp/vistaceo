@@ -20,12 +20,12 @@ import { buildContextPack } from "@/lib/context-pack-builder";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { 
-import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   QualityGateResult, 
   getTimeEstimate, 
   getImpactedDrivers,
   OpportunityEvidence
 } from "@/lib/radarQualityGates";
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface Opportunity {
   id: string;

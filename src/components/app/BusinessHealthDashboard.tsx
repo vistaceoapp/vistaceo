@@ -22,12 +22,12 @@ import { useNavigate } from "react-router-dom";
 import { sanitizeForUI } from "@/lib/presentationRegistry";
 import { GlassCard } from "./GlassCard";
 import {
-import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface Snapshot {
   id: string;

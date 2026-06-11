@@ -25,13 +25,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface PrecisionRingWidgetProps {
   healthScore: number;

@@ -4,7 +4,6 @@ import { buildContextPack } from '@/lib/context-pack-builder';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { useBrain } from '@/hooks/use-brain';
 import type { 
-import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   Prediction, 
   CalibrationEvent, 
   PredictionUIModel,
@@ -13,6 +12,7 @@ import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   HORIZON_RINGS,
   PREDICTION_DOMAINS 
 } from '@/lib/predictions/types';
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface UsePredictionsReturn {
   predictions: Prediction[];

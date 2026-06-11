@@ -22,9 +22,9 @@ import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { sanitizeAIOutput, sanitizeSignals, isLeakedLabel } from "@/lib/aiOutputSanitizer";
 import {
-import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
+import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
 interface Snapshot {
   id: string;
