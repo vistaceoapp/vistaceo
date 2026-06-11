@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getScoreStyle } from '@/lib/dashboardCards';
 import { supabase } from "@/integrations/supabase/client";
+import { buildContextPack } from "@/lib/context-pack-builder";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
