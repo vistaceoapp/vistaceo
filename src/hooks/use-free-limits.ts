@@ -113,8 +113,8 @@ export const useFreeLimits = (): FreeLimitsState => {
         safeCount(() =>
           supabase.from("learning_items").select("id", { count: "exact", head: true }).eq("business_id", currentBusiness.id)
         ),
-        // @ts-expect-error - table not yet in generated types
-        supabase.from("free_tier_state").select("*").eq("business_id", currentBusiness.id).maybeSingle(),
+        (supabase as unknown as { from: (t: string) => { select: (c: string) => { eq: (k: string, v: string) => { maybeSingle: () => Promise<{ data: { bonus_opportunities?: number; bonus_research?: number; last_refill_at?: string | null } | null }> } } } })
+          .from("free_tier_state").select("*").eq("business_id", currentBusiness.id).maybeSingle(),
       ]);
 
       setUsage({
@@ -150,8 +150,7 @@ export const useFreeLimits = (): FreeLimitsState => {
   const requestRefill = useCallback(async () => {
     if (!currentBusiness) return { success: false, message: "Negocio no encontrado" };
     try {
-      // @ts-expect-error - RPC not in generated types yet
-      const { data, error } = await supabase.rpc("request_free_tier_refill", { _business_id: currentBusiness.id });
+      const { data, error } = await (supabase as unknown as { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: Array<{ success: boolean; message: string }> | { success: boolean; message: string } | null; error: { message: string } | null }> }).rpc("request_free_tier_refill", { _business_id: currentBusiness.id });
       if (error) return { success: false, message: error.message };
       const row = Array.isArray(data) ? data[0] : data;
       await fetchUsage();
