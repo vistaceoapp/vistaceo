@@ -515,6 +515,14 @@ export const MissionDetailEnhanced = ({
 
       {/* Main content - single scrollable area */}
       <main className="flex-1 p-4 md:p-5 space-y-5">
+        <StaleContentBanner
+          show={staleness.isStale}
+          loading={loading}
+          onRegenerate={() => { staleness.dismiss(); fetchEnhancedPlan(true); }}
+          onDismiss={staleness.dismiss}
+          label="Tu negocio cambió desde que se creó esta misión"
+        />
+
         {/* Loading state */}
         {loading && !enhancedPlan ? (
           <div className="space-y-4">
