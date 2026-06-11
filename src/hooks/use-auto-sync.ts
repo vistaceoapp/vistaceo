@@ -68,8 +68,9 @@ export const useAutoSync = () => {
 
     try {
       console.log("[auto-sync] Triggering brain-analyze-gaps for:", currentBusiness.id);
+      const cp = await buildContextPack('admin', currentBusiness.id).catch(() => null);
       const { error } = await supabase.functions.invoke("brain-analyze-gaps", {
-        body: { businessId: currentBusiness.id }
+        body: { businessId: currentBusiness.id, module: 'admin', contextPack: cp }
       });
       if (error) {
         console.warn("[auto-sync] Brain gaps error (non-blocking):", error);
