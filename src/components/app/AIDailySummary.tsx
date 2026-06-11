@@ -4,6 +4,7 @@ import {
   TrendingUp, Target, Eye, Crosshair, BarChart3, Shield
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { buildContextPack } from '@/lib/context-pack-builder';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
