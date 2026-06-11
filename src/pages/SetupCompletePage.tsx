@@ -100,13 +100,15 @@ const SetupCompletePage = () => {
     if (hasPendingPlan) {
       navigate("/checkout", { replace: true });
     } else {
-      navigate("/app", { replace: true });
+      // Pasamos por el splash de preparación: pre-genera misión + 2 opps + 2 trends
+      // y luego entra al dashboard ya cargado. Es idempotente.
+      navigate("/app/preparing", { replace: true });
     }
   };
 
   const handleGoToDashboard = () => {
     setCountdown(null);
-    navigate("/app", { replace: true });
+    navigate("/app/preparing", { replace: true });
   };
 
   // Detectar tipo (servicio/profesión vs negocio físico) desde setupProgress para personalizar
