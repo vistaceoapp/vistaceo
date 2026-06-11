@@ -590,14 +590,14 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite", // Cost-optimized: structured plan generation
+        model: "google/gemini-2.5-flash", // Mejor razonamiento para plan completo y profundo
         messages: [
           { role: "system", content: `${SYSTEM_PROMPT}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("mission")}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
           { role: "user", content: contextPrompt },
         ],
         stream: false,
         temperature: regenerate ? 0.8 : 0.6,
-        max_tokens: 4096, // Increased for larger JSON responses
+        max_tokens: 8192,
       }),
     });
 
