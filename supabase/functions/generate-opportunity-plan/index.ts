@@ -508,6 +508,16 @@ Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
       }
     } catch (e) { console.error('[generate-opportunity-plan] validate failed', e); }
 
+    // ───── Motor IA Universal — persist cache ─────
+    await writeArtifactCache({
+      businessId,
+      artifactType: "opportunity",
+      artifactKey,
+      brainSignature,
+      payload: cleanPlan,
+      modelUsed: "google/gemini-2.5-pro",
+    });
+
     return new Response(JSON.stringify({
       plan: cleanPlan,
       success: true,
