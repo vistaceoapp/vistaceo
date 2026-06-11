@@ -166,10 +166,10 @@ export const MissionSummaryView = ({
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-lg font-bold text-foreground mb-1">
-                {enhancedPlan?.planTitle || mission.title}
+                {sanitizeAIOutput(enhancedPlan?.planTitle || mission.title || "")}
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {enhancedPlan?.planDescription || mission.description}
+                {humanizeProse(enhancedPlan?.planDescription || mission.description || "", "Resumen ejecutivo de la misión.")}
               </p>
             </div>
           </div>
