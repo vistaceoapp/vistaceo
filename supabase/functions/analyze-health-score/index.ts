@@ -2,11 +2,19 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
 import { sanitizeForUser } from "../_shared/brain-core/sanitize-output.ts";
+import { sanitizeAIOutput, containsForbidden } from "../_shared/ai-output-sanitizer.ts";
+import { validateBeforeStore } from "../_shared/validate-before-store.ts";
+import { gateHealthScore } from "../_shared/quality-gates.ts";
+import { hasMinimumContext, type EdgeContextPack } from "../_shared/context-pack-types.ts";
+import { failResponse } from "../_shared/edge-safe-response.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const NO_DATA_MESSAGE =
+  "Todavía no hay datos suficientes para medir esta dimensión con precisión. VISTACEO la puede estimar mejor cuando registres más información, avances de misión o métricas reales.";
 
 interface HealthDimension {
   score: number;
@@ -37,7 +45,11 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, setupData, googleData, brainData, integrationsData, signalsData } = await req.json();
+    const { businessId, setupData, googleData, brainData, integrationsData, signalsData, contextPack } = await req.json();
+    const pack = contextPack as EdgeContextPack | undefined;
+    if (pack && !hasMinimumContext(pack)) {
+      console.warn("[analyze-health-score] ContextPack received but lacks minimum context");
+    }
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -231,14 +243,66 @@ DEBES responder con JSON válido en este formato EXACTO:
     // Validate and normalize scores
     analysis = normalizeAnalysis(analysis, dataCompleteness);
 
+    // ====================================================================
+    // PROMPT 4 — SERVER-SIDE VALIDATION BEFORE STORE / RETURN
+    // ====================================================================
+    const hasRealData = dataCompleteness >= 15;
+
+    // 1) Never present 0 (or near-0) as truth when there is no real data.
+    for (const key of Object.keys(analysis.dimensions) as (keyof typeof analysis.dimensions)[]) {
+      const dim = analysis.dimensions[key];
+      if (!dim) continue;
+      const gate = gateHealthScore({ score: dim.score, hasData: hasRealData, rationale: dim.rationale });
+      if (!gate.passed) {
+        if (gate.reasons.includes('zero_as_truth_without_data')) {
+          dim.score = 30; // conservative neutral-low, marked low confidence
+          dim.confidence = 'low';
+          dim.rationale = NO_DATA_MESSAGE;
+        }
+        if (gate.reasons.includes('health_missing_rationale') || gate.reasons.includes('red_list_leak')) {
+          dim.rationale = hasRealData
+            ? 'Estimación basada en los datos registrados hasta ahora.'
+            : NO_DATA_MESSAGE;
+        }
+      }
+      dim.rationale = sanitizeAIOutput(dim.rationale, { mode: 'prose' }) || (hasRealData
+        ? 'Estimación basada en los datos registrados hasta ahora.'
+        : NO_DATA_MESSAGE);
+    }
+
+    // 2) Sanitize strengths/weaknesses and drop Red List leaks.
+    analysis.strengths = analysis.strengths
+      .map((s) => sanitizeAIOutput(s, { mode: 'structured' }))
+      .filter((s) => s.length >= 10 && !containsForbidden(s));
+    analysis.weaknesses = analysis.weaknesses
+      .map((s) => sanitizeAIOutput(s, { mode: 'structured' }))
+      .filter((s) => s.length >= 10 && !containsForbidden(s));
+    while (analysis.strengths.length < 3) analysis.strengths.push('Negocio en operación con base para crecer');
+    while (analysis.weaknesses.length < 3) analysis.weaknesses.push('Registrar más datos para un análisis más preciso');
+
+    // 3) Full audit of the visible payload before storing or returning.
+    const visibleSummary = hasRealData
+      ? `Salud general estimada en ${analysis.totalScore}/100 con ${analysis.certaintyPct}% de certeza, según los datos registrados.`
+      : NO_DATA_MESSAGE;
+    const audit = validateBeforeStore({
+      module: 'health',
+      title: `Salud ${analysis.totalScore}/100`,
+      text: visibleSummary,
+      raw: { score: analysis.totalScore, hasData: hasRealData, rationale: visibleSummary },
+    });
+    const healthGate = gateHealthScore({ score: analysis.totalScore, hasData: hasRealData, rationale: visibleSummary });
+    const qualityReasons = [...new Set([...(audit.passed ? [] : audit.reasons), ...(healthGate.passed ? [] : healthGate.reasons)])]
+      .filter((r) => r !== 'too_short');
+
     console.log("[analyze-health-score] Final analysis:", {
       totalScore: analysis.totalScore,
       certaintyPct: analysis.certaintyPct,
       dimensions: Object.entries(analysis.dimensions).map(([k, v]) => `${k}: ${v?.score ?? 'null'}`),
-      dataQuality: analysis.dataQuality
+      dataQuality: analysis.dataQuality,
+      qualityReasons,
     });
 
-    // Save snapshot to database
+    // Save snapshot to database (only validated content reaches storage)
     const dimensionsForDb: Record<string, number | null> = {};
     for (const [key, dim] of Object.entries(analysis.dimensions)) {
       dimensionsForDb[key] = dim?.score ?? null;
@@ -256,6 +320,8 @@ DEBES responder con JSON válido en este formato EXACTO:
           certainty_pct: analysis.certaintyPct,
           setup_mode: setupData?.setupMode,
           model: "gemini-2.5-flash",
+          server_validated: true,
+          quality_reasons: qualityReasons,
           data_sources: {
             google: !!googleData?.placeId,
             brain: !!brainData?.id,
@@ -276,15 +342,27 @@ DEBES responder con JSON válido en este formato EXACTO:
       JSON.stringify({
         success: true,
         analysis: sanitizeForUser(analysis),
+        data: { analysis: sanitizeForUser(analysis), visibleSummary, missingData: !hasRealData },
+        visibleText: visibleSummary,
+        quality: { passed: qualityReasons.length === 0, reasons: qualityReasons },
+        fallbackUsed: false,
+        eventsToEmit: [
+          {
+            eventType: 'health_recalculated',
+            payload: { totalScore: analysis.totalScore, certaintyPct: analysis.certaintyPct },
+            modulesToRecalculate: ['dashboard', 'analytics', 'predictions', 'radar'],
+          },
+        ],
+        modulesToRecalculate: ['dashboard', 'analytics', 'predictions', 'radar'],
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("[analyze-health-score] Error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return failResponse(error, {
+      module: 'health',
+      fallbackText: NO_DATA_MESSAGE,
+      reasons: ['health_analysis_failed'],
+    });
   }
 });
 

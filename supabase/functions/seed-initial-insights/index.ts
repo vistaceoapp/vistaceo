@@ -2,8 +2,14 @@
 // Strategy: invoke analyze-patterns (opportunities + research) and, if AI
 // returned nothing, insert deterministic fallbacks so the user never lands
 // on an empty Radar.
+// PROMPT 4: every insert passes server-side validateBeforeStore + seed gates.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { validateBeforeStore } from "../_shared/validate-before-store.ts";
+import { gateSeedInsight } from "../_shared/quality-gates.ts";
+import { sanitizeAIOutput } from "../_shared/ai-output-sanitizer.ts";
+import { hasMinimumContext, type EdgeContextPack } from "../_shared/context-pack-types.ts";
+import { failResponse } from "../_shared/edge-safe-response.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,12 +80,16 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    const { businessId } = await req.json();
+    const { businessId, contextPack } = await req.json();
     if (!businessId) {
       return new Response(JSON.stringify({ error: "businessId required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    const pack = contextPack as EdgeContextPack | undefined;
+    if (pack && !hasMinimumContext(pack)) {
+      console.warn("[seed-initial-insights] ContextPack received but lacks minimum context");
     }
 
     console.log(`[seed-initial-insights] Starting for business: ${businessId}`);
@@ -130,34 +140,57 @@ Deno.serve(async (req) => {
     let seededTrends = 0;
     let seededMissions = 0;
 
+    const qualityReasons: string[] = [];
+
     if ((oppCount || 0) < 1) {
-      // Insert 2 generic opportunities so user lands on a populated radar.
+      // Insert fallback opportunities — ONLY if they pass the seed gate + validateBeforeStore.
       for (const opp of GENERIC_OPPS) {
-        const { error } = await supabase.from("opportunities").insert({
-          business_id: businessId,
+        const seedGate = gateSeedInsight({ title: opp.title, description: opp.description });
+        const audit = validateBeforeStore({
+          module: 'opportunity',
           title: opp.title,
           description: opp.description,
+        });
+        if (!seedGate.passed || !audit.passed) {
+          console.warn(`[seed-initial-insights] blocked seed opp "${opp.title}":`, [...seedGate.reasons, ...audit.reasons]);
+          qualityReasons.push(...seedGate.reasons, ...audit.reasons);
+          continue;
+        }
+        const { error } = await supabase.from("opportunities").insert({
+          business_id: businessId,
+          title: audit.sanitized.title ?? opp.title,
+          description: audit.sanitized.description ?? opp.description,
           source: "diagnóstico inicial",
           impact_score: opp.impact_score,
           effort_score: opp.effort_score,
-          evidence: { origin: "setup_seed" },
+          evidence: { origin: "setup_seed", server_validated: true },
         });
         if (!error) seededOpps++;
       }
     }
 
     if ((learnCount || 0) < 1) {
-      const { error } = await supabase.from("learning_items").insert({
-        business_id: businessId,
+      const trendAudit = validateBeforeStore({
+        module: 'radar',
         title: GENERIC_TREND.title,
-        content: GENERIC_TREND.content,
-        item_type: GENERIC_TREND.item_type,
-        source: GENERIC_TREND.source,
-        action_steps: GENERIC_TREND.action_steps,
-        is_read: false,
-        is_saved: false,
+        description: sanitizeAIOutput(GENERIC_TREND.content, { mode: 'prose' }),
       });
-      if (!error) seededTrends++;
+      if (trendAudit.passed) {
+        const { error } = await supabase.from("learning_items").insert({
+          business_id: businessId,
+          title: GENERIC_TREND.title,
+          content: GENERIC_TREND.content,
+          item_type: GENERIC_TREND.item_type,
+          source: GENERIC_TREND.source,
+          action_steps: GENERIC_TREND.action_steps,
+          is_read: false,
+          is_saved: false,
+        });
+        if (!error) seededTrends++;
+      } else {
+        console.warn("[seed-initial-insights] blocked seed trend:", trendAudit.reasons);
+        qualityReasons.push(...trendAudit.reasons);
+      }
     }
 
     // Guarantee at least 1 mission so missions page never appears empty.
@@ -257,24 +290,50 @@ Deno.serve(async (req) => {
         console.warn("[seed-initial-insights] AI mission personalization failed, using fallback:", aiErr);
       }
 
-      const { error } = await supabase.from("missions").insert({
-        business_id: businessId,
+      // PROMPT 4: server-side validateBeforeStore — a mission with thin/leaky
+      // steps must never reach storage. If the AI mission fails, fall back to
+      // the curated GENERIC_MISSION (which passes the gate by construction).
+      let missionAudit = validateBeforeStore({
+        module: 'mission',
         title: mission.title,
         description: mission.description,
-        area: mission.area,
-        impact_score: mission.impact_score,
-        effort_score: mission.effort_score,
-        steps: mission.steps,
-        status: "active",
+        steps: mission.steps.map((s: any) => ({ title: s.text, description: s.text })),
       });
-      if (!error) seededMissions++;
-      else console.warn("[seed-initial-insights] mission insert failed:", error);
+      if (!missionAudit.passed) {
+        console.warn("[seed-initial-insights] AI mission blocked by gate:", missionAudit.reasons);
+        qualityReasons.push(...missionAudit.reasons);
+        mission = { ...GENERIC_MISSION };
+        missionAudit = validateBeforeStore({
+          module: 'mission',
+          title: mission.title,
+          description: mission.description,
+          steps: mission.steps.map((s: any) => ({ title: s.text, description: s.text })),
+        });
+      }
+
+      if (missionAudit.passed) {
+        const { error } = await supabase.from("missions").insert({
+          business_id: businessId,
+          title: mission.title,
+          description: mission.description,
+          area: mission.area,
+          impact_score: mission.impact_score,
+          effort_score: mission.effort_score,
+          steps: mission.steps,
+          status: "active",
+        });
+        if (!error) seededMissions++;
+        else console.warn("[seed-initial-insights] mission insert failed:", error);
+      } else {
+        console.warn("[seed-initial-insights] mission blocked entirely:", missionAudit.reasons);
+      }
     }
 
     console.log(
       `[seed-initial-insights] Done. AI opps=${oppCount} trends=${learnCount} missions=${missionCount} | seeded opps=${seededOpps} trends=${seededTrends} missions=${seededMissions}`,
     );
 
+    const dedupedReasons = Array.from(new Set(qualityReasons));
     return new Response(
       JSON.stringify({
         success: true,
@@ -284,17 +343,29 @@ Deno.serve(async (req) => {
         fallback_opportunities_inserted: seededOpps,
         fallback_trends_inserted: seededTrends,
         fallback_missions_inserted: seededMissions,
+        quality: { passed: dedupedReasons.length === 0, reasons: dedupedReasons },
+        fallbackUsed: seededOpps + seededTrends + seededMissions > 0,
+        eventsToEmit: [
+          { eventType: 'dashboard_generated', modulesToRecalculate: ['dashboard'] },
+          ...(seededOpps > 0 || (oppCount || 0) > 0
+            ? [{ eventType: 'opportunity_generated', modulesToRecalculate: ['radar', 'dashboard'] }]
+            : []),
+          { eventType: 'analytics_updated', modulesToRecalculate: ['analytics'] },
+          ...(seededOpps + seededTrends + seededMissions > 0
+            ? [{ eventType: 'fallback_used', modulesToRecalculate: [] }]
+            : []),
+        ],
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
-    console.error("[seed-initial-insights] Error:", err);
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "unknown" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+    return failResponse(err, {
+      module: 'seed_insight',
+      fallbackText: 'Estamos preparando tus primeras oportunidades. El radar se completa automáticamente en unos minutos.',
+      reasons: ['seed_initial_insights_failed'],
+    });
+  }
+});
     );
   }
 });
