@@ -159,7 +159,7 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
       ? [
           {
             key: "health",
-            label: `Salud ${score} ${healthStyle.label}`,
+            label: `Salud ${healthStyle.label.toLowerCase()}`,
             icon: Activity,
             onClick: () => navigate("/app/analytics?tab=diagnostico"),
           },
