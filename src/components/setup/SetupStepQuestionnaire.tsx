@@ -371,7 +371,7 @@ export const SetupStepQuestionnaire = ({
 
   // Shared function to call the edge function
   const fetchQuestions = useCallback(async (questionCount: string, batchIndex: number, previousAnswersCtx?: Record<string, any>) => {
-    const { data, error } = await invokeEdgeFunctionSafe('generate-questionnaire', {
+    const { data, error } = await invokeEdgeFunctionSafe<GenerateQuestionnaireResponse>('generate-questionnaire', {
       body: {
         module: 'setup',
         outputContract: 'questionnaire_v1',

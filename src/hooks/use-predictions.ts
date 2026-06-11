@@ -175,7 +175,7 @@ export const usePredictions = (): UsePredictionsReturn => {
       setLoading(true);
       
       const contextPack = await buildContextPack('predictions', currentBusiness.id).catch(() => null);
-      const { data, error: fnError } = await invokeEdgeFunctionSafe('generate-predictions', {
+      const { data, error: fnError } = await invokeEdgeFunctionSafe<GeneratePredictionsResponse>('generate-predictions', {
         body: {
           business_id: currentBusiness.id,
           businessId: currentBusiness.id,

@@ -334,7 +334,7 @@ const ChatPage = () => {
         recentEventsLimit: 6,
       }).catch(() => null);
 
-      const { data: aiData, error: aiError } = await invokeEdgeFunctionSafe("vistaceo-chat", {
+      const { data: aiData, error: aiError } = await invokeEdgeFunctionSafe<VistaceoChatResponse>("vistaceo-chat", {
         body: {
           messages: messagesForAI,
           businessId: currentBusiness.id,

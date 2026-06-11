@@ -75,7 +75,7 @@ interface Step {
 // Check if we have enough data for personalized missions using Brain
 const checkHasEnoughData = async (businessId: string): Promise<{ hasData: boolean; mvcCompletion: number }> => {
   try {
-    const { data, error } = await invokeEdgeFunctionSafe("brain-analyze-gaps", {
+    const { data, error } = await invokeEdgeFunctionSafe<BrainAnalyzeGapsResponse>("brain-analyze-gaps", {
       body: { businessId }
     });
 
@@ -248,7 +248,7 @@ const MissionsPage = () => {
 
     try {
       const contextPack = await buildContextPack('missions', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe("generate-mission-plan", {
+      const { data, error } = await invokeEdgeFunctionSafe<GenerateMissionPlanResponse>("generate-mission-plan", {
         body: {
           businessId: currentBusiness.id,
           module: 'missions',
