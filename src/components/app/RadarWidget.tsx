@@ -159,14 +159,14 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
     setGenerating(true);
 
     try {
+      const cpRW = await buildContextPack('radar', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("analyze-patterns", {
         body: {
           businessId: currentBusiness.id,
           type: "research",
-          brainContext: brain ? {
-            primaryType: brain.primary_business_type,
-            focus: brain.current_focus,
-          } : null,
+          module: 'radar',
+          contextPack: cpRW,
+          outputContract: 'radar_research_v1',
         },
       });
 
