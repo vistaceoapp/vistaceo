@@ -554,7 +554,7 @@ export default function PredictionsPage() {
               });
               return unique.slice(0, 6).map(cal => (
                 <CalibrationCard key={cal.id} calibration={cal as any}
-                  onAnswer={(answer) => answerCalibration(cal.id, answer)}
+                  onAnswer={(answer) => handleCalibration(cal.id, answer)}
                 />
               ));
             })()}
@@ -590,7 +590,7 @@ export default function PredictionsPage() {
           <div className="grid lg:grid-cols-2 gap-6">
             <Card>
               <CardContent className="pt-6">
-                <PlanetarySphere predictions={predictions} onSelectPrediction={setSelectedPrediction}
+                <PlanetarySphere predictions={predictions} onSelectPrediction={handleSelectPrediction}
                   clarity={clarity} pulseState={pulseState} />
               </CardContent>
             </Card>
@@ -658,7 +658,7 @@ export default function PredictionsPage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredPredictions.map(pred => (
                 <PredictionCard key={pred.id} prediction={pred}
-                  onView={() => setSelectedPrediction(pred)}
+                  onView={() => handleSelectPrediction(pred)}
                   onDismiss={() => handleDismiss(pred.id)}
                   onConvert={() => handleConvert(pred.id)}
                 />
@@ -678,7 +678,7 @@ export default function PredictionsPage() {
 
         {/* TIMELINE */}
         <TabsContent value="timeline">
-          <PredictionTimeline predictions={predictions} onSelect={setSelectedPrediction} />
+          <PredictionTimeline predictions={predictions} onSelect={handleSelectPrediction} />
         </TabsContent>
       </Tabs>
 
