@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { validateBeforeStore } from "../_shared/validate-before-store.ts";
 import { sanitizeAIOutput, containsForbidden } from "../_shared/ai-output-sanitizer.ts";
+import { humanizeEvidence } from "../_shared/humanize-evidence.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
