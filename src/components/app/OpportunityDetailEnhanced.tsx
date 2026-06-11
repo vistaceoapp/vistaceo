@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { humanizeEvidence, humanizeEvidenceList, humanizeProse, EVIDENCE_SAFE_FALLBACK } from "@/lib/humanize-evidence";
 import { buildContextPack } from "@/lib/context-pack-builder";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -133,41 +134,33 @@ const cleanResidue = (s: string): string =>
    .replace(/\s{2,}/g, ' ')
    .trim();
 
-// Generate business-specific trigger
+// Generate business-specific trigger (humanizado, sin códigos internos)
 const getTrigger = (opportunity: Opportunity, business: Business | null): string => {
   const evidence = opportunity.evidence as OpportunityEvidence | null;
+  const ctx = { businessName: business?.name, businessCategory: business?.category, source: opportunity.source };
   if (evidence?.trigger) {
-    const clean = cleanResidue(sanitizeAIOutput(evidence.trigger));
-    if (clean && clean.length > 3) return clean;
+    const clean = humanizeEvidence(evidence.trigger, ctx);
+    if (clean && clean !== EVIDENCE_SAFE_FALLBACK) return clean;
   }
   const businessName = business?.name || "tu negocio";
   const sourceInfo = getSourceInfo(opportunity.source);
-  return `Detectado a través de ${sourceInfo.label.toLowerCase()} en ${businessName}`;
+  return `Detectado a través de ${sourceInfo.label.toLowerCase()} en ${businessName}.`;
 };
 
-// Generate "why this applies" bullets
+// Generate "why this applies" bullets (sin códigos, sin JSON crudo)
 const getWhyItApplies = (opportunity: Opportunity, business: Business | null): string[] => {
   const evidence = opportunity.evidence as OpportunityEvidence | null;
-  const bullets: string[] = [];
   const businessName = business?.name || "tu negocio";
-  
-  if (evidence?.signals?.length) {
-    evidence.signals.slice(0, 2).forEach(signal => {
-      const clean = cleanResidue(sanitizeAIOutput(signal));
-      if (clean.length > 3) bullets.push(clean);
-    });
-  }
-  if (evidence?.basedOn?.length) {
-    // basedOn usually contains raw codes like Q_BIO_104 - skip them
-  }
+  const ctx = { businessName: business?.name, businessCategory: business?.category, source: opportunity.source };
+  const bullets: string[] = humanizeEvidenceList(evidence?.signals as unknown[], ctx, 3);
+
   if (opportunity.source === "reviews") {
-    bullets.push(`Patrón detectado en reseñas de ${businessName}`);
+    bullets.push(`Patrón detectado en reseñas de ${businessName}.`);
   } else if (opportunity.source === "sales") {
-    bullets.push(`Análisis de transacciones indica oportunidad`);
+    bullets.push("Análisis de transacciones indica oportunidad.");
   }
   if (bullets.length === 0) {
-    bullets.push(`Aplica al rubro de ${business?.category || 'gastronomía'}`);
-    bullets.push(`Basado en diagnóstico de ${businessName}`);
+    bullets.push(`Basado en tu diagnóstico inicial y el contexto de ${businessName}.`);
   }
   return bullets.slice(0, 4);
 };
