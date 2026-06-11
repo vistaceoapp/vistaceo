@@ -606,7 +606,9 @@ ${existingItems.slice(0, 30).map(item => `- "${item.title}"`).join("\n")}
     for (const [cat, catInsights] of Object.entries(byCategory)) {
       context += `\n**[${cat.toUpperCase()}]**\n`;
       for (const insight of catInsights.slice(0, 6)) {
-        context += `- ${insight.question}: **${insight.answer}**\n`;
+        const q = humanizeEvidence(insight.question);
+        const a = humanizeEvidence(insight.answer);
+        if (q && a) context += `- ${q}: **${a}**\n`;
       }
     }
   }
@@ -635,11 +637,13 @@ ${existingItems.slice(0, 30).map(item => `- "${item.title}"`).join("\n")}
     }
   }
 
-  // Recent signals
+  // Recent signals (humanized — never dump raw JSON or internal IDs into the prompt)
   if (signals.length > 0) {
     context += `\n## SEÑALES RECIENTES\n`;
     for (const signal of signals.slice(0, 8)) {
-      context += `- [${signal.signal_type}] ${signal.raw_text || JSON.stringify(signal.content).slice(0, 80)}\n`;
+      const raw = signal.raw_text || signal.content;
+      const human = humanizeEvidence(raw);
+      if (human && human.length > 6) context += `- ${human}\n`;
     }
   }
 
