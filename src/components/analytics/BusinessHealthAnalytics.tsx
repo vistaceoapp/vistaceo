@@ -25,6 +25,7 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
+import type { AnalyzeHealthScoreResponse } from '@/lib/edge-function-response-types';
 
 interface Snapshot {
   id: string;
