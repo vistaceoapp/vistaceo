@@ -9,10 +9,14 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
+
+import { brand, button, container, footer, h1, link, main, text, logo, divider } from './_styles.ts'
 
 interface SignupEmailProps {
   siteName: string
@@ -22,65 +26,37 @@ interface SignupEmailProps {
 }
 
 export const SignupEmail = ({
-  siteName,
   siteUrl,
   recipient,
   confirmationUrl,
 }: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="es" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Confirmá tu cuenta en VISTACEO</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Section style={{ textAlign: 'center', marginBottom: 24 }}>
+          <Img src={brand.logoUrl} alt="VISTACEO" width="140" style={logo} />
+        </Section>
+        <Heading style={h1}>Confirmá tu correo</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
+          Gracias por crear tu cuenta en{' '}
+          <Link href={siteUrl} style={link}><strong>VISTACEO</strong></Link>, tu inteligencia ejecutiva para decidir mejor cada día.
         </Text>
         <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
+          Confirmá que <Link href={`mailto:${recipient}`} style={link}>{recipient}</Link> es tu dirección presionando el botón:
         </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
+        <Section style={{ textAlign: 'center', margin: '28px 0' }}>
+          <Button style={button} href={confirmationUrl}>Confirmar mi cuenta</Button>
+        </Section>
         <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+          Si vos no creaste esta cuenta, podés ignorar este mensaje sin problemas.
         </Text>
+        <div style={divider} />
+        <Text style={footer}>VISTACEO · Inteligencia ejecutiva para tu negocio</Text>
       </Container>
     </Body>
   </Html>
 )
 
 export default SignupEmail
-
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }

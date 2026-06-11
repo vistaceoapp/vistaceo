@@ -1,92 +1,32 @@
 /// <reference types="npm:@types/react@18.3.1" />
-
 import * as React from 'npm:react@18.3.1'
+import { Body, Button, Container, Head, Heading, Html, Img, Preview, Section, Text } from 'npm:@react-email/components@0.0.22'
+import { brand, button, container, footer, h1, main, text, logo, divider } from './_styles.ts'
 
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Link,
-  Preview,
-  Text,
-} from 'npm:@react-email/components@0.0.22'
+interface Props { siteName: string; siteUrl: string; recipient: string; confirmationUrl: string; email?: string; newEmail?: string }
 
-interface EmailChangeEmailProps {
-  siteName: string
-  // oldEmail is the user's current address (HookData.OldEmail). For the
-  // NEW-recipient half of a secure email_change fanout, `email` equals the
-  // recipient (NEW), so the "from" line must render oldEmail to read
-  // "from OLD to NEW" instead of "from NEW to NEW".
-  oldEmail: string
-  email: string
-  newEmail: string
-  confirmationUrl: string
-}
-
-export const EmailChangeEmail = ({
-  siteName,
-  oldEmail,
-  newEmail,
-  confirmationUrl,
-}: EmailChangeEmailProps) => (
-  <Html lang="en" dir="ltr">
+export const EmailChangeEmail = ({ confirmationUrl, email, newEmail }: Props) => (
+  <Html lang="es" dir="ltr">
     <Head />
-    <Preview>Confirm your email change for {siteName}</Preview>
+    <Preview>Confirmá el cambio de correo en VISTACEO</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email change</Heading>
+        <Section style={{ textAlign: 'center', marginBottom: 24 }}>
+          <Img src={brand.logoUrl} alt="VISTACEO" width="140" style={logo} />
+        </Section>
+        <Heading style={h1}>Confirmá el cambio de correo</Heading>
         <Text style={text}>
-          You requested to change your email address for {siteName} from{' '}
-          <Link href={`mailto:${oldEmail}`} style={link}>
-            {oldEmail}
-          </Link>{' '}
-          to{' '}
-          <Link href={`mailto:${newEmail}`} style={link}>
-            {newEmail}
-          </Link>
-          .
+          Pediste cambiar el correo de tu cuenta en <strong>VISTACEO</strong>
+          {email && newEmail ? <> de <strong>{email}</strong> a <strong>{newEmail}</strong></> : null}.
         </Text>
-        <Text style={text}>
-          Click the button below to confirm this change:
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Confirm Email Change
-        </Button>
-        <Text style={footer}>
-          If you didn't request this change, please secure your account
-          immediately.
-        </Text>
+        <Section style={{ textAlign: 'center', margin: '28px 0' }}>
+          <Button style={button} href={confirmationUrl}>Confirmar cambio</Button>
+        </Section>
+        <Text style={footer}>Si no pediste este cambio, ignorá este mensaje y tu correo seguirá igual.</Text>
+        <div style={divider} />
+        <Text style={footer}>VISTACEO · Inteligencia ejecutiva para tu negocio</Text>
       </Container>
     </Body>
   </Html>
 )
-
 export default EmailChangeEmail
-
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
