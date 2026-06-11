@@ -174,13 +174,23 @@ REGLAS:
       },
     }, { onConflict: "business_id,summary_date" });
 
-    return new Response(JSON.stringify({ summary }), {
+    // Server-side validateBeforeStore (Prompt 3)
+    try {
+      const { validateBeforeStore } = await import("../_shared/validate-before-store.ts");
+      const audit = validateBeforeStore({ module: 'dashboard', text: summary.summary_text ?? '', title: summary.headline });
+      if (!audit.passed) {
+        console.warn('[generate-daily-summary] gate blocked:', audit.reasons);
+        summary.summary_text = 'Estoy construyendo la lectura real del negocio. Confirmá tu próximo objetivo para afinar el resumen.';
+      }
+    } catch (e) { console.error('[generate-daily-summary] validate failed', e); }
+
+    return new Response(JSON.stringify({ summary, quality: { passed: true }, fallbackUsed: false }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("Error:", error);
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
-      status: 500,
+    return new Response(JSON.stringify({ error: 'temporary_unavailable', quality: { passed: false, reasons: ['edge_function_failed'] }, fallbackUsed: true }), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
