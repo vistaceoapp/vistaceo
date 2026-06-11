@@ -12,6 +12,7 @@ import { BarChart3, Stethoscope, TrendingUp, Star, Brain, Lock, Building2 } from
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useRecordBrainView, useRecordBrainAction } from "@/hooks/use-brain-signal";
 
 const AnalyticsPage = () => {
   const isMobile = useIsMobile();
@@ -19,10 +20,19 @@ const AnalyticsPage = () => {
   const [searchParams] = useSearchParams();
   const tabFromUrl = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabFromUrl || (isPro ? "insights" : "diagnostico"));
+  const recordAction = useRecordBrainAction();
+
+  useRecordBrainView("analytics_viewed", { initialTab: tabFromUrl || activeTab });
 
   useEffect(() => {
     if (tabFromUrl) setActiveTab(tabFromUrl);
   }, [tabFromUrl]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    recordAction("analytics_tab_focused", { tab: value }, { importance: 3, confidence: "medium" });
+  };
+
 
   const tabs = [
     { value: "diagnostico", label: "Diagnóstico", mobileLabel: "Diag.", icon: Stethoscope, locked: false },
