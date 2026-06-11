@@ -612,6 +612,8 @@ serve(async (req) => {
     console.log("Generating mission plan for:", missionTitle);
     console.log("Context length:", contextPrompt.length, "chars");
 
+    const brain = context?.brain ?? null;
+    const business = context?.business ?? null;
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
