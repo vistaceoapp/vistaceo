@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { buildContextPack } from '@/lib/context-pack-builder';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { useBrain } from '@/hooks/use-brain';
 import type { 
