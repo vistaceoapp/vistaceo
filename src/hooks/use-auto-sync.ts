@@ -107,9 +107,13 @@ export const useAutoSync = () => {
 
       if (!hasRecentSnapshot) {
         console.log("[auto-sync] No recent health snapshot, triggering analyze-health-score...");
+        const cpHealth = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
         const { error: healthErr } = await supabase.functions.invoke("analyze-health-score", {
-          body: { 
+          body: {
             businessId: currentBusiness.id,
+            module: 'analytics',
+            contextPack: cpHealth,
+            outputContract: 'health_score_v1',
             setupData: {
               businessName: currentBusiness.name,
               countryCode: currentBusiness.country,
