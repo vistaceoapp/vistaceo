@@ -553,7 +553,30 @@ Responde usando la función generate_questions.`;
     // MODE DEPTH GATE — hard caps por modo. Rápido ≤10, Completo ≤35.
     // ========================================================================
     const HARD_CAP = isQuick ? 10 : 35;
-    const finalQuestions = brainGated.slice(0, HARD_CAP);
+    const capped = brainGated.slice(0, HARD_CAP);
+
+    // ========================================================================
+    // PROMPT 4 — validateQuestionServer + enriquecimiento (clarify, targetBrainField,
+    // affectedModules, intentKey, simplicityScore, mobileSafe, explainer).
+    // ========================================================================
+    const finalQuestions: any[] = [];
+    let questionsBlocked = 0;
+    for (const q of capped) {
+      const v = validateQuestionServer(q as any);
+      if (!v.passed) {
+        questionsBlocked++;
+        console.warn(`[validateQuestionServer] dropped "${q.title?.es}":`, v.reasons.join(","));
+        continue;
+      }
+      finalQuestions.push({
+        ...v.question,
+        specialClarifyOption: CLARIFY_OPTION,
+        requiresExplainer: Boolean(q.help?.es),
+        explainerText: q.help?.es ?? undefined,
+      });
+    }
+    console.log(`[generate-questionnaire] ${questionsBlocked} blocked by validateQuestionServer`);
+
 
     // Validate dimension coverage
     const dimensionCounts: Record<string, number> = {};
