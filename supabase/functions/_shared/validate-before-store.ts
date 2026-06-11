@@ -44,21 +44,20 @@ function sanitizeFields(c: ServerAuditCandidate): ServerAuditCandidate {
 }
 
 export function validateBeforeStore(candidate: ServerAuditCandidate): ServerAuditResult {
-  const sanitized = sanitizeFields(candidate);
   const reasons: string[] = [];
 
-  // Red List on every visible field.
-  const visibleFields: Array<string | undefined> = [
-    sanitized.title, sanitized.description, sanitized.text,
-    sanitized.interpretation, sanitized.baseEvidence,
-    ...(sanitized.steps?.flatMap(s => [s.title, s.description]) ?? []),
+  // Check ORIGINAL candidate fields for Red List leaks (pre-sanitization),
+  // so a leak in the raw AI output blocks the parent instead of being silently stripped.
+  const originalVisible: Array<string | undefined> = [
+    candidate.title, candidate.description, candidate.text,
+    candidate.interpretation, candidate.baseEvidence,
+    ...(candidate.steps?.flatMap(s => [s.title, s.description]) ?? []),
   ];
-  for (const f of visibleFields) {
-    if (f && containsForbidden(f)) {
-      reasons.push('red_list_leak');
-      break;
-    }
+  for (const f of originalVisible) {
+    if (f && containsForbidden(f)) { reasons.push('red_list_leak'); break; }
   }
+
+  const sanitized = sanitizeFields(candidate);
 
   // Module-specific gate.
   const gate: GateResult = gateByModule(candidate.module, {
