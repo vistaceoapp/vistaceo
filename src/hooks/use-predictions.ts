@@ -172,9 +172,14 @@ export const usePredictions = (): UsePredictionsReturn => {
     try {
       setLoading(true);
       
+      const contextPack = await buildContextPack('predictions', currentBusiness.id).catch(() => null);
       const { data, error: fnError } = await supabase.functions.invoke('generate-predictions', {
         body: {
           business_id: currentBusiness.id,
+          businessId: currentBusiness.id,
+          module: 'predictions',
+          contextPack,
+          outputContract: 'predictions_v1',
           horizons: ['H0', 'H1', 'H2', 'H3'],
           domains: ['cashflow', 'demand', 'operations', 'customer', 'sales'],
         },
