@@ -428,9 +428,13 @@ const SetupPage = () => {
 
       // Step 4: Use AI to calculate intelligent health score
       try {
+        const cpSetup = await buildContextPack('analytics', business.id).catch(() => null);
         const { data: aiAnalysis, error: aiError } = await supabase.functions.invoke('analyze-health-score', {
           body: {
             businessId: business.id,
+            module: 'analytics',
+            contextPack: cpSetup,
+            outputContract: 'health_score_v1',
             setupData: {
               businessName: data.businessName,
               countryCode: data.countryCode,
