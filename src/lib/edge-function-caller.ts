@@ -155,3 +155,26 @@ export async function callEdgeFunctionWithSafety<T = unknown>(
     errorCode: 'edge_function_unreachable',
   };
 }
+
+/**
+ * Backward-compatible adapter for components that previously used
+ * `supabase.functions.invoke(...)` and destructured `{ data, error }`.
+ * Wraps `callEdgeFunctionWithSafety` so the call site keeps working
+ * while still benefitting from ContextPack injection, retries, sanitization,
+ * `success:false` handling and fallback events.
+ */
+export async function invokeEdgeFunctionSafe<T = unknown>(
+  functionName: string,
+  args: { body?: Record<string, unknown> } = {},
+  options: SafeEdgeOptions = {},
+): Promise<{ data: T | null; error: { message: string; code?: string } | null; quality: SafeEdgeResult['quality']; fallbackUsed: boolean; visibleText?: string }> {
+  const res = await callEdgeFunctionWithSafety<T>(functionName, args.body ?? {}, options);
+  return {
+    data: res.data,
+    error: res.success ? null : { message: res.errorCode ?? 'edge_function_failed', code: res.errorCode },
+    quality: res.quality,
+    fallbackUsed: res.fallbackUsed,
+    visibleText: res.visibleText,
+  };
+}
+
