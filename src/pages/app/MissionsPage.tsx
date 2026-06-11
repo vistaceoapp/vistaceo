@@ -26,6 +26,7 @@ import {
 } from "@/components/app/MissionFilters";
 import { FreeLimitsIndicator, LimitReachedBanner } from "@/components/app/FreeLimitsIndicator";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { buildContextPack } from "@/lib/context-pack-builder";
 import { useFreeLimits } from "@/hooks/use-free-limits";
 import {
   Dialog,
