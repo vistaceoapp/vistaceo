@@ -14,6 +14,7 @@ import { useRecordBrainView, useRecordBrainAction } from "@/hooks/use-brain-sign
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { buildInitialMissionSteps } from "@/lib/initial-mission-steps";
+import { forgeArtifact } from "@/lib/ai-forge-client";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { useIsMobile } from "@/hooks/use-mobile";
