@@ -60,8 +60,9 @@ export const ReputationAnalyticsPanel = ({ className }: { className?: string }) 
     if (!currentBusiness || analyzing) return;
     setAnalyzing(true);
     try {
+      const cpRep = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("analyze-reputation", {
-        body: { businessId: currentBusiness.id, forceRefresh: true }
+        body: { businessId: currentBusiness.id, module: 'analytics', contextPack: cpRep, outputContract: 'reputation_v1', forceRefresh: true }
       });
       if (error) throw error;
       if (data?.analysis) {
