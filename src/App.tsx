@@ -27,6 +27,7 @@ const LandingV3 = lazy(() => import("./pages/LandingV3"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SetupPage = lazy(() => import("./pages/SetupPage"));
 const SetupCompletePage = lazy(() => import("./pages/SetupCompletePage"));
+const PreparingDashboardPage = lazy(() => import("./pages/app/PreparingDashboardPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
@@ -235,6 +236,18 @@ const AppRoutes = () => {
             <ProtectedRoute>
               <BusinessProvider>
                 <SetupCompletePage />
+              </BusinessProvider>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Preparing dashboard (post-setup splash that triggers seeding) */}
+        <Route
+          path="/app/preparing"
+          element={
+            <ProtectedRoute>
+              <BusinessProvider>
+                <PreparingDashboardPage />
               </BusinessProvider>
             </ProtectedRoute>
           }

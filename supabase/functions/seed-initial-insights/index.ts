@@ -57,18 +57,32 @@ const GENERIC_MISSION = {
   ],
 };
 
-const GENERIC_TREND = {
-  title: "El 73% de los consumidores investiga online antes de comprar",
-  content:
-    "Tener presencia digital actualizada (Google, Instagram, web) ya no es opcional: es el filtro previo que define si te eligen o pasan al siguiente. Negocios con perfil completo capturan hasta 2.7x más clientes nuevos.\n\n**Por qué aplica a tu negocio:** Es el punto de partida obligatorio para cualquier estrategia de crecimiento sostenible.\n\n**Fuente:** [Tendencias de consumo digital](https://www.thinkwithgoogle.com/)",
-  item_type: "trend",
-  source: "https://www.thinkwithgoogle.com/",
-  action_steps: [
-    { text: "Auditar tu Perfil de Google esta semana" },
-    { text: "Publicar 3 historias en Instagram con tu producto estrella" },
-    { text: "Pedir 2 reseñas a clientes recurrentes" },
-  ],
-};
+const GENERIC_TRENDS = [
+  {
+    title: "El 73% de los consumidores investiga online antes de comprar",
+    content:
+      "Tener presencia digital actualizada (Google, Instagram, web) ya no es opcional: es el filtro previo que define si te eligen o pasan al siguiente. Negocios con perfil completo capturan hasta 2.7x más clientes nuevos.\n\n**Por qué aplica a tu negocio:** Es el punto de partida obligatorio para cualquier estrategia de crecimiento sostenible.\n\n**Fuente:** [Tendencias de consumo digital](https://www.thinkwithgoogle.com/)",
+    item_type: "trend",
+    source: "https://www.thinkwithgoogle.com/",
+    action_steps: [
+      { text: "Auditar tu Perfil de Google esta semana" },
+      { text: "Publicar 3 historias en Instagram con tu producto estrella" },
+      { text: "Pedir 2 reseñas a clientes recurrentes" },
+    ],
+  },
+  {
+    title: "Las reseñas verificadas multiplican x4 la intención de compra",
+    content:
+      "Los consumidores confían más en otros consumidores que en cualquier publicidad. Un negocio con 20+ reseñas reales y respuestas activas convierte hasta 4 veces más que uno sin gestión de reputación.\n\n**Por qué aplica a tu negocio:** Es la palanca con mejor ROI de los próximos 30 días: cuesta cero y genera prueba social compuesta.\n\n**Fuente:** [BrightLocal Local Consumer Review Survey](https://www.brightlocal.com/research/local-consumer-review-survey/)",
+    item_type: "trend",
+    source: "https://www.brightlocal.com/research/local-consumer-review-survey/",
+    action_steps: [
+      { text: "Pedir 5 reseñas reales a clientes de las últimas 2 semanas" },
+      { text: "Responder TODAS las reseñas existentes (positivas y negativas)" },
+      { text: "Crear un flujo simple post-venta para invitar a reseñar" },
+    ],
+  },
+];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -142,9 +156,12 @@ Deno.serve(async (req) => {
 
     const qualityReasons: string[] = [];
 
-    if ((oppCount || 0) < 1) {
-      // Insert fallback opportunities — ONLY if they pass the seed gate + validateBeforeStore.
+    // Target: 2 opportunities (Free plan ships with 2 from day one)
+    if ((oppCount || 0) < 2) {
+      const needed = 2 - (oppCount || 0);
+      let inserted = 0;
       for (const opp of GENERIC_OPPS) {
+        if (inserted >= needed) break;
         const seedGate = gateSeedInsight({ title: opp.title, description: opp.description });
         const audit = validateBeforeStore({
           module: 'opportunity',
@@ -165,31 +182,37 @@ Deno.serve(async (req) => {
           effort_score: opp.effort_score,
           evidence: { origin: "setup_seed", server_validated: true },
         });
-        if (!error) seededOpps++;
+        if (!error) { seededOpps++; inserted++; }
       }
     }
 
-    if ((learnCount || 0) < 1) {
-      const trendAudit = validateBeforeStore({
-        module: 'radar',
-        title: GENERIC_TREND.title,
-        description: sanitizeAIOutput(GENERIC_TREND.content, { mode: 'prose' }),
-      });
-      if (trendAudit.passed) {
+    // Target: 2 trends so the radar shows depth from day one
+    if ((learnCount || 0) < 2) {
+      const needed = 2 - (learnCount || 0);
+      let inserted = 0;
+      for (const trend of GENERIC_TRENDS) {
+        if (inserted >= needed) break;
+        const trendAudit = validateBeforeStore({
+          module: 'radar',
+          title: trend.title,
+          description: sanitizeAIOutput(trend.content, { mode: 'prose' }),
+        });
+        if (!trendAudit.passed) {
+          console.warn("[seed-initial-insights] blocked seed trend:", trendAudit.reasons);
+          qualityReasons.push(...trendAudit.reasons);
+          continue;
+        }
         const { error } = await supabase.from("learning_items").insert({
           business_id: businessId,
-          title: GENERIC_TREND.title,
-          content: GENERIC_TREND.content,
-          item_type: GENERIC_TREND.item_type,
-          source: GENERIC_TREND.source,
-          action_steps: GENERIC_TREND.action_steps,
+          title: trend.title,
+          content: trend.content,
+          item_type: trend.item_type,
+          source: trend.source,
+          action_steps: trend.action_steps,
           is_read: false,
           is_saved: false,
         });
-        if (!error) seededTrends++;
-      } else {
-        console.warn("[seed-initial-insights] blocked seed trend:", trendAudit.reasons);
-        qualityReasons.push(...trendAudit.reasons);
+        if (!error) { seededTrends++; inserted++; }
       }
     }
 
@@ -364,8 +387,5 @@ Deno.serve(async (req) => {
       fallbackText: 'Estamos preparando tus primeras oportunidades. El radar se completa automáticamente en unos minutos.',
       reasons: ['seed_initial_insights_failed'],
     });
-  }
-});
-    );
   }
 });
