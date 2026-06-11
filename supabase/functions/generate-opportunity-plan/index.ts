@@ -272,7 +272,8 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, opportunityId, regenerate = false, version = 1 } = await req.json();
+    const { businessId, opportunityId, regenerate = false, version = 1, contextPack, module } = await req.json();
+    console.log('[generate-opportunity-plan] module=', module ?? 'radar', 'hasContextPack=', !!contextPack);
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
