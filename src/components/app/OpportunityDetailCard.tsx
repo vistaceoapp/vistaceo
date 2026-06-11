@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { humanizeEvidence, humanizeProse, EVIDENCE_SAFE_FALLBACK } from "@/lib/humanize-evidence";
 
 interface Opportunity {
   id: string;
@@ -272,7 +273,7 @@ export const OpportunityDetailCard = ({
               Qué ganarías
             </h4>
             <p className="text-sm text-foreground leading-relaxed">
-              {sanitizeAIOutput(opportunity.description) || "Mejora potencial detectada para optimizar esta área de tu negocio."}
+              {humanizeProse(opportunity.description, "Mejora potencial detectada para optimizar esta área de tu negocio.")}
             </p>
           </div>
 
