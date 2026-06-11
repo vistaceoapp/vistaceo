@@ -538,12 +538,7 @@ const RadarPage = () => {
           impact_score: opportunity.impact_score,
           effort_score: opportunity.effort_score,
           status: "active",
-          steps: [
-            { text: "Analizar el problema en detalle", done: false },
-            { text: "Definir plan de acción", done: false },
-            { text: "Implementar la solución", done: false },
-            { text: "Medir resultados", done: false },
-          ],
+          steps: buildInitialMissionSteps(opportunity, currentBusiness),
         })
         .select()
         .single();
