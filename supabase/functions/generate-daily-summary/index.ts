@@ -12,8 +12,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { businessId, force } = await req.json();
+    const { businessId, force, contextPack, module } = await req.json();
     if (!businessId) throw new Error("businessId required");
+    console.log('[generate-daily-summary] module=', module ?? 'dashboard', 'hasContextPack=', !!contextPack);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
