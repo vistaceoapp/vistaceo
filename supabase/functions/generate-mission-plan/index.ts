@@ -721,6 +721,39 @@ serve(async (req) => {
 
     console.log("Generated plan with", planData.steps?.length || 0, "steps, passed QG:", passed);
 
+    // STEP QUALITY GATE — block generic / templated step titles before they reach the user.
+    const GENERIC_STEP_RX = [
+      /^analizar\s+(el|la|los|las)?\s*(problema|situaci[oó]n|contexto)\s*\.?$/i,
+      /^definir\s+(el|la)?\s*objetivo\s*\.?$/i,
+      /^revisar\s+(el|la|los|las)?\s*(datos|resultados)\s*\.?$/i,
+      /^evaluar\s+resultados?\s*\.?$/i,
+      /^implementar\s+(la|el)?\s*soluci[oó]n\s*\.?$/i,
+      /^medir\s+impacto\s*\.?$/i,
+      /^siguiente\s+paso\s*\.?$/i,
+    ];
+    if (Array.isArray(planData?.steps)) {
+      planData.steps = planData.steps
+        .map((s: any) => ({
+          ...s,
+          title: humanizeEvidence(s?.title) || s?.title,
+          description: humanizeEvidence(s?.description ?? s?.what_to_do) || s?.description,
+        }))
+        .filter((s: any) => {
+          const t = String(s?.title || "").trim();
+          if (!t || t.length < 8) return false;
+          if (GENERIC_STEP_RX.some((rx) => rx.test(t))) {
+            console.warn("[step-gate] dropped generic step title:", t);
+            return false;
+          }
+          const d = String(s?.description || s?.what_to_do || "");
+          if (d.length < 30) {
+            console.warn("[step-gate] dropped step with thin description:", t);
+            return false;
+          }
+          return true;
+        });
+    }
+
     const cleanPlan = sanitizeForUser(planData);
 
     // Server-side validateBeforeStore (Prompt 3): block empty/placeholder steps.
