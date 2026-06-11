@@ -174,7 +174,7 @@ export const BusinessHealthAnalytics = () => {
       } : null;
 
       const cpHA = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe("analyze-health-score", {
+      const { data, error } = await invokeEdgeFunctionSafe<AnalyzeHealthScoreResponse>("analyze-health-score", {
         body: { businessId: currentBusiness.id, module: 'analytics', contextPack: cpHA, outputContract: 'health_score_v1', setupData: analysisSetupData, googleData, brainData: brainRes.data || null, integrationsData: integrationsRes.data || [], signalsData: signalsRes.data || [] }
       });
       if (error) throw error;
