@@ -60,11 +60,14 @@ const BATCH_CONFIG = {
     totalMax: 10,
   },
   complete: {
-    firstBatch: 18,
-    parallelBatches: 1,
-    perBatch: 14,
-    totalMin: 22,
-    totalMax: 35,
+    // Modo completo: 30 preguntas reales, cargadas en 3 batches paralelos
+    // para que el usuario pueda empezar a responder con las primeras 12
+    // mientras se generan las otras 18 en background.
+    firstBatch: 12,
+    parallelBatches: 2,
+    perBatch: 11, // 12 + 2x11 = 34 generadas → cap a 30
+    totalMin: 28,
+    totalMax: 30,
   },
 };
 
