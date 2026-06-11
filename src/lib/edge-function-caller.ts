@@ -107,12 +107,12 @@ export async function callEdgeFunctionWithSafety<T = unknown>(
           await emitBrainEvent({
             eventType: 'edge_function_failed',
             businessId: options.businessId,
-            payload: { functionName, reasons: quality.reasons ?? [String(lastError)] },
+            sourceModule: 'system', metadata: { functionName, reasons: quality.reasons ?? [String(lastError)] },
           }).catch(() => {});
           await emitBrainEvent({
             eventType: 'fallback_used',
             businessId: options.businessId,
-            payload: { functionName, module: options.module },
+            sourceModule: 'system', metadata: { functionName, module: options.module },
           }).catch(() => {});
         }
         return {
@@ -143,7 +143,7 @@ export async function callEdgeFunctionWithSafety<T = unknown>(
     await emitBrainEvent({
       eventType: 'edge_function_failed',
       businessId: options.businessId,
-      payload: { functionName, error: String(lastError) },
+      sourceModule: 'system', metadata: { functionName, error: String(lastError) },
     }).catch(() => {});
   }
   return {
