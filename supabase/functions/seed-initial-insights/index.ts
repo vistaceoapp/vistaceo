@@ -57,18 +57,32 @@ const GENERIC_MISSION = {
   ],
 };
 
-const GENERIC_TREND = {
-  title: "El 73% de los consumidores investiga online antes de comprar",
-  content:
-    "Tener presencia digital actualizada (Google, Instagram, web) ya no es opcional: es el filtro previo que define si te eligen o pasan al siguiente. Negocios con perfil completo capturan hasta 2.7x más clientes nuevos.\n\n**Por qué aplica a tu negocio:** Es el punto de partida obligatorio para cualquier estrategia de crecimiento sostenible.\n\n**Fuente:** [Tendencias de consumo digital](https://www.thinkwithgoogle.com/)",
-  item_type: "trend",
-  source: "https://www.thinkwithgoogle.com/",
-  action_steps: [
-    { text: "Auditar tu Perfil de Google esta semana" },
-    { text: "Publicar 3 historias en Instagram con tu producto estrella" },
-    { text: "Pedir 2 reseñas a clientes recurrentes" },
-  ],
-};
+const GENERIC_TRENDS = [
+  {
+    title: "El 73% de los consumidores investiga online antes de comprar",
+    content:
+      "Tener presencia digital actualizada (Google, Instagram, web) ya no es opcional: es el filtro previo que define si te eligen o pasan al siguiente. Negocios con perfil completo capturan hasta 2.7x más clientes nuevos.\n\n**Por qué aplica a tu negocio:** Es el punto de partida obligatorio para cualquier estrategia de crecimiento sostenible.\n\n**Fuente:** [Tendencias de consumo digital](https://www.thinkwithgoogle.com/)",
+    item_type: "trend",
+    source: "https://www.thinkwithgoogle.com/",
+    action_steps: [
+      { text: "Auditar tu Perfil de Google esta semana" },
+      { text: "Publicar 3 historias en Instagram con tu producto estrella" },
+      { text: "Pedir 2 reseñas a clientes recurrentes" },
+    ],
+  },
+  {
+    title: "Las reseñas verificadas multiplican x4 la intención de compra",
+    content:
+      "Los consumidores confían más en otros consumidores que en cualquier publicidad. Un negocio con 20+ reseñas reales y respuestas activas convierte hasta 4 veces más que uno sin gestión de reputación.\n\n**Por qué aplica a tu negocio:** Es la palanca con mejor ROI de los próximos 30 días: cuesta cero y genera prueba social compuesta.\n\n**Fuente:** [BrightLocal Local Consumer Review Survey](https://www.brightlocal.com/research/local-consumer-review-survey/)",
+    item_type: "trend",
+    source: "https://www.brightlocal.com/research/local-consumer-review-survey/",
+    action_steps: [
+      { text: "Pedir 5 reseñas reales a clientes de las últimas 2 semanas" },
+      { text: "Responder TODAS las reseñas existentes (positivas y negativas)" },
+      { text: "Crear un flujo simple post-venta para invitar a reseñar" },
+    ],
+  },
+];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
