@@ -26,6 +26,7 @@ import { sanitizeAIOutput } from '@/lib/aiOutputSanitizer';
 import { toast } from 'sonner';
 import { format, addDays, differenceInDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useRecordBrainView, useRecordBrainAction } from '@/hooks/use-brain-signal';
 
 // Domain icons mapping
 const DOMAIN_ICONS: Record<PredictionDomain, React.ElementType> = {
