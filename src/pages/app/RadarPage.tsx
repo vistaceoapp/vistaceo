@@ -8,6 +8,7 @@ import {
   Shield, Clock, AlertCircle, RefreshCw, Rocket, Crown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { buildContextPack } from "@/lib/context-pack-builder";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
