@@ -100,8 +100,9 @@ export const CompetitorInsightsPanel = () => {
     if (!currentBusiness) return;
     setScanning(true);
     try {
+      const cp = await buildContextPack('analytics', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("scan-competitors", {
-        body: { businessId: currentBusiness.id }
+        body: { businessId: currentBusiness.id, module: 'analytics', contextPack: cp, outputContract: 'competitors_v1' }
       });
       if (error) throw error;
       toast({ title: "Escaneo completado", description: `Se encontraron ${data?.competitorsFound || 0} competidores` });
