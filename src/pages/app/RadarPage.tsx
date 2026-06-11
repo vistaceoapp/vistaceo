@@ -13,6 +13,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { useRecordBrainView, useRecordBrainAction } from "@/hooks/use-brain-signal";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { buildInitialMissionSteps } from "@/lib/initial-mission-steps";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { useIsMobile } from "@/hooks/use-mobile";

@@ -21,7 +21,7 @@ import { safeLocalStorage } from "@/lib/safe-storage";
 const SetupCompletePage = () => {
   const navigate = useNavigate();
   const { trackSetupWowShown } = useActivityTracker();
-  const [showContent, setShowContent] = useState(false);
+  const [showContent, setShowContent] = useState(true);
   const [countdown, setCountdown] = useState<number | null>(null);
 
   // Check for pending plan (within 24 hours)
