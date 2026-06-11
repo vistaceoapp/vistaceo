@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
+import { emitBrainEvent } from "@/lib/brain-event-ledger";
 
 
 // Chat components
@@ -299,6 +300,14 @@ const ChatPage = () => {
         content: fullContent,
       });
 
+      // Brain Event: mensaje del usuario enviado
+      emitBrainEvent({
+        eventType: 'chat_message_sent',
+        businessId: currentBusiness.id,
+        sourceModule: 'chat',
+        normalizedInput: { content: fullContent.slice(0, 280), inputType, hasAttachments },
+      }).catch(() => {});
+
       // 🔥 Track chat_message engagement
       try {
         supabase.functions.invoke('track-user-activity', {
@@ -415,6 +424,16 @@ const ChatPage = () => {
         role: "assistant",
         content: aiResponse,
       });
+
+      if (hasLearning) {
+        emitBrainEvent({
+          eventType: 'chat_learning_extracted',
+          businessId: currentBusiness.id,
+          sourceModule: 'chat',
+          normalizedInput: aiData?.learningExtract,
+          brainFieldsUpdated: Object.keys(aiData?.learningExtract ?? {}),
+        }).catch(() => {});
+      }
 
       const newAssistantMsg: Message = {
         id: `assistant-${Date.now()}`,

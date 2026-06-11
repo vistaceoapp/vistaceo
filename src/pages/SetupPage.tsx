@@ -18,6 +18,8 @@ import { CountryCode, COUNTRY_PACKS } from '@/lib/countryPacks';
 import { analyzeHealthFromAnswers } from '@/lib/gastroQuestionsEngine';
 import { safeLocalStorage } from '@/lib/safe-storage';
 import { useCountryDetection } from '@/hooks/use-country-detection';
+import { buildSemanticAnswerMap } from '@/lib/setup-semantic';
+import { emitBrainEvent } from '@/lib/brain-event-ledger';
 
 // Map area IDs to valid business_category enum values
 const AREA_TO_CATEGORY: Record<string, string> = {
@@ -371,6 +373,9 @@ const SetupPage = () => {
           has_website: !!data.websiteUrl,
           has_linkedin: !!data.linkedinUrl,
           answers: data.answers,
+          // Versión semántica: cada respuesta enriquecida con intentKey,
+          // targetBrainField, healthDimension, wasUnknown, wasClarification, etc.
+          answers_semantic: buildSemanticAnswerMap(data.answers ?? {}),
           integrations_profiled: data.integrationsProfiled,
         },
         preferences_memory: {
@@ -387,7 +392,24 @@ const SetupPage = () => {
         version: 1,
       };
 
-      await supabase.from('business_brains').upsert(brainData, { onConflict: 'business_id' });
+      await supabase.from('business_brains').upsert(brainData as never, { onConflict: 'business_id' });
+
+      // Brain Event: setup completado — dispara recalibración de dashboard,
+      // health, radar, missions, predictions y analytics.
+      emitBrainEvent({
+        eventType: 'setup_completed',
+        businessId: business.id,
+        sourceModule: 'setup',
+        normalizedInput: {
+          setupMode: data.setupMode,
+          businessType: data.businessTypeId,
+          country: data.countryCode,
+          answersCount: Object.keys(data.answers ?? {}).length,
+        },
+        brainFieldsUpdated: ['factual_memory', 'answers_semantic', 'primary_business_type'],
+        confidenceDelta: 0.4,
+      }).catch(() => {});
+
       setCreateProgress(50);
 
       // Step 3: Create setup progress record

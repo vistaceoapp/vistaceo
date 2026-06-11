@@ -13,6 +13,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { validateBeforeStore } from "@/lib/validate-before-store";
+import { emitBrainEvent } from "@/lib/brain-event-ledger";
 
 interface MissionSuggestion {
   title: string;
@@ -48,6 +50,34 @@ export const MissionActionCard = ({
     setCreating(index);
 
     try {
+      // Pre-store audit: bloquea contenido crudo / Red List antes de Supabase.
+      const audit = await validateBeforeStore(
+        {
+          type: 'mission',
+          businessId,
+          title: suggestion.title,
+          description: suggestion.description,
+          steps: (suggestion.definition_of_done ?? []).map(s => ({ title: s })),
+        },
+        { id: businessId, name: '' },
+        []
+      );
+      if (!audit.passed) {
+        await emitBrainEvent({
+          eventType: 'quality_gate_failed',
+          businessId,
+          sourceModule: 'chat',
+          rawInput: suggestion,
+          quality: { passed: false, score: audit.averageScore, failedReason: audit.issues[0]?.message },
+        });
+        toast({
+          title: 'No se pudo crear la misión',
+          description: 'El contenido no superó la validación de calidad. Pedile al asistente que la regenere con más contexto.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { data, error } = await supabase.from("missions").insert({
         business_id: businessId,
         title: suggestion.title,
@@ -64,6 +94,14 @@ export const MissionActionCard = ({
       }).select().single();
 
       if (error) throw error;
+
+      await emitBrainEvent({
+        eventType: 'mission_created',
+        businessId,
+        sourceModule: 'chat',
+        normalizedInput: { missionId: data?.id, title: suggestion.title, priority: suggestion.priority },
+        brainFieldsUpdated: ['missions'],
+      });
 
       setCreated(prev => [...prev, index]);
       
