@@ -140,10 +140,37 @@ const q = (
   weight: 7,
   title: { es: title, 'pt-BR': title },
   type,
-  options: [...options, opt('not_sure', 'No lo sé todavía', '🤷', 3)],
+  // Sin opciones "No sé" dentro del grid normal: la UI agrega la opción horizontal
+  // "No sé / Quiero aclarar algo" automáticamente para todas las preguntas single/multi.
+  options: options.slice(0, 6),
   required: true,
   ...(help ? { help: { es: help, 'pt-BR': help } } : {}),
 });
+
+// IDs/labels que NUNCA deben aparecer como opción normal: representan "no sé / aclarar"
+// y deben ir en la opción horizontal secundaria (sin autoavance).
+const CLARIFY_OPTION_IDS = new Set([
+  'not_sure', 'no_se', 'no_sé', 'dont_know', 'idk', 'unknown', 'na', 'n_a',
+  'other', 'otro', 'otra', 'none', 'ninguna', 'ninguno',
+]);
+const CLARIFY_LABEL_PATTERNS = [
+  /^no\s+(lo\s+)?s[eé]/i,
+  /^no\s+aplica/i,
+  /^otra?\s*(\.\.\.|$)/i,
+  /^ninguna?\s+de/i,
+  /quiero\s+aclarar/i,
+  /quiero\s+escribir/i,
+];
+function isClarifyOption(o: { id: string; label?: { es?: string } }): boolean {
+  if (!o) return true;
+  if (CLARIFY_OPTION_IDS.has(String(o.id || '').toLowerCase())) return true;
+  const lbl = o.label?.es || '';
+  return CLARIFY_LABEL_PATTERNS.some(rx => rx.test(lbl.trim()));
+}
+function getNormalOptions(opts: any[] | undefined): any[] {
+  if (!Array.isArray(opts)) return [];
+  return opts.filter(o => !isClarifyOption(o)).slice(0, 6);
+}
 
 // ============================================================================
 // FALLBACK PREMIUM DINÁMICO (visible si el motor AI falla 3 veces).
