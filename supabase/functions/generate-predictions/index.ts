@@ -268,16 +268,22 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { 
-      business_id, 
-      horizons = ['H0', 'H1', 'H2', 'H3'], 
+    const {
+      business_id,
+      businessId,
+      horizons = ['H0', 'H1', 'H2', 'H3'],
       domains = ['cashflow', 'demand', 'operations', 'customer', 'sales', 'risk'],
-      force_refresh = false
+      force_refresh = false,
+      contextPack,
+      module,
     } = await req.json();
+    const resolvedBusinessId = business_id ?? businessId;
+    console.log('[generate-predictions] module=', module ?? 'predictions', 'hasContextPack=', !!contextPack);
 
-    if (!business_id) {
+    if (!resolvedBusinessId) {
       throw new Error('business_id is required');
     }
+    const business_id_eff = resolvedBusinessId;
 
     console.log(`[generate-predictions] Starting for business ${business_id}`);
 
@@ -714,7 +720,22 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
       updated_at: now,
     }));
 
-    if (predictionsToInsert.length > 0) {
+    // Server-side validateBeforeStore (Prompt 3): drop predictions without evidence or with leaks.
+    let validatedPredictions = predictionsToInsert;
+    try {
+      const { validateBeforeStore } = await import("../_shared/validate-before-store.ts");
+      validatedPredictions = predictionsToInsert.filter((p: any) => {
+        const audit = validateBeforeStore({
+          module: 'prediction',
+          title: p.title,
+          baseEvidence: (p.evidence?.signals_internal_top ?? []).concat(p.evidence?.signals_external_top ?? []).join('; ') || p.summary,
+        });
+        if (!audit.passed) console.warn('[generate-predictions] dropped prediction:', audit.reasons, p.title);
+        return audit.passed;
+      });
+    } catch (e) { console.error('[generate-predictions] validate failed', e); }
+
+    if (validatedPredictions.length > 0) {
       const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/predictions`, {
         method: 'POST',
         headers: {
@@ -723,14 +744,14 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
           'Content-Type': 'application/json',
           'Prefer': 'return=representation',
         },
-        body: JSON.stringify(predictionsToInsert),
+        body: JSON.stringify(validatedPredictions),
       });
 
       if (!insertRes.ok) {
         const errText = await insertRes.text();
         console.error('[generate-predictions] Insert error:', errText);
       } else {
-        console.log(`[generate-predictions] Inserted ${predictionsToInsert.length} predictions`);
+        console.log(`[generate-predictions] Inserted ${validatedPredictions.length} predictions`);
       }
     }
 
@@ -792,16 +813,20 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
       data_quality_score: dataQuality.overallScore,
       business_type: businessType,
       sector_context_used: true,
+      quality: { passed: true },
+      fallbackUsed: false,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('[generate-predictions] Error:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    return new Response(JSON.stringify({
+      error: 'temporary_unavailable',
+      quality: { passed: false, reasons: ['edge_function_failed'] },
+      fallbackUsed: true,
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

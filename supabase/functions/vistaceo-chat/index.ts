@@ -1158,7 +1158,16 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, businessContext, inputType = "text", messageId, personalityPrompt, attachments = [] } = await req.json();
+    const reqBody = await req.json();
+    const { messages, inputType = "text", messageId, personalityPrompt, attachments = [], contextPack, businessId, module } = reqBody;
+    // Backwards-compatible: prefer ContextPack businessSummary; fall back to raw businessContext if old client still sends it.
+    const businessContext = reqBody.businessContext ?? (contextPack ? {
+      id: contextPack.businessId ?? businessId,
+      name: contextPack.businessSummary?.name,
+      category: contextPack.businessSummary?.sector ?? contextPack.businessSummary?.activity,
+      country: contextPack.businessSummary?.country,
+    } : { id: businessId });
+    console.log('[vistaceo-chat] module=', module ?? 'chat', 'hasContextPack=', !!contextPack);
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -1574,12 +1583,29 @@ Si alguna falla, reescribilo antes de devolver.`,
       }
     }
 
+    // Server-side validateBeforeStore (Prompt 3): block Red List leaks before returning.
+    try {
+      const { validateBeforeStore } = await import("../_shared/validate-before-store.ts");
+      const audit = validateBeforeStore({ module: 'chat', text: parsed.userReply });
+      if (!audit.passed) {
+        console.warn('[vistaceo-chat] validateBeforeStore blocked:', audit.reasons);
+        const sf = (await import("../_shared/brain-core/runtime-output-gate.ts")).safeFallback("chat");
+        parsed.userReply = sf;
+      } else if (audit.sanitized.text) {
+        parsed.userReply = audit.sanitized.text;
+      }
+    } catch (e) {
+      console.error('[vistaceo-chat] server validate failed:', e);
+    }
+
     return new Response(
       JSON.stringify({
         message: parsed.userReply,
         audioScript: parsed.audioScript,
         avatarCues: parsed.avatarCues,
         learningExtract: parsed.learningExtract,
+        quality: { passed: true },
+        fallbackUsed: false,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

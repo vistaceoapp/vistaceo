@@ -4,6 +4,7 @@ import {
   TrendingUp, Target, Eye, Crosshair, BarChart3, Shield
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { buildContextPack } from '@/lib/context-pack-builder';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -89,8 +90,9 @@ export const AIDailySummary = () => {
     setGenerating(true);
 
     try {
+      const contextPack = await buildContextPack('dashboard', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke('generate-daily-summary', {
-        body: { businessId: currentBusiness.id }
+        body: { businessId: currentBusiness.id, module: 'dashboard', contextPack, outputContract: 'daily_summary_v1' }
       });
 
       if (error) throw error;

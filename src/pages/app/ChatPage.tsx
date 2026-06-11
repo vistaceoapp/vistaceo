@@ -10,6 +10,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
 import { emitBrainEvent } from "@/lib/brain-event-ledger";
+import { buildContextPack } from "@/lib/context-pack-builder";
 
 
 // Chat components
@@ -327,17 +328,17 @@ const ChatPage = () => {
         content: m.content,
       }));
 
+      const contextPack = await buildContextPack('chat', currentBusiness.id, {
+        recentEventsLimit: 6,
+      }).catch(() => null);
+
       const { data: aiData, error: aiError } = await supabase.functions.invoke("vistaceo-chat", {
         body: {
           messages: messagesForAI,
-          businessContext: {
-            id: currentBusiness.id,
-            name: currentBusiness.name,
-            category: currentBusiness.category,
-            country: currentBusiness.country,
-            avg_ticket: currentBusiness.avg_ticket,
-            avg_rating: currentBusiness.avg_rating,
-          },
+          businessId: currentBusiness.id,
+          module: 'chat',
+          contextPack,
+          outputContract: 'chat_response_v1',
           inputType: hasAttachments ? "multimodal" : inputType,
           messageId: `msg-${Date.now()}`,
           personalityPrompt: personalityPrompt,
