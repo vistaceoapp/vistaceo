@@ -539,7 +539,7 @@ const RadarPage = () => {
           impact_score: opportunity.impact_score,
           effort_score: opportunity.effort_score,
           status: "active",
-          steps: buildInitialMissionSteps(opportunity, currentBusiness),
+          steps: buildInitialMissionSteps(opportunity, currentBusiness) as unknown as any,
         })
         .select()
         .single();
