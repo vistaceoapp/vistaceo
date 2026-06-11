@@ -635,8 +635,9 @@ export const SetupStepQuestionnaire = ({
     const value = getCurrentValue();
     if (!currentQuestion.required) return true;
     if (value === '__NONE__') return true;
-    if (typeof value === 'object' && value?.type === '__NONE__') return true;
-    if (typeof value === 'object' && value?.type === '__CUSTOM__') return true;
+    if (typeof value === 'object' && value?.type && [
+      '__NONE__', '__CUSTOM__', '__CLARIFY__', '__CLARIFY_PENDING__', '__NO_SE__',
+    ].includes(value.type)) return true;
     if (Array.isArray(value)) return value.length > 0;
     return value !== undefined && value !== '' && value !== null;
   };
