@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
 import { sanitizeForUser } from "../_shared/brain-core/sanitize-output.ts";
+import { humanizeEvidence } from "../_shared/humanize-evidence.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -179,7 +180,9 @@ EVIDENCIA: ${JSON.stringify(opportunity?.evidence || {})}
     Object.entries(grouped).slice(0, 6).forEach(([cat, items]) => {
       prompt += `\n[${cat.toUpperCase()}]`;
       items.slice(0, 4).forEach((i: any) => {
-        prompt += `\n  • ${i.question}: ${i.answer}`;
+        const q = humanizeEvidence(i.question);
+        const a = humanizeEvidence(i.answer);
+        if (q && a) prompt += `\n  • ${q}: ${a}`;
       });
     });
   }
@@ -209,11 +212,12 @@ EVIDENCIA: ${JSON.stringify(opportunity?.evidence || {})}
     }
   }
 
-  // Recent signals
+  // Recent signals (humanized — never inject raw JSON or internal IDs into the prompt)
   if (recentSignals?.length > 0) {
     prompt += `\n\n===== SEÑALES RECIENTES =====`;
     recentSignals.slice(0, 5).forEach((s: any) => {
-      prompt += `\n• [${s.signal_type}] ${s.raw_text || JSON.stringify(s.content).slice(0, 80)}`;
+      const human = humanizeEvidence(s.raw_text || s.content);
+      if (human && human.length > 6) prompt += `\n• ${human}`;
     });
   }
 

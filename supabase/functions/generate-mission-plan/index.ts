@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.ts";
 import { sanitizeForUser } from "../_shared/brain-core/sanitize-output.ts";
+import { humanizeEvidence } from "../_shared/humanize-evidence.ts";
 
 
 const corsHeaders = {
@@ -262,16 +263,19 @@ NIVEL DE CONTEXTO (MVC): ${brain.mvc_completion_pct || 0}%`;
       Object.entries(groupedInsights).forEach(([category, insights]) => {
         prompt += `\n[${category.toUpperCase()}]`;
         insights.slice(0, 5).forEach((insight: any) => {
-          prompt += `\n• ${insight.question}: ${insight.answer}`;
+          const q = humanizeEvidence(insight.question);
+          const a = humanizeEvidence(insight.answer);
+          if (q && a) prompt += `\n• ${q}: ${a}`;
         });
       });
     }
 
-    // Recent signals for latest context
+    // Recent signals for latest context (humanized — no raw JSON or internal IDs)
     if (context.recentSignals?.length > 0) {
       prompt += "\n\n===== SEÑALES RECIENTES =====";
       context.recentSignals.slice(0, 5).forEach((signal: any) => {
-        prompt += `\n• [${signal.signal_type}/${signal.source}]: ${signal.raw_text || JSON.stringify(signal.content).slice(0, 100)}`;
+        const human = humanizeEvidence(signal.raw_text || signal.content);
+        if (human && human.length > 6) prompt += `\n• ${human}`;
       });
     }
 
@@ -716,6 +720,39 @@ serve(async (req) => {
     }
 
     console.log("Generated plan with", planData.steps?.length || 0, "steps, passed QG:", passed);
+
+    // STEP QUALITY GATE — block generic / templated step titles before they reach the user.
+    const GENERIC_STEP_RX = [
+      /^analizar\s+(el|la|los|las)?\s*(problema|situaci[oó]n|contexto)\s*\.?$/i,
+      /^definir\s+(el|la)?\s*objetivo\s*\.?$/i,
+      /^revisar\s+(el|la|los|las)?\s*(datos|resultados)\s*\.?$/i,
+      /^evaluar\s+resultados?\s*\.?$/i,
+      /^implementar\s+(la|el)?\s*soluci[oó]n\s*\.?$/i,
+      /^medir\s+impacto\s*\.?$/i,
+      /^siguiente\s+paso\s*\.?$/i,
+    ];
+    if (Array.isArray(planData?.steps)) {
+      planData.steps = planData.steps
+        .map((s: any) => ({
+          ...s,
+          title: humanizeEvidence(s?.title) || s?.title,
+          description: humanizeEvidence(s?.description ?? s?.what_to_do) || s?.description,
+        }))
+        .filter((s: any) => {
+          const t = String(s?.title || "").trim();
+          if (!t || t.length < 8) return false;
+          if (GENERIC_STEP_RX.some((rx) => rx.test(t))) {
+            console.warn("[step-gate] dropped generic step title:", t);
+            return false;
+          }
+          const d = String(s?.description || s?.what_to_do || "");
+          if (d.length < 30) {
+            console.warn("[step-gate] dropped step with thin description:", t);
+            return false;
+          }
+          return true;
+        });
+    }
 
     const cleanPlan = sanitizeForUser(planData);
 

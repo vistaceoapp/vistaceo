@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { humanizeEvidence } from "../_shared/humanize-evidence.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -95,7 +96,8 @@ function buildContextMessage(businessContext: any, memoryContext: any, brainCont
     if (memoryContext.recentSignals && memoryContext.recentSignals.length > 0) {
       context += `\n\n## Señales Recientes`;
       memoryContext.recentSignals.slice(0, 5).forEach((signal: any) => {
-        context += `\n- [${signal.signal_type}] ${signal.raw_text || JSON.stringify(signal.content).slice(0, 80)}`;
+        const human = humanizeEvidence(signal.raw_text || signal.content);
+        if (human && human.length > 6) context += `\n- ${human}`;
       });
     }
 
@@ -228,11 +230,13 @@ async function fetchMemoryContext(supabase: any, businessId: string) {
       }
     }
 
-    // Format insights
+    // Format insights (humanized — no Q_AI_ / [Setup_answer] codes reach the prompt)
     const insights: string[] = [];
     if (insightsRes.data) {
       for (const insight of insightsRes.data) {
-        insights.push(`${insight.question}: ${insight.answer}`);
+        const q = humanizeEvidence(insight.question);
+        const a = humanizeEvidence(insight.answer);
+        if (q && a) insights.push(`${q}: ${a}`);
       }
     }
 
