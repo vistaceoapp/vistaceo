@@ -200,6 +200,24 @@ const RadarPage = () => {
     }
   }, [currentBusiness]);
 
+  // Alimenta el Brain cuando el usuario abre una oportunidad para verla.
+  useEffect(() => {
+    if (!selectedOpportunity) return;
+    recordAction(
+      "radar_item_viewed",
+      {
+        opportunityId: selectedOpportunity.id,
+        title: selectedOpportunity.title,
+        source: selectedOpportunity.source,
+        impact: selectedOpportunity.impact_score,
+        effort: selectedOpportunity.effort_score,
+      },
+      { importance: 4, confidence: "medium" },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOpportunity?.id]);
+
+
   const fetchData = async () => {
     if (!currentBusiness) return;
     setLoading(true);
