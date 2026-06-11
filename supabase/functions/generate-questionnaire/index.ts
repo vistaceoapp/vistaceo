@@ -110,15 +110,17 @@ serve(async (req) => {
 
 DIMENSIONES (cobertura balanceada ${dimDist.min}-${dimDist.max} c/u): traffic, profitability, team, finances, efficiency, growth, reputation.
 
-TIPOS: single (3-6 opciones con emoji/impactScore 1-10), multi, number, slider, text, money.
+TIPOS PERMITIDOS: single (formato principal), multi (sólo si corresponde), number, slider, money. "text" sólo como excepción (≤10%).
 CATEGORÍAS: identity, operation, sales, finance, team, marketing, reputation, goals.
 
 REGLAS ABSOLUTAS:
 1. 100% específico para "${businessTypeLabel}". Terminología del sector.
-2. TODO el texto DEBE estar en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. PROHIBIDO usar palabras en inglés. Ni en títulos, ni en opciones, ni en ayudas. Cero inglés.
-3. En opciones de tipo single donde se pregunte por cantidad de clientes, empleados, etc: SIEMPRE incluir una opción para quien NO tiene (ej: "Todavía no tengo", "No aplica", "Recién empiezo"). 
-4. Rangos realistas. Datos accionables.
-5. Las preguntas deben ser gramaticalmente perfectas, claras y profesionales. Sin cortes, sin errores de redacción.
+2. TODO en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. CERO inglés en títulos, opciones o ayudas.
+3. PREGUNTAS CORTAS: máximo 12 palabras. Una sola idea. PROHIBIDO "Ej:" en el título.
+4. OPCIONES: EXACTAMENTE 4 ó 6 opciones por pregunta. NUNCA más de 6. Cada opción máx 4 palabras, primera letra MAYÚSCULA, sin punto final.
+5. NO incluyas "No sé", "No aplica", "Otra", "Ninguna" como opciones. La UI los agrega aparte.
+6. Para concepto difícil (flujo de caja, margen, ticket, conversión, recompra, capital de trabajo, etc.): completá "help" con UNA frase ≤120 chars que lo explique.
+7. Datos accionables. Rangos realistas. Gramática perfecta.
 ${learningContext}
 
 Responde con generate_questions.`
