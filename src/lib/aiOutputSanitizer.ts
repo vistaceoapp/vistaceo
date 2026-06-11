@@ -225,14 +225,32 @@ export function sanitizeAIOutput(
 
   result = result.trim();
 
-  // Fix common Spanish writing issues
-  result = fixSpanishWriting(result);
+  // Red List enforcement: si quedó contenido prohibido, descartar
+  if (mode !== 'admin' && containsForbidden(result)) {
+    return '';
+  }
 
-  // Anti-truncación visual: si quedó cortado a mitad, cerrar elegante
+  // Modo label: limpiar pero no reescribir como párrafo
+  if (mode === 'label') {
+    result = result.replace(/[\.!?…]+$/g, '').trim();
+    if (isLeakedLabel(result)) return '';
+    return result;
+  }
+
+  // Modo structured: NO cerrar con elipsis; rechazar si quedó muy corto
+  if (mode === 'structured') {
+    result = fixSpanishWriting(result);
+    if (!result || result.length < 10) return '';
+    if (/^(siguiente|paso|undefined|null|\.{1,3})$/i.test(result.trim())) return '';
+    if (isLeakedLabel(result)) return '';
+    return result;
+  }
+
+  // Modo prose (default) y admin: cerrar oración colgada
+  result = fixSpanishWriting(result);
   result = closeDanglingSentence(result);
 
-  // ===== CAPA FINAL: descartar si el resultado es solo un token leakeado =====
-  if (isLeakedLabel(result)) return '';
+  if (mode !== 'admin' && isLeakedLabel(result)) return '';
 
   return result;
 }
