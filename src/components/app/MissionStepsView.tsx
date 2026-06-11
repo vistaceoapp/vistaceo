@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useSanitizedContent, useSanitizedList } from "@/hooks/use-sanitized-content";
 import { toast } from "@/hooks/use-toast";
 
 interface Step {
@@ -133,6 +134,15 @@ export const MissionStepsView = ({
       ? enhancedPlan.steps[expandedStep]
       : activeStep;
 
+  // Sanitización de TODOS los campos visibles generados por IA
+  const safeActiveText = useSanitizedContent(activeStep?.text, 'structured') || activeStep?.text || '';
+  const safeHowTo = useSanitizedList(stepData?.howTo);
+  const safeTips = useSanitizedList(stepData?.tips);
+  const safeChecklist = useSanitizedList(stepData?.checklist);
+  const safeWhy = useSanitizedContent(stepData?.why, 'prose');
+  const safeExample = useSanitizedContent(stepData?.example, 'prose');
+  const safeDoD = useSanitizedContent(stepData?.definitionOfDone, 'prose');
+
   return (
     <div className="space-y-5">
       {/* Active step detail (expandido) */}
@@ -160,7 +170,7 @@ export const MissionStepsView = ({
 
           {/* Qué vas a hacer */}
           <p className={cn("text-xl md:text-2xl font-semibold text-foreground leading-snug tracking-tight", activeStep.done && "line-through text-muted-foreground")}>
-            {activeStep.text}
+            {safeActiveText}
           </p>
 
           {/* Cómo hacerlo (subpasos) */}
