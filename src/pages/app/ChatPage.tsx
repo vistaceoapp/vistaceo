@@ -629,7 +629,7 @@ const ChatPage = () => {
           </div>
         )}
 
-        {/* Free user message counter */}
+        {/* Free user message counter — LIFETIME, no monthly reset */}
         {!isPro && (
           <div className={cn(
             "flex items-center justify-between px-4 py-2 bg-muted/30 border-t border-border/20",
@@ -637,7 +637,11 @@ const ChatPage = () => {
           )}>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <MessageCircle className="w-3.5 h-3.5" />
-              <span>{usage.chatMessages}/{FREE_LIMITS.chatMessages} mensajes este mes</span>
+              <span>
+                {usage.chatMessages >= FREE_LIMITS.chatMessages
+                  ? "Chat agotado en plan Gratis · solo Pro lo desbloquea"
+                  : `${usage.chatMessages}/${FREE_LIMITS.chatMessages} mensajes (únicos, sin recarga)`}
+              </span>
             </div>
             <Button
               variant="ghost"
@@ -646,7 +650,7 @@ const ChatPage = () => {
               onClick={() => navigate("/checkout")}
             >
               <Crown className="w-3 h-3" />
-              Pro = alta capacidad
+              Desbloquear chat
             </Button>
           </div>
         )}

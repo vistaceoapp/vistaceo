@@ -2680,6 +2680,44 @@ export type Database = {
           },
         ]
       }
+      free_tier_state: {
+        Row: {
+          bonus_opportunities: number
+          bonus_research: number
+          business_id: string
+          created_at: string
+          last_refill_at: string | null
+          refills_count: number
+          updated_at: string
+        }
+        Insert: {
+          bonus_opportunities?: number
+          bonus_research?: number
+          business_id: string
+          created_at?: string
+          last_refill_at?: string | null
+          refills_count?: number
+          updated_at?: string
+        }
+        Update: {
+          bonus_opportunities?: number
+          bonus_research?: number
+          business_id?: string
+          created_at?: string
+          last_refill_at?: string | null
+          refills_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "free_tier_state_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       insight_metrics: {
         Row: {
           business_id: string
@@ -4464,6 +4502,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      enforce_free_limit_lifetime: {
+        Args: {
+          _base_limit: number
+          _bonus_column?: string
+          _business_id: string
+          _extra_filter?: string
+          _table_name: string
+        }
+        Returns: undefined
+      }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -4496,6 +4544,16 @@ export type Database = {
       recalculate_brain_signal_counters: {
         Args: { _business_id: string }
         Returns: undefined
+      }
+      request_free_tier_refill: {
+        Args: { _business_id: string }
+        Returns: {
+          bonus_opportunities: number
+          bonus_research: number
+          message: string
+          next_refill_at: string
+          success: boolean
+        }[]
       }
     }
     Enums: {

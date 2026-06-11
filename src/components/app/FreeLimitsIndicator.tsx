@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
-import { Crown, Zap, Target, Lightbulb, MessageCircle } from "lucide-react";
+import { Crown, Zap, Target, Lightbulb, MessageCircle, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface FreeLimitsIndicatorProps {
   type: "missions" | "chat" | "radar" | "research";
@@ -16,7 +18,7 @@ interface FreeLimitsIndicatorProps {
 
 const typeConfig = {
   missions: {
-    label: "Misiones",
+    label: "Misión",
     limitKey: "missions" as const,
     icon: Target,
     color: "text-primary",
@@ -30,7 +32,7 @@ const typeConfig = {
     bgColor: "bg-accent/10",
   },
   radar: {
-    label: "Radar Interno",
+    label: "Oportunidades",
     limitKey: "radarOpportunities" as const,
     icon: Zap,
     color: "text-warning",
@@ -52,20 +54,19 @@ export const FreeLimitsIndicator = ({
   className,
 }: FreeLimitsIndicatorProps) => {
   const navigate = useNavigate();
-  const { usage, limits, remaining, percentUsed, isPro, isLoading } = useFreeLimits();
-  
+  const { usage, limits, remaining, percentUsed, isPro } = useFreeLimits();
+
   const config = typeConfig[type];
   const used = usage[config.limitKey];
   const limit = limits[config.limitKey];
   const left = remaining[config.limitKey];
   const percent = percentUsed[config.limitKey];
-  
-  // Pro users: alta capacidad — mostramos progreso real pero con tono premium
+
   if (isPro) {
     return (
       <Badge variant="secondary" className={cn("bg-primary/10 text-primary border-primary/20", className)}>
         <Crown className="w-3 h-3 mr-1" />
-        {type === "chat" ? `${used}/${limit} · Alta capacidad` : "Alta capacidad"}
+        Alta capacidad
       </Badge>
     );
   }
@@ -80,19 +81,19 @@ export const FreeLimitsIndicator = ({
         isAtLimit ? "text-destructive" : isNearLimit ? "text-warning" : "text-muted-foreground",
         className
       )}>
-        {used}/{limit} usados
+        {used}/{limit}
       </span>
     );
   }
 
   if (variant === "compact") {
     return (
-      <Badge 
-        variant="secondary" 
+      <Badge
+        variant="secondary"
         className={cn(
           "gap-1.5",
-          isAtLimit 
-            ? "bg-destructive/10 text-destructive border-destructive/20" 
+          isAtLimit
+            ? "bg-destructive/10 text-destructive border-destructive/20"
             : isNearLimit
             ? "bg-warning/10 text-warning border-warning/20"
             : "bg-secondary text-muted-foreground",
@@ -101,21 +102,18 @@ export const FreeLimitsIndicator = ({
       >
         <config.icon className="w-3 h-3" />
         {used}/{limit}
-        {isAtLimit && " (límite)"}
+        {isAtLimit && " · agotado"}
       </Badge>
     );
   }
 
-  // Detailed variant
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
         "p-4 rounded-xl border",
-        isAtLimit 
-          ? "bg-destructive/5 border-destructive/20" 
-          : "bg-secondary/30 border-border",
+        isAtLimit ? "bg-destructive/5 border-destructive/20" : "bg-secondary/30 border-border",
         className
       )}
     >
@@ -127,28 +125,16 @@ export const FreeLimitsIndicator = ({
           <div>
             <p className="text-sm font-medium text-foreground">{config.label}</p>
             <p className="text-xs text-muted-foreground">
-              {isAtLimit 
-                ? "Límite alcanzado este mes" 
-                : `${left} restantes este mes`
-              }
+              {isAtLimit ? "Cupo agotado" : `${left} disponibles`}
             </p>
           </div>
         </div>
-        <span className={cn(
-          "text-lg font-bold",
-          isAtLimit ? "text-destructive" : "text-foreground"
-        )}>
+        <span className={cn("text-lg font-bold", isAtLimit ? "text-destructive" : "text-foreground")}>
           {used}/{limit}
         </span>
       </div>
 
-      <Progress 
-        value={percent} 
-        className={cn(
-          "h-2",
-          isAtLimit && "[&>div]:bg-destructive"
-        )} 
-      />
+      <Progress value={percent} className={cn("h-2", isAtLimit && "[&>div]:bg-destructive")} />
 
       {isAtLimit && showUpgrade && (
         <div className="mt-4 pt-4 border-t border-border">
@@ -158,7 +144,7 @@ export const FreeLimitsIndicator = ({
             onClick={() => navigate("/checkout")}
           >
             <Crown className="w-4 h-4 mr-2" />
-            Desbloquear alta capacidad con Pro
+            Desbloquear todo con Pro
           </Button>
         </div>
       )}
@@ -166,9 +152,6 @@ export const FreeLimitsIndicator = ({
   );
 };
 
-/**
- * Banner shown when user hits a limit
- */
 interface LimitReachedBannerProps {
   type: "missions" | "chat" | "radar" | "research";
   onUpgrade?: () => void;
@@ -177,14 +160,23 @@ interface LimitReachedBannerProps {
 export const LimitReachedBanner = ({ type, onUpgrade }: LimitReachedBannerProps) => {
   const navigate = useNavigate();
   const config = typeConfig[type];
-  
+
   const handleUpgrade = () => {
-    if (onUpgrade) {
-      onUpgrade();
-    } else {
-      navigate("/checkout");
-    }
+    if (onUpgrade) onUpgrade();
+    else navigate("/checkout");
   };
+
+  const copy = (() => {
+    switch (type) {
+      case "chat":
+        return "Usaste tus 3 mensajes del chat. En Free el chat queda bloqueado hasta que pases a Pro.";
+      case "missions":
+        return "El plan Gratis incluye 1 misión inicial perfecta. Pasá a Pro para crear misiones sin límite.";
+      case "radar":
+      case "research":
+        return "Ya consumiste tus oportunidades disponibles. Cada 30 días podés recargar +1, o pasar a Pro para alta capacidad.";
+    }
+  })();
 
   return (
     <motion.div
@@ -196,38 +188,87 @@ export const LimitReachedBanner = ({ type, onUpgrade }: LimitReachedBannerProps)
         <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
           <Crown className="w-8 h-8 text-primary" />
         </div>
-        
+
         <div>
           <h3 className="text-lg font-bold text-foreground mb-1">
-            Límite de {config.label} alcanzado
+            Cupo Gratis de {config.label} agotado
           </h3>
-          <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-            Este mes ya usaste tus {FREE_LIMITS[config.limitKey]} {config.label.toLowerCase()} del plan Free. 
-            Pasate a Pro para alta capacidad.
-          </p>
+          <p className="text-sm text-muted-foreground max-w-sm mx-auto">{copy}</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button
-            className="bg-primary text-primary-foreground"
-            onClick={handleUpgrade}
-          >
+          <Button className="bg-primary text-primary-foreground" onClick={handleUpgrade}>
             <Crown className="w-4 h-4 mr-2" />
             Desbloquear con Pro
           </Button>
-          <Button
-            variant="ghost"
-            className="text-muted-foreground"
-            onClick={() => navigate("/app")}
-          >
+          <Button variant="ghost" className="text-muted-foreground" onClick={() => navigate("/app")}>
             Volver al inicio
           </Button>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          Los límites se reinician el 1 de cada mes
-        </p>
+        {(type === "radar" || type === "research") && (
+          <MonthlyRefillButton />
+        )}
       </div>
     </motion.div>
   );
 };
+
+/**
+ * Botón mensual: agrega +1 oportunidad y +1 I+D cada 30 días al usuario Free.
+ */
+export const MonthlyRefillButton = ({ className }: { className?: string }) => {
+  const { isPro, bonus, requestRefill, refresh } = useFreeLimits();
+  const [loading, setLoading] = useState(false);
+
+  if (isPro) return null;
+
+  const handleClick = async () => {
+    setLoading(true);
+    const r = await requestRefill();
+    setLoading(false);
+    if (r.success) {
+      toast.success(r.message, { description: "Tus nuevos cupos están listos en Radar." });
+      await refresh();
+    } else {
+      toast.info(r.message);
+    }
+  };
+
+  const next = bonus.nextRefillAt ? new Date(bonus.nextRefillAt) : null;
+  const canRefill = bonus.canRefillNow;
+
+  return (
+    <div className={cn("inline-flex flex-col items-center gap-1", className)}>
+      <Button
+        variant={canRefill ? "default" : "outline"}
+        size="sm"
+        disabled={!canRefill || loading}
+        onClick={handleClick}
+        className={cn(canRefill && "bg-gradient-to-r from-primary to-accent text-white")}
+      >
+        {loading ? (
+          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+        ) : canRefill ? (
+          <Sparkles className="w-4 h-4 mr-2" />
+        ) : (
+          <RefreshCw className="w-4 h-4 mr-2" />
+        )}
+        {canRefill ? "Recargar +1 oportunidad y +1 I+D" : "Recarga ya usada este mes"}
+      </Button>
+      {!canRefill && next && (
+        <span className="text-[11px] text-muted-foreground">
+          Próxima recarga: {next.toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}
+        </span>
+      )}
+      {canRefill && bonus.bonusOpportunities + bonus.bonusResearch > 0 && (
+        <span className="text-[11px] text-muted-foreground">
+          Recargas acumuladas: +{bonus.bonusOpportunities} opp · +{bonus.bonusResearch} I+D
+        </span>
+      )}
+    </div>
+  );
+};
+
+// Keep export for unused imports compatibility
+export { FREE_LIMITS };
