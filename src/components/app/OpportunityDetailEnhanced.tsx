@@ -254,7 +254,9 @@ export const OpportunityDetailEnhanced = ({
       setPlanLoading(false);
     }
   };
-  
+
+  const staleness = useContentStaleness(business?.id, opportunity.id, opportunity.created_at);
+
   return (
     <>
       <div className="flex min-h-0 flex-col">
