@@ -825,11 +825,14 @@ export const SetupStepQuestionnaire = ({
     switch (currentQuestion.type) {
       case 'single': {
         const currentVal = getCurrentValue();
-        const isNone = currentVal === '__NONE__' || (typeof currentVal === 'object' && (currentVal?.type === '__CUSTOM__' || currentVal?.type === '__NONE__'));
+        const isClarify = typeof currentVal === 'object' && currentVal?.type && [
+          '__CUSTOM__', '__NONE__', '__CLARIFY__', '__CLARIFY_PENDING__', '__NO_SE__',
+        ].includes(currentVal.type);
+        const normalOptions = getNormalOptions(currentQuestion.options as any[]);
         return (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
-              {currentQuestion.options?.map((option) => {
+              {normalOptions.map((option: any) => {
                 const isSelected = currentVal === option.id;
                 return (
                   <button
@@ -850,18 +853,18 @@ export const SetupStepQuestionnaire = ({
                 );
               })}
             </div>
-            {/* "Ninguna de estas" + custom text */}
+            {/* Opción horizontal secundaria: NUNCA autoavanza, abre input */}
             <button
               onClick={handleNoneOfThese}
               className={cn(
-                "w-full p-3 rounded-xl border-2 text-sm transition-all text-center flex items-center justify-center gap-2",
-                isNone
-                  ? "border-primary bg-primary/10 text-primary font-medium"
-                  : "border-border hover:border-primary/50 bg-card text-muted-foreground"
+                "w-full px-3 py-2.5 rounded-lg border text-xs sm:text-sm transition-all text-center flex items-center justify-center gap-2",
+                isClarify
+                  ? "border-primary/60 bg-primary/5 text-primary"
+                  : "border-border/60 hover:border-primary/40 bg-card/50 text-muted-foreground hover:text-foreground"
               )}
             >
-              <MessageSquare className="w-4 h-4" />
-              {lang === 'pt-BR' ? 'Nenhuma dessas / Quero escrever' : 'Ninguna de estas / Quiero escribir'}
+              <MessageSquare className="w-3.5 h-3.5 opacity-70" />
+              {lang === 'pt-BR' ? 'Não sei / Quero esclarecer algo' : 'No sé / Quiero aclarar algo'}
             </button>
             {showCustomInput && (
               <motion.div
@@ -872,7 +875,7 @@ export const SetupStepQuestionnaire = ({
                 <Textarea
                   value={customText}
                   onChange={(e) => setCustomText(e.target.value)}
-                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta aqui...' : 'Escribí tu respuesta acá...'}
+                  placeholder={lang === 'pt-BR' ? 'Escreva sua resposta ou deixe em branco para "Não sei"...' : 'Escribí tu aclaración o dejá vacío para "No sé"...'}
                   className="min-h-[80px] text-sm"
                   autoFocus
                 />
@@ -880,8 +883,8 @@ export const SetupStepQuestionnaire = ({
                   <Button size="sm" onClick={handleCustomSubmit} className="flex-1">
                     <Check className="w-4 h-4 mr-1" />
                     {customText.trim()
-                      ? (lang === 'pt-BR' ? 'Confirmar' : 'Confirmar')
-                      : (lang === 'pt-BR' ? 'Continuar' : 'Continuar')}
+                      ? (lang === 'pt-BR' ? 'Enviar esclarecimento' : 'Enviar aclaración')
+                      : (lang === 'pt-BR' ? 'Continuar como "Não sei"' : 'Continuar como "No sé"')}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => { setShowCustomInput(false); }}>
                     <X className="w-4 h-4" />
