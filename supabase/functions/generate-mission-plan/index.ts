@@ -795,6 +795,18 @@ serve(async (req) => {
       }
     } catch (e) { console.error('[generate-mission-plan] validate failed', e); }
 
+    // ───── Motor IA Universal — persist cache ─────
+    if (businessId && passed) {
+      await writeArtifactCache({
+        businessId,
+        artifactType: "mission",
+        artifactKey,
+        brainSignature,
+        payload: cleanPlan,
+        modelUsed: "google/gemini-2.5-pro",
+      });
+    }
+
     return new Response(
       JSON.stringify({
         plan: cleanPlan,
