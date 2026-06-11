@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Radar, TrendingUp, ChevronRight, Lock, Sparkles, Lightbulb, ExternalLink, Globe, Building2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { buildContextPack } from "@/lib/context-pack-builder";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useBrain } from "@/hooks/use-brain";
 import { Button } from "@/components/ui/button";
