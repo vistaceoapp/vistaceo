@@ -10,6 +10,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { buildContextPack } from "@/lib/context-pack-builder";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { useRecordBrainView, useRecordBrainAction } from "@/hooks/use-brain-signal";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -153,6 +154,9 @@ const RadarPage = () => {
   const { currentBusiness } = useBusiness();
   const { brain } = useBrain();
   const { canCreate, remaining, isPro, usage, limits } = useFreeLimits();
+  const recordAction = useRecordBrainAction();
+  useRecordBrainView("radar_viewed");
+
   
   // Opportunities (INTERNO)
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
