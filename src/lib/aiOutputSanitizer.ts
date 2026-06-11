@@ -158,6 +158,7 @@ export function sanitizeAIOutput(
   result = result.replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ');
 
   // ===== CAPA 0: STRIP INTERNAL XML/TAG BLOCKS (P0 ZERO LEAKAGE) =====
+  const INTERNAL_BLOCKS = [
     'CEO_AUDIO_SCRIPT', 'AVATAR_CUES', 'LEARNING_EXTRACT', 'USER_REPLY',
     'BRAIN_JSON', 'STATE_JSON', 'CONFIG_JSON', 'SYSTEM_PROMPT',
     'INTERNAL', 'METADATA', 'DEBUG', 'TOOL_CALL', 'TOOL_RESULT',
