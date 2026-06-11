@@ -186,27 +186,33 @@ Deno.serve(async (req) => {
       }
     }
 
-    if ((learnCount || 0) < 1) {
-      const trendAudit = validateBeforeStore({
-        module: 'radar',
-        title: GENERIC_TREND.title,
-        description: sanitizeAIOutput(GENERIC_TREND.content, { mode: 'prose' }),
-      });
-      if (trendAudit.passed) {
+    // Target: 2 trends so the radar shows depth from day one
+    if ((learnCount || 0) < 2) {
+      const needed = 2 - (learnCount || 0);
+      let inserted = 0;
+      for (const trend of GENERIC_TRENDS) {
+        if (inserted >= needed) break;
+        const trendAudit = validateBeforeStore({
+          module: 'radar',
+          title: trend.title,
+          description: sanitizeAIOutput(trend.content, { mode: 'prose' }),
+        });
+        if (!trendAudit.passed) {
+          console.warn("[seed-initial-insights] blocked seed trend:", trendAudit.reasons);
+          qualityReasons.push(...trendAudit.reasons);
+          continue;
+        }
         const { error } = await supabase.from("learning_items").insert({
           business_id: businessId,
-          title: GENERIC_TREND.title,
-          content: GENERIC_TREND.content,
-          item_type: GENERIC_TREND.item_type,
-          source: GENERIC_TREND.source,
-          action_steps: GENERIC_TREND.action_steps,
+          title: trend.title,
+          content: trend.content,
+          item_type: trend.item_type,
+          source: trend.source,
+          action_steps: trend.action_steps,
           is_read: false,
           is_saved: false,
         });
-        if (!error) seededTrends++;
-      } else {
-        console.warn("[seed-initial-insights] blocked seed trend:", trendAudit.reasons);
-        qualityReasons.push(...trendAudit.reasons);
+        if (!error) { seededTrends++; inserted++; }
       }
     }
 
