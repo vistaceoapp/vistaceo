@@ -3,6 +3,8 @@ import { ANTI_GENERIC_SYSTEM } from "../_shared/brain-core/anti-generic-prompt.t
 import { buildTerminologyContext } from "../_shared/brain-core/contextual-terminology.ts";
 import { prompt2Rules, isGenericDirectQuestion } from "../_shared/brain-core/prompt2-rules.ts";
 import { extremeQualityCheck } from "../_shared/brain-core/extreme-quality-gate.ts";
+import { validateQuestionServer, CLARIFY_OPTION } from "../_shared/questionnaire-gates.ts";
+
 
 // Patrones extra de preguntas genéricas detectadas en runtime (más amplios que los del prompt2-rules,
 // que sólo cubren el comienzo exacto). Cubrimos variantes "¿Qué te diferencia de la competencia?",
