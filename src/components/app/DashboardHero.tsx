@@ -213,27 +213,26 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
               type="button"
               onClick={() => navigate("/app/analytics?tab=diagnostico")}
               className={cn(
-                "shrink-0 flex flex-col items-center justify-center rounded-2xl px-4 py-3 border transition-all hover:scale-[1.03] active:scale-95",
+                "shrink-0 flex flex-col items-center justify-center rounded-2xl px-4 py-3 border transition-all hover:scale-[1.03] active:scale-95 min-w-[120px]",
                 healthStyle.bgColor,
                 healthStyle.borderColor
               )}
               aria-label="Ver salud del negocio en Analíticas"
             >
-              <span className={cn("text-3xl font-bold leading-none", healthStyle.textColor)}>
-                {score}
+              <span className={cn("text-[10px] uppercase tracking-wider font-semibold mb-1 text-muted-foreground")}>
+                Salud
               </span>
-              <span className={cn("text-[10px] uppercase tracking-wider font-semibold mt-1", healthStyle.textColor)}>
+              <span className={cn("text-base font-semibold leading-none text-center", healthStyle.textColor)}>
                 {healthStyle.label}
               </span>
               {delta !== null && delta !== 0 && (
                 <span
                   className={cn(
-                    "text-[10px] mt-0.5 font-medium",
+                    "text-[10px] mt-1.5 font-medium",
                     delta > 0 ? "text-emerald-500" : "text-rose-500"
                   )}
                 >
-                  {delta > 0 ? "+" : ""}
-                  {delta}
+                  {delta > 0 ? "↑ mejorando" : "↓ bajando"}
                 </span>
               )}
             </button>
