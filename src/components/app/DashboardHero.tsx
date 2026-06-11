@@ -6,6 +6,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useBrain } from "@/hooks/use-brain";
 import { getHealthStyle } from "@/lib/health-score-utils";
+import { useSanitizedContent } from "@/hooks/use-sanitized-content";
 import { cn } from "@/lib/utils";
 
 const DIMENSION_LABELS: Record<string, string> = {
@@ -109,6 +110,8 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
       : `Falta empujar captación y conversión`;
     return `${name} está en ${score}/100 — terreno para crecer. ${palanca} para mover la aguja rápido.`;
   }, [currentBusiness, score, data.subScores, brain, certainty]);
+
+  const safeVisionLine = useSanitizedContent(visionLine, 'prose') || visionLine;
 
 
   const scrollToWidget = (id: string) => {
@@ -234,7 +237,7 @@ export const DashboardHero = ({ isMobile = false }: DashboardHeroProps) => {
             isMobile ? "text-[15px]" : "text-lg"
           )}
         >
-          {visionLine}
+          {safeVisionLine}
         </p>
 
         {/* Chips clickeables — destinos reales */}

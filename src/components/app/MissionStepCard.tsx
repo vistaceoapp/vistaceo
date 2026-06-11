@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, HelpCircle, ChevronDown, ChevronUp, Clock, TrendingUp, Sparkles, Zap, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSanitizedContent, useSanitizedList } from "@/hooks/use-sanitized-content";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -55,13 +56,18 @@ export const MissionStepCard = ({
   };
 
   // Default values for demo - in production these would come from AI
-  const howTo = step.howTo || [
+  const rawHowTo = step.howTo && step.howTo.length > 0 ? step.howTo : [
     "Revisa el estado actual de este aspecto en tu negocio",
     "Implementa el cambio de forma gradual"
   ];
-  const why = step.why || "Este paso está basado en patrones observados en negocios similares al tuyo.";
+  const howTo = useSanitizedList(rawHowTo);
+  const safeStepText = useSanitizedContent(step.text, 'structured') || step.text;
+  const why = useSanitizedContent(
+    step.why || "Este paso está basado en patrones observados en negocios similares al tuyo.",
+    'prose'
+  );
   const timeEstimate = step.timeEstimate || "15-30 min";
-  const metric = step.metric || "Mejora en satisfacción del cliente";
+  const metric = useSanitizedContent(step.metric || "Mejora en satisfacción del cliente", 'label');
   const confidence = step.confidence || "medium";
 
   const confidenceLabels = {
@@ -112,7 +118,7 @@ export const MissionStepCard = ({
               "font-medium transition-colors",
               step.done ? "text-muted-foreground line-through" : "text-foreground"
             )}>
-              {step.text}
+              {safeStepText}
             </p>
             {isCurrentStep && !step.done && (
               <p className="text-xs text-primary mt-1">
