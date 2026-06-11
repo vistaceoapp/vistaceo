@@ -489,11 +489,13 @@ const SetupPage = () => {
       // guarantees at least 1-2 opportunities and 1 trend even if the AI
       // returns nothing.
       try {
-        supabase.functions.invoke('seed-initial-insights', {
-          body: { businessId: business.id },
-        }).catch(err => {
-          console.warn('[Setup] seed-initial-insights failed (non-blocking):', err);
-        });
+        buildContextPack('dashboard', business.id).then(cpSeed => {
+          supabase.functions.invoke('seed-initial-insights', {
+            body: { businessId: business.id, module: 'dashboard', contextPack: cpSeed, outputContract: 'initial_insights_v1' },
+          }).catch(err => {
+            console.warn('[Setup] seed-initial-insights failed (non-blocking):', err);
+          });
+        }).catch(() => {});
       } catch (scanErr) {
         console.warn('[Setup] Error triggering initial seed:', scanErr);
       }
