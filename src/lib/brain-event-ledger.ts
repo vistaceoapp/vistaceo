@@ -49,6 +49,20 @@ export type BrainEventType =
   | 'edge_function_failed'
   | 'fallback_used'
   | 'repair_event'
+  | 'needs_repair'
+  | 'context_pack_missing_data'
+  | 'module_recalculated'
+  | 'brain_stale_detected'
+  | 'classification_uncertain'
+  | 'business_classification_corrected'
+  | 'business_brain_migrated'
+  | 'business_insight_generated'
+  | 'business_insight_blocked'
+  | 'business_insight_regenerated'
+  | 'opportunity_regenerated'
+  | 'prediction_regenerated'
+  | 'prediction_generation_failed'
+  | 'business_insight_generation_failed'
   | 'guardian_critical_issue';
 
 export type ModuleName =
@@ -128,6 +142,20 @@ const RECALC_MAP: Record<BrainEventType, RecalcModule[]> = {
   edge_function_failed: [],
   fallback_used: [],
   repair_event: [],
+  needs_repair: [],
+  context_pack_missing_data: [],
+  module_recalculated: [],
+  brain_stale_detected: ['dashboard'],
+  classification_uncertain: [],
+  business_classification_corrected: ['dashboard', 'radar', 'missions', 'predictions', 'analytics', 'health'],
+  business_brain_migrated: ['dashboard', 'radar', 'missions', 'predictions', 'analytics', 'health'],
+  business_insight_generated: ['dashboard', 'analytics'],
+  business_insight_blocked: [],
+  business_insight_regenerated: ['dashboard', 'analytics'],
+  opportunity_regenerated: ['radar', 'dashboard'],
+  prediction_regenerated: ['predictions', 'dashboard'],
+  prediction_generation_failed: [],
+  business_insight_generation_failed: [],
   guardian_critical_issue: [],
 };
 
@@ -136,36 +164,51 @@ export function getModulesToRecalculate(eventType: BrainEventType): RecalcModule
 }
 
 /**
- * Emite un evento del Brain. No bloquea la UI: si falla la persistencia,
- * se loguea en consola y se sigue.
+ * Emite un evento del Brain. Persiste en `brain_events` (canónico) y
+ * además deja un espejo en `admin_audit_log` para trazabilidad legada.
+ * No bloquea la UI: si falla la persistencia, loguea en consola y sigue.
  */
 export async function emitBrainEvent(event: BrainEvent): Promise<void> {
   const modules = event.modulesToRecalculate ?? getModulesToRecalculate(event.eventType);
-  const payload = {
-    event_type: event.eventType,
+  const createdAt = event.createdAt ?? new Date().toISOString();
+
+  const brainEventRow = {
     business_id: event.businessId,
     user_id: event.userId ?? null,
+    event_type: event.eventType,
     source_module: event.sourceModule,
-    raw_input: event.rawInput ?? null,
-    normalized_input: event.normalizedInput ?? null,
+    raw_input: (event.rawInput ?? null) as never,
+    normalized_input: (event.normalizedInput ?? null) as never,
     brain_fields_updated: event.brainFieldsUpdated ?? [],
     confidence_delta: event.confidenceDelta ?? 0,
     modules_to_recalculate: modules,
-    quality_result: event.quality ?? null,
-    metadata: event.metadata ?? null,
-    created_at: event.createdAt ?? new Date().toISOString(),
+    quality: (event.quality ?? null) as never,
+    metadata: (event.metadata ?? null) as never,
+    created_at: createdAt,
   };
 
   try {
-    await supabase.from('admin_audit_log').insert({
-      action_type: `brain_event:${event.eventType}`,
-      target_business_id: event.businessId,
-      target_user_id: event.userId ?? null,
-      action_data: payload as never,
-    } as never);
+    // Fuente principal — tabla dedicada con RLS por business.
+    const { error: beError } = await supabase
+      .from('brain_events' as never)
+      .insert(brainEventRow as never);
 
-    // Dispara recálculo client-side notificando vía CustomEvent (los hooks
-    // que escuchan pueden invalidar cachés sin acoplamiento directo).
+    if (beError) {
+      console.warn('[BrainEventLedger] brain_events insert failed', event.eventType, beError);
+    }
+
+    // Espejo opcional en admin_audit_log (no bloqueante; ayuda a auditoría legada).
+    try {
+      await supabase.from('admin_audit_log').insert({
+        action_type: `brain_event:${event.eventType}`,
+        target_business_id: event.businessId,
+        target_user_id: event.userId ?? null,
+        action_data: brainEventRow as never,
+      } as never);
+    } catch {
+      /* mirror best-effort */
+    }
+
     if (typeof window !== 'undefined' && modules.length > 0) {
       window.dispatchEvent(
         new CustomEvent('vistaceo:brain-event', {

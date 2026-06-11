@@ -1051,6 +1051,62 @@ export type Database = {
         }
         Relationships: []
       }
+      brain_events: {
+        Row: {
+          brain_fields_updated: string[] | null
+          business_id: string
+          confidence_delta: number | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          modules_to_recalculate: string[] | null
+          normalized_input: Json | null
+          quality: Json | null
+          raw_input: Json | null
+          source_module: string
+          user_id: string | null
+        }
+        Insert: {
+          brain_fields_updated?: string[] | null
+          business_id: string
+          confidence_delta?: number | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          modules_to_recalculate?: string[] | null
+          normalized_input?: Json | null
+          quality?: Json | null
+          raw_input?: Json | null
+          source_module: string
+          user_id?: string | null
+        }
+        Update: {
+          brain_fields_updated?: string[] | null
+          business_id?: string
+          confidence_delta?: number | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          modules_to_recalculate?: string[] | null
+          normalized_input?: Json | null
+          quality?: Json | null
+          raw_input?: Json | null
+          source_module?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brain_events_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brain_relations: {
         Row: {
           brain_id: string | null
@@ -1120,6 +1176,10 @@ export type Database = {
       business_brains: {
         Row: {
           business_id: string
+          classification_confidence: number | null
+          classification_fallback_reason: string | null
+          classification_source: string | null
+          classification_status: string | null
           concept_graph: Json | null
           confidence_score: number | null
           created_at: string
@@ -1135,7 +1195,9 @@ export type Database = {
           isolation_fingerprint: string | null
           last_learning_at: string | null
           learning_log: Json
+          legacy_status: string | null
           locale_profile: Json | null
+          migration_version: string | null
           mvc_completion_pct: number | null
           mvc_gaps: Json | null
           offer_profile: Json
@@ -1152,6 +1214,10 @@ export type Database = {
         }
         Insert: {
           business_id: string
+          classification_confidence?: number | null
+          classification_fallback_reason?: string | null
+          classification_source?: string | null
+          classification_status?: string | null
           concept_graph?: Json | null
           confidence_score?: number | null
           created_at?: string
@@ -1167,7 +1233,9 @@ export type Database = {
           isolation_fingerprint?: string | null
           last_learning_at?: string | null
           learning_log?: Json
+          legacy_status?: string | null
           locale_profile?: Json | null
+          migration_version?: string | null
           mvc_completion_pct?: number | null
           mvc_gaps?: Json | null
           offer_profile?: Json
@@ -1184,6 +1252,10 @@ export type Database = {
         }
         Update: {
           business_id?: string
+          classification_confidence?: number | null
+          classification_fallback_reason?: string | null
+          classification_source?: string | null
+          classification_status?: string | null
           concept_graph?: Json | null
           confidence_score?: number | null
           created_at?: string
@@ -1199,7 +1271,9 @@ export type Database = {
           isolation_fingerprint?: string | null
           last_learning_at?: string | null
           learning_log?: Json
+          legacy_status?: string | null
           locale_profile?: Json | null
+          migration_version?: string | null
           mvc_completion_pct?: number | null
           mvc_gaps?: Json | null
           offer_profile?: Json
@@ -1419,30 +1493,45 @@ export type Database = {
       business_insights: {
         Row: {
           answer: string
+          archived_reason: string | null
           business_id: string
           category: string
           created_at: string
           id: string
+          legacy_status: string | null
           metadata: Json | null
+          migration_version: string | null
           question: string
+          repair_status: string | null
+          replaced_by_id: string | null
         }
         Insert: {
           answer: string
+          archived_reason?: string | null
           business_id: string
           category: string
           created_at?: string
           id?: string
+          legacy_status?: string | null
           metadata?: Json | null
+          migration_version?: string | null
           question: string
+          repair_status?: string | null
+          replaced_by_id?: string | null
         }
         Update: {
           answer?: string
+          archived_reason?: string | null
           business_id?: string
           category?: string
           created_at?: string
           id?: string
+          legacy_status?: string | null
           metadata?: Json | null
+          migration_version?: string | null
           question?: string
+          repair_status?: string | null
+          replaced_by_id?: string | null
         }
         Relationships: [
           {
@@ -2877,6 +2966,7 @@ export type Database = {
       }
       missions: {
         Row: {
+          archived_reason: string | null
           area: string | null
           business_id: string
           completed_at: string | null
@@ -2887,6 +2977,10 @@ export type Database = {
           effort_score: number | null
           id: string
           impact_score: number | null
+          legacy_status: string | null
+          migration_version: string | null
+          repair_status: string | null
+          replaced_by_id: string | null
           source_opportunity_id: string | null
           started_at: string | null
           status: Database["public"]["Enums"]["mission_status"] | null
@@ -2894,6 +2988,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          archived_reason?: string | null
           area?: string | null
           business_id: string
           completed_at?: string | null
@@ -2904,6 +2999,10 @@ export type Database = {
           effort_score?: number | null
           id?: string
           impact_score?: number | null
+          legacy_status?: string | null
+          migration_version?: string | null
+          repair_status?: string | null
+          replaced_by_id?: string | null
           source_opportunity_id?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["mission_status"] | null
@@ -2911,6 +3010,7 @@ export type Database = {
           title: string
         }
         Update: {
+          archived_reason?: string | null
           area?: string | null
           business_id?: string
           completed_at?: string | null
@@ -2921,6 +3021,10 @@ export type Database = {
           effort_score?: number | null
           id?: string
           impact_score?: number | null
+          legacy_status?: string | null
+          migration_version?: string | null
+          repair_status?: string | null
+          replaced_by_id?: string | null
           source_opportunity_id?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["mission_status"] | null
@@ -3009,6 +3113,7 @@ export type Database = {
       opportunities: {
         Row: {
           ai_plan_json: Json | null
+          archived_reason: string | null
           business_id: string
           concept_hash: string | null
           converted_to_mission_id: string | null
@@ -3021,14 +3126,19 @@ export type Database = {
           impact_score: number | null
           intent_signature: string | null
           is_converted: boolean | null
+          legacy_status: string | null
+          migration_version: string | null
           quality_gate_details: Json | null
           quality_gate_score: number | null
+          repair_status: string | null
+          replaced_by_id: string | null
           root_problem_signature: string | null
           source: string | null
           title: string
         }
         Insert: {
           ai_plan_json?: Json | null
+          archived_reason?: string | null
           business_id: string
           concept_hash?: string | null
           converted_to_mission_id?: string | null
@@ -3041,14 +3151,19 @@ export type Database = {
           impact_score?: number | null
           intent_signature?: string | null
           is_converted?: boolean | null
+          legacy_status?: string | null
+          migration_version?: string | null
           quality_gate_details?: Json | null
           quality_gate_score?: number | null
+          repair_status?: string | null
+          replaced_by_id?: string | null
           root_problem_signature?: string | null
           source?: string | null
           title: string
         }
         Update: {
           ai_plan_json?: Json | null
+          archived_reason?: string | null
           business_id?: string
           concept_hash?: string | null
           converted_to_mission_id?: string | null
@@ -3061,8 +3176,12 @@ export type Database = {
           impact_score?: number | null
           intent_signature?: string | null
           is_converted?: boolean | null
+          legacy_status?: string | null
+          migration_version?: string | null
           quality_gate_details?: Json | null
           quality_gate_score?: number | null
+          repair_status?: string | null
+          replaced_by_id?: string | null
           root_problem_signature?: string | null
           source?: string | null
           title?: string
@@ -3224,6 +3343,7 @@ export type Database = {
       }
       predictions: {
         Row: {
+          archived_reason: string | null
           available_actions: Json
           brain_id: string | null
           breakpoint_thresholds: Json | null
@@ -3239,9 +3359,13 @@ export type Database = {
           horizon_ring: string
           id: string
           is_breakpoint: boolean | null
+          legacy_status: string | null
+          migration_version: string | null
           probability: number
           publication_level: string
           recommended_actions: Json
+          repair_status: string | null
+          replaced_by_id: string | null
           status: string
           summary: string | null
           time_window: Json
@@ -3254,6 +3378,7 @@ export type Database = {
           visual_payload: Json
         }
         Insert: {
+          archived_reason?: string | null
           available_actions?: Json
           brain_id?: string | null
           breakpoint_thresholds?: Json | null
@@ -3269,9 +3394,13 @@ export type Database = {
           horizon_ring: string
           id?: string
           is_breakpoint?: boolean | null
+          legacy_status?: string | null
+          migration_version?: string | null
           probability?: number
           publication_level?: string
           recommended_actions?: Json
+          repair_status?: string | null
+          replaced_by_id?: string | null
           status?: string
           summary?: string | null
           time_window?: Json
@@ -3284,6 +3413,7 @@ export type Database = {
           visual_payload?: Json
         }
         Update: {
+          archived_reason?: string | null
           available_actions?: Json
           brain_id?: string | null
           breakpoint_thresholds?: Json | null
@@ -3299,9 +3429,13 @@ export type Database = {
           horizon_ring?: string
           id?: string
           is_breakpoint?: boolean | null
+          legacy_status?: string | null
+          migration_version?: string | null
           probability?: number
           publication_level?: string
           recommended_actions?: Json
+          repair_status?: string | null
+          replaced_by_id?: string | null
           status?: string
           summary?: string | null
           time_window?: Json
@@ -4250,6 +4384,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      backfill_brain_signal_counters: {
+        Args: { _dry_run?: boolean }
+        Returns: {
+          business_id: string
+          changed: boolean
+          confidence_after: number
+          confidence_before: number
+          total_signals_actual: number
+          total_signals_before: number
+        }[]
+      }
       check_subscription_status: {
         Args: { p_business_id: string }
         Returns: {
@@ -4257,6 +4402,10 @@ export type Database = {
           is_pro: boolean
           plan_id: string
         }[]
+      }
+      compute_brain_confidence: {
+        Args: { _signal_count: number }
+        Returns: number
       }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -4299,6 +4448,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      recalculate_brain_signal_counters: {
+        Args: { _business_id: string }
+        Returns: undefined
       }
     }
     Enums: {

@@ -359,7 +359,11 @@ const SetupPage = () => {
       // Step 2: Create brain
       const brainData = {
         business_id: business.id,
-        primary_business_type: data.businessTypeId || 'restaurant',
+        primary_business_type: data.businessTypeId || null,
+        classification_status: data.businessTypeId ? 'confirmed' : 'uncertain',
+        classification_confidence: data.businessTypeId ? 0.9 : 0.0,
+        classification_source: data.businessTypeId ? 'user_setup' : 'fallback',
+        classification_fallback_reason: data.businessTypeId ? null : 'no_business_type_selected_in_setup',
         current_focus: 'ventas',
         factual_memory: {
           area_id: data.areaId,
