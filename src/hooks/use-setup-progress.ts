@@ -212,6 +212,15 @@ export const useSetupProgress = () => {
 
       if (businessError) throw businessError;
 
+      // Sembrar Brain con baselines sectoriales (idempotente, fire-and-forget)
+      try {
+        await supabase.functions.invoke('seed-business-brain', {
+          body: { businessId: currentBusiness.id },
+        });
+      } catch (seedErr) {
+        console.warn('[setup] seed-business-brain falló (no bloquea setup):', seedErr);
+      }
+
       toast({
         title: '¡Setup completado!',
         description: 'Tu dashboard está listo con datos reales.',
