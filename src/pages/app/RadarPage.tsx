@@ -13,6 +13,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { useRecordBrainView, useRecordBrainAction } from "@/hooks/use-brain-signal";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { buildInitialMissionSteps } from "@/lib/initial-mission-steps";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -538,12 +539,7 @@ const RadarPage = () => {
           impact_score: opportunity.impact_score,
           effort_score: opportunity.effort_score,
           status: "active",
-          steps: [
-            { text: "Analizar el problema en detalle", done: false },
-            { text: "Definir plan de acción", done: false },
-            { text: "Implementar la solución", done: false },
-            { text: "Medir resultados", done: false },
-          ],
+          steps: buildInitialMissionSteps(opportunity, currentBusiness) as unknown as any,
         })
         .select()
         .single();

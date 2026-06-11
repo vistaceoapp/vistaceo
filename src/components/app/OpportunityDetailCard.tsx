@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { humanizeEvidence, humanizeProse, EVIDENCE_SAFE_FALLBACK } from "@/lib/humanize-evidence";
 
 interface Opportunity {
   id: string;
@@ -64,33 +65,25 @@ const getSourceInfo = (source: string | null) => {
   }
 };
 
-// Generate business-specific trigger based on evidence
+// Generate business-specific trigger based on evidence (humanizado)
 const getTrigger = (opportunity: Opportunity, business: Business | null): string => {
   const evidence = opportunity.evidence as Record<string, any> | null;
-  
+  const ctx = { businessName: business?.name, businessCategory: business?.category, source: opportunity.source };
   if (evidence?.trigger) {
-    const clean = sanitizeAIOutput(evidence.trigger)
-      .replace(/\(\s*\)/g, '')
-      .replace(/\[\s*\]/g, '')
-      .replace(/\s+:\s*$/g, '')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-    if (clean && clean.length > 3) return clean;
+    const clean = humanizeEvidence(evidence.trigger, ctx);
+    if (clean && clean !== EVIDENCE_SAFE_FALLBACK) return clean;
   }
-  
-  // Generate contextual trigger based on source and business
   const businessName = business?.name || "tu negocio";
-  const category = business?.category || "gastronomía";
-  
+  const category = business?.category || "tu rubro";
   switch (opportunity.source) {
     case "reviews":
-      return `Se detectó un patrón en las reseñas de ${businessName} que indica oportunidad de mejora`;
+      return `Se detectó un patrón en las reseñas de ${businessName} que indica oportunidad de mejora.`;
     case "sales":
-      return `El análisis de transacciones muestra potencial de optimización`;
+      return "El análisis de transacciones muestra potencial de optimización.";
     case "operations":
-      return `Los datos operativos sugieren áreas de eficiencia`;
+      return "Los datos operativos sugieren áreas de eficiencia.";
     default:
-      return `Basado en el análisis de ${businessName} en el rubro ${category}`;
+      return `Basado en el análisis de ${businessName} en ${category}.`;
   }
 };
 
@@ -280,7 +273,7 @@ export const OpportunityDetailCard = ({
               Qué ganarías
             </h4>
             <p className="text-sm text-foreground leading-relaxed">
-              {sanitizeAIOutput(opportunity.description) || "Mejora potencial detectada para optimizar esta área de tu negocio."}
+              {humanizeProse(opportunity.description, "Mejora potencial detectada para optimizar esta área de tu negocio.")}
             </p>
           </div>
 

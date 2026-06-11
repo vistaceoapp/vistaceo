@@ -108,15 +108,19 @@ export const RED_LIST_FORBIDDEN = [
   'gateway error',
   '**Origen**',
   '**Fuente**',
-  'Q_AI_',
 ] as const;
 
 const RED_LIST_REGEXES = [
-  /\bQ_AI_\d+/gi,
   /https?:\/\/news\.google\.com\/rss[^\s)\]]*/gi,
   /\bhttps?:\/\/\S{120,}/gi,           // URLs ridículamente largas
-  /\{[\s\S]{40,}\}/g,                   // JSON crudo visible
   /<[A-Z_]{3,}>[\s\S]*?<\/[A-Z_]{3,}>/g, // bloques XML internos
+];
+
+// Patrones inline a remover (sin descartar el texto entero).
+const INLINE_STRIP_REGEXES = [
+  /\(?\s*Q_AI_\d+\s*\)?/gi,                         // (Q_AI_004) / Q_AI_008
+  /\[?\s*setup_answer\s*\]?\s*\{[\s\S]*?\}/gi,      // [Setup_answer] {...}
+  /\{\s*"[a-z_]+"\s*:[\s\S]{0,200}?\}/gi,           // JSON inline corto
 ];
 
 export type SanitizeMode = 'prose' | 'structured' | 'label' | 'admin';
@@ -145,8 +149,15 @@ export function sanitizeAIOutput(
   
   let result = text;
 
+  // ===== CAPA -1: STRIP INLINE LEAKS (Q_AI, [Setup_answer], JSON inline) =====
+  // Se hace primero para no nukear textos válidos que solo contienen un código.
+  for (const re of INLINE_STRIP_REGEXES) {
+    re.lastIndex = 0;
+    result = result.replace(re, '');
+  }
+  result = result.replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ');
+
   // ===== CAPA 0: STRIP INTERNAL XML/TAG BLOCKS (P0 ZERO LEAKAGE) =====
-  // Remove complete blocks first (greedy-safe, non-greedy match)
   const INTERNAL_BLOCKS = [
     'CEO_AUDIO_SCRIPT', 'AVATAR_CUES', 'LEARNING_EXTRACT', 'USER_REPLY',
     'BRAIN_JSON', 'STATE_JSON', 'CONFIG_JSON', 'SYSTEM_PROMPT',

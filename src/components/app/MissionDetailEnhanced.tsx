@@ -40,6 +40,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { translateMissionArea } from "@/lib/presentationRegistry";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
+import { humanizeProse } from "@/lib/humanize-evidence";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -537,7 +538,7 @@ export const MissionDetailEnhanced = ({
                     {sanitizeAIOutput(enhancedPlan.planTitle || mission.title)}
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {sanitizeAIOutput(enhancedPlan.planDescription || mission.description || "")}
+                    {humanizeProse(enhancedPlan.planDescription || mission.description || "", "Resumen ejecutivo de la misión.")}
                   </p>
                 </div>
               </div>

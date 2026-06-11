@@ -1,94 +1,53 @@
-# Fix integral: setup completo, tono humano, radar y misiones inmersivas
+# Reparación P0: Setup infalible, post-setup real, misiones completas, cero códigos internos
 
-Atacamos 4 problemas reales que detectaste en el negocio "Abogado prueba":
+## Causas raíz encontradas (confirmadas en el código)
 
-1. Setup "completo" devuelve 18 de 30 preguntas
-2. Hay que esperar a que carguen todas para arrancar
-3. Dashboard habla en métricas frías ("30/100", "Crítico") en vez de lenguaje humano
-4. Radar y Misiones se quedan cortos: poca info, sin despliegue inmersivo, sin pasos completos
+1. **Pasos pobres ("Analizar el problema en detalle")**: `RadarPage.tsx` (línea ~542) inserta misiones con 4 pasos genéricos hardcodeados al convertir una oportunidad, sin llamar nunca a `generate-mission-plan`. La misión de la captura nació así.
+2. **`[Setup_answer] {...}` y `Q_AI_004` visibles**: `analyze-patterns` y `generate-opportunity-plan` inyectan señales crudas (`[${signal_type}] ${JSON.stringify(content)}`) en el prompt; el modelo las copia en `evidence.signals` y la descripción. El frontend (`OpportunityDetailEnhanced`, `MissionDetailEnhanced`) las renderiza casi sin traducir.
+3. **Pantalla final vacía**: tras el toast "¡Tu negocio está listo!" se navega a `/setup-complete`, donde el contenido depende de un `setTimeout` + animaciones; si algo falla queda solo el fondo con confeti. Además no espera ni verifica que el dashboard/misión inicial estén listos.
+4. **Setup**: los batches de fondo ya existen, pero falta gate de calidad por pregunta, aclaraciones de conceptos, emoticones sutiles y robustez de avance.
 
----
+## PARTE 1 — Setup infalible (`SetupStepQuestionnaire.tsx`, `generate-questionnaire`)
 
-## 1. Setup completo: 30/30 preguntas garantizadas + carga progresiva
+- **SetupQuestionGate** (compartido front + edge): rechaza preguntas sin opciones, opciones >2 líneas, >6 opciones, dobles preguntas, demasiado técnicas, sin `targetBrainField`/`healthDimension`/`intentKey`/`affectedModules`. Pregunta rechazada → se reemplaza por una del fallback premium curado (ya existe el pivote, se amplía).
+- Prompt de `generate-questionnaire`: opciones cortas y humanas, emoticones sutiles cuando ayuden (⚡ 🕒 📅 ⏳), campo `conceptHelp` obligatorio si la pregunta usa conceptos difíciles (ticket promedio, margen, conversión, etc.) + diccionario local de aclaraciones como respaldo.
+- UI: render de `conceptHelp` como nota breve bajo la pregunta; "No sé / Quiero aclarar algo" se mantiene horizontal, sin autoavance, guardando `wasUnknown`/`wasClarification` (verificar que ya cumple y reforzar).
+- Avance garantizado: si un batch de fondo falla, se completa con fallback curado silenciosamente; nunca spinner infinito; botón continuar siempre habilitado si hay pregunta renderizada. CTA con `safe-area-inset-bottom` y scroll-into-view del input al abrir teclado (mobile).
+- Guardado progresivo por respuesta (localStorage + signals al finalizar, como hoy, pero verificado).
 
-**Problema técnico:** `generate-questionnaire` pide a Gemini 65-75 preguntas en un solo shot. El modelo trunca por `maxOutputTokens` y devuelve 18-25. No hay reintentos ni completado.
+## PARTE 2 — Post-setup sin pantalla vacía (`SetupPage.tsx`, `SetupCompletePage.tsx`)
 
-**Cambios:**
-- `supabase/functions/generate-questionnaire/index.ts`
-  - Modo `complete` pasa a generar en **batches de 10** preguntas (3 batches paralelos para llegar a 30 rápido).
-  - Subir `maxOutputTokens` por batch.
-  - Validar cantidad recibida y, si falta, llamar un batch extra de completado pidiendo solo "N preguntas restantes en las dimensiones X, Y".
-  - Garantía dura: nunca devolver menos de lo pedido. Si el modelo falla 2 veces, completar con plantillas hyper-personalizadas del sector.
-- `src/components/setup/SetupStepQuestionnaire.tsx` / `src/lib/setupV7.ts`
-  - **Streaming progresivo real:** mostrar las primeras 10 preguntas apenas llega el primer batch, permitir responder mientras los siguientes 2 batches cargan en background.
-  - Indicador sutil "Cargando más preguntas…" en el footer, no bloqueante.
-  - Si el usuario termina las primeras 10 antes de que llegue el siguiente batch, mostrar skeleton 1.5s máx.
+- `SetupCompletePage`: el contenido se renderiza de inmediato (sin depender de timeouts/animaciones para existir); las animaciones quedan como progressive enhancement. Estado de preparación visible: "Preparando tu dashboard… ✓ Salud inicial ✓ Radar ✓ Primera misión".
+- Orquestador `prepareInitialWorkspace(businessId)`: dispara en paralelo y tolera fallos individuales de `analyze-health-score`, `seed-initial-insights`, `dashboard-prepare`; cada fallo emite `fallback_used` y deja estado inicial seguro (la app ya tiene fallbacks, se conectan al flujo).
+- Timeout duro (~12s): se redirige a `/app` igual y el resto sigue en background. Nunca cuelga.
+- Dashboard con estado inicial garantizado aunque todo el seed falle (fallback contextual por tipo de negocio).
 
-## 2. Dashboard con voz humana (no métricas crudas)
+## PARTE 3 — Misiones realmente accionables
 
-**Problema:** "30/100", "40 Crítico", "Abogado prueba: el problema hoy es reputación (30/100)". Eso es un report, no un asistente.
+- **Eliminar los pasos hardcodeados** de `RadarPage.convertToMission`: ahora siempre llama a `generate-opportunity-plan`/`generate-mission-plan`; la misión se crea con loading y pasos completos. Si la IA falla 2 veces → misión curada premium por tipo de negocio (banco de fallbacks por sector).
+- **MissionQualityGate** (edge `_shared` + uso en `generate-mission-plan`, `generate-opportunity-plan` y al convertir): bloquea títulos/resúmenes genéricos, pasos de una línea, lista negra ("Analizar el problema…", "Definir plan de acción", etc. sin desarrollo), pasos sin cómo/ejemplo/métrica/criterio de listo, evidencia cruda, `Q_AI`, `Setup_answer`, JSON. Si falla → regenerar → fallback curado; emite `quality_gate_failed` + `needs_repair`.
+- Esquema de paso obligatorio: título, qué hacer, cómo, por qué importa, ejemplo aplicado al negocio, tiempo, dificultad, métrica, error común, criterio de listo. `MissionStepCard`/`MissionStepsView` ya renderizan estructura rica; se garantiza que siempre llegue completa.
 
-**Cambios en `src/components/app/DashboardHero.tsx` + `supabase/functions/dashboard-prepare/index.ts`:**
-- Mapear scores numéricos a frases humanas (ya existe `business-health-semantic-system-v5-es` en memoria — usarla):
-  - 0-30 → "reputación muy baja" / "necesita atención urgente"
-  - 31-50 → "reputación floja"
-  - 51-70 → "reputación correcta, hay margen"
-  - 71-85 → "reputación sólida"
-  - 86-100 → "reputación excelente"
-- Eliminar el número crudo del hero. Mantenerlo solo en analytics si el usuario abre detalle.
-- Mensaje hero reescrito por IA con tono cálido + emojis sutiles (1 por mensaje, no decoración):
-  - "Buenas tardes, Abogado prueba 👋 Hoy tu reputación está floja y es lo que más te frena. Si la trabajamos esta semana, vas a sentir un salto real en confianza de clientes."
-- Quitar la palabra "Crítico" como badge. Reemplazar por "Prioridad de la semana" en tono neutro.
+## PARTE 4 — Cero códigos internos visibles
 
-## 3. Radar de oportunidades inmersivo
+- Nuevo `src/lib/humanize-evidence.ts`: `humanizeEvidence(evidence, contextPack)` traduce `Q_AI_xxx` → "según tu respuesta sobre…", `[setup_answer] {…}` → "por lo que respondiste en el diagnóstico (operación/equipo)", dimensiones y campos snake_case → etiquetas humanas. Si no puede traducir → frase genérica segura ("Esta recomendación se basa en tus respuestas del diagnóstico inicial…"), nunca el objeto crudo.
+- Aplicarlo en: `OpportunityDetailEnhanced` (Por qué aplica / Disparador), `MissionDetailEnhanced`, `MissionSummaryView`, dashboard insights, predictions, radar.
+- **Cortar el leak en origen**: en `analyze-patterns`, `generate-opportunity-plan`, `generate-mission-plan`, `dashboard-prepare`, `uceo-chat`: las señales se pasan al prompt ya humanizadas (questionText + respuesta en texto), nunca `[signal_type] JSON`. Instrucción explícita de prohibición de códigos + sanitización de `evidence.signals` antes de guardar.
+- Reforzar `aiOutputSanitizer` (front y edge) con patrones `Q_AI_\d+`, `\[?Setup_answer\]?`, objetos JSON inline, snake_case interno.
 
-**Problema:** Se ven tarjetas chicas, al abrir una oportunidad la info es pobre.
+## PARTE 5 — Migración de contenido legacy
 
-**Cambios:**
-- `supabase/functions/radar-deep-dive/index.ts` (nuevo o ampliar existente): cuando el usuario abre una oportunidad/tendencia, llamar a Gemini 2.5 Pro con el brain completo del negocio y generar:
-  - Resumen ejecutivo (2 líneas)
-  - Por qué le importa a *este* negocio específico (justificación con datos del brain)
-  - Tamaño de mercado / urgencia (cualitativo, no inventar números)
-  - 3-5 movimientos concretos para capturarla
-  - Riesgos / contraindicaciones
-  - Fuentes externas reales (Gate 0 de `radar-external-source-validation-es`)
-- `src/pages/app/RadarPage.tsx` + nuevo `src/components/radar/OpportunityDeepDive.tsx`:
-  - Al click, abrir Sheet/Dialog full-height con secciones colapsables animadas (framer-motion)
-  - Skeleton mientras carga el deep-dive
-  - CTA "Convertir en misión" destacado al final
-- Filtro de calidad: si una oportunidad no pasa el Gate 0 (sin fuente real) o el score < 75, no se muestra. Cero ruido.
+- Ampliar `migrateLegacyBusinessesToNewIntelligence()` (`src/lib/migrate-legacy-businesses.ts` + edge function de apoyo) con `dryRun`/`apply`:
+  - Dry run: lista misiones con pasos pobres/códigos visibles, oportunidades con evidencia cruda, sin tocar datos.
+  - Apply: archiva misiones que no pasan el gate, marca `needs_repair`, regenera misión recomendada y pasos, preserva siempre datos reales del usuario (respuestas, mensajes, acciones completadas).
+  - Se ejecuta apply solo tras revisar el dry run (lo corro y te muestro el resultado antes).
 
-## 4. Misiones con guía paso a paso completa
+## PARTE 6 — Tests y QA
 
-**Problema:** Misiones quedan superficiales.
+- Tests (vitest + tests de edge functions): SetupQuestionGate, MissionQualityGate (bloquea genéricos, Q_AI, Setup_answer), humanizeEvidence (todos los casos del pedido), fallback de batches, wasUnknown/wasClarification, migración detecta misión pobre.
+- QA en preview con viewport mobile (390px): flujo completo Consultora Río Tercero — setup completo hasta 14/30 y avance, fin de setup sin pantalla vacía, dashboard generado, misión con pasos completos, sin Q_AI/Setup_answer/JSON, completar paso funciona.
+- Sin cambios de layout, navegación, colores ni identidad visual.
 
-**Cambios:**
-- `supabase/functions/generate-mission-plan/index.ts`: forzar estructura completa, 8-12 pasos, cada paso con:
-  - Título corto
-  - Por qué (1 línea conectada al brain)
-  - Cómo hacerlo (3-6 sub-bullets concretos)
-  - Tiempo estimado
-  - Resultado esperado
-  - Checklist de validación
-- Añadir "Resumen ejecutivo" + "Qué vas a lograr" + "Indicadores de éxito" en el header de la misión.
-- `src/pages/app/MissionsPage.tsx` / `MissionDetail`:
-  - Layout tipo "manual operativo": índice lateral sticky, paso activo expandido, animaciones suaves entre pasos.
-  - Botón "Marcar paso completado" que escribe al brain (ya conectado).
+## Archivos principales a tocar
 
----
-
-## Orden de implementación
-
-1. Setup batching + progresivo (desbloquea pruebas reales)
-2. Dashboard tono humano (cambio visible inmediato)
-3. Radar deep-dive
-4. Misiones manual operativo
-
-## Detalles técnicos clave
-
-- IA: `google/gemini-2.5-pro` para deep-dives (radar + misiones), `gemini-3-flash-preview` para batches de setup (rápido).
-- Todos los nuevos eventos siguen escribiendo al brain vía `brain-record-signal` (ya está el hook `use-brain-signal`).
-- Sin nuevas tablas. Reutilizamos `opportunities.deep_dive_json` y `missions.plan_json` (agregamos columnas si faltan vía migración mínima).
-- Respeta memoria: nada de verde para salud, 100% español, sin anglicismos, "VISTACEO" uppercase.
-
-¿Confirmás que arranque por el orden 1→4, o querés que empiece por otro (ej: dashboard primero para verlo ya)?
+`SetupStepQuestionnaire.tsx`, `SetupPage.tsx`, `SetupCompletePage.tsx`, `RadarPage.tsx` (convertToMission), `OpportunityDetailEnhanced.tsx`, `MissionDetailEnhanced.tsx`, `MissionSummaryView.tsx`, nuevo `src/lib/humanize-evidence.ts`, `aiOutputSanitizer` (front/edge), `migrate-legacy-businesses.ts` + edge functions: `generate-questionnaire`, `generate-mission-plan`, `generate-opportunity-plan`, `analyze-patterns`, `seed-initial-insights`, `dashboard-prepare`, `uceo-chat` + `_shared/mission-quality-gate.ts` y `_shared/setup-question-gate.ts` nuevos.
