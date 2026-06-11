@@ -335,17 +335,14 @@ const RadarPage = () => {
     setGeneratingResearch(true);
 
     try {
+      const cpResearch = await buildContextPack('radar', currentBusiness.id).catch(() => null);
       const { data, error } = await supabase.functions.invoke("analyze-patterns", {
         body: {
           businessId: currentBusiness.id,
           type: "research",
-          brainContext: brain
-            ? {
-                primaryType: brain.primary_business_type,
-                focus: brain.current_focus,
-                factualMemory: brain.memory?.factual_memory,
-              }
-            : null,
+          module: 'radar',
+          contextPack: cpResearch,
+          outputContract: 'radar_research_v1',
         },
       });
 
