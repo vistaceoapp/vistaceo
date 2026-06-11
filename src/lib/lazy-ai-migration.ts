@@ -40,10 +40,13 @@ function clearLegacyLocalCache(): number {
 
 async function markServerArtifactsLegacy(userId: string): Promise<void> {
   try {
-    const { data: bizs } = await supabase
-      .from("businesses")
-      .select("id")
-      .eq("user_id", userId);
+    const { data: bizs } = await (supabase as unknown as {
+      from: (t: string) => {
+        select: (c: string) => {
+          eq: (col: string, val: string) => Promise<{ data: Array<{ id: string }> | null }>;
+        };
+      };
+    }).from("businesses").select("id").eq("user_id", userId);
     const ids = (bizs ?? []).map((b) => b.id).filter(Boolean);
     if (ids.length === 0) return;
     await (supabase as unknown as {
