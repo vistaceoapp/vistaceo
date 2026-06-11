@@ -176,11 +176,11 @@ export async function buildContextPack(
   ] = await Promise.all([
     supabase.from('businesses').select('id, name, country, owner_id, category, settings').eq('id', businessId).maybeSingle(),
     supabase.from('business_brains').select('*').eq('business_id', businessId).maybeSingle(),
-    supabase.from('missions').select('id, title, status, current_step, steps').eq('business_id', businessId).in('status', ['active', 'in_progress']).limit(5),
+    supabase.from('missions').select('id, title, status, current_step, steps').eq('business_id', businessId).eq('status', 'active').limit(5),
     supabase.from('opportunities').select('id, title, source, impact_score').eq('business_id', businessId).order('created_at', { ascending: false }).limit(5),
     supabase.from('predictions').select('id, title, probability, horizon_ring').eq('business_id', businessId).eq('status', 'active').limit(5),
     supabase.from('admin_audit_log').select('action_type, action_data, created_at').eq('target_business_id', businessId).like('action_type', 'brain_event:%').order('created_at', { ascending: false }).limit(recentLimit),
-    supabase.from('business_focus_config').select('focus_area, reason, confidence').eq('business_id', businessId).maybeSingle(),
+    supabase.from('business_focus_config').select('current_focus, focus_weights').eq('business_id', businessId).maybeSingle(),
   ]);
 
   const factual = (brain?.factual_memory ?? {}) as Record<string, unknown>;
@@ -263,9 +263,9 @@ export async function buildContextPack(
     },
     healthSummary,
     activeFocus: focusRow ? {
-      area: (focusRow.focus_area as string | undefined),
-      reason: (focusRow.reason as string | undefined),
-      confidence: (focusRow.confidence as number | undefined),
+      area: (focusRow.current_focus as string | undefined),
+      reason: undefined,
+      confidence: undefined,
     } : (brain?.current_focus ? { area: brain.current_focus as string } : undefined),
     activeMissions,
     topOpportunities,
