@@ -1158,7 +1158,16 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, businessContext, inputType = "text", messageId, personalityPrompt, attachments = [] } = await req.json();
+    const reqBody = await req.json();
+    const { messages, inputType = "text", messageId, personalityPrompt, attachments = [], contextPack, businessId, module } = reqBody;
+    // Backwards-compatible: prefer ContextPack businessSummary; fall back to raw businessContext if old client still sends it.
+    const businessContext = reqBody.businessContext ?? (contextPack ? {
+      id: contextPack.businessId ?? businessId,
+      name: contextPack.businessSummary?.name,
+      category: contextPack.businessSummary?.sector ?? contextPack.businessSummary?.activity,
+      country: contextPack.businessSummary?.country,
+    } : { id: businessId });
+    console.log('[vistaceo-chat] module=', module ?? 'chat', 'hasContextPack=', !!contextPack);
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
