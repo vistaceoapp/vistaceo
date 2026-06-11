@@ -48,6 +48,7 @@ export type BrainEventType =
   | 'quality_gate_failed'
   | 'edge_function_failed'
   | 'fallback_used'
+  | 'repair_event'
   | 'guardian_critical_issue';
 
 export type ModuleName =
