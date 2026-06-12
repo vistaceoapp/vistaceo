@@ -40,6 +40,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[ErrorBoundary] Caught:', error, errorInfo);
+    reportBoundaryError(error, { componentStack: errorInfo.componentStack ?? undefined });
   }
 
   handleReload = () => {
