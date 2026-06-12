@@ -621,16 +621,16 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        // Gemini 2.5 Flash: 3-4x más rápido que Pro manteniendo calidad alta para planes de acción.
-        // Reduce el tiempo de generación de ~25s a ~7-10s.
-        model: "google/gemini-2.5-flash",
+        // Gemini 2.5 Pro: máxima calidad de razonamiento y profundidad para planes hiper-personalizados.
+        // El usuario priorizó calidad sobre velocidad; la UI muestra Resumen instantáneo + skeletons.
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: `${SYSTEM_PROMPT}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("mission")}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
           { role: "user", content: contextPrompt },
         ],
         stream: false,
         temperature: regenerate ? 0.8 : 0.6,
-        max_tokens: 6000,
+        max_tokens: 8192,
       }),
     });
 
