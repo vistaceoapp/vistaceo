@@ -65,6 +65,7 @@ serve(async (req) => {
       previousAnswers, // For learning/adaptation
       questionCount: questionCountOverride, // Override from progressive loading
       batchIndex = 0, // Which batch (0 = first)
+      existingTitles, // Titles already generated in earlier batches (anti-repetición)
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -100,12 +101,17 @@ serve(async (req) => {
       ? `\n\nCONTEXTO DE APRENDIZAJE - El usuario ya respondió estas preguntas previamente. Usa esta información para hacer preguntas MÁS PROFUNDAS y ESPECÍFICAS, NO repitas temas ya cubiertos:\n${JSON.stringify(previousAnswers, null, 2)}`
       : '';
 
+    // Anti-repetición entre micro-batches progresivos
+    const dedupeContext = Array.isArray(existingTitles) && existingTitles.length > 0
+      ? `\n\nPREGUNTAS YA GENERADAS EN BATCHES ANTERIORES (PROHIBIDO repetir estos temas o variantes cercanas):\n- ${existingTitles.slice(0, 40).join('\n- ')}`
+      : '';
+
     const dimDist = questionCountOverride 
       ? { min: Math.max(1, Math.floor(batchQuestionCount / 7) - 1), max: Math.ceil(batchQuestionCount / 7) + 1 }
       : DIMENSION_DISTRIBUTION[isQuick ? 'quick' : 'complete'];
 
-    // Use compact prompt for background batches (batchIndex > 0) for speed
-    const isBackgroundBatch = batchIndex > 0;
+    // Use compact prompt for background batches AND small first micro-batches (speed)
+    const isBackgroundBatch = batchIndex > 0 || batchQuestionCount <= 6;
     
     const systemPrompt = isBackgroundBatch 
       ? `Genera preguntas de diagnóstico ULTRA-PERSONALIZADAS para "${businessTypeLabel}" (${countryCode}). Idioma: ${lang}, voz: ${voiceStyle}.
@@ -126,8 +132,8 @@ REGLAS ABSOLUTAS:
 5. NO incluyas "No sé", "No aplica", "Otra", "Ninguna" como opciones. La UI los agrega aparte.
 6. Para concepto difícil (flujo de caja, margen, ticket, conversión, recompra, capital de trabajo, etc.): completá "help" con UNA frase ≤120 chars que lo explique.
 7. Datos accionables. Rangos realistas. Gramática perfecta.
-8. NO repitas temas que ya están en el CONTEXTO DE APRENDIZAJE. Profundizá en lo NO cubierto.
-${learningContext}
+8. NO repitas temas que ya están en el CONTEXTO DE APRENDIZAJE ni en PREGUNTAS YA GENERADAS. Profundizá en lo NO cubierto.
+${learningContext}${dedupeContext}
 
 Responde con generate_questions.`
       : `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
@@ -184,7 +190,7 @@ FORMATO:
 - weight: 1-10 (importancia para su dimensión)
 - required: true para preguntas estratégicas clave, false para complementarias
 - mode: "${isQuick ? 'quick' : 'complete'}" o "both"
-${learningContext}`;
+${learningContext}${dedupeContext}`;
 
     const userPrompt = isBackgroundBatch
       ? `Genera EXACTAMENTE ${questionCount} preguntas NUEVAS (no repitas temas ya cubiertos) para este negocio:
@@ -205,7 +211,7 @@ RECORDATORIO FINAL:
 Responde usando la función generate_questions.`;
 
     // Use fast model for all batches - quality comes from the structured prompt, not model tier
-    const model = "google/gemini-2.5-pro"; // Cost-optimized: structured question generation
+    const model = "google/gemini-2.5-flash"; // Rápido: micro-batches progresivos necesitan latencia baja
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -353,7 +359,7 @@ Responde usando la función generate_questions.`;
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-pro", // Cost-optimized: retry with same cheap model
+            model: "google/gemini-3-flash-preview", // Retry con modelo alternativo rápido
             messages: [
               { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${prompt2Rules("question")}\n\n${buildTerminologyContext({ activity: businessTypeLabel || null, country: countryCode || null, offer: null, customer: null, channel: null }).promptFragment}` },
               { role: "user", content: userPrompt },

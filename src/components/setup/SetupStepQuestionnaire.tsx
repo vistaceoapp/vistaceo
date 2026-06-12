@@ -49,25 +49,22 @@ const LOADING_MESSAGES_PT = [
   'Quase pronto...',
 ];
 
-// Batch configuration - QUICK = inteligencia concentrada (máx 10 visibles),
-// COMPLETE = inteligencia extendida (hasta 35 visibles). Mismo motor, distinta profundidad.
-// La promesa visual de "Rápido 10 preguntas" se respeta de forma absoluta.
+// Batch configuration - GENERACIÓN PROGRESIVA:
+// El primer micro-batch (3 preguntas) aparece en segundos y el usuario empieza a responder.
+// Mientras tanto, el motor sigue pensando los siguientes batches en background y los va
+// guardando apenas llegan. Nunca se piensan las 30-35 juntas.
 const BATCH_CONFIG = {
   quick: {
-    firstBatch: 10,
-    remainingTarget: 0,
+    firstBatch: 3,
+    perBatch: 4, // 3 + 4 + 3 = 10
     totalMin: 8,
     totalMax: 10,
   },
   complete: {
-    // Modo completo: 30 preguntas reales, cargadas en 3 batches paralelos
-    // para que el usuario pueda empezar a responder con las primeras 12
-    // mientras se generan las otras 18 en background.
-    firstBatch: 12,
-    parallelBatches: 2,
-    perBatch: 11, // 12 + 2x11 = 34 generadas → cap a 30
+    firstBatch: 3,
+    perBatch: 6, // 3 + 6×5 ≈ 30-32
     totalMin: 28,
-    totalMax: 30,
+    totalMax: 32,
   },
 };
 
@@ -349,6 +346,8 @@ export const SetupStepQuestionnaire = ({
   const allBatchesDone = useRef(cacheComplete);
   const firstBatchStarted = useRef(hasCache); // si hay cache, no re-pedimos el primer batch
   const latestAnswersRef = useRef(answers);
+  // Fuente de verdad síncrona del array de preguntas (para el loop progresivo en background)
+  const questionsRef = useRef<UniversalQuestion[]>(hasCache ? cacheData!.questions : []);
 
   const lang = COUNTRY_PACKS[countryCode]?.locale?.startsWith('pt') ? 'pt-BR' : 'es';
   const currency = COUNTRY_PACKS[countryCode]?.currencySymbol || '$';
@@ -373,7 +372,12 @@ export const SetupStepQuestionnaire = ({
   }, []);
 
   // Shared function to call the edge function
-  const fetchQuestions = useCallback(async (questionCount: string, batchIndex: number, previousAnswersCtx?: Record<string, any>) => {
+  const fetchQuestions = useCallback(async (
+    questionCount: string,
+    batchIndex: number,
+    previousAnswersCtx?: Record<string, any>,
+    existingTitles?: string[],
+  ) => {
     const { data, error } = await invokeEdgeFunctionSafe<GenerateQuestionnaireResponse>('generate-questionnaire', {
       body: {
         module: 'setup',
@@ -389,6 +393,7 @@ export const SetupStepQuestionnaire = ({
         questionCount,
         batchIndex,
         previousAnswers: previousAnswersCtx,
+        existingTitles,
       },
     });
 
@@ -400,22 +405,21 @@ export const SetupStepQuestionnaire = ({
   // Keep latestAnswersRef in sync
   useEffect(() => { latestAnswersRef.current = answers; }, [answers]);
 
-  // Generate first batch of questions (motor AI hiperpersonalizado)
+  // Generate first MICRO-batch (3 preguntas): aparece en segundos.
+  // El resto se piensa en background mientras el usuario ya responde.
   const generateFirstBatch = useCallback(async () => {
     setIsLoadingFirst(true);
     setGenerationError(false);
     setLoadingMsgIndex(0);
 
-    const firstCount = setupMode === 'quick' 
-      ? BATCH_CONFIG.quick.firstBatch 
-      : BATCH_CONFIG.complete.firstBatch;
+    const firstCount = BATCH_CONFIG[setupMode].firstBatch;
 
     try {
-      const firstQuestions = await fetchQuestions(`${firstCount}-${firstCount + 2}`, 0);
+      const firstQuestions = await fetchQuestions(`${firstCount}-${firstCount + 1}`, 0);
       const capped = capQuestions(firstQuestions, setupMode);
+      questionsRef.current = capped;
       setQuestions(capped);
-      setCachedQuestions(capped, businessTypeId, setupMode, setupMode === 'quick');
-      if (setupMode === 'quick') allBatchesDone.current = true;
+      setCachedQuestions(capped, businessTypeId, setupMode, false);
       if (questionIndex === 0) {
         setCurrentIndex(0);
       }
@@ -425,12 +429,13 @@ export const SetupStepQuestionnaire = ({
       console.warn('AI questionnaire first batch failed (attempt ' + attempt + '):', err);
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
-        setTimeout(() => generateFirstBatch(), 1500);
+        setTimeout(() => generateFirstBatch(), 1200);
         return;
       }
       // Último recurso: pregunta-pivote premium dinámica (NO lista fija). Su respuesta
       // se inyecta como contexto y se reintenta el motor AI desde la próxima pregunta.
       console.warn('[Setup] Motor AI no respondió tras reintentos. Activando fallback premium pivote.');
+      questionsRef.current = pivotFallback;
       setQuestions(pivotFallback);
       setCachedQuestions(pivotFallback, businessTypeId, setupMode, false);
       // allBatchesDone NO se marca true: queremos que tras la primera respuesta
@@ -441,101 +446,70 @@ export const SetupStepQuestionnaire = ({
     }
   }, [fetchQuestions, setupMode, questionIndex, businessTypeId, pivotFallback]);
 
-  // Generate remaining batches in background - PARALLEL for speed
+  // Generación PROGRESIVA en background: micro-batches secuenciales que se
+  // guardan apenas llegan. Nunca se piensan todas las preguntas juntas y el
+  // setup SIEMPRE puede terminarse (cierre garantizado).
   const generateRemainingBatches = useCallback(async () => {
     if (backgroundFetchStarted.current || allBatchesDone.current) return;
     backgroundFetchStarted.current = true;
     setIsLoadingMore(true);
 
-    try {
-      if (setupMode === 'quick') {
-        // Quick: one more batch to reach 12-15 total
-        const remaining = await fetchQuestions(
-          `${BATCH_CONFIG.quick.remainingTarget}-${BATCH_CONFIG.quick.remainingTarget + 2}`,
-          1,
-          latestAnswersRef.current
+    const cfg = BATCH_CONFIG[setupMode];
+    const { min, max } = getQuestionLimits(setupMode);
+    let consecutiveFailures = 0;
+    let batchIdx = 1;
+
+    while (questionsRef.current.length < max && consecutiveFailures < 3) {
+      const missing = max - questionsRef.current.length;
+      const ask = Math.min(cfg.perBatch, Math.max(3, missing));
+      try {
+        const existingTitles = questionsRef.current
+          .map(q => q.title?.es || '')
+          .filter(Boolean);
+        const batch = await fetchQuestions(
+          `${ask}-${ask}`,
+          batchIdx,
+          latestAnswersRef.current,
+          existingTitles,
         );
-        setQuestions(prev => {
-          const existingIds = new Set(prev.map(q => q.id));
-          const newQuestions = remaining.filter(q => !existingIds.has(q.id));
-          const merged = capQuestions([...prev, ...newQuestions], 'quick');
-          setCachedQuestions(merged, businessTypeId, setupMode, true);
-          allBatchesDone.current = true;
-          return merged;
-        });
-      } else {
-        // Complete: run ALL batches in PARALLEL for maximum speed
-        const batchPromises = Array.from(
-          { length: BATCH_CONFIG.complete.parallelBatches },
-          (_, i) => fetchQuestions(
-            `${BATCH_CONFIG.complete.perBatch}-${BATCH_CONFIG.complete.perBatch + 2}`,
-            i + 1,
-            latestAnswersRef.current
-          ).catch(err => {
-            console.warn(`Batch ${i + 1} failed:`, err);
-            return [] as UniversalQuestion[];
-          })
+        batchIdx += 1;
+        consecutiveFailures = 0;
+
+        const prev = questionsRef.current;
+        const existingIds = new Set(prev.map(q => q.id));
+        const titleSet = new Set(prev.map(q => (q.title?.es || '').toLowerCase().trim()));
+        const fresh = batch.filter(q =>
+          q.id &&
+          !existingIds.has(q.id) &&
+          !titleSet.has((q.title?.es || '').toLowerCase().trim())
         );
+        const merged = capQuestions([...prev, ...fresh], setupMode);
+        questionsRef.current = merged;
+        setQuestions(merged);
+        setCachedQuestions(merged, businessTypeId, setupMode, merged.length >= max);
 
-        const results = await Promise.all(batchPromises);
-
-        // Merge all results
-        let currentTotal = 0;
-        setQuestions(prev => {
-          const existingIds = new Set(prev.map(q => q.id));
-          const allNew = results.flat().filter(q => q.id && !existingIds.has(q.id));
-          const merged = capQuestions([...prev, ...allNew], 'complete');
-          currentTotal = merged.length;
-          setCachedQuestions(merged, businessTypeId, setupMode, false);
-          return merged;
-        });
-
-        // Safety net: if we still don't have at least totalMin, fire an
-        // extra batch with full context so we never strand the user with 18.
-        const { min } = getQuestionLimits('complete');
-        let safetyAttempts = 0;
-        while (currentTotal < min && safetyAttempts < 2) {
-          safetyAttempts += 1;
-          const missing = Math.max(6, min - currentTotal);
-          try {
-            const extra = await fetchQuestions(
-              `${missing}-${missing + 2}`,
-              safetyAttempts + 10,
-              latestAnswersRef.current,
-            );
-            setQuestions(prev => {
-              const existingIds = new Set(prev.map(q => q.id));
-              const allNew = extra.filter(q => q.id && !existingIds.has(q.id));
-              const merged = capQuestions([...prev, ...allNew], 'complete');
-              currentTotal = merged.length;
-              setCachedQuestions(merged, businessTypeId, setupMode, merged.length >= min);
-              return merged;
-            });
-          } catch (e) {
-            console.warn('[Setup] safety-net batch failed:', e);
-            break;
-          }
-        }
-
-        if (currentTotal >= min) {
-          allBatchesDone.current = true;
-        } else {
-          backgroundFetchStarted.current = false;
-          console.warn(`Only ${currentTotal} questions after all retries, expected ${min}.`);
-        }
+        // Si la IA sólo devolvió repetidas, contarlo como fallo para no loopear infinito.
+        if (fresh.length === 0) consecutiveFailures += 1;
+      } catch (err) {
+        consecutiveFailures += 1;
+        console.warn(`[Setup] batch ${batchIdx} falló (fallo #${consecutiveFailures}):`, err);
+        await new Promise(r => setTimeout(r, 1200));
       }
-    } catch (err) {
-      console.warn('Background question generation failed:', err);
-      // Allow retry - don't mark as done
-      backgroundFetchStarted.current = false;
-    } finally {
-      setIsLoadingMore(false);
     }
+
+    // Cierre GARANTIZADO: aunque la IA haya fallado, el usuario puede completar
+    // el setup con las preguntas que haya. Nunca queda trabado ni expulsado.
+    const total = questionsRef.current.length;
+    if (total < min) {
+      console.warn(`[Setup] Cerrando con ${total}/${min} preguntas (batches incompletos).`);
+    }
+    allBatchesDone.current = true;
+    setCachedQuestions(questionsRef.current, businessTypeId, setupMode, true);
+    setIsLoadingMore(false);
   }, [fetchQuestions, setupMode, businessTypeId]);
 
   // Motor inteligente: si no hay cache válido, generar preguntas hiperpersonalizadas vía AI.
   // Tanto Rápido como Completo usan el MISMO motor (generate-questionnaire).
-  // Rápido = inteligencia concentrada. Completo = inteligencia extendida.
   useEffect(() => {
     if (firstBatchStarted.current) return;
     if (hasCache && questions.length > 0) {
@@ -546,12 +520,11 @@ export const SetupStepQuestionnaire = ({
     generateFirstBatch();
   }, [generateFirstBatch, hasCache, questions.length]);
 
-  // Background batches (solo modo Completo): arrancan APENAS llega el primer batch
-  // para que las 18 preguntas restantes estén listas mientras el usuario responde.
+  // Background batches (ambos modos): arrancan APENAS llega el primer micro-batch,
+  // para que el resto de preguntas se piense mientras el usuario responde.
   useEffect(() => {
     if (backgroundFetchStarted.current || allBatchesDone.current) return;
-    if (setupMode !== 'complete') return;
-    // Si volvemos con cache incompleto, empezar ya.
+    // Si volvemos con cache incompleto, retomar ya.
     if (hasCache && !cacheComplete && questions.length > 0) {
       generateRemainingBatches();
       return;
@@ -560,7 +533,7 @@ export const SetupStepQuestionnaire = ({
     if (!isLoadingFirst && questions.length > 0) {
       generateRemainingBatches();
     }
-  }, [isLoadingFirst, questions.length, generateRemainingBatches, hasCache, cacheComplete, setupMode]);
+  }, [isLoadingFirst, questions.length, generateRemainingBatches, hasCache, cacheComplete]);
 
   // Cycle loading messages
   useEffect(() => {
@@ -817,6 +790,7 @@ export const SetupStepQuestionnaire = ({
   }
   if (!currentQuestion && !isLoadingFirst) {
     // Sin preguntas y sin loading: forzar fallback premium pivote (nunca lista fija).
+    questionsRef.current = pivotFallback;
     setQuestions(pivotFallback);
     return null;
   }
@@ -1104,7 +1078,7 @@ export const SetupStepQuestionnaire = ({
 
   // Estimated total - always show a number within valid range
   const { min: limitMin, max: limitMax } = getQuestionLimits(setupMode);
-  const estimatedTotal = setupMode === 'quick' ? 12 : 30;
+  const estimatedTotal = setupMode === 'quick' ? 10 : 30;
   // If all batches done, show actual total (already capped). Otherwise show estimate.
   const displayTotal = allBatchesDone.current 
     ? totalQuestions 
