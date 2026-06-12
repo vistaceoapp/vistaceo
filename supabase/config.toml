@@ -55,6 +55,8 @@ project_id = "nlewrgmcawzcdazhfiyy"
     verify_jwt = false
   [functions.generate-blog-images]
     verify_jwt = false
+  [functions.generate-chat-suggestions]
+    verify_jwt = false
   [functions.generate-blog-og]
     verify_jwt = false
   [functions.generate-blog-post]
