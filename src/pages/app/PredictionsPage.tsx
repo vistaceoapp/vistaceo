@@ -177,11 +177,9 @@ const PredictionCard = memo(({ prediction, onView, onDismiss, onConvert }: {
           <Button variant="outline" size="sm" className="flex-1" onClick={onView}>
             <Eye className="w-4 h-4 mr-1" />Ver
           </Button>
-          {prediction.available_actions?.convert_to_mission && (
-            <Button size="sm" className="flex-1 gradient-primary text-primary-foreground" onClick={onConvert}>
-              <Target className="w-4 h-4 mr-1" />Misión
-            </Button>
-          )}
+          <Button size="sm" className="flex-1 gradient-primary text-primary-foreground" onClick={(e) => { e.stopPropagation(); onConvert(); }}>
+            <Target className="w-4 h-4 mr-1" />Misión
+          </Button>
           <Button variant="ghost" size="sm" onClick={onDismiss}><X className="w-4 h-4" /></Button>
         </div>
       </CardContent>
@@ -394,14 +392,31 @@ export default function PredictionsPage() {
 
   useRecordBrainView("predictions_viewed", { total: predictions.length });
 
+  // Tope: 3 generaciones de predicciones por mes calendario (Pro).
+  const MONTHLY_PREDICTION_CAP = 3;
+  const generationsThisMonth = useMemo(() => {
+    const now = new Date();
+    return predictions.filter(p => {
+      const d = new Date(p.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+  }, [predictions]);
+  const capReached = generationsThisMonth >= MONTHLY_PREDICTION_CAP;
+
   const handleGenerate = async () => {
+    if (capReached) {
+      toast.message('Llegaste al tope mensual', {
+        description: `Tenés ${MONTHLY_PREDICTION_CAP} predicciones por mes en Pro. Se renueva el 1 del próximo mes.`,
+      });
+      return;
+    }
     setIsGenerating(true);
     try {
       await generateNewPredictions();
       recordAction("predictions_regenerated", { previousTotal: predictions.length }, { importance: 5 });
       toast.success('Predicciones generadas');
     }
-    catch { toast.error('Error al generar predicciones'); }
+    catch { toast.error('No pudimos generar ahora, probá en unos segundos'); }
     finally { setIsGenerating(false); }
   };
 
@@ -530,10 +545,15 @@ export default function PredictionsPage() {
             Anticipá el futuro de tu negocio basado en datos reales
           </p>
         </div>
-        <Button onClick={handleGenerate} disabled={isGenerating} className="gradient-primary text-primary-foreground">
-          {isGenerating ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-          Generar predicciones
-        </Button>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-[10px]">
+            {generationsThisMonth}/{MONTHLY_PREDICTION_CAP} este mes
+          </Badge>
+          <Button onClick={handleGenerate} disabled={isGenerating || capReached} className="gradient-primary text-primary-foreground">
+            {isGenerating ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+            {capReached ? 'Tope mensual' : 'Generar predicciones'}
+          </Button>
+        </div>
       </div>
 
       {/* Calibrations */}
@@ -785,14 +805,12 @@ export default function PredictionsPage() {
                     </div>
                   )}
 
-                  {/* Action buttons */}
-                  <div className="flex gap-3 pt-4">
-                    {selectedPrediction.available_actions?.convert_to_mission && (
-                      <Button className="flex-1 gradient-primary text-primary-foreground"
-                        onClick={() => { handleConvert(selectedPrediction.id); setSelectedPrediction(null); }}>
-                        <Target className="w-4 h-4 mr-2" />Convertir en Misión
-                      </Button>
-                    )}
+                  {/* Action buttons — siempre permitir convertir a misión */}
+                  <div className="flex gap-3 pt-4 sticky bottom-0 bg-background pb-2">
+                    <Button className="flex-1 gradient-primary text-primary-foreground"
+                      onClick={() => { handleConvert(selectedPrediction.id); setSelectedPrediction(null); }}>
+                      <Target className="w-4 h-4 mr-2" />Convertir en Misión
+                    </Button>
                     <Button variant="outline" onClick={() => { handleDismiss(selectedPrediction.id); setSelectedPrediction(null); }}>
                       Descartar
                     </Button>
