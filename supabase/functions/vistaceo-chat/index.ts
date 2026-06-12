@@ -1363,9 +1363,12 @@ MESSAGE_JSON:
     const isShort = lastText.length < 220;
     const hasImages = imageAttachments.length > 0;
     const complexHints = /(crisis|urgente|estrategia|plan|análisis|analiza|presupuesto|forecast|expansión|despido|legal|pricing|precio|margen|caja|equipo|conflict)/i;
-    const isComplex = hasImages || complexHints.test(lastText) || lastText.length > 600;
+    // Specific-data hints: pedidos concretos que SIEMPRE necesitan respuesta completa con hipótesis
+    const specificDataHints = /\b(cuál(?:es)?|qué|cuánto|cuántos|cuántas|top|ranking|listame|dame|mejor(?:es)?|peor(?:es)?|más vendid|menos vendid|productos?|servicios?|clientes?|competidores?|precios?|métricas?)\b/i;
+    const wantsSpecificData = specificDataHints.test(lastText);
+    const isComplex = hasImages || complexHints.test(lastText) || wantsSpecificData || lastText.length > 600;
     // Cost optimization: Free users always use Lite (≈4× más barato).
-    // Pro users get Flash sólo para queries complejas (alta calidad), Lite para el resto.
+    // Pro users get Flash for complex/specific-data queries (alta calidad), Lite para el resto.
     const selectedModel = isProPlan && isComplex
       ? "google/gemini-2.5-flash"
       : "google/gemini-2.5-flash-lite";
@@ -1375,15 +1378,10 @@ MESSAGE_JSON:
     const isTrivial = !hasImages && lastText.length < 60 && trivialHints.test(lastText.trim());
 
     // Cap dinámico de tokens (ahorro inteligente sin perder calidad):
-    //  · Trivial → 220 (saludo / confirmación, no necesita más)
-    //  · Free simple → 480 (cabe 1 decisión + viñetas + próximo paso, modo directo)
-    //  · Free complejo → 760 (análisis sin desperdicio)
-    //  · Pro simple → 600
-    //  · Pro complejo → 1100 (alta capacidad real)
     let maxTokens: number;
     if (isTrivial) maxTokens = 260;
-    else if (!isProPlan) maxTokens = isComplex ? 1100 : 650;
-    else maxTokens = isComplex ? 1800 : 900;
+    else if (!isProPlan) maxTokens = isComplex ? 1200 : 700;
+    else maxTokens = isComplex ? 2000 : 950;
 
     // PROMPT MAESTRO VISTACEO — directiva final inyectada al system
     const brevityDirective = {
