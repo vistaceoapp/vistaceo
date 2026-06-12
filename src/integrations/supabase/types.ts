@@ -234,6 +234,69 @@ export type Database = {
           },
         ]
       }
+      blog_autoheal_runs: {
+        Row: {
+          after_snapshot: Json
+          ai_calls: number
+          ai_model: string | null
+          before_snapshot: Json
+          created_at: string
+          fields_changed: string[]
+          id: string
+          incident_id: string | null
+          issues: string[]
+          notes: string | null
+          post_id: string | null
+          slug: string
+          status: string
+        }
+        Insert: {
+          after_snapshot?: Json
+          ai_calls?: number
+          ai_model?: string | null
+          before_snapshot?: Json
+          created_at?: string
+          fields_changed?: string[]
+          id?: string
+          incident_id?: string | null
+          issues?: string[]
+          notes?: string | null
+          post_id?: string | null
+          slug: string
+          status?: string
+        }
+        Update: {
+          after_snapshot?: Json
+          ai_calls?: number
+          ai_model?: string | null
+          before_snapshot?: Json
+          created_at?: string
+          fields_changed?: string[]
+          id?: string
+          incident_id?: string | null
+          issues?: string[]
+          notes?: string | null
+          post_id?: string | null
+          slug?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_autoheal_runs_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "ops_incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_autoheal_runs_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_cluster_edges: {
         Row: {
           created_at: string | null
