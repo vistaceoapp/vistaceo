@@ -52,7 +52,7 @@ const LOADING_MESSAGES_PT = [
 // Batch configuration - GENERACIÓN PROGRESIVA:
 // El primer micro-batch (3 preguntas) aparece en segundos y el usuario empieza a responder.
 // Mientras tanto, el motor sigue pensando los siguientes batches en background y los va
-// guardando apenas llegan. Nunca se piensan las 30-35 juntas.
+// guardando apenas llegan. Nunca se piensan las 25 juntas.
 const BATCH_CONFIG = {
   quick: {
     firstBatch: 3,
@@ -62,9 +62,9 @@ const BATCH_CONFIG = {
   },
   complete: {
     firstBatch: 3,
-    perBatch: 6, // 3 + 6×5 ≈ 30-32
-    totalMin: 28,
-    totalMax: 32,
+    perBatch: 5, // 3 + 5+5+5+4+3 = 25 — alta calidad, baja fatiga
+    totalMin: 23,
+    totalMax: 25,
   },
 };
 
@@ -1078,7 +1078,7 @@ export const SetupStepQuestionnaire = ({
 
   // Estimated total - always show a number within valid range
   const { min: limitMin, max: limitMax } = getQuestionLimits(setupMode);
-  const estimatedTotal = setupMode === 'quick' ? 10 : 30;
+  const estimatedTotal = setupMode === 'quick' ? 10 : 25;
   // If all batches done, show actual total (already capped). Otherwise show estimate.
   const displayTotal = allBatchesDone.current 
     ? totalQuestions 
