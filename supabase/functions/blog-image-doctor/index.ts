@@ -87,17 +87,18 @@ function buildHeroPrompt(p: Post): string {
   ].join(" ");
 }
 
-async function generateImageB64(prompt: string): Promise<string | null> {
+async function generateImageB64(prompt: string, quality: "low" | "medium" | "high" = "low"): Promise<string | null> {
   if (!LOVABLE_KEY) return null;
-  // Modelo barato y rápido
+  // En quality=low usamos el modelo barato; en medium/high subimos a gpt-image-2 (mejor seguimiento de "no text")
+  const model = quality === "low" ? "openai/gpt-image-1-mini" : "openai/gpt-image-2";
   const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
     method: "POST",
     headers: { Authorization: `Bearer ${LOVABLE_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "openai/gpt-image-1-mini",
+      model,
       prompt,
       size: "1536x1024",
-      quality: "low",
+      quality,
       n: 1,
     }),
   });
