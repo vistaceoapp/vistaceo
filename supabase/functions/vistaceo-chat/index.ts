@@ -259,6 +259,15 @@ function buildStateJson(memory: MemoryContext): Record<string, unknown> {
     },
     recent_lessons: memory.lessons.slice(0, 5),
     business_insights: memory.businessInsights.slice(0, 10),
+    open_opportunities: memory.openOpportunities.slice(0, 6),
+    competitors: memory.competitors.slice(0, 5),
+    learning_items: memory.learningItems.slice(0, 5),
+    weekly_priorities: memory.weeklyPriorities.slice(0, 5),
+    recent_signals: memory.recentSignals.slice(0, 10).map(s => ({
+      type: s.signal_type,
+      source: s.source,
+      text: (s.raw_text || "").slice(0, 220),
+    })),
   };
 }
 
