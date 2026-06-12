@@ -46,6 +46,7 @@ import { translateMissionArea } from "@/lib/presentationRegistry";
 import { MissionLoadingState } from "@/components/app/MissionLoadingState";
 import { MissionSummaryView } from "@/components/app/MissionSummaryView";
 import { MissionStepsView } from "@/components/app/MissionStepsView";
+import { MissionRegenerateButton } from "@/components/app/MissionRegenerateButton";
 import { ProgressRing } from "@/components/app/ProgressRing";
 
 interface Step {
@@ -663,20 +664,11 @@ export const MissionLLMMode = ({
             </div>
 
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5"
-                      onClick={confirmAndRegenerate}
-                      disabled={regenerating}
-                    >
-                      <RefreshCw className={cn("w-3.5 h-3.5", regenerating && "animate-spin")} />
-                      <span className="hidden lg:inline">Regenerar</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent><p className="text-xs">Genera una nueva guía con enfoque alternativo</p></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <MissionRegenerateButton
+                missionId={mission.id}
+                regenerating={regenerating}
+                onConfirmRegenerate={() => fetchEnhancedPlan(true)}
+              />
 
               <TooltipProvider>
                 <Tooltip>
@@ -692,6 +684,8 @@ export const MissionLLMMode = ({
           </div>
           <Progress value={progress} className="h-1 mt-2.5" />
         </header>
+
+        {/* Resumen siempre disponible: si todavía no llegó el plan enriquecido, MissionSummaryView muestra los datos básicos + skeleton */}
 
         {/* Loading State */}
         {loading && !enhancedPlan ? (
