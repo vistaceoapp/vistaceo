@@ -136,8 +136,6 @@ REGLAS ABSOLUTAS:
 ${learningContext}${dedupeContext}
 
 Responde con generate_questions.`
-
-Responde con generate_questions.`
       : `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
 
 OBJETIVO ESTRATÉGICO:
