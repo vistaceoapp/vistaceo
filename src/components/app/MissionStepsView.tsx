@@ -51,15 +51,35 @@ interface MissionStepsViewProps {
 
 export const MissionStepsView = ({
   missionId,
-  steps,
+  steps: rawSteps,
   enhancedPlan,
   onToggleStep,
   selectedStepIdx,
   onSelectStep,
 }: MissionStepsViewProps) => {
+  // Blindaje: pasos generados por IA pueden venir con `title`/`how` en lugar
+  // de `text`/`howTo`. Normalizamos para que nunca se rendericen vacíos ni rompan.
+  const steps: Step[] = (Array.isArray(rawSteps) ? rawSteps : []).map((s) => {
+    const anyStep = s as Step & { title?: unknown; how?: unknown; description?: unknown };
+    const text =
+      typeof anyStep.text === "string" && anyStep.text.trim()
+        ? anyStep.text
+        : typeof anyStep.title === "string" && anyStep.title.trim()
+          ? anyStep.title
+          : typeof anyStep.description === "string" && anyStep.description.trim()
+            ? (anyStep.description as string)
+            : "Paso de la misión";
+    const howTo = Array.isArray(anyStep.howTo)
+      ? anyStep.howTo
+      : typeof anyStep.how === "string" && anyStep.how.trim()
+        ? (anyStep.how as string).split(/\n+/).map((t) => t.trim()).filter(Boolean)
+        : undefined;
+    return { ...anyStep, text, howTo, done: !!anyStep.done };
+  });
+
   // Use controlled step index if provided, otherwise internal state
   const [internalExpandedStep, setInternalExpandedStep] = useState<number | null>(() => {
-    const firstIncomplete = steps.findIndex((s) => !s.done);
+    const firstIncomplete = (Array.isArray(rawSteps) ? rawSteps : []).findIndex((s) => !s?.done);
     return firstIncomplete >= 0 ? firstIncomplete : null;
   });
   
@@ -107,7 +127,7 @@ export const MissionStepsView = ({
 
       toast({
         title: "✓ Paso completado",
-        description: `"${step.text.slice(0, 40)}${step.text.length > 40 ? "..." : ""}"`,
+        description: `"${(step?.text ?? "").slice(0, 40)}${(step?.text ?? "").length > 40 ? "..." : ""}"`,
         action: (
           <Button
             variant="outline"

@@ -560,6 +560,74 @@ const RadarPage = () => {
     }
   };
 
+  // Normaliza pasos generados por IA ({title, how}) al formato de la app ({text, howTo}).
+  const normalizeForgedSteps = (raw: Array<Record<string, unknown>>) =>
+    raw
+      .map((s) => {
+        const text = String(s.text ?? s.title ?? "").trim();
+        const howTo = Array.isArray(s.howTo)
+          ? (s.howTo as unknown[]).map(String)
+          : typeof s.how === "string" && s.how.trim()
+            ? (s.how as string).split(/\n+/).map((t) => t.trim()).filter(Boolean)
+            : undefined;
+        return {
+          text,
+          done: false,
+          howTo,
+          why: typeof s.why === "string" ? s.why : undefined,
+          timeEstimate: typeof s.timeEstimate === "string" ? s.timeEstimate : undefined,
+          metric: typeof s.metric === "string" ? s.metric : undefined,
+          confidence: s.confidence === "high" || s.confidence === "medium" || s.confidence === "low" ? s.confidence : undefined,
+        };
+      })
+      .filter((s) => s.text.length > 3);
+
+  // Enriquecimiento IA en segundo plano: nunca bloquea la creación de la misión
+  // y nunca pisa el progreso del usuario.
+  const enrichMissionInBackground = async (missionId: string, opportunity: Opportunity) => {
+    if (!currentBusiness) return;
+    try {
+      const pack = await buildContextPack("missions", currentBusiness.id, {
+        userId: currentBusiness.owner_id,
+      });
+      const forged = await forgeArtifact<{
+        title: string;
+        description: string;
+        steps: Array<Record<string, unknown>>;
+      }>({
+        businessId: currentBusiness.id,
+        artifactType: "radar_mission",
+        artifactKey: `opp:${opportunity.id}`,
+        contextPack: pack as unknown as Record<string, unknown>,
+        seed: {
+          insightTitle: opportunity.title,
+          insightSummary: opportunity.description ?? "",
+          insightUrl: (opportunity as { source_url?: string }).source_url ?? undefined,
+        },
+      });
+      if (!forged.ok || !forged.payload) return;
+
+      const steps = normalizeForgedSteps(forged.payload.steps ?? []);
+      if (steps.length < 4) return;
+
+      // No sobreescribir si el usuario ya avanzó algún paso.
+      const { data: current } = await supabase
+        .from("missions")
+        .select("steps")
+        .eq("id", missionId)
+        .maybeSingle();
+      const existing = (current?.steps as Array<{ done?: boolean }> | null) ?? [];
+      if (existing.some((s) => s?.done)) return;
+
+      const update: Record<string, unknown> = { steps };
+      if (forged.payload.title && forged.payload.title.length >= 8) update.title = forged.payload.title;
+      if (forged.payload.description && forged.payload.description.length >= 40) update.description = forged.payload.description;
+      await supabase.from("missions").update(update as never).eq("id", missionId);
+    } catch (e) {
+      console.warn("[radar] background enrich skipped:", e);
+    }
+  };
+
   const convertToMission = async (opportunity: Opportunity) => {
     if (!currentBusiness) return;
 
@@ -578,51 +646,21 @@ const RadarPage = () => {
     setActionLoading(true);
 
     try {
-      // 1. Intentar generar misión hyper-personalizada con el motor IA "cero hardcode".
-      //    Si falla o no pasa el gate, caemos a los steps locales contextuales.
-      let aiTitle = opportunity.title;
-      let aiDescription = opportunity.description;
-      let aiSteps: unknown = buildInitialMissionSteps(opportunity, currentBusiness);
-
-      try {
-        const pack = await buildContextPack("missions", currentBusiness.id, {
-          userId: currentBusiness.owner_id,
-        });
-        const forged = await forgeArtifact<{
-          title: string;
-          description: string;
-          steps: Array<Record<string, unknown>>;
-        }>({
-          businessId: currentBusiness.id,
-          artifactType: "radar_mission",
-          artifactKey: `opp:${opportunity.id}`,
-          contextPack: pack as unknown as Record<string, unknown>,
-          seed: {
-            insightTitle: opportunity.title,
-            insightSummary: opportunity.description ?? "",
-            insightUrl: (opportunity as { source_url?: string }).source_url ?? undefined,
-          },
-        });
-        if (forged.ok && forged.payload) {
-          aiTitle = forged.payload.title || aiTitle;
-          aiDescription = forged.payload.description || aiDescription;
-          aiSteps = forged.payload.steps ?? aiSteps;
-        }
-      } catch (forgeErr) {
-        console.warn("[radar] forge fallback to local steps:", forgeErr);
-      }
+      // Creación INSTANTÁNEA con pasos contextuales locales.
+      // El plan hyper-personalizado IA se enriquece en segundo plano.
+      const initialSteps = buildInitialMissionSteps(opportunity, currentBusiness);
 
       const { data: missionData, error: missionError } = await supabase
         .from("missions")
         .insert({
           business_id: currentBusiness.id,
-          title: aiTitle,
-          description: aiDescription,
+          title: opportunity.title,
+          description: opportunity.description,
           area: opportunity.source || "general",
           impact_score: opportunity.impact_score,
           effort_score: opportunity.effort_score,
           status: "active",
-          steps: aiSteps as unknown as any,
+          steps: initialSteps as unknown as any,
         })
         .select()
         .single();
@@ -655,6 +693,9 @@ const RadarPage = () => {
 
       setSelectedOpportunity(null);
       navigate("/app/missions");
+
+      // Enriquecimiento IA sin bloquear la navegación.
+      void enrichMissionInBackground(missionData.id, opportunity);
     } catch (error) {
       console.error("Error converting to mission:", error);
       const msg = (error as { message?: string })?.message ?? "";

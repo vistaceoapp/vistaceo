@@ -14,6 +14,28 @@ export function resolveVoice(countryCode?: string | null, configured?: string | 
   return "tu";
 }
 
+// Resumen de tono por país, usado por chat-context.ts para el system prompt.
+const TONE_LABELS: Record<ToneVoice, string> = {
+  voseo: "voseo rioplatense cercano",
+  tu: "tuteo profesional cercano",
+  neutro: "español neutro profesional",
+};
+
+export function resolveCountryTone(countryCode?: string | null): { voice: ToneVoice; label: string } {
+  const voice = resolveVoice(countryCode ?? null, null);
+  return { voice, label: TONE_LABELS[voice] };
+}
+
+// Tono accionable para prompts de generación (pronombre + estilo verbal).
+export function toneForCountry(countryCode?: string | null): { pronoun: string; verb: string } {
+  const voice = resolveVoice(countryCode ?? null, null);
+  if (voice === "voseo") return { pronoun: "vos", verb: "imperativo voseante (activá, sumá, medí)" };
+  return { pronoun: "tú", verb: "imperativo tuteante (activa, suma, mide)" };
+}
+
+
+
+
 // Mapa bidireccional para corregir el voseo erróneo cuando el país NO lo justifica.
 // Conjugaciones imperativas y presentes más comunes en respuestas IA.
 const VOSEO_TO_TU: Array<[RegExp, string]> = [
