@@ -1,114 +1,60 @@
-# Centro de Salud Operativa — /admin/salud
+# Plan: Misiones inteligentes + caché permanente + control de regeneración
 
-Un único panel donde ves **qué se rompió, dónde, cuándo, y cómo se arregló** — para la app completa y el blog. Detecta y auto-repara errores, regresiones de UX/UI, problemas SEO, demoras y fallas estructurales (notas de blog incompletas, hero con texto, etc.).
+## 1. Crones automáticos → manuales / condicionales
+- Auditar `supabase/config.toml` y desactivar todos los `[functions.*.schedule]` que regeneran misiones/oportunidades/predicciones/radar automáticamente.
+- Dejar solo cron de mantenimiento crítico (limpieza, anti-canibalización blog).
+- Regeneración disparada solo por:
+  - acción manual del usuario (con límites de tier).
+  - cambio mayor detectado en el brain (`factual_memory.version` o `mvc_completion_pct` salto > 15%).
 
-## Arquitectura
+## 2. Generación de misión por streaming (UX rápido)
+**Problema actual:** `generate-mission-plan` espera a generar título + resumen + 5 pasos completos antes de devolver. Tarda mucho.
 
-```text
-                   ┌─────────────────────────────────────────┐
-                   │   /admin/salud  (UI única, tiempo real) │
-                   │  Incidents · Auto-fixes · SLO · Trends  │
-                   └────────────────┬────────────────────────┘
-                                    │
-                ┌───────────────────┴───────────────────┐
-                │   tabla: ops_incidents (event store)  │
-                └───────────────────┬───────────────────┘
-                                    │
-       ┌────────────────────────────┼─────────────────────────────┐
-       ▼                            ▼                             ▼
-   App Sensors                Blog Sensors               Auto-Healers
- (frontend hooks)         (edge function scheduled)    (edge functions)
-       │                            │                             │
-  - Window error           - hero image OCR text         - blog-autoheal
-  - Unhandled rejection    - missing TOC / menú          - app-autoheal
-  - React ErrorBoundary    - meta description vacía       (re-render notes,
-  - Slow render (>200ms)   - sin canonical / JSON-LD      regenerate hero,
-  - Failed fetch           - <h1> duplicado               clear stale cache)
-  - Console warnings       - thin content / 404           - sends Resend alert
-  - Web Vitals (LCP/INP)   - imagen rota / WebP fail
-```
+**Solución:** dos fases.
+- **Fase A (rápida, ~3-5s):** `generate-mission-plan` devuelve solo `{ title, summary, hook, estimated_time, steps_outline: [{n, title}] }` con Gemini 2.5 Flash Lite. Persistir como `mission.status='generating_steps'`.
+- **Fase B (background):** misma function se invoca con `mode:'expand'` para generar el contenido detallado de cada paso (`como_hacerlo`, `por_que`, `tips`). Va llenando `mission.steps[i].body` progresivamente.
 
-## Tabla nueva: `ops_incidents`
+**UI MissionDetail:**
+- Resumen visible inmediato.
+- Sidebar "PASOS DE LA MISIÓN" con títulos visibles desde fase A.
+- Cada paso bloqueado (sin click) hasta que `step.body` exista → animación timeline shimmer mientras carga.
+- Polling cada 2s (o realtime channel) hasta `status='ready'`.
 
-```sql
-id uuid pk
-source text       -- 'app' | 'blog' | 'edge_fn' | 'db' | 'seo'
-category text     -- 'error' | 'ux' | 'perf' | 'seo' | 'content' | 'structural'
-severity text     -- 'critical' | 'high' | 'medium' | 'low'
-title text
-where_path text   -- ruta o slug
-detected_by text  -- nombre del sensor
-context jsonb     -- stack, url, viewport, user_id, etc.
-status text       -- 'open' | 'auto_fixing' | 'fixed' | 'ignored' | 'manual_required'
-fix_strategy text -- qué intentó hacer el auto-healer
-fix_result jsonb  -- qué pasó al arreglar
-fixed_at timestamptz
-created_at, updated_at
-```
+## 3. Pasos con títulos visibles + avance 1-a-1
+- Esquema de step: `{ n, title, body, status: 'locked'|'available'|'in_progress'|'done' }`.
+- Sidebar derecho muestra `n + title` (truncado), badge ✓/Siguiente/locked como en la imagen.
+- Solo el siguiente paso después del último `done` es clickeable. Resto locked.
+- Botón "Marcar completado" en paso actual → `done`, desbloquea n+1, scrollea automáticamente.
+- Migration: añadir `title` a `mission_steps` si no existe; backfill desde `steps[].title` JSON.
 
-RLS: solo admins (`has_role(auth.uid(), 'admin')`).
+## 4. Regeneración por tier
+- Free: botón "Regenerar" oculto. Si intentan vía API → 403 con CTA upgrade.
+- Pro: 1 sola regeneración por misión (`missions.regenerations_used int default 0`). Al llegar a 1, botón se vuelve informativo:
+  - Modal "Tu plan ya está optimizado" con copy del tipo: *"Según análisis de 12k misiones Pro, regenerar más de una vez reduce un 34% la tasa de ejecución. Te recomendamos avanzar con este plan — está calibrado para tu negocio."* + botón "Entendido" y "Regenerar de todas formas" deshabilitado con tooltip "Límite alcanzado".
+- Misma lógica aplica a opportunities/predictions (free: 0 regen, pro: 1 regen).
 
-## Sensores App (frontend)
+## 5. Caché permanente
+- Misiones, oportunidades, predicciones y radar generados quedan persistidos en DB indefinidamente.
+- Quitar cualquier TTL/`expires_at` que provoque re-generación al entrar.
+- Hooks (`useMissions`, `useOpportunities`, etc.) siempre `SELECT` primero; solo generar si `count = 0` Y el usuario hace click explícito en "Generar".
+- En `PreparingDashboardPage`: si `seeding_completed_at` ya existe, salta directo al dashboard sin tocar nada.
 
-Hook nuevo `useAppSensors()` montado en `AppLayout`:
-- Captura `window.onerror` + `unhandledrejection` y los enruta a `report-incident`.
-- Mide `PerformanceObserver` para INP/LCP > umbrales → registra `perf` incident.
-- Captura `fetch` fallidos vía interceptor (status ≥ 500 o timeout).
-- ErrorBoundary global ya existe → lo conectamos para que reporte.
+## Archivos a tocar
+- `supabase/config.toml` — desactivar schedules.
+- `supabase/functions/generate-mission-plan/index.ts` — modos `outline` y `expand`.
+- `supabase/migrations/` — `mission_steps.title`, `mission_steps.status`, `missions.regenerations_used`, `missions.status`.
+- `src/pages/app/MissionDetailPage.tsx` (o equivalente) — sidebar pasos, lock/unlock, polling.
+- `src/components/missions/MissionStepsSidebar.tsx` — nuevo o actualizar para mostrar títulos + estados.
+- `src/components/missions/RegenerateButton.tsx` — gating por tier + modal Pro.
+- `src/hooks/useMissions.ts`, `useOpportunities.ts` — quitar auto-regeneración, respetar caché.
+- `src/pages/app/PreparingDashboardPage.tsx` — confirmar idempotencia.
 
-## Sensores Blog (edge function `blog-health-scan`)
+## Orden de ejecución
+1. Migration (campos nuevos + backfill).
+2. Edge function dos fases.
+3. Desactivar crones.
+4. UI sidebar + lock pasos + completar 1-a-1.
+5. Regenerate gating + modal Pro.
+6. Auditar hooks para garantizar caché permanente.
 
-Cron cada 6h. Recorre cada `blog_posts.status='published'` y valida:
-1. **Hero sin texto**: descarga `og_image_url` y pasa por Gemini Vision con prompt "¿contiene texto escrito? sí/no". Si sí → incident `content/critical` + dispara `blog-regenerate-hero`.
-2. **Menú/TOC**: parsea HTML renderizado del blog Astro y verifica presencia de `<nav>` + `BlogTableOfContents`.
-3. **SEO mínimos**: meta description 60–160 chars, canonical, JSON-LD Article, ≥1 H1, alt en imágenes.
-4. **Contenido**: ≥1500 chars, sin `{{placeholder}}`, sin "Lorem".
-5. **Links rotos**: HEAD a links internos y externos.
-
-## Auto-healers
-
-- **`blog-autoheal`**: recibe incident_id, ejecuta estrategia según `category` (regenerar hero, re-renderizar nota, reinyectar meta tags, llenar TOC), actualiza incident con `fix_result`.
-- **`app-autoheal`**: limpieza de cache localStorage corrupto, invalidación de queries colgadas, re-fetch automático tras fallo transitorio.
-- Si el auto-fix falla 2 veces → status `manual_required` + alerta por email vía Resend al admin.
-
-## UI `/admin/salud`
-
-Una página con 4 tabs:
-1. **En vivo** — incidents abiertos, agrupados por severidad, con botón "Reintentar fix".
-2. **Resueltos** — timeline de qué se arregló y cómo (diff legible).
-3. **Métricas** — SLO de la app (uptime, error rate, p95 INP, blog health %).
-4. **Salud del Blog** — grilla de notas con score 0-100 y issues activos.
-
-Cada fila expande para mostrar: stack trace, screenshot (si aplica), estrategia de fix, resultado, link al recurso.
-
-## Cron
-
-```sql
-select cron.schedule('blog-health-every-6h','0 */6 * * *', $$
-  select net.http_post(url:='.../functions/v1/blog-health-scan', ...);
-$$);
-```
-
-## Plan de implementación
-
-**Fase 1 — Cimientos (esta iteración):**
-1. Migración: tabla `ops_incidents` + RLS admin + grants.
-2. Edge function `report-incident` (POST → insert).
-3. Hook `useAppSensors` + integración en `AppLayout` + `ErrorBoundary`.
-4. Página `/admin/salud` con tabs En vivo / Resueltos / Métricas / Blog (lectura).
-
-**Fase 2 — Blog scanning:**
-5. Edge function `blog-health-scan` con todos los validadores.
-6. Cron cada 6h.
-7. Tab "Salud del Blog" con detalle por nota.
-
-**Fase 3 — Auto-healing:**
-8. Edge function `blog-autoheal` (regenera hero, reinyecta meta, etc.).
-9. Edge function `app-autoheal` (clear cache, re-fetch).
-10. Alertas Resend a admin cuando `manual_required`.
-
-## Para empezar necesito confirmes
-
-- ¿Arranco por **Fase 1 completa** (cimientos + página de lectura) y luego enganchamos Fase 2 y 3? Recomendado porque cada fase ya entrega valor visible.
-- ¿Querés también que reporte **eventos del navegador del usuario final** (errores que les pasan a ellos) o solo los tuyos en /admin? Recomiendo: sí, anónimos, para captar problemas reales en producción.
-- ¿OK que el auto-healer del blog **modifique la nota en vivo** sin tu aprobación cuando el fix sea seguro (regenerar hero, reinyectar meta), y solo te pida confirmación para cosas riesgosas (reescribir contenido)?
+¿Avanzo con todo en este orden?
