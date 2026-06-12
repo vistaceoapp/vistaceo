@@ -148,6 +148,10 @@ interface MemoryContext {
   recentSignals: Array<{ signal_type: string; source: string; content: unknown; raw_text: string }>;
   latestSnapshot: { total_score: number; sub_scores: Record<string, number> } | null;
   activeAlerts: Array<{ title: string; severity: string; category: string }>;
+  openOpportunities: Array<{ title: string; impact: string; status: string }>;
+  competitors: Array<{ name: string; strengths: unknown; weaknesses: unknown }>;
+  learningItems: Array<{ title: string; category: string; status: string }>;
+  weeklyPriorities: Array<{ title: string; priority: number; status: string }>;
 }
 
 function buildConfigJson(business: BusinessContext, brain: BrainData | null): Record<string, unknown> {
@@ -255,6 +259,15 @@ function buildStateJson(memory: MemoryContext): Record<string, unknown> {
     },
     recent_lessons: memory.lessons.slice(0, 5),
     business_insights: memory.businessInsights.slice(0, 10),
+    open_opportunities: memory.openOpportunities.slice(0, 6),
+    competitors: memory.competitors.slice(0, 5),
+    learning_items: memory.learningItems.slice(0, 5),
+    weekly_priorities: memory.weeklyPriorities.slice(0, 5),
+    recent_signals: memory.recentSignals.slice(0, 10).map(s => ({
+      type: s.signal_type,
+      source: s.source,
+      text: (s.raw_text || "").slice(0, 220),
+    })),
   };
 }
 
@@ -264,7 +277,11 @@ function buildStateJson(memory: MemoryContext): Record<string, unknown> {
 
 async function fetchMemoryContext(supabase: any, businessId: string): Promise<MemoryContext> {
   try {
-    const [actionsRes, missionsRes, checkinsRes, lessonsRes, insightsRes, brainRes, signalsRes, snapshotRes, alertsRes] = await Promise.all([
+    const [
+      actionsRes, missionsRes, checkinsRes, lessonsRes, insightsRes,
+      brainRes, signalsRes, snapshotRes, alertsRes,
+      opportunitiesRes, competitorsRes, learningRes, prioritiesRes,
+    ] = await Promise.all([
       supabase
         .from("daily_actions")
         .select("title, status, completed_at")
@@ -321,6 +338,30 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .eq("business_id", businessId)
         .eq("status", "active")
         .limit(5),
+      supabase
+        .from("opportunities")
+        .select("title, impact, status")
+        .eq("business_id", businessId)
+        .neq("status", "dismissed")
+        .order("created_at", { ascending: false })
+        .limit(6),
+      supabase
+        .from("business_competitors")
+        .select("name, strengths, weaknesses")
+        .eq("business_id", businessId)
+        .limit(5),
+      supabase
+        .from("learning_items")
+        .select("title, category, status")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("weekly_priorities")
+        .select("title, priority, status")
+        .eq("business_id", businessId)
+        .order("priority", { ascending: true })
+        .limit(5),
     ]);
 
     const lessons: string[] = [];
@@ -347,6 +388,10 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       recentSignals: signalsRes.data || [],
       latestSnapshot: snapshotRes.data,
       activeAlerts: alertsRes.data || [],
+      openOpportunities: opportunitiesRes.data || [],
+      competitors: competitorsRes.data || [],
+      learningItems: learningRes.data || [],
+      weeklyPriorities: prioritiesRes.data || [],
     };
   } catch (error) {
     console.error("Error fetching memory context:", error);
@@ -360,9 +405,14 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       recentSignals: [],
       latestSnapshot: null,
       activeAlerts: [],
+      openOpportunities: [],
+      competitors: [],
+      learningItems: [],
+      weeklyPriorities: [],
     };
   }
 }
+
 
 // =====================
 // Response Parsing
@@ -918,11 +968,11 @@ serve(async (req) => {
 
     // ============================================================
     // PLAN ENFORCEMENT (server-side, before consuming AI)
-    // Free: 3 chat messages/month. Pro: alta capacidad = 100/mes.
-    // Fail-open on errors so a transient DB issue can't lock users out.
+    // Free: 3 mensajes LIFETIME (de por vida). Pro: ilimitado.
+    // Misma calidad e inteligencia de respuesta para free y pro.
+    // Fail-open en errores para no bloquear al usuario por fallos transitorios.
     // ============================================================
-    const FREE_CHAT_PER_MONTH = 3;
-    const PRO_CHAT_PER_MONTH = 100;
+    const FREE_CHAT_LIFETIME = 3;
     let isProPlan = false;
     if (supabase && businessContext?.id) {
       try {
@@ -938,34 +988,30 @@ serve(async (req) => {
 
         isProPlan = !!activeSub;
 
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        if (!isProPlan) {
+          const { count: usedLifetime } = await supabase
+            .from("chat_messages")
+            .select("id", { count: "exact", head: true })
+            .eq("business_id", businessContext.id)
+            .eq("role", "user");
 
-        const { count: usedThisMonth } = await supabase
-          .from("chat_messages")
-          .select("id", { count: "exact", head: true })
-          .eq("business_id", businessContext.id)
-          .eq("role", "user")
-          .gte("created_at", startOfMonth);
-
-        const cap = isProPlan ? PRO_CHAT_PER_MONTH : FREE_CHAT_PER_MONTH;
-        if ((usedThisMonth ?? 0) >= cap) {
-          console.log(
-            `[plan-limit] business ${businessContext.id} hit chat cap (${usedThisMonth}/${cap}) pro=${isProPlan}`,
-          );
-          return new Response(
-            JSON.stringify({
-              error: isProPlan ? "pro_cap_reached" : "free_limit_reached",
-              limit_type: "chat",
-              used: usedThisMonth,
-              limit: cap,
-              message: isProPlan
-                ? `Alcanzaste el tope mensual de tu plan Pro (alta capacidad: ${PRO_CHAT_PER_MONTH} mensajes). El contador se reinicia el día 1.`
-                : "Alcanzaste el límite de 3 mensajes mensuales del plan Gratis. Pasate a Pro para alta capacidad de conversación.",
-              upgrade_url: isProPlan ? null : "/checkout",
-            }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-          );
+          if ((usedLifetime ?? 0) >= FREE_CHAT_LIFETIME) {
+            console.log(
+              `[plan-limit] business ${businessContext.id} hit FREE lifetime chat cap (${usedLifetime}/${FREE_CHAT_LIFETIME})`,
+            );
+            return new Response(
+              JSON.stringify({
+                error: "free_limit_reached",
+                limit_type: "chat",
+                used: usedLifetime,
+                limit: FREE_CHAT_LIFETIME,
+                message:
+                  "Usaste los 3 mensajes gratis de tu cuenta. Pasate a Pro para chatear sin límites con tu CEO virtual.",
+                upgrade_url: "/checkout",
+              }),
+              { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+            );
+          }
         }
       } catch (limitErr) {
         // Never block the user if the quota check itself crashes.

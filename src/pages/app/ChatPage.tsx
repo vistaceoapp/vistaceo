@@ -252,22 +252,17 @@ const ChatPage = () => {
     
     if ((!textToSend && !hasAttachments) || !currentBusiness || loading) return;
 
-    // Free user limit check
+    // Free user lifetime limit check (3 mensajes de por vida)
     if (!isPro && !canCreate.chat) {
       toast({
-        title: "Límite alcanzado",
-        description: "Usaste tus 3 mensajes gratis este mes. Pasate a Pro para alta capacidad de conversación.",
+        title: "Chat bloqueado",
+        description: "Usaste los 3 mensajes gratis de tu cuenta. Pasate a Pro para chatear sin límites con tu CEO virtual.",
         variant: "destructive",
-      });
-      return;
-    }
-
-    // Pro user soft-cap check (alta capacidad = 100/mes)
-    if (isPro && !canCreate.chat) {
-      toast({
-        title: "Alcanzaste el tope mensual del plan Pro",
-        description: "Tu plan Pro incluye alta capacidad de chat (100 mensajes/mes). El contador se reinicia el día 1.",
-        variant: "destructive",
+        action: (
+          <ToastAction altText="Ver Pro" onClick={() => navigate("/checkout")}>
+            Ver Pro
+          </ToastAction>
+        ),
       });
       return;
     }
@@ -372,9 +367,9 @@ const ChatPage = () => {
 
         if (limitPayload?.error === "free_limit_reached") {
           toast({
-            title: "Límite del plan Gratis alcanzado",
+            title: "Chat bloqueado — usaste tus 3 mensajes",
             description: limitPayload.message ||
-              "Llegaste a los 3 mensajes mensuales. Pasate a Pro para chatear sin límites.",
+              "Pasate a Pro para chatear sin límites con tu CEO virtual.",
             action: (
               <ToastAction altText="Ver Pro" onClick={() => navigate("/checkout")}>
                 Ver Pro
@@ -395,9 +390,9 @@ const ChatPage = () => {
       // Inline 402 (rare path: body returned as data)
       if (aiData && (aiData as any).error === "free_limit_reached") {
         toast({
-          title: "Límite del plan Gratis alcanzado",
+          title: "Chat bloqueado — usaste tus 3 mensajes",
           description: (aiData as any).message ||
-            "Llegaste a los 3 mensajes mensuales. Pasate a Pro para chatear sin límites.",
+            "Pasate a Pro para chatear sin límites con tu CEO virtual.",
           action: (
             <ToastAction altText="Ver Pro" onClick={() => navigate("/checkout")}>
               Ver Pro
