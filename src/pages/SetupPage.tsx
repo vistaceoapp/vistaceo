@@ -261,7 +261,7 @@ const SetupPage = () => {
         if (isServiceArea) return (data.businessName?.trim().length ?? 0) >= 2;
         return !!data.googlePlaceId || (data.businessName?.trim().length ?? 0) >= 2;
       }
-      case 'mode': return true;
+      case 'mode': return !!data.setupMode;
       case 'questionnaire': return true;
       case 'create': return true;
       default: return false;
@@ -729,6 +729,11 @@ const SetupPage = () => {
         // AI-first (default)
         return (
           <SetupStepIdentityAI
+            countryCode={data.countryCode}
+            onSwitchToManual={() => {
+              setManualIdentityMode(true);
+              setManualSubStep('sector');
+            }}
             onSelect={(option, rawText) => {
               setData(d => ({
                 ...d,

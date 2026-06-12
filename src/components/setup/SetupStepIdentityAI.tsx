@@ -52,6 +52,8 @@ interface SuggestResponse {
 
 interface SetupStepIdentityAIProps {
   onSelect: (option: ProfileOption, rawText: string) => void;
+  onSwitchToManual?: () => void;
+  countryCode?: string;
 }
 
 const EXAMPLE_CHIPS = [
@@ -67,7 +69,7 @@ type UIState = 'writing' | 'thinking' | 'clarifying' | 'results' | 'error';
 
 const IDENTITY_DRAFT_KEY = 'setupIdentityDraft';
 
-export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
+export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }: SetupStepIdentityAIProps) => {
   const [text, setText] = useState(() => {
     try { return localStorage.getItem(IDENTITY_DRAFT_KEY) || ''; } catch { return ''; }
   });
@@ -146,7 +148,14 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
     try {
       const Ctor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const rec = new Ctor();
-      rec.lang = 'es-AR';
+      // Voice lang dinámico según país (es-AR/MX/ES/CO/... o pt-BR)
+      const VOICE_LANG_BY_COUNTRY: Record<string, string> = {
+        AR: 'es-AR', UY: 'es-UY', CL: 'es-CL', PE: 'es-PE', BO: 'es-BO', PY: 'es-PY',
+        MX: 'es-MX', CO: 'es-CO', VE: 'es-VE', EC: 'es-EC', CR: 'es-CR', PA: 'es-PA',
+        DO: 'es-DO', GT: 'es-GT', HN: 'es-HN', SV: 'es-SV', NI: 'es-NI', PR: 'es-PR',
+        ES: 'es-ES', US: 'es-US', BR: 'pt-BR',
+      };
+      rec.lang = (countryCode && VOICE_LANG_BY_COUNTRY[countryCode]) || 'es-AR';
       rec.continuous = true;
       rec.interimResults = true;
       rec.maxAlternatives = 1;
@@ -649,13 +658,21 @@ export const SetupStepIdentityAI = ({ onSelect }: SetupStepIdentityAIProps) => {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-foreground mb-1">No pude analizarlo ahora</h3>
-              <p className="text-sm text-muted-foreground">Intentá de nuevo con otra descripción.</p>
+              <p className="text-sm text-muted-foreground">Probá de nuevo o elegí tu sector y tipo de negocio manualmente.</p>
             </div>
             <div className="flex flex-col gap-3 items-center">
               <Button onClick={handleReset} className="gap-2">
                 <RotateCcw className="w-4 h-4" />
                 Intentar de nuevo
               </Button>
+              {onSwitchToManual && (
+                <button
+                  onClick={onSwitchToManual}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors underline underline-offset-4"
+                >
+                  Elegir sector y tipo manualmente
+                </button>
+              )}
             </div>
           </motion.div>
         )}
