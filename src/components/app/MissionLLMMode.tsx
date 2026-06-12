@@ -48,6 +48,8 @@ import { MissionSummaryView } from "@/components/app/MissionSummaryView";
 import { MissionStepsView } from "@/components/app/MissionStepsView";
 import { MissionRegenerateButton } from "@/components/app/MissionRegenerateButton";
 import { ProgressRing } from "@/components/app/ProgressRing";
+import { useMissionRegenerateGate } from "@/hooks/use-mission-regenerate-gate";
+import { MissionRegenerateGateDialogs } from "@/components/app/MissionRegenerateGateDialogs";
 
 interface Step {
   text: string;
@@ -271,7 +273,6 @@ export const MissionLLMMode = ({
   const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mobileTab, setMobileTab] = useState<string>("guide");
-  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   
   // View mode: "summary" or "steps"
   const [viewMode, setViewMode] = useState<"summary" | "steps">("summary");
@@ -369,14 +370,8 @@ export const MissionLLMMode = ({
     }
   }, [mission.id, mission.title, mission.description, mission.area, businessId, steps]);
 
-  const confirmAndRegenerate = useCallback(() => {
-    setShowRegenerateDialog(true);
-  }, []);
-
-  const executeRegenerate = useCallback(() => {
-    setShowRegenerateDialog(false);
-    fetchEnhancedPlan(true);
-  }, [fetchEnhancedPlan]);
+  const regenGate = useMissionRegenerateGate(mission.id, () => fetchEnhancedPlan(true));
+  const confirmAndRegenerate = regenGate.requestRegenerate;
 
   // Effect for mission change — preserve cached plan to avoid flash
   useEffect(() => {
