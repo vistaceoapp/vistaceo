@@ -420,6 +420,7 @@ export default function PredictionsPage() {
       if (mid) {
         recordAction("prediction_converted", { predictionId: id, missionId: mid }, { importance: 7, confidence: "high" });
         toast.success('Misión creada desde predicción');
+        navigate(`/app/missions?mission=${mid}`);
       }
     }
     catch { toast.error('Error al convertir en misión'); }
