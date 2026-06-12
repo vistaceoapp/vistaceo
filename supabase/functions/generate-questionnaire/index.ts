@@ -192,7 +192,7 @@ FORMATO:
 - weight: 1-10 (importancia para su dimensión)
 - required: true para preguntas estratégicas clave, false para complementarias
 - mode: "${isQuick ? 'quick' : 'complete'}" o "both"
-${learningContext}`;
+${learningContext}${dedupeContext}`;
 
     const userPrompt = isBackgroundBatch
       ? `Genera EXACTAMENTE ${questionCount} preguntas NUEVAS (no repitas temas ya cubiertos) para este negocio:
@@ -213,7 +213,7 @@ RECORDATORIO FINAL:
 Responde usando la función generate_questions.`;
 
     // Use fast model for all batches - quality comes from the structured prompt, not model tier
-    const model = "google/gemini-2.5-pro"; // Cost-optimized: structured question generation
+    const model = "google/gemini-2.5-flash"; // Rápido: micro-batches progresivos necesitan latencia baja
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -361,7 +361,7 @@ Responde usando la función generate_questions.`;
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-pro", // Cost-optimized: retry with same cheap model
+            model: "google/gemini-3-flash-preview", // Retry con modelo alternativo rápido
             messages: [
               { role: "system", content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${prompt2Rules("question")}\n\n${buildTerminologyContext({ activity: businessTypeLabel || null, country: countryCode || null, offer: null, customer: null, channel: null }).promptFragment}` },
               { role: "user", content: userPrompt },
