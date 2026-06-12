@@ -72,14 +72,16 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const isQuick = setupMode === 'quick';
-    const questionCount = questionCountOverride || (isQuick ? '12-15' : '65-75');
+    // ALIGNED: prompt ↔ HARD_CAP ↔ client cap. Calidad > cantidad.
+    // Rápido: 8-10 preguntas. Completo: 23-25 preguntas (alta señal, baja fatiga).
+    const questionCount = questionCountOverride || (isQuick ? '8-10' : '23-25');
     const lang = countryCode === 'BR' ? 'pt-BR' : 'es';
     const voiceStyle = countryCode === 'BR' ? 'você (tuteo brasileiro)' : (countryCode === 'AR' || countryCode === 'UY') ? 'vos (voseo rioplatense)' : 'tú (tuteo)';
 
     // For batch requests, adjust dimension distribution
     const batchQuestionCount = questionCountOverride 
       ? parseInt(questionCountOverride.split('-')[0]) 
-      : (isQuick ? 14 : 70);
+      : (isQuick ? 10 : 25);
 
     const contextParts = [
       `Tipo de negocio/servicio/profesión: ${businessTypeLabel || businessTypeId}`,
@@ -566,10 +568,10 @@ Responde usando la función generate_questions.`;
     });
 
     // ========================================================================
-    // MODE DEPTH GATE — hard caps por modo. Rápido ≤12, Completo ≤40.
-    // Permitimos más margen para que el cap del cliente recorte sin descartar válidas.
+    // MODE DEPTH GATE — hard caps alineados con prompt y cliente.
+    // Rápido ≤10, Completo ≤25. Calidad estricta; el gate ya descartó basura.
     // ========================================================================
-    const HARD_CAP = isQuick ? 12 : 40;
+    const HARD_CAP = isQuick ? 10 : 25;
     const capped = brainGated.slice(0, HARD_CAP);
 
     // ========================================================================

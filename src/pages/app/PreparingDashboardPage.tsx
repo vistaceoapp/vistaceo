@@ -84,19 +84,20 @@ const PreparingDashboardPage = () => {
 
     (async () => {
       try {
-        // Idempotencia: si ya hay misión + 2 opps + 2 trends, saltamos
-        const [{ count: mC }, { count: oC }, { count: tC }] = await Promise.all([
-          supabase.from("missions").select("id", { count: "exact", head: true }).eq("business_id", businessId),
-          supabase.from("opportunities").select("id", { count: "exact", head: true }).eq("business_id", businessId),
-          supabase.from("learning_items").select("id", { count: "exact", head: true }).eq("business_id", businessId),
-        ]);
-
-        if ((mC ?? 0) >= 1 && (oC ?? 0) >= 2 && (tC ?? 0) >= 2) {
+        // Idempotencia ROBUSTA: marcador explícito en businesses.settings.seeding_completed_at
+        // (lo escribe seed-initial-insights al terminar). No depende de conteos frágiles.
+        const { data: bizRow } = await supabase
+          .from("businesses")
+          .select("settings")
+          .eq("id", businessId)
+          .maybeSingle();
+        const settings = (bizRow?.settings as Record<string, unknown> | null) ?? {};
+        if (settings.seeding_completed_at) {
           await goToDashboard();
           return;
         }
 
-        // Lanzar seed con timeout
+        // Lanzar seed con timeout (no bloquea si tarda)
         const seedPromise = supabase.functions.invoke("seed-initial-insights", {
           body: { businessId },
         });

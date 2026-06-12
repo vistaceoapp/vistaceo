@@ -83,7 +83,7 @@ function capQuestions(questions: UniversalQuestion[], mode: 'quick' | 'complete'
 }
 
 // Cache keys for persisting questions across navigation
-const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v4_planning_aware';
+const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v5_context_aware';
 const QUESTIONS_META_KEY = 'setupQuestionsMeta';
 
 interface QuestionsCacheData {
@@ -91,20 +91,36 @@ interface QuestionsCacheData {
   timestamp: number;
   businessTypeId: string;
   setupMode: string;
+  contextHash: string;
   allBatchesDone: boolean;
 }
 
-function getCachedQuestions(businessTypeId: string, setupMode: string): QuestionsCacheData | null {
+// Hash determinístico del contexto que dispara regeneración cuando cambia
+// el texto crudo del usuario, las keywords o el sector — clave para 'custom' types.
+function hashContext(input: string): string {
+  let h = 5381;
+  for (let i = 0; i < input.length; i++) h = ((h << 5) + h) ^ input.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+
+function buildContextHash(businessTypeId: string, areaId: string, rawUserText: string, keywords: string[]): string {
+  const norm = `${businessTypeId}|${areaId}|${(rawUserText || '').trim().toLowerCase().slice(0, 400)}|${(keywords || []).slice(0, 10).join(',').toLowerCase()}`;
+  return hashContext(norm);
+}
+
+function getCachedQuestions(businessTypeId: string, setupMode: string, contextHash: string): QuestionsCacheData | null {
   try {
     const cached = localStorage.getItem(QUESTIONS_CACHE_KEY);
     if (!cached) return null;
     const parsed: QuestionsCacheData = JSON.parse(cached);
-    // Valid for 30 days AND same business type AND same mode
+    // TTL más corto para 'custom' (24h) — el usuario puede iterar la descripción.
+    const ttl = businessTypeId === 'custom' ? 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000;
     if (
-      Date.now() - parsed.timestamp < 30 * 24 * 60 * 60 * 1000 &&
+      Date.now() - parsed.timestamp < ttl &&
       parsed.questions?.length > 0 &&
       parsed.businessTypeId === businessTypeId &&
-      parsed.setupMode === setupMode
+      parsed.setupMode === setupMode &&
+      parsed.contextHash === contextHash
     ) {
       return parsed;
     }
@@ -112,13 +128,14 @@ function getCachedQuestions(businessTypeId: string, setupMode: string): Question
   return null;
 }
 
-function setCachedQuestions(questions: UniversalQuestion[], businessTypeId: string, setupMode: string, allDone: boolean) {
+function setCachedQuestions(questions: UniversalQuestion[], businessTypeId: string, setupMode: string, contextHash: string, allDone: boolean) {
   try {
     const data: QuestionsCacheData = {
       questions,
       timestamp: Date.now(),
       businessTypeId,
       setupMode,
+      contextHash,
       allBatchesDone: allDone,
     };
     localStorage.setItem(QUESTIONS_CACHE_KEY, JSON.stringify(data));
@@ -320,8 +337,19 @@ export const SetupStepQuestionnaire = ({
   onComplete,
   onBack,
 }: SetupStepQuestionnaireProps) => {
-  // Restore cached questions if returning (validated by businessTypeId + setupMode)
-  const cacheData = useMemo(() => getCachedQuestions(businessTypeId, setupMode), [businessTypeId, setupMode]);
+  // Hash del contexto del usuario (rawUserText + keywords) para invalidar cache
+  // cuando el usuario cambia su descripción aunque el businessTypeId siga igual ('custom').
+  const contextHash = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('setupUniversalProfile');
+      const profile = raw ? JSON.parse(raw) : {};
+      return buildContextHash(businessTypeId, areaId, profile?._raw_user_text || '', profile?.keywords || []);
+    } catch {
+      return buildContextHash(businessTypeId, areaId, '', []);
+    }
+  }, [businessTypeId, areaId]);
+  // Restore cached questions if returning (validated by type + mode + contextHash)
+  const cacheData = useMemo(() => getCachedQuestions(businessTypeId, setupMode, contextHash), [businessTypeId, setupMode, contextHash]);
   const hasCache = !!cacheData && cacheData.questions.length > 0;
   const cacheComplete = !!cacheData?.allBatchesDone;
   // Fallback premium dinámico (1 pregunta-pivote estratégica). NUNCA listas fijas visibles.
@@ -419,7 +447,7 @@ export const SetupStepQuestionnaire = ({
       const capped = capQuestions(firstQuestions, setupMode);
       questionsRef.current = capped;
       setQuestions(capped);
-      setCachedQuestions(capped, businessTypeId, setupMode, false);
+      setCachedQuestions(capped, businessTypeId, setupMode, contextHash, false);
       if (questionIndex === 0) {
         setCurrentIndex(0);
       }
@@ -437,14 +465,14 @@ export const SetupStepQuestionnaire = ({
       console.warn('[Setup] Motor AI no respondió tras reintentos. Activando fallback premium pivote.');
       questionsRef.current = pivotFallback;
       setQuestions(pivotFallback);
-      setCachedQuestions(pivotFallback, businessTypeId, setupMode, false);
+      setCachedQuestions(pivotFallback, businessTypeId, setupMode, contextHash, false);
       // allBatchesDone NO se marca true: queremos que tras la primera respuesta
       // se reintente el motor AI con ese contexto real.
       backgroundFetchStarted.current = false;
       setGenerationError(false);
       setIsLoadingFirst(false);
     }
-  }, [fetchQuestions, setupMode, questionIndex, businessTypeId, pivotFallback]);
+  }, [fetchQuestions, setupMode, questionIndex, businessTypeId, contextHash, pivotFallback]);
 
   // Generación PROGRESIVA en background: micro-batches secuenciales que se
   // guardan apenas llegan. Nunca se piensan todas las preguntas juntas y el
@@ -486,7 +514,7 @@ export const SetupStepQuestionnaire = ({
         const merged = capQuestions([...prev, ...fresh], setupMode);
         questionsRef.current = merged;
         setQuestions(merged);
-        setCachedQuestions(merged, businessTypeId, setupMode, merged.length >= max);
+        setCachedQuestions(merged, businessTypeId, setupMode, contextHash, merged.length >= max);
 
         // Si la IA sólo devolvió repetidas, contarlo como fallo para no loopear infinito.
         if (fresh.length === 0) consecutiveFailures += 1;
@@ -504,9 +532,9 @@ export const SetupStepQuestionnaire = ({
       console.warn(`[Setup] Cerrando con ${total}/${min} preguntas (batches incompletos).`);
     }
     allBatchesDone.current = true;
-    setCachedQuestions(questionsRef.current, businessTypeId, setupMode, true);
+    setCachedQuestions(questionsRef.current, businessTypeId, setupMode, contextHash, true);
     setIsLoadingMore(false);
-  }, [fetchQuestions, setupMode, businessTypeId]);
+  }, [fetchQuestions, setupMode, businessTypeId, contextHash]);
 
   // Motor inteligente: si no hay cache válido, generar preguntas hiperpersonalizadas vía AI.
   // Tanto Rápido como Completo usan el MISMO motor (generate-questionnaire).
