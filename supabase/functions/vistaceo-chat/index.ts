@@ -305,6 +305,7 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .from("signals")
         .select("signal_type, source, content, raw_text, created_at")
         .eq("business_id", businessId)
+        .not("signal_type", "in", "(chat,ceo_chat,ceo_chat_learning)")
         .order("created_at", { ascending: false })
         .limit(15),
       supabase
