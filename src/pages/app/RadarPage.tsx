@@ -645,6 +645,7 @@ const RadarPage = () => {
     }
 
     setActionLoading(true);
+    setConvertingOverlay({ title: opportunity.title });
 
     try {
       // Creación INSTANTÁNEA con pasos contextuales locales.
@@ -687,13 +688,11 @@ const RadarPage = () => {
         { importance: 8, confidence: "high" },
       );
 
-      toast({
-        title: "¡Misión creada!",
-        description: "La oportunidad se convirtió en una misión activa.",
-      });
-
+      // Cerrar modal y dejar respirar la animación antes de navegar.
       setSelectedOpportunity(null);
-      navigate("/app/missions");
+      await new Promise((r) => setTimeout(r, 650));
+
+      navigate(`/app/missions?mission=${missionData.id}`);
 
       // Enriquecimiento IA sin bloquear la navegación.
       void enrichMissionInBackground(missionData.id, opportunity);
