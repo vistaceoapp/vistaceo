@@ -180,35 +180,44 @@ export const LimitReachedBanner = ({ type, onUpgrade }: LimitReachedBannerProps)
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.96 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="p-6 rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 border border-primary/20"
+      className="p-8 rounded-2xl bg-gradient-to-br from-primary/10 via-accent/5 to-primary/10 border border-primary/20"
     >
-      <div className="text-center space-y-4">
+      <div className="text-center space-y-5 max-w-md mx-auto">
         <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
           <Crown className="w-8 h-8 text-primary" />
         </div>
 
         <div>
-          <h3 className="text-lg font-bold text-foreground mb-1">
+          <h3 className="text-lg font-bold text-foreground mb-1.5">
             Cupo Gratis de {config.label} agotado
           </h3>
-          <p className="text-sm text-muted-foreground max-w-sm mx-auto">{copy}</p>
+          <p className="text-sm text-muted-foreground">{copy}</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button className="bg-primary text-primary-foreground" onClick={handleUpgrade}>
+        {/* Jerarquía única: CTA principal grande, recarga sutil debajo, volver como link */}
+        <div className="flex flex-col items-center gap-3 pt-1">
+          <Button
+            size="lg"
+            className="bg-gradient-to-r from-primary to-accent text-white shadow-lg shadow-primary/20 px-8"
+            onClick={handleUpgrade}
+          >
             <Crown className="w-4 h-4 mr-2" />
             Desbloquear con Pro
           </Button>
-          <Button variant="ghost" className="text-muted-foreground" onClick={() => navigate("/app")}>
-            Volver al inicio
-          </Button>
-        </div>
 
-        {(type === "radar" || type === "research") && (
-          <MonthlyRefillButton />
-        )}
+          {(type === "radar" || type === "research") && (
+            <MonthlyRefillButton />
+          )}
+
+          <button
+            onClick={() => navigate("/app")}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+          >
+            Volver al inicio
+          </button>
+        </div>
       </div>
     </motion.div>
   );
