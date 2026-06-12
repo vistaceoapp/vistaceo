@@ -139,6 +139,8 @@ const SetupPage = () => {
   const { trackSetupStarted, trackSetupStepViewed, trackSetupCompleted } = useActivityTracker();
   const [creatingBusiness, setCreatingBusiness] = useState(false);
   const [createProgress, setCreateProgress] = useState(0);
+  const [draftBusinessId, setDraftBusinessId] = useState<string | null>(null);
+  const ensuringDraftRef = useRef(false);
   const setupStartTracked = useRef(false);
   const { yearlySavings } = useCountryDetection();
   const realSavingsPct = Math.max(0, Math.min(99, yearlySavings().percentage || 0));
@@ -233,6 +235,95 @@ const SetupPage = () => {
   useEffect(() => {
     trackSetupStepViewed(STEPS[currentStep], currentStep);
   }, [currentStep]);
+
+  // 🧠 BRAIN EN VIVO: crear business draft + brain al entrar al cuestionario,
+  // así cada respuesta nutre el brain en tiempo real (vía onboarding-ingest).
+  // El draft se finaliza con `setup_completed=true` al terminar.
+  const ensureDraftBusiness = useCallback(async (): Promise<string | null> => {
+    if (draftBusinessId) return draftBusinessId;
+    if (!user || ensuringDraftRef.current) return null;
+    if (!data.areaId || !data.businessTypeId) return null;
+    ensuringDraftRef.current = true;
+    try {
+      // Reutiliza un business incompleto si ya existe para este usuario
+      const existing = businesses?.find((b) => !b.setup_completed);
+      let businessId: string | null = existing?.id ?? null;
+
+      if (!businessId) {
+        const { data: created, error } = await supabase
+          .from('businesses')
+          .insert({
+            name: data.businessName?.trim() || 'Mi negocio',
+            category: mapAreaToCategory(data.areaId) as any,
+            country: data.countryCode,
+            owner_id: user.id,
+            setup_completed: false,
+            settings: {
+              setup_version: '7.0',
+              setup_mode: data.setupMode,
+              draft_created_at: new Date().toISOString(),
+            },
+          })
+          .select('id')
+          .single();
+        if (error || !created) {
+          console.warn('[Setup] No se pudo crear draft business:', error);
+          return null;
+        }
+        businessId = created.id;
+      }
+
+      // Crear/actualizar brain mínimo para que onboarding-ingest tenga dónde escribir
+      let universalProfile: any = null;
+      try {
+        const raw = localStorage.getItem('setupUniversalProfile');
+        universalProfile = raw ? JSON.parse(raw) : null;
+      } catch { /* noop */ }
+
+      await supabase.from('business_brains').upsert(
+        {
+          business_id: businessId,
+          primary_business_type: data.businessTypeId || null,
+          classification_status: 'draft',
+          classification_confidence: 0.5,
+          classification_source: 'setup_draft',
+          current_focus: 'ventas',
+          factual_memory: {
+            area_id: data.areaId,
+            business_type_label: data.businessTypeLabel,
+            setup_mode: data.setupMode,
+            country_code: data.countryCode,
+            raw_user_text: universalProfile?._raw_user_text || null,
+            keywords: universalProfile?.keywords || [],
+            primary_pains: universalProfile?.primary_pains || [],
+            opportunity_angles: universalProfile?.opportunity_angles || [],
+            answers: {},
+            draft: true,
+          },
+          preferences_memory: { language: 'es', country_code: data.countryCode },
+          decisions_memory: { missions_created: 0, missions_completed: 0, feedback_given: 0 },
+          mvc_completion_pct: 0,
+          version: 1,
+        } as never,
+        { onConflict: 'business_id' }
+      );
+
+      setDraftBusinessId(businessId);
+      return businessId;
+    } catch (err) {
+      console.warn('[Setup] ensureDraftBusiness error:', err);
+      return null;
+    } finally {
+      ensuringDraftRef.current = false;
+    }
+  }, [draftBusinessId, user, businesses, data.areaId, data.businessTypeId, data.businessTypeLabel, data.businessName, data.countryCode, data.setupMode]);
+
+  // Disparar creación del draft al entrar al cuestionario
+  useEffect(() => {
+    if (STEPS[currentStep] === 'questionnaire' && !draftBusinessId) {
+      ensureDraftBusiness();
+    }
+  }, [currentStep, draftBusinessId, ensureDraftBusiness]);
 
   const stepId = STEPS[currentStep];
   const totalSteps = STEPS.length;
@@ -793,6 +884,7 @@ const SetupPage = () => {
             setupMode={data.setupMode}
             answers={data.answers}
             questionIndex={data.questionIndex}
+            draftBusinessId={draftBusinessId}
             onUpdate={(answers) => setData(d => ({ ...d, answers }))}
             onQuestionIndexChange={(questionIndex) => setData(d => ({ ...d, questionIndex }))}
             onComplete={handleNext}
