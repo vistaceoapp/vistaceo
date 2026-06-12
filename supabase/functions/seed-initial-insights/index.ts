@@ -108,6 +108,37 @@ Deno.serve(async (req) => {
 
     console.log(`[seed-initial-insights] Starting for business: ${businessId}`);
 
+    // Candado de idempotencia: si otra ejecución ya está sembrando, salir.
+    // Si terminó hace poco, también salir.
+    {
+      const { data: bizRow } = await supabase
+        .from("businesses")
+        .select("settings")
+        .eq("id", businessId)
+        .maybeSingle();
+      const settings = (bizRow?.settings as Record<string, unknown> | null) ?? {};
+      const startedAt = typeof settings.seeding_started_at === "string" ? Date.parse(settings.seeding_started_at) : 0;
+      const completedAt = typeof settings.seeding_completed_at === "string" ? Date.parse(settings.seeding_completed_at) : 0;
+      const now = Date.now();
+      if (completedAt && now - completedAt < 24 * 60 * 60 * 1000) {
+        console.log("[seed-initial-insights] already completed recently, skipping");
+        return new Response(JSON.stringify({ ok: true, skipped: "already_completed" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (startedAt && now - startedAt < 60 * 1000) {
+        console.log("[seed-initial-insights] another run in progress, skipping");
+        return new Response(JSON.stringify({ ok: true, skipped: "in_progress" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      await supabase
+        .from("businesses")
+        .update({ settings: { ...settings, seeding_started_at: new Date().toISOString() } })
+        .eq("id", businessId);
+    }
+
+
     // Fire both analyze-patterns calls in parallel and wait for them.
     const analyzeUrl = `${supabaseUrl}/functions/v1/analyze-patterns`;
     const headers = {
