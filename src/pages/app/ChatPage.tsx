@@ -367,9 +367,9 @@ const ChatPage = () => {
 
         if (limitPayload?.error === "free_limit_reached") {
           toast({
-            title: "Límite del plan Gratis alcanzado",
+            title: "Chat bloqueado — usaste tus 3 mensajes",
             description: limitPayload.message ||
-              "Llegaste a los 3 mensajes mensuales. Pasate a Pro para chatear sin límites.",
+              "Pasate a Pro para chatear sin límites con tu CEO virtual.",
             action: (
               <ToastAction altText="Ver Pro" onClick={() => navigate("/checkout")}>
                 Ver Pro
