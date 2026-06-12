@@ -23,6 +23,7 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { requestMissionPlan } from "@/lib/mission-plan-async";
+import { readRemoteArtifact } from "@/lib/ai-artifact-cache";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -318,6 +319,7 @@ export const MissionLLMMode = ({
   };
 
   // Fetch enhanced plan with caching — cached plans load instantly, no flash
+  // Cache chain: localStorage (mismo dispositivo) → ai_artifacts_cache (cross-device) → edge function
   const fetchEnhancedPlan = useCallback(async (regenerate = false) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -334,6 +336,20 @@ export const MissionLLMMode = ({
         setError(null);
         return; // Instant load — no network call
       }
+
+      // Cross-device: leer cache remoto de la base antes de pedir generación nueva
+      const artifactKey = `mission:${(mission.title ?? "").slice(0, 120)}::${mission.area ?? "general"}`;
+      try {
+        const remote = await readRemoteArtifact<EnhancedPlan>("mission", artifactKey, businessId);
+        if (remote) {
+          setEnhancedPlan(remote);
+          setCachedPlan(mission.id, businessId, remote);
+          setLoading(false);
+          setError(null);
+          return;
+        }
+      } catch { /* fail-open: si la base no responde, seguimos al edge function */ }
+
       setLoading(true);
     }
     setError(null);
@@ -367,6 +383,7 @@ export const MissionLLMMode = ({
       setRegenerating(false);
     }
   }, [mission.id, mission.title, mission.description, mission.area, businessId, steps]);
+
 
   const regenGate = useMissionRegenerateGate(mission.id, () => fetchEnhancedPlan(true));
   const confirmAndRegenerate = regenGate.requestRegenerate;

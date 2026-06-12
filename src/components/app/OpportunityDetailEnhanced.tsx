@@ -30,6 +30,7 @@ import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 import type { GenerateOpportunityPlanResponse } from '@/lib/edge-function-response-types';
 import { useContentStaleness } from '@/hooks/use-content-staleness';
 import { StaleContentBanner } from '@/components/app/StaleContentBanner';
+import { readArtifactCachedAnywhere, writeLocalArtifact } from '@/lib/ai-artifact-cache';
 
 interface Opportunity {
   id: string;
@@ -200,10 +201,22 @@ export const OpportunityDetailEnhanced = ({
   const canConvert = !atMissionLimit || isPro;
 
   // Fetch AI-generated plan when component mounts
+  // Orden: localStorage → ai_artifacts_cache (cross-device) → edge function
   useEffect(() => {
     const fetchAIPlan = async () => {
       if (!business?.id) return;
-      
+
+      const artifactKey = `opp:${opportunity.id}`;
+
+      // 1. Cache cross-device (incluye localStorage interno)
+      const cached = await readArtifactCachedAnywhere<AIPlan>("opportunity", artifactKey, business.id);
+      if (cached) {
+        setAIPlan(cached);
+        setPlanLoading(false);
+        setPlanError(false);
+        return;
+      }
+
       setPlanLoading(true);
       setPlanError(false);
 
@@ -216,6 +229,7 @@ export const OpportunityDetailEnhanced = ({
         if (error) throw error;
         if (data?.plan) {
           setAIPlan(data.plan as AIPlan);
+          writeLocalArtifact("opportunity", artifactKey, business.id, data.plan);
         }
       } catch (err) {
         console.error("Error fetching AI plan:", err);
@@ -227,6 +241,7 @@ export const OpportunityDetailEnhanced = ({
 
     fetchAIPlan();
   }, [business?.id, opportunity.id]);
+
 
   const regeneratePlan = async () => {
     if (!business?.id) return;
