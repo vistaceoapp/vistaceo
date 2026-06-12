@@ -237,21 +237,47 @@ serve(async (req) => {
       post.content_md,
       post.category || 'general',
       post.primary_keyword || post.title,
-      lovableApiKey
+      lovableApiKey,
+      mode as 'standard' | 'expand'
     );
 
+    const originalLen = post.content_md.length;
+    const improvedLen = improvedContent.length;
+
+    // Safety net: in expand mode (or with min_growth) reject shorter output
+    const minRequired = mode === 'expand'
+      ? Math.max(originalLen, 14000)
+      : Math.floor(originalLen * (1 + (min_growth || 0)));
+
+    if (improvedLen < minRequired) {
+      return new Response(JSON.stringify({
+        success: false,
+        skipped: true,
+        reason: `improved_shorter_than_required (${improvedLen} < ${minRequired})`,
+        post_id: post.id,
+        original_length: originalLen,
+        improved_length: improvedLen,
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (dry_run) {
-      // Return preview without saving
       return new Response(JSON.stringify({
         success: true,
         dry_run: true,
         post_id: post.id,
         title: post.title,
-        original_length: post.content_md.length,
-        improved_length: improvedContent.length,
+        original_length: originalLen,
+        improved_length: improvedLen,
         improved_content: improvedContent
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
+
+    // Snapshot previous version before overwrite
+    await supabase.from('blog_content_versions').insert({
+      post_id: post.id,
+      content_md: post.content_md,
+      reason: `improve:${mode}`,
+    } as any).then(() => {}, () => {});
 
     // Update the post
     const { error: updateError } = await supabase
@@ -272,8 +298,8 @@ serve(async (req) => {
       success: true,
       post_id: post.id,
       title: post.title,
-      original_length: post.content_md.length,
-      improved_length: improvedContent.length
+      original_length: originalLen,
+      improved_length: improvedLen
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
   } catch (error) {
