@@ -661,10 +661,9 @@ export const SetupStepQuestionnaire = ({
     onUpdate({ ...answers, [currentQuestion.id]: value });
     liveIngest(currentQuestion, value);
     // Feedback visual: el cerebro aprende en vivo
-    const label = (currentQuestion as any)?.shortLabel
-      || (currentQuestion as any)?.category
-      || (typeof currentQuestion?.question === 'string' ? currentQuestion.question.slice(0, 60) : 'nueva señal');
-    notifyBrainLearned(String(label));
+    const q: any = currentQuestion;
+    const text = q?.shortLabel || q?.category || q?.question || q?.text || q?.title || 'nueva señal';
+    notifyBrainLearned(String(text).slice(0, 60));
   };
 
   // "No sé / Quiero aclarar algo": NUNCA autoavanza. Solo abre input.
