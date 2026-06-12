@@ -392,14 +392,31 @@ export default function PredictionsPage() {
 
   useRecordBrainView("predictions_viewed", { total: predictions.length });
 
+  // Tope: 3 generaciones de predicciones por mes calendario (Pro).
+  const MONTHLY_PREDICTION_CAP = 3;
+  const generationsThisMonth = useMemo(() => {
+    const now = new Date();
+    return predictions.filter(p => {
+      const d = new Date(p.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+  }, [predictions]);
+  const capReached = generationsThisMonth >= MONTHLY_PREDICTION_CAP;
+
   const handleGenerate = async () => {
+    if (capReached) {
+      toast.message('Llegaste al tope mensual', {
+        description: `Tenés ${MONTHLY_PREDICTION_CAP} predicciones por mes en Pro. Se renueva el 1 del próximo mes.`,
+      });
+      return;
+    }
     setIsGenerating(true);
     try {
       await generateNewPredictions();
       recordAction("predictions_regenerated", { previousTotal: predictions.length }, { importance: 5 });
       toast.success('Predicciones generadas');
     }
-    catch { toast.error('Error al generar predicciones'); }
+    catch { toast.error('No pudimos generar ahora, probá en unos segundos'); }
     finally { setIsGenerating(false); }
   };
 
