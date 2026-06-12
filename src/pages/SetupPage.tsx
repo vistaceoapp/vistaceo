@@ -573,21 +573,10 @@ const SetupPage = () => {
         }
       }
 
-      // Step 5b: Seed initial Radar (opportunities + 1 trend) so the user
-      // never lands on an empty dashboard. Fire-and-forget; the function
-      // guarantees at least 1-2 opportunities and 1 trend even if the AI
-      // returns nothing.
-      try {
-        buildContextPack('dashboard', business.id).then(cpSeed => {
-          invokeEdgeFunctionSafe('seed-initial-insights', {
-            body: { businessId: business.id, module: 'dashboard', contextPack: cpSeed, outputContract: 'initial_insights_v1' },
-          }).catch(err => {
-            console.warn('[Setup] seed-initial-insights failed (non-blocking):', err);
-          });
-        }).catch(() => {});
-      } catch (scanErr) {
-        console.warn('[Setup] Error triggering initial seed:', scanErr);
-      }
+      // NOTA: NO disparamos seed-initial-insights aquí. La pantalla
+      // /app/preparing es la única responsable de generar el contenido
+      // inicial (1 misión + 2 opps + 2 tendencias). Disparar en paralelo
+      // causaba dobles inserciones y contenido genérico mezclado con IA.
 
       setCreateProgress(100);
 
