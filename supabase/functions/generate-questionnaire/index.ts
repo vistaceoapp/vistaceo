@@ -396,7 +396,7 @@ Responde usando la función generate_questions.`;
             ],
             tool_choice: { type: "function", function: { name: "generate_questions" } },
             temperature: 0.4,
-            max_tokens: 8192,
+            max_tokens: 16384,
           }),
         });
 
