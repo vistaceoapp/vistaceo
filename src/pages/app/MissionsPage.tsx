@@ -7,6 +7,7 @@ import {
   Layers, BarChart3, Star, Crown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { requestMissionPlan } from "@/lib/mission-plan-async";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
@@ -265,17 +266,15 @@ const MissionsPage = () => {
 
     try {
       const contextPack = await buildContextPack('missions', currentBusiness.id).catch(() => null);
-      const { data, error } = await invokeEdgeFunctionSafe<GenerateMissionPlanResponse>("generate-mission-plan", {
-        body: {
-          businessId: currentBusiness.id,
-          module: 'missions',
-          contextPack,
-          outputContract: 'mission_plan_v1',
-          missionTitle: suggestion.title,
-          missionDescription: suggestion.description,
-          missionArea: suggestion.area,
-          regenerate,
-        }
+      const data = await requestMissionPlan({
+        businessId: currentBusiness.id,
+        module: 'missions',
+        contextPack,
+        outputContract: 'mission_plan_v1',
+        missionTitle: suggestion.title,
+        missionDescription: suggestion.description,
+        missionArea: suggestion.area,
+        regenerate,
       });
 
       // Free-limit reached: edge function returns 402 with structured payload
@@ -297,7 +296,7 @@ const MissionsPage = () => {
         return;
       }
 
-      if (error) throw error;
+      if (!data?.plan) throw new Error(data?.error || "plan_missing");
       setGeneratedPlan(data.plan);
     } catch (error) {
       console.error("Error generating plan:", error);
