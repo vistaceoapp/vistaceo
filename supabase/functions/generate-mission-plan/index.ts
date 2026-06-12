@@ -809,6 +809,29 @@ serve(async (req) => {
       });
     }
 
+    // Brain signal: mission_plan_generated (cierra loop de auto-aprendizaje)
+    if (businessId) {
+      try {
+        await supabase.from("signals").insert({
+          business_id: businessId,
+          brain_id: context?.brain?.id || null,
+          signal_type: "mission_plan_generated",
+          source: "generate-mission-plan",
+          content: {
+            title: cleanPlan?.planTitle,
+            steps_count: (cleanPlan?.steps || []).length,
+            confidence: cleanPlan?.confidence,
+            risk_level: cleanPlan?.riskLevel,
+            estimated_impact: cleanPlan?.estimatedImpact,
+            quality_passed: passed,
+          },
+          confidence: cleanPlan?.confidence === "high" ? "high" : "medium",
+          importance: 7,
+        });
+      } catch (e) { console.warn("[generate-mission-plan] signal insert failed", e); }
+    }
+
+
     return new Response(
       JSON.stringify({
         plan: cleanPlan,
