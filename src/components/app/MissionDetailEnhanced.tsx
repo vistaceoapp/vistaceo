@@ -42,6 +42,7 @@ import { translateMissionArea } from "@/lib/presentationRegistry";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { humanizeProse } from "@/lib/humanize-evidence";
 import { supabase } from "@/integrations/supabase/client";
+import { requestMissionPlan } from "@/lib/mission-plan-async";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Accordion,
