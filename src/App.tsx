@@ -43,6 +43,7 @@ const AdminAnalyticsPage = lazy(() => import("./pages/admin/AdminAnalyticsPage")
 const CentroControlPage = lazy(() => import("./pages/admin/CentroControlPage"));
 const AdminEmailsPage = lazy(() => import("./pages/admin/AdminEmailsPage"));
 const AdminUserTimelinePage = lazy(() => import("./pages/admin/AdminUserTimelinePage"));
+const AdminSaludPage = lazy(() => import("./pages/admin/AdminSaludPage"));
 
 // App pages - lazy loaded
 const AppLayout = lazy(() => import("./layouts/AppLayout"));
