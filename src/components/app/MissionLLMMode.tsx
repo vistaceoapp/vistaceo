@@ -493,6 +493,10 @@ export const MissionLLMMode = ({
           <MissionLoadingState 
             businessName={currentBusiness?.name}
             missionTitle={mission.title}
+            missionId={mission.id}
+            businessId={businessId}
+            onRetry={() => fetchEnhancedPlan(false)}
+            onBack={onBack}
           />
         ) : (
           <>

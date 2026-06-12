@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { Brain, Sparkles, Target, TrendingUp, Zap, BarChart3 } from "lucide-react";
+import { Brain, Sparkles, Target, TrendingUp, Zap, BarChart3, RefreshCw, ArrowLeft, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useStuckLoadingDetector } from "@/hooks/use-stuck-loading-detector";
 
 interface MissionLoadingStateProps {
   businessName?: string;
@@ -9,6 +11,10 @@ interface MissionLoadingStateProps {
   currentFocus?: string;
   missionTitle?: string;
   className?: string;
+  missionId?: string;
+  businessId?: string;
+  onRetry?: () => void;
+  onBack?: () => void;
 }
 
 const LOADING_MESSAGES = [
@@ -26,9 +32,24 @@ export const MissionLoadingState = ({
   currentFocus,
   missionTitle,
   className,
+  missionId,
+  businessId,
+  onRetry,
+  onBack,
 }: MissionLoadingStateProps) => {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Sensor: si el plan tarda > 25s, reportamos incidente a /admin/salud
+  // y mostramos una salida al usuario en lugar de skeletons eternos.
+  const { isStuck } = useStuckLoadingDetector({
+    loading: true,
+    scope: "mission_plan",
+    wherePath: typeof window !== "undefined" ? window.location.pathname : undefined,
+    context: { missionId, businessId, missionTitle },
+    stuckAfterSeconds: 25,
+    severity: "high",
+  });
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -45,7 +66,6 @@ export const MissionLoadingState = ({
   const currentMessage = LOADING_MESSAGES[currentMessageIndex];
   const CurrentIcon = currentMessage.icon;
 
-  // Build personalized suffix
   const getPersonalizedSuffix = () => {
     if (businessName && city) return ` en ${businessName}, ${city}`;
     if (businessName) return ` para ${businessName}`;
@@ -53,6 +73,38 @@ export const MissionLoadingState = ({
     if (currentFocus) return ` para tu foco: ${currentFocus}`;
     return "...";
   };
+
+  // Si está tildado, mostrar recuperación clara (no skeleton eterno)
+  if (isStuck) {
+    return (
+      <div className={cn("flex flex-col items-center justify-center py-12 px-4 text-center", className)}>
+        <div className="w-16 h-16 rounded-2xl bg-warning/10 flex items-center justify-center mb-5">
+          <AlertCircle className="w-8 h-8 text-warning" />
+        </div>
+        <h3 className="text-base font-semibold text-foreground mb-2 max-w-sm">
+          Está tardando más de lo normal en preparar tu plan
+        </h3>
+        <p className="text-sm text-muted-foreground max-w-sm mb-5">
+          Ya avisé al equipo. Mientras tanto podés reintentar o volver a misiones —
+          nada se perdió y el plan queda guardado apenas termine.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2 w-full max-w-xs">
+          {onRetry && (
+            <Button onClick={onRetry} className="flex-1" size="sm">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Reintentar
+            </Button>
+          )}
+          {onBack && (
+            <Button onClick={onBack} variant="outline" className="flex-1" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("flex flex-col items-center justify-center py-12 px-4", className)}>
@@ -62,7 +114,6 @@ export const MissionLoadingState = ({
         <div className="relative w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/30">
           <Brain className="w-10 h-10 text-primary-foreground animate-pulse" />
         </div>
-        {/* Orbiting dots */}
         <div className="absolute inset-0 animate-spin" style={{ animationDuration: "3s" }}>
           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 w-2 h-2 rounded-full bg-primary" />
         </div>
@@ -71,14 +122,12 @@ export const MissionLoadingState = ({
         </div>
       </div>
 
-      {/* Mission title if available */}
       {missionTitle && (
         <h3 className="text-lg font-semibold text-foreground mb-2 text-center line-clamp-2 max-w-md">
           {missionTitle}
         </h3>
       )}
 
-      {/* Rotating message */}
       <div className="h-8 flex items-center justify-center mb-6">
         <div
           className={cn(
@@ -94,12 +143,10 @@ export const MissionLoadingState = ({
         </div>
       </div>
 
-      {/* Progress bar */}
       <div className="w-64 h-1.5 bg-secondary rounded-full overflow-hidden">
         <div className="h-full bg-primary rounded-full animate-loading-bar" />
       </div>
 
-      {/* Skeleton preview */}
       <div className="mt-8 w-full max-w-md space-y-3">
         <Skeleton className="h-20 w-full rounded-xl" />
         <div className="grid grid-cols-4 gap-2">
@@ -113,4 +160,3 @@ export const MissionLoadingState = ({
     </div>
   );
 };
-
