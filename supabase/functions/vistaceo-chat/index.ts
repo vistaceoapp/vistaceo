@@ -1452,12 +1452,14 @@ Si alguna falla, reescribilo antes de devolver.`,
 
     // Capa de terminología profesional contextual por país y actividad
     const { buildTerminologyContext } = await import("../_shared/brain-core/contextual-terminology.ts");
+    const ctxBrain = memoryContext.brain as Record<string, unknown> | null;
+    const ctxFactual = (ctxBrain?.factual_memory as Record<string, unknown>) || {};
     const terminology = buildTerminologyContext({
-      activity: (brain?.primary_business_type as string) || business.category || null,
-      offer: (brain?.factual_memory as any)?.offer ?? null,
-      customer: (brain?.factual_memory as any)?.customer ?? null,
-      channel: (brain?.factual_memory as any)?.channel ?? null,
-      country: business.country ?? null,
+      activity: (ctxBrain?.primary_business_type as string) || businessContext?.category || null,
+      offer: (ctxFactual.offer as string) ?? null,
+      customer: (ctxFactual.customer as string) ?? null,
+      channel: (ctxFactual.channel as string) ?? null,
+      country: businessContext?.country ?? null,
     });
 
     const aiMessages = [
