@@ -305,7 +305,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
           <button
             key={insight.id}
             className="w-full p-3 rounded-xl bg-secondary/30 border border-border hover:border-accent/30 transition-all text-left group"
-            onClick={() => navigate(`/app/radar`)}
+            onClick={() => navigate(`/app/radar?tab=id&item=${insight.id}`)}
           >
             <div className="flex items-start gap-3">
               <div className={cn(
