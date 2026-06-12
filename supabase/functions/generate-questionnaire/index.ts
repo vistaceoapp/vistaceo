@@ -101,12 +101,17 @@ serve(async (req) => {
       ? `\n\nCONTEXTO DE APRENDIZAJE - El usuario ya respondió estas preguntas previamente. Usa esta información para hacer preguntas MÁS PROFUNDAS y ESPECÍFICAS, NO repitas temas ya cubiertos:\n${JSON.stringify(previousAnswers, null, 2)}`
       : '';
 
+    // Anti-repetición entre micro-batches progresivos
+    const dedupeContext = Array.isArray(existingTitles) && existingTitles.length > 0
+      ? `\n\nPREGUNTAS YA GENERADAS EN BATCHES ANTERIORES (PROHIBIDO repetir estos temas o variantes cercanas):\n- ${existingTitles.slice(0, 40).join('\n- ')}`
+      : '';
+
     const dimDist = questionCountOverride 
       ? { min: Math.max(1, Math.floor(batchQuestionCount / 7) - 1), max: Math.ceil(batchQuestionCount / 7) + 1 }
       : DIMENSION_DISTRIBUTION[isQuick ? 'quick' : 'complete'];
 
-    // Use compact prompt for background batches (batchIndex > 0) for speed
-    const isBackgroundBatch = batchIndex > 0;
+    // Use compact prompt for background batches AND small first micro-batches (speed)
+    const isBackgroundBatch = batchIndex > 0 || batchQuestionCount <= 6;
     
     const systemPrompt = isBackgroundBatch 
       ? `Genera preguntas de diagnóstico ULTRA-PERSONALIZADAS para "${businessTypeLabel}" (${countryCode}). Idioma: ${lang}, voz: ${voiceStyle}.
@@ -127,8 +132,10 @@ REGLAS ABSOLUTAS:
 5. NO incluyas "No sé", "No aplica", "Otra", "Ninguna" como opciones. La UI los agrega aparte.
 6. Para concepto difícil (flujo de caja, margen, ticket, conversión, recompra, capital de trabajo, etc.): completá "help" con UNA frase ≤120 chars que lo explique.
 7. Datos accionables. Rangos realistas. Gramática perfecta.
-8. NO repitas temas que ya están en el CONTEXTO DE APRENDIZAJE. Profundizá en lo NO cubierto.
-${learningContext}
+8. NO repitas temas que ya están en el CONTEXTO DE APRENDIZAJE ni en PREGUNTAS YA GENERADAS. Profundizá en lo NO cubierto.
+${learningContext}${dedupeContext}
+
+Responde con generate_questions.`
 
 Responde con generate_questions.`
       : `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
