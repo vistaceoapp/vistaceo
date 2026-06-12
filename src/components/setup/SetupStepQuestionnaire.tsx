@@ -62,9 +62,9 @@ const BATCH_CONFIG = {
   },
   complete: {
     firstBatch: 3,
-    perBatch: 6, // 3 + 6×5 ≈ 30-32
-    totalMin: 28,
-    totalMax: 32,
+    perBatch: 5, // 3 + 5+5+5+4+3 = 25 — alta calidad, baja fatiga
+    totalMin: 23,
+    totalMax: 25,
   },
 };
 
