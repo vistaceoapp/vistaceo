@@ -934,7 +934,7 @@ ${analysisContext}
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-pro", // Downgraded from pro: flash handles market analysis well
+          model: "google/gemini-2.5-flash", // Cost-optimized: market RSS analysis tolera flash sin perder calidad (gates + validateBeforeStore filtran)
           messages: [
             { role: "system", content: "Sos un analista de mercado experto. Generás insights de I+D basados en fuentes reales." },
             { role: "user", content: researchPrompt }
@@ -1074,6 +1074,21 @@ ${analysisContext}
           message: `Se detectaron ${learningInserted} tendencia${learningInserted > 1 ? 's' : ''} externa${learningInserted > 1 ? 's' : ''} relevante${learningInserted > 1 ? 's' : ''} para tu sector.`,
           insights_count: learningInserted,
         });
+      }
+
+      // Brain signal: registrar evento research generado (cierra gap de auto-aprendizaje)
+      if (learningInserted > 0) {
+        try {
+          await supabase.from("signals").insert({
+            business_id: businessId,
+            brain_id: brain?.id || null,
+            signal_type: "research_generated",
+            source: "analyze-patterns",
+            content: { inserted: learningInserted, filtered: learningFiltered, model: "google/gemini-2.5-flash" },
+            confidence: "medium",
+            importance: 4,
+          });
+        } catch (e) { console.warn("[analyze-patterns] research signal insert failed", e); }
       }
 
       console.log(`[analyze-patterns] Research complete: ${learningInserted} inserted, ${learningFiltered} filtered`);
@@ -1358,6 +1373,21 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
         message: `El análisis inteligente encontró ${opportunitiesInserted} oportunidad${opportunitiesInserted > 1 ? 'es' : ''} basada${opportunitiesInserted > 1 ? 's' : ''} en los datos de tu negocio.`,
         insights_count: opportunitiesInserted,
       });
+    }
+
+    // Brain signal: oportunidades generadas (cierra gap de auto-aprendizaje del brain)
+    if (opportunitiesInserted > 0) {
+      try {
+        await supabase.from("signals").insert({
+          business_id: businessId,
+          brain_id: brain?.id || null,
+          signal_type: "opportunities_generated",
+          source: "analyze-patterns",
+          content: { inserted: opportunitiesInserted, filtered: opportunitiesFiltered },
+          confidence: "high",
+          importance: 6,
+        });
+      } catch (e) { console.warn("[analyze-patterns] opportunities signal insert failed", e); }
     }
 
     console.log(`[analyze-patterns] Opportunities complete: ${opportunitiesInserted} inserted, ${opportunitiesFiltered} filtered`);

@@ -338,6 +338,24 @@ DEBES responder con JSON válido en este formato EXACTO:
       console.error("[analyze-health-score] Snapshot save error:", snapshotError);
     }
 
+    // Brain signal: health recalculado (cierra gap de auto-aprendizaje del brain)
+    try {
+      await supabase.from("signals").insert({
+        business_id: businessId,
+        brain_id: brainData?.id || null,
+        signal_type: "health_recalculated",
+        source: "analyze-health-score",
+        content: {
+          total_score: analysis.totalScore,
+          certainty_pct: analysis.certaintyPct,
+          data_quality: analysis.dataQuality,
+          dimensions: Object.fromEntries(Object.entries(analysis.dimensions).map(([k, v]: any) => [k, v?.score ?? null])),
+        },
+        confidence: analysis.certaintyPct >= 60 ? "high" : "medium",
+        importance: 5,
+      });
+    } catch (e) { console.warn("[analyze-health-score] signal insert failed", e); }
+
     return new Response(
       JSON.stringify({
         success: true,

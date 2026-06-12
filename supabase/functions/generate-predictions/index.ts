@@ -806,6 +806,32 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
       }
     }
 
+    // Brain signal: predicciones generadas (cierra gap de auto-aprendizaje)
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/signals`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          business_id,
+          brain_id: brain?.id || null,
+          signal_type: 'predictions_generated',
+          source: 'generate-predictions',
+          content: {
+            predictions_count: validatedPredictions.length,
+            calibrations_count: calibrationEvents.length,
+            data_quality_score: dataQuality.overallScore,
+            business_type: businessType,
+          },
+          confidence: 'high',
+          importance: 6,
+        }),
+      });
+    } catch (e) { console.warn('[generate-predictions] signal insert failed', e); }
+
     return new Response(JSON.stringify({
       success: true,
       predictions_count: predictions.length,
