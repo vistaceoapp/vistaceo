@@ -295,6 +295,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <BrainLearningPulse />
         <BrowserRouter>
           <ErrorBoundary>
             <AuthProvider>
