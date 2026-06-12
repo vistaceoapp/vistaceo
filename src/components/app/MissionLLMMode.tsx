@@ -759,7 +759,8 @@ export const MissionLLMMode = ({
                 const isSelected = selectedStepIdx === idx;
                 // Bloquear pasos futuros: solo se puede tocar lo ya completado o el "siguiente"
                 const isLocked = !step.done && !isCurrentStep;
-                const titleText = step.text || (loading ? "" : `Paso ${idx + 1}`);
+                const enhancedText = enhancedPlan?.steps?.[idx]?.text;
+                const titleText = (step.text && step.text.trim()) || (enhancedText && enhancedText.trim()) || (loading ? "" : `Paso ${idx + 1}`);
 
                 return (
                   <button
