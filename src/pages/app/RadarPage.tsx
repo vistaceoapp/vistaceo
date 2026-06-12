@@ -151,7 +151,7 @@ const getSourceIcon = (source: string | null): string => {
 
 const RadarPage = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
   const { brain } = useBrain();
