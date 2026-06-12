@@ -87,13 +87,33 @@ FORMATO DE SALIDA:
 - Empezá con el párrafo intro`;
 
 
+const EXPAND_INSTRUCTIONS = `
+MODO EXPAND (CRÍTICO):
+- La nota DEBE quedar MÁS LARGA y MÁS PROFUNDA que la original. Nunca recortar.
+- Si el título o la keyword sugieren "herramientas / toolkit / apps / kit / stack / mejores":
+  * Incluir un bloque "## Herramientas recomendadas" con MÍNIMO 6 herramientas reales.
+  * Cada herramienta como ### Nombre — descripción
+    - **Qué hace:** 1-2 líneas
+    - **Precio:** rango real en USD y disponibilidad LATAM
+    - **Cuándo usarla:** caso concreto
+    - **Limitaciones:** 1-2
+    - **Alternativa:** otra app comparable
+  * Tabla comparativa al final (Nombre · Precio · Mejor para · País)
+- Mantener TODO ejemplo, dato o caso valioso que ya exista.
+- Agregar al menos 5 ejemplos LATAM con países concretos (AR, MX, CL, CO, UY, etc.).
+- Agregar 8-12 FAQs (cada una como ### ¿Pregunta?).
+- Agregar sección "## Caso real" con escenario detallado (problema → acción → resultado).
+- Largo mínimo objetivo: 14.000 caracteres. Largo ideal: 18.000+.
+`;
+
 async function improvePost(
   postId: string,
   title: string,
   currentContent: string,
   category: string,
   primaryKeyword: string,
-  lovableApiKey: string
+  lovableApiKey: string,
+  mode: 'standard' | 'expand' = 'standard'
 ): Promise<string> {
   const context = `
 NOTA A MEJORAR:
@@ -105,16 +125,17 @@ CONTENIDO ACTUAL:
 ${currentContent}
 
 INSTRUCCIONES:
-1. Mantené el contenido valioso que ya existe
-2. Agregá las secciones faltantes del Prompt Maestro V3
-3. Mejorá la legibilidad (párrafos cortos, aire visual)
-4. Asegurate de que las FAQs usen ### para cada pregunta
-5. Agregá la sección "## Por qué esto importa" si falta
-6. Verificá que haya al menos 3 ejemplos LATAM con el formato correcto
-7. Mantené un tono profesional y directo
+1. Mantené el contenido valioso que ya existe (NUNCA recortar).
+2. Agregá las secciones faltantes del Prompt Maestro V3.
+3. Mejorá la legibilidad (párrafos cortos, aire visual).
+4. Asegurate de que las FAQs usen ### para cada pregunta.
+5. Agregá la sección "## Por qué esto importa" si falta.
+6. Verificá que haya al menos 5 ejemplos LATAM con el formato correcto.
+7. Tono profesional y directo.
+${mode === 'expand' ? EXPAND_INSTRUCTIONS : ''}
 `;
 
-  console.log(`[blog-improve-post] Calling AI for post: ${postId}`);
+  console.log(`[blog-improve-post] Calling AI for post: ${postId} (mode=${mode})`);
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
@@ -123,12 +144,12 @@ INSTRUCCIONES:
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-2.5-flash-lite',
+      model: 'google/gemini-2.5-flash',
       messages: [
-        { role: 'system', content: IMPROVE_PROMPT },
+        { role: 'system', content: IMPROVE_PROMPT + (mode === 'expand' ? '\n\n' + EXPAND_INSTRUCTIONS : '') },
         { role: 'user', content: context }
       ],
-      max_tokens: 8000,
+      max_tokens: 16000,
       temperature: 0.6,
     }),
   });
@@ -150,6 +171,7 @@ INSTRUCCIONES:
 
   return text;
 }
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
