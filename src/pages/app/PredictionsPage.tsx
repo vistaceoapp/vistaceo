@@ -545,10 +545,15 @@ export default function PredictionsPage() {
             Anticipá el futuro de tu negocio basado en datos reales
           </p>
         </div>
-        <Button onClick={handleGenerate} disabled={isGenerating} className="gradient-primary text-primary-foreground">
-          {isGenerating ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-          Generar predicciones
-        </Button>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-[10px]">
+            {generationsThisMonth}/{MONTHLY_PREDICTION_CAP} este mes
+          </Badge>
+          <Button onClick={handleGenerate} disabled={isGenerating || capReached} className="gradient-primary text-primary-foreground">
+            {isGenerating ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+            {capReached ? 'Tope mensual' : 'Generar predicciones'}
+          </Button>
+        </div>
       </div>
 
       {/* Calibrations */}
