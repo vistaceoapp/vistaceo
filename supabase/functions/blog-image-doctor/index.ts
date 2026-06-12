@@ -240,7 +240,7 @@ serve(async (req) => {
       !updates.hero_image_url
     ) {
       const prompt = buildHeroPrompt(p) + " Variation: secondary editorial shot, different angle.";
-      const b64 = await generateImageB64(prompt);
+      const b64 = await generateImageB64(prompt, quality);
       if (b64) {
         const newUrl = await uploadHero(supabase, p.slug + "-inline", b64);
         if (newUrl) {
