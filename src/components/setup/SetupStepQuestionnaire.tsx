@@ -27,6 +27,7 @@ interface SetupStepQuestionnaireProps {
   setupMode: 'quick' | 'complete';
   answers: Record<string, any>;
   questionIndex?: number;
+  draftBusinessId?: string | null;
   onUpdate: (answers: Record<string, any>) => void;
   onQuestionIndexChange?: (index: number) => void;
   onComplete: () => void;
@@ -332,6 +333,7 @@ export const SetupStepQuestionnaire = ({
   setupMode,
   answers,
   questionIndex = 0,
+  draftBusinessId,
   onUpdate,
   onQuestionIndexChange,
   onComplete,
@@ -622,8 +624,41 @@ export const SetupStepQuestionnaire = ({
 
   const getCurrentValue = () => answers[currentQuestion?.id];
 
+  // 🧠 APRENDIZAJE EN VIVO: cada respuesta nutre el brain en tiempo real
+  // (fire-and-forget). El brain ya existe (draft creado al entrar al cuestionario).
+  const liveIngest = useCallback((question: UniversalQuestion, value: any) => {
+    if (!draftBusinessId || !question) return;
+    try {
+      const field =
+        (question as any).targetBrainField ||
+        `factual.${question.category || 'general'}.${question.id}`;
+      const rawAnswer = typeof value === 'string'
+        ? value
+        : (value && typeof value === 'object' && 'text' in value)
+          ? String((value as any).text || '')
+          : JSON.stringify(value);
+      const isClarify = value && typeof value === 'object' && (value as any).type === '__CLARIFY__';
+      const isUnknown = value && typeof value === 'object' && (value as any).type === '__CLARIFY_PENDING__';
+      // Fire-and-forget. Nunca bloquea el UI ni interrumpe el flujo de respuesta.
+      invokeEdgeFunctionSafe('onboarding-ingest', {
+        body: {
+          businessId: draftBusinessId,
+          field,
+          value,
+          rawAnswer: question.title?.es ? `${question.title.es} → ${rawAnswer}` : rawAnswer,
+          source: 'onboarding',
+          state: isClarify ? 'confirmed' : (isUnknown ? 'unknown' : 'observed'),
+          confidence: isClarify ? 0.9 : (isUnknown ? 0.2 : 0.7),
+          kind: isClarify ? 'confirmed_fact' : 'new_fact',
+          stage: 'oferta',
+        },
+      }).catch(() => { /* silencioso: el bulk del final igual persiste todo */ });
+    } catch { /* noop */ }
+  }, [draftBusinessId]);
+
   const handleAnswer = (value: any) => {
     onUpdate({ ...answers, [currentQuestion.id]: value });
+    liveIngest(currentQuestion, value);
   };
 
   // "No sé / Quiero aclarar algo": NUNCA autoavanza. Solo abre input.
