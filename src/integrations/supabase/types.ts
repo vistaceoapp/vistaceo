@@ -3285,6 +3285,72 @@ export type Database = {
           },
         ]
       }
+      ops_incidents: {
+        Row: {
+          category: string
+          context: Json
+          created_at: string
+          detected_by: string
+          fingerprint: string | null
+          fix_attempts: number
+          fix_result: Json | null
+          fix_strategy: string | null
+          fixed_at: string | null
+          id: string
+          last_seen_at: string
+          occurrences: number
+          severity: string
+          source: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string | null
+          where_path: string | null
+        }
+        Insert: {
+          category: string
+          context?: Json
+          created_at?: string
+          detected_by: string
+          fingerprint?: string | null
+          fix_attempts?: number
+          fix_result?: Json | null
+          fix_strategy?: string | null
+          fixed_at?: string | null
+          id?: string
+          last_seen_at?: string
+          occurrences?: number
+          severity?: string
+          source: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+          where_path?: string | null
+        }
+        Update: {
+          category?: string
+          context?: Json
+          created_at?: string
+          detected_by?: string
+          fingerprint?: string | null
+          fix_attempts?: number
+          fix_result?: Json | null
+          fix_strategy?: string | null
+          fixed_at?: string | null
+          id?: string
+          last_seen_at?: string
+          occurrences?: number
+          severity?: string
+          source?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+          where_path?: string | null
+        }
+        Relationships: []
+      }
       prediction_calibrations: {
         Row: {
           answer: Json | null

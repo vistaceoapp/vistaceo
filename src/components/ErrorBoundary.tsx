@@ -2,6 +2,7 @@ import { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { safeLocalStorage, safeSessionStorage } from '@/lib/safe-storage';
+import { reportBoundaryError } from '@/hooks/use-app-sensors';
 
 interface Props {
   children: ReactNode;
@@ -39,6 +40,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[ErrorBoundary] Caught:', error, errorInfo);
+    reportBoundaryError(error, { componentStack: errorInfo.componentStack ?? undefined });
   }
 
   handleReload = () => {

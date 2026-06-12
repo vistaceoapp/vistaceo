@@ -6,6 +6,7 @@ import { DashboardLayout } from "./DashboardLayout";
 import { useDOMLeakScanner } from "@/hooks/useDOMLeakScanner";
 import { WidgetConfigProvider } from "@/hooks/use-widget-config";
 import { useActivityTracker } from "@/hooks/use-activity-tracker";
+import { useAppSensors } from "@/hooks/use-app-sensors";
 
 const AppLayout = () => {
   const isMobile = useIsMobile();
@@ -13,6 +14,7 @@ const AppLayout = () => {
   const { trackPageView } = useActivityTracker();
   const lastPathRef = useRef<string>("");
   useDOMLeakScanner();
+  useAppSensors();
 
   // 🔥 Track page_view on every route change inside the app shell
   useEffect(() => {
