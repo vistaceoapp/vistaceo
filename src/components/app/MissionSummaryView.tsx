@@ -34,6 +34,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { humanizeProse } from "@/lib/humanize-evidence";
+import { MissionThinkingState } from "@/components/app/MissionThinkingState";
 
 interface Step {
   text: string;
