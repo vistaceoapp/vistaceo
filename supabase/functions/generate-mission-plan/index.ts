@@ -748,21 +748,30 @@ serve(async (req) => {
         /^medir\s+impacto\s*\.?$/i,
         /^siguiente\s+paso\s*\.?$/i,
       ];
+      // NOTA: el schema del prompt usa { text, howTo, why } — el gate debe
+      // aceptar AMBAS formas (text/title) para no borrar pasos válidos.
       if (Array.isArray(planData?.steps)) {
         planData.steps = planData.steps
           .map((s: any) => ({
             ...s,
             title: humanizeEvidence(s?.title) || s?.title,
+            text: humanizeEvidence(s?.text) || s?.text,
             description: humanizeEvidence(s?.description ?? s?.what_to_do) || s?.description,
           }))
           .filter((s: any) => {
-            const t = String(s?.title || "").trim();
+            const t = String(s?.title || s?.text || "").trim();
             if (!t || t.length < 8) return false;
             if (GENERIC_STEP_RX.some((rx) => rx.test(t))) {
               console.warn("[step-gate] dropped generic step title:", t);
               return false;
             }
-            const d = String(s?.description || s?.what_to_do || "");
+            const d = String(
+              s?.description ||
+              s?.what_to_do ||
+              s?.why ||
+              (Array.isArray(s?.howTo) ? s.howTo.join(" ") : "") ||
+              ""
+            );
             if (d.length < 30) {
               console.warn("[step-gate] dropped step with thin description:", t);
               return false;
