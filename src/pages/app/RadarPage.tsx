@@ -378,10 +378,10 @@ const RadarPage = () => {
     } catch (error) {
       console.error("Error generating opportunities:", error);
       toast({
-        title: "No pudimos completar el escaneo",
-        description: "Puede ser una pausa temporal de conexión. Probá de nuevo en un momento.",
+        title: "Seguimos analizando en segundo plano",
+        description: "Hubo una pausa de conexión. Si querés, reintentá en unos segundos.",
         action: (
-          <Button size="sm" variant="default" onClick={() => generateOpportunities()}>
+          <Button size="sm" variant="ghost" onClick={() => generateOpportunities()}>
             Reintentar
           </Button>
         ) as any,
