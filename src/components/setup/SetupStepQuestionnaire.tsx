@@ -27,6 +27,7 @@ interface SetupStepQuestionnaireProps {
   setupMode: 'quick' | 'complete';
   answers: Record<string, any>;
   questionIndex?: number;
+  draftBusinessId?: string | null;
   onUpdate: (answers: Record<string, any>) => void;
   onQuestionIndexChange?: (index: number) => void;
   onComplete: () => void;
