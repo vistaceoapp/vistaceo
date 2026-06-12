@@ -76,12 +76,14 @@ function buildHeroPrompt(p: Post): string {
   };
   const scene = ctx[p.category ?? ""] ?? "premium business editorial scene, modern minimal workspace";
   return [
-    `Editorial 16:9 cover image about: ${p.title}.`,
+    `Editorial 16:9 cover photograph for an article titled: "${p.title}".`,
     `Scene: ${scene}.`,
-    "Ultra photorealistic, cinematic natural lighting, shallow depth of field, premium business editorial.",
+    "Ultra photorealistic, cinematic natural lighting, shallow depth of field, premium business editorial, Hasselblad quality.",
     "Subtle blue (#2692DC) and violet (#746CE6) accent tones, never neon, never orange.",
-    "NO text, NO logos, NO watermarks, NO UI screenshots, NO charts with numbers.",
+    "ABSOLUTELY NO TEXT of any kind: no letters, no numbers, no words, no captions, no titles, no labels, no logos, no watermarks, no signage, no whiteboard writing, no readable UI, no chart labels. Any paper, screen, sign or book in frame must be blank, blurred beyond legibility, or shown from an angle where text is invisible.",
+    "NO UI screenshots, NO charts with numbers, NO infographics.",
     "If people appear: silhouettes, hands only, or from behind. Never identifiable faces.",
+    "Composition must work as a magazine cover where the title is added later — leave a clean negative-space area.",
   ].join(" ");
 }
 
