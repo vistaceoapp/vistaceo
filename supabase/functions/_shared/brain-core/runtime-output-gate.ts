@@ -39,11 +39,11 @@ const SAFE_FALLBACK_BY_KIND: Record<GateKind, string> = {
   action:
     "Revisá los últimos 10 contactos del negocio y marcá en qué momento se frenó cada uno: consulta, precio, confianza, pago o recompra.",
   opportunity:
-    "Estoy evitando mostrarte una oportunidad genérica. Necesito un dato más del negocio (canal, cliente o fricción) para abrir una oportunidad aplicable a tu caso.",
+    "Hay una oportunidad clara en revisar dónde se frena la decisión del cliente: consulta, precio, confianza o recompra. Detectar ese punto suele liberar ventas que ya estás generando pero no cerrando.",
   prediction:
     "Si la mayoría de las ventas viene de clientes nuevos, existe riesgo de depender demasiado de captación constante. Conviene observar cuántos vuelven a comprar.",
   chat:
-    "Estoy evitando darte una respuesta genérica. Con la información actual, lo más útil es ubicar dónde se pierde la decisión del cliente. Si me confirmás ese punto, te doy una acción mucho más precisa.",
+    "Lo más rentable ahora es ubicar dónde se pierde la decisión del cliente: en la primera consulta, al ver el precio, en la confianza o en la recompra. Revisá tus últimos 10 contactos y marcá en qué punto se frenó cada uno; ese patrón define la próxima acción y, si me lo contás, la armamos juntos.",
   dashboard:
     "Estoy construyendo la lectura real del negocio. Antes de recomendar acciones, necesito confirmar si la oportunidad está en atraer más clientes, convertir mejor, aumentar ticket o activar recompra.",
   generic:
