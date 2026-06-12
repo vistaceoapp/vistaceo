@@ -245,25 +245,21 @@ export const MissionDetailEnhanced = ({
     setError(null);
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke(
-        "generate-mission-plan",
+      const data = await requestMissionPlan(
         {
-          body: {
-            businessId,
-            missionTitle: mission.title,
-            missionDescription: mission.description,
-            missionArea: mission.area,
-            existingSteps: steps,
-            enhanceExisting: true,
-            regenerate,
-          },
-        }
+          businessId,
+          missionTitle: mission.title,
+          missionDescription: mission.description,
+          missionArea: mission.area,
+          existingSteps: steps,
+          enhanceExisting: true,
+          regenerate,
+        },
+        { signal: abortControllerRef.current.signal }
       );
 
       // Check if aborted
       if (abortControllerRef.current?.signal.aborted) return;
-
-      if (fnError) throw fnError;
 
       if (data?.plan) {
         setEnhancedPlan(data.plan);
