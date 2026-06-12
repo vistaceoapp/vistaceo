@@ -19,6 +19,7 @@ import {
 } from '@/lib/universalQuestionsEngine';
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 import type { GenerateQuestionnaireResponse } from '@/lib/edge-function-response-types';
+import { notifyBrainLearned } from '@/components/feedback/BrainLearningPulse';
 
 interface SetupStepQuestionnaireProps {
   countryCode: CountryCode;
