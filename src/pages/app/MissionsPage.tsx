@@ -151,6 +151,7 @@ const getPlaceholderMissions = (businessCategory?: string | null) => {
 
 const MissionsPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
   const { forceCollapse, restorePrevious } = useSidebar();
