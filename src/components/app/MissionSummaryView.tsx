@@ -130,18 +130,7 @@ export const MissionSummaryView = ({
   onRegenerate,
 }: MissionSummaryViewProps) => {
   if (loading && !enhancedPlan) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-32 w-full rounded-xl" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Skeleton className="h-20 rounded-xl" />
-          <Skeleton className="h-20 rounded-xl" />
-          <Skeleton className="h-20 rounded-xl" />
-          <Skeleton className="h-20 rounded-xl" />
-        </div>
-        <Skeleton className="h-24 w-full rounded-xl" />
-      </div>
-    );
+    return <MissionThinkingState missionTitle={mission.title} />;
   }
 
   const confidenceLevel = enhancedPlan?.confidence || "medium";
