@@ -478,27 +478,51 @@ export const SetupStepQuestionnaire = ({
         );
 
         const results = await Promise.all(batchPromises);
-        const totalNewQuestions = results.flat().filter(q => q.id).length;
-        
-        // Merge all results at once
+
+        // Merge all results
+        let currentTotal = 0;
         setQuestions(prev => {
           const existingIds = new Set(prev.map(q => q.id));
           const allNew = results.flat().filter(q => q.id && !existingIds.has(q.id));
           const merged = capQuestions([...prev, ...allNew], 'complete');
-          
-          // Only mark as done if we got a reasonable number of total questions
-          const { min } = getQuestionLimits('complete');
-          const isValid = merged.length >= Math.min(min, prev.length + totalNewQuestions);
-          setCachedQuestions(merged, businessTypeId, setupMode, isValid);
-          if (isValid) {
-            allBatchesDone.current = true;
-          } else {
-            // Allow retry on next navigation
-            backgroundFetchStarted.current = false;
-            console.warn(`Only ${merged.length} questions after merge, expected at least ${min}. Will retry.`);
-          }
+          currentTotal = merged.length;
+          setCachedQuestions(merged, businessTypeId, setupMode, false);
           return merged;
         });
+
+        // Safety net: if we still don't have at least totalMin, fire an
+        // extra batch with full context so we never strand the user with 18.
+        const { min } = getQuestionLimits('complete');
+        let safetyAttempts = 0;
+        while (currentTotal < min && safetyAttempts < 2) {
+          safetyAttempts += 1;
+          const missing = Math.max(6, min - currentTotal);
+          try {
+            const extra = await fetchQuestions(
+              `${missing}-${missing + 2}`,
+              safetyAttempts + 10,
+              latestAnswersRef.current,
+            );
+            setQuestions(prev => {
+              const existingIds = new Set(prev.map(q => q.id));
+              const allNew = extra.filter(q => q.id && !existingIds.has(q.id));
+              const merged = capQuestions([...prev, ...allNew], 'complete');
+              currentTotal = merged.length;
+              setCachedQuestions(merged, businessTypeId, setupMode, merged.length >= min);
+              return merged;
+            });
+          } catch (e) {
+            console.warn('[Setup] safety-net batch failed:', e);
+            break;
+          }
+        }
+
+        if (currentTotal >= min) {
+          allBatchesDone.current = true;
+        } else {
+          backgroundFetchStarted.current = false;
+          console.warn(`Only ${currentTotal} questions after all retries, expected ${min}.`);
+        }
       }
     } catch (err) {
       console.warn('Background question generation failed:', err);

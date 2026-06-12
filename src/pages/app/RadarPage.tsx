@@ -527,6 +527,19 @@ const RadarPage = () => {
 
   const convertToMission = async (opportunity: Opportunity) => {
     if (!currentBusiness) return;
+
+    // Pre-check Free lifetime limit: 1 mission. La misión inicial ya cuenta.
+    if (!isPro && !canCreate.mission) {
+      toast({
+        title: "Ya usaste tu misión Free",
+        description: "El plan Gratis incluye 1 misión perfecta. Pasá a Pro para crear más.",
+        action: (
+          <Button size="sm" onClick={() => navigate("/checkout")}>Pasar a Pro</Button>
+        ),
+      });
+      return;
+    }
+
     setActionLoading(true);
 
     try {
@@ -609,11 +622,23 @@ const RadarPage = () => {
       navigate("/app/missions");
     } catch (error) {
       console.error("Error converting to mission:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo crear la misión",
-        variant: "destructive",
-      });
+      const msg = (error as { message?: string })?.message ?? "";
+      const isFreeLimit = /Free plan.*limit/i.test(msg) || /missions.*\/.*total/i.test(msg);
+      if (isFreeLimit) {
+        toast({
+          title: "Ya usaste tu misión Free",
+          description: "El plan Gratis incluye 1 misión perfecta. Pasá a Pro para crear más.",
+          action: (
+            <Button size="sm" onClick={() => navigate("/checkout")}>Pasar a Pro</Button>
+          ),
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "No se pudo crear la misión",
+          variant: "destructive",
+        });
+      }
     } finally {
       setActionLoading(false);
     }

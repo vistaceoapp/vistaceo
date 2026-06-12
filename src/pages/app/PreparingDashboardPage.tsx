@@ -128,22 +128,23 @@ const PreparingDashboardPage = () => {
         transition={{ duration: 0.6 }}
         className="relative z-10 w-full max-w-xl text-center"
       >
-        {/* Logo + halo */}
+        {/* Logo + halo premium */}
         <div className="relative inline-flex mb-10">
-          <div className="absolute inset-0 -m-6 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 blur-2xl animate-pulse" />
-          <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-2xl">
-            {done ? (
-              <motion.div
-                initial={{ scale: 0, rotate: -90 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 200, damping: 14 }}
-              >
-                <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={2.5} />
-              </motion.div>
-            ) : (
-              <VistaceoLogo size={48} variant="icon" />
-            )}
-          </div>
+          <div className="absolute inset-0 -m-10 rounded-full bg-gradient-to-br from-primary/25 to-accent/25 blur-3xl animate-pulse" />
+          {done ? (
+            <motion.div
+              initial={{ scale: 0, rotate: -90 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 14 }}
+              className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-2xl"
+            >
+              <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={2.5} />
+            </motion.div>
+          ) : (
+            <div className="relative w-28 h-28 rounded-3xl bg-card border border-border/60 flex items-center justify-center shadow-xl">
+              <VistaceoLogo size={72} variant="icon" />
+            </div>
+          )}
         </div>
 
         <h1 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-3">
