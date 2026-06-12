@@ -583,7 +583,14 @@ function sanitizeGeneratorArtifacts(md: string): string {
   clean = clean.replace(/\[insertar\s[^\]]*\]/gi, '');
   clean = clean.replace(/\[PLACEHOLDER[^\]]*\]/gi, '');
   clean = clean.replace(/\*\*Nota del editor\*\*[^\n]*/gi, '');
-  
+
+  // GSC FIX: kill placeholder-style URLs that leak as links and generate 404s
+  // (e.g. /url_dinamica_del_contacto_creado_en_paso_anterior, {{search_term}})
+  clean = clean.replace(/\[([^\]]+)\]\(\s*\/?url_[a-z0-9_]+\s*\)/gi, '$1');
+  clean = clean.replace(/\[([^\]]+)\]\([^)]*\{\{[^}]+\}\}[^)]*\)/g, '$1');
+  clean = clean.replace(/\[([^\]]+)\]\([^)]*\/functions\/v1\/[^)]+\)/gi, '$1');
+  clean = clean.replace(/\{\{\s*[a-zA-Z0-9_.\-\s]+\s*\}\}/g, '');
+
   // Clean up multiple blank lines left by removals
   clean = clean.replace(/\n{3,}/g, '\n\n');
   

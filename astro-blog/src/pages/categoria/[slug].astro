@@ -1,0 +1,58 @@
+---
+/**
+ * GSC FIX: /categoria/{x}/ → /tema/{cluster}/  (o home si no hay match)
+ *
+ * Google rastreó /categoria/empleo y similares (legacy paths) y los
+ * devolvía como 404. Emitimos páginas redirect (canonical + refresh +
+ * noindex) para que GSC los consolide.
+ */
+import { CLUSTERS } from '../../lib/clusters';
+
+// Mapeo de slugs legacy de "categoria" → cluster actual en /tema/
+const LEGACY_CAT_MAP: Record<string, string> = {
+  'empleo': 'empleo-habilidades',
+  'ia': 'ia-para-pymes',
+  'marketing': 'marketing-crecimiento',
+  'finanzas': 'finanzas-cashflow',
+  'operaciones': 'operaciones-procesos',
+  'ventas': 'ventas-negociacion',
+  'liderazgo': 'liderazgo-management',
+  'estrategia': 'estrategia-latam',
+  'herramientas': 'herramientas-productividad',
+  'data': 'data-analytics',
+  'servicios': 'servicios-profesionales-rentabilidad',
+  'tendencias': 'tendencias-ia-tech',
+};
+
+export async function getStaticPaths() {
+  const all = new Set<string>([
+    ...Object.keys(LEGACY_CAT_MAP),
+    ...Object.keys(CLUSTERS),
+  ]);
+  return Array.from(all).map((slug) => ({ params: { slug }, props: { slug } }));
+}
+
+const { slug } = Astro.props as { slug: string };
+const targetCluster = LEGACY_CAT_MAP[slug] || (CLUSTERS[slug] ? slug : '');
+const target = targetCluster
+  ? `https://blog.vistaceo.com/tema/${targetCluster}/`
+  : `https://blog.vistaceo.com/`;
+
+return new Response(
+  `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Redirigiendo…</title>
+<link rel="canonical" href="${target}">
+<meta name="robots" content="noindex, follow">
+<meta http-equiv="refresh" content="0; url=${target}">
+<script>window.location.replace(${JSON.stringify(target)});</script>
+</head>
+<body>
+<p>Esta sección se movió. Redirigiendo a <a href="${target}">${target}</a>…</p>
+</body>
+</html>`,
+  { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+);
+---

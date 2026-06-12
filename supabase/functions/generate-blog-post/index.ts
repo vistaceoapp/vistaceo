@@ -386,8 +386,9 @@ const ARTICLE_FORMATS: ArticleFormat[] = [
     id: 'toolkit-empresarial',
     name: 'Toolkit Empresarial',
     when: 'kit, recursos, herramientas, colección, pack, bundle',
-    sections: ['Problema que resuelve este toolkit', 'Herramienta 1 con ejemplo práctico', 'Herramienta 2 con ejemplo práctico', 'Herramienta 3 con ejemplo práctico', 'Herramienta 4 con ejemplo práctico', 'Comparativa rápida por tamaño de negocio', 'Recomendación final según perfil', 'Próximos pasos'],
+    sections: ['Problema que resuelve este toolkit (con contexto LATAM)', 'Herramienta 1 — nombre real, qué hace, precio aproximado en USD, caso de uso de PyME LATAM', 'Herramienta 2 — nombre real, qué hace, precio aproximado, caso de uso', 'Herramienta 3 — nombre real, qué hace, precio aproximado, caso de uso', 'Herramienta 4 — nombre real, qué hace, precio aproximado, caso de uso', 'Herramienta 5 — nombre real, qué hace, precio aproximado, caso de uso', 'Herramienta 6 — nombre real, qué hace, precio aproximado, caso de uso', 'Tabla comparativa (columnas: herramienta, precio, ideal para, no ideal para)', 'Recomendación final según perfil (freelancer, PyME 2-10, PyME 10-50)', 'Cómo combinarlas: stack mínimo viable y stack avanzado', 'Próximos pasos accionables'],
     contentTypes: ['herramientas', 'recursos'],
+    minToolkitItems: 6,
   },
   {
     id: 'checklist-accionable',

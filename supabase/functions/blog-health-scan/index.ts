@@ -82,6 +82,21 @@ Deno.serve(async (req) => {
     if (!p.meta_description || p.meta_description.length < 60) allIssues.push("db_meta_thin");
     if (!p.content_md || p.content_md.length < 1500) allIssues.push("db_content_thin");
 
+    // Thin toolkit detection: notas que prometen herramientas pero traen <5
+    const md = (p.content_md || "").toLowerCase();
+    const titleLower = (p.title || "").toLowerCase();
+    const looksLikeToolkit = /toolkit|herramientas|stack|apps|tools|kit/.test(titleLower);
+    if (looksLikeToolkit) {
+      const toolMentions = (md.match(/^##\s+herramienta\s+\d/gim) || []).length;
+      const altMentions = (md.match(/^###?\s+\d+\.\s/gm) || []).length;
+      const items = Math.max(toolMentions, altMentions);
+      if (items > 0 && items < 5) allIssues.push(`thin_toolkit_${items}`);
+    }
+
+    // Placeholder/legacy URLs leaking in DB markdown
+    if (/\{\{[^}]+\}\}/.test(p.content_md || "")) allIssues.push("db_placeholder_leak");
+    if (/url_dinamica_|\/functions\/v1\//i.test(p.content_md || "")) allIssues.push("db_broken_link_leak");
+
     // 2) HTML fetch + SEO checks
     try {
       const res = await fetch(url, { redirect: "follow" });
