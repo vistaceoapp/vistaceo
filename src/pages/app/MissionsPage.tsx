@@ -11,7 +11,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { GlassCard } from "@/components/app/GlassCard";
 import { ProgressRing } from "@/components/app/ProgressRing";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -151,6 +151,7 @@ const getPlaceholderMissions = (businessCategory?: string | null) => {
 
 const MissionsPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const { currentBusiness } = useBusiness();
   const { forceCollapse, restorePrevious } = useSidebar();
@@ -237,6 +238,22 @@ const MissionsPage = () => {
       setLoading(false);
     }
   };
+
+  // Open mission from ?mission=<id> deep-link (e.g. clicked from dashboard)
+  useEffect(() => {
+    const targetId = searchParams.get("mission");
+    if (!targetId || loading) return;
+    const exists = missions.some((m) => m.id === targetId);
+    if (exists) {
+      setSelectedMissionId(targetId);
+      // Clean URL once consumed
+      const next = new URLSearchParams(searchParams);
+      next.delete("mission");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, missions, loading, setSearchParams]);
+
+
 
   // Generate AI plan for suggestion
   const generatePlanForSuggestion = async (suggestion: PlaceholderMission, regenerate = false) => {

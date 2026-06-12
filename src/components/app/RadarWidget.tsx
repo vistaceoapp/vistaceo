@@ -237,7 +237,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
         {currentInsight && (
           <button
             className="w-full p-3 rounded-xl bg-accent/5 border border-accent/10 mb-3 text-left hover:border-accent/30 transition-colors cursor-pointer overflow-hidden"
-            onClick={() => navigate("/app/radar")}
+            onClick={() => navigate(`/app/radar?tab=id&item=${currentInsight.id}`)}
           >
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -305,7 +305,7 @@ export const RadarWidget = ({ isPro = false, className }: RadarWidgetProps) => {
           <button
             key={insight.id}
             className="w-full p-3 rounded-xl bg-secondary/30 border border-border hover:border-accent/30 transition-all text-left group"
-            onClick={() => navigate(`/app/radar`)}
+            onClick={() => navigate(`/app/radar?tab=id&item=${insight.id}`)}
           >
             <div className="flex items-start gap-3">
               <div className={cn(
