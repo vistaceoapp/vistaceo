@@ -785,14 +785,12 @@ export default function PredictionsPage() {
                     </div>
                   )}
 
-                  {/* Action buttons */}
-                  <div className="flex gap-3 pt-4">
-                    {selectedPrediction.available_actions?.convert_to_mission && (
-                      <Button className="flex-1 gradient-primary text-primary-foreground"
-                        onClick={() => { handleConvert(selectedPrediction.id); setSelectedPrediction(null); }}>
-                        <Target className="w-4 h-4 mr-2" />Convertir en Misión
-                      </Button>
-                    )}
+                  {/* Action buttons — siempre permitir convertir a misión */}
+                  <div className="flex gap-3 pt-4 sticky bottom-0 bg-background pb-2">
+                    <Button className="flex-1 gradient-primary text-primary-foreground"
+                      onClick={() => { handleConvert(selectedPrediction.id); setSelectedPrediction(null); }}>
+                      <Target className="w-4 h-4 mr-2" />Convertir en Misión
+                    </Button>
                     <Button variant="outline" onClick={() => { handleDismiss(selectedPrediction.id); setSelectedPrediction(null); }}>
                       Descartar
                     </Button>
