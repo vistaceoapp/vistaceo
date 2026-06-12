@@ -239,6 +239,22 @@ const MissionsPage = () => {
     }
   };
 
+  // Open mission from ?mission=<id> deep-link (e.g. clicked from dashboard)
+  useEffect(() => {
+    const targetId = searchParams.get("mission");
+    if (!targetId || loading) return;
+    const exists = missions.some((m) => m.id === targetId);
+    if (exists) {
+      setSelectedMissionId(targetId);
+      // Clean URL once consumed
+      const next = new URLSearchParams(searchParams);
+      next.delete("mission");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, missions, loading, setSearchParams]);
+
+
+
   // Generate AI plan for suggestion
   const generatePlanForSuggestion = async (suggestion: PlaceholderMission, regenerate = false) => {
     if (!currentBusiness) return;
