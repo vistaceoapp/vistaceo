@@ -687,61 +687,55 @@ export const MissionLLMMode = ({
 
         {/* Resumen siempre disponible: si todavía no llegó el plan enriquecido, MissionSummaryView muestra los datos básicos + skeleton */}
 
-        {/* Loading State */}
-        {loading && !enhancedPlan ? (
-          <MissionLoadingState 
-            businessName={currentBusiness?.name}
-            missionTitle={mission.title}
-          />
-        ) : (
-          <div className="p-5">
-            {/* Toggle between Summary and Steps */}
-            <div className="flex items-center gap-2 mb-5">
-              <Button
-                variant={viewMode === "summary" ? "default" : "outline"}
-                onClick={() => setViewMode("summary")}
-                size="sm"
-                className="gap-1.5 h-8 text-xs"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                Resumen
-              </Button>
-              <Button
-                variant={viewMode === "steps" ? "default" : "outline"}
-                onClick={() => setViewMode("steps")}
-                size="sm"
-                className="gap-1.5 h-8 text-xs"
-              >
-                <List className="w-3.5 h-3.5" />
-                Guía por pasos
-              </Button>
-            </div>
-
-            {viewMode === "summary" ? (
-              <MissionSummaryView
-                mission={mission}
-                enhancedPlan={enhancedPlan}
-                loading={loading}
-                regenerating={regenerating}
-                estimatedTimeRemaining={estimatedTimeRemaining}
-                onRegenerate={confirmAndRegenerate}
-              />
-            ) : (
-              <MissionStepsView
-                missionId={mission.id}
-                steps={steps}
-                enhancedPlan={enhancedPlan}
-                onToggleStep={onToggleStep}
-                selectedStepIdx={selectedStepIdx}
-                onSelectStep={setSelectedStepIdx}
-              />
-            )}
+        {/* El resumen y los pasos se muestran siempre — MissionSummaryView maneja el estado loading internamente con skeletons */}
+        <div className="p-5">
+          {/* Toggle between Summary and Steps */}
+          <div className="flex items-center gap-2 mb-5">
+            <Button
+              variant={viewMode === "summary" ? "default" : "outline"}
+              onClick={() => setViewMode("summary")}
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Resumen
+            </Button>
+            <Button
+              variant={viewMode === "steps" ? "default" : "outline"}
+              onClick={() => setViewMode("steps")}
+              size="sm"
+              className="gap-1.5 h-8 text-xs"
+              disabled={loading && !enhancedPlan}
+            >
+              <List className="w-3.5 h-3.5" />
+              Guía por pasos
+              {loading && !enhancedPlan && <Loader2 className="w-3 h-3 ml-1 animate-spin" />}
+            </Button>
           </div>
-        )}
+
+          {viewMode === "summary" ? (
+            <MissionSummaryView
+              mission={mission}
+              enhancedPlan={enhancedPlan}
+              loading={loading}
+              regenerating={regenerating}
+              estimatedTimeRemaining={estimatedTimeRemaining}
+              onRegenerate={confirmAndRegenerate}
+            />
+          ) : (
+            <MissionStepsView
+              missionId={mission.id}
+              steps={steps}
+              enhancedPlan={enhancedPlan}
+              onToggleStep={onToggleStep}
+              selectedStepIdx={selectedStepIdx}
+              onSelectStep={setSelectedStepIdx}
+            />
+          )}
+        </div>
       </main>
 
-      {/* Right: Steps Timeline — visible from lg */}
-      {!loading && (
+      {/* Right: Steps Timeline — siempre visible; mientras el plan carga se muestra una línea de tiempo con shimmer */}
       <aside className="w-56 xl:w-64 border-l border-border bg-background overflow-y-auto hidden lg:block flex-shrink-0">
           <div className="px-3 py-3 border-b border-border">
             <h3 className="font-semibold text-foreground text-xs flex items-center gap-2 uppercase tracking-wide">
