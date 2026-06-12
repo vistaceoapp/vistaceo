@@ -1,52 +1,37 @@
 ---
 /**
  * GSC FIX: /blog/{slug}/ → /{slug}/
- *
- * Google Search Console showed 16+ URLs in "No se ha encontrado (404)"
- * with the legacy pattern https://blog.vistaceo.com/blog/{slug}.
- * Those came from the old www.vistaceo.com SSG that emitted /blog/{slug}
- * canonicals before the blog moved to its own subdomain.
- *
- * GH Pages cannot return real 301s, so we emit the SEO-recognized
- * pattern: canonical + meta refresh + JS replace + noindex. Generated
- * for every currently-published slug and for every legacy redirect.
+ * Canonical + meta refresh + JS replace + noindex para consolidar URLs viejas
+ * que GH Pages no puede redirigir con un 301 real.
  */
 import { getAllPublishedPosts, getAllRedirects } from '../../lib/supabase';
 
 export async function getStaticPaths() {
+  const { getAllPublishedPosts, getAllRedirects } = await import('../../lib/supabase');
   const [posts, redirects] = await Promise.all([
     getAllPublishedPosts(),
     getAllRedirects(),
   ]);
-
   const slugs = new Set<string>();
   for (const p of posts) slugs.add(p.slug);
   for (const r of redirects) slugs.add(r.from_slug);
-
-  return Array.from(slugs).map((slug) => ({
-    params: { slug },
-    props: { slug },
-  }));
+  return Array.from(slugs).map((slug) => ({ params: { slug }, props: { slug } }));
 }
 
 const { slug } = Astro.props as { slug: string };
 const target = `https://blog.vistaceo.com/${slug}/`;
-
-return new Response(
-  `<!DOCTYPE html>
+---
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <title>Redirigiendo…</title>
-<link rel="canonical" href="${target}">
-<meta name="robots" content="noindex, follow">
-<meta http-equiv="refresh" content="0; url=${target}">
-<script>window.location.replace(${JSON.stringify(target)});</script>
+<link rel="canonical" href={target} />
+<meta name="robots" content="noindex, follow" />
+<meta http-equiv="refresh" content={`0; url=${target}`} />
+<script is:inline set:html={`window.location.replace(${JSON.stringify(target)});`}></script>
 </head>
 <body>
-<p>Esta nota se movió. Redirigiendo a <a href="${target}">${target}</a>…</p>
+<p>Esta nota se movió. Redirigiendo a <a href={target}>{target}</a>…</p>
 </body>
-</html>`,
-  { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-);
----
+</html>
