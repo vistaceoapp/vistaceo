@@ -76,26 +76,29 @@ function buildHeroPrompt(p: Post): string {
   };
   const scene = ctx[p.category ?? ""] ?? "premium business editorial scene, modern minimal workspace";
   return [
-    `Editorial 16:9 cover image about: ${p.title}.`,
+    `Editorial 16:9 cover photograph for an article titled: "${p.title}".`,
     `Scene: ${scene}.`,
-    "Ultra photorealistic, cinematic natural lighting, shallow depth of field, premium business editorial.",
+    "Ultra photorealistic, cinematic natural lighting, shallow depth of field, premium business editorial, Hasselblad quality.",
     "Subtle blue (#2692DC) and violet (#746CE6) accent tones, never neon, never orange.",
-    "NO text, NO logos, NO watermarks, NO UI screenshots, NO charts with numbers.",
+    "ABSOLUTELY NO TEXT of any kind: no letters, no numbers, no words, no captions, no titles, no labels, no logos, no watermarks, no signage, no whiteboard writing, no readable UI, no chart labels. Any paper, screen, sign or book in frame must be blank, blurred beyond legibility, or shown from an angle where text is invisible.",
+    "NO UI screenshots, NO charts with numbers, NO infographics.",
     "If people appear: silhouettes, hands only, or from behind. Never identifiable faces.",
+    "Composition must work as a magazine cover where the title is added later — leave a clean negative-space area.",
   ].join(" ");
 }
 
-async function generateImageB64(prompt: string): Promise<string | null> {
+async function generateImageB64(prompt: string, quality: "low" | "medium" | "high" = "low"): Promise<string | null> {
   if (!LOVABLE_KEY) return null;
-  // Modelo barato y rápido
+  // En quality=low usamos el modelo barato; en medium/high subimos a gpt-image-2 (mejor seguimiento de "no text")
+  const model = quality === "low" ? "openai/gpt-image-1-mini" : "openai/gpt-image-2";
   const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
     method: "POST",
     headers: { Authorization: `Bearer ${LOVABLE_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "openai/gpt-image-1-mini",
+      model,
       prompt,
       size: "1536x1024",
-      quality: "low",
+      quality,
       n: 1,
     }),
   });
@@ -133,12 +136,16 @@ serve(async (req) => {
   let mode = (url.searchParams.get("mode") ?? "scan").toLowerCase();
   const slug = url.searchParams.get("slug");
   const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "50", 10) || 50, 200);
+  let force = url.searchParams.get("force") === "true" || url.searchParams.get("force") === "1";
+  let quality: "low" | "medium" | "high" = (url.searchParams.get("quality") as "low" | "medium" | "high") || "low";
 
   // permitir body POST
   if (req.method === "POST") {
     try {
       const body = await req.json();
       if (body?.mode) mode = String(body.mode).toLowerCase();
+      if (body?.force) force = true;
+      if (body?.quality) quality = body.quality;
     } catch { /* ignore */ }
   }
   if (!["scan", "fix", "enrich"].includes(mode)) mode = "scan";
@@ -195,17 +202,17 @@ serve(async (req) => {
 
     const updates: Record<string, string> = {};
 
-    // 1. Reparar hero roto
-    if (!heroOk) {
+    // 1. Reparar hero roto (o forzar regeneración manual)
+    if (!heroOk || force) {
       const prompt = buildHeroPrompt(p);
-      const b64 = await generateImageB64(prompt);
+      const b64 = await generateImageB64(prompt, quality);
       if (b64) {
         const newUrl = await uploadHero(supabase, p.slug, b64);
         if (newUrl) {
           updates.hero_image_url = newUrl;
           if (!p.image_alt_text) updates.image_alt_text = p.title;
           entry.new_hero = newUrl;
-          entry.action = "hero_regenerated";
+          entry.action = heroOk ? "hero_replaced" : "hero_regenerated";
           heros_regenerated++;
         }
       }
@@ -233,7 +240,7 @@ serve(async (req) => {
       !updates.hero_image_url
     ) {
       const prompt = buildHeroPrompt(p) + " Variation: secondary editorial shot, different angle.";
-      const b64 = await generateImageB64(prompt);
+      const b64 = await generateImageB64(prompt, quality);
       if (b64) {
         const newUrl = await uploadHero(supabase, p.slug + "-inline", b64);
         if (newUrl) {
