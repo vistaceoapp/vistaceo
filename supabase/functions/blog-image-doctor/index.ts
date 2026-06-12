@@ -135,12 +135,16 @@ serve(async (req) => {
   let mode = (url.searchParams.get("mode") ?? "scan").toLowerCase();
   const slug = url.searchParams.get("slug");
   const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "50", 10) || 50, 200);
+  let force = url.searchParams.get("force") === "true" || url.searchParams.get("force") === "1";
+  let quality: "low" | "medium" | "high" = (url.searchParams.get("quality") as "low" | "medium" | "high") || "low";
 
   // permitir body POST
   if (req.method === "POST") {
     try {
       const body = await req.json();
       if (body?.mode) mode = String(body.mode).toLowerCase();
+      if (body?.force) force = true;
+      if (body?.quality) quality = body.quality;
     } catch { /* ignore */ }
   }
   if (!["scan", "fix", "enrich"].includes(mode)) mode = "scan";
