@@ -455,10 +455,10 @@ const RadarPage = () => {
     } catch (error) {
       console.error("Error generating research:", error);
       toast({
-        title: "No pudimos completar el escaneo de I+D",
-        description: "Puede ser una pausa temporal de las fuentes externas. Probá de nuevo en un momento.",
+        title: "I+D sigue rastreando en segundo plano",
+        description: "Una fuente externa tardó más de lo normal. Probá de nuevo en un momento.",
         action: (
-          <Button size="sm" variant="default" onClick={() => generateResearchItems()}>
+          <Button size="sm" variant="ghost" onClick={() => generateResearchItems()}>
             Reintentar
           </Button>
         ) as any,
