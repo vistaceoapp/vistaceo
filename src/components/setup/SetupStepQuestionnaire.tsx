@@ -790,6 +790,7 @@ export const SetupStepQuestionnaire = ({
   }
   if (!currentQuestion && !isLoadingFirst) {
     // Sin preguntas y sin loading: forzar fallback premium pivote (nunca lista fija).
+    questionsRef.current = pivotFallback;
     setQuestions(pivotFallback);
     return null;
   }
@@ -1077,7 +1078,7 @@ export const SetupStepQuestionnaire = ({
 
   // Estimated total - always show a number within valid range
   const { min: limitMin, max: limitMax } = getQuestionLimits(setupMode);
-  const estimatedTotal = setupMode === 'quick' ? 12 : 30;
+  const estimatedTotal = setupMode === 'quick' ? 10 : 30;
   // If all batches done, show actual total (already capped). Otherwise show estimate.
   const displayTotal = allBatchesDone.current 
     ? totalQuestions 
