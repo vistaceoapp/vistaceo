@@ -205,6 +205,7 @@ const AppRoutes = () => {
           <Route path="analytics" element={<AdminAnalyticsPage />} />
           <Route path="centro-control" element={<CentroControlPage />} />
           <Route path="emails" element={<AdminEmailsPage />} />
+          <Route path="salud" element={<AdminSaludPage />} />
         </Route>
         
         {/* Checkout - standalone payment page (public; handles auth inline if needed) */}
