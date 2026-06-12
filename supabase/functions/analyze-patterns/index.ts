@@ -1375,6 +1375,21 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
       });
     }
 
+    // Brain signal: oportunidades generadas (cierra gap de auto-aprendizaje del brain)
+    if (opportunitiesInserted > 0) {
+      try {
+        await supabase.from("signals").insert({
+          business_id: businessId,
+          brain_id: brain?.id || null,
+          signal_type: "opportunities_generated",
+          source: "analyze-patterns",
+          content: { inserted: opportunitiesInserted, filtered: opportunitiesFiltered },
+          confidence: "high",
+          importance: 6,
+        });
+      } catch (e) { console.warn("[analyze-patterns] opportunities signal insert failed", e); }
+    }
+
     console.log(`[analyze-patterns] Opportunities complete: ${opportunitiesInserted} inserted, ${opportunitiesFiltered} filtered`);
 
     return new Response(
