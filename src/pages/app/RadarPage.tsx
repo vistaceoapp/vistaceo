@@ -1115,7 +1115,7 @@ const RadarPage = () => {
                 Personalizando pasos con tu contexto…
               </p>
               <div className="h-1 w-full rounded-full bg-secondary overflow-hidden">
-                <div className="h-full w-1/2 bg-gradient-to-r from-primary to-accent rounded-full animate-[shimmer_1.2s_ease-in-out_infinite]" />
+                <div className="h-full w-2/3 bg-gradient-to-r from-primary via-accent to-primary rounded-full animate-pulse" />
               </div>
             </div>
           </div>
