@@ -268,7 +268,11 @@ function buildStateJson(memory: MemoryContext): Record<string, unknown> {
 
 async function fetchMemoryContext(supabase: any, businessId: string): Promise<MemoryContext> {
   try {
-    const [actionsRes, missionsRes, checkinsRes, lessonsRes, insightsRes, brainRes, signalsRes, snapshotRes, alertsRes] = await Promise.all([
+    const [
+      actionsRes, missionsRes, checkinsRes, lessonsRes, insightsRes,
+      brainRes, signalsRes, snapshotRes, alertsRes,
+      opportunitiesRes, competitorsRes, learningRes, prioritiesRes,
+    ] = await Promise.all([
       supabase
         .from("daily_actions")
         .select("title, status, completed_at")
@@ -325,6 +329,30 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .eq("business_id", businessId)
         .eq("status", "active")
         .limit(5),
+      supabase
+        .from("opportunities")
+        .select("title, impact, status")
+        .eq("business_id", businessId)
+        .neq("status", "dismissed")
+        .order("created_at", { ascending: false })
+        .limit(6),
+      supabase
+        .from("business_competitors")
+        .select("name, strengths, weaknesses")
+        .eq("business_id", businessId)
+        .limit(5),
+      supabase
+        .from("learning_items")
+        .select("title, category, status")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("weekly_priorities")
+        .select("title, priority, status")
+        .eq("business_id", businessId)
+        .order("priority", { ascending: true })
+        .limit(5),
     ]);
 
     const lessons: string[] = [];
@@ -351,6 +379,10 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       recentSignals: signalsRes.data || [],
       latestSnapshot: snapshotRes.data,
       activeAlerts: alertsRes.data || [],
+      openOpportunities: opportunitiesRes.data || [],
+      competitors: competitorsRes.data || [],
+      learningItems: learningRes.data || [],
+      weeklyPriorities: prioritiesRes.data || [],
     };
   } catch (error) {
     console.error("Error fetching memory context:", error);
@@ -364,9 +396,14 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       recentSignals: [],
       latestSnapshot: null,
       activeAlerts: [],
+      openOpportunities: [],
+      competitors: [],
+      learningItems: [],
+      weeklyPriorities: [],
     };
   }
 }
+
 
 // =====================
 // Response Parsing
