@@ -182,6 +182,7 @@ const RadarPage = () => {
   // UI State
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [convertingOverlay, setConvertingOverlay] = useState<{ title: string } | null>(null);
   const [generatingOpportunities, setGeneratingOpportunities] = useState(false);
   const [generatingResearch, setGeneratingResearch] = useState(false);
   
