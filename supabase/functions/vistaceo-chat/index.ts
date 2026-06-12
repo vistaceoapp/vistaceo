@@ -1367,23 +1367,21 @@ MESSAGE_JSON:
     const wantsSpecificData = specificDataHints.test(lastText);
     const isComplex = hasImages || complexHints.test(lastText) || wantsSpecificData || lastText.length > 600;
 
-    // Modelo: máxima inteligencia razonable.
-    // Pro complejo → Gemini 3 Flash Preview (el más inteligente del catálogo en velocidad).
-    // Pro simple → Gemini 2.5 Flash.
-    // Free → siempre Lite (costo).
-    let selectedModel: string;
-    if (!isProPlan) selectedModel = "google/gemini-2.5-flash-lite";
-    else if (isComplex) selectedModel = "google/gemini-3-flash-preview";
-    else selectedModel = "google/gemini-2.5-flash";
-
+    // Modelo: máxima inteligencia para TODOS (free y pro).
+    // El free debe sentir el poder real de la app — eso convierte a Pro.
+    // Diferencia free vs pro = cantidad de mensajes/mes, NO calidad por mensaje.
     const trivialHints = /^(hola|hi|hey|buenas|gracias|ok|listo|dale|si|no|perfecto|genial|ya|👍|🙏)\b/i;
     const isTrivial = !hasImages && lastText.length < 60 && trivialHints.test(lastText.trim());
 
+    let selectedModel: string;
+    if (isTrivial) selectedModel = "google/gemini-2.5-flash-lite";
+    else if (isComplex) selectedModel = "google/gemini-3-flash-preview";
+    else selectedModel = "google/gemini-2.5-flash";
+
     // Cap de tokens — corto pero suficiente para cerrar oraciones (anti-truncación).
-    // Máximo 2 párrafos enfocados.
+    // Máximo 2 párrafos enfocados. Mismo techo para free y pro.
     let maxTokens: number;
     if (isTrivial) maxTokens = 220;
-    else if (!isProPlan) maxTokens = isComplex ? 600 : 420;
     else maxTokens = isComplex ? 700 : 500;
 
     // PROMPT MAESTRO VISTACEO — directiva final inyectada al system
@@ -1452,6 +1450,11 @@ PROHIBIDO EVADIR LA RESPUESTA — REGLA CRÍTICA
 - Cuando el usuario te pregunta algo concreto (cuáles, qué, cuánto, top, ranking, mejores, productos, precios, métricas), SIEMPRE respondé COMPLETO: mirá el Brain, si no hay dato exacto trabajá con hipótesis razonables explícitas y datos del sector/país, y al final (opcional, máximo 1 pregunta corta) pedí confirmación SI Y SOLO SI cambiaría tu respuesta.
 - Ejemplo correcto a "¿Cuáles son tus 3 productos más vendidos?": si no hay datos cargados, decir "No tengo el ranking real cargado en el sistema todavía. Por tu rubro (gastro, Buenos Aires) lo más probable es: 1) [hipótesis específica con razón], 2) [...], 3) [...]. Si me confirmás cuáles son los reales, te ajusto el análisis y armamos misión sobre el ganador." — NO devolver sólo "confirmame ese punto".
 - La respuesta SIEMPRE tiene contenido sustancial primero. La pregunta de confirmación es opcional y va AL FINAL, nunca en lugar de la respuesta.
+
+MULTI-PREGUNTA — FOCO EN UNA SOLA
+- Si el usuario hace varias preguntas en un mismo mensaje (2 o más temas distintos), elegí la MÁS IMPORTANTE o la PRIMERA y respondela con perfección total.
+- Cerrá con UNA línea breve y natural ofreciendo trabajar los otros puntos después. Ejemplo: "El resto lo encaramos en el próximo mensaje, así le damos el foco que merece." Variá la redacción, nunca repitas literal.
+- Nunca contestes las 3-4 preguntas a la vez con respuestas mediocres. Mejor una respuesta excelente que cuatro tibias. El usuario debe sentir perfección y disponibilidad acotada.
 
 
 CHEQUEO INTERNO ANTES DE CERRAR USER_REPLY
