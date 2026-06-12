@@ -744,98 +744,87 @@ export const MissionLLMMode = ({
             </h3>
           </div>
           <div className="p-2 space-y-1">
-            {steps.map((step, idx) => {
-              const isCurrentStep = steps.findIndex(s => !s.done) === idx;
-              const isSelected = selectedStepIdx === idx;
-              
-              return (
-                <button
-                  key={idx}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedStepIdx(idx);
-                    setViewMode("steps");
-                  }}
-                  className={cn(
-                    "w-full text-left p-2.5 rounded-lg border transition-all",
-                    isSelected && "ring-1.5 ring-primary bg-primary/5",
-                    step.done
-                      ? "bg-success/5 border-success/20"
-                      : isCurrentStep
-                        ? "bg-primary/5 border-primary/20"
-                        : "bg-card border-border/50 hover:border-primary/20"
-                  )}
-                >
+            {steps.length === 0 && loading ? (
+              // Línea de tiempo shimmer mientras carga
+              Array.from({ length: 5 }).map((_, idx) => (
+                <div key={idx} className="p-2.5 rounded-lg border border-border/40 bg-card/60 animate-pulse">
                   <div className="flex items-start gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleStep(mission.id, idx);
-                      }}
-                      className={cn(
-                        "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-[10px] font-bold transition-colors mt-0.5",
-                        step.done
-                          ? "bg-success text-success-foreground"
-                          : isCurrentStep
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-secondary text-muted-foreground hover:bg-primary hover:text-primary-foreground"
-                      )}
-                    >
-                      {step.done ? <Check className="w-3 h-3" /> : idx + 1}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <p className={cn(
-                        "text-[11px] line-clamp-2 leading-relaxed",
-                        step.done && "line-through text-muted-foreground",
-                        isCurrentStep && !step.done && "text-primary font-medium"
-                      )}>
-                        {step.text}
-                      </p>
-                      {isCurrentStep && !step.done && (
-                        <span className="text-[9px] text-primary font-semibold mt-0.5 inline-block">Siguiente →</span>
-                      )}
+                    <div className="w-6 h-6 rounded-md bg-muted flex-shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-2.5 bg-muted rounded w-3/4" />
+                      <div className="h-2 bg-muted/60 rounded w-1/2" />
                     </div>
                   </div>
-                </button>
-              );
-            })}
+                </div>
+              ))
+            ) : (
+              steps.map((step, idx) => {
+                const nextIdx = steps.findIndex(s => !s.done);
+                const isCurrentStep = nextIdx === idx;
+                const isSelected = selectedStepIdx === idx;
+                // Bloquear pasos futuros: solo se puede tocar lo ya completado o el "siguiente"
+                const isLocked = !step.done && !isCurrentStep;
+                const titleText = step.text || (loading ? "" : `Paso ${idx + 1}`);
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isLocked) return;
+                      setSelectedStepIdx(idx);
+                      setViewMode("steps");
+                    }}
+                    disabled={isLocked}
+                    className={cn(
+                      "w-full text-left p-2.5 rounded-lg border transition-all",
+                      isSelected && !isLocked && "ring-1.5 ring-primary bg-primary/5",
+                      step.done
+                        ? "bg-success/5 border-success/20"
+                        : isCurrentStep
+                          ? "bg-primary/5 border-primary/20"
+                          : isLocked
+                            ? "bg-muted/20 border-border/30 opacity-60 cursor-not-allowed"
+                            : "bg-card border-border/50 hover:border-primary/20"
+                    )}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div
+                        className={cn(
+                          "w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 text-[10px] font-bold transition-colors mt-0.5",
+                          step.done
+                            ? "bg-success text-success-foreground"
+                            : isCurrentStep
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-secondary text-muted-foreground"
+                        )}
+                      >
+                        {step.done ? <Check className="w-3 h-3" /> : idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        {titleText ? (
+                          <p className={cn(
+                            "text-[11px] line-clamp-2 leading-relaxed",
+                            step.done && "line-through text-muted-foreground",
+                            isCurrentStep && !step.done && "text-primary font-medium",
+                            isLocked && "text-muted-foreground"
+                          )}>
+                            {titleText}
+                          </p>
+                        ) : (
+                          <div className="h-2.5 bg-muted/60 rounded w-3/4 animate-pulse" />
+                        )}
+                        {isCurrentStep && !step.done && (
+                          <span className="text-[9px] text-primary font-semibold mt-0.5 inline-block">Siguiente →</span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })
+            )}
           </div>
         </aside>
-      )}
-
-      {/* Premium Regenerate Confirmation Dialog */}
-      <AlertDialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
-        <AlertDialogContent className="sm:rounded-2xl">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-warning" />
-              </div>
-              <AlertDialogTitle className="text-lg">¿Regenerar la guía?</AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="text-sm leading-relaxed">
-              Se generará una nueva guía estratégica con un enfoque diferente. La guía actual será reemplazada, pero <span className="font-medium text-foreground">el progreso de los pasos que ya completaste se mantiene</span>.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-10">Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => {
-                executeRegenerate();
-                if (currentBusiness) {
-                  supabase.functions.invoke("brain-record-signal", {
-                    body: { businessId: currentBusiness.id, signalType: "mission_steps_regenerated", content: { missionId: mission.id, missionTitle: mission.title }, source: "ui" }
-                  }).catch(console.error);
-                }
-              }}
-              className="h-10 gap-1.5"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Regenerar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
