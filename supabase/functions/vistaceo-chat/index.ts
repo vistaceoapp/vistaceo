@@ -1220,6 +1220,42 @@ MESSAGE_JSON:
       // Flags blandos ("sin acción concreta", etc.) → se mantiene la respuesta real.
     }
 
+    // ===== RETRY BLINDADO EN TEXTO PLANO =====
+    // Si después de todos los filtros la respuesta quedó vacía o cae al fallback
+    // enlatado, intentamos UNA llamada extra al modelo más capaz sin contrato XML.
+    // Esto garantiza que el usuario SIEMPRE reciba una respuesta real del CEO.
+    if (!parsed.userReply || parsed.userReply.trim().length < 30) {
+      try {
+        console.warn("Activating plain-text guaranteed retry");
+        const plainResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-3-flash-preview",
+            messages: [
+              {
+                role: "system",
+                content: `Sos el CEO virtual del negocio del usuario. Respondé el último mensaje en español natural, máximo 2 párrafos, tono ejecutivo cercano, sin asteriscos markdown, sin JSON, sin etiquetas XML, sin frases tipo "como IA" o "disculpá tuve un problema". Usá los datos del negocio cuando aporten valor. Si no tenés un dato exacto, planteá hipótesis explícita y seguí. Nunca te plantes solo en pedir confirmación: siempre dar contenido sustancial primero.\n\nContexto del negocio:\n${JSON.stringify({ brain: brainJson, state: stateJson, config: configJson }).slice(0, 6000)}`,
+              },
+              ...recentMessages,
+            ],
+            stream: false,
+            temperature: 0.55,
+            max_tokens: 900,
+          }),
+        });
+        if (plainResp.ok) {
+          const plainData = await plainResp.json();
+          const plainText = plainData.choices?.[0]?.message?.content;
+          if (plainText && typeof plainText === "string" && plainText.trim().length > 30) {
+            parsed.userReply = sanitizeVisibleString(qualityRepairReply(plainText.trim(), lastText));
+          }
+        }
+      } catch (e) {
+        console.error("Plain-text guaranteed retry failed:", e);
+      }
+    }
+
     // Último fallback seguro (Parte 3 §12)
     if (!parsed.userReply || parsed.userReply.trim().length < 8) {
       parsed.userReply = safeUserFacingError(lastText);
