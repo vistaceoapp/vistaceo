@@ -337,8 +337,19 @@ export const SetupStepQuestionnaire = ({
   onComplete,
   onBack,
 }: SetupStepQuestionnaireProps) => {
-  // Restore cached questions if returning (validated by businessTypeId + setupMode)
-  const cacheData = useMemo(() => getCachedQuestions(businessTypeId, setupMode), [businessTypeId, setupMode]);
+  // Hash del contexto del usuario (rawUserText + keywords) para invalidar cache
+  // cuando el usuario cambia su descripción aunque el businessTypeId siga igual ('custom').
+  const contextHash = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('setupUniversalProfile');
+      const profile = raw ? JSON.parse(raw) : {};
+      return buildContextHash(businessTypeId, areaId, profile?._raw_user_text || '', profile?.keywords || []);
+    } catch {
+      return buildContextHash(businessTypeId, areaId, '', []);
+    }
+  }, [businessTypeId, areaId]);
+  // Restore cached questions if returning (validated by type + mode + contextHash)
+  const cacheData = useMemo(() => getCachedQuestions(businessTypeId, setupMode, contextHash), [businessTypeId, setupMode, contextHash]);
   const hasCache = !!cacheData && cacheData.questions.length > 0;
   const cacheComplete = !!cacheData?.allBatchesDone;
   // Fallback premium dinámico (1 pregunta-pivote estratégica). NUNCA listas fijas visibles.
@@ -436,7 +447,7 @@ export const SetupStepQuestionnaire = ({
       const capped = capQuestions(firstQuestions, setupMode);
       questionsRef.current = capped;
       setQuestions(capped);
-      setCachedQuestions(capped, businessTypeId, setupMode, false);
+      setCachedQuestions(capped, businessTypeId, setupMode, contextHash, false);
       if (questionIndex === 0) {
         setCurrentIndex(0);
       }
@@ -454,14 +465,14 @@ export const SetupStepQuestionnaire = ({
       console.warn('[Setup] Motor AI no respondió tras reintentos. Activando fallback premium pivote.');
       questionsRef.current = pivotFallback;
       setQuestions(pivotFallback);
-      setCachedQuestions(pivotFallback, businessTypeId, setupMode, false);
+      setCachedQuestions(pivotFallback, businessTypeId, setupMode, contextHash, false);
       // allBatchesDone NO se marca true: queremos que tras la primera respuesta
       // se reintente el motor AI con ese contexto real.
       backgroundFetchStarted.current = false;
       setGenerationError(false);
       setIsLoadingFirst(false);
     }
-  }, [fetchQuestions, setupMode, questionIndex, businessTypeId, pivotFallback]);
+  }, [fetchQuestions, setupMode, questionIndex, businessTypeId, contextHash, pivotFallback]);
 
   // Generación PROGRESIVA en background: micro-batches secuenciales que se
   // guardan apenas llegan. Nunca se piensan todas las preguntas juntas y el
@@ -503,7 +514,7 @@ export const SetupStepQuestionnaire = ({
         const merged = capQuestions([...prev, ...fresh], setupMode);
         questionsRef.current = merged;
         setQuestions(merged);
-        setCachedQuestions(merged, businessTypeId, setupMode, merged.length >= max);
+        setCachedQuestions(merged, businessTypeId, setupMode, contextHash, merged.length >= max);
 
         // Si la IA sólo devolvió repetidas, contarlo como fallo para no loopear infinito.
         if (fresh.length === 0) consecutiveFailures += 1;
@@ -521,9 +532,9 @@ export const SetupStepQuestionnaire = ({
       console.warn(`[Setup] Cerrando con ${total}/${min} preguntas (batches incompletos).`);
     }
     allBatchesDone.current = true;
-    setCachedQuestions(questionsRef.current, businessTypeId, setupMode, true);
+    setCachedQuestions(questionsRef.current, businessTypeId, setupMode, contextHash, true);
     setIsLoadingMore(false);
-  }, [fetchQuestions, setupMode, businessTypeId]);
+  }, [fetchQuestions, setupMode, businessTypeId, contextHash]);
 
   // Motor inteligente: si no hay cache válido, generar preguntas hiperpersonalizadas vía AI.
   // Tanto Rápido como Completo usan el MISMO motor (generate-questionnaire).
