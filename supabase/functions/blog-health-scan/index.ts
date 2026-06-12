@@ -123,8 +123,22 @@ Deno.serve(async (req) => {
         context: { post_id: p.id, slug: p.slug, issues: allIssues, url },
         fingerprint: `blog:${p.slug}:${allIssues.sort().join(",")}`,
       });
-    }
-  }
+
+      // Auto-heal solo para alta severidad y problemas que sabemos arreglar quirúrgicamente
+      const autohealable = allIssues.some(i =>
+        i === "missing_meta_description" || i === "db_meta_thin" ||
+        i.startsWith("meta_description_length_") ||
+        i === "missing_h1" || i === "template_placeholder_leak"
+      );
+      if (critical && autohealable) {
+        try {
+          await supabase.functions.invoke("blog-autoheal", {
+            body: { post_id: p.id, issues: allIssues },
+          });
+        } catch (e) {
+          console.error("[blog-health-scan] autoheal invoke failed", e);
+        }
+      }
 
   return new Response(JSON.stringify({ scanned, withIssues, summary }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
