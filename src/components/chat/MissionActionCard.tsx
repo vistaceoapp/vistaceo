@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { 
-  Target, 
-  Rocket, 
-  Clock, 
-  Zap, 
+import {
+  Target,
+  Rocket,
+  Clock,
+  Zap,
   ChevronRight,
   Loader2,
-  Check
+  Check,
+  Sparkles,
+  ListChecks,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -32,25 +34,24 @@ interface MissionActionCardProps {
 }
 
 const priorityConfig = {
-  P0: { label: "Urgente", color: "text-destructive", bg: "bg-destructive/10" },
-  P1: { label: "Alta", color: "text-amber-500", bg: "bg-amber-500/10" },
-  P2: { label: "Normal", color: "text-primary", bg: "bg-primary/10" },
+  P0: { label: "Urgente", dot: "bg-rose-500", text: "text-rose-600 dark:text-rose-400", ring: "ring-rose-500/20" },
+  P1: { label: "Alta", dot: "bg-amber-500", text: "text-amber-600 dark:text-amber-400", ring: "ring-amber-500/20" },
+  P2: { label: "Normal", dot: "bg-sky-500", text: "text-sky-600 dark:text-sky-400", ring: "ring-sky-500/20" },
 };
 
 export const MissionActionCard = ({
   businessId,
   suggestions,
-  onClose,
 }: MissionActionCardProps) => {
   const navigate = useNavigate();
   const [creating, setCreating] = useState<number | null>(null);
-  const [created, setCreated] = useState<number[]>([]);
+  const [created, setCreated] = useState<Record<number, string>>({});
+  const [expanded, setExpanded] = useState<number | null>(0);
 
   const handleCreateMission = async (suggestion: MissionSuggestion, index: number) => {
     setCreating(index);
 
     try {
-      // Pre-store audit: bloquea contenido crudo / Red List antes de Supabase.
       const audit = await validateBeforeStore(
         {
           type: 'mission',
@@ -71,8 +72,8 @@ export const MissionActionCard = ({
           quality: { passed: false, score: audit.averageScore, failedReason: audit.issues[0]?.message },
         });
         toast({
-          title: 'No se pudo crear la misión',
-          description: 'El contenido no superó la validación de calidad. Pedile al asistente que la regenere con más contexto.',
+          title: 'No se pudo activar la misión',
+          description: 'El contenido necesita más detalle. Pedile al asistente que la reformule.',
           variant: 'destructive',
         });
         return;
@@ -103,24 +104,17 @@ export const MissionActionCard = ({
         brainFieldsUpdated: ['missions'],
       });
 
-      setCreated(prev => [...prev, index]);
-      
-      toast({
-        title: "✅ Misión creada",
-        description: `"${suggestion.title}" fue agregada a tus misiones activas.`,
-      });
+      setCreated(prev => ({ ...prev, [index]: data?.id ?? '' }));
 
-      // Optional: navigate to mission
-      if (data) {
-        setTimeout(() => {
-          navigate(`/app/missions?mission=${data.id}`);
-        }, 1500);
-      }
+      toast({
+        title: "Misión activada",
+        description: `"${suggestion.title}" ya está en tu lista.`,
+      });
     } catch (error) {
       console.error("Error creating mission:", error);
       toast({
-        title: "Error",
-        description: "No se pudo crear la misión",
+        title: "No pudimos activarla",
+        description: "Reintentá en un momento.",
         variant: "destructive",
       });
     } finally {
@@ -128,94 +122,171 @@ export const MissionActionCard = ({
     }
   };
 
-  if (!suggestions || suggestions.length === 0) {
-    return null;
-  }
+  if (!suggestions || suggestions.length === 0) return null;
 
   return (
-    <div className="my-4 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-4 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className="p-2 rounded-xl bg-primary/10">
-          <Target className="w-4 h-4 text-primary" />
-        </div>
-        <div>
-          <h4 className="text-sm font-semibold text-foreground">
-            ¿Querés crear una misión?
-          </h4>
-          <p className="text-xs text-muted-foreground">
-            Basado en tu solicitud, preparé estas opciones
-          </p>
+    <div className="my-4 rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm overflow-hidden shadow-sm animate-fade-in">
+      {/* Header con gradient marca */}
+      <div
+        className="relative px-4 py-3 border-b border-border/40"
+        style={{
+          background: 'linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(262 70% 65% / 0.08))',
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex items-center justify-center w-9 h-9 rounded-xl text-white shadow-sm"
+            style={{ background: 'linear-gradient(135deg, #2692DC, #746CE6)' }}
+          >
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-sm font-semibold text-foreground leading-tight">
+              Misión lista para activar
+            </h4>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Generada con tu Brain · {suggestions.length === 1 ? '1 acción' : `${suggestions.length} opciones`}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Suggestions */}
-      <div className="space-y-2">
+      {/* Lista */}
+      <div className="divide-y divide-border/40">
         {suggestions.map((suggestion, index) => {
-          const priority = priorityConfig[suggestion.priority];
+          const priority = priorityConfig[suggestion.priority] ?? priorityConfig.P1;
           const isCreating = creating === index;
-          const isCreated = created.includes(index);
+          const createdId = created[index];
+          const isCreated = createdId !== undefined;
+          const isOpen = expanded === index;
+          const dod = suggestion.definition_of_done ?? [];
 
           return (
             <div
               key={index}
               className={cn(
-                "rounded-xl border border-border/50 bg-card/50 p-3",
-                "transition-all duration-200",
-                isCreated && "opacity-60"
+                "px-4 py-3 transition-all duration-200",
+                isCreated && "bg-emerald-500/[0.03]",
+                !isCreated && "hover:bg-muted/40"
               )}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={cn("text-[10px] px-1.5 py-0.5 rounded-md font-medium", priority.bg, priority.color)}>
-                      {priority.label}
-                    </span>
-                    {suggestion.due_hint && (
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {suggestion.due_hint}
+              <button
+                type="button"
+                onClick={() => setExpanded(isOpen ? null : index)}
+                className="w-full text-left"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <span className={cn("inline-flex items-center gap-1.5 text-[10px] font-medium", priority.text)}>
+                        <span className={cn("w-1.5 h-1.5 rounded-full", priority.dot)} />
+                        {priority.label}
                       </span>
-                    )}
-                  </div>
-                  <h5 className="text-sm font-medium text-foreground line-clamp-1">
-                    {suggestion.title}
-                  </h5>
-                  <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                    {suggestion.description}
-                  </p>
-                  {suggestion.kpi && (
-                    <p className="text-[10px] text-primary mt-1 flex items-center gap-1">
-                      <Zap className="w-3 h-3" />
-                      KPI: {suggestion.kpi}
+                      {suggestion.due_hint && (
+                        <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {suggestion.due_hint}
+                        </span>
+                      )}
+                      {dod.length > 0 && (
+                        <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
+                          <ListChecks className="w-3 h-3" />
+                          {dod.length} pasos
+                        </span>
+                      )}
+                    </div>
+                    <h5 className="text-sm font-medium text-foreground leading-snug">
+                      {suggestion.title}
+                    </h5>
+                    <p className={cn(
+                      "text-xs text-muted-foreground mt-1 leading-relaxed",
+                      !isOpen && "line-clamp-2"
+                    )}>
+                      {suggestion.description}
                     </p>
+                  </div>
+                  <ChevronRight
+                    className={cn(
+                      "w-4 h-4 text-muted-foreground/60 flex-shrink-0 mt-1 transition-transform duration-200",
+                      isOpen && "rotate-90"
+                    )}
+                  />
+                </div>
+              </button>
+
+              {/* Expandido: KPI + pasos */}
+              {isOpen && (dod.length > 0 || suggestion.kpi) && (
+                <div className="mt-3 pl-0 space-y-2.5 animate-fade-in">
+                  {suggestion.kpi && (
+                    <div className="flex items-start gap-2 text-xs">
+                      <Zap className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium text-foreground">KPI: </span>
+                        <span className="text-muted-foreground">{suggestion.kpi}</span>
+                      </div>
+                    </div>
+                  )}
+                  {dod.length > 0 && (
+                    <ol className="space-y-1.5 text-xs text-muted-foreground">
+                      {dod.map((step, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="flex items-center justify-center w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] font-semibold flex-shrink-0 mt-0.5">
+                            {i + 1}
+                          </span>
+                          <span className="leading-relaxed">{step}</span>
+                        </li>
+                      ))}
+                    </ol>
                   )}
                 </div>
+              )}
 
-                <Button
-                  variant={isCreated ? "ghost" : "default"}
-                  size="sm"
-                  onClick={() => handleCreateMission(suggestion, index)}
-                  disabled={isCreating || isCreated}
-                  className={cn(
-                    "flex-shrink-0 h-8 px-3 gap-1",
-                    isCreated && "text-green-600"
-                  )}
-                >
-                  {isCreating ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : isCreated ? (
-                    <>
+              {/* CTA */}
+              <div className="mt-3 flex items-center gap-2">
+                {isCreated ? (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled
+                      className="flex-1 h-9 gap-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/10"
+                    >
                       <Check className="w-3.5 h-3.5" />
-                      Creada
-                    </>
-                  ) : (
-                    <>
-                      <Rocket className="w-3.5 h-3.5" />
-                      Crear
-                    </>
-                  )}
-                </Button>
+                      Activada
+                    </Button>
+                    {createdId && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/app/missions?mission=${createdId}`)}
+                        className="h-9 gap-1 text-xs"
+                      >
+                        Ver misión
+                        <ChevronRight className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); handleCreateMission(suggestion, index); }}
+                    disabled={isCreating}
+                    className="flex-1 h-9 gap-1.5 text-white border-0 shadow-sm hover:shadow-md transition-shadow"
+                    style={{ background: 'linear-gradient(135deg, #2692DC, #746CE6)' }}
+                  >
+                    {isCreating ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Activando...
+                      </>
+                    ) : (
+                      <>
+                        <Rocket className="w-3.5 h-3.5" />
+                        Aplicar a misión
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           );
@@ -223,15 +294,16 @@ export const MissionActionCard = ({
       </div>
 
       {/* Footer */}
-      <div className="mt-3 pt-3 border-t border-border/30 flex justify-between items-center">
-        <p className="text-[10px] text-muted-foreground">
-          Podés personalizarlas después en Misiones
+      <div className="px-4 py-2.5 bg-muted/30 border-t border-border/40 flex justify-between items-center">
+        <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+          <Target className="w-3 h-3" />
+          Personalizables en Misiones
         </p>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate("/app/missions")}
-          className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground"
+          className="h-7 px-2 text-[11px] gap-1 text-muted-foreground hover:text-foreground"
         >
           Ver todas
           <ChevronRight className="w-3 h-3" />
