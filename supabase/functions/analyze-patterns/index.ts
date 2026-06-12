@@ -1076,6 +1076,21 @@ ${analysisContext}
         });
       }
 
+      // Brain signal: registrar evento research generado (cierra gap de auto-aprendizaje)
+      if (learningInserted > 0) {
+        try {
+          await supabase.from("signals").insert({
+            business_id: businessId,
+            brain_id: brain?.id || null,
+            signal_type: "research_generated",
+            source: "analyze-patterns",
+            content: { inserted: learningInserted, filtered: learningFiltered, model: "google/gemini-2.5-flash" },
+            confidence: "medium",
+            importance: 4,
+          });
+        } catch (e) { console.warn("[analyze-patterns] research signal insert failed", e); }
+      }
+
       console.log(`[analyze-patterns] Research complete: ${learningInserted} inserted, ${learningFiltered} filtered`);
 
       return new Response(
