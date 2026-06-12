@@ -1094,6 +1094,34 @@ const RadarPage = () => {
   // Desktop Layout
   return (
     <div className="space-y-6 max-w-full">
+      {/* Convert-to-mission animated overlay */}
+      {convertingOverlay && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/85 backdrop-blur-xl animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md px-6">
+            <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/30 via-accent/20 to-transparent blur-3xl opacity-70" />
+            <div className="rounded-3xl border border-border/60 bg-card/90 shadow-2xl p-7 sm:p-8 text-center animate-in zoom-in-95 duration-300">
+              <div className="relative mx-auto mb-5 w-16 h-16">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-accent animate-pulse" />
+                <div className="absolute inset-[3px] rounded-full bg-card flex items-center justify-center">
+                  <Target className="w-7 h-7 text-primary animate-pulse" />
+                </div>
+                <div className="absolute -inset-2 rounded-full border-2 border-primary/30 animate-ping" />
+              </div>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground mb-2">Creando misión</p>
+              <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug line-clamp-2 mb-3">
+                {convertingOverlay.title}
+              </h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                Personalizando pasos con tu contexto…
+              </p>
+              <div className="h-1 w-full rounded-full bg-secondary overflow-hidden">
+                <div className="h-full w-1/2 bg-gradient-to-r from-primary to-accent rounded-full animate-[shimmer_1.2s_ease-in-out_infinite]" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
