@@ -1367,23 +1367,21 @@ MESSAGE_JSON:
     const wantsSpecificData = specificDataHints.test(lastText);
     const isComplex = hasImages || complexHints.test(lastText) || wantsSpecificData || lastText.length > 600;
 
-    // Modelo: máxima inteligencia razonable.
-    // Pro complejo → Gemini 3 Flash Preview (el más inteligente del catálogo en velocidad).
-    // Pro simple → Gemini 2.5 Flash.
-    // Free → siempre Lite (costo).
-    let selectedModel: string;
-    if (!isProPlan) selectedModel = "google/gemini-2.5-flash-lite";
-    else if (isComplex) selectedModel = "google/gemini-3-flash-preview";
-    else selectedModel = "google/gemini-2.5-flash";
-
+    // Modelo: máxima inteligencia para TODOS (free y pro).
+    // El free debe sentir el poder real de la app — eso convierte a Pro.
+    // Diferencia free vs pro = cantidad de mensajes/mes, NO calidad por mensaje.
     const trivialHints = /^(hola|hi|hey|buenas|gracias|ok|listo|dale|si|no|perfecto|genial|ya|👍|🙏)\b/i;
     const isTrivial = !hasImages && lastText.length < 60 && trivialHints.test(lastText.trim());
 
+    let selectedModel: string;
+    if (isTrivial) selectedModel = "google/gemini-2.5-flash-lite";
+    else if (isComplex) selectedModel = "google/gemini-3-flash-preview";
+    else selectedModel = "google/gemini-2.5-flash";
+
     // Cap de tokens — corto pero suficiente para cerrar oraciones (anti-truncación).
-    // Máximo 2 párrafos enfocados.
+    // Máximo 2 párrafos enfocados. Mismo techo para free y pro.
     let maxTokens: number;
     if (isTrivial) maxTokens = 220;
-    else if (!isProPlan) maxTokens = isComplex ? 600 : 420;
     else maxTokens = isComplex ? 700 : 500;
 
     // PROMPT MAESTRO VISTACEO — directiva final inyectada al system
