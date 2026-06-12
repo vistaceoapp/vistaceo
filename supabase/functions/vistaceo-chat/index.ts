@@ -148,6 +148,10 @@ interface MemoryContext {
   recentSignals: Array<{ signal_type: string; source: string; content: unknown; raw_text: string }>;
   latestSnapshot: { total_score: number; sub_scores: Record<string, number> } | null;
   activeAlerts: Array<{ title: string; severity: string; category: string }>;
+  openOpportunities: Array<{ title: string; impact: string; status: string }>;
+  competitors: Array<{ name: string; strengths: unknown; weaknesses: unknown }>;
+  learningItems: Array<{ title: string; category: string; status: string }>;
+  weeklyPriorities: Array<{ title: string; priority: number; status: string }>;
 }
 
 function buildConfigJson(business: BusinessContext, brain: BrainData | null): Record<string, unknown> {
