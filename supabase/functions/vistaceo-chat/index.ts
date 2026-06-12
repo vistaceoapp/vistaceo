@@ -918,11 +918,11 @@ serve(async (req) => {
 
     // ============================================================
     // PLAN ENFORCEMENT (server-side, before consuming AI)
-    // Free: 3 chat messages/month. Pro: alta capacidad = 100/mes.
-    // Fail-open on errors so a transient DB issue can't lock users out.
+    // Free: 3 mensajes LIFETIME (de por vida). Pro: ilimitado.
+    // Misma calidad e inteligencia de respuesta para free y pro.
+    // Fail-open en errores para no bloquear al usuario por fallos transitorios.
     // ============================================================
-    const FREE_CHAT_PER_MONTH = 3;
-    const PRO_CHAT_PER_MONTH = 100;
+    const FREE_CHAT_LIFETIME = 3;
     let isProPlan = false;
     if (supabase && businessContext?.id) {
       try {
@@ -938,34 +938,30 @@ serve(async (req) => {
 
         isProPlan = !!activeSub;
 
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        if (!isProPlan) {
+          const { count: usedLifetime } = await supabase
+            .from("chat_messages")
+            .select("id", { count: "exact", head: true })
+            .eq("business_id", businessContext.id)
+            .eq("role", "user");
 
-        const { count: usedThisMonth } = await supabase
-          .from("chat_messages")
-          .select("id", { count: "exact", head: true })
-          .eq("business_id", businessContext.id)
-          .eq("role", "user")
-          .gte("created_at", startOfMonth);
-
-        const cap = isProPlan ? PRO_CHAT_PER_MONTH : FREE_CHAT_PER_MONTH;
-        if ((usedThisMonth ?? 0) >= cap) {
-          console.log(
-            `[plan-limit] business ${businessContext.id} hit chat cap (${usedThisMonth}/${cap}) pro=${isProPlan}`,
-          );
-          return new Response(
-            JSON.stringify({
-              error: isProPlan ? "pro_cap_reached" : "free_limit_reached",
-              limit_type: "chat",
-              used: usedThisMonth,
-              limit: cap,
-              message: isProPlan
-                ? `Alcanzaste el tope mensual de tu plan Pro (alta capacidad: ${PRO_CHAT_PER_MONTH} mensajes). El contador se reinicia el día 1.`
-                : "Alcanzaste el límite de 3 mensajes mensuales del plan Gratis. Pasate a Pro para alta capacidad de conversación.",
-              upgrade_url: isProPlan ? null : "/checkout",
-            }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-          );
+          if ((usedLifetime ?? 0) >= FREE_CHAT_LIFETIME) {
+            console.log(
+              `[plan-limit] business ${businessContext.id} hit FREE lifetime chat cap (${usedLifetime}/${FREE_CHAT_LIFETIME})`,
+            );
+            return new Response(
+              JSON.stringify({
+                error: "free_limit_reached",
+                limit_type: "chat",
+                used: usedLifetime,
+                limit: FREE_CHAT_LIFETIME,
+                message:
+                  "Usaste los 3 mensajes gratis de tu cuenta. Pasate a Pro para chatear sin límites con tu CEO virtual.",
+                upgrade_url: "/checkout",
+              }),
+              { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+            );
+          }
         }
       } catch (limitErr) {
         // Never block the user if the quota check itself crashes.
