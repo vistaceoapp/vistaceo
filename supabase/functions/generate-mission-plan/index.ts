@@ -807,7 +807,7 @@ serve(async (req) => {
         artifactKey,
         brainSignature,
         payload: cleanPlan,
-        modelUsed: "google/gemini-2.5-flash",
+        modelUsed: "google/gemini-2.5-pro",
       });
     }
 
