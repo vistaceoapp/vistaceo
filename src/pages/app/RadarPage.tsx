@@ -202,6 +202,41 @@ const RadarPage = () => {
     }
   }, [currentBusiness]);
 
+  // Open item from deep-link (?opportunity=<id> or ?item=<id>) — used by Dashboard widgets
+  useEffect(() => {
+    if (loading) return;
+    const oppId = searchParams.get("opportunity");
+    const itemId = searchParams.get("item");
+    let consumed = false;
+
+    if (oppId) {
+      const opp = opportunities.find((o) => o.id === oppId);
+      if (opp) {
+        setSelectedOpportunity(opp);
+        setActiveTab("oportunidades");
+        consumed = true;
+      }
+    }
+    if (itemId) {
+      const it = learningItems.find((l) => l.id === itemId);
+      if (it) {
+        setSelectedLearning(it);
+        const tabParam = searchParams.get("tab");
+        if (tabParam === "id") setActiveTab("id");
+        consumed = true;
+      }
+    }
+
+    if (consumed) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("opportunity");
+      next.delete("item");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, opportunities, learningItems, loading, setSearchParams]);
+
+
+
   // Alimenta el Brain cuando el usuario abre una oportunidad para verla.
   useEffect(() => {
     if (!selectedOpportunity) return;
