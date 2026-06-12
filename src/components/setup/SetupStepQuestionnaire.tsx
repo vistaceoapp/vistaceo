@@ -83,7 +83,7 @@ function capQuestions(questions: UniversalQuestion[], mode: 'quick' | 'complete'
 }
 
 // Cache keys for persisting questions across navigation
-const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v4_planning_aware';
+const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v5_context_aware';
 const QUESTIONS_META_KEY = 'setupQuestionsMeta';
 
 interface QuestionsCacheData {
@@ -91,20 +91,36 @@ interface QuestionsCacheData {
   timestamp: number;
   businessTypeId: string;
   setupMode: string;
+  contextHash: string;
   allBatchesDone: boolean;
 }
 
-function getCachedQuestions(businessTypeId: string, setupMode: string): QuestionsCacheData | null {
+// Hash determinístico del contexto que dispara regeneración cuando cambia
+// el texto crudo del usuario, las keywords o el sector — clave para 'custom' types.
+function hashContext(input: string): string {
+  let h = 5381;
+  for (let i = 0; i < input.length; i++) h = ((h << 5) + h) ^ input.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+
+function buildContextHash(businessTypeId: string, areaId: string, rawUserText: string, keywords: string[]): string {
+  const norm = `${businessTypeId}|${areaId}|${(rawUserText || '').trim().toLowerCase().slice(0, 400)}|${(keywords || []).slice(0, 10).join(',').toLowerCase()}`;
+  return hashContext(norm);
+}
+
+function getCachedQuestions(businessTypeId: string, setupMode: string, contextHash: string): QuestionsCacheData | null {
   try {
     const cached = localStorage.getItem(QUESTIONS_CACHE_KEY);
     if (!cached) return null;
     const parsed: QuestionsCacheData = JSON.parse(cached);
-    // Valid for 30 days AND same business type AND same mode
+    // TTL más corto para 'custom' (24h) — el usuario puede iterar la descripción.
+    const ttl = businessTypeId === 'custom' ? 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000;
     if (
-      Date.now() - parsed.timestamp < 30 * 24 * 60 * 60 * 1000 &&
+      Date.now() - parsed.timestamp < ttl &&
       parsed.questions?.length > 0 &&
       parsed.businessTypeId === businessTypeId &&
-      parsed.setupMode === setupMode
+      parsed.setupMode === setupMode &&
+      parsed.contextHash === contextHash
     ) {
       return parsed;
     }
@@ -112,13 +128,14 @@ function getCachedQuestions(businessTypeId: string, setupMode: string): Question
   return null;
 }
 
-function setCachedQuestions(questions: UniversalQuestion[], businessTypeId: string, setupMode: string, allDone: boolean) {
+function setCachedQuestions(questions: UniversalQuestion[], businessTypeId: string, setupMode: string, contextHash: string, allDone: boolean) {
   try {
     const data: QuestionsCacheData = {
       questions,
       timestamp: Date.now(),
       businessTypeId,
       setupMode,
+      contextHash,
       allBatchesDone: allDone,
     };
     localStorage.setItem(QUESTIONS_CACHE_KEY, JSON.stringify(data));
