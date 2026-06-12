@@ -139,6 +139,10 @@ Deno.serve(async (req) => {
           console.error("[blog-health-scan] autoheal invoke failed", e);
         }
       }
+    }
+  }
+
+
 
   return new Response(JSON.stringify({ scanned, withIssues, summary }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
