@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
         where_path: `/${p.slug}/`,
         detected_by: "blog-health-scan",
         context: { post_id: p.id, slug: p.slug, issues: allIssues, url },
-        fingerprint_input: `blog:${p.slug}:${allIssues.sort().join(",")}`,
+        fingerprint: `blog:${p.slug}:${allIssues.sort().join(",")}`,
       });
     }
   }
