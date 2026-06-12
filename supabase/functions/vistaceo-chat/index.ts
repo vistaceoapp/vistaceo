@@ -973,6 +973,12 @@ serve(async (req) => {
     // Fail-open en errores para no bloquear al usuario por fallos transitorios.
     // ============================================================
     const FREE_CHAT_LIFETIME = 3;
+    // Pro monthly cap, auto-calculado para evitar abuso/bots:
+    // base 400/mes, escalado por uso histórico (promedio últimos 3 meses x 1.6),
+    // dentro de [300, 1500]. Suficiente para uso ejecutivo intensivo real.
+    const PRO_CAP_MIN = 300;
+    const PRO_CAP_MAX = 1500;
+    const PRO_CAP_BASE = 400;
     let isProPlan = false;
     if (supabase && businessContext?.id) {
       try {
@@ -1010,6 +1016,47 @@ serve(async (req) => {
                 upgrade_url: "/checkout",
               }),
               { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+            );
+          }
+        } else {
+          // Pro: tope mensual auto-calculado a partir del uso real
+          const now = new Date();
+          const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+          const threeMonthsAgo = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 3, 1)).toISOString();
+
+          const [{ count: usedThisMonth }, { count: usedLast3Months }] = await Promise.all([
+            supabase
+              .from("chat_messages")
+              .select("id", { count: "exact", head: true })
+              .eq("business_id", businessContext.id)
+              .eq("role", "user")
+              .gte("created_at", startOfMonth),
+            supabase
+              .from("chat_messages")
+              .select("id", { count: "exact", head: true })
+              .eq("business_id", businessContext.id)
+              .eq("role", "user")
+              .gte("created_at", threeMonthsAgo),
+          ]);
+
+          const avgMonthly = Math.round(((usedLast3Months ?? 0) / 3) * 1.6);
+          const proCap = Math.max(PRO_CAP_MIN, Math.min(PRO_CAP_MAX, Math.max(PRO_CAP_BASE, avgMonthly)));
+
+          if ((usedThisMonth ?? 0) >= proCap) {
+            console.log(
+              `[plan-limit] PRO business ${businessContext.id} hit monthly cap (${usedThisMonth}/${proCap})`,
+            );
+            return new Response(
+              JSON.stringify({
+                error: "pro_monthly_limit_reached",
+                limit_type: "chat",
+                used: usedThisMonth,
+                limit: proCap,
+                resets_at: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)).toISOString(),
+                message:
+                  `Alcanzaste el tope mensual de ${proCap} mensajes de chat en tu plan Pro. Se renueva el día 1 del próximo mes.`,
+              }),
+              { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
             );
           }
         }

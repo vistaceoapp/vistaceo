@@ -361,7 +361,7 @@ const ChatPage = () => {
           // ignore parse error
         }
         // Some clients return the body inline in aiData even on error
-        if (!limitPayload && aiData && (aiData as any).error === "free_limit_reached") {
+        if (!limitPayload && aiData && ((aiData as any).error === "free_limit_reached" || (aiData as any).error === "pro_monthly_limit_reached")) {
           limitPayload = aiData;
         }
 
@@ -376,10 +376,23 @@ const ChatPage = () => {
               </ToastAction>
             ),
           });
-          // Roll back the optimistic user message
           setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
           setLoading(false);
           if (!isPro) refreshLimits();
+          return;
+        }
+
+        if (limitPayload?.error === "pro_monthly_limit_reached") {
+          const resets = limitPayload.resets_at
+            ? new Date(limitPayload.resets_at).toLocaleDateString("es-AR", { day: "2-digit", month: "long" })
+            : null;
+          toast({
+            title: `Tope mensual alcanzado (${limitPayload.used}/${limitPayload.limit})`,
+            description: limitPayload.message ||
+              (resets ? `Tu chat se renueva el ${resets}.` : "Tu chat se renueva el día 1 del próximo mes."),
+          });
+          setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
+          setLoading(false);
           return;
         }
 
@@ -387,7 +400,7 @@ const ChatPage = () => {
         throw new Error(aiError.message || "Error al comunicarse con el asistente");
       }
 
-      // Inline 402 (rare path: body returned as data)
+      // Inline error body (rare path: body returned as data)
       if (aiData && (aiData as any).error === "free_limit_reached") {
         toast({
           title: "Chat bloqueado — usaste tus 3 mensajes",
@@ -402,6 +415,20 @@ const ChatPage = () => {
         setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
         setLoading(false);
         if (!isPro) refreshLimits();
+        return;
+      }
+
+      if (aiData && (aiData as any).error === "pro_monthly_limit_reached") {
+        const resets = (aiData as any).resets_at
+          ? new Date((aiData as any).resets_at).toLocaleDateString("es-AR", { day: "2-digit", month: "long" })
+          : null;
+        toast({
+          title: `Tope mensual alcanzado (${(aiData as any).used}/${(aiData as any).limit})`,
+          description: (aiData as any).message ||
+            (resets ? `Tu chat se renueva el ${resets}.` : "Tu chat se renueva el día 1 del próximo mes."),
+        });
+        setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
+        setLoading(false);
         return;
       }
 
