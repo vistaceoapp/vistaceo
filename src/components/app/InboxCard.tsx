@@ -155,6 +155,12 @@ export const InboxCard = ({ variant = "full", onAnswer }: InboxCardProps) => {
 
       if (error) throw error;
 
+      // Pulso global "cerebro aprendiendo"
+      try {
+        const { notifyBrainLearned } = await import("@/components/feedback/BrainLearningPulse");
+        notifyBrainLearned(currentQuestion.category || "nueva señal");
+      } catch { /* noop */ }
+
       toast({
         title: "✨ ¡Aprendido!",
         description: "Ahora puedo darte mejores recomendaciones.",

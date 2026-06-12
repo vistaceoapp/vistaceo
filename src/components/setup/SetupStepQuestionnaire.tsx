@@ -19,6 +19,7 @@ import {
 } from '@/lib/universalQuestionsEngine';
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 import type { GenerateQuestionnaireResponse } from '@/lib/edge-function-response-types';
+import { notifyBrainLearned } from '@/components/feedback/BrainLearningPulse';
 
 interface SetupStepQuestionnaireProps {
   countryCode: CountryCode;
@@ -659,6 +660,10 @@ export const SetupStepQuestionnaire = ({
   const handleAnswer = (value: any) => {
     onUpdate({ ...answers, [currentQuestion.id]: value });
     liveIngest(currentQuestion, value);
+    // Feedback visual: el cerebro aprende en vivo
+    const q: any = currentQuestion;
+    const text = q?.shortLabel || q?.category || q?.question || q?.text || q?.title || 'nueva señal';
+    notifyBrainLearned(String(text).slice(0, 60));
   };
 
   // "No sé / Quiero aclarar algo": NUNCA autoavanza. Solo abre input.

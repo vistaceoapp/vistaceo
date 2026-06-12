@@ -18,6 +18,7 @@ import PromoLanding from "./pages/PromoLanding";
 
 // Blog redirect (tiny component)
 import BlogRedirect from "./components/blog/BlogRedirect";
+import { BrainLearningPulse } from "./components/feedback/BrainLearningPulse";
 
 // Lazy-loaded pages - only loaded when navigated to
 const Index = lazy(() => import("./pages/Index"));
@@ -295,6 +296,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <BrainLearningPulse />
         <BrowserRouter>
           <ErrorBoundary>
             <AuthProvider>
