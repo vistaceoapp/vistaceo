@@ -717,6 +717,7 @@ const RadarPage = () => {
       }
     } finally {
       setActionLoading(false);
+      setConvertingOverlay(null);
     }
   };
 
