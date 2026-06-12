@@ -820,6 +820,7 @@ export const MissionLLMMode = ({
             )}
           </div>
         </aside>
+      <MissionRegenerateGateDialogs mode={regenGate.mode} setMode={regenGate.setMode} confirmRegenerate={regenGate.confirmRegenerate} />
     </div>
   );
 };
