@@ -111,7 +111,7 @@ export const CompetitorInsightsPanel = () => {
       await fetchCompetitors();
     } catch (error) {
       console.error("Error scanning:", error);
-      toast({ title: "Error", description: "No se pudo escanear. Verificá que tu negocio tenga ubicación.", variant: "destructive" });
+      toast({ title: "Escaneo en pausa", description: "Cargá la ubicación de tu negocio para detectar competidores cercanos." });
     } finally { setScanning(false); }
   };
 
