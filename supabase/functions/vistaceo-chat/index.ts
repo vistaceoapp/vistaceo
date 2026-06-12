@@ -1363,25 +1363,28 @@ MESSAGE_JSON:
     const isShort = lastText.length < 220;
     const hasImages = imageAttachments.length > 0;
     const complexHints = /(crisis|urgente|estrategia|plan|análisis|analiza|presupuesto|forecast|expansión|despido|legal|pricing|precio|margen|caja|equipo|conflict)/i;
-    // Specific-data hints: pedidos concretos que SIEMPRE necesitan respuesta completa con hipótesis
     const specificDataHints = /\b(cuál(?:es)?|qué|cuánto|cuántos|cuántas|top|ranking|listame|dame|mejor(?:es)?|peor(?:es)?|más vendid|menos vendid|productos?|servicios?|clientes?|competidores?|precios?|métricas?)\b/i;
     const wantsSpecificData = specificDataHints.test(lastText);
     const isComplex = hasImages || complexHints.test(lastText) || wantsSpecificData || lastText.length > 600;
-    // Cost optimization: Free users always use Lite (≈4× más barato).
-    // Pro users get Flash for complex/specific-data queries (alta calidad), Lite para el resto.
-    const selectedModel = isProPlan && isComplex
-      ? "google/gemini-2.5-flash"
-      : "google/gemini-2.5-flash-lite";
 
-    // Trivial detector: saludos, agradecimientos, confirmaciones cortas — gastan mínimo.
+    // Modelo: máxima inteligencia razonable.
+    // Pro complejo → Gemini 3 Flash Preview (el más inteligente del catálogo en velocidad).
+    // Pro simple → Gemini 2.5 Flash.
+    // Free → siempre Lite (costo).
+    let selectedModel: string;
+    if (!isProPlan) selectedModel = "google/gemini-2.5-flash-lite";
+    else if (isComplex) selectedModel = "google/gemini-3-flash-preview";
+    else selectedModel = "google/gemini-2.5-flash";
+
     const trivialHints = /^(hola|hi|hey|buenas|gracias|ok|listo|dale|si|no|perfecto|genial|ya|👍|🙏)\b/i;
     const isTrivial = !hasImages && lastText.length < 60 && trivialHints.test(lastText.trim());
 
-    // Cap dinámico de tokens (ahorro inteligente sin perder calidad):
+    // Cap de tokens — corto pero suficiente para cerrar oraciones (anti-truncación).
+    // Máximo 2 párrafos enfocados.
     let maxTokens: number;
-    if (isTrivial) maxTokens = 260;
-    else if (!isProPlan) maxTokens = isComplex ? 1200 : 700;
-    else maxTokens = isComplex ? 2000 : 950;
+    if (isTrivial) maxTokens = 220;
+    else if (!isProPlan) maxTokens = isComplex ? 600 : 420;
+    else maxTokens = isComplex ? 700 : 500;
 
     // PROMPT MAESTRO VISTACEO — directiva final inyectada al system
     const brevityDirective = {
@@ -1423,8 +1426,15 @@ LIMPIEZA VISUAL OBLIGATORIA DENTRO DE USER_REPLY
 - Para énfasis: NO uses markdown bold. Usá palabras fuertes y oraciones claras.
 - Párrafos cortos. Que se lea cómodo en mobile.
 
+EXTENSIÓN — MÁXIMO 2 PÁRRAFOS, CERO RELLENO
+- USER_REPLY tiene un techo duro de 2 párrafos. Si podés cerrar en 1 párrafo bien hecho, mejor.
+- Sin introducción ("Claro, te explico…"), sin cierre ceremonial ("Espero que te sirva…"). Directo al insight.
+- Cada oración debe sumar valor concreto: dato del Brain, decisión, número, próximo paso. Cero relleno.
+- Si necesitás listar pasos, usá numeración compacta en 1 párrafo, no expandas en bullets largos.
+- Hyper-personalizado: nombre del negocio, rubro, ciudad/país y al menos un dato real del Brain en la respuesta cuando exista.
+
 ANTI-TRUNCACIÓN
-- NUNCA cortes una oración a la mitad. Si te falta espacio, priorizá lo accionable y cerrá las frases con punto.
+- NUNCA cortes una oración a la mitad. Si te falta espacio, recortá ideas enteras y cerrá la última frase con punto. Mejor decir menos que cortar.
 
 MISIONES Y OPORTUNIDADES — SOLO SI SUMAN
 - Proponé misión u oportunidad solo cuando aporten valor real. No cierres todas las respuestas con "te armo una misión".
