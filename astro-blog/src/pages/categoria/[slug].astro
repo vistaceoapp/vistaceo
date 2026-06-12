@@ -1,30 +1,15 @@
 ---
 /**
  * GSC FIX: /categoria/{x}/ → /tema/{cluster}/  (o home si no hay match)
- *
- * Google rastreó /categoria/empleo y similares (legacy paths) y los
- * devolvía como 404. Emitimos páginas redirect (canonical + refresh +
- * noindex) para que GSC los consolide.
+ * Emite páginas redirect (canonical + refresh + noindex) para consolidar
+ * URLs legacy que Google sigue rastreando.
  */
 import { CLUSTERS } from '../../lib/clusters';
-
-// Mapeo de slugs legacy de "categoria" → cluster actual en /tema/
-const LEGACY_CAT_MAP: Record<string, string> = {
-  'empleo': 'empleo-habilidades',
-  'ia': 'ia-para-pymes',
-  'marketing': 'marketing-crecimiento',
-  'finanzas': 'finanzas-cashflow',
-  'operaciones': 'operaciones-procesos',
-  'ventas': 'ventas-negociacion',
-  'liderazgo': 'liderazgo-management',
-  'estrategia': 'estrategia-latam',
-  'herramientas': 'herramientas-productividad',
-  'data': 'data-analytics',
-  'servicios': 'servicios-profesionales-rentabilidad',
-  'tendencias': 'tendencias-ia-tech',
-};
+import { LEGACY_CAT_MAP } from '../../lib/legacy-redirects';
 
 export async function getStaticPaths() {
+  const { LEGACY_CAT_MAP } = await import('../../lib/legacy-redirects');
+  const { CLUSTERS } = await import('../../lib/clusters');
   const all = new Set<string>([
     ...Object.keys(LEGACY_CAT_MAP),
     ...Object.keys(CLUSTERS),
@@ -37,22 +22,18 @@ const targetCluster = LEGACY_CAT_MAP[slug] || (CLUSTERS[slug] ? slug : '');
 const target = targetCluster
   ? `https://blog.vistaceo.com/tema/${targetCluster}/`
   : `https://blog.vistaceo.com/`;
-
-return new Response(
-  `<!DOCTYPE html>
+---
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8" />
 <title>Redirigiendo…</title>
-<link rel="canonical" href="${target}">
-<meta name="robots" content="noindex, follow">
-<meta http-equiv="refresh" content="0; url=${target}">
-<script>window.location.replace(${JSON.stringify(target)});</script>
+<link rel="canonical" href={target} />
+<meta name="robots" content="noindex, follow" />
+<meta http-equiv="refresh" content={`0; url=${target}`} />
+<script is:inline set:html={`window.location.replace(${JSON.stringify(target)});`}></script>
 </head>
 <body>
-<p>Esta sección se movió. Redirigiendo a <a href="${target}">${target}</a>…</p>
+<p>Esta sección se movió. Redirigiendo a <a href={target}>{target}</a>…</p>
 </body>
-</html>`,
-  { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-);
----
+</html>
