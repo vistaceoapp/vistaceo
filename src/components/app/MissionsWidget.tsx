@@ -164,7 +164,7 @@ export const MissionsWidget = ({ className }: MissionsWidgetProps) => {
             <button
               key={mission.id}
               className="flex-shrink-0 w-64 p-4 rounded-xl bg-secondary/30 border border-border hover:border-primary/30 transition-all text-left group"
-              onClick={() => navigate(`/app/missions`)}
+              onClick={() => navigate(`/app/missions?mission=${mission.id}`)}
             >
               <div className="flex items-start gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
