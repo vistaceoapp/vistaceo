@@ -177,11 +177,9 @@ const PredictionCard = memo(({ prediction, onView, onDismiss, onConvert }: {
           <Button variant="outline" size="sm" className="flex-1" onClick={onView}>
             <Eye className="w-4 h-4 mr-1" />Ver
           </Button>
-          {prediction.available_actions?.convert_to_mission && (
-            <Button size="sm" className="flex-1 gradient-primary text-primary-foreground" onClick={onConvert}>
-              <Target className="w-4 h-4 mr-1" />Misión
-            </Button>
-          )}
+          <Button size="sm" className="flex-1 gradient-primary text-primary-foreground" onClick={(e) => { e.stopPropagation(); onConvert(); }}>
+            <Target className="w-4 h-4 mr-1" />Misión
+          </Button>
           <Button variant="ghost" size="sm" onClick={onDismiss}><X className="w-4 h-4" /></Button>
         </div>
       </CardContent>
