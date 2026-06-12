@@ -108,7 +108,10 @@ serve(async (req) => {
     const isBackgroundBatch = batchIndex > 0;
     
     const systemPrompt = isBackgroundBatch 
-      ? `Genera preguntas de diagnóstico para "${businessTypeLabel}" (${countryCode}). Idioma: ${lang}, voz: ${voiceStyle}.
+      ? `Genera preguntas de diagnóstico ULTRA-PERSONALIZADAS para "${businessTypeLabel}" (${countryCode}). Idioma: ${lang}, voz: ${voiceStyle}.
+
+CONTEXTO DEL NEGOCIO (úsalo en cada pregunta — no genéricas):
+${contextParts}
 
 DIMENSIONES (cobertura balanceada ${dimDist.min}-${dimDist.max} c/u): traffic, profitability, team, finances, efficiency, growth, reputation.
 
@@ -116,13 +119,14 @@ TIPOS PERMITIDOS: single (formato principal), multi (sólo si corresponde), numb
 CATEGORÍAS: identity, operation, sales, finance, team, marketing, reputation, goals.
 
 REGLAS ABSOLUTAS:
-1. 100% específico para "${businessTypeLabel}". Terminología del sector.
+1. 100% específico para "${businessTypeLabel}" usando el contexto del negocio arriba. Terminología real del sector.
 2. TODO en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. CERO inglés en títulos, opciones o ayudas.
 3. PREGUNTAS CORTAS: máximo 12 palabras. Una sola idea. PROHIBIDO "Ej:" en el título.
 4. OPCIONES: EXACTAMENTE 4 ó 6 opciones por pregunta. NUNCA más de 6. Cada opción máx 4 palabras, primera letra MAYÚSCULA, sin punto final.
 5. NO incluyas "No sé", "No aplica", "Otra", "Ninguna" como opciones. La UI los agrega aparte.
 6. Para concepto difícil (flujo de caja, margen, ticket, conversión, recompra, capital de trabajo, etc.): completá "help" con UNA frase ≤120 chars que lo explique.
 7. Datos accionables. Rangos realistas. Gramática perfecta.
+8. NO repitas temas que ya están en el CONTEXTO DE APRENDIZAJE. Profundizá en lo NO cubierto.
 ${learningContext}
 
 Responde con generate_questions.`
@@ -183,7 +187,11 @@ FORMATO:
 ${learningContext}`;
 
     const userPrompt = isBackgroundBatch
-      ? `Genera EXACTAMENTE ${questionCount} preguntas para "${businessTypeLabel}" (${areaId}, ${countryCode}). ${dimDist.min}-${dimDist.max} por dimensión. Usa generate_questions.`
+      ? `Genera EXACTAMENTE ${questionCount} preguntas NUEVAS (no repitas temas ya cubiertos) para este negocio:
+
+${contextParts}
+
+${dimDist.min}-${dimDist.max} por dimensión. Idioma: ${lang}. Responde con generate_questions.`
       : `Genera EXACTAMENTE ${questionCount} preguntas para este negocio/servicio/profesión:
 
 ${contextParts}
@@ -283,7 +291,7 @@ Responde usando la función generate_questions.`;
         ],
         tool_choice: { type: "function", function: { name: "generate_questions" } },
         temperature: 0.4,
-        max_tokens: 8192,
+        max_tokens: 16384,
       }),
     });
 
