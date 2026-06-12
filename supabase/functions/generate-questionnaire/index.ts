@@ -65,6 +65,7 @@ serve(async (req) => {
       previousAnswers, // For learning/adaptation
       questionCount: questionCountOverride, // Override from progressive loading
       batchIndex = 0, // Which batch (0 = first)
+      existingTitles, // Titles already generated in earlier batches (anti-repetición)
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
