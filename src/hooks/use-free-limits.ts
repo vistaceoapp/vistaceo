@@ -14,7 +14,8 @@ import { useSubscription } from "@/hooks/use-subscription";
  * No suma misiones ni chats.
  */
 export const FREE_LIMITS = {
-  missions: 1,
+  // 1 misión inicial + 1 conversión (oportunidad/tendencia → misión)
+  missions: 2,
   chatMessages: 3,
   radarOpportunities: 2,
   radarResearch: 2,
