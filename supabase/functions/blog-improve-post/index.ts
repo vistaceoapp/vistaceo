@@ -188,7 +188,7 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const { post_id, dry_run = false } = await req.json().catch(() => ({}));
+    const { post_id, dry_run = false, mode = 'standard', min_growth = 0 } = await req.json().catch(() => ({}));
 
     if (!post_id) {
       // If no post_id, return list of posts that need improvement
