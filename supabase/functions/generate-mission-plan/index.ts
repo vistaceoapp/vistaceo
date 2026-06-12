@@ -600,103 +600,94 @@ serve(async (req) => {
       }
     }
 
-    // Build context prompt
-    const contextPrompt = buildContextPrompt(
-      missionTitle,
-      missionDescription,
-      missionArea,
-      context,
-      regenerate
-    );
+    // ─────────────────────────────────────────────────────────────
+    // GENERATION CORE — extracted so it can run as a background job.
+    // SAME model (google/gemini-2.5-pro), SAME prompts, SAME quality.
+    // ─────────────────────────────────────────────────────────────
+    const generateAndPersist = async (): Promise<Record<string, unknown>> => {
+      // Build context prompt
+      const contextPrompt = buildContextPrompt(
+        missionTitle,
+        missionDescription,
+        missionArea,
+        context,
+        regenerate
+      );
 
-    console.log("Generating mission plan for:", missionTitle);
-    console.log("Context length:", contextPrompt.length, "chars");
+      console.log("Generating mission plan for:", missionTitle);
+      console.log("Context length:", contextPrompt.length, "chars");
 
-    const brain = context?.brain ?? null;
-    const business = context?.business ?? null;
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        // Gemini 2.5 Pro: máxima calidad de razonamiento y profundidad para planes hiper-personalizados.
-        // El usuario priorizó calidad sobre velocidad; la UI muestra Resumen instantáneo + skeletons.
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: `${SYSTEM_PROMPT}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("mission")}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
-          { role: "user", content: contextPrompt },
-        ],
-        stream: false,
-        temperature: regenerate ? 0.8 : 0.6,
-        max_tokens: 8192,
-      }),
-    });
+      const brain = context?.brain ?? null;
+      const business = context?.business ?? null;
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          // Gemini 2.5 Pro: máxima calidad de razonamiento y profundidad para planes hiper-personalizados.
+          // La generación corre en SEGUNDO PLANO (job) — el cliente nunca espera con la conexión abierta.
+          model: "google/gemini-2.5-pro",
+          messages: [
+            { role: "system", content: `${SYSTEM_PROMPT}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("mission")}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
+            { role: "user", content: contextPrompt },
+          ],
+          stream: false,
+          temperature: regenerate ? 0.8 : 0.6,
+          max_tokens: 8192,
+        }),
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Límite de solicitudes excedido. Intenta en unos minutos." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos agotados. Contacta al soporte." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error("No response from AI");
-    }
-
-    // Parse JSON from response - with better error handling
-    let planData;
-    try {
-      // Try to find complete JSON object
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        let jsonStr = jsonMatch[0];
-        
-        // Try to fix truncated JSON by closing open arrays/objects
-        const openBrackets = (jsonStr.match(/\[/g) || []).length;
-        const closeBrackets = (jsonStr.match(/\]/g) || []).length;
-        const openBraces = (jsonStr.match(/\{/g) || []).length;
-        const closeBraces = (jsonStr.match(/\}/g) || []).length;
-        
-        // Add missing closing brackets/braces
-        for (let i = 0; i < openBrackets - closeBrackets; i++) {
-          jsonStr += ']';
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("AI gateway error:", response.status, errorText);
+        if (response.status === 429) {
+          throw new Error("Límite de solicitudes excedido. Intenta en unos minutos.");
         }
-        for (let i = 0; i < openBraces - closeBraces; i++) {
-          jsonStr += '}';
+        if (response.status === 402) {
+          throw new Error("Créditos agotados. Contacta al soporte.");
         }
-        
-        // Remove trailing commas before closing brackets
-        jsonStr = jsonStr.replace(/,\s*([\]}])/g, '$1');
-        
-        planData = JSON.parse(jsonStr);
-      } else {
-        throw new Error("No JSON found in response");
+        throw new Error(`AI gateway error: ${response.status}`);
       }
-    } catch (parseError) {
-      console.error("Error parsing AI response:", parseError);
-      console.log("Raw content length:", content?.length);
-      
-      // Return a fallback minimal plan
-      return new Response(
-        JSON.stringify({ 
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+
+      if (!content) {
+        throw new Error("No response from AI");
+      }
+
+      // Parse JSON from response - with better error handling
+      let planData;
+      try {
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          let jsonStr = jsonMatch[0];
+
+          const openBrackets = (jsonStr.match(/\[/g) || []).length;
+          const closeBrackets = (jsonStr.match(/\]/g) || []).length;
+          const openBraces = (jsonStr.match(/\{/g) || []).length;
+          const closeBraces = (jsonStr.match(/\}/g) || []).length;
+
+          for (let i = 0; i < openBrackets - closeBrackets; i++) {
+            jsonStr += ']';
+          }
+          for (let i = 0; i < openBraces - closeBraces; i++) {
+            jsonStr += '}';
+          }
+
+          jsonStr = jsonStr.replace(/,\s*([\]}])/g, '$1');
+
+          planData = JSON.parse(jsonStr);
+        } else {
+          throw new Error("No JSON found in response");
+        }
+      } catch (parseError) {
+        console.error("Error parsing AI response:", parseError);
+        console.log("Raw content length:", content?.length);
+
+        return {
           plan: {
             planTitle: missionTitle,
             planDescription: missionDescription || "Plan de acción personalizado",
@@ -712,130 +703,134 @@ serve(async (req) => {
           },
           qualityGate: { passed: false, mvcCompletion: context?.brain?.mvc_completion_pct || 0 },
           parseError: true
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Quality Gate: Check for generic phrases + runtime title gate
-    const genericPhrases = checkForGenericPhrases(planData);
-    const { runtimeOutputGate, safeFallback } = await import("../_shared/brain-core/runtime-output-gate.ts");
-    const titleGate = runtimeOutputGate({
-      text: `${planData?.planTitle ?? ""}\n${planData?.planDescription ?? ""}`,
-      kind: "mission",
-      hasBrainEvidence: !!(context?.brain),
-      hasConcreteAction: Array.isArray(planData?.steps) && planData.steps.length > 0,
-    });
-    const passed = genericPhrases.length === 0 && titleGate.ok;
-
-    if (!titleGate.ok) {
-      console.warn("[runtime-output-gate:mission] blocked:", titleGate.reasons);
-      // Reemplazar título plantilla por uno conectado al brain
-      if (titleGate.reasons.some(r => r.includes("plantilla"))) {
-        planData.planTitle = "Mapear la fricción real del proceso comercial actual";
-        planData.planDescription = safeFallback("mission");
+        };
       }
-      planData._gateReasons = titleGate.reasons;
-    }
 
-    if (!passed) {
-      console.warn("Quality Gate: Generic phrases detected:", genericPhrases);
-      planData._genericPhrases = genericPhrases;
-    }
-
-    // Save trace for auditing
-    if (supabase && businessId) {
-      await saveRecommendationTrace(supabase, businessId, planData, context, passed);
-    }
-
-    console.log("Generated plan with", planData.steps?.length || 0, "steps, passed QG:", passed);
-
-    // STEP QUALITY GATE — block generic / templated step titles before they reach the user.
-    const GENERIC_STEP_RX = [
-      /^analizar\s+(el|la|los|las)?\s*(problema|situaci[oó]n|contexto)\s*\.?$/i,
-      /^definir\s+(el|la)?\s*objetivo\s*\.?$/i,
-      /^revisar\s+(el|la|los|las)?\s*(datos|resultados)\s*\.?$/i,
-      /^evaluar\s+resultados?\s*\.?$/i,
-      /^implementar\s+(la|el)?\s*soluci[oó]n\s*\.?$/i,
-      /^medir\s+impacto\s*\.?$/i,
-      /^siguiente\s+paso\s*\.?$/i,
-    ];
-    if (Array.isArray(planData?.steps)) {
-      planData.steps = planData.steps
-        .map((s: any) => ({
-          ...s,
-          title: humanizeEvidence(s?.title) || s?.title,
-          description: humanizeEvidence(s?.description ?? s?.what_to_do) || s?.description,
-        }))
-        .filter((s: any) => {
-          const t = String(s?.title || "").trim();
-          if (!t || t.length < 8) return false;
-          if (GENERIC_STEP_RX.some((rx) => rx.test(t))) {
-            console.warn("[step-gate] dropped generic step title:", t);
-            return false;
-          }
-          const d = String(s?.description || s?.what_to_do || "");
-          if (d.length < 30) {
-            console.warn("[step-gate] dropped step with thin description:", t);
-            return false;
-          }
-          return true;
-        });
-    }
-
-    const cleanPlan = sanitizeForUser(planData);
-
-    // Server-side validateBeforeStore (Prompt 3): block empty/placeholder steps.
-    try {
-      const { validateBeforeStore } = await import("../_shared/validate-before-store.ts");
-      const audit = validateBeforeStore({
-        module: 'mission',
-        title: cleanPlan?.planTitle ?? missionTitle ?? '',
-        description: cleanPlan?.executiveSummary ?? cleanPlan?.summary ?? '',
-        steps: (cleanPlan?.steps ?? []).map((s: any) => ({ title: s?.title, description: s?.description ?? s?.what_to_do })),
+      // Quality Gate: Check for generic phrases + runtime title gate
+      const genericPhrases = checkForGenericPhrases(planData);
+      const { runtimeOutputGate, safeFallback } = await import("../_shared/brain-core/runtime-output-gate.ts");
+      const titleGate = runtimeOutputGate({
+        text: `${planData?.planTitle ?? ""}\n${planData?.planDescription ?? ""}`,
+        kind: "mission",
+        hasBrainEvidence: !!(context?.brain),
+        hasConcreteAction: Array.isArray(planData?.steps) && planData.steps.length > 0,
       });
-      if (!audit.passed) {
-        console.warn('[generate-mission-plan] gate blocked:', audit.reasons);
+      const passed = genericPhrases.length === 0 && titleGate.ok;
+
+      if (!titleGate.ok) {
+        console.warn("[runtime-output-gate:mission] blocked:", titleGate.reasons);
+        if (titleGate.reasons.some(r => r.includes("plantilla"))) {
+          planData.planTitle = "Mapear la fricción real del proceso comercial actual";
+          planData.planDescription = safeFallback("mission");
+        }
+        planData._gateReasons = titleGate.reasons;
       }
-    } catch (e) { console.error('[generate-mission-plan] validate failed', e); }
 
-    // ───── Motor IA Universal — persist cache ─────
-    if (businessId && passed) {
-      await writeArtifactCache({
-        businessId,
-        artifactType: "mission",
-        artifactKey,
-        brainSignature,
-        payload: cleanPlan,
-        modelUsed: "google/gemini-2.5-pro",
-      });
-    }
+      if (!passed) {
+        console.warn("Quality Gate: Generic phrases detected:", genericPhrases);
+        planData._genericPhrases = genericPhrases;
+      }
 
-    // Brain signal: mission_plan_generated (cierra loop de auto-aprendizaje)
-    if (businessId) {
+      // Save trace for auditing
+      if (supabase && businessId) {
+        await saveRecommendationTrace(supabase, businessId, planData, context, passed);
+      }
+
+      console.log("Generated plan with", planData.steps?.length || 0, "steps, passed QG:", passed);
+
+      // STEP QUALITY GATE — block generic / templated step titles before they reach the user.
+      const GENERIC_STEP_RX = [
+        /^analizar\s+(el|la|los|las)?\s*(problema|situaci[oó]n|contexto)\s*\.?$/i,
+        /^definir\s+(el|la)?\s*objetivo\s*\.?$/i,
+        /^revisar\s+(el|la|los|las)?\s*(datos|resultados)\s*\.?$/i,
+        /^evaluar\s+resultados?\s*\.?$/i,
+        /^implementar\s+(la|el)?\s*soluci[oó]n\s*\.?$/i,
+        /^medir\s+impacto\s*\.?$/i,
+        /^siguiente\s+paso\s*\.?$/i,
+      ];
+      // NOTA: el schema del prompt usa { text, howTo, why } — el gate debe
+      // aceptar AMBAS formas (text/title) para no borrar pasos válidos.
+      if (Array.isArray(planData?.steps)) {
+        planData.steps = planData.steps
+          .map((s: any) => ({
+            ...s,
+            title: humanizeEvidence(s?.title) || s?.title,
+            text: humanizeEvidence(s?.text) || s?.text,
+            description: humanizeEvidence(s?.description ?? s?.what_to_do) || s?.description,
+          }))
+          .filter((s: any) => {
+            const t = String(s?.title || s?.text || "").trim();
+            if (!t || t.length < 8) return false;
+            if (GENERIC_STEP_RX.some((rx) => rx.test(t))) {
+              console.warn("[step-gate] dropped generic step title:", t);
+              return false;
+            }
+            const d = String(
+              s?.description ||
+              s?.what_to_do ||
+              s?.why ||
+              (Array.isArray(s?.howTo) ? s.howTo.join(" ") : "") ||
+              ""
+            );
+            if (d.length < 30) {
+              console.warn("[step-gate] dropped step with thin description:", t);
+              return false;
+            }
+            return true;
+          });
+      }
+
+      const cleanPlan = sanitizeForUser(planData);
+
+      // Server-side validateBeforeStore (Prompt 3): block empty/placeholder steps.
       try {
-        await supabase.from("signals").insert({
-          business_id: businessId,
-          brain_id: context?.brain?.id || null,
-          signal_type: "mission_plan_generated",
-          source: "generate-mission-plan",
-          content: {
-            title: cleanPlan?.planTitle,
-            steps_count: (cleanPlan?.steps || []).length,
-            confidence: cleanPlan?.confidence,
-            risk_level: cleanPlan?.riskLevel,
-            estimated_impact: cleanPlan?.estimatedImpact,
-            quality_passed: passed,
-          },
-          confidence: cleanPlan?.confidence === "high" ? "high" : "medium",
-          importance: 7,
+        const { validateBeforeStore } = await import("../_shared/validate-before-store.ts");
+        const audit = validateBeforeStore({
+          module: 'mission',
+          title: cleanPlan?.planTitle ?? missionTitle ?? '',
+          description: cleanPlan?.executiveSummary ?? cleanPlan?.summary ?? '',
+          steps: (cleanPlan?.steps ?? []).map((s: any) => ({ title: s?.title, description: s?.description ?? s?.what_to_do })),
         });
-      } catch (e) { console.warn("[generate-mission-plan] signal insert failed", e); }
-    }
+        if (!audit.passed) {
+          console.warn('[generate-mission-plan] gate blocked:', audit.reasons);
+        }
+      } catch (e) { console.error('[generate-mission-plan] validate failed', e); }
 
+      // ───── Motor IA Universal — persist cache ─────
+      if (businessId && passed) {
+        await writeArtifactCache({
+          businessId,
+          artifactType: "mission",
+          artifactKey,
+          brainSignature,
+          payload: cleanPlan,
+          modelUsed: "google/gemini-2.5-pro",
+        });
+      }
 
-    return new Response(
-      JSON.stringify({
+      // Brain signal: mission_plan_generated (cierra loop de auto-aprendizaje)
+      if (businessId && supabase) {
+        try {
+          await supabase.from("signals").insert({
+            business_id: businessId,
+            brain_id: context?.brain?.id || null,
+            signal_type: "mission_plan_generated",
+            source: "generate-mission-plan",
+            content: {
+              title: cleanPlan?.planTitle,
+              steps_count: (cleanPlan?.steps || []).length,
+              confidence: cleanPlan?.confidence,
+              risk_level: cleanPlan?.riskLevel,
+              estimated_impact: cleanPlan?.estimatedImpact,
+              quality_passed: passed,
+            },
+            confidence: cleanPlan?.confidence === "high" ? "high" : "medium",
+            importance: 7,
+          });
+        } catch (e) { console.warn("[generate-mission-plan] signal insert failed", e); }
+      }
+
+      return {
         plan: cleanPlan,
         qualityGate: {
           passed,
@@ -844,7 +839,64 @@ serve(async (req) => {
         },
         quality: { passed: true },
         fallbackUsed: false,
-      }),
+      };
+    };
+
+    // ─────────────────────────────────────────────────────────────
+    // ASYNC JOB MODE — respond instantly with a jobId; the AI keeps
+    // working in background (EdgeRuntime.waitUntil). Eliminates
+    // client timeouts and duplicate retries without touching quality.
+    // The client polls ai_plan_jobs until completed.
+    // ─────────────────────────────────────────────────────────────
+    if (supabase && businessId) {
+      const { data: job, error: jobErr } = await supabase
+        .from("ai_plan_jobs")
+        .insert({
+          business_id: businessId,
+          job_type: "mission_plan",
+          status: "processing",
+          request: { missionTitle, missionArea, regenerate: !!regenerate, enhanceExisting: !!enhanceExisting },
+        })
+        .select("id")
+        .single();
+
+      if (!jobErr && job?.id) {
+        const work = (async () => {
+          try {
+            const payload = await generateAndPersist();
+            await supabase
+              .from("ai_plan_jobs")
+              .update({ status: "completed", result: payload, updated_at: new Date().toISOString() })
+              .eq("id", job.id);
+            console.log("[job] completed:", job.id);
+          } catch (e) {
+            console.error("[job] failed:", job.id, e);
+            await supabase
+              .from("ai_plan_jobs")
+              .update({ status: "failed", error: String((e as Error)?.message ?? e), updated_at: new Date().toISOString() })
+              .eq("id", job.id);
+          }
+        })();
+
+        try {
+          // @ts-ignore — EdgeRuntime está disponible en el runtime de funciones
+          EdgeRuntime.waitUntil(work);
+        } catch (_) {
+          // Si waitUntil no existe, la promesa sigue corriendo igual (sin await)
+        }
+
+        return new Response(
+          JSON.stringify({ jobId: job.id, status: "processing", async: true }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      console.warn("[job] insert failed, falling back to sync:", jobErr);
+    }
+
+    // Fallback síncrono (sin businessId o si falló la creación del job)
+    const payload = await generateAndPersist();
+    return new Response(
+      JSON.stringify(payload),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

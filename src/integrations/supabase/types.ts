@@ -88,6 +88,42 @@ export type Database = {
           },
         ]
       }
+      ai_plan_jobs: {
+        Row: {
+          business_id: string
+          created_at: string
+          error: string | null
+          id: string
+          job_type: string
+          request: Json | null
+          result: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          job_type?: string
+          request?: Json | null
+          result?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          job_type?: string
+          request?: Json | null
+          result?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       alerts: {
         Row: {
           ai_summary_json: Json | null

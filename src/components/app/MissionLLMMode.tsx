@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { requestMissionPlan } from "@/lib/mission-plan-async";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -338,23 +339,20 @@ export const MissionLLMMode = ({
     setError(null);
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke(
-        "generate-mission-plan",
+      const data = await requestMissionPlan(
         {
-          body: {
-            businessId,
-            missionTitle: mission.title,
-            missionDescription: mission.description,
-            missionArea: mission.area,
-            existingSteps: steps,
-            enhanceExisting: true,
-            regenerate,
-          },
-        }
+          businessId,
+          missionTitle: mission.title,
+          missionDescription: mission.description,
+          missionArea: mission.area,
+          existingSteps: steps,
+          enhanceExisting: true,
+          regenerate,
+        },
+        { signal: abortControllerRef.current.signal }
       );
 
       if (abortControllerRef.current?.signal.aborted) return;
-      if (fnError) throw fnError;
 
       if (data?.plan) {
         setEnhancedPlan(data.plan);
