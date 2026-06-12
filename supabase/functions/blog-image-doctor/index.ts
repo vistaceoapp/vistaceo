@@ -202,17 +202,17 @@ serve(async (req) => {
 
     const updates: Record<string, string> = {};
 
-    // 1. Reparar hero roto
-    if (!heroOk) {
+    // 1. Reparar hero roto (o forzar regeneración manual)
+    if (!heroOk || force) {
       const prompt = buildHeroPrompt(p);
-      const b64 = await generateImageB64(prompt);
+      const b64 = await generateImageB64(prompt, quality);
       if (b64) {
         const newUrl = await uploadHero(supabase, p.slug, b64);
         if (newUrl) {
           updates.hero_image_url = newUrl;
           if (!p.image_alt_text) updates.image_alt_text = p.title;
           entry.new_hero = newUrl;
-          entry.action = "hero_regenerated";
+          entry.action = heroOk ? "hero_replaced" : "hero_regenerated";
           heros_regenerated++;
         }
       }
