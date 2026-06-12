@@ -3,25 +3,67 @@
  * GSC FIX: /categoria/{x}/ → /tema/{cluster}/  (o home si no hay match)
  * Emite páginas redirect (canonical + refresh + noindex) para consolidar
  * URLs legacy que Google sigue rastreando.
+ *
+ * IMPORTANTE: getStaticPaths se ejecuta en un módulo aislado en Astro,
+ * por eso TODO (mapa legacy incluido) vive adentro y el target se pasa
+ * por props. No usar imports del frontmatter acá.
  */
-import { CLUSTERS } from '../../lib/clusters';
-import { LEGACY_CAT_MAP } from '../../lib/legacy-redirects';
-
 export async function getStaticPaths() {
-  const { LEGACY_CAT_MAP } = await import('../../lib/legacy-redirects');
-  const { CLUSTERS } = await import('../../lib/clusters');
-  const all = new Set<string>([
-    ...Object.keys(LEGACY_CAT_MAP),
-    ...Object.keys(CLUSTERS),
-  ]);
-  return Array.from(all).map((slug) => ({ params: { slug }, props: { slug } }));
+  const LEGACY_CAT_MAP: Record<string, string> = {
+    empleo: 'empleo-habilidades',
+    ia: 'ia-para-pymes',
+    marketing: 'marketing-crecimiento',
+    finanzas: 'finanzas-cashflow',
+    operaciones: 'operaciones-procesos',
+    ventas: 'ventas-negociacion',
+    liderazgo: 'liderazgo-management',
+    estrategia: 'estrategia-latam',
+    herramientas: 'herramientas-productividad',
+    data: 'data-analytics',
+    servicios: 'servicios-profesionales-rentabilidad',
+    tendencias: 'tendencias-ia-tech',
+  };
+
+  const CLUSTER_SLUGS = [
+    'empleo-habilidades',
+    'ia-para-pymes',
+    'servicios-profesionales-rentabilidad',
+    'marketing-crecimiento',
+    'finanzas-cashflow',
+    'operaciones-procesos',
+    'ventas-negociacion',
+    'liderazgo-management',
+    'estrategia-latam',
+    'herramientas-productividad',
+    'data-analytics',
+    'tendencias-ia-tech',
+  ];
+
+  const paths: { params: { slug: string }; props: { target: string } }[] = [];
+  const seen = new Set<string>();
+
+  for (const [legacy, cluster] of Object.entries(LEGACY_CAT_MAP)) {
+    if (seen.has(legacy)) continue;
+    seen.add(legacy);
+    paths.push({
+      params: { slug: legacy },
+      props: { target: `https://blog.vistaceo.com/tema/${cluster}/` },
+    });
+  }
+
+  for (const cluster of CLUSTER_SLUGS) {
+    if (seen.has(cluster)) continue;
+    seen.add(cluster);
+    paths.push({
+      params: { slug: cluster },
+      props: { target: `https://blog.vistaceo.com/tema/${cluster}/` },
+    });
+  }
+
+  return paths;
 }
 
-const { slug } = Astro.props as { slug: string };
-const targetCluster = LEGACY_CAT_MAP[slug] || (CLUSTERS[slug] ? slug : '');
-const target = targetCluster
-  ? `https://blog.vistaceo.com/tema/${targetCluster}/`
-  : `https://blog.vistaceo.com/`;
+const { target } = Astro.props as { target: string };
 ---
 <!DOCTYPE html>
 <html lang="es">

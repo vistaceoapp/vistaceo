@@ -3,9 +3,10 @@
  * GSC FIX: /blog/{slug}/ → /{slug}/
  * Canonical + meta refresh + JS replace + noindex para consolidar URLs viejas
  * que GH Pages no puede redirigir con un 301 real.
+ *
+ * IMPORTANTE: getStaticPaths corre en módulo aislado — todo lo que necesita
+ * se importa dinámicamente adentro y el target se pasa por props.
  */
-import { getAllPublishedPosts, getAllRedirects } from '../../lib/supabase';
-
 export async function getStaticPaths() {
   const { getAllPublishedPosts, getAllRedirects } = await import('../../lib/supabase');
   const [posts, redirects] = await Promise.all([
@@ -15,11 +16,13 @@ export async function getStaticPaths() {
   const slugs = new Set<string>();
   for (const p of posts) slugs.add(p.slug);
   for (const r of redirects) slugs.add(r.from_slug);
-  return Array.from(slugs).map((slug) => ({ params: { slug }, props: { slug } }));
+  return Array.from(slugs).map((slug) => ({
+    params: { slug },
+    props: { target: `https://blog.vistaceo.com/${slug}/` },
+  }));
 }
 
-const { slug } = Astro.props as { slug: string };
-const target = `https://blog.vistaceo.com/${slug}/`;
+const { target } = Astro.props as { target: string };
 ---
 <!DOCTYPE html>
 <html lang="es">
