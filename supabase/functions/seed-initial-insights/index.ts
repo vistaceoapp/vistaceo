@@ -387,6 +387,18 @@ Deno.serve(async (req) => {
       `[seed-initial-insights] Done. AI opps=${oppCount} trends=${learnCount} missions=${missionCount} | seeded opps=${seededOpps} trends=${seededTrends} missions=${seededMissions}`,
     );
 
+    // Marcar como completado para evitar dobles ejecuciones futuras
+    try {
+      const { data: bizRow2 } = await supabase
+        .from("businesses").select("settings").eq("id", businessId).maybeSingle();
+      const s2 = (bizRow2?.settings as Record<string, unknown> | null) ?? {};
+      await supabase
+        .from("businesses")
+        .update({ settings: { ...s2, seeding_completed_at: new Date().toISOString(), seeding_started_at: null } })
+        .eq("id", businessId);
+    } catch (e) { console.warn("[seed-initial-insights] failed to mark completed", e); }
+
+
     const dedupedReasons = Array.from(new Set(qualityReasons));
     return new Response(
       JSON.stringify({
