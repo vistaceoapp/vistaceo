@@ -1373,16 +1373,17 @@ MESSAGE_JSON:
     const trivialHints = /^(hola|hi|hey|buenas|gracias|ok|listo|dale|si|no|perfecto|genial|ya|👍|🙏)\b/i;
     const isTrivial = !hasImages && lastText.length < 60 && trivialHints.test(lastText.trim());
 
+    // Máxima inteligencia SIEMPRE para cualquier mensaje real.
+    // Solo los saludos triviales usan el modelo liviano.
     let selectedModel: string;
     if (isTrivial) selectedModel = "google/gemini-2.5-flash-lite";
-    else if (isComplex) selectedModel = "google/gemini-3-flash-preview";
-    else selectedModel = "google/gemini-2.5-flash";
+    else selectedModel = "google/gemini-3-flash-preview";
 
-    // Cap de tokens — corto pero suficiente para cerrar oraciones (anti-truncación).
+    // Cap de tokens — suficiente para cerrar oraciones (anti-truncación).
     // Máximo 2 párrafos enfocados. Mismo techo para free y pro.
     let maxTokens: number;
     if (isTrivial) maxTokens = 220;
-    else maxTokens = isComplex ? 700 : 500;
+    else maxTokens = isComplex ? 900 : 700;
 
     // PROMPT MAESTRO VISTACEO — directiva final inyectada al system
     const brevityDirective = {
@@ -1593,10 +1594,16 @@ Si alguna falla, reescribilo antes de devolver.`,
       hasConcreteAction: concreteActionRx.test(parsed.userReply),
     });
     if (!extreme.ok || !chatGate.ok) {
-      console.warn("chat gate flagged:", [...extreme.reasons, ...chatGate.reasons].join(" | "));
-      // Fallback contextual premium (Parte 3 §12) en lugar de mostrar texto genérico
-      const sf = (await import("../_shared/brain-core/runtime-output-gate.ts")).safeFallback("chat");
-      parsed.userReply = sf;
+      console.warn("chat gate flagged (soft):", [...extreme.reasons, ...chatGate.reasons].join(" | "));
+      // CRÍTICO: NUNCA reemplazar una respuesta real de la IA por texto enlatado.
+      // Solo usamos fallback si hay una fuga técnica real (JSON crudo, error, basura).
+      const hardLeakRx = /(\[object Object\]|```json|\{\s*"[a-zA-Z_]+"\s*:|undefined|NaN\b|<USER_REPLY|LEARNING_EXTRACT|stack trace|TypeError|Error:)/;
+      const tooBroken = !parsed.userReply || parsed.userReply.trim().length < 8 || hardLeakRx.test(parsed.userReply);
+      if (tooBroken) {
+        const sf = (await import("../_shared/brain-core/runtime-output-gate.ts")).safeFallback("chat");
+        parsed.userReply = sf;
+      }
+      // Flags blandos ("sin acción concreta", etc.) → se mantiene la respuesta real.
     }
 
     // Último fallback seguro (Parte 3 §12)
