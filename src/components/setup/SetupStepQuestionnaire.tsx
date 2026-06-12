@@ -52,7 +52,7 @@ const LOADING_MESSAGES_PT = [
 // Batch configuration - GENERACIÓN PROGRESIVA:
 // El primer micro-batch (3 preguntas) aparece en segundos y el usuario empieza a responder.
 // Mientras tanto, el motor sigue pensando los siguientes batches en background y los va
-// guardando apenas llegan. Nunca se piensan las 30-35 juntas.
+// guardando apenas llegan. Nunca se piensan las 25 juntas.
 const BATCH_CONFIG = {
   quick: {
     firstBatch: 3,
