@@ -4125,6 +4125,36 @@ export type Database = {
         }
         Relationships: []
       }
+      setup_reminder_sends: {
+        Row: {
+          id: string
+          message_id: string | null
+          recipient_email: string
+          sent_at: string
+          stage: string
+          user_id: string
+          variant: number
+        }
+        Insert: {
+          id?: string
+          message_id?: string | null
+          recipient_email: string
+          sent_at?: string
+          stage: string
+          user_id: string
+          variant: number
+        }
+        Update: {
+          id?: string
+          message_id?: string | null
+          recipient_email?: string
+          sent_at?: string
+          stage?: string
+          user_id?: string
+          variant?: number
+        }
+        Relationships: []
+      }
       signals: {
         Row: {
           brain_id: string | null
