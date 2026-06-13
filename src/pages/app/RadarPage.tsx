@@ -1180,6 +1180,8 @@ const RadarPage = () => {
 
         {/* Tab: Oportunidades de mejora (INTERNO) */}
         <TabsContent value="oportunidades" className="space-y-6">
+          <SectionErrorBoundary label="Oportunidades"><>
+
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <div className="dashboard-stat">
