@@ -664,11 +664,12 @@ const MissionsPage = () => {
   if (selectedMission) {
     return (
       <div className={cn(
-        "flex flex-col",
+        "flex flex-col w-full max-w-full",
         isMobile 
           ? "h-[calc(100dvh-120px)] min-h-0 -mx-4 -my-4 overflow-hidden" 
           : "h-[calc(100vh-3rem)] -mx-5 -mb-5 -mt-5"
       )}>
+
         <MissionLLMMode
           mission={selectedMission}
           businessId={currentBusiness.id}
