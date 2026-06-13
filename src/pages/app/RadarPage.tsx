@@ -58,6 +58,7 @@ import { useBrain } from "@/hooks/use-brain";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 import type { AnalyzePatternsResponse } from '@/lib/edge-function-response-types';
+import { SectionErrorBoundary } from "@/components/app/SectionErrorBoundary";
 
 // Estandarización de títulos: primera letra mayúscula + sanitizado
 const fmtTitle = (t: string | null | undefined) => sanitizeAIOutput(t || "");
@@ -1093,6 +1094,7 @@ const RadarPage = () => {
 
   // Desktop Layout
   return (
+    <SectionErrorBoundary label="el Radar">
     <div className="space-y-6 max-w-full">
       {/* Convert-to-mission animated overlay */}
       {convertingOverlay && (
@@ -1180,6 +1182,7 @@ const RadarPage = () => {
 
         {/* Tab: Oportunidades de mejora (INTERNO) */}
         <TabsContent value="oportunidades" className="space-y-6">
+
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <div className="dashboard-stat">
@@ -1729,6 +1732,7 @@ const RadarPage = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </SectionErrorBoundary>
   );
 };
 
