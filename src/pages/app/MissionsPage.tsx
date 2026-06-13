@@ -625,13 +625,17 @@ const MissionsPage = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 max-w-full overflow-hidden">
         <div className="h-10 bg-card rounded-xl animate-pulse w-1/2" />
         <div className="h-32 bg-card rounded-xl animate-pulse" />
         <div className="h-32 bg-card rounded-xl animate-pulse" />
+        <p className="text-xs text-muted-foreground text-center pt-2 animate-pulse">
+          Preparando tus misiones…
+        </p>
       </div>
     );
   }
+
 
   if (!currentBusiness) {
     return (
