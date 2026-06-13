@@ -299,34 +299,37 @@ export const OpportunityDetailEnhanced = ({
       </DialogHeader>
 
       {/* Sticky CTA - Always visible */}
-      <div className="flex gap-2 mt-4 mb-3">
-        <Button variant="ghost" size="sm" onClick={onDismiss} disabled={actionLoading} className="text-muted-foreground h-11">
-          Descartar
-        </Button>
-        {onSaveForLater && (
-          <Button variant="outline" size="sm" onClick={onSaveForLater} disabled={actionLoading} className="h-11">
-            <Bookmark className="w-4 h-4 mr-1" />
-            Guardar
+      <div className="flex flex-col-reverse sm:flex-row gap-2 mt-4 mb-3">
+        <div className="flex gap-2 sm:contents">
+          <Button variant="ghost" size="sm" onClick={onDismiss} disabled={actionLoading} className="text-muted-foreground h-11 flex-1 sm:flex-none">
+            Descartar
           </Button>
-        )}
+          {onSaveForLater && (
+            <Button variant="outline" size="sm" onClick={onSaveForLater} disabled={actionLoading} className="h-11 flex-1 sm:flex-none">
+              <Bookmark className="w-4 h-4 mr-1" />
+              Guardar
+            </Button>
+          )}
+        </div>
         <Button 
-          className="flex-1 h-11 text-sm font-semibold" 
+          className="flex-1 h-11 text-sm font-semibold gradient-primary text-white border-0 shadow-sm" 
           onClick={onAccept}
           disabled={actionLoading || !canConvert || planLoading}
         >
           {actionLoading ? (
             <>
               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              Convirtiendo...
+              Activando misión…
             </>
           ) : (
             <>
               <Target className="w-4 h-4 mr-2" />
-              Convertir en misión
+              Activar como misión
             </>
           )}
         </Button>
       </div>
+
 
       <div className="space-y-5 pb-6">
           <StaleContentBanner
