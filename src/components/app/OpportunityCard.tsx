@@ -149,12 +149,12 @@ export const OpportunityCard = ({
   
   return (
     <div 
-      className="group p-5 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-xl transition-all cursor-pointer"
+      className="group p-4 sm:p-5 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-xl transition-all cursor-pointer"
       onClick={onClick}
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-start justify-between gap-2 mb-3 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <Badge variant="outline" className="text-[10px] bg-primary/5 border-primary/20">
             <Building2 className="w-2.5 h-2.5 mr-1" />
             Tu negocio
@@ -166,7 +166,7 @@ export const OpportunityCard = ({
             </Badge>
           )}
         </div>
-        <Badge variant="outline" className={cn("text-[10px] border", confidenceInfo.bgColor, confidenceInfo.color)}>
+        <Badge variant="outline" className={cn("text-[10px] border whitespace-nowrap", confidenceInfo.bgColor, confidenceInfo.color)}>
           <Shield className="w-2.5 h-2.5 mr-1" />
           Confianza {confidenceInfo.label}
         </Badge>
@@ -174,23 +174,23 @@ export const OpportunityCard = ({
       
       {/* Title & Description */}
       <div className="flex items-start gap-3 mb-4">
-        <span className="text-2xl">{getSourceIcon(opportunity.source)}</span>
+        <span className="text-2xl shrink-0">{getSourceIcon(opportunity.source)}</span>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground text-base group-hover:text-primary transition-colors">
+          <h3 className="font-semibold text-foreground text-base leading-snug group-hover:text-primary transition-colors">
             {sanitizeAIOutput(opportunity.title)}
           </h3>
           {opportunity.description && (
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+            <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
               {sanitizeAIOutput(opportunity.description)}
             </p>
           )}
         </div>
       </div>
       
-      {/* Metrics */}
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      {/* Metrics — 2x2 en mobile, 4 col en sm+ */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
         <div className={cn("p-2 rounded-lg text-center", impactInfo.bgColor)}>
-          <div className="flex items-center justify-center gap-1 mb-1">
+          <div className="flex items-center justify-center gap-1 mb-0.5">
             <TrendingUp className={cn("w-3 h-3", impactInfo.color)} />
           </div>
           <div className={cn("text-sm font-semibold", impactInfo.color)}>
@@ -200,7 +200,7 @@ export const OpportunityCard = ({
         </div>
         
         <div className="p-2 rounded-lg text-center bg-secondary/50">
-          <div className="flex items-center justify-center gap-1 mb-1">
+          <div className="flex items-center justify-center gap-1 mb-0.5">
             <Zap className={cn("w-3 h-3", effortInfo.color)} />
           </div>
           <div className={cn("text-sm font-semibold", effortInfo.color)}>
@@ -210,17 +210,17 @@ export const OpportunityCard = ({
         </div>
         
         <div className="p-2 rounded-lg text-center bg-secondary/50">
-          <div className="flex items-center justify-center gap-1 mb-1">
+          <div className="flex items-center justify-center gap-1 mb-0.5">
             <Clock className="w-3 h-3 text-muted-foreground" />
           </div>
-          <div className="text-sm font-semibold text-foreground">
+          <div className="text-sm font-semibold text-foreground truncate">
             {timeEstimate.split(" ")[0]}
           </div>
           <div className="text-[10px] text-muted-foreground">Tiempo</div>
         </div>
         
         <div className={cn("p-2 rounded-lg text-center", confidenceInfo.bgColor)}>
-          <div className="flex items-center justify-center gap-1 mb-1">
+          <div className="flex items-center justify-center gap-1 mb-0.5">
             <CheckCircle2 className={cn("w-3 h-3", confidenceInfo.color)} />
           </div>
           <div className={cn("text-sm font-semibold", confidenceInfo.color)}>
@@ -232,8 +232,8 @@ export const OpportunityCard = ({
       
       {/* Drivers */}
       {drivers.length > 0 && (
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-[10px] text-muted-foreground">Impacta:</span>
+        <div className="flex items-start gap-2 mb-4 flex-wrap">
+          <span className="text-[10px] text-muted-foreground mt-1">Impacta:</span>
           <div className="flex gap-1 flex-wrap">
             {drivers.slice(0, 3).map((driver, i) => (
               <Badge key={i} variant="secondary" className="text-[10px]">
@@ -245,11 +245,11 @@ export const OpportunityCard = ({
       )}
       
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
         <Button 
           variant="outline" 
           size="sm" 
-          className="flex-1"
+          className="flex-1 h-10"
           onClick={(e) => { e.stopPropagation(); onClick(); }}
         >
           <Eye className="w-3.5 h-3.5 mr-1.5" />
@@ -258,11 +258,11 @@ export const OpportunityCard = ({
         {onQuickAction && (
           <Button 
             size="sm" 
-            className="flex-1 gradient-primary"
+            className="flex-1 h-10 gradient-primary text-white border-0 shadow-sm"
             onClick={(e) => { e.stopPropagation(); onQuickAction(); }}
           >
             <Target className="w-3.5 h-3.5 mr-1.5" />
-            Convertir
+            Activar misión
           </Button>
         )}
       </div>

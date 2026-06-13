@@ -12,22 +12,24 @@ const MODES = [
   {
     id: 'quick' as const,
     title: 'Rápido',
-    subtitle: '10 preguntas',
-    description: 'Lo esencial para empezar hoy, sin preguntas difíciles ni datos que no tengas a mano.',
+    subtitle: '8 a 10 preguntas',
+    description: 'Lo esencial para arrancar hoy. Opciones simples y todo se puede afinar después.',
     icon: Zap,
     badge: null,
-    precision: '5-25%',
-    precisionLevel: 'baja',
+    precision: '15-30%',
+    precisionLevel: 'inicial',
+    timeHint: '2 a 3 min',
   },
   {
     id: 'complete' as const,
     title: 'Completo',
-    subtitle: '35 preguntas máximo',
-    description: 'Más contexto, pero siempre con opciones simples y fáciles de responder.',
+    subtitle: '23 a 25 preguntas',
+    description: 'Más contexto desde el día uno: tu Brain arranca con mucho más para personalizar todo.',
     icon: Target,
     badge: 'Recomendado',
-    precision: '25-65%',
-    precisionLevel: 'media',
+    precision: '35-65%',
+    precisionLevel: 'alta',
+    timeHint: '5 a 7 min',
   },
 ];
 
@@ -74,18 +76,19 @@ export const SetupStepMode = ({ value, onChange }: SetupStepModeProps) => {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <h3 className="text-lg font-semibold text-foreground">{mode.title}</h3>
-                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      {mode.subtitle}
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5" />
+                      {mode.timeHint}
                     </span>
                   </div>
+                  <p className="text-[13px] font-medium text-primary mb-1.5">{mode.subtitle}</p>
                   <p className="text-sm text-muted-foreground mb-3">{mode.description}</p>
                   <div className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-warning" />
                     <span className="text-sm font-medium text-foreground">
-                      Precisión inicial: <span className={mode.precisionLevel === 'baja' ? 'text-warning' : 'text-primary'}>{mode.precision}</span>
+                      Precisión inicial: <span className={mode.precisionLevel === 'inicial' ? 'text-warning' : 'text-primary'}>{mode.precision}</span>
                       <span className="text-muted-foreground ml-1">({mode.precisionLevel})</span>
                     </span>
                   </div>

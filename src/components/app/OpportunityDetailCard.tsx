@@ -240,18 +240,18 @@ export const OpportunityDetailCard = ({
       </DialogHeader>
 
       {/* Sticky CTA - Always visible */}
-      <div className="flex flex-wrap gap-2 mt-4 mb-3">
-        <Button variant="outline" size="sm" onClick={onDismiss} className="h-11">
+      <div className="flex flex-col-reverse sm:flex-row gap-2 mt-4 mb-3">
+        <Button variant="outline" size="sm" onClick={onDismiss} className="h-11 sm:w-auto">
           No me interesa
         </Button>
         <Button 
           size="sm" 
-          className="flex-1 h-11 text-sm font-semibold" 
+          className="flex-1 h-11 text-sm font-semibold gradient-primary text-white border-0 shadow-sm" 
           onClick={onAccept} 
           disabled={actionLoading}
         >
-          <Target className="w-4 h-4 mr-1" />
-          {actionLoading ? "Creando..." : "Convertir en misión"}
+          <Target className="w-4 h-4 mr-1.5" />
+          {actionLoading ? "Activando misión…" : "Activar como misión"}
         </Button>
       </div>
 

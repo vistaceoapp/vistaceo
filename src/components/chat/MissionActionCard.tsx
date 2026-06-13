@@ -117,8 +117,14 @@ export const MissionActionCard = ({
 
       toast({
         title: "Misión activada",
-        description: `"${suggestion.title}" ya está en tu lista.`,
+        description: `Abriendo "${suggestion.title}" en Misiones…`,
       });
+
+      // UX: llevar al usuario directo a la misión recién creada.
+      // Damos un microdelay para que se vea el feedback del botón.
+      if (data?.id) {
+        setTimeout(() => navigate(`/app/missions?mission=${data.id}`), 350);
+      }
     } catch (error) {
       console.error("Error creating mission:", error);
       toast({
