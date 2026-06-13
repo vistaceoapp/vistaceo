@@ -166,10 +166,11 @@ export const OpportunityCard = ({
             </Badge>
           )}
         </div>
-        <Badge variant="outline" className={cn("text-[10px] border whitespace-nowrap", confidenceInfo.bgColor, confidenceInfo.color)}>
+        <Badge variant="outline" className={cn("text-[10px] border", confidenceInfo.bgColor, confidenceInfo.color)}>
           <Shield className="w-2.5 h-2.5 mr-1" />
-          Confianza {confidenceInfo.label}
+          {confidenceInfo.label}
         </Badge>
+
       </div>
       
       {/* Title & Description */}
