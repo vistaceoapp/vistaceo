@@ -76,18 +76,19 @@ export const SetupStepMode = ({ value, onChange }: SetupStepModeProps) => {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <h3 className="text-lg font-semibold text-foreground">{mode.title}</h3>
-                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      {mode.subtitle}
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5" />
+                      {mode.timeHint}
                     </span>
                   </div>
+                  <p className="text-[13px] font-medium text-primary mb-1.5">{mode.subtitle}</p>
                   <p className="text-sm text-muted-foreground mb-3">{mode.description}</p>
                   <div className="flex items-center gap-2">
                     <Star className="w-4 h-4 text-warning" />
                     <span className="text-sm font-medium text-foreground">
-                      Precisión inicial: <span className={mode.precisionLevel === 'baja' ? 'text-warning' : 'text-primary'}>{mode.precision}</span>
+                      Precisión inicial: <span className={mode.precisionLevel === 'inicial' ? 'text-warning' : 'text-primary'}>{mode.precision}</span>
                       <span className="text-muted-foreground ml-1">({mode.precisionLevel})</span>
                     </span>
                   </div>
