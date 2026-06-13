@@ -1731,6 +1731,7 @@ const RadarPage = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </SectionErrorBoundary>
   );
 };
 
