@@ -124,23 +124,41 @@ const ChatPage = () => {
     }
   }, [searchParams, currentBusiness, loading, initialPromptSent, messages]);
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (silent = false) => {
     if (!currentBusiness) return;
 
-    try {
+    const attempt = async () => {
       const { data, error } = await supabase
         .from("chat_messages")
         .select("*")
         .eq("business_id", currentBusiness.id)
         .order("created_at", { ascending: true })
         .limit(50);
-
       if (error) throw error;
-      setMessages((data || []).map((m) => ({ ...m, role: m.role as "user" | "assistant" })));
+      return data || [];
+    };
+
+    try {
+      let data: any[];
+      try {
+        data = await attempt();
+      } catch {
+        // Self-heal: 1 reintento silencioso ante glitch transitorio de red
+        await new Promise((r) => setTimeout(r, 800));
+        data = await attempt();
+      }
+      setMessages(data.map((m: any) => ({ ...m, role: m.role as "user" | "assistant" })));
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      if (import.meta.env.DEV) console.error("Error fetching messages:", error);
+      if (!silent) {
+        toast({
+          title: "No pudimos cargar la conversación",
+          description: "Probá refrescar en unos segundos.",
+        });
+      }
     }
   };
+
 
   // Voice Recording (envío de audio del usuario → transcripción a texto)
   const startRecording = useCallback(async () => {
