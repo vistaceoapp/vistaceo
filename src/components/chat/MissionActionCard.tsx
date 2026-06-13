@@ -52,24 +52,33 @@ export const MissionActionCard = ({
     setCreating(index);
 
     try {
+      // Gate ligero para misiones sugeridas desde el chat: ya vienen de la IA
+      // con contexto completo. Solo verificamos Red List + mínimos de forma
+      // (título / descripción / pasos) — no aplicamos el audit estricto del
+      // pipeline de misiones generadas por el sistema (que pide métricas,
+      // sector, novelty vs existentes, etc.) porque acá no aplica.
       const audit = await validateBeforeStore(
         {
-          type: 'mission',
+          type: 'chat_response',
           businessId,
           title: suggestion.title,
           description: suggestion.description,
-          steps: (suggestion.definition_of_done ?? []).map(s => ({ title: s })),
         },
         { id: businessId, name: '' },
         []
       );
-      if (!audit.passed) {
+      const minTitle = (suggestion.title?.trim().length ?? 0) >= 8;
+      const minDesc = (suggestion.description?.trim().length ?? 0) >= 20;
+      const hasSteps = (suggestion.definition_of_done?.length ?? 0) >= 1;
+      const redListBlocked = audit.issues.some(i => i.code === 'RED_LIST_LEAK');
+
+      if (redListBlocked || !minTitle || !minDesc || !hasSteps) {
         await emitBrainEvent({
           eventType: 'quality_gate_failed',
           businessId,
           sourceModule: 'chat',
           rawInput: suggestion,
-          quality: { passed: false, score: audit.averageScore, failedReason: audit.issues[0]?.message },
+          quality: { passed: false, score: 0, failedReason: redListBlocked ? 'red_list' : 'too_short' },
         });
         toast({
           title: 'No se pudo activar la misión',

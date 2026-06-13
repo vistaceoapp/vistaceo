@@ -482,9 +482,13 @@ const ChatPage = () => {
       // Messages already updated via setMessages above — skip redundant fetch
     } catch (error) {
       console.error("Error sending message:", error);
+      const raw = error instanceof Error ? error.message : "";
+      const isUnreachable = /edge_function_unreachable|timeout|failed to fetch|networkerror/i.test(raw);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "No se pudo enviar el mensaje",
+        title: isUnreachable ? "Conexión interrumpida" : "No pudimos enviar tu mensaje",
+        description: isUnreachable
+          ? "El asistente tardó más de lo normal. Probá de nuevo en unos segundos."
+          : "Reintentá en un momento. Tu mensaje no se perdió.",
         variant: "destructive",
       });
       setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
