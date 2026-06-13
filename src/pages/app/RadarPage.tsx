@@ -907,16 +907,21 @@ const RadarPage = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 max-w-full overflow-hidden">
         <div className="h-10 bg-card rounded-xl animate-pulse w-1/2" />
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <div className="h-24 bg-card rounded-xl animate-pulse" />
           <div className="h-24 bg-card rounded-xl animate-pulse" />
           <div className="h-24 bg-card rounded-xl animate-pulse" />
         </div>
+        <div className="h-32 bg-card rounded-xl animate-pulse" />
+        <p className="text-xs text-muted-foreground text-center pt-1 animate-pulse">
+          Escaneando oportunidades para tu negocio…
+        </p>
       </div>
     );
   }
+
 
   // No business state
   if (!currentBusiness) {
