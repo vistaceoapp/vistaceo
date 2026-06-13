@@ -277,18 +277,21 @@ export const MissionDetailEnhanced = ({
     }
   }, [mission.id, mission.title, mission.description, mission.area, businessId, steps]);
 
-  // Reset state when mission changes
+  // Reset state when mission changes — pero priorizamos cache para evitar flash de pantalla vacía.
   useEffect(() => {
     setExpandedStep(null);
-    setEnhancedPlan(null);
     setError(null);
-    
+
+    const cached = getCachedPlan(mission.id, businessId);
+    setEnhancedPlan(cached ?? null);
+
     // Reset scroll to top
     if (containerRef.current) {
       containerRef.current.scrollTop = 0;
     }
     
     fetchEnhancedPlan(false);
+
     
     // Open current step after a brief delay
     const timer = setTimeout(() => {
