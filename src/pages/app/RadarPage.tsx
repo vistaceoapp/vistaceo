@@ -58,6 +58,7 @@ import { useBrain } from "@/hooks/use-brain";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 import type { AnalyzePatternsResponse } from '@/lib/edge-function-response-types';
+import { SectionErrorBoundary } from "@/components/app/SectionErrorBoundary";
 
 // Estandarización de títulos: primera letra mayúscula + sanitizado
 const fmtTitle = (t: string | null | undefined) => sanitizeAIOutput(t || "");
