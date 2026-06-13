@@ -625,13 +625,17 @@ const MissionsPage = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 max-w-full overflow-hidden">
         <div className="h-10 bg-card rounded-xl animate-pulse w-1/2" />
         <div className="h-32 bg-card rounded-xl animate-pulse" />
         <div className="h-32 bg-card rounded-xl animate-pulse" />
+        <p className="text-xs text-muted-foreground text-center pt-2 animate-pulse">
+          Preparando tus misiones…
+        </p>
       </div>
     );
   }
+
 
   if (!currentBusiness) {
     return (
@@ -660,11 +664,12 @@ const MissionsPage = () => {
   if (selectedMission) {
     return (
       <div className={cn(
-        "flex flex-col",
+        "flex flex-col w-full max-w-full",
         isMobile 
           ? "h-[calc(100dvh-120px)] min-h-0 -mx-4 -my-4 overflow-hidden" 
           : "h-[calc(100vh-3rem)] -mx-5 -mb-5 -mt-5"
       )}>
+
         <MissionLLMMode
           mission={selectedMission}
           businessId={currentBusiness.id}

@@ -130,7 +130,7 @@ export const ChatInput = ({
               {onRemoveFile && (
                 <button
                   onClick={() => onRemoveFile(file.id)}
-                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-sm"
                 >
                   <X className="w-3 h-3" />
                 </button>

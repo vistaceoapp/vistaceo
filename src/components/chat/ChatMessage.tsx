@@ -105,7 +105,7 @@ export const ChatMessage = ({
       )}
 
       {/* Message bubble */}
-      <div className={cn("flex-1 max-w-[85%]", isUser && "flex flex-col items-end")}>
+      <div className={cn("flex-1 min-w-0 max-w-[85%] [&_pre]:overflow-x-auto [&_pre]:max-w-full [&_a]:break-all [&_code]:break-all break-words", isUser && "flex flex-col items-end")}>
         {/* Attachments preview */}
         {attachments && attachments.length > 0 && (
           <div className="flex gap-2 mb-2 flex-wrap">

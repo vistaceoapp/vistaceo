@@ -255,7 +255,7 @@ export const OpportunityDetailCard = ({
         </Button>
       </div>
 
-      <ScrollArea className="max-h-[55vh] pr-2">
+      <ScrollArea className="max-h-[calc(100dvh-280px)] sm:max-h-[55vh] pr-2">
         <div className="space-y-5">
           {/* Trigger - Por qué apareció */}
           <div className="p-4 rounded-xl bg-accent/5 border border-accent/20">

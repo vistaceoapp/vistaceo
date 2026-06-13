@@ -86,6 +86,14 @@ const prefetchRoutes = () => {
     import("./layouts/AppLayout").catch(() => {});
     import("./pages/app/TodayPage").catch(() => {});
   });
+  // Warm up el resto de las rutas internas en background — al entrar a la app
+  // el primer paso por Misiones/Radar/Chat se siente instantáneo.
+  idle(() => {
+    import("./pages/app/MissionsPage").catch(() => {});
+    import("./pages/app/RadarPage").catch(() => {});
+    import("./pages/app/ChatPage").catch(() => {});
+  });
+
 };
 if (typeof window !== "undefined") {
   // Defer until after first paint

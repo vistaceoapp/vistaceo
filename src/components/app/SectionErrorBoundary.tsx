@@ -25,8 +25,11 @@ export class SectionErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error(`[SectionErrorBoundary:${this.props.label ?? "section"}]`, error, info);
+    if (import.meta.env.DEV) {
+      console.error(`[SectionErrorBoundary:${this.props.label ?? "section"}]`, error, info);
+    }
   }
+
 
   handleRetry = () => {
     this.setState({ hasError: false });
