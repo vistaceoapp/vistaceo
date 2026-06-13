@@ -318,12 +318,16 @@ const SetupPage = () => {
     }
   }, [draftBusinessId, user, businesses, data.areaId, data.businessTypeId, data.businessTypeLabel, data.businessName, data.countryCode, data.setupMode]);
 
-  // Disparar creación del draft al entrar al cuestionario
+  // 🔒 Persistencia temprana: crear el draft business apenas el usuario eligió
+  // área + tipo de negocio (paso 2 "identity"). Antes se creaba recién al entrar
+  // al cuestionario y el 53% de los usuarios abandonaba antes, perdiendo todo.
+  // Con esto, cualquier abandono posterior queda recuperable y trackeado.
   useEffect(() => {
-    if (STEPS[currentStep] === 'questionnaire' && !draftBusinessId) {
-      ensureDraftBusiness();
-    }
-  }, [currentStep, draftBusinessId, ensureDraftBusiness]);
+    if (!user) return;
+    if (draftBusinessId) return;
+    if (!data.areaId || !data.businessTypeId) return;
+    ensureDraftBusiness();
+  }, [user, draftBusinessId, data.areaId, data.businessTypeId, ensureDraftBusiness]);
 
   const stepId = STEPS[currentStep];
   const totalSteps = STEPS.length;
