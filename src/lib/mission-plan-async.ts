@@ -52,6 +52,7 @@ export async function requestMissionPlan(
   // Modo job asíncrono: poll hasta que el plan esté listo
   if (data?.jobId) {
     const deadline = Date.now() + (opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+    let failedRetried = false; // self-heal: 1 reintento silencioso ante fallo transitorio
     while (Date.now() < deadline) {
       if (opts.signal?.aborted) throw new DOMException("Aborted", "AbortError");
       await sleep(POLL_INTERVAL_MS);
@@ -64,10 +65,28 @@ export async function requestMissionPlan(
         .maybeSingle();
 
       if (job?.status === "completed" && job.result) return job.result as MissionPlanResult;
-      if (job?.status === "failed") throw new Error(job.error || "generation_failed");
+      if (job?.status === "failed") {
+        if (!failedRetried) {
+          // Reintento silencioso: re-invocar para que el backend genere un nuevo job.
+          failedRetried = true;
+          await sleep(2500);
+          try {
+            const retry = await supabase.functions.invoke("generate-mission-plan", { body });
+            if (retry.data?.plan) return retry.data as MissionPlanResult;
+            if (retry.data?.jobId) {
+              (data as any).jobId = retry.data.jobId;
+              continue;
+            }
+          } catch {
+            /* dejamos que el while siga; si vuelve a fallar saldrá abajo */
+          }
+        }
+        throw new Error(job?.error || "generation_failed");
+      }
     }
     throw new Error("timeout");
   }
 
   return (data ?? {}) as MissionPlanResult;
 }
+
