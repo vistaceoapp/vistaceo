@@ -1093,6 +1093,7 @@ const RadarPage = () => {
 
   // Desktop Layout
   return (
+    <SectionErrorBoundary label="el Radar">
     <div className="space-y-6 max-w-full">
       {/* Convert-to-mission animated overlay */}
       {convertingOverlay && (
