@@ -53,7 +53,7 @@ export const ChatThinkingState = ({ compact = false }: ChatThinkingStateProps) =
         className={cn(
           "flex flex-col gap-2 rounded-2xl rounded-tl-md min-w-0",
           "bg-card/90 backdrop-blur-sm border border-border/60 shadow-sm",
-          compact ? "px-3 py-2.5 max-w-[260px]" : "px-4 py-3 max-w-[420px]",
+          compact ? "px-3 py-2.5 max-w-[85%]" : "px-4 py-3 max-w-[420px]",
         )}
       >
         <div className="flex items-center gap-2.5 min-w-0">
