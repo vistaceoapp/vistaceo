@@ -481,7 +481,7 @@ export const MissionDetailEnhanced = ({
         </div>
 
         {/* Row 4: Quick Stats */}
-        <div className="grid grid-cols-4 gap-2 mt-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
           <div className="bg-muted/50 rounded-lg p-2 text-center">
             <div className="flex items-center justify-center text-primary mb-0.5">
               <TrendingUp className="w-3.5 h-3.5" />
