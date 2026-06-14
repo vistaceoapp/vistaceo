@@ -254,7 +254,7 @@ function getFallbackQuestion(businessType: string, insightCount: number, existin
   // Generate questions based on sector challenges
   const sectorQuestions = sectorContext.uniqueChallenges.map((challenge, idx) => ({
     question: `¿Cómo manejás actualmente ${challenge.toLowerCase()}?`,
-    options: ["No tengo proceso", "Lo hago manualmente", "Tengo un sistema básico", "Proceso optimizado"],
+    options: ["🚫 No tengo proceso", "✋ Lo hago manualmente", "⚙️ Sistema básico", "🏆 Proceso optimizado"],
     category: ["operaciones", "equipo", "servicio"][idx % 3] || "operaciones",
     impact: `Identificar oportunidades en ${sectorContext.focus}`,
   }));
@@ -262,7 +262,7 @@ function getFallbackQuestion(businessType: string, insightCount: number, existin
   // Metric-based questions
   const metricQuestions = sectorContext.keyMetrics.map((metric, idx) => ({
     question: `¿Cómo está tu ${metric.toLowerCase()} actualmente?`,
-    options: ["Bajo lo esperado", "Estable", "Creciendo", "Muy bueno"],
+    options: ["📉 Bajo lo esperado", "➡️ Estable", "📈 Creciendo", "🏆 Muy bueno"],
     category: ["finanzas", "ventas", "clientes"][idx % 3] || "finanzas",
     impact: `Optimizar ${metric} para tu negocio`,
   }));
@@ -270,19 +270,19 @@ function getFallbackQuestion(businessType: string, insightCount: number, existin
   const basicQuestions = [
     {
       question: "¿Cuántas personas trabajan en tu negocio?",
-      options: ["Solo yo", "2-5 personas", "6-15 personas", "Más de 15"],
+      options: ["👤 Solo yo", "👥 2-5 personas", "👨‍👩‍👧 6-15 personas", "🏢 Más de 15"],
       category: "equipo",
       impact: "Adaptar consejos al tamaño del equipo",
     },
     {
       question: "¿Cuál es tu mayor desafío esta semana?",
-      options: ["Atraer clientes", "Reducir costos", "Gestionar equipo", "Mejorar servicio"],
+      options: ["🎯 Atraer clientes", "💰 Reducir costos", "👥 Gestionar equipo", "⭐ Mejorar servicio"],
       category: "operaciones",
       impact: "Priorizar las recomendaciones diarias",
     },
     {
       question: "¿De dónde vienen la mayoría de tus clientes?",
-      options: ["Pasan caminando", "Redes sociales", "Recomendaciones", "Apps/Plataformas"],
+      options: ["🚶 Pasan caminando", "📱 Redes sociales", "🗣️ Recomendaciones", "🛒 Apps/Plataformas"],
       category: "marketing",
       impact: "Optimizar canales de adquisición",
     },
