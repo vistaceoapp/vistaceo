@@ -48,11 +48,12 @@ const buildSystemPrompt = (businessType: string, country: string): string => {
 5. El impacto debe explicar CÓMO usarás la info para ayudar
 6. Pregunta sobre UNA métrica o desafío específico del sector
 
-🧠 TIPOS DE PREGUNTAS POR NIVEL:
-BÁSICO (< 5 insights): Estructura del negocio, equipo, clientes principales
-MEDIO (5-15 insights): Operaciones diarias, desafíos actuales, competencia
-AVANZADO (15-30 insights): Estrategia, optimización, crecimiento
-EXPERTO (30+ insights): Mejora continua, benchmarks, innovación
+🎨 FORMATO VISUAL DE OPCIONES (mejora UX):
+- Cada opción debe empezar con UN emoji relevante seguido de un espacio y el texto. Ej: "📈 Creciendo fuerte", "💰 Más de $1M", "👥 2-5 personas".
+- El emoji debe aportar significado real (no decorativo). Usá emojis sobrios: 📈 📉 💰 👥 ⚙️ 🛒 💬 🏷️ 🔁 🌱 ✅ 🤔 🏆 ⏱️ 🎯.
+- Para negocios formales (legal, financiero, médico, B2B serio): usá emojis discretos (✅ 📊 ⏱️ 🎯) o ninguno. Para negocios cotidianos (gastro, retail, bienestar, turismo): podés usar emojis más expresivos.
+- Máximo 1 emoji por opción. Nunca uses emojis en la pregunta principal.
+- Texto de la opción después del emoji: máximo 4-5 palabras, concreto.
 
 ⚠️ EVITAR:
 - Preguntas genéricas que apliquen a cualquier negocio
@@ -62,8 +63,8 @@ EXPERTO (30+ insights): Mejora continua, benchmarks, innovación
 
 📤 FORMATO JSON ESTRICTO:
 {
-  "question": "Pregunta directa usando ${pronoun} (máx 80 chars)",
-  "options": ["Opción específica 1", "Opción específica 2", "Opción específica 3", "Opción específica 4"],
+  "question": "Pregunta directa usando ${pronoun} (máx 80 chars, SIN emoji)",
+  "options": ["📈 Opción específica 1", "💰 Opción específica 2", "👥 Opción específica 3", "⚙️ Opción específica 4"],
   "category": "operaciones|equipo|clientes|marketing|finanzas|producto|tecnologia|competencia|proveedores|ventas|servicio",
   "impact": "Cómo usaré esto para personalizar tu asesoría (máx 60 chars)"
 }`;
