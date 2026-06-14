@@ -371,36 +371,65 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
               )}
             </div>
 
-            {/* Example chips */}
-            <div className="flex flex-wrap gap-2 justify-center">
-              {EXAMPLE_CHIPS.map((chip) => (
-                <button
-                  key={chip.text}
-                  onClick={() => handleChipClick(chip.text)}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs",
-                    "bg-secondary/60 text-muted-foreground border border-border/50",
-                    "hover:bg-primary/10 hover:text-primary hover:border-primary/30",
-                    "transition-all duration-200"
-                  )}
+            {/* Example chips — se ocultan apenas el usuario empieza a escribir para liberar foco en el CTA */}
+            <AnimatePresence initial={false}>
+              {text.trim().length === 0 && (
+                <motion.div
+                  key="chips"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
                 >
-                  <span>{chip.emoji}</span>
-                  <span className="max-w-[180px] truncate">{chip.text}</span>
-                </button>
-              ))}
-            </div>
+                  <div className="flex flex-wrap gap-2 justify-center pt-1">
+                    {EXAMPLE_CHIPS.map((chip) => (
+                      <button
+                        key={chip.text}
+                        onClick={() => handleChipClick(chip.text)}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs",
+                          "bg-secondary/60 text-muted-foreground border border-border/50",
+                          "hover:bg-primary/10 hover:text-primary hover:border-primary/30",
+                          "transition-all duration-200"
+                        )}
+                      >
+                        <span>{chip.emoji}</span>
+                        <span className="max-w-[180px] truncate">{chip.text}</span>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            {/* Buttons */}
-            <div className="flex flex-col gap-3 items-center pt-2">
+            {/* CTA principal — crece y se vuelve sticky en mobile cuando hay texto */}
+            <div
+              className={cn(
+                "flex flex-col gap-2 items-center pt-2 transition-all",
+                text.trim().length >= 3 &&
+                  "sticky bottom-3 z-20 sm:static sm:bottom-auto"
+              )}
+            >
               <Button
                 onClick={() => handleSubmit()}
                 disabled={text.trim().length < 3}
                 size="lg"
-                className="w-full max-w-sm gap-2 text-base"
+                className={cn(
+                  "w-full max-w-sm gap-2 text-base font-semibold transition-all",
+                  text.trim().length >= 3
+                    ? "h-14 shadow-lg shadow-primary/25 scale-[1.02]"
+                    : "h-12"
+                )}
               >
                 <Wand2 className="w-5 h-5" />
                 Sugerirme 3 opciones
               </Button>
+              {text.trim().length > 0 && text.trim().length < 3 && (
+                <p className="text-[11px] text-muted-foreground">
+                  Escribí al menos 3 caracteres para continuar
+                </p>
+              )}
             </div>
           </motion.div>
         )}
