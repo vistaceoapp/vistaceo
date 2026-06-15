@@ -146,15 +146,16 @@ export function parseMarkdown(content: string): string {
   html = html.replace(/\*{0,2}\bCODE_BLOCK[_\s]*\d+\b\*{0,2}/gi, '');
   html = html.replace(/`CODE_BLOCK[_\s]*\d+`/gi, '');
   html = html.replace(/__HTML_PROTECTED_\d+__/g, '');
-  
-  // Remove any remaining raw HTML attributes rendered as text
-  html = html.replace(/(?<![<"'])\b(?:loading|decoding|class|style|width|height|srcset|sizes)\s*=\s*"[^"]*"/gi, '');
-  
-  // Remove raw img tag text that leaked (e.g. nlewrgmcawzcdazhfiyy.supabase.co/st...")
-  html = html.replace(/[a-z0-9-]+\.supabase\.co\/st(?:orage)?[^\s<"]*"?\s*(?:alt|loading|class|decoding|width|height)\s*=\s*"[^"]*"[^>]*>?/gi, '');
-  
+
   // Remove stray closing angle brackets from stripped tags
   html = html.replace(/^\s*>\s*$/gm, '');
+
+  // NOTE: removed over-aggressive post-render cleanup regexes that were
+  // stripping valid attributes (loading/class/width/height) and even the
+  // storage URL from inside <img src="..."> — those produced broken
+  // <img src="https://"> across every post. The markdown-level sanitizers
+  // already cover the original concern (sanitizeGeneratorArtifacts +
+  // sanitizeBrokenImageMarkdown).
   
   return html;
 }
