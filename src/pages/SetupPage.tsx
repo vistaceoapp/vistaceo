@@ -250,12 +250,15 @@ const SetupPage = () => {
       let businessId: string | null = existing?.id ?? null;
 
       if (!businessId) {
+        const countryPack = COUNTRY_PACKS[data.countryCode as CountryCode];
         const { data: created, error } = await supabase
           .from('businesses')
           .insert({
             name: data.businessName?.trim() || 'Mi negocio',
             category: mapAreaToCategory(data.areaId) as any,
             country: data.countryCode,
+            currency: countryPack?.currency || 'USD',
+            timezone: countryPack?.timezone || 'UTC',
             owner_id: user.id,
             setup_completed: false,
             settings: {
@@ -460,28 +463,33 @@ const SetupPage = () => {
             .eq('id', existingIncompleteBusiness.id)
             .select()
             .single()
-        : supabase
-            .from('businesses')
-            .insert({
-              name: finalName,
-              category: mapAreaToCategory(data.areaId) as any,
-              country: data.countryCode,
-              owner_id: user.id,
-              setup_completed: true,
-              google_place_id: data.googlePlaceId,
-              avg_rating: data.googleRating,
-              address: data.googleAddress,
-              precision_score: precisionScore,
-              settings: {
-                setup_version: '7.0',
-                setup_mode: data.setupMode,
-                web_url: data.websiteUrl || null,
-                linkedin_url: data.linkedinUrl || null,
-                source_preference: data.sourcePreference || (data.googlePlaceId ? 'google' : 'manual'),
-              },
-            })
-            .select()
-            .single();
+        : (() => {
+            const countryPack = COUNTRY_PACKS[data.countryCode as CountryCode];
+            return supabase
+              .from('businesses')
+              .insert({
+                name: finalName,
+                category: mapAreaToCategory(data.areaId) as any,
+                country: data.countryCode,
+                currency: countryPack?.currency || 'USD',
+                timezone: countryPack?.timezone || 'UTC',
+                owner_id: user.id,
+                setup_completed: true,
+                google_place_id: data.googlePlaceId,
+                avg_rating: data.googleRating,
+                address: data.googleAddress,
+                precision_score: precisionScore,
+                settings: {
+                  setup_version: '7.0',
+                  setup_mode: data.setupMode,
+                  web_url: data.websiteUrl || null,
+                  linkedin_url: data.linkedinUrl || null,
+                  source_preference: data.sourcePreference || (data.googlePlaceId ? 'google' : 'manual'),
+                },
+              })
+              .select()
+              .single();
+          })();
 
       const { data: business, error } = await businessMutation;
 

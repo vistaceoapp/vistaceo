@@ -71,6 +71,8 @@ REGLAS DURAS:
 3. Personalización máxima: cada signal debe ser relevante para ESTE negocio (categoría exacta, país, ticket, canales). Nada genérico tipo "medir KPIs".
 4. NO uses familias amplias ("gastronomía", "retail"). Hablá del tipo exacto que declaró el usuario.
 5. Tono ejecutivo, directo, sin relleno.
+6. PROHIBIDO comentar sobre la moneda declarada (currency) cruzada con el país. El campo currency es de configuración técnica del sistema, NO un dato del negocio. JAMÁS generes signals tipo "discrepancia entre país y moneda", "riesgo cambiario por ARS en Ecuador", "inconsistencia de datos financieros por moneda". Si detectás un mismatch, ignoralo en silencio: es un artefacto del sistema, no del negocio real. El riesgo cambiario solo se menciona si el usuario declaró explícitamente operaciones internacionales en su rubro.
+7. PROHIBIDO comentar sobre datos del setup como si fueran del negocio (timezone, settings, owner_id, IDs internos). Solo usá: nombre, categoría, país, rubro declarado, respuestas del cuestionario.
 
 DEVOLVÉ ESTRICTAMENTE UN JSON con esta forma (sin texto fuera del JSON, sin code fences):
 

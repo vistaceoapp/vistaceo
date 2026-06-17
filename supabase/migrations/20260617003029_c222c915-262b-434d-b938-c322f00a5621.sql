@@ -1,0 +1,1 @@
+ALTER TABLE public.businesses ALTER COLUMN currency DROP DEFAULT;
