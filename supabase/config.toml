@@ -17,6 +17,8 @@ project_id = "nlewrgmcawzcdazhfiyy"
     verify_jwt = false
   [functions.backfill-blog-images]
     verify_jwt = false
+  [functions.blog-content-autoheal]
+    verify_jwt = false
   [functions.backfill-content-structure]
     verify_jwt = false
   [functions.backfill-seo-posts]
