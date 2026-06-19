@@ -2167,6 +2167,7 @@ TAMBIÉN:
 8. Voseo natural, frases cortas, ritmo variado
 9. CTA VistaCEO sutil al final
 10. Mínimo 1200 palabras de contenido real (no relleno)
+11. ESTRUCTURA OBLIGATORIA: el artículo DEBE tener un MÍNIMO de 5 H2 (idealmente 6-10). Esto es no negociable: si entregás menos de 5 H2, el artículo se descarta y se reescribe.
 
 ⛔ PROHIBIDO: tablas Markdown, líneas >120 chars, keywords repetidas, frases genéricas de IA, artículos que son solo listas y templates.
 ⛔ NUNCA incluir HTML crudo de ningún tipo. SOLO markdown puro. Nada de <img>, <a>, <h2>, <div>. Nada de atributos como loading="lazy", class="content-image", id="seccion". Si querés una imagen usá ![alt](url). Si querés un link usá [texto](url). Si querés un heading usá ## Texto. NUNCA HTML.
@@ -2177,27 +2178,50 @@ TAMBIÉN:
 
     let contentMd = '';
     let rewriteAttempts = 0;
-    const maxRewrites = 1; // Cost-optimized: one rewrite max, quality comes from strong first-pass prompt
+    const maxRewrites = 2; // Allow one retry with stronger model when quality gate fails
     let qualityGateReport: QualityGateReport;
 
     // Generation loop with rewrite attempts
     do {
-      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-lite', // Cost-optimized: lite model with structured prompts maintains quality
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: rewriteAttempts === 0 ? userPrompt : `${userPrompt}\n\nIMPORTANTE: El intento anterior no pasó el quality gate. Problemas detectados:\n${qualityGateReport!.issues.join('\n')}\n\nCorregí estos problemas en esta nueva versión.` }
-          ],
-          max_tokens: 12000,
-          temperature: 0.7,
-        }),
-      });
+      // Escalate to stronger model on rewrite to recover quality
+      const aiModel = rewriteAttempts === 0 ? 'google/gemini-2.5-flash-lite' : 'google/gemini-2.5-flash';
+
+      // Abort the AI call before the edge function itself times out (150s gateway).
+      // 110s budget leaves room for sanitization, quality gates and DB writes.
+      const aiController = new AbortController();
+      const aiTimeout = setTimeout(() => aiController.abort(), 110_000);
+
+      let aiResponse: Response;
+      try {
+        aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: aiModel,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: rewriteAttempts === 0 ? userPrompt : `${userPrompt}\n\nIMPORTANTE: El intento anterior no pasó el quality gate. Problemas detectados:\n${qualityGateReport!.issues.join('\n')}\n\nCorregí estos problemas en esta nueva versión. RECORDÁ: mínimo 5 H2 obligatorios.` }
+            ],
+            max_tokens: 12000,
+            temperature: 0.7,
+          }),
+          signal: aiController.signal,
+        });
+      } catch (err) {
+        clearTimeout(aiTimeout);
+        const isAbort = (err as any)?.name === 'AbortError';
+        console.error('[generate-blog-post] AI fetch failed:', isAbort ? 'timeout (110s)' : err);
+        if (rewriteAttempts < maxRewrites - 1) {
+          rewriteAttempts++;
+          qualityGateReport = { passed: false, score: 0, issues: [isAbort ? 'ai_timeout' : 'ai_fetch_error'], checks: {} as any, rewrite_attempts: rewriteAttempts } as any;
+          continue;
+        }
+        throw new Error(isAbort ? 'AI generation timed out' : `AI generation failed: ${(err as Error).message}`);
+      }
+      clearTimeout(aiTimeout);
 
       if (!aiResponse.ok) {
         const errorText = await aiResponse.text();
@@ -2221,6 +2245,11 @@ TAMBIÉN:
       contentMd = aiResult.choices?.[0]?.message?.content || '';
 
       if (!contentMd || contentMd.length < 500) {
+        if (rewriteAttempts < maxRewrites - 1) {
+          rewriteAttempts++;
+          qualityGateReport = { passed: false, score: 0, issues: ['content_too_short'], checks: {} as any, rewrite_attempts: rewriteAttempts } as any;
+          continue;
+        }
         throw new Error('Generated content too short');
       }
 
