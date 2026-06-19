@@ -40,6 +40,26 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('[ErrorBoundary] Caught:', error, errorInfo);
+
+    // Auto-recover de errores de chunk loading (deploy nuevo, JS hasheado viejo).
+    // Recargamos UNA sola vez para traer el index.html nuevo.
+    const msg = String(error?.message ?? '');
+    const isChunkErr =
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed') ||
+      msg.includes('error loading dynamically imported module') ||
+      msg.includes('ChunkLoadError') ||
+      /Loading chunk [\w-]+ failed/i.test(msg);
+    if (isChunkErr) {
+      try {
+        if (!sessionStorage.getItem('__vista_chunk_reloaded')) {
+          sessionStorage.setItem('__vista_chunk_reloaded', '1');
+          setTimeout(() => window.location.reload(), 50);
+          return;
+        }
+      } catch { /* noop */ }
+    }
+
     reportBoundaryError(error, { componentStack: errorInfo.componentStack ?? undefined });
   }
 
