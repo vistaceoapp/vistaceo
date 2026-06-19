@@ -2167,6 +2167,7 @@ TAMBIÉN:
 8. Voseo natural, frases cortas, ritmo variado
 9. CTA VistaCEO sutil al final
 10. Mínimo 1200 palabras de contenido real (no relleno)
+11. ESTRUCTURA OBLIGATORIA: el artículo DEBE tener un MÍNIMO de 5 H2 (idealmente 6-10). Esto es no negociable: si entregás menos de 5 H2, el artículo se descarta y se reescribe.
 
 ⛔ PROHIBIDO: tablas Markdown, líneas >120 chars, keywords repetidas, frases genéricas de IA, artículos que son solo listas y templates.
 ⛔ NUNCA incluir HTML crudo de ningún tipo. SOLO markdown puro. Nada de <img>, <a>, <h2>, <div>. Nada de atributos como loading="lazy", class="content-image", id="seccion". Si querés una imagen usá ![alt](url). Si querés un link usá [texto](url). Si querés un heading usá ## Texto. NUNCA HTML.
