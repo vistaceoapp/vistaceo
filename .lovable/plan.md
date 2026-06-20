@@ -1,60 +1,59 @@
-# Plan: Misiones inteligentes + caché permanente + control de regeneración
+# Plan: Setup sin fricción + Hiper-personalización
 
-## 1. Crones automáticos → manuales / condicionales
-- Auditar `supabase/config.toml` y desactivar todos los `[functions.*.schedule]` que regeneran misiones/oportunidades/predicciones/radar automáticamente.
-- Dejar solo cron de mantenimiento crítico (limpieza, anti-canibalización blog).
-- Regeneración disparada solo por:
-  - acción manual del usuario (con límites de tier).
-  - cambio mayor detectado en el brain (`factual_memory.version` o `mvc_completion_pct` salto > 15%).
+## Diagnóstico (datos reales)
 
-## 2. Generación de misión por streaming (UX rápido)
-**Problema actual:** `generate-mission-plan` espera a generar título + resumen + 5 pasos completos antes de devolver. Tarda mucho.
+De los últimos usuarios: Melody (DO), Grecia (HN), Silvina (AR - Remax), Clary (MX) — todos abandonaron entre `setup_started` y `setup_step_viewed`. Patrón: **se van en los primeros 2-3 pasos**, antes de ver valor.
 
-**Solución:** dos fases.
-- **Fase A (rápida, ~3-5s):** `generate-mission-plan` devuelve solo `{ title, summary, hook, estimated_time, steps_outline: [{n, title}] }` con Gemini 2.5 Flash Lite. Persistir como `mission.status='generating_steps'`.
-- **Fase B (background):** misma function se invoca con `mode:'expand'` para generar el contenido detallado de cada paso (`como_hacerlo`, `por_que`, `tips`). Va llenando `mission.steps[i].body` progresivamente.
+Causas detectadas en `SetupPage.tsx` + `setupV7.ts`:
+1. **Pide datos antes de mostrar valor** — el usuario no sabe qué obtiene a cambio.
+2. **Tipo de negocio rígido** — selector de área + tipo no entiende texto libre tipo "Remax", "consultora freelance de marketing", "vendo cursos online".
+3. **Sin progreso visible de personalización** — no se siente que la IA está "aprendiendo de mí".
+4. **Países/monedas desacoplados del tipo de negocio** — ya arreglamos ARS/Ecuador, pero falta que el sistema combine país + tipo + texto libre en una sola comprensión.
 
-**UI MissionDetail:**
-- Resumen visible inmediato.
-- Sidebar "PASOS DE LA MISIÓN" con títulos visibles desde fase A.
-- Cada paso bloqueado (sin click) hasta que `step.body` exista → animación timeline shimmer mientras carga.
-- Polling cada 2s (o realtime channel) hasta `status='ready'`.
+## Cambios (3 frentes, sin sobrecargar)
 
-## 3. Pasos con títulos visibles + avance 1-a-1
-- Esquema de step: `{ n, title, body, status: 'locked'|'available'|'in_progress'|'done' }`.
-- Sidebar derecho muestra `n + title` (truncado), badge ✓/Siguiente/locked como en la imagen.
-- Solo el siguiente paso después del último `done` es clickeable. Resto locked.
-- Botón "Marcar completado" en paso actual → `done`, desbloquea n+1, scrollea automáticamente.
-- Migration: añadir `title` a `mission_steps` si no existe; backfill desde `steps[].title` JSON.
+### 1. Setup "valor primero" (UX)
+- **Paso 0 nuevo (`SetupValueFirst`)**: 1 sola pregunta — *"¿En una frase, qué hacés?"* (textarea libre).
+  - Al enviar, llamamos a `classify-business-freetext` (edge nueva, Gemini 2.5 Flash Lite) que devuelve: `{ areaId, typeId, country (si se infiere), confidence, suggestedName, microInsight }`.
+  - Mostramos inmediatamente un "micro-insight" personalizado (1 frase tipo *"Detecté que sos inmobiliaria franquiciada en AR — voy a priorizar señales de tasas, dólar y zona"*). Esto es el **wow moment**.
+- **Paso 1-2 quedan**, pero pre-rellenados con lo que la IA infirió. El usuario confirma/edita, no escribe desde cero.
+- **Skip inteligente**: si confidence > 0.85, ofrecer "Saltar al chat" directo (con setup mínimo).
 
-## 4. Regeneración por tier
-- Free: botón "Regenerar" oculto. Si intentan vía API → 403 con CTA upgrade.
-- Pro: 1 sola regeneración por misión (`missions.regenerations_used int default 0`). Al llegar a 1, botón se vuelve informativo:
-  - Modal "Tu plan ya está optimizado" con copy del tipo: *"Según análisis de 12k misiones Pro, regenerar más de una vez reduce un 34% la tasa de ejecución. Te recomendamos avanzar con este plan — está calibrado para tu negocio."* + botón "Entendido" y "Regenerar de todas formas" deshabilitado con tooltip "Límite alcanzado".
-- Misma lógica aplica a opportunities/predictions (free: 0 regen, pro: 1 regen).
+### 2. Clasificador hiper-personalizado (motor)
+- Nueva edge function `classify-business-freetext`:
+  - Input: texto libre + país (auto-detectado por IP vía `use-country-detection`).
+  - Prompt incluye **catálogo completo** de `setupBusinessTypes.ts` + reglas de marcas conocidas (Remax → inmobiliaria franquicia, McDonald's → gastro franquicia, etc.) + sinónimos LATAM (kiosco/abasto/almacén, ferretería/tlapalería).
+  - Output estructurado JSON con `areaId`, `typeId`, `subVertical` (libre), `inferredCountry`, `currencyHint`, `confidence`, `microInsight` (≤120 chars, en español neutro).
+  - Guarda señal `business_classified_freetext` en `signals` para que el cerebro la use desde el minuto 0.
+- Reglas duras: nunca mezclar moneda extranjera con país (memoria que ya tenés). Si país detectado ≠ país de moneda inferida → forzar moneda local.
 
-## 5. Caché permanente
-- Misiones, oportunidades, predicciones y radar generados quedan persistidos en DB indefinidamente.
-- Quitar cualquier TTL/`expires_at` que provoque re-generación al entrar.
-- Hooks (`useMissions`, `useOpportunities`, etc.) siempre `SELECT` primero; solo generar si `count = 0` Y el usuario hace click explícito en "Generar".
-- En `PreparingDashboardPage`: si `seeding_completed_at` ya existe, salta directo al dashboard sin tocar nada.
+### 3. Ramificación dinámica de preguntas
+- Tras clasificar, `getActiveSteps()` lee `subVertical` y añade 2-4 preguntas del paquete sectorial correcto (`src/lib/sectorQuestions/...`). Si no hay paquete específico, generamos preguntas con `generate-dynamic-questions` (ya existe).
+- Cada respuesta va a `onboarding-ingest` (ya existe) → cerebro aprende en vivo → barra de "Precisión" sube visiblemente (feedback loop).
 
-## Archivos a tocar
-- `supabase/config.toml` — desactivar schedules.
-- `supabase/functions/generate-mission-plan/index.ts` — modos `outline` y `expand`.
-- `supabase/migrations/` — `mission_steps.title`, `mission_steps.status`, `missions.regenerations_used`, `missions.status`.
-- `src/pages/app/MissionDetailPage.tsx` (o equivalente) — sidebar pasos, lock/unlock, polling.
-- `src/components/missions/MissionStepsSidebar.tsx` — nuevo o actualizar para mostrar títulos + estados.
-- `src/components/missions/RegenerateButton.tsx` — gating por tier + modal Pro.
-- `src/hooks/useMissions.ts`, `useOpportunities.ts` — quitar auto-regeneración, respetar caché.
-- `src/pages/app/PreparingDashboardPage.tsx` — confirmar idempotencia.
+## Archivos
 
-## Orden de ejecución
-1. Migration (campos nuevos + backfill).
-2. Edge function dos fases.
-3. Desactivar crones.
-4. UI sidebar + lock pasos + completar 1-a-1.
-5. Regenerate gating + modal Pro.
-6. Auditar hooks para garantizar caché permanente.
+**Nuevos**
+- `supabase/functions/classify-business-freetext/index.ts`
+- `src/components/setup/SetupValueFirst.tsx`
+- `src/components/setup/MicroInsightCard.tsx`
 
-¿Avanzo con todo en este orden?
+**Editados**
+- `src/pages/SetupPage.tsx` — inyectar Paso 0, manejar skip inteligente.
+- `src/lib/setupV7.ts` — soportar pre-relleno desde clasificador, paso `value_first`.
+- `src/lib/setupBusinessTypes.ts` — exponer catálogo serializable para el prompt.
+- `supabase/config.toml` — registrar nueva edge function (verify_jwt = false).
+
+## Métricas de éxito
+- % usuarios que pasan de `setup_started` → `setup_completed` (objetivo: 38% → 60%+).
+- Tiempo medio a primer chat post-registro.
+- `confidence` promedio del clasificador (objetivo > 0.8).
+
+## Lo que NO hago (para no sobrecargar)
+- No agrego más pasos.
+- No toco el cuestionario completo (65-75 preguntas) — sigue siendo opcional modo "Complete".
+- No toco pagos ni auth.
+
+---
+
+¿Avanzo con esto o querés que ajuste algo (ej: arrancar solo con Paso 0 + clasificador, dejar la ramificación dinámica para una segunda iteración)?

@@ -18,6 +18,7 @@ interface ProfileOption {
   origin: 'catalogo' | 'a_medida';
   confidence: 'alta' | 'media' | 'baja';
   precision_percent: number;
+  micro_insight?: string;
   universal_profile: {
     display_name: string;
     activity_type: string;
@@ -210,7 +211,7 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
     }, 400);
 
     try {
-      const body: Record<string, any> = { raw_text: text.trim(), locale: 'es' };
+      const body: Record<string, any> = { raw_text: text.trim(), locale: 'es', country_code: countryCode || null };
       if (clarificationAnswer && clarification) {
         body.clarification_answer = clarificationAnswer;
         body.clarification_context = { question: clarification.question };
@@ -641,6 +642,17 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
                       <p className="text-xs text-muted-foreground/70 italic leading-relaxed mb-2">
                         {option.reason}
                       </p>
+
+                      {/* Micro-insight — wow moment personalizado (solo en la top) */}
+                      {isTop && option.micro_insight && (
+                        <div className="mt-2 mb-3 p-2.5 rounded-lg bg-primary/10 border border-primary/20 flex items-start gap-2">
+                          <Sparkles className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-foreground/90 leading-relaxed">
+                            {option.micro_insight}
+                          </p>
+                        </div>
+                      )}
+
 
                       {/* Tags */}
                       {option.tags && option.tags.length > 0 && (

@@ -222,11 +222,47 @@ function buildFlatCatalog() {
 
 const FLAT_CATALOG = buildFlatCatalog();
 
+// Country → currency + tono regional (alineado con la memoria del proyecto: nunca mezclar moneda extranjera con país)
+const COUNTRY_CONTEXT: Record<string, { name: string; currency: string; localTerms: string }> = {
+  AR: { name: "Argentina", currency: "ARS", localTerms: "kiosco, almacén, monotributo, factura A/B/C, AFIP, voseo" },
+  MX: { name: "México", currency: "MXN", localTerms: "tlapalería, abarrotes, OXXO, SAT, RFC, CFDI, tuteo, 'chamba'" },
+  CL: { name: "Chile", currency: "CLP", localTerms: "almacén, micro-emprendimiento, SII, boleta, 'cachai'" },
+  CO: { name: "Colombia", currency: "COP", localTerms: "tienda de barrio, papelería, DIAN, factura electrónica, 'parcero'" },
+  PE: { name: "Perú", currency: "PEN", localTerms: "bodega, SUNAT, RUC, factura/boleta" },
+  UY: { name: "Uruguay", currency: "UYU", localTerms: "kiosco, DGI, voseo, IVA" },
+  EC: { name: "Ecuador", currency: "USD", localTerms: "tienda, SRI, RUC, factura electrónica" },
+  PY: { name: "Paraguay", currency: "PYG", localTerms: "despensa, SET, RUC" },
+  BO: { name: "Bolivia", currency: "BOB", localTerms: "tienda, SIN, NIT" },
+  VE: { name: "Venezuela", currency: "VES", localTerms: "abasto, SENIAT, RIF" },
+  CR: { name: "Costa Rica", currency: "CRC", localTerms: "pulpería, Hacienda, factura electrónica" },
+  PA: { name: "Panamá", currency: "USD", localTerms: "abarrotería, DGI, RUC" },
+  DO: { name: "República Dominicana", currency: "DOP", localTerms: "colmado, DGII, RNC" },
+  GT: { name: "Guatemala", currency: "GTQ", localTerms: "tienda, SAT, NIT" },
+  HN: { name: "Honduras", currency: "HNL", localTerms: "pulpería, SAR, RTN" },
+  SV: { name: "El Salvador", currency: "USD", localTerms: "tienda, Hacienda, NIT" },
+  NI: { name: "Nicaragua", currency: "NIO", localTerms: "pulpería, DGI, RUC" },
+  ES: { name: "España", currency: "EUR", localTerms: "autónomo, IVA, Hacienda, tuteo peninsular" },
+};
+
+// Marcas y franquicias conocidas → mapeo directo a sector + subtipo
+const BRAND_RECOGNITION = `
+RECONOCIMIENTO DE MARCAS Y FRANQUICIAS (mapeo directo, no preguntar):
+- Inmobiliarias franquicia: Remax, Century 21, Coldwell Banker, Engel & Völkers, Tokko Broker → A8_CONSTRU_INMO / inmobiliaria (subtype: "franquicia inmobiliaria")
+- Gastro franquicia: McDonald's, Burger King, KFC, Mostaza, Subway, Starbucks, Havanna, Mostaza → A1_GASTRO / comida_rapida o cafeteria (subtype: "franquicia gastronómica")
+- Retail franquicia: OXXO, 7-Eleven, Walmart, Coto, Día, Carrefour, Disco, Jumbo → A3_RETAIL / supermercado o almacen_kiosco
+- Farmacias: Farmacity, Dr. Ahorro, Cruz Verde, Salcobrand, Doctor Simi → A4_SALUD / farmacia_salud
+- Hoteles cadena: Hilton, Marriott, Sheraton, Hyatt, Holiday Inn, Ibis → A2_TURISMO / hotel_resort
+- Gimnasios cadena: SmartFit, Megatlon, Sport Club, Always → A4_SALUD / gym_fitness
+- Tech/SaaS independientes: agencia/freelancer dev → A6_B2B / agencia_desarrollo
+- Coaches/infoproductores: si menciona "vendo curso", "info-producto", "comunidad pagada" → A5_EDUCACION / creator_education
+Si la marca implica franquicia o cadena, agregalo al subtype y a tags ("franquicia", "multilocal").
+`;
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { raw_text, locale, clarification_answer, clarification_context } = await req.json();
+    const { raw_text, locale, clarification_answer, clarification_context, country_code } = await req.json();
     if (!raw_text || raw_text.trim().length < 3) {
       return new Response(JSON.stringify({ error: "Texto muy corto" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -237,10 +273,21 @@ serve(async (req: Request) => {
     // If this is a clarification response, skip clarification detection
     const isClarificationResponse = !!clarification_answer;
 
+    // Contexto regional para hiper-personalización
+    const ctx = country_code && COUNTRY_CONTEXT[country_code]
+      ? COUNTRY_CONTEXT[country_code]
+      : null;
+    const countryBlock = ctx
+      ? `\nCONTEXTO REGIONAL DEL USUARIO:\n- País: ${ctx.name} (${country_code})\n- Moneda OBLIGATORIA: ${ctx.currency} — NUNCA mezclar otra moneda con este país (es un error garrafal).\n- Términos/jerga locales esperables: ${ctx.localTerms}\n- Adaptá tone_and_context y el micro_insight a este país: usá referencias, regulaciones, plataformas y léxico locales.`
+      : '';
+
     const systemPrompt = `Sos el Cerebro de Identidad de VistaCEO. Tu misión es entender con precisión extrema qué hace el usuario (negocio, servicio o profesión) aunque escriba mal, use jerga LATAM, mezcle conceptos o sea confuso.
 
 CATÁLOGO DISPONIBLE (180 tipos):
 ${Object.entries(CATALOG_SECTORS).map(([sectorId, s]) => `${sectorId} - ${s.label}: ${s.types.map(t => t.id + ' (' + t.label + ')').join(', ')}`).join('\n')}
+${countryBlock}
+
+${BRAND_RECOGNITION}
 
 REGLAS ABSOLUTAS:
 1. SIEMPRE devolver EXACTAMENTE 3 opciones
@@ -248,11 +295,18 @@ REGLAS ABSOLUTAS:
 3. Opción 2: Alternativa REALMENTE distinta del catálogo (distinto eje: cliente, canal, formato). PROHIBIDO duplicar semánticamente la opción 1
 4. Opción 3: SIEMPRE un perfil "a_medida" personalizado al caso exacto del usuario. Debe sentirse premium, no fallback
 5. Si el texto es confuso, igual intentar. NUNCA devolver "no entendí".
-6. Capturar subtipo real: "pizzería" NO es "gastronomía genérica", "abogado penalista" NO es "servicios profesionales genérico"
-7. Entender ortografía horrible, jerga LATAM, mezclas de idiomas
+6. Capturar subtipo real: "pizzería" NO es "gastronomía genérica", "abogado penalista" NO es "servicios profesionales genérico", "Remax" NO es "inmobiliaria genérica" (es franquicia inmobiliaria)
+7. Entender ortografía horrible, jerga LATAM, mezclas de idiomas, nombres de marcas/franquicias conocidas
 8. Cada opción debe incluir "precision_percent" (0-100): qué tan bien representa lo que el usuario REALMENTE hace. Reflejar incertidumbre real, NO inflar. Opción 1 siempre tiene el % más alto. Si el perfil a medida resuelve mejor, puede tener % más alto que opción 2.
 9. "reason" debe ser ultra corta: máximo 12 palabras, humana, sin tecnicismos. Formato: "Porque detecté X e Y en tu descripción"
 10. Las 3 opciones deben ser DIFERENTES de verdad. Diversidad por eje: cliente (empresas vs personas), canal (online vs presencial), formato (academia vs consultoría vs plataforma)
+11. MICRO-INSIGHT (campo nuevo, OBLIGATORIO solo en la opción 1):
+    "micro_insight": frase de WOW (máx 140 chars, español neutro con voseo si aplica al país) que demuestre que entendiste el contexto profundo. Debe combinar país + tipo de negocio + 1 ángulo accionable que vamos a priorizar.
+    Ejemplos:
+    - "Detecté que sos inmobiliaria franquiciada Remax en AR — voy a priorizar señales de tasas, dólar y zonas calientes de CABA."
+    - "Cafetería de especialidad en CDMX — te voy a empujar a Instagram local, Rappi y reseñas Google de la zona."
+    - "Estudio contable freelance en UY — te enfoco en monotributo, BPS y captación por LinkedIn."
+    NUNCA mencionar moneda distinta a la del país. NUNCA frases genéricas tipo "te ayudaré a crecer".
 
 DETECCIÓN DE ETAPA - PROYECTOS Y ASPIRACIONES:
 El usuario puede estar en distintas etapas:
@@ -262,7 +316,7 @@ El usuario puede estar en distintas etapas:
 
 OBLIGATORIO: Capturar la etapa en el universal_profile de CADA opción:
 - "business_stage": "active" | "planning" | "exploring"
-- Si es "planning" o "exploring", adaptar tone_and_context, primary_pains y success_metrics a esa etapa (ej: pains de arranque, métricas de validación, no de operación)
+- Si es "planning" o "exploring", adaptar tone_and_context, primary_pains y success_metrics a esa etapa (ej: pains de arranque, métricas de validación, no de operación), y el micro_insight debe reflejarlo ("estás por arrancar — te enfoco en validar demanda en X zona").
 
 DETECCIÓN DE AMBIGÜEDAD Y CLARIFICACIÓN:
 ${isClarificationResponse ? 'El usuario ya respondió una pregunta de clarificación. Usar esa respuesta para generar las 3 opciones con máxima precisión.' : `Si el texto del usuario contiene DOS O MÁS caminos/actividades/objetivos claramente diferentes que llevarían a perfiles DISTINTOS, debes pedir clarificación ANTES de sugerir opciones.
@@ -328,6 +382,7 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
       "origin": "catalogo o a_medida",
       "confidence": "alta o media o baja",
       "precision_percent": 92,
+      "micro_insight": "Solo en opción 1: frase WOW personalizada (máx 140 chars). Omitir o null en opciones 2 y 3.",
       "universal_profile": {
         "display_name": "Nombre para mostrar",
         "activity_type": "negocio o servicio o profesión",
