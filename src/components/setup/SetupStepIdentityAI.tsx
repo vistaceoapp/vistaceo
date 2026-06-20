@@ -18,6 +18,7 @@ interface ProfileOption {
   origin: 'catalogo' | 'a_medida';
   confidence: 'alta' | 'media' | 'baja';
   precision_percent: number;
+  micro_insight?: string;
   universal_profile: {
     display_name: string;
     activity_type: string;
