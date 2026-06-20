@@ -643,6 +643,17 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
                         {option.reason}
                       </p>
 
+                      {/* Micro-insight — wow moment personalizado (solo en la top) */}
+                      {isTop && option.micro_insight && (
+                        <div className="mt-2 mb-3 p-2.5 rounded-lg bg-primary/10 border border-primary/20 flex items-start gap-2">
+                          <Sparkles className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                          <p className="text-xs text-foreground/90 leading-relaxed">
+                            {option.micro_insight}
+                          </p>
+                        </div>
+                      )}
+
+
                       {/* Tags */}
                       {option.tags && option.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1.5">
