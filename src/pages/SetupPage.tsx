@@ -195,6 +195,19 @@ const SetupPage = () => {
     };
   });
 
+  // 🌎 Auto-detectar país por IP en background — pre-rellena el paso de país
+  // sin bloquear el primer paso (identidad). Si el usuario ya eligió uno, respeta.
+  const { detectedCountryCode, isDetecting: isDetectingCountry } = useCountryDetection();
+  useEffect(() => {
+    if (isDetectingCountry) return;
+    if (!detectedCountryCode) return;
+    const savedCountry = safeLocalStorage.getItem('selectedCountryCode');
+    if (savedCountry) return; // respetar elección manual previa
+    if (data.countryCode && data.countryCode !== 'AR') return; // ya hay algo distinto al default
+    setData(d => ({ ...d, countryCode: detectedCountryCode as CountryCode }));
+  }, [detectedCountryCode, isDetectingCountry]);
+
+
   // Save setup progress whenever it changes (for returning from checkout)
   useEffect(() => {
     if (currentStep > 0 || data.areaId) {
