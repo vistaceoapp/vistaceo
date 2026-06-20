@@ -211,7 +211,7 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
     }, 400);
 
     try {
-      const body: Record<string, any> = { raw_text: text.trim(), locale: 'es' };
+      const body: Record<string, any> = { raw_text: text.trim(), locale: 'es', country_code: countryCode || null };
       if (clarificationAnswer && clarification) {
         body.clarification_answer = clarificationAnswer;
         body.clarification_context = { question: clarification.question };
