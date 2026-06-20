@@ -101,9 +101,10 @@ import { SetupProgress } from '@/components/setup/SetupProgress';
 import { collectSignupTrackingContext } from '@/lib/signup-tracking';
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
-// Steps: country -> identity (AI) -> business (name+google) -> mode -> questionnaire -> create
-// Manual fallback inserts sector+type steps dynamically
-const STEPS = ['country', 'identity', 'business', 'mode', 'questionnaire', 'create'] as const;
+// Steps: identity (AI, value-first) -> country (confirma) -> business -> mode -> questionnaire -> create
+// Reordered v7.1: el wow va primero — el usuario escribe "qué hace" antes que nada.
+// El país se autodetecta por IP en background y se confirma rápido en el paso 2.
+const STEPS = ['identity', 'country', 'business', 'mode', 'questionnaire', 'create'] as const;
 type StepId = typeof STEPS[number];
 
 interface SetupData {
