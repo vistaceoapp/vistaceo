@@ -171,3 +171,5 @@ project_id = "nlewrgmcawzcdazhfiyy"
     verify_jwt = false
   [functions.weekly-insight-scan]
     verify_jwt = false
+  [functions.enrich-brain-from-text]
+    verify_jwt = false
