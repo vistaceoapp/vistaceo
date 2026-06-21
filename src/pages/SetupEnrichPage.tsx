@@ -94,7 +94,7 @@ const SetupEnrichPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between mb-8"
         >
-          <VistaceoLogo size={32} variant="wordmark" />
+          <VistaceoLogo size={32} variant="full" />
           <button
             type="button"
             onClick={goNext}
