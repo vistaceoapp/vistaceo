@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { NurtureBrainWidget } from "@/components/app/NurtureBrainWidget";
+
 import { Button } from "@/components/ui/button";
 import { 
   User, 
@@ -329,8 +331,12 @@ const MorePage = () => {
               </CardContent>
             </Card>
 
+            {/* Nutrir al CEO con contexto extra */}
+            <NurtureBrainWidget source="settings" defaultOpen={false} />
+
             {/* Focus Selector */}
             <FocusSelector variant="card" />
+
 
             {/* Brain Status */}
             <BrainStatusWidget variant="full" />
