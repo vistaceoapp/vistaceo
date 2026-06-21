@@ -28,6 +28,8 @@ const LandingV3 = lazy(() => import("./pages/LandingV3"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const SetupPage = lazy(() => import("./pages/SetupPage"));
 const SetupCompletePage = lazy(() => import("./pages/SetupCompletePage"));
+const SetupEnrichPage = lazy(() => import("./pages/SetupEnrichPage"));
+
 const PreparingDashboardPage = lazy(() => import("./pages/app/PreparingDashboardPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
@@ -251,6 +253,21 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Enrich brain (Cuéntanos más) — opcional antes del dashboard */}
+        <Route
+          path="/setup/enrich"
+          element={
+            <ProtectedRoute>
+              <BusinessProvider>
+                <Suspense fallback={null}>
+                  <SetupEnrichPage />
+                </Suspense>
+              </BusinessProvider>
+            </ProtectedRoute>
+          }
+        />
+
 
         {/* Preparing dashboard (post-setup splash that triggers seeding) */}
         <Route
