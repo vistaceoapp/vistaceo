@@ -173,3 +173,5 @@ project_id = "nlewrgmcawzcdazhfiyy"
     verify_jwt = false
   [functions.enrich-brain-from-text]
     verify_jwt = false
+  [functions.recover-credit-stuck-users]
+    verify_jwt = true

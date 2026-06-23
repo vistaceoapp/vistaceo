@@ -1,0 +1,2 @@
+ALTER TABLE public.setup_reminder_sends DROP CONSTRAINT IF EXISTS setup_reminder_sends_stage_check;
+ALTER TABLE public.setup_reminder_sends ADD CONSTRAINT setup_reminder_sends_stage_check CHECK (stage = ANY (ARRAY['day1'::text, 'day3'::text, 'credit_recovery'::text]));
