@@ -180,7 +180,7 @@ REGLAS CRÍTICAS DE PERSONALIZACIÓN:
 5. Usar ${voiceStyle} en idioma ${lang}. Tono: profesional pero cercano.
 
 REGLAS ABSOLUTAS DE IDIOMA Y CALIDAD:
-6. TODO el texto DEBE estar en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. PROHIBIDO TERMINANTEMENTE usar palabras en inglés. Ni en títulos, ni en opciones, ni en textos de ayuda. CERO inglés. Ejemplos de lo que NO debe aparecer: "feedback", "marketing mix", "target", "branding", "check-in", "delivery", "staff", etc. Siempre usar el equivalente en español.
+6. TODO el texto DEBE estar en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. PROHIBIDO TERMINANTEMENTE usar palabras en inglés. Ni en títulos, ni en opciones, ni en textos de ayuda. CERO inglés. Reemplazos OBLIGATORIOS: "dropshipping"→"reventa sin stock", "courier"→"mensajería", "influencers"→"creadores de contenido", "email marketing"→"correo electrónico", "delivery"→"envíos a domicilio", "feedback"→"comentarios", "target"→"público", "branding"→"identidad de marca", "staff"→"equipo", "check-in"→"registro", "pipeline"→"embudo de ventas", "lead"→"contacto", "ecommerce"→"tienda online", "marketing mix"→"mezcla de marketing".
 7. CALIDAD DE REDACCIÓN: Las preguntas deben ser gramaticalmente perfectas, claras, completas y profesionales. Sin frases cortadas, sin errores de sintaxis, sin ambigüedades. Cada pregunta debe leerse como escrita por un consultor senior.
 
 REGLAS DE SIMPLICIDAD (CRÍTICAS - NO NEGOCIABLES):
