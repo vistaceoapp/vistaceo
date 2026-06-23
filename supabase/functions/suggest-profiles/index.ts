@@ -432,7 +432,10 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "rate_limited" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      return new Response(JSON.stringify({ error: "ai_error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (response.status === 402) {
+        return new Response(JSON.stringify(buildFallbackOptions(raw_text)), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify(buildFallbackOptions(raw_text)), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const aiData = await response.json();
