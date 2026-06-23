@@ -211,13 +211,58 @@ const SetupPage = () => {
   // Save setup progress whenever it changes (for returning from checkout)
   useEffect(() => {
     if (currentStep > 0 || data.areaId) {
-      safeLocalStorage.setItem('setupProgress', JSON.stringify({
+      const payload = {
         step: currentStep,
         data: data,
         timestamp: Date.now(),
-      }));
+      };
+      safeLocalStorage.setItem('setupProgress', JSON.stringify(payload));
+      // 🌩️ Mirror al servidor para sobrevivir cierre de sesión, cambio de dispositivo o limpieza de caché.
+      if (draftBusinessId) {
+        supabase
+          .from('business_setup_progress')
+          .upsert(
+            {
+              business_id: draftBusinessId,
+              current_step: String(currentStep),
+              setup_data: { ...(data as any), _localStep: currentStep } as any,
+            } as never,
+            { onConflict: 'business_id' }
+          )
+          .then(() => {/* noop */}, () => {/* silencioso */});
+      }
     }
-  }, [currentStep, data]);
+  }, [currentStep, data, draftBusinessId]);
+
+  // 🔁 Rehidratación desde servidor: si el usuario vuelve sin localStorage (otro
+  // dispositivo, modo incógnito, caché limpia) y tiene un draft business
+  // incompleto con progreso guardado, restauramos automáticamente.
+  const hydratedFromServerRef = useRef(false);
+  useEffect(() => {
+    if (hydratedFromServerRef.current) return;
+    if (!user) return;
+    if (savedState?.data) { hydratedFromServerRef.current = true; return; }
+    const draft = businesses?.find((b) => !b.setup_completed);
+    if (!draft?.id) return;
+    hydratedFromServerRef.current = true;
+    (async () => {
+      try {
+        const { data: row } = await supabase
+          .from('business_setup_progress')
+          .select('current_step, setup_data')
+          .eq('business_id', draft.id)
+          .maybeSingle();
+        const sd: any = row?.setup_data;
+        if (sd && (sd.areaId || sd.businessTypeId || sd.answers)) {
+          setData((prev) => ({ ...prev, ...sd }));
+          const restoredStep = Number(sd._localStep ?? row?.current_step ?? 0);
+          if (Number.isFinite(restoredStep) && restoredStep > 0) setCurrentStep(restoredStep);
+          setDraftBusinessId(draft.id);
+        }
+      } catch { /* silencioso */ }
+    })();
+  }, [user, businesses, savedState]);
+
 
   // Clear saved progress on component unmount if setup is complete
   const clearSavedProgress = () => {
