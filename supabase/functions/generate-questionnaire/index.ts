@@ -83,20 +83,38 @@ serve(async (req) => {
       ? parseInt(questionCountOverride.split('-')[0]) 
       : (isQuick ? 10 : 25);
 
+    // ETAPA DEL NEGOCIO: CRÍTICO. Si el usuario está en planning/exploring NO podemos preguntar
+    // datos operativos (costos reales, reseñas, logística, proveedores, facturación actual, etc.)
+    // porque todavía no existen. Tenemos que preguntar SOLO sobre planeamiento e intención.
+    const businessStage: string = String(universalProfile?.business_stage || '').toLowerCase();
+    const isPlanning = businessStage === 'planning' || businessStage === 'exploring' || businessStage === 'idea';
+    const stageLine = isPlanning
+      ? `Etapa: PROYECTO NUEVO / EN PLANEAMIENTO (todavía no opera, no tiene clientes, ni ventas, ni costos reales)`
+      : (businessStage ? `Etapa: ${businessStage}` : '');
+
     const contextParts = [
       `Tipo de negocio/servicio/profesión: ${businessTypeLabel || businessTypeId}`,
       `Sector/Industria: ${areaId}`,
       `País: ${countryCode}`,
+      stageLine,
       businessName ? `Nombre del negocio: ${businessName}` : '',
       googleAddress ? `Ubicación: ${googleAddress}` : '',
       rawUserText ? `Descripción libre del usuario sobre su negocio: "${rawUserText}"` : '',
-      universalProfile?.keywords ? `Keywords del perfil: ${universalProfile.keywords.join(', ')}` : '',
+      universalProfile?.keywords ? `Palabras clave del perfil: ${universalProfile.keywords.join(', ')}` : '',
       universalProfile?.success_metrics ? `Métricas de éxito relevantes: ${universalProfile.success_metrics.join(', ')}` : '',
       universalProfile?.main_pains ? `Dolores/problemas principales: ${universalProfile.main_pains.join(', ')}` : '',
       universalProfile?.user_goals ? `Objetivos del usuario: ${universalProfile.user_goals.join(', ')}` : '',
       universalProfile?.opportunity_angles ? `Ángulos de oportunidad: ${universalProfile.opportunity_angles.join(', ')}` : '',
       universalProfile?.subtype_label ? `Subtipo específico: ${universalProfile.subtype_label}` : '',
     ].filter(Boolean).join('\n');
+
+    const stagePromptRules = isPlanning
+      ? `\n\nREGLAS DE ETAPA (PROYECTO NUEVO / PLANEAMIENTO) — OBLIGATORIAS:
+- El usuario AÚN NO OPERA. NO preguntes por ventas actuales, costo real, ticket promedio, reseñas, recompra, márgenes reales, proveedores actuales, logística internacional actual, facturación, equipo actual, ni nada que asuma operación viva.
+- TODAS las preguntas deben ser de PLANEAMIENTO e INTENCIÓN: "¿pensaste...?", "¿cómo te imaginás...?", "¿qué presupuesto inicial...?", "¿qué te frena para arrancar?", "¿a quién querés venderle?", "¿cómo vas a cobrar?", "¿qué nombre/identidad tenés?", "¿con quién contás?".
+- Tono motivador, claro, paso a paso, sin asumir nada.`
+      : '';
+
 
     // Learning context from previous interactions
     const learningContext = previousAnswers && Object.keys(previousAnswers).length > 0
