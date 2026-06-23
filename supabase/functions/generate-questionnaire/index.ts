@@ -83,20 +83,38 @@ serve(async (req) => {
       ? parseInt(questionCountOverride.split('-')[0]) 
       : (isQuick ? 10 : 25);
 
+    // ETAPA DEL NEGOCIO: CRÍTICO. Si el usuario está en planning/exploring NO podemos preguntar
+    // datos operativos (costos reales, reseñas, logística, proveedores, facturación actual, etc.)
+    // porque todavía no existen. Tenemos que preguntar SOLO sobre planeamiento e intención.
+    const businessStage: string = String(universalProfile?.business_stage || '').toLowerCase();
+    const isPlanning = businessStage === 'planning' || businessStage === 'exploring' || businessStage === 'idea';
+    const stageLine = isPlanning
+      ? `Etapa: PROYECTO NUEVO / EN PLANEAMIENTO (todavía no opera, no tiene clientes, ni ventas, ni costos reales)`
+      : (businessStage ? `Etapa: ${businessStage}` : '');
+
     const contextParts = [
       `Tipo de negocio/servicio/profesión: ${businessTypeLabel || businessTypeId}`,
       `Sector/Industria: ${areaId}`,
       `País: ${countryCode}`,
+      stageLine,
       businessName ? `Nombre del negocio: ${businessName}` : '',
       googleAddress ? `Ubicación: ${googleAddress}` : '',
       rawUserText ? `Descripción libre del usuario sobre su negocio: "${rawUserText}"` : '',
-      universalProfile?.keywords ? `Keywords del perfil: ${universalProfile.keywords.join(', ')}` : '',
+      universalProfile?.keywords ? `Palabras clave del perfil: ${universalProfile.keywords.join(', ')}` : '',
       universalProfile?.success_metrics ? `Métricas de éxito relevantes: ${universalProfile.success_metrics.join(', ')}` : '',
       universalProfile?.main_pains ? `Dolores/problemas principales: ${universalProfile.main_pains.join(', ')}` : '',
       universalProfile?.user_goals ? `Objetivos del usuario: ${universalProfile.user_goals.join(', ')}` : '',
       universalProfile?.opportunity_angles ? `Ángulos de oportunidad: ${universalProfile.opportunity_angles.join(', ')}` : '',
       universalProfile?.subtype_label ? `Subtipo específico: ${universalProfile.subtype_label}` : '',
     ].filter(Boolean).join('\n');
+
+    const stagePromptRules = isPlanning
+      ? `\n\nREGLAS DE ETAPA (PROYECTO NUEVO / PLANEAMIENTO) — OBLIGATORIAS:
+- El usuario AÚN NO OPERA. NO preguntes por ventas actuales, costo real, ticket promedio, reseñas, recompra, márgenes reales, proveedores actuales, logística internacional actual, facturación, equipo actual, ni nada que asuma operación viva.
+- TODAS las preguntas deben ser de PLANEAMIENTO e INTENCIÓN: "¿pensaste...?", "¿cómo te imaginás...?", "¿qué presupuesto inicial...?", "¿qué te frena para arrancar?", "¿a quién querés venderle?", "¿cómo vas a cobrar?", "¿qué nombre/identidad tenés?", "¿con quién contás?".
+- Tono motivador, claro, paso a paso, sin asumir nada.`
+      : '';
+
 
     // Learning context from previous interactions
     const learningContext = previousAnswers && Object.keys(previousAnswers).length > 0
@@ -128,14 +146,14 @@ CATEGORÍAS: identity, operation, sales, finance, team, marketing, reputation, g
 
 REGLAS ABSOLUTAS:
 1. 100% específico para "${businessTypeLabel}" usando el contexto del negocio arriba. Terminología real del sector.
-2. TODO en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. CERO inglés en títulos, opciones o ayudas.
+2. TODO en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. CERO inglés. Reemplazos OBLIGATORIOS si surgen: "dropshipping"→"reventa sin stock", "courier"→"mensajería", "influencers"→"creadores de contenido", "email marketing"→"correo electrónico", "delivery"→"envíos a domicilio", "feedback"→"comentarios", "target"→"público", "branding"→"identidad de marca", "staff"→"equipo", "check-in"→"registro", "pipeline"→"embudo de ventas", "lead"→"contacto".
 3. PREGUNTAS CORTAS: máximo 12 palabras. Una sola idea. PROHIBIDO "Ej:" en el título.
 4. OPCIONES: EXACTAMENTE 4 ó 6 opciones por pregunta. NUNCA más de 6. Cada opción máx 4 palabras, primera letra MAYÚSCULA, sin punto final.
 5. NO incluyas "No sé", "No aplica", "Otra", "Ninguna" como opciones. La UI los agrega aparte.
 6. Para concepto difícil (flujo de caja, margen, ticket, conversión, recompra, capital de trabajo, etc.): completá "help" con UNA frase ≤120 chars que lo explique.
 7. Datos accionables. Rangos realistas. Gramática perfecta.
 8. NO repitas temas que ya están en el CONTEXTO DE APRENDIZAJE ni en PREGUNTAS YA GENERADAS. Profundizá en lo NO cubierto.
-${learningContext}${dedupeContext}
+${stagePromptRules}${learningContext}${dedupeContext}
 
 Responde con generate_questions.`
       : `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
@@ -162,7 +180,7 @@ REGLAS CRÍTICAS DE PERSONALIZACIÓN:
 5. Usar ${voiceStyle} en idioma ${lang}. Tono: profesional pero cercano.
 
 REGLAS ABSOLUTAS DE IDIOMA Y CALIDAD:
-6. TODO el texto DEBE estar en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. PROHIBIDO TERMINANTEMENTE usar palabras en inglés. Ni en títulos, ni en opciones, ni en textos de ayuda. CERO inglés. Ejemplos de lo que NO debe aparecer: "feedback", "marketing mix", "target", "branding", "check-in", "delivery", "staff", etc. Siempre usar el equivalente en español.
+6. TODO el texto DEBE estar en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. PROHIBIDO TERMINANTEMENTE usar palabras en inglés. Ni en títulos, ni en opciones, ni en textos de ayuda. CERO inglés. Reemplazos OBLIGATORIOS: "dropshipping"→"reventa sin stock", "courier"→"mensajería", "influencers"→"creadores de contenido", "email marketing"→"correo electrónico", "delivery"→"envíos a domicilio", "feedback"→"comentarios", "target"→"público", "branding"→"identidad de marca", "staff"→"equipo", "check-in"→"registro", "pipeline"→"embudo de ventas", "lead"→"contacto", "ecommerce"→"tienda online", "marketing mix"→"mezcla de marketing".
 7. CALIDAD DE REDACCIÓN: Las preguntas deben ser gramaticalmente perfectas, claras, completas y profesionales. Sin frases cortadas, sin errores de sintaxis, sin ambigüedades. Cada pregunta debe leerse como escrita por un consultor senior.
 
 REGLAS DE SIMPLICIDAD (CRÍTICAS - NO NEGOCIABLES):
@@ -192,7 +210,7 @@ FORMATO:
 - weight: 1-10 (importancia para su dimensión)
 - required: true para preguntas estratégicas clave, false para complementarias
 - mode: "${isQuick ? 'quick' : 'complete'}" o "both"
-${learningContext}${dedupeContext}`;
+${stagePromptRules}${learningContext}${dedupeContext}`;
 
     const userPrompt = isBackgroundBatch
       ? `Genera EXACTAMENTE ${questionCount} preguntas NUEVAS (no repitas temas ya cubiertos) para este negocio:

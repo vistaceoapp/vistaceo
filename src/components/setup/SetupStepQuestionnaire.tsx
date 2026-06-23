@@ -660,9 +660,15 @@ export const SetupStepQuestionnaire = ({
   const handleAnswer = (value: any) => {
     onUpdate({ ...answers, [currentQuestion.id]: value });
     liveIngest(currentQuestion, value);
-    // Feedback visual: el cerebro aprende en vivo
+    // Feedback visual: el cerebro aprende en vivo. SIEMPRE en español, nunca raw category en inglés.
     const q: any = currentQuestion;
-    const text = q?.shortLabel || q?.category || q?.question || q?.text || q?.title || 'nueva señal';
+    const titleEs = q?.title?.es || q?.title || '';
+    const catLabel = q?.category ? getUniversalCategoryLabel(q.category, lang as 'es' | 'pt-BR') : '';
+    const text =
+      (typeof titleEs === 'string' && titleEs) ||
+      q?.shortLabel ||
+      catLabel ||
+      'nueva señal';
     notifyBrainLearned(String(text).slice(0, 60));
   };
 
