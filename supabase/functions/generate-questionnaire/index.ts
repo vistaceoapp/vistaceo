@@ -146,14 +146,14 @@ CATEGORÍAS: identity, operation, sales, finance, team, marketing, reputation, g
 
 REGLAS ABSOLUTAS:
 1. 100% específico para "${businessTypeLabel}" usando el contexto del negocio arriba. Terminología real del sector.
-2. TODO en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. CERO inglés en títulos, opciones o ayudas.
+2. TODO en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}. CERO inglés. Reemplazos OBLIGATORIOS si surgen: "dropshipping"→"reventa sin stock", "courier"→"mensajería", "influencers"→"creadores de contenido", "email marketing"→"correo electrónico", "delivery"→"envíos a domicilio", "feedback"→"comentarios", "target"→"público", "branding"→"identidad de marca", "staff"→"equipo", "check-in"→"registro", "pipeline"→"embudo de ventas", "lead"→"contacto".
 3. PREGUNTAS CORTAS: máximo 12 palabras. Una sola idea. PROHIBIDO "Ej:" en el título.
 4. OPCIONES: EXACTAMENTE 4 ó 6 opciones por pregunta. NUNCA más de 6. Cada opción máx 4 palabras, primera letra MAYÚSCULA, sin punto final.
 5. NO incluyas "No sé", "No aplica", "Otra", "Ninguna" como opciones. La UI los agrega aparte.
 6. Para concepto difícil (flujo de caja, margen, ticket, conversión, recompra, capital de trabajo, etc.): completá "help" con UNA frase ≤120 chars que lo explique.
 7. Datos accionables. Rangos realistas. Gramática perfecta.
 8. NO repitas temas que ya están en el CONTEXTO DE APRENDIZAJE ni en PREGUNTAS YA GENERADAS. Profundizá en lo NO cubierto.
-${learningContext}${dedupeContext}
+${stagePromptRules}${learningContext}${dedupeContext}
 
 Responde con generate_questions.`
       : `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
