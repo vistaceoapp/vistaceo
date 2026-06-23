@@ -123,6 +123,8 @@ async function callLovableAI(prompt: string, apiKey: string): Promise<AISeedResp
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
+    if (res.status === 429) throw new Error("AI_RATE_LIMIT");
+    if (res.status === 402) throw new Error("AI_CREDITS_EXHAUSTED");
     throw new Error(`AI gateway ${res.status}: ${text.slice(0, 400)}`);
   }
   const json = await res.json();

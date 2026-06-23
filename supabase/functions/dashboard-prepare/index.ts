@@ -191,7 +191,11 @@ async function generateSeed(apiKey: string, ctx: string): Promise<Record<string,
       max_tokens: 1400,
     }),
   });
-  if (!resp.ok) throw new Error(`gateway ${resp.status}`);
+  if (!resp.ok) {
+    if (resp.status === 429) throw new Error("AI_RATE_LIMIT");
+    if (resp.status === 402) throw new Error("AI_CREDITS_EXHAUSTED");
+    throw new Error(`gateway ${resp.status}`);
+  }
   const data = await resp.json();
   const text = data.choices?.[0]?.message?.content ?? "";
   const m = text.match(/\{[\s\S]*\}/);

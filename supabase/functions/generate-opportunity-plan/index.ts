@@ -407,6 +407,12 @@ Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[generate-opportunity-plan] AI error: ${response.status}`, errorText);
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "rate_limited", message: "Demasiadas solicitudes. Probá en unos segundos." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "credits_exhausted", message: "Sin saldo de IA. Recargá créditos para regenerar." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
       throw new Error(`AI gateway error: ${response.status}`);
     }
 

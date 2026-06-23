@@ -299,8 +299,14 @@ serve(async (req) => {
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Límite de solicitudes excedido" }),
+          JSON.stringify({ error: "Límite de solicitudes excedido. Probá en unos segundos." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "Sin saldo de IA. Recargá créditos para continuar." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
