@@ -78,13 +78,20 @@ Deno.serve(async (req) => {
     const userIds = candidates.map((p) => p.id)
     const emails = candidates.map((p) => (p.email || '').toLowerCase()).filter(Boolean)
 
-    // Excluir: ya tienen al menos un business completado
-    const { data: completed } = await supabase
+    // Excluir: ya tienen al menos un business completado + traer name+category del más reciente
+    const { data: ownerBiz } = await supabase
       .from('businesses')
-      .select('owner_id')
+      .select('owner_id, name, category, setup_completed, created_at')
       .in('owner_id', userIds)
-      .eq('setup_completed', true)
-    const completedSet = new Set((completed || []).map((b) => b.owner_id))
+      .order('created_at', { ascending: false })
+    const completedSet = new Set<string>()
+    const bizByOwner = new Map<string, { name: string; category: string | null }>()
+    for (const b of ownerBiz || []) {
+      if (b.setup_completed) completedSet.add(b.owner_id as string)
+      if (!bizByOwner.has(b.owner_id as string)) {
+        bizByOwner.set(b.owner_id as string, { name: (b.name as string) || '', category: ((b as any).category as string) || null })
+      }
+    }
 
     // Excluir: ya recibieron ESTA etapa
     const { data: alreadySent } = await supabase
