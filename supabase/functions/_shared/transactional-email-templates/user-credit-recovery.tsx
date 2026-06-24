@@ -100,11 +100,12 @@ const Email = ({ firstName, setupUrl, trackingId, recipientEmail, businessName, 
 export const template = {
   component: Email,
   subject: (data: Record<string, any>) => {
-    const n = (data.firstName || '').trim()
-    return n ? `${n}, resolvimos lo que te frenó — retomá tu CEO digital` : 'Resolvimos lo que te frenó — retomá tu CEO digital'
+    const seed = (data.recipientEmail || data.trackingId || data.firstName || '').toString()
+    const hook = pickHook(data.businessCategory, seed, data.firstName, data.businessName)
+    return hook.subject
   },
   displayName: 'Usuario · Recuperación post-bottleneck IA',
-  previewData: { firstName: 'Juan', setupUrl: 'https://www.vistaceo.com/setup' },
+  previewData: { firstName: 'Juan', setupUrl: 'https://www.vistaceo.com/setup', businessName: '5 Sentidos Importados', businessCategory: 'retail' },
 } satisfies TemplateEntry
 
 const main = { backgroundColor: '#f6f7fa', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif', margin: 0, padding: '24px 0' }
