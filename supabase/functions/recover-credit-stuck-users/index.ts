@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
   // 1. Recent businesses without completed setup
   const { data: stuck, error: stuckErr } = await supabase
     .from('businesses')
-    .select('id, owner_id, name, created_at, setup_completed')
+    .select('id, owner_id, name, category, created_at, setup_completed')
     .eq('setup_completed', false)
     .gte('created_at', since)
     .limit(2000)
