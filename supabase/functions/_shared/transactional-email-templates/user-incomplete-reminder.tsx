@@ -4,6 +4,7 @@ import {
   Body, Button, Container, Head, Heading, Html, Img, Preview, Section, Text, Hr, Link,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
+import { pickHook } from './_hooks.ts'
 
 interface Props {
   firstName?: string
@@ -12,6 +13,8 @@ interface Props {
   variant?: number
   trackingId?: string
   recipientEmail?: string
+  businessName?: string
+  businessCategory?: string
 }
 
 const ICON = 'https://www.vistaceo.com/email-icon.png'
