@@ -69,13 +69,13 @@ Deno.serve(async (req) => {
     .in('business_id', stuck.map(b => b.id))
   const businessesWithSignals = new Set((signalRows || []).map(r => r.business_id))
 
-  const eligibleOwners = new Map<string, { businessName: string, createdAt: string }>()
+  const eligibleOwners = new Map<string, { businessName: string; businessCategory: string | null; createdAt: string }>()
   for (const b of stuck) {
     if (!b.owner_id) continue
     if (completedOwners.has(b.owner_id)) continue
     if (businessesWithSignals.has(b.id)) continue
     if (!eligibleOwners.has(b.owner_id)) {
-      eligibleOwners.set(b.owner_id, { businessName: b.name || '', createdAt: b.created_at })
+      eligibleOwners.set(b.owner_id, { businessName: b.name || '', businessCategory: (b as any).category || null, createdAt: b.created_at })
     }
   }
 
