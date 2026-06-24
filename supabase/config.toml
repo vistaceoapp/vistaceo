@@ -5,6 +5,10 @@ project_id = "nlewrgmcawzcdazhfiyy"
     verify_jwt = false
   [functions.admin-get-users]
     verify_jwt = false
+  [functions.admin-preview-emails]
+    verify_jwt = false
+  [functions.admin-setup-answers]
+    verify_jwt = false
   [functions.analyze-health-score]
     verify_jwt = false
   [functions.analyze-patterns]
