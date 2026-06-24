@@ -150,16 +150,27 @@ const Email = ({ firstName, setupUrl, stage = 'day1', variant = 0, trackingId, r
 // con stage distinto, para que el log de envíos quede separado por etapa.
 export const templateDay1 = {
   component: (props: Props) => <Email {...props} stage="day1" />,
-  subject: (data: Record<string, any>) => resolveSubject('day1', Number(data.variant ?? 0), data.firstName),
+  subject: (data: Record<string, any>) => {
+    const seed = `day1-${data.recipientEmail || data.trackingId || data.firstName || ''}`
+    const hook = pickHook(data.businessCategory, seed, data.firstName, data.businessName)
+    // mezcla 50/50 entre subject por categoría y subject genérico A/B
+    if ((seed.length % 2) === 0) return hook.subject
+    return resolveSubject('day1', Number(data.variant ?? 0), data.firstName)
+  },
   displayName: 'Usuario · Recordatorio día 1',
-  previewData: { firstName: 'Juan', setupUrl: 'https://www.vistaceo.com/setup', variant: 0 },
+  previewData: { firstName: 'Juan', setupUrl: 'https://www.vistaceo.com/setup', variant: 0, businessName: 'Café del Sur', businessCategory: 'gastro' },
 } satisfies TemplateEntry
 
 export const templateDay3 = {
   component: (props: Props) => <Email {...props} stage="day3" />,
-  subject: (data: Record<string, any>) => resolveSubject('day3', Number(data.variant ?? 0), data.firstName),
+  subject: (data: Record<string, any>) => {
+    const seed = `day3-${data.recipientEmail || data.trackingId || data.firstName || ''}`
+    const hook = pickHook(data.businessCategory, seed, data.firstName, data.businessName)
+    if ((seed.length % 2) === 0) return hook.subject
+    return resolveSubject('day3', Number(data.variant ?? 0), data.firstName)
+  },
   displayName: 'Usuario · Recordatorio día 3',
-  previewData: { firstName: 'Juan', setupUrl: 'https://www.vistaceo.com/setup', variant: 0 },
+  previewData: { firstName: 'Juan', setupUrl: 'https://www.vistaceo.com/setup', variant: 0, businessName: 'Sentidos Importados', businessCategory: 'retail' },
 } satisfies TemplateEntry
 
 const main = { backgroundColor: '#f6f7fa', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif', margin: 0, padding: '24px 0' }
