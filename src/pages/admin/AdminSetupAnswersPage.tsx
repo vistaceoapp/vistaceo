@@ -214,12 +214,19 @@ export default function AdminSetupAnswersPage() {
                   {entries.length === 0 && (
                     <div className="text-sm text-muted-foreground italic">Sin datos guardados.</div>
                   )}
-                  {entries.map(([k, v]) => (
-                    <div key={k} className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-2 md:gap-4 py-2 border-b border-border/50 last:border-0">
-                      <div className="text-sm font-semibold text-foreground">{humanize(k)}</div>
-                      <div className="text-sm"><RenderValue value={v} /></div>
-                    </div>
-                  ))}
+                  {entries.map(([k, v]) => {
+                    const isQ = isQuestionId(k);
+                    const label = isQ ? (labelForQuestion(k) || titleCase(k)) : labelForField(k);
+                    return (
+                      <div key={k} className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-2 md:gap-4 py-2.5 border-b border-border/50 last:border-0">
+                        <div className="text-sm">
+                          <div className="font-semibold text-foreground">{label}</div>
+                          <div className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">{k}</div>
+                        </div>
+                        <div className="text-sm"><RenderAnswerValue questionId={isQ ? k : undefined} value={v} /></div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </Card>
