@@ -143,6 +143,8 @@ Deno.serve(async (req) => {
             setupUrl: `${APP_BASE_URL}/setup`,
             recipientEmail: email,
             trackingId: `credit-recovery-${p.id.slice(0, 8)}`,
+            businessName: eligibleOwners.get(p.id)?.businessName || '',
+            businessCategory: eligibleOwners.get(p.id)?.businessCategory || null,
           },
         }),
       })
