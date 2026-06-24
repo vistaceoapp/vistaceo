@@ -5,6 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronRight, Search, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
+import {
+  QUESTION_LABELS, labelForField, labelForQuestion, labelForAnswer,
+  labelForValue, formatDateEs,
+} from '@/lib/setupAnswerLabels';
 
 type Row = {
   id: string;
@@ -23,30 +27,44 @@ type Row = {
   setup_data: Record<string, any>;
 };
 
-function humanize(key: string) {
-  return key
-    .replace(/[_-]+/g, ' ')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
+function titleCase(key: string) {
+  return key.replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function RenderValue({ value }: { value: any }) {
+function isQuestionId(k: string) {
+  return /^EASY_\d+_/i.test(k) || /^PIVOT_/i.test(k) || !!QUESTION_LABELS[k];
+}
+
+function RenderAnswerValue({ questionId, value }: { questionId?: string; value: any }) {
   if (value === null || value === undefined || value === '') {
     return <span className="text-muted-foreground italic">— sin respuesta —</span>;
   }
   if (typeof value === 'boolean') return <span>{value ? 'Sí' : 'No'}</span>;
-  if (typeof value === 'number' || typeof value === 'string') {
-    return <span className="whitespace-pre-wrap break-words">{String(value)}</span>;
+  if (typeof value === 'string' || typeof value === 'number') {
+    const str = String(value);
+    const labeled = questionId ? labelForAnswer(questionId, str) : null;
+    if (labeled) {
+      return (
+        <span>
+          <span className="font-medium text-foreground">{labeled}</span>
+          <span className="ml-2 text-[11px] text-muted-foreground font-mono">({str})</span>
+        </span>
+      );
+    }
+    const generic = labelForValue(questionId || '', str);
+    return <span className="whitespace-pre-wrap break-words">{generic || str}</span>;
   }
   if (Array.isArray(value)) {
     if (value.every((v) => typeof v !== 'object')) {
-      return <span>{value.join(', ')}</span>;
+      const labeled = value.map((v) => (questionId ? labelForAnswer(questionId, v) : null) || String(v));
+      return <span>{labeled.join(', ')}</span>;
     }
     return (
       <div className="space-y-2">
         {value.map((v, i) => (
           <div key={i} className="border-l-2 border-border pl-3">
-            <RenderValue value={v} />
+            <RenderAnswerValue questionId={questionId} value={v} />
           </div>
         ))}
       </div>
@@ -55,12 +73,19 @@ function RenderValue({ value }: { value: any }) {
   if (typeof value === 'object') {
     return (
       <div className="space-y-1.5">
-        {Object.entries(value).map(([k, v]) => (
-          <div key={k} className="grid grid-cols-[180px_1fr] gap-3 text-sm">
-            <div className="text-muted-foreground font-medium">{humanize(k)}</div>
-            <div><RenderValue value={v} /></div>
-          </div>
-        ))}
+        {Object.entries(value).map(([k, v]) => {
+          const isQ = isQuestionId(k);
+          const label = isQ ? labelForQuestion(k) || titleCase(k) : labelForField(k);
+          return (
+            <div key={k} className="grid grid-cols-[220px_1fr] gap-3 text-sm">
+              <div className="text-muted-foreground">
+                <div className="font-medium text-foreground/90">{label}</div>
+                {isQ && <div className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">{k}</div>}
+              </div>
+              <div><RenderAnswerValue questionId={isQ ? k : undefined} value={v} /></div>
+            </div>
+          );
+        })}
       </div>
     );
   }
@@ -189,12 +214,19 @@ export default function AdminSetupAnswersPage() {
                   {entries.length === 0 && (
                     <div className="text-sm text-muted-foreground italic">Sin datos guardados.</div>
                   )}
-                  {entries.map(([k, v]) => (
-                    <div key={k} className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-2 md:gap-4 py-2 border-b border-border/50 last:border-0">
-                      <div className="text-sm font-semibold text-foreground">{humanize(k)}</div>
-                      <div className="text-sm"><RenderValue value={v} /></div>
-                    </div>
-                  ))}
+                  {entries.map(([k, v]) => {
+                    const isQ = isQuestionId(k);
+                    const label = isQ ? (labelForQuestion(k) || titleCase(k)) : labelForField(k);
+                    return (
+                      <div key={k} className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-2 md:gap-4 py-2.5 border-b border-border/50 last:border-0">
+                        <div className="text-sm">
+                          <div className="font-semibold text-foreground">{label}</div>
+                          <div className="text-[10px] font-mono text-muted-foreground/60 mt-0.5">{k}</div>
+                        </div>
+                        <div className="text-sm"><RenderAnswerValue questionId={isQ ? k : undefined} value={v} /></div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </Card>

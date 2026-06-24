@@ -4,12 +4,15 @@ import {
   Body, Button, Container, Head, Heading, Html, Img, Preview, Section, Text, Hr, Link,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
+import { pickHook } from './_hooks.ts'
 
 interface Props {
   firstName?: string
   setupUrl?: string
   trackingId?: string
   recipientEmail?: string
+  businessName?: string
+  businessCategory?: string
 }
 
 const ICON = 'https://www.vistaceo.com/email-icon.png'
@@ -21,7 +24,7 @@ const wrapClick = (url: string, trackingId?: string, recipient?: string, tpl?: s
   return `${TRACK_BASE}?${q.toString()}`
 }
 
-const Email = ({ firstName, setupUrl, trackingId, recipientEmail }: Props) => {
+const Email = ({ firstName, setupUrl, trackingId, recipientEmail, businessName, businessCategory }: Props) => {
   const name = (firstName || '').trim() || 'hola'
   const baseUrl = setupUrl || 'https://www.vistaceo.com/setup'
   const tpl = 'user-credit-recovery'
@@ -29,6 +32,8 @@ const Email = ({ firstName, setupUrl, trackingId, recipientEmail }: Props) => {
   const pixel = trackingId
     ? `${TRACK_BASE}?e=${encodeURIComponent(trackingId)}&t=open&tpl=${tpl}&r=${encodeURIComponent(recipientEmail || '')}`
     : null
+  const hook = pickHook(businessCategory, recipientEmail || trackingId || name, firstName, businessName)
+  const bizLine = businessName ? ` para ${businessName}` : ''
 
   return (
     <Html lang="es" dir="ltr">
@@ -45,13 +50,13 @@ const Email = ({ firstName, setupUrl, trackingId, recipientEmail }: Props) => {
           }
         `}</style>
       </Head>
-      <Preview>Resolvimos un cuello de botella — tu CEO digital ya está listo</Preview>
+      <Preview>{hook.opener}</Preview>
       <Body style={main}>
         <Container style={outer}>
           <Section style={hero} className="vc-hero">
             <Img src={ICON} width="64" height="64" alt="VISTACEO" style={iconImg} className="vc-icon" />
             <Text style={heroKicker}>VISTACEO® · Te devolvemos tu lugar</Text>
-            <Text style={heroTitle}>Ya está todo listo para vos ✨</Text>
+            <Text style={heroTitle}>Ya está todo listo{bizLine} ✨</Text>
           </Section>
 
           <Container style={container} className="vc-container">
@@ -59,12 +64,10 @@ const Email = ({ firstName, setupUrl, trackingId, recipientEmail }: Props) => {
             <Text style={lead} className="vc-lead">
               Cuando entraste a calibrar tu CEO digital tuvimos un cuello de botella temporal en la capa de IA y tu setup quedó a mitad de camino. <strong>Ya lo resolvimos.</strong>
             </Text>
-            <Text style={lead} className="vc-lead">
-              Si volvés ahora, en menos de 3 minutos vas a tener tu panel personalizado andando: salud real del negocio, oportunidades priorizadas y una acción diaria pensada para vos.
-            </Text>
+            <Text style={lead} className="vc-lead">{hook.opener}</Text>
 
             <Section style={ctaWrap}>
-              <Button href={url} style={cta} className="vc-cta">Retomar ahora — 3 minutos</Button>
+              <Button href={url} style={cta} className="vc-cta">{hook.cta}</Button>
               <Text style={ctaHint}>Sin tarjeta · 100% personalizado · Te guardamos lo que ya contestaste</Text>
             </Section>
 
@@ -97,11 +100,12 @@ const Email = ({ firstName, setupUrl, trackingId, recipientEmail }: Props) => {
 export const template = {
   component: Email,
   subject: (data: Record<string, any>) => {
-    const n = (data.firstName || '').trim()
-    return n ? `${n}, resolvimos lo que te frenó — retomá tu CEO digital` : 'Resolvimos lo que te frenó — retomá tu CEO digital'
+    const seed = (data.recipientEmail || data.trackingId || data.firstName || '').toString()
+    const hook = pickHook(data.businessCategory, seed, data.firstName, data.businessName)
+    return hook.subject
   },
   displayName: 'Usuario · Recuperación post-bottleneck IA',
-  previewData: { firstName: 'Juan', setupUrl: 'https://www.vistaceo.com/setup' },
+  previewData: { firstName: 'Juan', setupUrl: 'https://www.vistaceo.com/setup', businessName: '5 Sentidos Importados', businessCategory: 'retail' },
 } satisfies TemplateEntry
 
 const main = { backgroundColor: '#f6f7fa', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif', margin: 0, padding: '24px 0' }

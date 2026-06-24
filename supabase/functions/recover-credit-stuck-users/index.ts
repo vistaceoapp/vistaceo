@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
   // 1. Recent businesses without completed setup
   const { data: stuck, error: stuckErr } = await supabase
     .from('businesses')
-    .select('id, owner_id, name, created_at, setup_completed')
+    .select('id, owner_id, name, category, created_at, setup_completed')
     .eq('setup_completed', false)
     .gte('created_at', since)
     .limit(2000)
@@ -69,13 +69,13 @@ Deno.serve(async (req) => {
     .in('business_id', stuck.map(b => b.id))
   const businessesWithSignals = new Set((signalRows || []).map(r => r.business_id))
 
-  const eligibleOwners = new Map<string, { businessName: string, createdAt: string }>()
+  const eligibleOwners = new Map<string, { businessName: string; businessCategory: string | null; createdAt: string }>()
   for (const b of stuck) {
     if (!b.owner_id) continue
     if (completedOwners.has(b.owner_id)) continue
     if (businessesWithSignals.has(b.id)) continue
     if (!eligibleOwners.has(b.owner_id)) {
-      eligibleOwners.set(b.owner_id, { businessName: b.name || '', createdAt: b.created_at })
+      eligibleOwners.set(b.owner_id, { businessName: b.name || '', businessCategory: (b as any).category || null, createdAt: b.created_at })
     }
   }
 
@@ -143,6 +143,8 @@ Deno.serve(async (req) => {
             setupUrl: `${APP_BASE_URL}/setup`,
             recipientEmail: email,
             trackingId: `credit-recovery-${p.id.slice(0, 8)}`,
+            businessName: eligibleOwners.get(p.id)?.businessName || '',
+            businessCategory: eligibleOwners.get(p.id)?.businessCategory || null,
           },
         }),
       })
