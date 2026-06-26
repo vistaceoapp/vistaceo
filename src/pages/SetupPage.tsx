@@ -493,7 +493,29 @@ const SetupPage = () => {
     setCreateProgress(10);
 
     try {
-      const existingIncompleteBusiness = businesses.find((business) => !business.setup_completed);
+      // 🛡️ FIX RACE: re-querear desde DB en vez de confiar en el cache del context.
+      // Antes usábamos `businesses.find(...)` que podía estar stale y provocaba
+      // un INSERT en vez de UPDATE → quedaba un draft "Mi negocio" huérfano
+      // que el state-machine marcaba como "en setup" eternamente.
+      // Priorizamos el draft conocido (draftBusinessId) si existe.
+      let existingIncompleteBusiness: any = null;
+      try {
+        const { data: drafts } = await supabase
+          .from('businesses')
+          .select('id, settings, setup_completed')
+          .eq('owner_id', user.id)
+          .eq('setup_completed', false)
+          .order('created_at', { ascending: false });
+        if (drafts && drafts.length > 0) {
+          // Preferimos el draft que ya estábamos editando si está entre los incompletos
+          existingIncompleteBusiness =
+            drafts.find((d: any) => d.id === draftBusinessId) || drafts[0];
+        }
+      } catch {
+        existingIncompleteBusiness = businesses.find((b) => !b.setup_completed) || null;
+      }
+
+
 
       // Step 1: Create business
       setCreateProgress(20);
