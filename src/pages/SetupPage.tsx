@@ -1213,6 +1213,13 @@ const SetupPage = () => {
           </div>
         </footer>
       )}
+
+      <SetupCoachOverlay
+        currentStep={currentStep}
+        stepId={stepId}
+        countryCode={data.countryCode}
+        totalSteps={totalSteps}
+      />
     </div>
   );
 };
