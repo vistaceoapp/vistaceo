@@ -98,6 +98,7 @@ import { SetupStepBusiness } from '@/components/setup/SetupStepBusiness';
 import { SetupStepQuestionnaire } from '@/components/setup/SetupStepQuestionnaire';
 
 import { SetupProgress } from '@/components/setup/SetupProgress';
+import { SetupCoachOverlay } from '@/components/setup/SetupCoachOverlay';
 import { collectSignupTrackingContext } from '@/lib/signup-tracking';
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 
@@ -1212,6 +1213,13 @@ const SetupPage = () => {
           </div>
         </footer>
       )}
+
+      <SetupCoachOverlay
+        currentStep={currentStep}
+        stepId={stepId}
+        countryCode={data.countryCode}
+        totalSteps={totalSteps}
+      />
     </div>
   );
 };
