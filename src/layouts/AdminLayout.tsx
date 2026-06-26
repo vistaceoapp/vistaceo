@@ -14,6 +14,7 @@ const navItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, desc: 'KPIs y resumen' },
   { label: 'Salud', href: '/admin/salud', icon: HeartPulse, desc: 'Errores, fixes y SLO' },
   { label: 'Usuarios', href: '/admin/usuarios', icon: Users, desc: 'Gestión completa' },
+  { label: 'Ranking', href: '/admin/ranking', icon: Trophy, desc: 'Top usuarios activos' },
   { label: 'Setup', href: '/admin/setup-respuestas', icon: ClipboardList, desc: 'Respuestas del onboarding' },
   { label: 'Emails', href: '/admin/emails', icon: Mail, desc: 'Envíos y aperturas' },
   { label: 'Plantillas', href: '/admin/emails/plantillas', icon: MailOpen, desc: 'Formato real de cada email' },
