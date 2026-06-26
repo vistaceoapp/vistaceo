@@ -215,6 +215,7 @@ const AppRoutes = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="usuarios" element={<AdminUsersPage />} />
+          <Route path="ranking" element={<AdminUserRankingPage />} />
           <Route path="usuarios/:userId/timeline" element={<AdminUserTimelinePage />} />
           <Route path="analytics" element={<AdminAnalyticsPage />} />
           <Route path="centro-control" element={<CentroControlPage />} />
