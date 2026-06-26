@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import {
   LayoutDashboard, Users, BarChart3, Brain, Home, LogOut,
-  Menu, X, ChevronRight, Mail, HeartPulse, ClipboardList, MailOpen
+  Menu, X, ChevronRight, Mail, HeartPulse, ClipboardList, MailOpen, Trophy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
