@@ -4,6 +4,8 @@ import {
   Body, Button, Container, Head, Heading, Html, Img, Preview, Section, Text, Hr, Link,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
+import { sanitizeBusinessName } from './_hooks.ts'
+
 
 interface Props {
   firstName?: string
@@ -24,7 +26,7 @@ const wrapClick = (url: string, trackingId?: string, recipient?: string, tpl?: s
 
 const Email = ({ firstName, businessName, dashboardUrl, trackingId, recipientEmail }: Props) => {
   const name = firstName || 'hola'
-  const biz = businessName || 'tu negocio'
+  const biz = sanitizeBusinessName(businessName) || 'tu negocio'
   const baseUrl = dashboardUrl || 'https://www.vistaceo.com/app'
   const url = wrapClick(baseUrl, trackingId, recipientEmail, 'user-activated')
   const pixel = trackingId

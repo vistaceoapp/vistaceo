@@ -4,7 +4,7 @@ import {
   Body, Button, Container, Head, Heading, Html, Img, Preview, Section, Text, Hr, Link,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
-import { pickHook } from './_hooks.ts'
+import { pickHook, sanitizeBusinessName } from './_hooks.ts'
 
 interface Props {
   firstName?: string
@@ -78,8 +78,10 @@ const Email = ({ firstName, setupUrl, stage = 'day1', variant = 0, trackingId, r
     : null
   const copy = COPY[stage]
   const seed = `${stage}-${recipientEmail || trackingId || name}`
-  const hook = pickHook(businessCategory, seed, firstName, businessName)
-  const bizLine = businessName ? ` para ${businessName}` : ''
+  const safeBiz = sanitizeBusinessName(businessName)
+  const hook = pickHook(businessCategory, seed, firstName, safeBiz)
+  const bizLine = safeBiz ? ` para ${safeBiz}` : ''
+
 
   return (
     <Html lang="es" dir="ltr">
@@ -103,7 +105,7 @@ const Email = ({ firstName, setupUrl, stage = 'day1', variant = 0, trackingId, r
           <Section style={hero} className="vc-hero">
             <Img src={ICON} width="64" height="64" alt="VISTACEO" style={iconImg} className="vc-icon" />
             <Text style={heroKicker}>{copy.kicker}</Text>
-            <Text style={heroTitle}>{copy.heroTitle}{bizLine ? ' · ' + (businessName || '') : ''}</Text>
+            <Text style={heroTitle}>{copy.heroTitle}{safeBiz ? ' · ' + safeBiz : ''}</Text>
           </Section>
 
           <Container style={container} className="vc-container">
@@ -152,7 +154,8 @@ export const templateDay1 = {
   component: (props: Props) => <Email {...props} stage="day1" />,
   subject: (data: Record<string, any>) => {
     const seed = `day1-${data.recipientEmail || data.trackingId || data.firstName || ''}`
-    const hook = pickHook(data.businessCategory, seed, data.firstName, data.businessName)
+    const hook = pickHook(data.businessCategory, seed, data.firstName, sanitizeBusinessName(data.businessName))
+
     // mezcla 50/50 entre subject por categoría y subject genérico A/B
     if ((seed.length % 2) === 0) return hook.subject
     return resolveSubject('day1', Number(data.variant ?? 0), data.firstName)
@@ -165,7 +168,7 @@ export const templateDay3 = {
   component: (props: Props) => <Email {...props} stage="day3" />,
   subject: (data: Record<string, any>) => {
     const seed = `day3-${data.recipientEmail || data.trackingId || data.firstName || ''}`
-    const hook = pickHook(data.businessCategory, seed, data.firstName, data.businessName)
+    const hook = pickHook(data.businessCategory, seed, data.firstName, sanitizeBusinessName(data.businessName))
     if ((seed.length % 2) === 0) return hook.subject
     return resolveSubject('day3', Number(data.variant ?? 0), data.firstName)
   },

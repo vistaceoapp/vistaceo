@@ -4,7 +4,7 @@ import {
   Body, Button, Container, Head, Heading, Html, Img, Preview, Section, Text, Hr, Link,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
-import { pickHook } from './_hooks.ts'
+import { pickHook, sanitizeBusinessName } from './_hooks.ts'
 
 interface Props {
   firstName?: string
@@ -32,8 +32,10 @@ const Email = ({ firstName, setupUrl, trackingId, recipientEmail, businessName, 
   const pixel = trackingId
     ? `${TRACK_BASE}?e=${encodeURIComponent(trackingId)}&t=open&tpl=${tpl}&r=${encodeURIComponent(recipientEmail || '')}`
     : null
-  const hook = pickHook(businessCategory, recipientEmail || trackingId || name, firstName, businessName)
-  const bizLine = businessName ? ` para ${businessName}` : ''
+  const safeBiz = sanitizeBusinessName(businessName)
+  const hook = pickHook(businessCategory, recipientEmail || trackingId || name, firstName, safeBiz)
+  const bizLine = safeBiz ? ` para ${safeBiz}` : ''
+
 
   return (
     <Html lang="es" dir="ltr">
@@ -101,7 +103,7 @@ export const template = {
   component: Email,
   subject: (data: Record<string, any>) => {
     const seed = (data.recipientEmail || data.trackingId || data.firstName || '').toString()
-    const hook = pickHook(data.businessCategory, seed, data.firstName, data.businessName)
+    const hook = pickHook(data.businessCategory, seed, data.firstName, sanitizeBusinessName(data.businessName))
     return hook.subject
   },
   displayName: 'Usuario · Recuperación post-bottleneck IA',
