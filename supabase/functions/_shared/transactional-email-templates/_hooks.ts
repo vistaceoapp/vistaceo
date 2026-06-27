@@ -242,6 +242,22 @@ function resolveKeys(c?: string | null): { specific: string | null; parent: stri
   return { specific: null, parent: null };
 }
 
+// Nombres genéricos que NUNCA deben renderizarse en un email del usuario.
+// Si llega uno de estos, lo tratamos como ausencia de nombre (más limpio que
+// mostrar "Mi negocio", que rompe toda la sensación de hiper-personalización).
+const GENERIC_BIZ_NAMES = new Set([
+  'mi negocio', 'mi empresa', 'negocio', 'empresa', 'sin nombre',
+  'mi proyecto', 'proyecto', 'mi marca', 'marca', 'test', 'prueba',
+  'untitled', 'nuevo negocio',
+]);
+
+export function sanitizeBusinessName(name?: string | null): string {
+  const v = (name || '').trim();
+  if (!v) return '';
+  if (GENERIC_BIZ_NAMES.has(v.toLowerCase())) return '';
+  return v;
+}
+
 export function pickHook(
   category: string | null | undefined,
   seed: string,
@@ -256,7 +272,8 @@ export function pickHook(
 
   const base = pool[pickIndex(seed, pool.length)];
   const name = (firstName || '').trim();
-  const biz = (businessName || '').trim();
+  const biz = sanitizeBusinessName(businessName);
+
 
   // 4 variantes de "vestido" del subject para que dos personas de la misma
   // subcategoría reciban un asunto distinto, incluso si cae el mismo `base`.
