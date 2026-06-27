@@ -78,8 +78,10 @@ const Email = ({ firstName, setupUrl, stage = 'day1', variant = 0, trackingId, r
     : null
   const copy = COPY[stage]
   const seed = `${stage}-${recipientEmail || trackingId || name}`
-  const hook = pickHook(businessCategory, seed, firstName, businessName)
-  const bizLine = businessName ? ` para ${businessName}` : ''
+  const safeBiz = sanitizeBusinessName(businessName)
+  const hook = pickHook(businessCategory, seed, firstName, safeBiz)
+  const bizLine = safeBiz ? ` para ${safeBiz}` : ''
+
 
   return (
     <Html lang="es" dir="ltr">
