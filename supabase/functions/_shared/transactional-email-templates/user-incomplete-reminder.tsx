@@ -105,7 +105,7 @@ const Email = ({ firstName, setupUrl, stage = 'day1', variant = 0, trackingId, r
           <Section style={hero} className="vc-hero">
             <Img src={ICON} width="64" height="64" alt="VISTACEO" style={iconImg} className="vc-icon" />
             <Text style={heroKicker}>{copy.kicker}</Text>
-            <Text style={heroTitle}>{copy.heroTitle}{bizLine ? ' · ' + (businessName || '') : ''}</Text>
+            <Text style={heroTitle}>{copy.heroTitle}{safeBiz ? ' · ' + safeBiz : ''}</Text>
           </Section>
 
           <Container style={container} className="vc-container">
