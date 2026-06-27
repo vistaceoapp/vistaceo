@@ -103,7 +103,7 @@ export const template = {
   component: Email,
   subject: (data: Record<string, any>) => {
     const seed = (data.recipientEmail || data.trackingId || data.firstName || '').toString()
-    const hook = pickHook(data.businessCategory, seed, data.firstName, data.businessName)
+    const hook = pickHook(data.businessCategory, seed, data.firstName, sanitizeBusinessName(data.businessName))
     return hook.subject
   },
   displayName: 'Usuario · Recuperación post-bottleneck IA',
