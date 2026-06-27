@@ -26,7 +26,7 @@ const wrapClick = (url: string, trackingId?: string, recipient?: string, tpl?: s
 
 const Email = ({ firstName, businessName, dashboardUrl, trackingId, recipientEmail }: Props) => {
   const name = firstName || 'hola'
-  const biz = businessName || 'tu negocio'
+  const biz = sanitizeBusinessName(businessName) || 'tu negocio'
   const baseUrl = dashboardUrl || 'https://www.vistaceo.com/app'
   const url = wrapClick(baseUrl, trackingId, recipientEmail, 'user-activated')
   const pixel = trackingId
