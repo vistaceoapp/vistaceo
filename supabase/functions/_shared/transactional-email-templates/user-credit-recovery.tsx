@@ -32,8 +32,10 @@ const Email = ({ firstName, setupUrl, trackingId, recipientEmail, businessName, 
   const pixel = trackingId
     ? `${TRACK_BASE}?e=${encodeURIComponent(trackingId)}&t=open&tpl=${tpl}&r=${encodeURIComponent(recipientEmail || '')}`
     : null
-  const hook = pickHook(businessCategory, recipientEmail || trackingId || name, firstName, businessName)
-  const bizLine = businessName ? ` para ${businessName}` : ''
+  const safeBiz = sanitizeBusinessName(businessName)
+  const hook = pickHook(businessCategory, recipientEmail || trackingId || name, firstName, safeBiz)
+  const bizLine = safeBiz ? ` para ${safeBiz}` : ''
+
 
   return (
     <Html lang="es" dir="ltr">
