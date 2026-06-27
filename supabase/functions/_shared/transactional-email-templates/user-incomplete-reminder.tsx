@@ -154,7 +154,8 @@ export const templateDay1 = {
   component: (props: Props) => <Email {...props} stage="day1" />,
   subject: (data: Record<string, any>) => {
     const seed = `day1-${data.recipientEmail || data.trackingId || data.firstName || ''}`
-    const hook = pickHook(data.businessCategory, seed, data.firstName, data.businessName)
+    const hook = pickHook(data.businessCategory, seed, data.firstName, sanitizeBusinessName(data.businessName))
+
     // mezcla 50/50 entre subject por categoría y subject genérico A/B
     if ((seed.length % 2) === 0) return hook.subject
     return resolveSubject('day1', Number(data.variant ?? 0), data.firstName)
