@@ -168,7 +168,7 @@ export const templateDay3 = {
   component: (props: Props) => <Email {...props} stage="day3" />,
   subject: (data: Record<string, any>) => {
     const seed = `day3-${data.recipientEmail || data.trackingId || data.firstName || ''}`
-    const hook = pickHook(data.businessCategory, seed, data.firstName, data.businessName)
+    const hook = pickHook(data.businessCategory, seed, data.firstName, sanitizeBusinessName(data.businessName))
     if ((seed.length % 2) === 0) return hook.subject
     return resolveSubject('day3', Number(data.variant ?? 0), data.firstName)
   },
