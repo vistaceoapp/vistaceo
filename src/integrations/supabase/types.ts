@@ -4457,6 +4457,60 @@ export type Database = {
           },
         ]
       }
+      user_chat_preferences: {
+        Row: {
+          avoid_topics: string[] | null
+          confirmed: Json
+          created_at: string
+          detail_level: string | null
+          focus_areas: string[] | null
+          formality: string | null
+          inferred: Json
+          interaction_count: number
+          language: string | null
+          last_seen_at: string
+          length_pref: string | null
+          style_notes: string | null
+          tone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avoid_topics?: string[] | null
+          confirmed?: Json
+          created_at?: string
+          detail_level?: string | null
+          focus_areas?: string[] | null
+          formality?: string | null
+          inferred?: Json
+          interaction_count?: number
+          language?: string | null
+          last_seen_at?: string
+          length_pref?: string | null
+          style_notes?: string | null
+          tone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avoid_topics?: string[] | null
+          confirmed?: Json
+          created_at?: string
+          detail_level?: string | null
+          focus_areas?: string[] | null
+          formality?: string | null
+          inferred?: Json
+          interaction_count?: number
+          language?: string | null
+          last_seen_at?: string
+          length_pref?: string | null
+          style_notes?: string | null
+          tone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_daily_metrics: {
         Row: {
           actions_count: number | null
