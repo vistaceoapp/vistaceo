@@ -862,6 +862,52 @@ async function processLearningExtract(
       }
       dynamicMemory.user_preferences = existingPrefs;
       updates.dynamic_memory = dynamicMemory;
+
+      // Espejo cross-sesión / cross-negocio a user_chat_preferences
+      try {
+        if (ownerUserId) {
+          const { data: current } = await supabase
+            .from("user_chat_preferences")
+            .select("inferred, confirmed, focus_areas, avoid_topics, tone, length_pref, detail_level, formality, style_notes, interaction_count")
+            .eq("user_id", ownerUserId)
+            .maybeSingle();
+          const inferred: Record<string, any> = { ...(current?.inferred as Record<string, any> ?? {}) };
+          const confirmed: Record<string, any> = { ...(current?.confirmed as Record<string, any> ?? {}) };
+          const focusSet = new Set<string>(Array.isArray(current?.focus_areas) ? current!.focus_areas as string[] : []);
+          const avoidSet = new Set<string>(Array.isArray(current?.avoid_topics) ? current!.avoid_topics as string[] : []);
+          const patch: Record<string, any> = {};
+          for (const pref of preferences) {
+            if (!pref?.preference || !pref?.value) continue;
+            const key = String(pref.preference).toLowerCase().slice(0, 60);
+            const value = String(pref.value).slice(0, 240);
+            const conf = Number(pref.confidence) || 0;
+            const target = conf >= 0.8 ? confirmed : inferred;
+            target[key] = { value, confidence: conf, updated_at: new Date().toISOString() };
+            // Mapear preferencias canónicas a columnas tipadas
+            if (/^tono|tone/.test(key)) patch.tone = value;
+            else if (/largo|length/.test(key)) patch.length_pref = value;
+            else if (/detalle|detail/.test(key)) patch.detail_level = value;
+            else if (/formal/.test(key)) patch.formality = value;
+            else if (/foco|focus|interes/.test(key)) focusSet.add(value);
+            else if (/evitar|avoid|no hablar/.test(key)) avoidSet.add(value);
+            else if (/estilo|style/.test(key)) patch.style_notes = value;
+          }
+          await supabase
+            .from("user_chat_preferences")
+            .upsert({
+              user_id: ownerUserId,
+              ...patch,
+              focus_areas: Array.from(focusSet).slice(0, 20),
+              avoid_topics: Array.from(avoidSet).slice(0, 20),
+              inferred,
+              confirmed,
+              interaction_count: (current?.interaction_count ?? 0) + 1,
+              last_seen_at: new Date().toISOString(),
+            }, { onConflict: "user_id" });
+        }
+      } catch (e) {
+        console.warn("[user-prefs] upsert failed:", (e as Error).message);
+      }
     }
 
     // Process risks and assumptions into dynamic_memory
