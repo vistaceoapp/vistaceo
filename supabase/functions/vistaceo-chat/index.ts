@@ -862,6 +862,52 @@ async function processLearningExtract(
       }
       dynamicMemory.user_preferences = existingPrefs;
       updates.dynamic_memory = dynamicMemory;
+
+      // Espejo cross-sesión / cross-negocio a user_chat_preferences
+      try {
+        if (ownerUserId) {
+          const { data: current } = await supabase
+            .from("user_chat_preferences")
+            .select("inferred, confirmed, focus_areas, avoid_topics, tone, length_pref, detail_level, formality, style_notes, interaction_count")
+            .eq("user_id", ownerUserId)
+            .maybeSingle();
+          const inferred: Record<string, any> = { ...(current?.inferred as Record<string, any> ?? {}) };
+          const confirmed: Record<string, any> = { ...(current?.confirmed as Record<string, any> ?? {}) };
+          const focusSet = new Set<string>(Array.isArray(current?.focus_areas) ? current!.focus_areas as string[] : []);
+          const avoidSet = new Set<string>(Array.isArray(current?.avoid_topics) ? current!.avoid_topics as string[] : []);
+          const patch: Record<string, any> = {};
+          for (const pref of preferences) {
+            if (!pref?.preference || !pref?.value) continue;
+            const key = String(pref.preference).toLowerCase().slice(0, 60);
+            const value = String(pref.value).slice(0, 240);
+            const conf = Number(pref.confidence) || 0;
+            const target = conf >= 0.8 ? confirmed : inferred;
+            target[key] = { value, confidence: conf, updated_at: new Date().toISOString() };
+            // Mapear preferencias canónicas a columnas tipadas
+            if (/^tono|tone/.test(key)) patch.tone = value;
+            else if (/largo|length/.test(key)) patch.length_pref = value;
+            else if (/detalle|detail/.test(key)) patch.detail_level = value;
+            else if (/formal/.test(key)) patch.formality = value;
+            else if (/foco|focus|interes/.test(key)) focusSet.add(value);
+            else if (/evitar|avoid|no hablar/.test(key)) avoidSet.add(value);
+            else if (/estilo|style/.test(key)) patch.style_notes = value;
+          }
+          await supabase
+            .from("user_chat_preferences")
+            .upsert({
+              user_id: ownerUserId,
+              ...patch,
+              focus_areas: Array.from(focusSet).slice(0, 20),
+              avoid_topics: Array.from(avoidSet).slice(0, 20),
+              inferred,
+              confirmed,
+              interaction_count: (current?.interaction_count ?? 0) + 1,
+              last_seen_at: new Date().toISOString(),
+            }, { onConflict: "user_id" });
+        }
+      } catch (e) {
+        console.warn("[user-prefs] upsert failed:", (e as Error).message);
+      }
     }
 
     // Process risks and assumptions into dynamic_memory
@@ -1083,6 +1129,34 @@ serve(async (req) => {
       memoryContext = await fetchMemoryContext(supabase, businessContext.id);
     }
 
+    // ============================================================
+    // USER-LEVEL PREFERENCES (cross-business, cross-session memory)
+    // Personalización persistente del CEO virtual: tono, formato,
+    // foco, formalidad, temas a evitar. Aprende en cada turno.
+    // ============================================================
+    let ownerUserId: string | null = null;
+    let userPrefs: Record<string, unknown> | null = null;
+    if (supabase && businessContext?.id) {
+      try {
+        const { data: bizRow } = await supabase
+          .from("businesses")
+          .select("owner_id")
+          .eq("id", businessContext.id)
+          .maybeSingle();
+        ownerUserId = (bizRow?.owner_id as string) ?? null;
+        if (ownerUserId) {
+          const { data: prefsRow } = await supabase
+            .from("user_chat_preferences")
+            .select("*")
+            .eq("user_id", ownerUserId)
+            .maybeSingle();
+          userPrefs = prefsRow as Record<string, unknown> | null;
+        }
+      } catch (e) {
+        console.warn("[user-prefs] load failed:", (e as Error).message);
+      }
+    }
+
     // Build structured context JSONs
     const configJson = buildConfigJson(businessContext, memoryContext.brain);
     const brainJson = buildBrainJson(memoryContext.brain, businessContext);
@@ -1189,11 +1263,41 @@ MESSAGE_JSON:
       country: businessContext?.country ?? null,
     });
 
+    // --- Bloque de preferencias del usuario (persistente cross-sesión) ---
+    const userPrefsBlock = (() => {
+      if (!userPrefs) return "";
+      const p = userPrefs as Record<string, any>;
+      const lines: string[] = [];
+      if (p.tone) lines.push(`- Tono preferido: ${p.tone}`);
+      if (p.length_pref) lines.push(`- Largo preferido: ${p.length_pref}`);
+      if (p.detail_level) lines.push(`- Nivel de detalle: ${p.detail_level}`);
+      if (p.formality) lines.push(`- Formalidad: ${p.formality}`);
+      if (Array.isArray(p.focus_areas) && p.focus_areas.length) lines.push(`- Áreas que le interesan: ${p.focus_areas.slice(0,6).join(", ")}`);
+      if (Array.isArray(p.avoid_topics) && p.avoid_topics.length) lines.push(`- Temas que NO quiere tocar: ${p.avoid_topics.slice(0,6).join(", ")}`);
+      if (p.style_notes) lines.push(`- Notas de estilo personales: ${String(p.style_notes).slice(0,400)}`);
+      const confirmed = (p.confirmed && typeof p.confirmed === "object") ? p.confirmed : null;
+      if (confirmed) {
+        const entries = Object.entries(confirmed).slice(0, 8);
+        for (const [k, v] of entries) lines.push(`- ${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`);
+      }
+      if (!lines.length) return "";
+      return `\n=== PREFERENCIAS PERSISTENTES DEL USUARIO (memoria cross-sesión) ===\n${lines.join("\n")}\nReglas: respetá estas preferencias en CADA respuesta sin mencionarlas. Si el usuario las contradice, la nueva orden gana y se actualiza.\n=== FIN PREFERENCIAS ===\n`;
+    })();
+
+    const HYPER_RIGOR_PROMPT = `RIGOR MÁXIMO ANTES DE RESPONDER:
+1. Leé TODO el contexto: business config, brain, state, preferencias persistentes del usuario, últimos 12 mensajes.
+2. Identificá qué sabés con certeza vs. qué estás asumiendo. No inventes datos.
+3. Conectá la respuesta con al menos un dato real del negocio (misión, fricción, métrica, oportunidad, evento reciente).
+4. Si la pregunta exige un dato que no está, pedilo en UNA línea o devolvé hipótesis explícita marcada como tal.
+5. Adaptá tono y formato a las preferencias persistentes del usuario, sin nombrarlas.
+6. Nunca repitas el mensaje del usuario. Nunca devuelvas JSON ni códigos internos. Español natural, ejecutivo.`;
+
     const aiMessages = [
       { role: "system", content: CEO_SYSTEM_PROMPT },
       { role: "system", content: ANTI_GENERIC_SYSTEM },
+      { role: "system", content: HYPER_RIGOR_PROMPT },
       { role: "system", content: terminology.promptFragment },
-      { role: "system", content: contextInjection },
+      { role: "system", content: contextInjection + userPrefsBlock },
       ...recentMessages,
     ];
 
