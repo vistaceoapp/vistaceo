@@ -1,5 +1,9 @@
-// Complete Gastronomy Questions Bank v1
-// All questions for Diagnóstico Profundo + Setup Inteligente
+// ⚠️ LEGACY — Solo Diagnóstico Profundo (/app/diagnostico).
+// Para el Setup hyper-personalizado por tipo usar:
+//   src/lib/sectorQuestions/gastroQuestionsComplete.ts (canónico, vía universalQuestionsEngine).
+// NO importar este archivo desde flujos de setup nuevos.
+// Complete Gastronomy Questions Bank v1 — Diagnóstico
+// All questions for Diagnóstico Profundo
 
 import { 
   GastroQuestion, 
