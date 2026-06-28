@@ -101,13 +101,27 @@ Reglas estrictas:
     const raw = aiJson.choices?.[0]?.message?.content ?? "{}";
     let parsed: { suggestions?: Suggestion[] } = {};
     try { parsed = JSON.parse(raw); } catch { parsed = {}; }
-    const suggestions = Array.isArray(parsed.suggestions) && parsed.suggestions.length >= 4
+    // Gate anti-genérico + anti-leak (Brain Core)
+    const FORBIDDEN = /\b(why_now|specific_action|impact_score|business_brain|business_id|owner_id|fallback|system_prompt|gemini|openai|gpt|claude|llm|prompt|undefined|null)\b/i;
+    const GENERIC = /\b(mejora tu negocio|aumenta tus ventas|atrae más clientes|optimiza tu operación|sé más eficiente|deberías|es importante)\b/i;
+    const SNAKE = /\b[a-z]+_[a-z]+_[a-z]+\b/;
+
+    const clean = Array.isArray(parsed.suggestions)
       ? parsed.suggestions.slice(0, 6).map((s, i) => ({
           id: s.id || `s${i + 1}`,
           text: String(s.text || "").trim(),
           category: (["problema", "oportunidad", "mejora", "analisis"].includes(s.category) ? s.category : "analisis") as Suggestion["category"],
-        })).filter(s => s.text.length > 5)
-      : FALLBACK;
+        })).filter(s =>
+          s.text.length > 10 &&
+          s.text.length <= 130 &&
+          !FORBIDDEN.test(s.text) &&
+          !GENERIC.test(s.text) &&
+          !SNAKE.test(s.text) &&
+          !/```|\{|\}/.test(s.text)
+        )
+      : [];
+
+    const suggestions = clean.length >= 4 ? clean : FALLBACK;
 
     return new Response(JSON.stringify({ suggestions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
