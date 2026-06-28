@@ -1217,11 +1217,41 @@ MESSAGE_JSON:
       country: businessContext?.country ?? null,
     });
 
+    // --- Bloque de preferencias del usuario (persistente cross-sesión) ---
+    const userPrefsBlock = (() => {
+      if (!userPrefs) return "";
+      const p = userPrefs as Record<string, any>;
+      const lines: string[] = [];
+      if (p.tone) lines.push(`- Tono preferido: ${p.tone}`);
+      if (p.length_pref) lines.push(`- Largo preferido: ${p.length_pref}`);
+      if (p.detail_level) lines.push(`- Nivel de detalle: ${p.detail_level}`);
+      if (p.formality) lines.push(`- Formalidad: ${p.formality}`);
+      if (Array.isArray(p.focus_areas) && p.focus_areas.length) lines.push(`- Áreas que le interesan: ${p.focus_areas.slice(0,6).join(", ")}`);
+      if (Array.isArray(p.avoid_topics) && p.avoid_topics.length) lines.push(`- Temas que NO quiere tocar: ${p.avoid_topics.slice(0,6).join(", ")}`);
+      if (p.style_notes) lines.push(`- Notas de estilo personales: ${String(p.style_notes).slice(0,400)}`);
+      const confirmed = (p.confirmed && typeof p.confirmed === "object") ? p.confirmed : null;
+      if (confirmed) {
+        const entries = Object.entries(confirmed).slice(0, 8);
+        for (const [k, v] of entries) lines.push(`- ${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`);
+      }
+      if (!lines.length) return "";
+      return `\n=== PREFERENCIAS PERSISTENTES DEL USUARIO (memoria cross-sesión) ===\n${lines.join("\n")}\nReglas: respetá estas preferencias en CADA respuesta sin mencionarlas. Si el usuario las contradice, la nueva orden gana y se actualiza.\n=== FIN PREFERENCIAS ===\n`;
+    })();
+
+    const HYPER_RIGOR_PROMPT = `RIGOR MÁXIMO ANTES DE RESPONDER:
+1. Leé TODO el contexto: business config, brain, state, preferencias persistentes del usuario, últimos 12 mensajes.
+2. Identificá qué sabés con certeza vs. qué estás asumiendo. No inventes datos.
+3. Conectá la respuesta con al menos un dato real del negocio (misión, fricción, métrica, oportunidad, evento reciente).
+4. Si la pregunta exige un dato que no está, pedilo en UNA línea o devolvé hipótesis explícita marcada como tal.
+5. Adaptá tono y formato a las preferencias persistentes del usuario, sin nombrarlas.
+6. Nunca repitas el mensaje del usuario. Nunca devuelvas JSON ni códigos internos. Español natural, ejecutivo.`;
+
     const aiMessages = [
       { role: "system", content: CEO_SYSTEM_PROMPT },
       { role: "system", content: ANTI_GENERIC_SYSTEM },
+      { role: "system", content: HYPER_RIGOR_PROMPT },
       { role: "system", content: terminology.promptFragment },
-      { role: "system", content: contextInjection },
+      { role: "system", content: contextInjection + userPrefsBlock },
       ...recentMessages,
     ];
 
