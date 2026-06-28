@@ -1083,6 +1083,34 @@ serve(async (req) => {
       memoryContext = await fetchMemoryContext(supabase, businessContext.id);
     }
 
+    // ============================================================
+    // USER-LEVEL PREFERENCES (cross-business, cross-session memory)
+    // Personalización persistente del CEO virtual: tono, formato,
+    // foco, formalidad, temas a evitar. Aprende en cada turno.
+    // ============================================================
+    let ownerUserId: string | null = null;
+    let userPrefs: Record<string, unknown> | null = null;
+    if (supabase && businessContext?.id) {
+      try {
+        const { data: bizRow } = await supabase
+          .from("businesses")
+          .select("owner_id")
+          .eq("id", businessContext.id)
+          .maybeSingle();
+        ownerUserId = (bizRow?.owner_id as string) ?? null;
+        if (ownerUserId) {
+          const { data: prefsRow } = await supabase
+            .from("user_chat_preferences")
+            .select("*")
+            .eq("user_id", ownerUserId)
+            .maybeSingle();
+          userPrefs = prefsRow as Record<string, unknown> | null;
+        }
+      } catch (e) {
+        console.warn("[user-prefs] load failed:", (e as Error).message);
+      }
+    }
+
     // Build structured context JSONs
     const configJson = buildConfigJson(businessContext, memoryContext.brain);
     const brainJson = buildBrainJson(memoryContext.brain, businessContext);
