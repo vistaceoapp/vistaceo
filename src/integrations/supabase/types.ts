@@ -2253,6 +2253,182 @@ export type Database = {
           },
         ]
       }
+      conversion_agent_decisions: {
+        Row: {
+          blocked_by_guard: string | null
+          channel: string
+          context_snapshot: Json | null
+          created_at: string
+          cta: string | null
+          id: string
+          intent: string | null
+          message_seed: string | null
+          passed_quality_gate: boolean
+          placement: string | null
+          reason: string | null
+          scores_snapshot: Json | null
+          strategy: string
+          timing: string | null
+          user_id: string
+        }
+        Insert: {
+          blocked_by_guard?: string | null
+          channel: string
+          context_snapshot?: Json | null
+          created_at?: string
+          cta?: string | null
+          id?: string
+          intent?: string | null
+          message_seed?: string | null
+          passed_quality_gate?: boolean
+          placement?: string | null
+          reason?: string | null
+          scores_snapshot?: Json | null
+          strategy: string
+          timing?: string | null
+          user_id: string
+        }
+        Update: {
+          blocked_by_guard?: string | null
+          channel?: string
+          context_snapshot?: Json | null
+          created_at?: string
+          cta?: string | null
+          id?: string
+          intent?: string | null
+          message_seed?: string | null
+          passed_quality_gate?: boolean
+          placement?: string | null
+          reason?: string | null
+          scores_snapshot?: Json | null
+          strategy?: string
+          timing?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      conversion_agent_memory: {
+        Row: {
+          created_at: string
+          hypotheses: Json
+          last_signals: Json
+          main_interest: string | null
+          modules_used: Json
+          notes: string | null
+          premium_attempts: Json
+          probable_objection: string | null
+          updated_at: string
+          user_id: string
+          value_received: Json
+        }
+        Insert: {
+          created_at?: string
+          hypotheses?: Json
+          last_signals?: Json
+          main_interest?: string | null
+          modules_used?: Json
+          notes?: string | null
+          premium_attempts?: Json
+          probable_objection?: string | null
+          updated_at?: string
+          user_id: string
+          value_received?: Json
+        }
+        Update: {
+          created_at?: string
+          hypotheses?: Json
+          last_signals?: Json
+          main_interest?: string | null
+          modules_used?: Json
+          notes?: string | null
+          premium_attempts?: Json
+          probable_objection?: string | null
+          updated_at?: string
+          user_id?: string
+          value_received?: Json
+        }
+        Relationships: []
+      }
+      conversion_events: {
+        Row: {
+          business_id: string | null
+          category: string | null
+          created_at: string
+          event_name: string
+          id: string
+          metadata: Json
+          session_id: string | null
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          business_id?: string | null
+          category?: string | null
+          created_at?: string
+          event_name: string
+          id?: string
+          metadata?: Json
+          session_id?: string | null
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          business_id?: string | null
+          category?: string | null
+          created_at?: string
+          event_name?: string
+          id?: string
+          metadata?: Json
+          session_id?: string | null
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      conversion_impressions: {
+        Row: {
+          channel: string | null
+          created_at: string
+          decision_id: string | null
+          event_type: string
+          id: string
+          message_key: string | null
+          metadata: Json
+          placement: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          decision_id?: string | null
+          event_type: string
+          id?: string
+          message_key?: string | null
+          metadata?: Json
+          placement: string
+          user_id: string
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          decision_id?: string | null
+          event_type?: string
+          id?: string
+          message_key?: string | null
+          metadata?: Json
+          placement?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversion_impressions_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "conversion_agent_decisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_actions: {
         Row: {
           business_id: string
@@ -4508,6 +4684,120 @@ export type Database = {
           tone?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_conversion_profiles: {
+        Row: {
+          activation_score: number
+          churn_risk_score: number
+          conversion_probability: number
+          created_at: string
+          current_conversion_segment: string | null
+          current_conversion_strategy: string | null
+          days_since_signup: number
+          detected_conversion_objection: string | null
+          do_not_disturb_until: string | null
+          email_count_7d: number
+          email_engagement_score: number
+          email_suppressed_until: string | null
+          engagement_score: number
+          friction_score: number
+          last_active_at: string | null
+          last_email_sent_at: string | null
+          last_prompt_shown_at: string | null
+          main_conversion_interest: string | null
+          modal_close_count_7d: number
+          next_best_action: string | null
+          next_best_channel: string | null
+          next_best_offer: string | null
+          next_best_timing: string | null
+          plan_status: string
+          premium_interest_score: number
+          pro_readiness_score: number
+          prompt_count_7d: number
+          purchase_intent_score: number
+          sessions_count: number
+          subscription_status: string | null
+          total_active_time: number
+          trust_score: number
+          updated_at: string
+          user_id: string
+          value_realization_score: number
+        }
+        Insert: {
+          activation_score?: number
+          churn_risk_score?: number
+          conversion_probability?: number
+          created_at?: string
+          current_conversion_segment?: string | null
+          current_conversion_strategy?: string | null
+          days_since_signup?: number
+          detected_conversion_objection?: string | null
+          do_not_disturb_until?: string | null
+          email_count_7d?: number
+          email_engagement_score?: number
+          email_suppressed_until?: string | null
+          engagement_score?: number
+          friction_score?: number
+          last_active_at?: string | null
+          last_email_sent_at?: string | null
+          last_prompt_shown_at?: string | null
+          main_conversion_interest?: string | null
+          modal_close_count_7d?: number
+          next_best_action?: string | null
+          next_best_channel?: string | null
+          next_best_offer?: string | null
+          next_best_timing?: string | null
+          plan_status?: string
+          premium_interest_score?: number
+          pro_readiness_score?: number
+          prompt_count_7d?: number
+          purchase_intent_score?: number
+          sessions_count?: number
+          subscription_status?: string | null
+          total_active_time?: number
+          trust_score?: number
+          updated_at?: string
+          user_id: string
+          value_realization_score?: number
+        }
+        Update: {
+          activation_score?: number
+          churn_risk_score?: number
+          conversion_probability?: number
+          created_at?: string
+          current_conversion_segment?: string | null
+          current_conversion_strategy?: string | null
+          days_since_signup?: number
+          detected_conversion_objection?: string | null
+          do_not_disturb_until?: string | null
+          email_count_7d?: number
+          email_engagement_score?: number
+          email_suppressed_until?: string | null
+          engagement_score?: number
+          friction_score?: number
+          last_active_at?: string | null
+          last_email_sent_at?: string | null
+          last_prompt_shown_at?: string | null
+          main_conversion_interest?: string | null
+          modal_close_count_7d?: number
+          next_best_action?: string | null
+          next_best_channel?: string | null
+          next_best_offer?: string | null
+          next_best_timing?: string | null
+          plan_status?: string
+          premium_interest_score?: number
+          pro_readiness_score?: number
+          prompt_count_7d?: number
+          purchase_intent_score?: number
+          sessions_count?: number
+          subscription_status?: string | null
+          total_active_time?: number
+          trust_score?: number
+          updated_at?: string
+          user_id?: string
+          value_realization_score?: number
         }
         Relationships: []
       }
