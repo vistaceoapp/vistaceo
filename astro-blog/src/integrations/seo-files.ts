@@ -2,6 +2,7 @@ import type { AstroIntegration } from 'astro';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { getAllPublishedPosts } from '../lib/supabase';
+import { extractImages } from '../lib/text';
 import { getAllClusters } from '../lib/clusters';
 
 const SITE_URL = 'https://blog.vistaceo.com';
@@ -38,7 +39,7 @@ async function generateSitemapXml(): Promise<string> {
     lastmod: string;
     changefreq: string;
     priority: string;
-    image?: { loc: string; title: string; caption?: string };
+    images?: { loc: string; title: string; caption?: string }[];
     news?: { title: string; publication_date: string };
   }[] = [];
 
@@ -88,13 +89,21 @@ async function generateSitemapXml(): Promise<string> {
       priority: isFresh ? '0.95' : '0.85',
     };
 
+    const images: { loc: string; title: string; caption?: string }[] = [];
     if (post.hero_image_url && post.hero_image_url.startsWith('http')) {
-      entry.image = {
+      images.push({
         loc: post.hero_image_url,
         title: post.image_alt_text || post.title,
         caption: post.image_alt_text || post.title,
-      };
+      });
     }
+    // Inline images embedded in markdown → Google Images coverage boost.
+    for (const img of extractImages((post as any).content_md || '')) {
+      if (images.some(i => i.loc === img.url)) continue;
+      images.push({ loc: img.url, title: img.caption || post.title, caption: img.caption || post.title });
+      if (images.length >= 10) break; // Google recommends ≤1000, we cap for speed
+    }
+    if (images.length) entry.images = images;
 
     // News tag — solo para notas frescas (<48h). Boost de descubrimiento.
     if (isFresh) {
@@ -115,8 +124,10 @@ async function generateSitemapXml(): Promise<string> {
     `        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n` +
     urls
       .map((url) => {
-        const imageBlock = url.image
-          ? `\n    <image:image>\n      <image:loc>${escapeXml(url.image.loc)}</image:loc>\n      <image:title>${escapeXml(url.image.title)}</image:title>${url.image.caption ? `\n      <image:caption>${escapeXml(url.image.caption)}</image:caption>` : ''}\n    </image:image>`
+        const imageBlock = url.images && url.images.length
+          ? url.images.map(im =>
+              `\n    <image:image>\n      <image:loc>${escapeXml(im.loc)}</image:loc>\n      <image:title>${escapeXml(im.title)}</image:title>${im.caption ? `\n      <image:caption>${escapeXml(im.caption)}</image:caption>` : ''}\n    </image:image>`
+            ).join('')
           : '';
 
         const newsBlock = url.news

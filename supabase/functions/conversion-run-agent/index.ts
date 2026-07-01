@@ -1,12 +1,10 @@
-// VISTACEO Conversion Intelligence OS — Agent (scores + decision + dedupe)
-// Para cada usuario:
-//  1. Carga brain, plan, eventos, perfil de conversion, memoria, prefs.
-//  2. Recalcula los 10 scores + pro_readiness + conversion_probability.
-//  3. Decide segmento, estrategia, canal, placement, timing, CTA.
-//  4. Pasa Anti-Annoyance + Frequency + Quality gates (reutiliza brain-core).
-//  5. Guarda decision + actualiza profile + memoria.
-//  6. Si la decisión es enviar email, encola UNA vez vía send-transactional-email
-//     con idempotency_key determinístico (anti-duplicación absoluta).
+// VISTACEO Conversion Intelligence OS — Agent v2 (hiper-inteligente, sin gasto de IA)
+// Añade:
+//  - Señales con decaimiento exponencial (los últimos días pesan más).
+//  - Velocidad de uso 7d vs 30d (aceleración / desaceleración).
+//  - Micro-segmento (segmento base + señal dominante) para hyper-personalización.
+//  - Resumen legible del razonamiento para /admin (por qué el agente eligió esto).
+//  - Backoff extra para usuarios "resistant" y fatiga acumulada.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -26,9 +24,38 @@ type Scores = {
   email_engagement_score: number;
   pro_readiness_score: number;
   conversion_probability: number;
+  velocity_7d: number;
+  velocity_30d: number;
+  recency_weighted_engagement: number;
 };
 
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, Math.round(n)));
+
+// Decaimiento exponencial: eventos de hoy pesan 1.0, hace 7d ~0.5, hace 30d ~0.06
+function recencyWeight(ageDays: number): number {
+  return Math.exp(-ageDays / 10);
+}
+
+function countWeighted(events: Array<{ event_name: string; created_at: string }>): Record<string, number> {
+  const out: Record<string, number> = {};
+  const now = Date.now();
+  for (const e of events) {
+    const age = (now - new Date(e.created_at).getTime()) / 86400000;
+    const w = recencyWeight(age);
+    out[e.event_name] = (out[e.event_name] ?? 0) + w;
+  }
+  return out;
+}
+
+function countRaw(events: Array<{ event_name: string; created_at: string }>, days: number): Record<string, number> {
+  const out: Record<string, number> = {};
+  const cutoff = Date.now() - days * 86400000;
+  for (const e of events) {
+    if (new Date(e.created_at).getTime() < cutoff) continue;
+    out[e.event_name] = (out[e.event_name] ?? 0) + 1;
+  }
+  return out;
+}
 
 function computeScores(input: {
   events: Array<{ event_name: string; created_at: string }>;
@@ -39,55 +66,58 @@ function computeScores(input: {
   emailEngagement: { opens: number; clicks: number; sends: number };
   daysSince: number;
 }): Scores {
-  const counts: Record<string, number> = {};
-  for (const e of input.events) counts[e.event_name] = (counts[e.event_name] ?? 0) + 1;
+  // Pesos decaídos por recencia (para todos los scores "cualitativos")
+  const w = countWeighted(input.events);
+  // Conteos crudos para velocidad
+  const c7 = countRaw(input.events, 7);
+  const c30 = countRaw(input.events, 30);
 
   const activation =
     (input.hasBusiness ? 30 : 0) +
-    (counts["onboarding_completed"] ? 25 : 0) +
-    (counts["first_dashboard_viewed"] ? 15 : 0) +
-    (counts["first_chat_message_sent"] ? 15 : 0) +
-    (counts["first_value_detected"] ? 15 : 0);
+    (w["onboarding_completed"] ? 25 : 0) +
+    (w["first_dashboard_viewed"] ? 15 : 0) +
+    (w["first_chat_message_sent"] ? 15 : 0) +
+    (w["first_value_detected"] ? 15 : 0);
 
   const engagement =
-    Math.min(40, (counts["dashboard_viewed"] ?? 0) * 4) +
-    Math.min(20, (counts["chat_message_sent"] ?? 0) * 3) +
-    Math.min(15, (counts["mission_viewed"] ?? 0) * 3) +
-    Math.min(15, (counts["radar_viewed"] ?? 0) * 3) +
-    Math.min(10, (counts["analytics_viewed"] ?? 0) * 2);
+    Math.min(40, (w["dashboard_viewed"] ?? 0) * 5) +
+    Math.min(20, (w["chat_message_sent"] ?? 0) * 4) +
+    Math.min(15, (w["mission_viewed"] ?? 0) * 4) +
+    Math.min(15, (w["radar_viewed"] ?? 0) * 4) +
+    Math.min(10, (w["analytics_viewed"] ?? 0) * 3);
 
   const value =
-    Math.min(35, (counts["mission_completed"] ?? 0) * 15) +
-    Math.min(25, (counts["opportunity_saved"] ?? 0) * 10) +
-    Math.min(20, (counts["first_value_detected"] ?? 0) * 20) +
-    Math.min(20, (counts["chat_message_sent"] ?? 0) * 2);
+    Math.min(35, (w["mission_completed"] ?? 0) * 18) +
+    Math.min(25, (w["opportunity_saved"] ?? 0) * 12) +
+    Math.min(20, (w["first_value_detected"] ?? 0) * 20) +
+    Math.min(20, (w["chat_message_sent"] ?? 0) * 2.5);
 
   const intent =
-    Math.min(40, (counts["upgrade_clicked"] ?? 0) * 20) +
-    Math.min(25, (counts["pricing_viewed"] ?? 0) * 12) +
-    Math.min(20, (counts["pro_page_viewed"] ?? 0) * 8) +
-    Math.min(15, (counts["checkout_started"] ?? 0) * 15);
+    Math.min(40, (w["upgrade_clicked"] ?? 0) * 22) +
+    Math.min(25, (w["pricing_viewed"] ?? 0) * 14) +
+    Math.min(20, (w["pro_page_viewed"] ?? 0) * 10) +
+    Math.min(15, (w["checkout_started"] ?? 0) * 15);
 
   const premium =
-    Math.min(50, (counts["premium_gate_viewed"] ?? 0) * 10) +
-    Math.min(30, (counts["premium_feature_clicked"] ?? 0) * 12) +
-    Math.min(20, (counts["upgrade_clicked"] ?? 0) * 8);
+    Math.min(50, (w["premium_gate_viewed"] ?? 0) * 12) +
+    Math.min(30, (w["premium_feature_clicked"] ?? 0) * 14) +
+    Math.min(20, (w["upgrade_clicked"] ?? 0) * 10);
 
   const friction =
-    Math.min(35, (counts["modal_closed"] ?? 0) * 7) +
-    Math.min(30, (counts["short_session"] ?? 0) * 6) +
-    Math.min(20, (counts["payment_failed"] ?? 0) * 20) +
-    Math.min(15, (counts["onboarding_abandoned"] ?? 0) * 15);
+    Math.min(35, (w["modal_closed"] ?? 0) * 8) +
+    Math.min(30, (w["short_session"] ?? 0) * 7) +
+    Math.min(20, (w["payment_failed"] ?? 0) * 20) +
+    Math.min(15, (w["onboarding_abandoned"] ?? 0) * 15);
 
   const churn =
-    (input.daysSince > 14 && (counts["dashboard_viewed"] ?? 0) < 2 ? 50 : 0) +
-    (input.daysSince > 7 && !counts["first_value_detected"] ? 25 : 0) +
-    Math.min(25, (counts["onboarding_abandoned"] ?? 0) * 25);
+    (input.daysSince > 14 && (c7["dashboard_viewed"] ?? 0) < 2 ? 50 : 0) +
+    (input.daysSince > 7 && !w["first_value_detected"] ? 25 : 0) +
+    Math.min(25, (w["onboarding_abandoned"] ?? 0) * 25);
 
   const trust =
-    (counts["mission_completed"] ?? 0) * 8 +
-    (counts["opportunity_saved"] ?? 0) * 6 +
-    (counts["user_returned"] ?? 0) * 4 +
+    (w["mission_completed"] ?? 0) * 9 +
+    (w["opportunity_saved"] ?? 0) * 7 +
+    (w["user_returned"] ?? 0) * 5 +
     Math.min(20, input.brainConfidence * 25);
 
   const emailEng =
@@ -98,6 +128,20 @@ function computeScores(input: {
             (input.emailEngagement.clicks / Math.max(1, input.emailEngagement.sends)) * 100,
         );
 
+  // Velocidad: eventos "buenos" 7d vs 30d normalizado por semana
+  const goodEvents = (o: Record<string, number>) =>
+    (o["dashboard_viewed"] ?? 0) +
+    (o["chat_message_sent"] ?? 0) +
+    (o["mission_viewed"] ?? 0) +
+    (o["mission_completed"] ?? 0) * 2 +
+    (o["opportunity_saved"] ?? 0) * 2;
+
+  const g7 = goodEvents(c7);
+  const g30 = goodEvents(c30);
+  const velocity_7d = clamp(g7 * 4);
+  const velocity_30d = clamp(g30);
+  const recency_weighted_engagement = clamp(engagement);
+
   const proReadiness = clamp(
     activation * 0.15 +
       engagement * 0.15 +
@@ -107,7 +151,8 @@ function computeScores(input: {
       trust * 0.1 +
       emailEng * 0.05 -
       friction * 0.1 -
-      churn * 0.1,
+      churn * 0.1 +
+      (velocity_7d - velocity_30d / 4) * 0.05, // acelerando → sube
   );
 
   return {
@@ -122,20 +167,43 @@ function computeScores(input: {
     email_engagement_score: clamp(emailEng),
     pro_readiness_score: proReadiness,
     conversion_probability: input.isPro ? 100 : proReadiness,
+    velocity_7d,
+    velocity_30d,
+    recency_weighted_engagement,
   };
 }
 
-function decideSegment(s: Scores, ctx: { isPro: boolean; checkoutAbandoned: boolean; resistant: boolean }): string {
+function decideSegment(
+  s: Scores,
+  ctx: { isPro: boolean; checkoutAbandoned: boolean; resistant: boolean; hasBusiness: boolean },
+): string {
   if (ctx.isPro) return "pro_user";
   if (ctx.checkoutAbandoned) return "checkout_abandoned";
   if (ctx.resistant) return "resistant_to_messages";
+  if (!ctx.hasBusiness) return "no_business_yet";
   if (s.churn_risk_score >= 60) return "at_risk";
   if (s.pro_readiness_score >= 70) return "ready_for_pro";
   if (s.purchase_intent_score >= 50) return "high_intent";
   if (s.premium_interest_score >= 40) return "interest_specific";
+  if (s.velocity_7d > s.velocity_30d / 2 && s.value_realization_score >= 30) return "accelerating";
   if (s.value_realization_score >= 40) return "free_active";
   if (s.activation_score >= 60 && s.value_realization_score < 30) return "activated_no_value";
   return "new_unactivated";
+}
+
+// Detecta la señal más fuerte (para copy hyper-personalizado)
+function topSignal(s: Scores): string {
+  const pool: Array<[string, number]> = [
+    ["purchase_intent", s.purchase_intent_score],
+    ["premium_interest", s.premium_interest_score],
+    ["value_realization", s.value_realization_score],
+    ["engagement", s.engagement_score],
+    ["friction", s.friction_score],
+    ["churn_risk", s.churn_risk_score],
+    ["trust", s.trust_score],
+  ];
+  pool.sort((a, b) => b[1] - a[1]);
+  return pool[0][0];
 }
 
 function decideStrategy(segment: string): { strategy: string; channel: string; placement: string | null; intent: string } {
@@ -147,13 +215,14 @@ function decideStrategy(segment: string): { strategy: string; channel: string; p
     case "ready_for_pro": return { strategy: "direct_upgrade", channel: "app", placement: "next_action_card", intent: "upgrade" };
     case "high_intent": return { strategy: "contextual_upgrade", channel: "app", placement: "next_action_card", intent: "upgrade_contextual" };
     case "interest_specific": return { strategy: "soft_upgrade", channel: "app", placement: "opportunity_locked_card", intent: "show_pro_value" };
+    case "accelerating": return { strategy: "amplify_momentum", channel: "app", placement: "next_action_card", intent: "deepen" };
     case "free_active": return { strategy: "educate_user", channel: "app", placement: "next_action_card", intent: "deepen" };
     case "activated_no_value": return { strategy: "show_first_value", channel: "app", placement: "dashboard_top_banner", intent: "first_value" };
+    case "no_business_yet": return { strategy: "complete_setup", channel: "app", placement: "dashboard_top_banner", intent: "setup" };
     default: return { strategy: "activate_user", channel: "app", placement: "dashboard_top_banner", intent: "activation" };
   }
 }
 
-// Anti-annoyance & frequency guard
 function applyGuards(
   decision: { channel: string; intent: string; strategy: string },
   profile: any,
@@ -182,6 +251,30 @@ function applyGuards(
   return { allowed: true };
 }
 
+function buildReasoningSummary(input: {
+  segment: string;
+  microSegment: string;
+  scores: Scores;
+  plan: { strategy: string; channel: string; intent: string };
+  blockedBy: string | null;
+  daysSince: number;
+  isPro: boolean;
+  eventCount: number;
+}): string {
+  const s = input.scores;
+  const parts: string[] = [];
+  parts.push(`Segmento: ${input.segment} (micro: ${input.microSegment}).`);
+  parts.push(
+    `Scores → activación ${s.activation_score}, valor ${s.value_realization_score}, intención ${s.purchase_intent_score}, premium ${s.premium_interest_score}, fricción ${s.friction_score}, churn ${s.churn_risk_score}.`,
+  );
+  parts.push(`Velocidad: 7d=${s.velocity_7d} vs 30d=${s.velocity_30d} (${s.velocity_7d > s.velocity_30d / 2 ? "acelerando" : "desacelerando"}).`);
+  parts.push(`Días desde registro: ${input.daysSince}. Eventos totales: ${input.eventCount}.`);
+  parts.push(`Decisión: ${input.plan.strategy} vía ${input.plan.channel} → intent "${input.plan.intent}".`);
+  if (input.blockedBy) parts.push(`Bloqueado por: ${input.blockedBy}.`);
+  if (input.isPro) parts.push("Usuario Pro: modo silencio activo.");
+  return parts.join(" ");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -195,13 +288,12 @@ Deno.serve(async (req) => {
     const triggerEvent: string | undefined = body?.trigger_event;
     if (!userId) return new Response(JSON.stringify({ error: "missing_user_id" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    // ---- Load context ----
-    const [profileRes, businessRes, eventsRes, subRes, emailLogRes] = await Promise.all([
+    const [profileRes, businessRes, eventsRes, subRes, userRes] = await Promise.all([
       supabase.from("user_conversion_profiles").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("businesses").select("id, business_brains(confidence_score)").eq("owner_id", userId).maybeSingle(),
-      supabase.from("conversion_events").select("event_name, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(500),
+      supabase.from("conversion_events").select("event_name, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1000),
       supabase.from("subscriptions").select("status, expires_at").eq("user_id", userId).order("expires_at", { ascending: false }).limit(1).maybeSingle(),
-      supabase.from("email_send_log").select("status, created_at").eq("recipient_email", (await supabase.auth.admin.getUserById(userId)).data?.user?.email ?? "").order("created_at", { ascending: false }).limit(50),
+      supabase.auth.admin.getUserById(userId),
     ]);
 
     const profile = profileRes.data ?? {};
@@ -209,9 +301,14 @@ Deno.serve(async (req) => {
     const events = eventsRes.data ?? [];
     const isPro = !!(subRes.data && subRes.data.status === "active" && subRes.data.expires_at && new Date(subRes.data.expires_at) > new Date());
     const brainConfidence = Number(business?.business_brains?.[0]?.confidence_score ?? 0);
+    const userRow = userRes.data?.user;
+    const userEmail = userRow?.email ?? "";
+
+    const emailLogRes = userEmail
+      ? await supabase.from("email_send_log").select("status, created_at").eq("recipient_email", userEmail).order("created_at", { ascending: false }).limit(50)
+      : { data: [] as any[] };
     const emailLog = emailLogRes.data ?? [];
 
-    const userRow = (await supabase.auth.admin.getUserById(userId)).data?.user;
     const createdAt = userRow?.created_at ? new Date(userRow.created_at) : new Date();
     const daysSince = Math.floor((Date.now() - createdAt.getTime()) / 86400000);
 
@@ -237,10 +334,11 @@ Deno.serve(async (req) => {
       !recentEvents.some((e) => e.event_name === "payment_success");
     const resistant = (profile.modal_close_count_7d ?? 0) >= 4;
 
-    const segment = decideSegment(scores, { isPro, checkoutAbandoned, resistant });
+    const segment = decideSegment(scores, { isPro, checkoutAbandoned, resistant, hasBusiness: !!business?.id });
+    const signal = topSignal(scores);
+    const microSegment = `${segment}:${signal}`;
     let plan = decideStrategy(segment);
 
-    // Guards
     const guard = applyGuards(plan, profile);
     let blockedBy: string | null = null;
     let passedGate = true;
@@ -254,7 +352,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Quality rule: never sell before value
     if (
       ["direct_upgrade", "contextual_upgrade"].includes(plan.strategy) &&
       scores.value_realization_score < 25
@@ -263,7 +360,10 @@ Deno.serve(async (req) => {
       blockedBy = (blockedBy ? blockedBy + "+" : "") + "no_value_yet";
     }
 
-    // ---- Persist scores + profile ----
+    const reasoning = buildReasoningSummary({
+      segment, microSegment, scores, plan, blockedBy, daysSince, isPro, eventCount: events.length,
+    });
+
     await supabase.from("user_conversion_profiles").upsert(
       {
         user_id: userId,
@@ -272,9 +372,26 @@ Deno.serve(async (req) => {
         days_since_signup: daysSince,
         sessions_count: (profile.sessions_count ?? 0),
         last_active_at: new Date().toISOString(),
-        ...scores,
+        last_agent_run_at: new Date().toISOString(),
+        activation_score: scores.activation_score,
+        engagement_score: scores.engagement_score,
+        value_realization_score: scores.value_realization_score,
+        purchase_intent_score: scores.purchase_intent_score,
+        premium_interest_score: scores.premium_interest_score,
+        friction_score: scores.friction_score,
+        churn_risk_score: scores.churn_risk_score,
+        trust_score: scores.trust_score,
+        email_engagement_score: scores.email_engagement_score,
+        pro_readiness_score: scores.pro_readiness_score,
+        conversion_probability: scores.conversion_probability,
+        velocity_7d: scores.velocity_7d,
+        velocity_30d: scores.velocity_30d,
+        recency_weighted_engagement: scores.recency_weighted_engagement,
         current_conversion_segment: segment,
         current_conversion_strategy: plan.strategy,
+        micro_segment: microSegment,
+        top_signal: signal,
+        reasoning_summary: reasoning,
         next_best_action: plan.intent,
         next_best_channel: plan.channel,
         next_best_timing: "now",
@@ -282,7 +399,6 @@ Deno.serve(async (req) => {
       { onConflict: "user_id" },
     );
 
-    // ---- Log decision ----
     const { data: decisionRow } = await supabase
       .from("conversion_agent_decisions")
       .insert({
@@ -296,7 +412,10 @@ Deno.serve(async (req) => {
         passed_quality_gate: passedGate,
         blocked_by_guard: blockedBy,
         scores_snapshot: scores,
-        context_snapshot: { segment, isPro, checkoutAbandoned, daysSince, eventCount: events.length },
+        context_snapshot: {
+          segment, microSegment, topSignal: signal, isPro, checkoutAbandoned,
+          daysSince, eventCount: events.length, reasoning,
+        },
       })
       .select("id")
       .single();
@@ -306,9 +425,12 @@ Deno.serve(async (req) => {
         ok: true,
         decision_id: decisionRow?.id ?? null,
         segment,
+        micro_segment: microSegment,
+        top_signal: signal,
         plan,
         scores,
         blocked_by: blockedBy,
+        reasoning,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

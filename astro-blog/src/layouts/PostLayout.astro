@@ -8,8 +8,8 @@ import RelatedPosts from '../components/RelatedPosts.astro';
 import ReadingToolbar from '../components/ReadingToolbar.astro';
 import type { BlogPost } from '../lib/supabase';
 import { getCategoryVisual } from '../lib/category-visuals';
-import { getMetaTitle, getMetaDescription, getOgImage, getCanonicalUrl, generateBlogPostingSchema, generateBreadcrumbSchema, generateArticleSchema, generateOrganizationSchema, generateWebSiteSchema } from '../lib/seo';
-import { extractHeadings } from '../lib/text';
+import { getMetaTitle, getMetaDescription, getOgImage, getCanonicalUrl, generateBlogPostingSchema, generateBreadcrumbSchema, generateArticleSchema, generateOrganizationSchema, generateWebSiteSchema, generateFAQSchema } from '../lib/seo';
+import { extractHeadings, extractFAQs } from '../lib/text';
 import { parseMarkdown } from '../lib/markdown';
 
 interface Props {
@@ -28,12 +28,16 @@ const headings = extractHeadings(post.content_md);
 // Parse markdown to beautiful HTML
 const processedContent = parseMarkdown(post.content_md);
 
+// Auto-detect FAQs already embedded by autoheal → emit FAQPage JSON-LD for rich snippets
+const faqs = extractFAQs(post.content_md);
+
 const schemas = [
   generateBlogPostingSchema(post),
   generateBreadcrumbSchema(post),
   generateArticleSchema(post),
   generateOrganizationSchema(),
-  generateWebSiteSchema()
+  generateWebSiteSchema(),
+  ...(faqs.length >= 2 ? [generateFAQSchema(faqs)] : [])
 ];
 ---
 
