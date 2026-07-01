@@ -4704,9 +4704,11 @@ export type Database = {
           engagement_score: number
           friction_score: number
           last_active_at: string | null
+          last_agent_run_at: string | null
           last_email_sent_at: string | null
           last_prompt_shown_at: string | null
           main_conversion_interest: string | null
+          micro_segment: string | null
           modal_close_count_7d: number
           next_best_action: string | null
           next_best_channel: string | null
@@ -4717,13 +4719,18 @@ export type Database = {
           pro_readiness_score: number
           prompt_count_7d: number
           purchase_intent_score: number
+          reasoning_summary: string | null
+          recency_weighted_engagement: number | null
           sessions_count: number
           subscription_status: string | null
+          top_signal: string | null
           total_active_time: number
           trust_score: number
           updated_at: string
           user_id: string
           value_realization_score: number
+          velocity_30d: number | null
+          velocity_7d: number | null
         }
         Insert: {
           activation_score?: number
@@ -4741,9 +4748,11 @@ export type Database = {
           engagement_score?: number
           friction_score?: number
           last_active_at?: string | null
+          last_agent_run_at?: string | null
           last_email_sent_at?: string | null
           last_prompt_shown_at?: string | null
           main_conversion_interest?: string | null
+          micro_segment?: string | null
           modal_close_count_7d?: number
           next_best_action?: string | null
           next_best_channel?: string | null
@@ -4754,13 +4763,18 @@ export type Database = {
           pro_readiness_score?: number
           prompt_count_7d?: number
           purchase_intent_score?: number
+          reasoning_summary?: string | null
+          recency_weighted_engagement?: number | null
           sessions_count?: number
           subscription_status?: string | null
+          top_signal?: string | null
           total_active_time?: number
           trust_score?: number
           updated_at?: string
           user_id: string
           value_realization_score?: number
+          velocity_30d?: number | null
+          velocity_7d?: number | null
         }
         Update: {
           activation_score?: number
@@ -4778,9 +4792,11 @@ export type Database = {
           engagement_score?: number
           friction_score?: number
           last_active_at?: string | null
+          last_agent_run_at?: string | null
           last_email_sent_at?: string | null
           last_prompt_shown_at?: string | null
           main_conversion_interest?: string | null
+          micro_segment?: string | null
           modal_close_count_7d?: number
           next_best_action?: string | null
           next_best_channel?: string | null
@@ -4791,13 +4807,18 @@ export type Database = {
           pro_readiness_score?: number
           prompt_count_7d?: number
           purchase_intent_score?: number
+          reasoning_summary?: string | null
+          recency_weighted_engagement?: number | null
           sessions_count?: number
           subscription_status?: string | null
+          top_signal?: string | null
           total_active_time?: number
           trust_score?: number
           updated_at?: string
           user_id?: string
           value_realization_score?: number
+          velocity_30d?: number | null
+          velocity_7d?: number | null
         }
         Relationships: []
       }
@@ -5032,6 +5053,7 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enforce_free_limit: {
         Args: {
           _business_id: string

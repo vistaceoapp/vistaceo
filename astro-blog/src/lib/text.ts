@@ -50,6 +50,43 @@ export function extractHeadings(markdown: string): { level: number; text: string
 }
 
 /**
+ * Extract FAQ pairs from a Markdown post. Detects sections whose H2 matches
+ * "Preguntas frecuentes" / "FAQ" and reads H3 items as questions + first paragraph
+ * as answer. Zero-AI, deterministic — safe to enrich JSON-LD on every build.
+ */
+export function extractFAQs(markdown: string): { question: string; answer: string }[] {
+  if (!markdown) return [];
+  const faqSectionRegex = /^##\s+(?:Preguntas frecuentes|FAQ|Preguntas Frecuentes)[^\n]*\n([\s\S]*?)(?=^##\s|\Z)/mi;
+  const match = markdown.match(faqSectionRegex);
+  if (!match) return [];
+  const body = match[1];
+  const items: { question: string; answer: string }[] = [];
+  const qaRegex = /^###\s+(.+?)\n([\s\S]*?)(?=^###\s|\Z)/gm;
+  let m;
+  while ((m = qaRegex.exec(body)) !== null) {
+    const question = m[1].trim().replace(/[¿?]/g, s => s).replace(/^¿?/, '¿').replace(/\??$/, '?');
+    const answerRaw = m[2].trim().split(/\n{2,}/)[0] || '';
+    const answer = answerRaw.replace(/\s+/g, ' ').trim().slice(0, 500);
+    if (question && answer) items.push({ question, answer });
+  }
+  return items.slice(0, 12);
+}
+
+/**
+ * Extract images referenced in markdown (for image sitemap enrichment).
+ */
+export function extractImages(markdown: string): { url: string; caption: string }[] {
+  if (!markdown) return [];
+  const out: { url: string; caption: string }[] = [];
+  const rx = /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g;
+  let m;
+  while ((m = rx.exec(markdown)) !== null) {
+    out.push({ caption: m[1] || '', url: m[2] });
+  }
+  return out;
+}
+
+/**
  * Add IDs to headings in HTML/Markdown content for anchor navigation
  */
 export function addHeadingIds(content: string): string {

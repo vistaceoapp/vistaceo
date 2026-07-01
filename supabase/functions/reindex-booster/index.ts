@@ -55,25 +55,35 @@ Deno.serve(async (req) => {
     const currentYear = new Date().getFullYear();
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    // ═══ 2. Add interlinks to top posts missing them ═══
-    const topPosts = posts.slice(0, 20);
+    // ═══ 2. Add interlinks (same category + hub cross-category) to top posts ═══
+    const topPosts = posts.slice(0, 30);
     for (const post of topPosts) {
       const content = post.content_md || "";
       const internalLinks = (content.match(/blog\.vistaceo\.com/g) || []).length;
 
-      if (internalLinks < 5) {
-        // Find 2 related posts to link to
-        const related = posts.filter(p =>
+      if (internalLinks < 6) {
+        // 2 related same-cluster + 1 hub cross-cluster (grafo horizontal)
+        const sameCluster = posts.filter(p =>
           p.id !== post.id &&
           p.category === post.category &&
           !content.includes(p.slug)
         ).slice(0, 2);
 
-        if (related.length > 0) {
+        const crossCluster = posts.filter(p =>
+          p.id !== post.id &&
+          p.category !== post.category &&
+          !content.includes(p.slug)
+        ).slice(0, 1);
+
+        const linkTargets = [...sameCluster, ...crossCluster];
+
+        if (linkTargets.length > 0) {
           let updatedContent = content;
-          for (const rel of related) {
-            const linkText = `\n\n> **Lectura recomendada:** [${rel.title}](${BLOG_DOMAIN}/${rel.slug}/)\n`;
-            updatedContent += linkText;
+          for (const rel of sameCluster) {
+            updatedContent += `\n\n> **Lectura recomendada:** [${rel.title}](${BLOG_DOMAIN}/${rel.slug}/)\n`;
+          }
+          for (const rel of crossCluster) {
+            updatedContent += `\n\n> **También te puede interesar:** [${rel.title}](${BLOG_DOMAIN}/${rel.slug}/)\n`;
           }
 
           await supabase.from("blog_posts").update({
@@ -81,7 +91,7 @@ Deno.serve(async (req) => {
             updated_at: new Date().toISOString(),
           }).eq("id", post.id);
 
-          results.interlinks_added += related.length;
+          results.interlinks_added += linkTargets.length;
           results.slugs_to_reindex.push(post.slug);
         }
       }
