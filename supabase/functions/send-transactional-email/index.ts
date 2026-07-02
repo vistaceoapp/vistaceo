@@ -64,8 +64,10 @@ Deno.serve(async (req) => {
     const body = await req.json()
     templateName = body.templateName || body.template_name
     recipientEmail = body.recipientEmail || body.recipient_email
-    messageId = crypto.randomUUID()
-    idempotencyKey = body.idempotencyKey || body.idempotency_key || messageId
+    // If caller provides idempotencyKey, use it as message_id so we can dedupe
+    // subsequent calls with the same key. Otherwise generate a random UUID.
+    idempotencyKey = body.idempotencyKey || body.idempotency_key || crypto.randomUUID()
+    messageId = idempotencyKey
     if (body.templateData && typeof body.templateData === 'object') {
       templateData = body.templateData
     }
@@ -125,12 +127,40 @@ Deno.serve(async (req) => {
   // Create Supabase client with service role (bypasses RLS)
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-  // 2. Check suppression list (fail-closed: if we can't verify, don't send)
-  const { data: suppressed, error: suppressionError } = await supabase
-    .from('suppressed_emails')
-    .select('id')
-    .eq('email', effectiveRecipient.toLowerCase())
-    .maybeSingle()
+  // 2. Parallel: suppression check + token lookup + idempotency dedupe check.
+  // Cuts ~2 sequential RTTs to 1. Fail-closed on suppression errors.
+  const normalizedEmail = effectiveRecipient.toLowerCase()
+  const [suppressedRes, tokenRes, dupeRes] = await Promise.all([
+    supabase
+      .from('suppressed_emails')
+      .select('id')
+      .eq('email', normalizedEmail)
+      .maybeSingle(),
+    supabase
+      .from('email_unsubscribe_tokens')
+      .select('token, used_at')
+      .eq('email', normalizedEmail)
+      .maybeSingle(),
+    supabase
+      .from('email_send_log')
+      .select('id, status')
+      .eq('message_id', idempotencyKey)
+      .limit(1)
+      .maybeSingle(),
+  ])
+
+  const { data: suppressed, error: suppressionError } = suppressedRes
+  const { data: existingToken, error: tokenLookupError } = tokenRes
+  const { data: existingSend } = dupeRes
+
+  // Dedupe: same idempotencyKey already enqueued → do not send again.
+  if (existingSend) {
+    console.log('Email dedupe hit — already sent/queued', { idempotencyKey, status: existingSend.status })
+    return new Response(
+      JSON.stringify({ success: true, deduped: true, status: existingSend.status }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
 
   if (suppressionError) {
     console.error('Suppression check failed — refusing to send', {
@@ -147,7 +177,6 @@ Deno.serve(async (req) => {
   }
 
   if (suppressed) {
-    // Log the suppressed attempt
     await supabase.from('email_send_log').insert({
       message_id: messageId,
       template_name: templateName,
@@ -166,15 +195,7 @@ Deno.serve(async (req) => {
   }
 
   // 3. Get or create unsubscribe token (one token per email address)
-  const normalizedEmail = effectiveRecipient.toLowerCase()
   let unsubscribeToken: string
-
-  // Check for existing token for this email
-  const { data: existingToken, error: tokenLookupError } = await supabase
-    .from('email_unsubscribe_tokens')
-    .select('token, used_at')
-    .eq('email', normalizedEmail)
-    .maybeSingle()
 
   if (tokenLookupError) {
     console.error('Token lookup failed', {
@@ -282,14 +303,11 @@ Deno.serve(async (req) => {
     )
   }
 
-  // 4. Render React Email template to HTML and plain text
-  const html = await renderAsync(
-    React.createElement(template.component, templateData)
-  )
-  const plainText = await renderAsync(
-    React.createElement(template.component, templateData),
-    { plainText: true }
-  )
+  // 4. Render React Email template to HTML and plain text (in parallel)
+  const [html, plainText] = await Promise.all([
+    renderAsync(React.createElement(template.component, templateData)),
+    renderAsync(React.createElement(template.component, templateData), { plainText: true }),
+  ])
 
   // Resolve subject — supports static string or dynamic function
   const resolvedSubject =

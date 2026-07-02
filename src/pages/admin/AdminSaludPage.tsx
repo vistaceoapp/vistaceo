@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+const AdminConversionOSPage = lazy(() => import("./AdminConversionOSPage"));
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -178,7 +179,7 @@ function IncidentRow({
 export default function AdminSaludPage() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"live" | "fixed">("live");
+  const [filter, setFilter] = useState<"live" | "fixed" | "conversion">("live");
 
   const fetchIncidents = async () => {
     setLoading(true);
@@ -278,7 +279,7 @@ export default function AdminSaludPage() {
         <MetricCard label="Últimas 24h" value={metrics.last24} icon={Activity} tone="sky" />
       </div>
 
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as "live" | "fixed")}>
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as "live" | "fixed" | "conversion")}>
         <TabsList>
           <TabsTrigger value="live" className="gap-2">
             En vivo
@@ -293,6 +294,9 @@ export default function AdminSaludPage() {
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
               {fixed.length}
             </Badge>
+          </TabsTrigger>
+          <TabsTrigger value="conversion" className="gap-2">
+            Conversión OS
           </TabsTrigger>
         </TabsList>
 
@@ -353,6 +357,12 @@ export default function AdminSaludPage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="conversion" className="mt-4">
+          <Suspense fallback={<p className="text-sm text-muted-foreground py-8 text-center">Cargando Conversión OS…</p>}>
+            <AdminConversionOSPage />
+          </Suspense>
         </TabsContent>
       </Tabs>
 

@@ -50,7 +50,7 @@ const AdminSaludPage = lazy(() => import("./pages/admin/AdminSaludPage"));
 const AdminSetupAnswersPage = lazy(() => import("./pages/admin/AdminSetupAnswersPage"));
 const AdminEmailsPreviewPage = lazy(() => import("./pages/admin/AdminEmailsPreviewPage"));
 const AdminUserRankingPage = lazy(() => import("./pages/admin/AdminUserRankingPage"));
-const AdminConversionOSPage = lazy(() => import("./pages/admin/AdminConversionOSPage"));
+// AdminConversionOSPage is embedded as a tab inside AdminSaludPage — no separate route needed
 
 // App pages - lazy loaded
 const AppLayout = lazy(() => import("./layouts/AppLayout"));
@@ -224,7 +224,7 @@ const AppRoutes = () => {
           <Route path="emails/plantillas" element={<AdminEmailsPreviewPage />} />
           <Route path="setup-respuestas" element={<AdminSetupAnswersPage />} />
           <Route path="salud" element={<AdminSaludPage />} />
-          <Route path="conversion-os" element={<AdminConversionOSPage />} />
+          <Route path="conversion-os" element={<Navigate to="/admin/salud?tab=conversion" replace />} />
         </Route>
         
         {/* Checkout - standalone payment page (public; handles auth inline if needed) */}
