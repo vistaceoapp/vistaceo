@@ -224,7 +224,7 @@ const AppRoutes = () => {
           <Route path="emails/plantillas" element={<AdminEmailsPreviewPage />} />
           <Route path="setup-respuestas" element={<AdminSetupAnswersPage />} />
           <Route path="salud" element={<AdminSaludPage />} />
-          <Route path="conversion-os" element={<AdminConversionOSPage />} />
+          <Route path="conversion-os" element={<Navigate to="/admin/salud?tab=conversion" replace />} />
         </Route>
         
         {/* Checkout - standalone payment page (public; handles auth inline if needed) */}
