@@ -303,14 +303,11 @@ Deno.serve(async (req) => {
     )
   }
 
-  // 4. Render React Email template to HTML and plain text
-  const html = await renderAsync(
-    React.createElement(template.component, templateData)
-  )
-  const plainText = await renderAsync(
-    React.createElement(template.component, templateData),
-    { plainText: true }
-  )
+  // 4. Render React Email template to HTML and plain text (in parallel)
+  const [html, plainText] = await Promise.all([
+    renderAsync(React.createElement(template.component, templateData)),
+    renderAsync(React.createElement(template.component, templateData), { plainText: true }),
+  ])
 
   // Resolve subject — supports static string or dynamic function
   const resolvedSubject =
