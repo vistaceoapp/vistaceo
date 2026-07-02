@@ -64,8 +64,10 @@ Deno.serve(async (req) => {
     const body = await req.json()
     templateName = body.templateName || body.template_name
     recipientEmail = body.recipientEmail || body.recipient_email
-    messageId = crypto.randomUUID()
-    idempotencyKey = body.idempotencyKey || body.idempotency_key || messageId
+    // If caller provides idempotencyKey, use it as message_id so we can dedupe
+    // subsequent calls with the same key. Otherwise generate a random UUID.
+    idempotencyKey = body.idempotencyKey || body.idempotency_key || crypto.randomUUID()
+    messageId = idempotencyKey
     if (body.templateData && typeof body.templateData === 'object') {
       templateData = body.templateData
     }
