@@ -179,7 +179,7 @@ function IncidentRow({
 export default function AdminSaludPage() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"live" | "fixed">("live");
+  const [filter, setFilter] = useState<"live" | "fixed" | "conversion">("live");
 
   const fetchIncidents = async () => {
     setLoading(true);
