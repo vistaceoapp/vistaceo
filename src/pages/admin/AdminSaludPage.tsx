@@ -358,6 +358,12 @@ export default function AdminSaludPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="conversion" className="mt-4">
+          <Suspense fallback={<p className="text-sm text-muted-foreground py-8 text-center">Cargando Conversión OS…</p>}>
+            <AdminConversionOSPage />
+          </Suspense>
+        </TabsContent>
       </Tabs>
 
       <p className="text-[11px] text-muted-foreground/70 text-center">
