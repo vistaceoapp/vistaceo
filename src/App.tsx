@@ -50,7 +50,7 @@ const AdminSaludPage = lazy(() => import("./pages/admin/AdminSaludPage"));
 const AdminSetupAnswersPage = lazy(() => import("./pages/admin/AdminSetupAnswersPage"));
 const AdminEmailsPreviewPage = lazy(() => import("./pages/admin/AdminEmailsPreviewPage"));
 const AdminUserRankingPage = lazy(() => import("./pages/admin/AdminUserRankingPage"));
-const AdminConversionOSPage = lazy(() => import("./pages/admin/AdminConversionOSPage"));
+// AdminConversionOSPage is embedded as a tab inside AdminSaludPage — no separate route needed
 
 // App pages - lazy loaded
 const AppLayout = lazy(() => import("./layouts/AppLayout"));
