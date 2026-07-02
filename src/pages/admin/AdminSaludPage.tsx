@@ -279,7 +279,7 @@ export default function AdminSaludPage() {
         <MetricCard label="Últimas 24h" value={metrics.last24} icon={Activity} tone="sky" />
       </div>
 
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as "live" | "fixed")}>
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as "live" | "fixed" | "conversion")}>
         <TabsList>
           <TabsTrigger value="live" className="gap-2">
             En vivo
@@ -294,6 +294,9 @@ export default function AdminSaludPage() {
             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
               {fixed.length}
             </Badge>
+          </TabsTrigger>
+          <TabsTrigger value="conversion" className="gap-2">
+            Conversión OS
           </TabsTrigger>
         </TabsList>
 
