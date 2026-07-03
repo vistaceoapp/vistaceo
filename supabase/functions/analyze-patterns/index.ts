@@ -550,13 +550,40 @@ function buildAnalysisContext(
   rejectedConcepts: RejectedConcept[],
   locale: LocaleProfile
 ): string {
-  let context = `## NEGOCIO: ${business.name}
-- País: ${business.country || "AR"}
-- Categoría: ${brain?.primary_business_type || business.category || "restaurant"}
+  const identity = (brain?.identity_profile as any) || {};
+  const sectorProf = (brain?.sector_profile as any) || {};
+  const situation = (brain?.current_situation as any) || {};
+  const displayName = identity.display_name || business.name;
+  const subtype = identity.subtype || sectorProf.subtype || null;
+  const modelo = identity.business_model || sectorProf.model || null;
+  const offerings: string[] = Array.isArray(identity.offerings) ? identity.offerings.slice(0, 6) : [];
+  const channels: string[] = Array.isArray(identity.channels) ? identity.channels.slice(0, 6) : [];
+  const customerType = identity.customer_type || null;
+  const primaryPains: string[] = Array.isArray(identity.primary_pains) ? identity.primary_pains.slice(0, 5) : [];
+  const oppAngles: string[] = Array.isArray(identity.opportunity_angles) ? identity.opportunity_angles.slice(0, 5) : [];
+  const stage = identity.business_stage || situation.stage || "active";
+  const city = (business as any).city || null;
+  const address = (business as any).address || null;
+
+  let context = `## NEGOCIO: ${displayName}
+- Nombre comercial exacto: "${business.name}"
+- País: ${business.country || "AR"}${city ? ` · Ciudad: ${city}` : ""}${address ? ` · Dirección: ${address}` : ""}
+- Categoría base: ${brain?.primary_business_type || business.category || "sin definir"}${subtype ? ` · Subtipo: ${subtype}` : ""}
+- Modelo de negocio: ${modelo || "sin definir"}
+- Etapa: ${stage}
 - Foco actual: ${brain?.current_focus || "ventas"}
-- Rating: ${business.avg_rating || "Sin datos"}
+- Rating público: ${business.avg_rating || "Sin datos"}
+- Ticket promedio: ${(business as any).avg_ticket || "sin datos"} · Rango de facturación: ${(business as any).monthly_revenue_range || "sin datos"}
+- Instagram: ${business.instagram_handle || "no cargado"} · Google Place: ${business.google_place_id ? "cargado" : "no cargado"}
 - Moneda: ${locale.currency}
 - Voz: ${locale.voice === "voseo" ? "Usá vos/voseo (Implementá, Creá, Probá)" : "Usa tú/tuteo (Implementa, Crea, Prueba)"}
+
+## PERFIL DE IDENTIDAD REAL (usar SIEMPRE en cada título/descripción)
+- Cliente objetivo: ${customerType || "sin definir"}
+- Productos/servicios que vende HOY: ${offerings.length ? offerings.join(" · ") : "sin definir"}
+- Canales reales de venta: ${channels.length ? channels.join(" · ") : "sin definir"}
+- Dolores concretos declarados: ${primaryPains.length ? primaryPains.join(" · ") : "sin declarar"}
+- Ángulos de oportunidad detectados: ${oppAngles.length ? oppAngles.join(" · ") : "ninguno"}
 
 ## INSTRUCCIONES CRÍTICAS DE LOCALIZACIÓN
 ${locale.voice === "voseo" ? 
@@ -1108,11 +1135,12 @@ ${analysisContext}
 ${analysisContext}
 
 ## 🔐 GATES DE CALIDAD (cumplir TODOS o descartar):
-- Gate 1 — Cero genérico: PROHIBIDO títulos vagos ("Mejorar X", "Optimizar Y"). Cada título lleva un dato concreto (%, número, día, producto, área).
+- Gate 0 — HYPER-PERSONALIZACIÓN OBLIGATORIA: cada título Y cada descripción DEBE mencionar por nombre al menos UNO de estos elementos REALES del negocio: un producto/servicio de "Productos/servicios que vende HOY", el nombre del negocio, el subtipo, la ciudad, el cliente objetivo declarado, o un dolor específico declarado. Está PROHIBIDO producir oportunidades que servirían igual a cualquier negocio del sector (ej: "Digitaliza tu inventario en Google Sheets", "Crea tu Perfil de Negocio en Google", "Publica más en Instagram", "Responde reseñas", "Mejora tu presencia digital", "Optimiza tus procesos"). Si el negocio vende "copias, impresiones, anillados" el título debe hablar de copias / impresiones / anillados. Si vende "tarjetas de presentación", debe hablar de tarjetas.
+- Gate 1 — Cero genérico: PROHIBIDO títulos vagos ("Mejorar X", "Optimizar Y"). Cada título lleva un dato concreto (%, número, día, producto real, área). PROHIBIDO recomendar acciones "básicas de setup" (crear Google Business, abrir Instagram, hacer Excel) salvo que el negocio explícitamente no las tenga Y sea el dolor #1.
 - Gate 2 — Cero solapamiento: ninguna oportunidad puede parecerse a otra dentro del lote ni a items existentes (ver lista de "ITEMS EXISTENTES" y "CONCEPTOS RECHAZADOS").
 - Gate 3 — Cero monocultivo: NO todas al mismo objetivo (no 3 promociones, no 3 descuentos, no 3 acciones de redes). Máximo 1 por área.
 - Gate 4 — Diversidad obligatoria entre estas áreas: ventas, marketing, operaciones, reputación, finanzas, equipo, producto, retención, web, local_maps. Priorizar áreas listadas como "poco trabajadas" en el diagnóstico.
-- Gate 5 — Anclaje a datos: cada oportunidad cita un dato/hipótesis del contexto en su campo "evidence.trigger".
+- Gate 5 — Anclaje a datos: cada oportunidad cita un dato/hipótesis del contexto en su campo "evidence.trigger" (ej: "vende copias A4 en Quito y no tiene canal digital de pedidos").
 - Gate 6 — Acción → beneficio → impacto: cada oportunidad tiene acción clara, beneficio explícito y un impacto lógico medible.
 - Gate 7 — Sin inventar métricas: si falta información, declarar la hipótesis ("hipótesis prudente: ...") en vez de fabricar cifras duras.
 - Gate 8 — Priorizar alto impacto + esfuerzo bajo/medio + conexión directa con el punto débil principal (${priorities.weakest_dimension}).
@@ -1257,6 +1285,70 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
         opportunitiesFiltered++;
         continue;
       }
+
+      // Gate 0 — Anti-genérico HYPER-PERSONALIZACIÓN
+      // Rechaza títulos que sirven a cualquier negocio del sector, salvo que
+      // mencionen un elemento REAL del negocio (nombre, subtipo, ciudad,
+      // producto/servicio, cliente objetivo o dolor declarado).
+      const _identity = (brain?.identity_profile as any) || {};
+      const _sectorProf = (brain?.sector_profile as any) || {};
+      const _anchorTokens: string[] = [];
+      const _pushTokens = (v: unknown) => {
+        if (typeof v === "string") {
+          v.toLowerCase()
+            .split(/[\s,·|/;:()\-]+/)
+            .filter((w) => w.length >= 4)
+            .forEach((w) => _anchorTokens.push(w));
+        } else if (Array.isArray(v)) {
+          v.forEach(_pushTokens);
+        }
+      };
+      _pushTokens(business.name);
+      _pushTokens((business as any).city);
+      _pushTokens(_identity.display_name);
+      _pushTokens(_identity.subtype);
+      _pushTokens(_identity.customer_type);
+      _pushTokens(_identity.offerings);
+      _pushTokens(_identity.primary_pains);
+      _pushTokens(_sectorProf.subtype);
+      const _uniqueAnchors = Array.from(new Set(_anchorTokens.filter(t =>
+        !["negocio","empresa","local","tienda","cliente","clientes","servicio","servicios","producto","productos","pequeño","pequeña","principal","mejor","nuevo","nueva","para","como","tipo","actual"].includes(t)
+      )));
+      const combined = `${title} ${description}`.toLowerCase();
+      const hasAnchor = _uniqueAnchors.length === 0
+        ? true // sin identity_profile no podemos exigirlo — dejar pasar
+        : _uniqueAnchors.some((tok) => combined.includes(tok));
+
+      const GENERIC_PATTERNS: RegExp[] = [
+        /perfil de (negocio|empresa) en google/i,
+        /google (my )?business( profile)?/i,
+        /google business/i,
+        /(crea|activa|abrí|abre|activá) tu (cuenta|perfil) (de|en) (google|instagram|facebook|tiktok)/i,
+        /plantilla de google sheets/i,
+        /digitaliza (tu )?(inventario|stock|proceso)/i,
+        /publica (más|mas) en (instagram|redes)/i,
+        /responde (todas )?(las )?rese(ñ|n)as/i,
+        /pide rese(ñ|n)as/i,
+        /mejora tu presencia digital/i,
+        /optimiza tus procesos/i,
+        /crea contenido de valor/i,
+        /aumenta tus ventas/i,
+        /capta m(á|a)s clientes/i,
+        /automatiza procesos/i,
+        /transformaci(o|ó)n digital/i,
+      ];
+      const looksGeneric = GENERIC_PATTERNS.some((re) => re.test(title) || re.test(description.slice(0, 200)));
+      if (looksGeneric && !hasAnchor) {
+        console.log(`[analyze-patterns] Filtered by Gate 0 (genérico + sin anclaje al negocio): "${title}"`);
+        opportunitiesFiltered++;
+        continue;
+      }
+      if (!hasAnchor && _uniqueAnchors.length > 0) {
+        console.log(`[analyze-patterns] Filtered by Gate 0 (sin anclaje real: ${_uniqueAnchors.slice(0,6).join(",")}): "${title}"`);
+        opportunitiesFiltered++;
+        continue;
+      }
+
 
       const area = inferAreaFromSource(opp?.area_tag || opp?.source || title);
       const quota = area === weakArea ? weakAreaQuota : 1;
