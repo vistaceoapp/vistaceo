@@ -550,13 +550,40 @@ function buildAnalysisContext(
   rejectedConcepts: RejectedConcept[],
   locale: LocaleProfile
 ): string {
-  let context = `## NEGOCIO: ${business.name}
-- País: ${business.country || "AR"}
-- Categoría: ${brain?.primary_business_type || business.category || "restaurant"}
+  const identity = (brain?.identity_profile as any) || {};
+  const sectorProf = (brain?.sector_profile as any) || {};
+  const situation = (brain?.current_situation as any) || {};
+  const displayName = identity.display_name || business.name;
+  const subtype = identity.subtype || sectorProf.subtype || null;
+  const modelo = identity.business_model || sectorProf.model || null;
+  const offerings: string[] = Array.isArray(identity.offerings) ? identity.offerings.slice(0, 6) : [];
+  const channels: string[] = Array.isArray(identity.channels) ? identity.channels.slice(0, 6) : [];
+  const customerType = identity.customer_type || null;
+  const primaryPains: string[] = Array.isArray(identity.primary_pains) ? identity.primary_pains.slice(0, 5) : [];
+  const oppAngles: string[] = Array.isArray(identity.opportunity_angles) ? identity.opportunity_angles.slice(0, 5) : [];
+  const stage = identity.business_stage || situation.stage || "active";
+  const city = (business as any).city || null;
+  const address = (business as any).address || null;
+
+  let context = `## NEGOCIO: ${displayName}
+- Nombre comercial exacto: "${business.name}"
+- País: ${business.country || "AR"}${city ? ` · Ciudad: ${city}` : ""}${address ? ` · Dirección: ${address}` : ""}
+- Categoría base: ${brain?.primary_business_type || business.category || "sin definir"}${subtype ? ` · Subtipo: ${subtype}` : ""}
+- Modelo de negocio: ${modelo || "sin definir"}
+- Etapa: ${stage}
 - Foco actual: ${brain?.current_focus || "ventas"}
-- Rating: ${business.avg_rating || "Sin datos"}
+- Rating público: ${business.avg_rating || "Sin datos"}
+- Ticket promedio: ${(business as any).avg_ticket || "sin datos"} · Rango de facturación: ${(business as any).monthly_revenue_range || "sin datos"}
+- Instagram: ${business.instagram_handle || "no cargado"} · Google Place: ${business.google_place_id ? "cargado" : "no cargado"}
 - Moneda: ${locale.currency}
 - Voz: ${locale.voice === "voseo" ? "Usá vos/voseo (Implementá, Creá, Probá)" : "Usa tú/tuteo (Implementa, Crea, Prueba)"}
+
+## PERFIL DE IDENTIDAD REAL (usar SIEMPRE en cada título/descripción)
+- Cliente objetivo: ${customerType || "sin definir"}
+- Productos/servicios que vende HOY: ${offerings.length ? offerings.join(" · ") : "sin definir"}
+- Canales reales de venta: ${channels.length ? channels.join(" · ") : "sin definir"}
+- Dolores concretos declarados: ${primaryPains.length ? primaryPains.join(" · ") : "sin declarar"}
+- Ángulos de oportunidad detectados: ${oppAngles.length ? oppAngles.join(" · ") : "ninguno"}
 
 ## INSTRUCCIONES CRÍTICAS DE LOCALIZACIÓN
 ${locale.voice === "voseo" ? 
