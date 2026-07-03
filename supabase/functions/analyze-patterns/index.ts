@@ -1135,11 +1135,12 @@ ${analysisContext}
 ${analysisContext}
 
 ## 🔐 GATES DE CALIDAD (cumplir TODOS o descartar):
-- Gate 1 — Cero genérico: PROHIBIDO títulos vagos ("Mejorar X", "Optimizar Y"). Cada título lleva un dato concreto (%, número, día, producto, área).
+- Gate 0 — HYPER-PERSONALIZACIÓN OBLIGATORIA: cada título Y cada descripción DEBE mencionar por nombre al menos UNO de estos elementos REALES del negocio: un producto/servicio de "Productos/servicios que vende HOY", el nombre del negocio, el subtipo, la ciudad, el cliente objetivo declarado, o un dolor específico declarado. Está PROHIBIDO producir oportunidades que servirían igual a cualquier negocio del sector (ej: "Digitaliza tu inventario en Google Sheets", "Crea tu Perfil de Negocio en Google", "Publica más en Instagram", "Responde reseñas", "Mejora tu presencia digital", "Optimiza tus procesos"). Si el negocio vende "copias, impresiones, anillados" el título debe hablar de copias / impresiones / anillados. Si vende "tarjetas de presentación", debe hablar de tarjetas.
+- Gate 1 — Cero genérico: PROHIBIDO títulos vagos ("Mejorar X", "Optimizar Y"). Cada título lleva un dato concreto (%, número, día, producto real, área). PROHIBIDO recomendar acciones "básicas de setup" (crear Google Business, abrir Instagram, hacer Excel) salvo que el negocio explícitamente no las tenga Y sea el dolor #1.
 - Gate 2 — Cero solapamiento: ninguna oportunidad puede parecerse a otra dentro del lote ni a items existentes (ver lista de "ITEMS EXISTENTES" y "CONCEPTOS RECHAZADOS").
 - Gate 3 — Cero monocultivo: NO todas al mismo objetivo (no 3 promociones, no 3 descuentos, no 3 acciones de redes). Máximo 1 por área.
 - Gate 4 — Diversidad obligatoria entre estas áreas: ventas, marketing, operaciones, reputación, finanzas, equipo, producto, retención, web, local_maps. Priorizar áreas listadas como "poco trabajadas" en el diagnóstico.
-- Gate 5 — Anclaje a datos: cada oportunidad cita un dato/hipótesis del contexto en su campo "evidence.trigger".
+- Gate 5 — Anclaje a datos: cada oportunidad cita un dato/hipótesis del contexto en su campo "evidence.trigger" (ej: "vende copias A4 en Quito y no tiene canal digital de pedidos").
 - Gate 6 — Acción → beneficio → impacto: cada oportunidad tiene acción clara, beneficio explícito y un impacto lógico medible.
 - Gate 7 — Sin inventar métricas: si falta información, declarar la hipótesis ("hipótesis prudente: ...") en vez de fabricar cifras duras.
 - Gate 8 — Priorizar alto impacto + esfuerzo bajo/medio + conexión directa con el punto débil principal (${priorities.weakest_dimension}).
