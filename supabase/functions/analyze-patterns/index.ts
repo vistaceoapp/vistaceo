@@ -1286,6 +1286,70 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
         continue;
       }
 
+      // Gate 0 — Anti-genérico HYPER-PERSONALIZACIÓN
+      // Rechaza títulos que sirven a cualquier negocio del sector, salvo que
+      // mencionen un elemento REAL del negocio (nombre, subtipo, ciudad,
+      // producto/servicio, cliente objetivo o dolor declarado).
+      const _identity = (brain?.identity_profile as any) || {};
+      const _sectorProf = (brain?.sector_profile as any) || {};
+      const _anchorTokens: string[] = [];
+      const _pushTokens = (v: unknown) => {
+        if (typeof v === "string") {
+          v.toLowerCase()
+            .split(/[\s,·|/;:()\-]+/)
+            .filter((w) => w.length >= 4)
+            .forEach((w) => _anchorTokens.push(w));
+        } else if (Array.isArray(v)) {
+          v.forEach(_pushTokens);
+        }
+      };
+      _pushTokens(business.name);
+      _pushTokens((business as any).city);
+      _pushTokens(_identity.display_name);
+      _pushTokens(_identity.subtype);
+      _pushTokens(_identity.customer_type);
+      _pushTokens(_identity.offerings);
+      _pushTokens(_identity.primary_pains);
+      _pushTokens(_sectorProf.subtype);
+      const _uniqueAnchors = Array.from(new Set(_anchorTokens.filter(t =>
+        !["negocio","empresa","local","tienda","cliente","clientes","servicio","servicios","producto","productos","pequeño","pequeña","principal","mejor","nuevo","nueva","para","como","tipo","actual"].includes(t)
+      )));
+      const combined = `${title} ${description}`.toLowerCase();
+      const hasAnchor = _uniqueAnchors.length === 0
+        ? true // sin identity_profile no podemos exigirlo — dejar pasar
+        : _uniqueAnchors.some((tok) => combined.includes(tok));
+
+      const GENERIC_PATTERNS: RegExp[] = [
+        /perfil de (negocio|empresa) en google/i,
+        /google (my )?business( profile)?/i,
+        /google business/i,
+        /(crea|activa|abrí|abre|activá) tu (cuenta|perfil) (de|en) (google|instagram|facebook|tiktok)/i,
+        /plantilla de google sheets/i,
+        /digitaliza (tu )?(inventario|stock|proceso)/i,
+        /publica (más|mas) en (instagram|redes)/i,
+        /responde (todas )?(las )?rese(ñ|n)as/i,
+        /pide rese(ñ|n)as/i,
+        /mejora tu presencia digital/i,
+        /optimiza tus procesos/i,
+        /crea contenido de valor/i,
+        /aumenta tus ventas/i,
+        /capta m(á|a)s clientes/i,
+        /automatiza procesos/i,
+        /transformaci(o|ó)n digital/i,
+      ];
+      const looksGeneric = GENERIC_PATTERNS.some((re) => re.test(title) || re.test(description.slice(0, 200)));
+      if (looksGeneric && !hasAnchor) {
+        console.log(`[analyze-patterns] Filtered by Gate 0 (genérico + sin anclaje al negocio): "${title}"`);
+        opportunitiesFiltered++;
+        continue;
+      }
+      if (!hasAnchor && _uniqueAnchors.length > 0) {
+        console.log(`[analyze-patterns] Filtered by Gate 0 (sin anclaje real: ${_uniqueAnchors.slice(0,6).join(",")}): "${title}"`);
+        opportunitiesFiltered++;
+        continue;
+      }
+
+
       const area = inferAreaFromSource(opp?.area_tag || opp?.source || title);
       const quota = area === weakArea ? weakAreaQuota : 1;
       const seen = areaCountThisRun[area] || 0;
