@@ -920,14 +920,19 @@ async function processLearningExtract(
       updates.dynamic_memory = dynamicMemory;
     }
 
-    // Process missions_to_create — auto-crea misión cuando el usuario lo pidió
+    // Process missions from chat — auto-crea misión cuando el usuario lo pidió
     // explícitamente. El trigger Free (límite=1) bloqueará automáticamente si excede.
-    const missionsToCreate = learningExtract.missions_to_create as Array<{
+    // Aceptamos ambas claves: `missions_to_create` (legacy) y `missions_suggested`
+    // (matching con el system prompt actual). Esto arregla el silent-fail histórico.
+    const missionsToCreate = (
+      learningExtract.missions_to_create ?? learningExtract.missions_suggested
+    ) as Array<{
       title: string;
       description?: string;
       priority?: string;
       category?: string;
     }> | undefined;
+
     if (missionsToCreate && Array.isArray(missionsToCreate) && missionsToCreate.length > 0) {
       const valid = missionsToCreate.filter(m => m && typeof m.title === "string" && m.title.trim().length > 3).slice(0, 3);
       for (const m of valid) {
