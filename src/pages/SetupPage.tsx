@@ -797,6 +797,17 @@ const SetupPage = () => {
         console.warn('[Setup] Activated email failed (non-blocking):', err);
       });
 
+      // Safety net: disparar seed-initial-insights en background (idempotente vía
+      // settings.seeding_completed_at). Garantiza que aunque el usuario NUNCA
+      // llegue a /app/preparing (abandona en /setup-complete o /setup/enrich),
+      // igual se generen misión + oportunidades + tendencias iniciales.
+      supabase.functions.invoke('seed-initial-insights', {
+        body: { businessId: business.id },
+      }).catch(err => {
+        console.warn('[Setup] seed-initial-insights background failed (non-blocking):', err);
+      });
+
+
       // Aviso interno al admin: setup completado con TODO el contexto del negocio (no bloqueante)
       const answersSummary = data.answers && typeof data.answers === 'object'
         ? Object.entries(data.answers as Record<string, any>)
