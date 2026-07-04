@@ -920,14 +920,19 @@ async function processLearningExtract(
       updates.dynamic_memory = dynamicMemory;
     }
 
-    // Process missions_to_create — auto-crea misión cuando el usuario lo pidió
+    // Process missions from chat — auto-crea misión cuando el usuario lo pidió
     // explícitamente. El trigger Free (límite=1) bloqueará automáticamente si excede.
-    const missionsToCreate = learningExtract.missions_to_create as Array<{
+    // Aceptamos ambas claves: `missions_to_create` (legacy) y `missions_suggested`
+    // (matching con el system prompt actual). Esto arregla el silent-fail histórico.
+    const missionsToCreate = (
+      learningExtract.missions_to_create ?? learningExtract.missions_suggested
+    ) as Array<{
       title: string;
       description?: string;
       priority?: string;
       category?: string;
     }> | undefined;
+
     if (missionsToCreate && Array.isArray(missionsToCreate) && missionsToCreate.length > 0) {
       const valid = missionsToCreate.filter(m => m && typeof m.title === "string" && m.title.trim().length > 3).slice(0, 3);
       for (const m of valid) {
@@ -1169,9 +1174,35 @@ ${personalityPrompt}
 === FIN PERSONALIDAD ===
 ` : "";
 
+    // Build user preferences injection (cross-session learned style + focus).
+    // Se aplica a TODO turno: tono, largo, detalle, formalidad, focos, temas a evitar.
+    let userPrefsInjection = "";
+    if (userPrefs) {
+      const tone = (userPrefs.tone as string) || "";
+      const lengthPref = (userPrefs.length_pref as string) || "";
+      const detailLevel = (userPrefs.detail_level as string) || "";
+      const formality = (userPrefs.formality as string) || "";
+      const focusAreas = (userPrefs.focus_areas as string[]) || [];
+      const avoidTopics = (userPrefs.avoid_topics as string[]) || [];
+      const parts: string[] = [];
+      if (tone) parts.push(`TONO: ${tone}`);
+      if (lengthPref) parts.push(`LARGO PREFERIDO: ${lengthPref}`);
+      if (detailLevel) parts.push(`DETALLE: ${detailLevel}`);
+      if (formality) parts.push(`FORMALIDAD: ${formality}`);
+      if (focusAreas.length) parts.push(`FOCOS DEL USUARIO: ${focusAreas.slice(0, 6).join(", ")}`);
+      if (avoidTopics.length) parts.push(`EVITAR: ${avoidTopics.slice(0, 6).join(", ")}`);
+      if (parts.length) {
+        userPrefsInjection = `
+=== PREFERENCIAS APRENDIDAS DEL USUARIO (aplicá silenciosamente en cada respuesta) ===
+${parts.join("\n")}
+=== FIN PREFERENCIAS ===
+`;
+      }
+    }
+
     // Build context injection message
     const contextInjection = `
-${personalityInjection}
+${personalityInjection}${userPrefsInjection}
 === CONTEXTO DEL NEGOCIO (JSON) ===
 
 CONFIG_JSON:
@@ -1192,6 +1223,7 @@ MESSAGE_JSON:
 
 === FIN CONTEXTO ===
 `;
+
 
     // Prepare messages for AI (with multimodal support for images)
     // Cost-optimized: 12 messages of context preserve coherence while reducing tokens ~40%
