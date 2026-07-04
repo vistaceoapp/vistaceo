@@ -160,13 +160,48 @@ EVIDENCIA: ${JSON.stringify(opportunity?.evidence || {})}
     prompt += `\n💰 RANGO PRECIOS: $${Math.min(...menuItems.map((m: any) => m.price))} - $${Math.max(...menuItems.map((m: any) => m.price))}`;
   }
 
-  // Brain factual memory - KEY DATA
+  // Identity profile — DNI del negocio (offerings, canales, cliente, pains, ángulos).
+  // Mismo bloque que analyze-patterns para que oportunidades hablen del negocio real.
+  const identity = (brain?.identity_profile as Record<string, unknown>) || {};
+  if (identity && Object.keys(identity).length > 0) {
+    prompt += `\n\n===== IDENTIDAD DEL NEGOCIO (ANCLÁ LAS OPORTUNIDADES A ESTO) =====`;
+    const offerings = (identity.offerings as string[]) || (identity.products as string[]) || [];
+    const channels = (identity.channels as string[]) || (identity.channel_mix as string[]) || [];
+    const customer = (identity.customer_type as string) || (identity.target_customer as string) || "";
+    const pains = (identity.primary_pains as string[]) || (identity.pain_points as string[]) || [];
+    const angles = (identity.opportunity_angles as string[]) || [];
+    if (offerings.length) prompt += `\nOFERTA REAL: ${offerings.slice(0, 8).join(", ")}`;
+    if (channels.length) prompt += `\nCANALES: ${channels.slice(0, 6).join(", ")}`;
+    if (customer) prompt += `\nCLIENTE OBJETIVO: ${customer}`;
+    if (pains.length) prompt += `\nDOLORES: ${pains.slice(0, 5).join(" | ")}`;
+    if (angles.length) prompt += `\nÁNGULOS DE OPORTUNIDAD: ${angles.slice(0, 5).join(" | ")}`;
+  }
+
+  // Brain factual memory - KEY DATA (con humanización de arrays de chat-learning)
   if (brain?.factual_memory && Object.keys(brain.factual_memory).length > 0) {
     prompt += `\n\n===== MEMORIA DEL NEGOCIO (DATOS CLAVE) =====`;
     Object.entries(brain.factual_memory).forEach(([key, value]) => {
-      prompt += `\n• ${key.replace(/_/g, ' ').toUpperCase()}: ${value}`;
+      if (Array.isArray(value)) {
+        const pairs = (value as Array<Record<string, unknown>>)
+          .slice(-6)
+          .map(item => {
+            const q = (item.q as string) || (item.question as string) || "";
+            const a = (item.a as string) || (item.answer as string) || "";
+            return q && a ? `${q} → ${a}` : "";
+          })
+          .filter(Boolean);
+        if (pairs.length) {
+          prompt += `\n[${key.replace(/_/g, ' ').toUpperCase()}]`;
+          pairs.forEach(p => { prompt += `\n  • ${p}`; });
+        }
+      } else if (value && typeof value === "object") {
+        prompt += `\n• ${key.replace(/_/g, ' ').toUpperCase()}: ${JSON.stringify(value).slice(0, 200)}`;
+      } else if (value !== null && value !== undefined && value !== "") {
+        prompt += `\n• ${key.replace(/_/g, ' ').toUpperCase()}: ${value}`;
+      }
     });
   }
+
 
   // Business insights - DEEP KNOWLEDGE
   if (businessInsights?.length > 0) {
