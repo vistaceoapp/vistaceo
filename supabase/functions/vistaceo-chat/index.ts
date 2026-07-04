@@ -1174,9 +1174,35 @@ ${personalityPrompt}
 === FIN PERSONALIDAD ===
 ` : "";
 
+    // Build user preferences injection (cross-session learned style + focus).
+    // Se aplica a TODO turno: tono, largo, detalle, formalidad, focos, temas a evitar.
+    let userPrefsInjection = "";
+    if (userPrefs) {
+      const tone = (userPrefs.tone as string) || "";
+      const lengthPref = (userPrefs.length_pref as string) || "";
+      const detailLevel = (userPrefs.detail_level as string) || "";
+      const formality = (userPrefs.formality as string) || "";
+      const focusAreas = (userPrefs.focus_areas as string[]) || [];
+      const avoidTopics = (userPrefs.avoid_topics as string[]) || [];
+      const parts: string[] = [];
+      if (tone) parts.push(`TONO: ${tone}`);
+      if (lengthPref) parts.push(`LARGO PREFERIDO: ${lengthPref}`);
+      if (detailLevel) parts.push(`DETALLE: ${detailLevel}`);
+      if (formality) parts.push(`FORMALIDAD: ${formality}`);
+      if (focusAreas.length) parts.push(`FOCOS DEL USUARIO: ${focusAreas.slice(0, 6).join(", ")}`);
+      if (avoidTopics.length) parts.push(`EVITAR: ${avoidTopics.slice(0, 6).join(", ")}`);
+      if (parts.length) {
+        userPrefsInjection = `
+=== PREFERENCIAS APRENDIDAS DEL USUARIO (aplicá silenciosamente en cada respuesta) ===
+${parts.join("\n")}
+=== FIN PREFERENCIAS ===
+`;
+      }
+    }
+
     // Build context injection message
     const contextInjection = `
-${personalityInjection}
+${personalityInjection}${userPrefsInjection}
 === CONTEXTO DEL NEGOCIO (JSON) ===
 
 CONFIG_JSON:
@@ -1197,6 +1223,7 @@ MESSAGE_JSON:
 
 === FIN CONTEXTO ===
 `;
+
 
     // Prepare messages for AI (with multimodal support for images)
     // Cost-optimized: 12 messages of context preserve coherence while reducing tokens ~40%
