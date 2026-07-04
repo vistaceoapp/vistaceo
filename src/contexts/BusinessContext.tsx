@@ -100,17 +100,29 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
   // Backfill: si el negocio activo está completado pero nunca se sembró el Brain,
   // disparar el seed sectorial una sola vez (idempotente del lado del edge function).
   const seededRef = useRef<Set<string>>(new Set());
+  const insightsSeededRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     const b = currentBusiness;
     if (!b?.id || !b.setup_completed) return;
-    if (seededRef.current.has(b.id)) return;
     const settings = (b.settings as Record<string, unknown> | null) ?? {};
-    if (settings.brain_seeded_at) return;
-    seededRef.current.add(b.id);
-    supabase.functions
-      .invoke("seed-business-brain", { body: { businessId: b.id } })
-      .catch((err) => console.warn("[business] seed backfill falló:", err));
+
+    if (!seededRef.current.has(b.id) && !settings.brain_seeded_at) {
+      seededRef.current.add(b.id);
+      supabase.functions
+        .invoke("seed-business-brain", { body: { businessId: b.id } })
+        .catch((err) => console.warn("[business] seed backfill falló:", err));
+    }
+
+    // Safety net: seed inicial de misión + oportunidades + tendencias si nunca corrió
+    // (usuarios que completaron setup pero nunca llegaron a /app/preparing).
+    if (!insightsSeededRef.current.has(b.id) && !settings.seeding_completed_at) {
+      insightsSeededRef.current.add(b.id);
+      supabase.functions
+        .invoke("seed-initial-insights", { body: { businessId: b.id } })
+        .catch((err) => console.warn("[business] initial insights backfill falló:", err));
+    }
   }, [currentBusiness]);
+
 
   const value = useMemo(
     () => ({ currentBusiness, businesses, loading, setCurrentBusiness, refreshBusinesses }),
