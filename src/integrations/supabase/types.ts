@@ -4301,6 +4301,68 @@ export type Database = {
         }
         Relationships: []
       }
+      setup_question_effectiveness: {
+        Row: {
+          answer_length: number | null
+          answered_at: string
+          business_id: string
+          category: string | null
+          confidence_after: number | null
+          confidence_before: number | null
+          created_at: string
+          field_name: string
+          id: string
+          priority: number | null
+          question_id: string
+          question_text: string | null
+          signals_after: number | null
+          signals_before: number | null
+          source: string | null
+        }
+        Insert: {
+          answer_length?: number | null
+          answered_at?: string
+          business_id: string
+          category?: string | null
+          confidence_after?: number | null
+          confidence_before?: number | null
+          created_at?: string
+          field_name: string
+          id?: string
+          priority?: number | null
+          question_id: string
+          question_text?: string | null
+          signals_after?: number | null
+          signals_before?: number | null
+          source?: string | null
+        }
+        Update: {
+          answer_length?: number | null
+          answered_at?: string
+          business_id?: string
+          category?: string | null
+          confidence_after?: number | null
+          confidence_before?: number | null
+          created_at?: string
+          field_name?: string
+          id?: string
+          priority?: number | null
+          question_id?: string
+          question_text?: string | null
+          signals_after?: number | null
+          signals_before?: number | null
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "setup_question_effectiveness_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       setup_reminder_sends: {
         Row: {
           id: string
@@ -4393,6 +4455,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      silent_reactivation_sends: {
+        Row: {
+          id: string
+          recipient_email: string
+          sent_at: string
+          stage: string
+          user_id: string
+          variant: number | null
+        }
+        Insert: {
+          id?: string
+          recipient_email: string
+          sent_at?: string
+          stage?: string
+          user_id: string
+          variant?: number | null
+        }
+        Update: {
+          id?: string
+          recipient_email?: string
+          sent_at?: string
+          stage?: string
+          user_id?: string
+          variant?: number | null
+        }
+        Relationships: []
       }
       snapshots: {
         Row: {
