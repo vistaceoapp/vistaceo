@@ -16,6 +16,7 @@ import { template as userActivated } from './user-activated.tsx'
 import { template as userProActivated } from './user-pro-activated.tsx'
 import { templateDay1 as userIncompleteDay1, templateDay3 as userIncompleteDay3 } from './user-incomplete-reminder.tsx'
 import { template as userCreditRecovery } from './user-credit-recovery.tsx'
+import { template as userSilentReactivation } from './user-silent-reactivation.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'admin-user-signup': adminUserSignup,
@@ -26,4 +27,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'user-incomplete-reminder-day1': userIncompleteDay1,
   'user-incomplete-reminder-day3': userIncompleteDay3,
   'user-credit-recovery': userCreditRecovery,
+  'user-silent-reactivation': userSilentReactivation,
 }

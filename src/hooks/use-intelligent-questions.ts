@@ -326,6 +326,15 @@ export function useIntelligentQuestions(): UseIntelligentQuestionsResult {
     if (!question) return;
 
     try {
+      // Capture "before" snapshot for effectiveness measurement
+      const beforeSnap = await supabase
+        .from('business_brains')
+        .select('total_signals, confidence_score')
+        .eq('business_id', currentBusiness.id)
+        .maybeSingle();
+      const signalsBefore = beforeSnap.data?.total_signals ?? 0;
+      const confBefore = Number(beforeSnap.data?.confidence_score ?? 0);
+
       // Record as a signal
       await supabase.functions.invoke('brain-record-signal', {
         body: {
@@ -364,7 +373,7 @@ export function useIntelligentQuestions(): UseIntelligentQuestionsResult {
 
       if (brainData) {
         const existingMemory = brainData.factual_memory;
-        const factualMemory: Record<string, unknown> = 
+        const factualMemory: Record<string, unknown> =
           typeof existingMemory === 'object' && existingMemory !== null && !Array.isArray(existingMemory)
             ? { ...existingMemory }
             : {};
@@ -372,12 +381,40 @@ export function useIntelligentQuestions(): UseIntelligentQuestionsResult {
 
         await supabase
           .from('business_brains')
-          .update({ 
+          .update({
             factual_memory: factualMemory as unknown as import('@/integrations/supabase/types').Json,
             last_learning_at: new Date().toISOString(),
           })
           .eq('id', brainData.id);
       }
+
+      // Log effectiveness (fire-and-forget): capture "after" snapshot ~ next tick
+      setTimeout(async () => {
+        try {
+          const after = await supabase
+            .from('business_brains')
+            .select('total_signals, confidence_score')
+            .eq('business_id', currentBusiness.id)
+            .maybeSingle();
+          await supabase.from('setup_question_effectiveness').insert({
+            business_id: currentBusiness.id,
+            question_id: question.id,
+            field_name: question.field_name,
+            question_text: question.question,
+            category: question.category,
+            source: question.source,
+            priority: question.priority,
+            answer_length: String(answer || '').length,
+            signals_before: signalsBefore,
+            signals_after: after.data?.total_signals ?? signalsBefore,
+            confidence_before: confBefore,
+            confidence_after: Number(after.data?.confidence_score ?? confBefore),
+          });
+        } catch (err) {
+          // silent — never block UX
+          console.warn('[useIntelligentQuestions] effectiveness log skipped', err);
+        }
+      }, 1500);
 
       // Remove from list
       setQuestions(prev => prev.filter(q => q.id !== questionId));
