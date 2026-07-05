@@ -77,14 +77,20 @@ serve(async (req) => {
       const updates: Record<string, number> = {};
       
       switch (event_type) {
-        case "login":
+        case "login": {
           updates.logins_count = (existing?.logins_count || 0) + 1;
-          // Also update profile last_login
+          // Update profile last_login + increment TOTAL login_count (not daily).
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("login_count")
+            .eq("id", userId)
+            .maybeSingle();
           await supabase.from("profiles").update({
             last_login_at: new Date().toISOString(),
-            login_count: (existing?.logins_count || 0) + 1,
+            login_count: (prof?.login_count || 0) + 1,
           }).eq("id", userId);
           break;
+        }
         case "mission_start":
           updates.missions_started = (existing?.missions_started || 0) + 1;
           break;
