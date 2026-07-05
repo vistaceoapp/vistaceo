@@ -578,6 +578,19 @@ const SetupPage = () => {
       if (error) throw error;
       setCreateProgress(40);
 
+      // 🧹 Dedupe: eliminar drafts huérfanos (setup_completed=false) del mismo owner
+      // que no sean el business recién completado. Silencioso: nunca rompe la UX.
+      try {
+        await supabase
+          .from('businesses')
+          .delete()
+          .eq('owner_id', user.id)
+          .eq('setup_completed', false)
+          .neq('id', business.id);
+      } catch (dedupeErr) {
+        console.warn('[SetupPage] draft dedupe skipped', dedupeErr);
+      }
+
       // Step 2: Create brain
       const brainData = {
         business_id: business.id,
