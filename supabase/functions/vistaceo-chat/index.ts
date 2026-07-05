@@ -784,44 +784,56 @@ async function processLearningExtract(
     
     if (factsToAdd && Array.isArray(factsToAdd) && factsToAdd.length > 0) {
       const factualMemory = (brain.factual_memory as Record<string, unknown>) || {};
-      
+
+      // Keys that map cleanly to structured factual_memory slots (indexable by generators).
+      const STRUCTURED_KEYS = new Set([
+        'avg_ticket', 'service_model', 'channel_mix', 'staff_size', 'billing_model',
+        'target_audience', 'main_offering', 'main_pain_point', 'competitor_edge',
+        'growth_bottleneck', 'peak_hours', 'seasonality', 'price_range', 'delivery_channel',
+        'lead_source', 'retention_strategy', 'differentiator', 'sales_cycle_days',
+      ]);
+
       for (const fact of factsToAdd) {
         if (fact.key && fact.confidence >= 0.5) {
-          // Group by scope for better organization
+          // Group by scope for better organization (chat history / humanized)
           const scope = fact.scope || "general";
           const scopeKey = `learning_${scope}`;
-          
+
           if (!factualMemory[scopeKey]) {
             factualMemory[scopeKey] = [];
           }
-          
+
           const scopeArray = factualMemory[scopeKey] as unknown[];
-          
-          // Add with timestamp for tracking
+
           const newFact = {
             q: fact.key,
             a: fact.value,
             t: new Date().toISOString(),
             c: fact.confidence,
           };
-          
-          // Avoid duplicates by checking if similar key exists
-          const existingIdx = scopeArray.findIndex((f: any) => 
+
+          const existingIdx = scopeArray.findIndex((f: any) =>
             typeof f === 'object' && f.q === fact.key
           );
-          
+
           if (existingIdx >= 0) {
-            // Update existing
             scopeArray[existingIdx] = newFact;
           } else {
-            // Add new, keep max 15 per scope
             scopeArray.unshift(newFact);
             if (scopeArray.length > 15) {
               scopeArray.pop();
             }
           }
-          
+
           factualMemory[scopeKey] = scopeArray;
+
+          // ALSO propagate structured keys to top-level factual_memory so generators
+          // (mission/opportunity/prediction) can read them without humanization.
+          const normalizedKey = String(fact.key).toLowerCase().replace(/\s+/g, '_');
+          if (STRUCTURED_KEYS.has(normalizedKey) && fact.confidence >= 0.65) {
+            factualMemory[normalizedKey] = fact.value;
+          }
+
           learningCount++;
         }
       }
