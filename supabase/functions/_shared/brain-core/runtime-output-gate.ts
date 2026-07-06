@@ -146,6 +146,8 @@ export async function withRegeneration(
     maxAttempts?: number;
     hasBrainEvidence?: boolean;
     hasConcreteAction?: boolean;
+    anchors?: HyperAnchors;
+    minAnchors?: number;
   } = {},
 ): Promise<{ text: string; regenerated: number; fellBack: boolean; lastReasons: string[] }> {
   const maxAttempts = Math.max(1, Math.min(3, opts.maxAttempts ?? 3));
@@ -163,6 +165,8 @@ export async function withRegeneration(
       kind,
       hasBrainEvidence: opts.hasBrainEvidence,
       hasConcreteAction: opts.hasConcreteAction,
+      anchors: opts.anchors,
+      minAnchors: opts.minAnchors,
     });
     if (r.ok) return { text, regenerated: attempt, fellBack: false, lastReasons: [] };
     lastReasons = r.reasons;
