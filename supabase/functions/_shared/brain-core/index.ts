@@ -18,3 +18,5 @@ export * from "./safe-error-messages.ts";
 export * from "./contextual-terminology.ts";
 export * from "./prompt2-rules.ts";
 export * from "./runtime-output-gate.ts";
+export * from "./hyper-personalization-gate.ts";
+export * from "./email-quality-gate.ts";

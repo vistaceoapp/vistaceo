@@ -1,0 +1,145 @@
+// Brain Core — Hyper-Personalization Gate.
+// Segunda capa sobre extreme-quality-gate. Exige que cualquier salida visible
+// esté anclada en variables REALES del negocio: sector, sub-sector, país,
+// ciudad, cliente objetivo, canal, oferta, fricción o nombre del negocio.
+//
+// Si un output no menciona al menos N anclas concretas del brain, se
+// considera "insuficientemente personalizado" y debe regenerarse.
+
+export interface HyperAnchors {
+  businessName?: string | null;
+  sector?: string | null;
+  subSector?: string | null;
+  country?: string | null;
+  city?: string | null;
+  customer?: string | null;
+  channel?: string | null;
+  offer?: string | null;
+  mainFriction?: string | null;
+  mainGoal?: string | null;
+  competitors?: string[];
+  currency?: string | null;
+}
+
+export interface HyperCheckInput {
+  text: string;
+  anchors: HyperAnchors;
+  /** Mínimo de anclas distintas presentes en el texto. Default 2. */
+  minAnchors?: number;
+  /** Si true, exige al menos una ancla que NO sea sector genérico. */
+  requireSpecific?: boolean;
+}
+
+export interface HyperCheckResult {
+  ok: boolean;
+  matchedAnchors: string[];
+  missingCritical: string[];
+  score: number; // 0..1
+  reasons: string[];
+}
+
+function norm(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tokens(v?: string | null): string[] {
+  if (!v) return [];
+  return norm(v)
+    .split(/[^a-z0-9ñü]+/)
+    .filter((t) => t.length >= 4);
+}
+
+function textIncludesAny(text: string, keywords: string[]): boolean {
+  if (!keywords.length) return false;
+  const n = norm(text);
+  return keywords.some((k) => k.length >= 4 && n.includes(k));
+}
+
+const GENERIC_SECTORS = new Set([
+  "servicios", "negocio", "empresa", "comercio", "tienda", "local",
+  "profesional", "consultoria", "digital", "online",
+]);
+
+export function hyperPersonalizationCheck(input: HyperCheckInput): HyperCheckResult {
+  const a = input.anchors;
+  const text = input.text ?? "";
+  const matched: string[] = [];
+  const reasons: string[] = [];
+
+  const checks: Array<{ key: string; kws: string[]; specific?: boolean }> = [
+    { key: "businessName", kws: tokens(a.businessName), specific: true },
+    { key: "sector", kws: tokens(a.sector), specific: !!a.sector && !GENERIC_SECTORS.has(norm(a.sector)) },
+    { key: "subSector", kws: tokens(a.subSector), specific: true },
+    { key: "country", kws: tokens(a.country), specific: true },
+    { key: "city", kws: tokens(a.city), specific: true },
+    { key: "customer", kws: tokens(a.customer), specific: true },
+    { key: "channel", kws: tokens(a.channel), specific: false },
+    { key: "offer", kws: tokens(a.offer), specific: true },
+    { key: "mainFriction", kws: tokens(a.mainFriction), specific: true },
+    { key: "mainGoal", kws: tokens(a.mainGoal), specific: false },
+    ...(a.competitors ?? []).slice(0, 3).map((c) => ({
+      key: `competitor:${c}`, kws: tokens(c), specific: true,
+    })),
+  ];
+
+  const specificMatches: string[] = [];
+  for (const c of checks) {
+    if (!c.kws.length) continue;
+    if (textIncludesAny(text, c.kws)) {
+      matched.push(c.key);
+      if (c.specific) specificMatches.push(c.key);
+    }
+  }
+
+  const min = Math.max(1, input.minAnchors ?? 2);
+  const missingCritical: string[] = [];
+
+  if (matched.length < min) {
+    reasons.push(`personalización insuficiente: ${matched.length}/${min} anclas presentes`);
+    if (!a.sector) missingCritical.push("sector");
+    if (!a.customer) missingCritical.push("cliente");
+    if (!a.country) missingCritical.push("país");
+  }
+
+  if (input.requireSpecific && specificMatches.length === 0) {
+    reasons.push("sin ancla específica del negocio (solo genéricas)");
+  }
+
+  // Score: proporción de anclas disponibles que aparecen en el texto.
+  const available = checks.filter((c) => c.kws.length > 0).length || 1;
+  const score = Math.min(1, matched.length / Math.max(2, available));
+
+  return {
+    ok: reasons.length === 0,
+    matchedAnchors: matched,
+    missingCritical,
+    score,
+    reasons,
+  };
+}
+
+/**
+ * Fuerza de contexto del brain (0..1). Se usa para decidir si vale la pena
+ * generar contenido o si conviene primero pedirle 1 dato al usuario.
+ */
+export function contextStrengthScore(a: HyperAnchors, signalCount = 0): number {
+  const weights: Array<[keyof HyperAnchors | "signals", number, boolean]> = [
+    ["sector", 0.15, !!a.sector],
+    ["subSector", 0.12, !!a.subSector],
+    ["country", 0.08, !!a.country],
+    ["customer", 0.18, !!a.customer],
+    ["offer", 0.15, !!a.offer],
+    ["mainFriction", 0.14, !!a.mainFriction],
+    ["mainGoal", 0.08, !!a.mainGoal],
+    ["channel", 0.05, !!a.channel],
+    ["signals", 0.05, signalCount >= 3],
+  ];
+  let s = 0;
+  for (const [, w, present] of weights) if (present) s += w;
+  return Math.min(1, s);
+}
