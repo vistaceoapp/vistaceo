@@ -116,6 +116,18 @@ export function runtimeOutputGate(input: GateInput): GateResult {
       break;
   }
 
+  // 3) hyper-personalization: si el caller pasa anchors, exigir presencia
+  if (input.anchors) {
+    const min = input.minAnchors ?? DEFAULT_MIN_ANCHORS[input.kind] ?? 1;
+    const hp = hyperPersonalizationCheck({
+      text: t,
+      anchors: input.anchors,
+      minAnchors: min,
+      requireSpecific: input.kind === "mission" || input.kind === "opportunity",
+    });
+    if (!hp.ok) reasons.push(...hp.reasons);
+  }
+
   return { ok: reasons.length === 0, reasons: Array.from(new Set(reasons)) };
 }
 
