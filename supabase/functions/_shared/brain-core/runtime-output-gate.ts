@@ -57,8 +57,29 @@ const SAFE_FALLBACK_BY_KIND: Record<GateKind, string> = {
     "Lo más rentable ahora es ubicar dónde se pierde la decisión del cliente: en la primera consulta, al ver el precio, en la confianza o en la recompra. Revisá tus últimos 10 contactos y marcá en qué punto se frenó cada uno; ese patrón define la próxima acción y, si me lo contás, la armamos juntos.",
   dashboard:
     "Estoy construyendo la lectura real del negocio. Antes de recomendar acciones, necesito confirmar si la oportunidad está en atraer más clientes, convertir mejor, aumentar ticket o activar recompra.",
+  radar:
+    "Hay una señal externa relevante para el sector. Antes de convertirla en misión, conviene contrastarla con tus datos internos: canal principal, cliente objetivo y último cuello de botella.",
+  analytics:
+    "Los números apuntan a un cuello concreto en la decisión del cliente. Antes de recomendar cambios, conviene confirmar dónde se frena hoy: consulta, precio, confianza o recompra.",
+  email:
+    "Tenemos una novedad para tu negocio. Volvé al panel cuando puedas para revisar lo que preparamos según tu contexto.",
   generic:
     "Necesito un dato más del negocio para darte una recomendación útil y específica.",
+};
+
+// Anclas mínimas requeridas por tipo cuando se provee `anchors`.
+const DEFAULT_MIN_ANCHORS: Record<GateKind, number> = {
+  question: 1,
+  mission: 2,
+  action: 2,
+  opportunity: 2,
+  prediction: 1,
+  chat: 1,
+  dashboard: 1,
+  radar: 2,
+  analytics: 2,
+  email: 1,
+  generic: 1,
 };
 
 export function runtimeOutputGate(input: GateInput): GateResult {
