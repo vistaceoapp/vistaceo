@@ -8,6 +8,10 @@ import {
   isGenericDirectQuestion,
   isForbiddenMissionTitle,
 } from "./prompt2-rules.ts";
+import {
+  hyperPersonalizationCheck,
+  type HyperAnchors,
+} from "./hyper-personalization-gate.ts";
 
 export type GateKind =
   | "question"     // títulos de preguntas del onboarding / próxima mejor pregunta
@@ -17,6 +21,9 @@ export type GateKind =
   | "prediction"   // predicciones prudentes
   | "chat"         // respuestas del chat ejecutivo
   | "dashboard"    // narrativas del dashboard / foco
+  | "radar"        // insights de radar
+  | "analytics"    // interpretación de métricas
+  | "email"        // cuerpo de email (usar emailQualityCheck para subject+body)
   | "generic";
 
 export interface GateInput {
@@ -24,6 +31,10 @@ export interface GateInput {
   kind: GateKind;
   hasBrainEvidence?: boolean;
   hasConcreteAction?: boolean;
+  /** Anclas del brain para exigir personalización. Opcional. */
+  anchors?: HyperAnchors;
+  /** Mínimo de anclas del brain requeridas en el texto. Default por kind. */
+  minAnchors?: number;
 }
 
 export interface GateResult {
