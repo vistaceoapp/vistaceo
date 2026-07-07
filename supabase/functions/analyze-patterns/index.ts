@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { validateBeforeStore } from "../_shared/validate-before-store.ts";
 import { sanitizeAIOutput, containsForbidden } from "../_shared/ai-output-sanitizer.ts";
 import { humanizeEvidence } from "../_shared/humanize-evidence.ts";
+import { hyperPersonalizationCheck, type HyperAnchors } from "../_shared/brain-core/hyper-personalization-gate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
