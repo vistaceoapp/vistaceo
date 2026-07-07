@@ -10,22 +10,17 @@ Objetivo: elevar a nivel executive el nivel de personalización y coherencia en 
 - [ ] `weekly-insight-scan` / radar: mismo gate.
 - [ ] `send-transactional-email` / templates de re-engagement: aplicar `emailQualityGate` + hyper anchors.
 
-## Fase 2 — CLARIFY que recalcula setup
+## Fase 2 — CLARIFY que recalcula setup ✅
 
-Cuando el usuario responde `__CLARIFY__` con texto libre (ej: "trabajo en empresa exportadora, no hago consultoría"):
-- [ ] Nuevo edge fn `setup-reinterpret` que consume la respuesta cruda + businessTypeId actual y decide si:
-  - Cambiar `businessTypeId` / `sub_sector` / `area`
-  - Descartar preguntas irrelevantes ya respondidas
-  - Reordenar el resto del cuestionario
-- [ ] Hook en `SetupStepQuestionnaire` para invocar `setup-reinterpret` tras cada CLARIFY con >20 chars.
-- [ ] Persistir "reinterpretación" en `businesses.business_profile.reinterpretations` para auditoría.
+- [x] Nuevo edge fn `setup-reinterpret` que consume la respuesta CLARIFY + businessTypeId/areaId actuales, llama a Gemini y devuelve `{ areaId, businessTypeId, subSector, confidence, invalidatesPrior }`.
+- [x] Persiste histórico en `businesses.settings.reinterpretations` (últimos 10).
+- [x] Hook en `SetupStepQuestionnaire.handleCustomSubmit`: dispara reinterpret cuando `trimmed.length >= 20` (fire-and-forget).
 
-## Fase 3 — Setups atascados (0% precisión, businessType incorrecto)
+## Fase 3 — Setups atascados (0% precisión, businessType incorrecto) ✅ (base)
 
-Ej: Joseph PE, businessTypeLabel="Taller de Escritura Creativa" pero businessName vacío, paso 1-2, 0 respuestas.
-- [ ] Detector: si `precisión = 0%` **y** `businessName` vacío **y** `questionIndex = 0` en >5 min → limpiar businessTypeId y forzar re-selección.
-- [ ] En `SetupStepType`: mostrar botón "no me representa" que dispara `setup-reinterpret` con las pistas recolectadas.
-- [ ] Admin: agregar acción "reset setup" en `AdminSetupAnswersPage`.
+- [x] Nuevo edge fn `admin-reset-setup`: valida rol admin, limpia `businesses.setup_completed/precision_score/settings.setup_reset_at` y `business_setup_progress` (setup_data, current_step='type', precision=0).
+- [x] Botón "Resetear setup" en cada card de `AdminSetupAnswersPage` con confirmación.
+- [ ] Detector cliente-side: si `precisión = 0%` + sin respuestas + >5 min → autoreset o CTA "no me representa".
 
 ## Fase 4 — Loop Chat→Brain→Generadores hyperconectado
 
@@ -33,7 +28,8 @@ Ej: Joseph PE, businessTypeLabel="Taller de Escritura Creativa" pero businessNam
 - [ ] Trigger DB: cuando `signals` gana un `confirmed_fact` de alta confianza, marcar oportunidades stale del mismo área.
 - [ ] Regenerar oportunidad afectada con el nuevo contexto en el próximo scan.
 
-## Fase 5 — Emails ultra-personalizados
+## Fase 5 — Emails ultra-personalizados ✅ (base)
 
-- [ ] Todos los templates `_shared/transactional-email-templates/*` que reciban `templateData` deben pasar por `emailQualityGate` antes de enviar.
-- [ ] Bloquear envíos si el gate reporta gancho genérico o placeholder no reemplazado.
+- [x] `send-transactional-email` aplica `emailQualityCheck` antes de encolar. Bloquea envíos genéricos/spammy para templates de reactivación/recovery (detección por nombre). Los transaccionales puros no requieren anchors.
+- [x] Log en `email_send_log` con `status='failed'` + `error_message` cuando el gate bloquea.
+- [ ] Extender a todos los generadores server-side (reactivation, silent, incomplete setup) para pasar `templateData` con businessName, sector, city.

@@ -2,6 +2,7 @@ import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
+import { emailQualityCheck } from '../_shared/brain-core/email-quality-gate.ts'
 
 // Configuration baked in at scaffold time — do NOT change these manually.
 // To update, re-run the email domain setup flow.
@@ -314,6 +315,54 @@ Deno.serve(async (req) => {
     typeof template.subject === 'function'
       ? template.subject(templateData)
       : template.subject
+
+  // Email Quality Gate — bloquea envío de emails genéricos, spammy o sin
+  // personalización mínima. Se aplica antes de encolar. Si el gate falla,
+  // se registra en email_send_log con status 'blocked_quality' y NO se envía.
+  try {
+    const anchors = {
+      businessName: (templateData?.businessName as string) ?? (templateData?.name as string) ?? null,
+      sector: (templateData?.sector as string) ?? null,
+      subSector: (templateData?.subSector as string) ?? null,
+      country: (templateData?.countryCode as string) ?? (templateData?.country as string) ?? null,
+      city: (templateData?.city as string) ?? null,
+      customer: (templateData?.customer as string) ?? null,
+      channel: (templateData?.channel as string) ?? null,
+      offer: (templateData?.offer as string) ?? null,
+      mainFriction: (templateData?.friction as string) ?? null,
+      mainGoal: (templateData?.goal as string) ?? null,
+    }
+    const isRecoveryLike = /reactiv|recovery|reminder|silent|reengagement/i.test(templateName)
+    // Solo aplicamos hyper-anchors a emails de reactivación/recovery. Los transaccionales
+    // puros (confirmación, unsubscribe, etc.) no requieren personalización profunda.
+    const gate = emailQualityCheck({
+      subject: resolvedSubject,
+      body: plainText,
+      anchors,
+      kind: isRecoveryLike ? 'reactivation' : 'transactional',
+      minAnchors: isRecoveryLike ? 1 : 0,
+    })
+    if (!gate.ok && isRecoveryLike) {
+      console.warn('[send-transactional-email] blocked by quality gate', {
+        templateName,
+        reasons: gate.reasons,
+        personalizationScore: gate.personalizationScore,
+      })
+      await supabase.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: templateName,
+        recipient_email: effectiveRecipient,
+        status: 'failed',
+        error_message: `quality_gate_blocked: ${gate.reasons.slice(0, 3).join('; ')}`,
+      })
+      return new Response(
+        JSON.stringify({ success: false, reason: 'quality_gate_blocked', details: gate.reasons }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+  } catch (gateErr) {
+    console.warn('[send-transactional-email] quality gate error (allowing)', gateErr)
+  }
 
   // 5. Enqueue the pre-rendered email for async processing by the dispatcher.
   // The dispatcher (process-email-queue) handles sending, retries, and rate-limit backoff.

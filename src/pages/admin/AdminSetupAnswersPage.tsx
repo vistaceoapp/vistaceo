@@ -4,7 +4,8 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronRight, Search, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search, RefreshCw, CheckCircle2, Clock, RotateCcw } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import {
   QUESTION_LABELS, labelForField, labelForQuestion, labelForAnswer,
   labelForValue, formatDateEs,
@@ -113,6 +114,20 @@ export default function AdminSetupAnswersPage() {
 
   useEffect(() => { load(); }, []);
 
+  const handleResetSetup = async (businessId: string, name: string) => {
+    if (!confirm(`¿Resetear el setup de "${name}"? Esto borra las respuestas y vuelve al paso inicial. Es irreversible.`)) return;
+    const { data, error } = await supabase.functions.invoke('admin-reset-setup', {
+      body: { businessId },
+    });
+    if (error || !(data as any)?.ok) {
+      toast({ title: 'No se pudo resetear', description: error?.message || (data as any)?.error || 'Error desconocido', variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Setup reseteado', description: `${name} vuelve al paso inicial.` });
+    load();
+  };
+
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     return rows.filter((r) => {
@@ -211,6 +226,17 @@ export default function AdminSetupAnswersPage() {
 
               {open && (
                 <div className="border-t bg-muted/20 p-4 md:p-6 space-y-3">
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => { e.stopPropagation(); handleResetSetup(r.business_id, r.business_name); }}
+                      className="gap-2 text-destructive hover:text-destructive"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Resetear setup
+                    </Button>
+                  </div>
                   {entries.length === 0 && (
                     <div className="text-sm text-muted-foreground italic">Sin datos guardados.</div>
                   )}
