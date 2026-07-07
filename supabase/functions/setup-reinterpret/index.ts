@@ -134,7 +134,7 @@ Devuelve SOLO este JSON:
       });
     }
 
-    // Persist en business_profile.reinterpretations si hay businessId
+    // Persist en businesses.settings.reinterpretations si hay businessId
     if (payload.businessId) {
       try {
         const supabase = createClient(
@@ -144,11 +144,11 @@ Devuelve SOLO este JSON:
         );
         const { data: biz } = await supabase
           .from("businesses")
-          .select("business_profile")
+          .select("settings")
           .eq("id", payload.businessId)
           .maybeSingle();
-        const profile = (biz?.business_profile as Record<string, unknown>) ?? {};
-        const prev = Array.isArray(profile.reinterpretations) ? profile.reinterpretations : [];
+        const settings = (biz?.settings as Record<string, unknown>) ?? {};
+        const prev = Array.isArray(settings.reinterpretations) ? settings.reinterpretations : [];
         const next = [
           ...prev.slice(-9),
           {
@@ -171,7 +171,7 @@ Devuelve SOLO este JSON:
         ];
         await supabase
           .from("businesses")
-          .update({ business_profile: { ...profile, reinterpretations: next } })
+          .update({ settings: { ...settings, reinterpretations: next } })
           .eq("id", payload.businessId);
       } catch (e) {
         console.warn("[setup-reinterpret] persist failed", e);
