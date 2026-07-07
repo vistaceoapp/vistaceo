@@ -114,6 +114,20 @@ export default function AdminSetupAnswersPage() {
 
   useEffect(() => { load(); }, []);
 
+  const handleResetSetup = async (businessId: string, name: string) => {
+    if (!confirm(`¿Resetear el setup de "${name}"? Esto borra las respuestas y vuelve al paso inicial. Es irreversible.`)) return;
+    const { data, error } = await supabase.functions.invoke('admin-reset-setup', {
+      body: { businessId },
+    });
+    if (error || !(data as any)?.ok) {
+      toast({ title: 'No se pudo resetear', description: error?.message || (data as any)?.error || 'Error desconocido', variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Setup reseteado', description: `${name} vuelve al paso inicial.` });
+    load();
+  };
+
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     return rows.filter((r) => {
