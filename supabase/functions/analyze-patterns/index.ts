@@ -1431,6 +1431,39 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
         continue;
       }
 
+      // HYPER-PERSONALIZATION GATE — la oportunidad debe anclar al menos 2
+      // variables reales del negocio (sector, ciudad, cliente, oferta, canal, fricción…).
+      // Bloquea outputs tipo "arma tu servicio consultoría" si el usuario aclaró
+      // que NO hace consultoría, y en general genéricos disfrazados.
+      try {
+        const bp: any = (business as any).business_profile || {};
+        const anchors: HyperAnchors = {
+          businessName: (business as any).name || (business as any).business_name,
+          sector: (business as any).sector || bp.sector,
+          subSector: (business as any).sub_sector || bp.sub_sector || (business as any).business_type_label,
+          country: (business as any).country || (business as any).country_code,
+          city: (business as any).city || bp.city,
+          customer: bp.customer || bp.target_customer,
+          channel: bp.channel || bp.main_channel,
+          offer: bp.offer || bp.value_proposition,
+          mainFriction: bp.main_friction || bp.friction,
+          mainGoal: (business as any).main_goal || bp.main_goal,
+        };
+        const hyper = hyperPersonalizationCheck({
+          text: `${safeTitle}. ${safeDescription}`,
+          anchors,
+          minAnchors: 2,
+          requireSpecific: true,
+        });
+        if (!hyper.ok) {
+          console.log(`[hyper-gate] dropped opportunity (score=${hyper.score.toFixed(2)}, matched=${hyper.matchedAnchors.join("|")}, reasons=${hyper.reasons.join(";")}): "${safeTitle}"`);
+          opportunitiesFiltered++;
+          continue;
+        }
+      } catch (e) {
+        console.warn("[hyper-gate] check failed, allowing:", e instanceof Error ? e.message : e);
+      }
+
       const { error: insertError } = await supabase.from("opportunities").insert({
         business_id: businessId,
         title: safeTitle,
