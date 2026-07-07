@@ -58,7 +58,7 @@ serve(async (req) => {
 
     const { data: biz } = await admin
       .from("businesses")
-      .select("id, business_profile, settings")
+      .select("id, settings")
       .eq("id", businessId)
       .maybeSingle();
     if (!biz) {
@@ -68,36 +68,43 @@ serve(async (req) => {
       });
     }
 
-    const profile = (biz.business_profile as Record<string, unknown>) ?? {};
     const settings = (biz.settings as Record<string, unknown>) ?? {};
-    const auditTrail = Array.isArray(profile.reset_history) ? profile.reset_history : [];
-    const nextProfile = {
-      ...profile,
+    const auditTrail = Array.isArray(settings.reset_history) ? settings.reset_history : [];
+    const nextSettings = {
+      ...settings,
+      setup_reset_at: new Date().toISOString(),
       reset_history: [
         ...auditTrail.slice(-9),
         { at: new Date().toISOString(), by: user.id, reason: "admin_manual_reset" },
       ],
     };
 
-    const { error } = await admin
+    const { error: bizErr } = await admin
       .from("businesses")
       .update({
         setup_completed: false,
         precision_score: 0,
-        setup_data: {},
-        business_type_id: null,
-        area_id: null,
-        business_profile: nextProfile,
-        settings: { ...settings, setup_reset_at: new Date().toISOString() },
+        settings: nextSettings,
       })
       .eq("id", businessId);
 
-    if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
+    if (bizErr) {
+      return new Response(JSON.stringify({ error: bizErr.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Reset setup progress (setup_data, current_step, precision)
+    await admin
+      .from("business_setup_progress")
+      .update({
+        setup_data: {},
+        current_step: "type",
+        precision_score: 0,
+        completed_at: null,
+      })
+      .eq("business_id", businessId);
 
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
