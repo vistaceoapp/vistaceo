@@ -690,6 +690,23 @@ export const SetupStepQuestionnaire = ({
     if (trimmed) {
       // Aclaración real del usuario: prioridad alta en el brain.
       handleAnswer({ type: '__CLARIFY__', text: trimmed, source: 'user_clarification' });
+
+      // Si el usuario escribió >20 chars, disparar re-interpretación del setup
+      // en background. Si el LLM detecta que area/businessType actuales son
+      // incorrectos, se registra en settings.reinterpretations para trazabilidad
+      // y el próximo batch de preguntas se generará con contexto corregido.
+      if (trimmed.length >= 20 && draftBusinessId) {
+        invokeEdgeFunctionSafe('setup-reinterpret', {
+          body: {
+            businessId: draftBusinessId,
+            clarifyText: trimmed,
+            currentAreaId: areaId,
+            currentBusinessTypeId: businessTypeId,
+            countryCode,
+            questionTitle: (currentQuestion as any)?.title?.es ?? null,
+          },
+        }).catch(() => { /* silencioso: no bloquea el flujo */ });
+      }
     } else {
       // Sin texto: se guarda como "No sé" (dato pendiente de validar, sin penalización).
       handleAnswer({ type: '__NO_SE__', text: 'No sé', source: 'user_unknown' });
