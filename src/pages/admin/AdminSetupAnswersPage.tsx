@@ -226,6 +226,17 @@ export default function AdminSetupAnswersPage() {
 
               {open && (
                 <div className="border-t bg-muted/20 p-4 md:p-6 space-y-3">
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => { e.stopPropagation(); handleResetSetup(r.business_id, r.business_name); }}
+                      className="gap-2 text-destructive hover:text-destructive"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Resetear setup
+                    </Button>
+                  </div>
                   {entries.length === 0 && (
                     <div className="text-sm text-muted-foreground italic">Sin datos guardados.</div>
                   )}
