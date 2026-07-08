@@ -577,6 +577,52 @@ export const SetupStepQuestionnaire = ({
     return () => clearInterval(interval);
   }, [isLoadingFirst, loadingMessages.length]);
 
+  // Track elapsed loading time to reveal "start over" CTA when stuck
+  useEffect(() => {
+    if (!isLoadingFirst) { setLoadingElapsed(0); return; }
+    const started = Date.now();
+    const t = setInterval(() => setLoadingElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(t);
+  }, [isLoadingFirst]);
+
+  // Self-service escape hatch: cuando el setup no representa al usuario o está atascado.
+  // Limpia estado local, reporta incidente (no requiere admin) y reinicia.
+  const handleNotRepresentative = useCallback(async () => {
+    try {
+      supabase.functions
+        .invoke('report-incident', {
+          body: {
+            source: 'app',
+            category: 'setup',
+            severity: 'high',
+            title: 'Usuario marcó setup como no representativo (self-service)',
+            where_path: typeof window !== 'undefined' ? window.location.pathname : null,
+            detected_by: 'SetupStepQuestionnaire',
+            context: {
+              businessTypeId,
+              areaId,
+              countryCode,
+              setupMode,
+              questionsLoaded: questions.length,
+              loadingElapsed,
+              draftBusinessId,
+            },
+            fingerprint: `not_representative:${draftBusinessId ?? 'nodraft'}:${businessTypeId}`,
+          },
+        })
+        .catch(() => undefined);
+    } catch { /* noop */ }
+    try {
+      localStorage.removeItem('setupUniversalProfile');
+      localStorage.removeItem('setupProgress');
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('vc:questions:cache:') || k.startsWith('setupQuestionnaireCache'))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch { /* noop */ }
+    if (typeof window !== 'undefined') window.location.assign('/setup');
+  }, [businessTypeId, areaId, countryCode, setupMode, questions.length, loadingElapsed, draftBusinessId]);
+
+
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
   const progress = totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
