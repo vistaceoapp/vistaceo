@@ -20,13 +20,14 @@ Objetivo: elevar a nivel executive el nivel de personalización y coherencia en 
 
 - [x] Nuevo edge fn `admin-reset-setup`: valida rol admin, limpia `businesses.setup_completed/precision_score/settings.setup_reset_at` y `business_setup_progress` (setup_data, current_step='type', precision=0).
 - [x] Botón "Resetear setup" en cada card de `AdminSetupAnswersPage` con confirmación.
-- [ ] Detector cliente-side: si `precisión = 0%` + sin respuestas + >5 min → autoreset o CTA "no me representa".
+- [x] Detector cliente-side `use-stuck-setup-detector`: dispara CTA "esto no me representa" + `admin-reset-setup` cuando precisión = 0% en pasos iniciales > 5 min.
 
-## Fase 4 — Loop Chat→Brain→Generadores hyperconectado
+## Fase 4 — Loop Chat→Brain→Generadores hyperconectado ✅ (base)
 
-- [ ] Cada mensaje del chat con hechos nuevos (LearnedFact) debe invalidar cache de oportunidades relacionadas (`concept_hash` que tocan la misma área).
-- [ ] Trigger DB: cuando `signals` gana un `confirmed_fact` de alta confianza, marcar oportunidades stale del mismo área.
-- [ ] Regenerar oportunidad afectada con el nuevo contexto en el próximo scan.
+- [x] Nueva edge fn `invalidate-stale-opportunities`: marca oportunidades activas cuyo título/descr matchea keywords del hecho como `repair_status='stale'` con `evidence.staleReason`.
+- [x] `enrich-brain-from-text` invoca la invalidación fire-and-forget con las keywords/campos de cada `learned_fact`.
+- [ ] Extender a `vistaceo-chat` (LearnedFact directo desde el mensaje) y a `onboarding-ingest` (confirmed_fact de alta confianza).
+- [ ] Trigger DB opcional: cuando `signals.kind='confirmed_fact'` con conf ≥ 0.8, disparar la invalidación server-side.
 
 ## Fase 5 — Emails ultra-personalizados ✅ (base)
 
