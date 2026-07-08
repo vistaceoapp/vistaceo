@@ -879,9 +879,26 @@ export const SetupStepQuestionnaire = ({
             />
           ))}
         </div>
+
+        {loadingElapsed >= 20 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center gap-2 pt-4"
+          >
+            <p className="text-xs text-muted-foreground">
+              {lang === 'pt-BR' ? 'Está demorando mais que o normal.' : 'Está tardando más de lo normal.'}
+            </p>
+            <Button variant="ghost" size="sm" onClick={handleNotRepresentative} className="gap-2 text-muted-foreground hover:text-foreground">
+              <RefreshCw className="w-3.5 h-3.5" />
+              {lang === 'pt-BR' ? 'Isto não me representa — começar de novo' : 'Esto no me representa — empezar de nuevo'}
+            </Button>
+          </motion.div>
+        )}
       </div>
     );
   }
+
 
   // ============= ERROR STATE =============
   if (generationError && questions.length === 0) {
