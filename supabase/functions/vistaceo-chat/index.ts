@@ -991,10 +991,35 @@ async function processLearningExtract(
       importance: 7,
     });
 
+    // Fase 4 — invalidar oportunidades stale cuando el chat aportó facts_to_add nuevos.
+    // Fire-and-forget: no bloqueamos el turno del chat si esto falla o tarda.
+    try {
+      const factsToAddArr = (learningExtract.facts_to_add as Array<{ key?: string; value?: unknown; confidence?: number }> | undefined) ?? [];
+      const highConfFacts = factsToAddArr.filter((f) => (f?.confidence ?? 0) >= 0.6 && f?.key);
+      if (highConfFacts.length > 0) {
+        const keywords = Array.from(
+          new Set(
+            highConfFacts
+              .flatMap((f) => [String(f.value ?? ""), String(f.key ?? "")])
+              .map((s) => s.toLowerCase())
+              .flatMap((s) => s.split(/[\s,.;:/()\-]+/))
+              .filter((w) => w.length >= 4),
+          ),
+        ).slice(0, 10);
+        const fields = highConfFacts.map((f) => String(f.key));
+        supabase.functions
+          .invoke("invalidate-stale-opportunities", {
+            body: { businessId, keywords, fields, reason: "chat_learned_fact" },
+          })
+          .catch(() => undefined);
+      }
+    } catch { /* nunca romper aprendizaje de chat */ }
+
   } catch (error) {
     console.error("Error processing learning extract:", error);
   }
 }
+
 
 // =====================
 // Main Handler
