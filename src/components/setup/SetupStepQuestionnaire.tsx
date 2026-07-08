@@ -369,6 +369,7 @@ export const SetupStepQuestionnaire = ({
   const [isLoadingFirst, setIsLoadingFirst] = useState(!hasCache);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [generationError, setGenerationError] = useState(false);
+  const [loadingElapsed, setLoadingElapsed] = useState(0);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
@@ -376,6 +377,7 @@ export const SetupStepQuestionnaire = ({
   const backgroundFetchStarted = useRef(false);
   const allBatchesDone = useRef(cacheComplete);
   const firstBatchStarted = useRef(hasCache); // si hay cache, no re-pedimos el primer batch
+
   const latestAnswersRef = useRef(answers);
   // Fuente de verdad síncrona del array de preguntas (para el loop progresivo en background)
   const questionsRef = useRef<UniversalQuestion[]>(hasCache ? cacheData!.questions : []);
