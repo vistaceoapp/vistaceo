@@ -143,6 +143,34 @@ Texto del usuario:
       }
     }
 
+    // Fase 4 — invalidar oportunidades relacionadas al hecho recién aprendido.
+    // Fire-and-forget: no bloqueamos la respuesta al usuario.
+    if (facts.length > 0) {
+      try {
+        const keywords = Array.from(
+          new Set(
+            facts
+              .flatMap((f) => [String(f.value ?? ""), String(f.field ?? "")])
+              .map((s) => s.toLowerCase())
+              .flatMap((s) => s.split(/[\s,.;:/()\-]+/))
+              .filter((w) => w.length >= 4),
+          ),
+        ).slice(0, 10);
+        const fields = facts.map((f) => String(f.field));
+        // No await: no queremos bloquear la UX si es lento.
+        supabase.functions
+          .invoke("invalidate-stale-opportunities", {
+            body: {
+              businessId: body.businessId,
+              keywords,
+              fields,
+              reason: `learned_fact:${body.source}`,
+            },
+          })
+          .catch(() => undefined);
+      } catch { /* nunca romper enrich */ }
+    }
+
     return json({ ok: true, learned: facts, summary });
   } catch (e) {
     return json({ error: "unexpected", detail: String((e as Error)?.message ?? e) }, 500);
