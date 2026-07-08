@@ -936,9 +936,14 @@ export const SetupStepQuestionnaire = ({
             {lang === 'pt-BR' ? 'Pular' : 'Omitir'}
           </Button>
         </div>
+        <Button variant="link" size="sm" onClick={handleNotRepresentative} className="text-muted-foreground hover:text-foreground gap-2">
+          <RefreshCw className="w-3.5 h-3.5" />
+          {lang === 'pt-BR' ? 'Isto não me representa — começar de novo' : 'Esto no me representa — empezar de nuevo'}
+        </Button>
       </div>
     );
   }
+
 
   if (!currentQuestion && !isLoadingFirst && questions.length > 0) {
     setTimeout(() => setCurrentIndex(Math.max(0, Math.min(currentIndex, questions.length - 1))), 0);
