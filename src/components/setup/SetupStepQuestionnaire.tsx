@@ -369,6 +369,7 @@ export const SetupStepQuestionnaire = ({
   const [isLoadingFirst, setIsLoadingFirst] = useState(!hasCache);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [generationError, setGenerationError] = useState(false);
+  const [loadingElapsed, setLoadingElapsed] = useState(0);
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 2;
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
@@ -376,6 +377,7 @@ export const SetupStepQuestionnaire = ({
   const backgroundFetchStarted = useRef(false);
   const allBatchesDone = useRef(cacheComplete);
   const firstBatchStarted = useRef(hasCache); // si hay cache, no re-pedimos el primer batch
+
   const latestAnswersRef = useRef(answers);
   // Fuente de verdad síncrona del array de preguntas (para el loop progresivo en background)
   const questionsRef = useRef<UniversalQuestion[]>(hasCache ? cacheData!.questions : []);
@@ -574,6 +576,52 @@ export const SetupStepQuestionnaire = ({
     }, 2500);
     return () => clearInterval(interval);
   }, [isLoadingFirst, loadingMessages.length]);
+
+  // Track elapsed loading time to reveal "start over" CTA when stuck
+  useEffect(() => {
+    if (!isLoadingFirst) { setLoadingElapsed(0); return; }
+    const started = Date.now();
+    const t = setInterval(() => setLoadingElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(t);
+  }, [isLoadingFirst]);
+
+  // Self-service escape hatch: cuando el setup no representa al usuario o está atascado.
+  // Limpia estado local, reporta incidente (no requiere admin) y reinicia.
+  const handleNotRepresentative = useCallback(async () => {
+    try {
+      supabase.functions
+        .invoke('report-incident', {
+          body: {
+            source: 'app',
+            category: 'setup',
+            severity: 'high',
+            title: 'Usuario marcó setup como no representativo (self-service)',
+            where_path: typeof window !== 'undefined' ? window.location.pathname : null,
+            detected_by: 'SetupStepQuestionnaire',
+            context: {
+              businessTypeId,
+              areaId,
+              countryCode,
+              setupMode,
+              questionsLoaded: questions.length,
+              loadingElapsed,
+              draftBusinessId,
+            },
+            fingerprint: `not_representative:${draftBusinessId ?? 'nodraft'}:${businessTypeId}`,
+          },
+        })
+        .catch(() => undefined);
+    } catch { /* noop */ }
+    try {
+      localStorage.removeItem('setupUniversalProfile');
+      localStorage.removeItem('setupProgress');
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith('vc:questions:cache:') || k.startsWith('setupQuestionnaireCache'))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch { /* noop */ }
+    if (typeof window !== 'undefined') window.location.assign('/setup');
+  }, [businessTypeId, areaId, countryCode, setupMode, questions.length, loadingElapsed, draftBusinessId]);
+
 
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
@@ -831,9 +879,26 @@ export const SetupStepQuestionnaire = ({
             />
           ))}
         </div>
+
+        {loadingElapsed >= 20 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center gap-2 pt-4"
+          >
+            <p className="text-xs text-muted-foreground">
+              {lang === 'pt-BR' ? 'Está demorando mais que o normal.' : 'Está tardando más de lo normal.'}
+            </p>
+            <Button variant="ghost" size="sm" onClick={handleNotRepresentative} className="gap-2 text-muted-foreground hover:text-foreground">
+              <RefreshCw className="w-3.5 h-3.5" />
+              {lang === 'pt-BR' ? 'Isto não me representa — começar de novo' : 'Esto no me representa — empezar de nuevo'}
+            </Button>
+          </motion.div>
+        )}
       </div>
     );
   }
+
 
   // ============= ERROR STATE =============
   if (generationError && questions.length === 0) {
@@ -871,9 +936,14 @@ export const SetupStepQuestionnaire = ({
             {lang === 'pt-BR' ? 'Pular' : 'Omitir'}
           </Button>
         </div>
+        <Button variant="link" size="sm" onClick={handleNotRepresentative} className="text-muted-foreground hover:text-foreground gap-2">
+          <RefreshCw className="w-3.5 h-3.5" />
+          {lang === 'pt-BR' ? 'Isto não me representa — começar de novo' : 'Esto no me representa — empezar de nuevo'}
+        </Button>
       </div>
     );
   }
+
 
   if (!currentQuestion && !isLoadingFirst && questions.length > 0) {
     setTimeout(() => setCurrentIndex(Math.max(0, Math.min(currentIndex, questions.length - 1))), 0);
