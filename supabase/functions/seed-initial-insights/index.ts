@@ -187,65 +187,27 @@ Deno.serve(async (req) => {
 
     const qualityReasons: string[] = [];
 
-    // Target: 2 opportunities (Free plan ships with 2 from day one)
+    // ZERO-GENERIC POLICY (opps + trends): NO insertamos oportunidades/trends
+    // hardcoded ("Perfil de Google", "oferta estrella en Instagram", etc.).
+    // Esos fallbacks arruinan la percepción para negocios B2B, consultoría,
+    // SaaS, real estate, etc. Si analyze-patterns no produjo nada personalizado,
+    // preferimos radar vacío antes que radar con recomendaciones que no
+    // corresponden al negocio. La UI ya maneja el estado "en preparación".
     if ((oppCount || 0) < 2) {
-      const needed = 2 - (oppCount || 0);
-      let inserted = 0;
-      for (const opp of GENERIC_OPPS) {
-        if (inserted >= needed) break;
-        const seedGate = gateSeedInsight({ title: opp.title, description: opp.description });
-        const audit = validateBeforeStore({
-          module: 'opportunity',
-          title: opp.title,
-          description: opp.description,
-        });
-        if (!seedGate.passed || !audit.passed) {
-          console.warn(`[seed-initial-insights] blocked seed opp "${opp.title}":`, [...seedGate.reasons, ...audit.reasons]);
-          qualityReasons.push(...seedGate.reasons, ...audit.reasons);
-          continue;
-        }
-        const { error } = await supabase.from("opportunities").insert({
-          business_id: businessId,
-          title: audit.sanitized.title ?? opp.title,
-          description: audit.sanitized.description ?? opp.description,
-          source: "diagnóstico inicial",
-          impact_score: opp.impact_score,
-          effort_score: opp.effort_score,
-          evidence: { origin: "setup_seed", server_validated: true },
-        });
-        if (!error) { seededOpps++; inserted++; }
-      }
+      console.warn(
+        `[seed-initial-insights] AI produced ${oppCount || 0}/2 opps — NOT seeding generic fallbacks (zero-generic policy).`,
+      );
+      qualityReasons.push("ai_opps_insufficient_no_generic_fallback");
     }
 
-    // Target: 2 trends so the radar shows depth from day one
     if ((learnCount || 0) < 2) {
-      const needed = 2 - (learnCount || 0);
-      let inserted = 0;
-      for (const trend of GENERIC_TRENDS) {
-        if (inserted >= needed) break;
-        const trendAudit = validateBeforeStore({
-          module: 'radar',
-          title: trend.title,
-          description: sanitizeAIOutput(trend.content, { mode: 'prose' }),
-        });
-        if (!trendAudit.passed) {
-          console.warn("[seed-initial-insights] blocked seed trend:", trendAudit.reasons);
-          qualityReasons.push(...trendAudit.reasons);
-          continue;
-        }
-        const { error } = await supabase.from("learning_items").insert({
-          business_id: businessId,
-          title: trend.title,
-          content: trend.content,
-          item_type: trend.item_type,
-          source: trend.source,
-          action_steps: trend.action_steps,
-          is_read: false,
-          is_saved: false,
-        });
-        if (!error) { seededTrends++; inserted++; }
-      }
+      console.warn(
+        `[seed-initial-insights] AI produced ${learnCount || 0}/2 trends — NOT seeding generic fallbacks (zero-generic policy).`,
+      );
+      qualityReasons.push("ai_trends_insufficient_no_generic_fallback");
     }
+    // Marcamos referencias como usadas para evitar warnings del linter.
+    void GENERIC_OPPS; void GENERIC_TRENDS; void gateSeedInsight; void sanitizeAIOutput;
 
     // Guarantee at least 1 mission so missions page never appears empty.
     // First try a HYPER-PERSONALIZED mission via Lovable AI, fallback only on failure.
