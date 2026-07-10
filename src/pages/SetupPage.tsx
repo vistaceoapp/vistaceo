@@ -220,6 +220,7 @@ const SetupPage = () => {
       safeLocalStorage.setItem('setupProgress', JSON.stringify(payload));
       // 🌩️ Mirror al servidor para sobrevivir cierre de sesión, cambio de dispositivo o limpieza de caché.
       if (draftBusinessId) {
+        const livePrecision = calculatePrecision(data);
         supabase
           .from('business_setup_progress')
           .upsert(
@@ -227,10 +228,20 @@ const SetupPage = () => {
               business_id: draftBusinessId,
               current_step: String(currentStep),
               setup_data: { ...(data as any), _localStep: currentStep } as any,
+              precision_score: livePrecision,
             } as never,
             { onConflict: 'business_id' }
           )
           .then(() => {/* noop */}, () => {/* silencioso */});
+        // Sincronizar nombre real del negocio en `businesses` (evita placeholder "Mi negocio" en admin).
+        const realName = (data.businessName || '').trim();
+        if (realName && realName.length >= 2) {
+          supabase
+            .from('businesses')
+            .update({ name: realName, precision_score: livePrecision } as never)
+            .eq('id', draftBusinessId)
+            .then(() => {/* noop */}, () => {/* silencioso */});
+        }
       }
     }
   }, [currentStep, data, draftBusinessId]);
