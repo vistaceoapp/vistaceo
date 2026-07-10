@@ -5,9 +5,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Average ~1 post every 5 days: 80% chance 0 posts, 20% chance 1 post
-const roll = Math.random();
-const DAILY_POST_TARGET = roll < 0.80 ? 0 : 1;
+// Cadencia: 1 post por ejecución. El cron corre cada 3 días → 1 post cada 3 días.
+// Si se invoca manualmente sin trigger, mantener 1 (evitamos ceros random).
+const DAILY_POST_TARGET = 1;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
