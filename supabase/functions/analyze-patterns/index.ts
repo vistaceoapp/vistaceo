@@ -551,18 +551,26 @@ function buildAnalysisContext(
   rejectedConcepts: RejectedConcept[],
   locale: LocaleProfile
 ): string {
+  // identity_profile/sector_profile/current_situation son columnas legacy que ya
+  // no existen. Reconstruimos identidad desde factual_memory + offer_profile +
+  // customer_profile para que el prompt tenga anclas reales (evita salidas
+  // genéricas o filtrado de tokens crudos del brain).
   const identity = (brain?.identity_profile as any) || {};
   const sectorProf = (brain?.sector_profile as any) || {};
   const situation = (brain?.current_situation as any) || {};
-  const displayName = identity.display_name || business.name;
-  const subtype = identity.subtype || sectorProf.subtype || null;
-  const modelo = identity.business_model || sectorProf.model || null;
-  const offerings: string[] = Array.isArray(identity.offerings) ? identity.offerings.slice(0, 6) : [];
-  const channels: string[] = Array.isArray(identity.channels) ? identity.channels.slice(0, 6) : [];
-  const customerType = identity.customer_type || null;
-  const primaryPains: string[] = Array.isArray(identity.primary_pains) ? identity.primary_pains.slice(0, 5) : [];
-  const oppAngles: string[] = Array.isArray(identity.opportunity_angles) ? identity.opportunity_angles.slice(0, 5) : [];
-  const stage = identity.business_stage || situation.stage || "active";
+  const factual = (brain?.factual_memory as any) || {};
+  const offerProfile = (brain?.offer_profile as any) || {};
+  const customerProfile = (brain?.customer_profile as any) || {};
+  const asArr = (v: any): string[] => Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean) : (typeof v === "string" && v.trim() ? [v.trim()] : []);
+  const displayName = identity.display_name || factual.business_type_label || business.name;
+  const subtype = identity.subtype || sectorProf.subtype || factual.sector || factual.subsector || null;
+  const modelo = identity.business_model || sectorProf.model || factual.business_model || offerProfile.model || null;
+  const offerings: string[] = (asArr(identity.offerings).length ? asArr(identity.offerings) : asArr(offerProfile.summary).concat(asArr(factual.offer_summary), asArr(factual.unidades_negocio))).slice(0, 6);
+  const channels: string[] = (asArr(identity.channels).length ? asArr(identity.channels) : asArr(factual.main_channel).concat(asArr(factual.channel_summary), asArr(offerProfile.channels))).slice(0, 6);
+  const customerType = identity.customer_type || customerProfile.summary || factual.main_customer || factual.client_summary || null;
+  const primaryPains: string[] = (asArr(identity.primary_pains).length ? asArr(identity.primary_pains) : asArr(factual.primary_pains).concat(asArr(factual.main_friction))).slice(0, 5);
+  const oppAngles: string[] = (asArr(identity.opportunity_angles).length ? asArr(identity.opportunity_angles) : asArr(factual.opportunity_angles)).slice(0, 5);
+  const stage = identity.business_stage || situation.stage || factual.business_stage || "active";
   const city = (business as any).city || null;
   const address = (business as any).address || null;
 
