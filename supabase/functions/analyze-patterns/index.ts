@@ -1347,9 +1347,9 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
       const _uniqueAnchors = Array.from(new Set(_anchorTokens.filter(t =>
         !["negocio","empresa","local","tienda","cliente","clientes","servicio","servicios","producto","productos","pequeño","pequeña","principal","mejor","nuevo","nueva","para","como","tipo","actual","pyme","pymes","marca","marcas","proyecto","proyectos","alto","valor","gestion","estrategia","desarrollo"].includes(t)
       )));
-      const combined = `${title} ${description}`.toLowerCase();
+      const combined = `${title} ${description}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const hasAnchor = _uniqueAnchors.length === 0
-        ? true // sin identity_profile no podemos exigirlo — dejar pasar
+        ? true
         : _uniqueAnchors.some((tok) => combined.includes(tok));
 
       const GENERIC_PATTERNS: RegExp[] = [
