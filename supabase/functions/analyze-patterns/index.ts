@@ -1301,15 +1301,21 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
       // producto/servicio, cliente objetivo o dolor declarado).
       const _identity = (brain?.identity_profile as any) || {};
       const _sectorProf = (brain?.sector_profile as any) || {};
+      const _factual = (brain?.factual_memory as any) || {};
+      const _offerP = (brain?.offer_profile as any) || {};
+      const _customerP = (brain?.customer_profile as any) || {};
       const _anchorTokens: string[] = [];
       const _pushTokens = (v: unknown) => {
         if (typeof v === "string") {
           v.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
             .split(/[\s,·|/;:()\-]+/)
             .filter((w) => w.length >= 4)
             .forEach((w) => _anchorTokens.push(w));
         } else if (Array.isArray(v)) {
           v.forEach(_pushTokens);
+        } else if (v && typeof v === "object") {
+          Object.values(v as Record<string, unknown>).forEach(_pushTokens);
         }
       };
       _pushTokens(business.name);
@@ -1320,8 +1326,26 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
       _pushTokens(_identity.offerings);
       _pushTokens(_identity.primary_pains);
       _pushTokens(_sectorProf.subtype);
+      // Fallback anchors desde factual_memory / offer / customer profile
+      _pushTokens(_factual.business_type_label);
+      _pushTokens(_factual.sector);
+      _pushTokens(_factual.subsector);
+      _pushTokens(_factual.main_customer);
+      _pushTokens(_factual.client_summary);
+      _pushTokens(_factual.main_channel);
+      _pushTokens(_factual.main_friction);
+      _pushTokens(_factual.main_goal);
+      _pushTokens(_factual.offer_summary);
+      _pushTokens(_factual.primary_pains);
+      _pushTokens(_factual.opportunity_angles);
+      _pushTokens(_factual.keywords);
+      _pushTokens(_factual.unidades_negocio);
+      _pushTokens(_factual.learning_product);
+      _pushTokens(_factual.learning_business);
+      _pushTokens(_offerP.summary);
+      _pushTokens(_customerP.summary);
       const _uniqueAnchors = Array.from(new Set(_anchorTokens.filter(t =>
-        !["negocio","empresa","local","tienda","cliente","clientes","servicio","servicios","producto","productos","pequeño","pequeña","principal","mejor","nuevo","nueva","para","como","tipo","actual"].includes(t)
+        !["negocio","empresa","local","tienda","cliente","clientes","servicio","servicios","producto","productos","pequeño","pequeña","principal","mejor","nuevo","nueva","para","como","tipo","actual","pyme","pymes","marca","marcas","proyecto","proyectos","alto","valor","gestion","estrategia","desarrollo"].includes(t)
       )));
       const combined = `${title} ${description}`.toLowerCase();
       const hasAnchor = _uniqueAnchors.length === 0
