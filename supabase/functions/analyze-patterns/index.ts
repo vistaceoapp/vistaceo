@@ -1469,17 +1469,21 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
       // que NO hace consultoría, y en general genéricos disfrazados.
       try {
         const bp: any = (business as any).business_profile || {};
+        const _fm: any = (brain?.factual_memory as any) || {};
+        const _op: any = (brain?.offer_profile as any) || {};
+        const _cp: any = (brain?.customer_profile as any) || {};
+        const _first = (...vals: unknown[]) => vals.find((v) => typeof v === "string" && (v as string).trim().length > 0) as string | undefined;
         const anchors: HyperAnchors = {
           businessName: (business as any).name || (business as any).business_name,
-          sector: (business as any).sector || bp.sector,
-          subSector: (business as any).sub_sector || bp.sub_sector || (business as any).business_type_label,
+          sector: _first((business as any).sector, bp.sector, _fm.sector, _fm.business_type_label),
+          subSector: _first((business as any).sub_sector, bp.sub_sector, (business as any).business_type_label, _fm.subsector, _fm.business_type_label),
           country: (business as any).country || (business as any).country_code,
           city: (business as any).city || bp.city,
-          customer: bp.customer || bp.target_customer,
-          channel: bp.channel || bp.main_channel,
-          offer: bp.offer || bp.value_proposition,
-          mainFriction: bp.main_friction || bp.friction,
-          mainGoal: (business as any).main_goal || bp.main_goal,
+          customer: _first(bp.customer, bp.target_customer, _cp.summary, _fm.main_customer, _fm.client_summary),
+          channel: _first(bp.channel, bp.main_channel, _fm.main_channel, _fm.channel_summary),
+          offer: _first(bp.offer, bp.value_proposition, _op.summary, _fm.offer_summary, Array.isArray(_fm.unidades_negocio) ? _fm.unidades_negocio.join(", ") : _fm.unidades_negocio),
+          mainFriction: _first(bp.main_friction, bp.friction, _fm.main_friction, Array.isArray(_fm.primary_pains) ? _fm.primary_pains.join(", ") : undefined),
+          mainGoal: _first((business as any).main_goal, bp.main_goal, _fm.main_goal),
         };
         const hyper = hyperPersonalizationCheck({
           text: `${safeTitle}. ${safeDescription}`,
