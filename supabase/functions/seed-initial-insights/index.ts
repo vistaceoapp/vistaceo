@@ -224,13 +224,16 @@ Deno.serve(async (req) => {
 
         const { data: brain } = await supabase
           .from("business_brains")
-          .select("identity_profile, sector_profile, current_situation, factual_memory")
+          .select("primary_business_type, current_focus, factual_memory, preferences_memory, offer_profile, customer_profile")
           .eq("business_id", businessId)
           .maybeSingle();
 
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
         if (LOVABLE_API_KEY && biz) {
-          const profile = (brain as any)?.identity_profile || {};
+          const factual = ((brain as any)?.factual_memory || {}) as Record<string, any>;
+          const prefs = ((brain as any)?.preferences_memory || {}) as Record<string, any>;
+          const offer = ((brain as any)?.offer_profile || {}) as Record<string, any>;
+          const customer = ((brain as any)?.customer_profile || {}) as Record<string, any>;
           const ctx = {
             nombre: biz.name,
             categoria: biz.category,
@@ -240,15 +243,20 @@ Deno.serve(async (req) => {
             tiene_google: !!biz.google_place_id,
             ticket_promedio: biz.avg_ticket,
             rating: biz.avg_rating,
-            display_name: profile.display_name,
-            subtipo: profile.subtype,
-            modelo: profile.business_model,
-            canales: profile.channels,
-            ofertas: profile.offerings,
-            cliente: profile.customer_type,
-            dolores: profile.primary_pains,
-            oportunidades: profile.opportunity_angles,
-            etapa: profile.business_stage || "active",
+            tipo_negocio: (brain as any)?.primary_business_type || factual.business_type_label || null,
+            actividad: factual.business_type_label || factual.interpreted_activity || null,
+            subtipo: factual.sector || factual.subsector || null,
+            modelo: factual.business_model || offer.model || null,
+            canales: factual.main_channel || factual.channel_summary || offer.channels || null,
+            ofertas: offer.summary || factual.offer_summary || factual.unidades_negocio || null,
+            cliente: customer.summary || factual.main_customer || factual.client_summary || null,
+            dolores: factual.primary_pains || factual.main_friction || null,
+            oportunidades: factual.opportunity_angles || null,
+            objetivo: factual.main_goal || (brain as any)?.current_focus || null,
+            keywords: Array.isArray(factual.keywords) ? factual.keywords.slice(0, 12) : null,
+            descripcion_usuario: typeof factual.raw_user_text === "string" ? factual.raw_user_text.slice(0, 800) : null,
+            tono: prefs.tone || null,
+            etapa: factual.business_stage || "active",
           };
 
           const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

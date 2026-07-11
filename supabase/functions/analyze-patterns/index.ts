@@ -551,18 +551,26 @@ function buildAnalysisContext(
   rejectedConcepts: RejectedConcept[],
   locale: LocaleProfile
 ): string {
+  // identity_profile/sector_profile/current_situation son columnas legacy que ya
+  // no existen. Reconstruimos identidad desde factual_memory + offer_profile +
+  // customer_profile para que el prompt tenga anclas reales (evita salidas
+  // genéricas o filtrado de tokens crudos del brain).
   const identity = (brain?.identity_profile as any) || {};
   const sectorProf = (brain?.sector_profile as any) || {};
   const situation = (brain?.current_situation as any) || {};
-  const displayName = identity.display_name || business.name;
-  const subtype = identity.subtype || sectorProf.subtype || null;
-  const modelo = identity.business_model || sectorProf.model || null;
-  const offerings: string[] = Array.isArray(identity.offerings) ? identity.offerings.slice(0, 6) : [];
-  const channels: string[] = Array.isArray(identity.channels) ? identity.channels.slice(0, 6) : [];
-  const customerType = identity.customer_type || null;
-  const primaryPains: string[] = Array.isArray(identity.primary_pains) ? identity.primary_pains.slice(0, 5) : [];
-  const oppAngles: string[] = Array.isArray(identity.opportunity_angles) ? identity.opportunity_angles.slice(0, 5) : [];
-  const stage = identity.business_stage || situation.stage || "active";
+  const factual = (brain?.factual_memory as any) || {};
+  const offerProfile = (brain?.offer_profile as any) || {};
+  const customerProfile = (brain?.customer_profile as any) || {};
+  const asArr = (v: any): string[] => Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean) : (typeof v === "string" && v.trim() ? [v.trim()] : []);
+  const displayName = identity.display_name || factual.business_type_label || business.name;
+  const subtype = identity.subtype || sectorProf.subtype || factual.sector || factual.subsector || null;
+  const modelo = identity.business_model || sectorProf.model || factual.business_model || offerProfile.model || null;
+  const offerings: string[] = (asArr(identity.offerings).length ? asArr(identity.offerings) : asArr(offerProfile.summary).concat(asArr(factual.offer_summary), asArr(factual.unidades_negocio))).slice(0, 6);
+  const channels: string[] = (asArr(identity.channels).length ? asArr(identity.channels) : asArr(factual.main_channel).concat(asArr(factual.channel_summary), asArr(offerProfile.channels))).slice(0, 6);
+  const customerType = identity.customer_type || customerProfile.summary || factual.main_customer || factual.client_summary || null;
+  const primaryPains: string[] = (asArr(identity.primary_pains).length ? asArr(identity.primary_pains) : asArr(factual.primary_pains).concat(asArr(factual.main_friction))).slice(0, 5);
+  const oppAngles: string[] = (asArr(identity.opportunity_angles).length ? asArr(identity.opportunity_angles) : asArr(factual.opportunity_angles)).slice(0, 5);
+  const stage = identity.business_stage || situation.stage || factual.business_stage || "active";
   const city = (business as any).city || null;
   const address = (business as any).address || null;
 
@@ -1293,15 +1301,21 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
       // producto/servicio, cliente objetivo o dolor declarado).
       const _identity = (brain?.identity_profile as any) || {};
       const _sectorProf = (brain?.sector_profile as any) || {};
+      const _factual = (brain?.factual_memory as any) || {};
+      const _offerP = (brain?.offer_profile as any) || {};
+      const _customerP = (brain?.customer_profile as any) || {};
       const _anchorTokens: string[] = [];
       const _pushTokens = (v: unknown) => {
         if (typeof v === "string") {
           v.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
             .split(/[\s,·|/;:()\-]+/)
             .filter((w) => w.length >= 4)
             .forEach((w) => _anchorTokens.push(w));
         } else if (Array.isArray(v)) {
           v.forEach(_pushTokens);
+        } else if (v && typeof v === "object") {
+          Object.values(v as Record<string, unknown>).forEach(_pushTokens);
         }
       };
       _pushTokens(business.name);
@@ -1312,12 +1326,30 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
       _pushTokens(_identity.offerings);
       _pushTokens(_identity.primary_pains);
       _pushTokens(_sectorProf.subtype);
+      // Fallback anchors desde factual_memory / offer / customer profile
+      _pushTokens(_factual.business_type_label);
+      _pushTokens(_factual.sector);
+      _pushTokens(_factual.subsector);
+      _pushTokens(_factual.main_customer);
+      _pushTokens(_factual.client_summary);
+      _pushTokens(_factual.main_channel);
+      _pushTokens(_factual.main_friction);
+      _pushTokens(_factual.main_goal);
+      _pushTokens(_factual.offer_summary);
+      _pushTokens(_factual.primary_pains);
+      _pushTokens(_factual.opportunity_angles);
+      _pushTokens(_factual.keywords);
+      _pushTokens(_factual.unidades_negocio);
+      _pushTokens(_factual.learning_product);
+      _pushTokens(_factual.learning_business);
+      _pushTokens(_offerP.summary);
+      _pushTokens(_customerP.summary);
       const _uniqueAnchors = Array.from(new Set(_anchorTokens.filter(t =>
-        !["negocio","empresa","local","tienda","cliente","clientes","servicio","servicios","producto","productos","pequeño","pequeña","principal","mejor","nuevo","nueva","para","como","tipo","actual"].includes(t)
+        !["negocio","empresa","local","tienda","cliente","clientes","servicio","servicios","producto","productos","pequeño","pequeña","principal","mejor","nuevo","nueva","para","como","tipo","actual","pyme","pymes","marca","marcas","proyecto","proyectos","alto","valor","gestion","estrategia","desarrollo"].includes(t)
       )));
-      const combined = `${title} ${description}`.toLowerCase();
+      const combined = `${title} ${description}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const hasAnchor = _uniqueAnchors.length === 0
-        ? true // sin identity_profile no podemos exigirlo — dejar pasar
+        ? true
         : _uniqueAnchors.some((tok) => combined.includes(tok));
 
       const GENERIC_PATTERNS: RegExp[] = [
@@ -1437,17 +1469,21 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
       // que NO hace consultoría, y en general genéricos disfrazados.
       try {
         const bp: any = (business as any).business_profile || {};
+        const _fm: any = (brain?.factual_memory as any) || {};
+        const _op: any = (brain?.offer_profile as any) || {};
+        const _cp: any = (brain?.customer_profile as any) || {};
+        const _first = (...vals: unknown[]) => vals.find((v) => typeof v === "string" && (v as string).trim().length > 0) as string | undefined;
         const anchors: HyperAnchors = {
           businessName: (business as any).name || (business as any).business_name,
-          sector: (business as any).sector || bp.sector,
-          subSector: (business as any).sub_sector || bp.sub_sector || (business as any).business_type_label,
+          sector: _first((business as any).sector, bp.sector, _fm.sector, _fm.business_type_label),
+          subSector: _first((business as any).sub_sector, bp.sub_sector, (business as any).business_type_label, _fm.subsector, _fm.business_type_label),
           country: (business as any).country || (business as any).country_code,
           city: (business as any).city || bp.city,
-          customer: bp.customer || bp.target_customer,
-          channel: bp.channel || bp.main_channel,
-          offer: bp.offer || bp.value_proposition,
-          mainFriction: bp.main_friction || bp.friction,
-          mainGoal: (business as any).main_goal || bp.main_goal,
+          customer: _first(bp.customer, bp.target_customer, _cp.summary, _fm.main_customer, _fm.client_summary),
+          channel: _first(bp.channel, bp.main_channel, _fm.main_channel, _fm.channel_summary),
+          offer: _first(bp.offer, bp.value_proposition, _op.summary, _fm.offer_summary, Array.isArray(_fm.unidades_negocio) ? _fm.unidades_negocio.join(", ") : _fm.unidades_negocio),
+          mainFriction: _first(bp.main_friction, bp.friction, _fm.main_friction, Array.isArray(_fm.primary_pains) ? _fm.primary_pains.join(", ") : undefined),
+          mainGoal: _first((business as any).main_goal, bp.main_goal, _fm.main_goal),
         };
         const hyper = hyperPersonalizationCheck({
           text: `${safeTitle}. ${safeDescription}`,

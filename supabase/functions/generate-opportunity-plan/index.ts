@@ -163,13 +163,17 @@ EVIDENCIA: ${JSON.stringify(opportunity?.evidence || {})}
   // Identity profile — DNI del negocio (offerings, canales, cliente, pains, ángulos).
   // Mismo bloque que analyze-patterns para que oportunidades hablen del negocio real.
   const identity = (brain?.identity_profile as Record<string, unknown>) || {};
-  if (identity && Object.keys(identity).length > 0) {
+  const factualMem = (brain?.factual_memory as Record<string, unknown>) || {};
+  const offerP2 = (brain?.offer_profile as Record<string, unknown>) || {};
+  const customerP2 = (brain?.customer_profile as Record<string, unknown>) || {};
+  const toArr = (v: unknown): string[] => Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean) : (typeof v === "string" && v.trim() ? [v.trim()] : []);
+  const offerings = toArr(identity.offerings || identity.products).length ? toArr(identity.offerings || identity.products) : toArr(offerP2.summary).concat(toArr(factualMem.offer_summary), toArr(factualMem.unidades_negocio));
+  const channels = toArr(identity.channels || identity.channel_mix).length ? toArr(identity.channels || identity.channel_mix) : toArr(factualMem.main_channel).concat(toArr(factualMem.channel_summary));
+  const customer = (identity.customer_type as string) || (identity.target_customer as string) || (customerP2.summary as string) || (factualMem.main_customer as string) || (factualMem.client_summary as string) || "";
+  const pains = toArr(identity.primary_pains || identity.pain_points).length ? toArr(identity.primary_pains || identity.pain_points) : toArr(factualMem.primary_pains).concat(toArr(factualMem.main_friction));
+  const angles = toArr(identity.opportunity_angles).length ? toArr(identity.opportunity_angles) : toArr(factualMem.opportunity_angles);
+  if (offerings.length || channels.length || customer || pains.length || angles.length) {
     prompt += `\n\n===== IDENTIDAD DEL NEGOCIO (ANCLÁ LAS OPORTUNIDADES A ESTO) =====`;
-    const offerings = (identity.offerings as string[]) || (identity.products as string[]) || [];
-    const channels = (identity.channels as string[]) || (identity.channel_mix as string[]) || [];
-    const customer = (identity.customer_type as string) || (identity.target_customer as string) || "";
-    const pains = (identity.primary_pains as string[]) || (identity.pain_points as string[]) || [];
-    const angles = (identity.opportunity_angles as string[]) || [];
     if (offerings.length) prompt += `\nOFERTA REAL: ${offerings.slice(0, 8).join(", ")}`;
     if (channels.length) prompt += `\nCANALES: ${channels.slice(0, 6).join(", ")}`;
     if (customer) prompt += `\nCLIENTE OBJETIVO: ${customer}`;

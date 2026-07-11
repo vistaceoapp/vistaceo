@@ -244,13 +244,17 @@ NIVEL DE CONTEXTO (MVC): ${brain.mvc_completion_pct || 0}%`;
   // Identity profile — el DNI del negocio (offerings reales, canales, cliente objetivo,
   // pains). Esto es lo que evita misiones genéricas. Espejamos analyze-patterns.
   const identity = (brain.identity_profile as Record<string, unknown>) || {};
-  if (identity && Object.keys(identity).length > 0) {
+  const factual = (brain.factual_memory as Record<string, unknown>) || {};
+  const offerP = (brain.offer_profile as Record<string, unknown>) || {};
+  const customerP = (brain.customer_profile as Record<string, unknown>) || {};
+  const arr = (v: unknown): string[] => Array.isArray(v) ? v.map((x) => String(x)).filter(Boolean) : (typeof v === "string" && v.trim() ? [v.trim()] : []);
+  const offerings = arr(identity.offerings || identity.products).length ? arr(identity.offerings || identity.products) : arr(offerP.summary).concat(arr(factual.offer_summary), arr(factual.unidades_negocio));
+  const channels = arr(identity.channels || identity.channel_mix).length ? arr(identity.channels || identity.channel_mix) : arr(factual.main_channel).concat(arr(factual.channel_summary));
+  const customer = (identity.customer_type as string) || (identity.target_customer as string) || (customerP.summary as string) || (factual.main_customer as string) || (factual.client_summary as string) || "";
+  const pains = arr(identity.primary_pains || identity.pain_points).length ? arr(identity.primary_pains || identity.pain_points) : arr(factual.primary_pains).concat(arr(factual.main_friction));
+  const angles = arr(identity.opportunity_angles).length ? arr(identity.opportunity_angles) : arr(factual.opportunity_angles);
+  if (offerings.length || channels.length || customer || pains.length || angles.length) {
     prompt += "\n\n===== IDENTIDAD DEL NEGOCIO (ANCLÁ LA MISIÓN A ESTO) =====";
-    const offerings = (identity.offerings as string[]) || (identity.products as string[]) || [];
-    const channels = (identity.channels as string[]) || (identity.channel_mix as string[]) || [];
-    const customer = (identity.customer_type as string) || (identity.target_customer as string) || "";
-    const pains = (identity.primary_pains as string[]) || (identity.pain_points as string[]) || [];
-    const angles = (identity.opportunity_angles as string[]) || [];
     if (offerings.length) prompt += `\nOFERTA REAL: ${offerings.slice(0, 8).join(", ")}`;
     if (channels.length) prompt += `\nCANALES: ${channels.slice(0, 6).join(", ")}`;
     if (customer) prompt += `\nCLIENTE OBJETIVO: ${customer}`;
