@@ -12,7 +12,19 @@ interface BusinessPhoto {
   category: string;
   caption: string | null;
   created_at: string;
+  signed_url?: string;
 }
+
+// Extract storage path from either a stored path or a legacy public URL
+const extractStoragePath = (photoUrl: string): string | null => {
+  if (!photoUrl) return null;
+  const marker = '/business-photos/';
+  const idx = photoUrl.indexOf(marker);
+  if (idx >= 0) return photoUrl.substring(idx + marker.length);
+  // Assume it's already a plain path
+  if (!/^https?:\/\//i.test(photoUrl)) return photoUrl;
+  return null;
+};
 
 export const BusinessPhotosSection = () => {
   const { currentBusiness } = useBusiness();
@@ -31,8 +43,21 @@ export const BusinessPhotosSection = () => {
       .select('*')
       .eq('business_id', currentBusiness.id)
       .order('created_at', { ascending: false });
-    
-    if (data) setPhotos(data);
+
+    if (!data) return;
+
+    // Generate signed URLs for private bucket display
+    const withSigned = await Promise.all(
+      data.map(async (p) => {
+        const path = extractStoragePath(p.photo_url);
+        if (!path) return { ...p, signed_url: undefined };
+        const { data: signed } = await supabase.storage
+          .from('business-photos')
+          .createSignedUrl(path, 60 * 60); // 1 hour
+        return { ...p, signed_url: signed?.signedUrl };
+      })
+    );
+    setPhotos(withSigned);
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,14 +76,11 @@ export const BusinessPhotosSection = () => {
           .upload(path, file, { upsert: true });
         
         if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('business-photos')
-          .getPublicUrl(path);
-        
+
+        // Store storage path (not a public URL — bucket is private, we sign at read time)
         await supabase.from('business_photos').insert({
           business_id: currentBusiness.id,
-          photo_url: publicUrl,
+          photo_url: path,
           category: 'general',
         });
       }
@@ -76,10 +98,9 @@ export const BusinessPhotosSection = () => {
 
   const handleDelete = async (photo: BusinessPhoto) => {
     try {
-      // Extract path from URL
-      const urlParts = photo.photo_url.split('/business-photos/');
-      if (urlParts[1]) {
-        await supabase.storage.from('business-photos').remove([urlParts[1]]);
+      const path = extractStoragePath(photo.photo_url);
+      if (path) {
+        await supabase.storage.from('business-photos').remove([path]);
       }
       await supabase.from('business_photos').delete().eq('id', photo.id);
       setPhotos(prev => prev.filter(p => p.id !== photo.id));
@@ -138,8 +159,8 @@ export const BusinessPhotosSection = () => {
         <div className="grid grid-cols-3 gap-2">
           {photos.map(photo => (
             <div key={photo.id} className="relative group aspect-square rounded-xl overflow-hidden">
-              <img 
-                src={photo.photo_url} 
+              <img
+                src={photo.signed_url || photo.photo_url}
                 alt="Foto del negocio"
                 className="w-full h-full object-cover"
                 loading="lazy"
