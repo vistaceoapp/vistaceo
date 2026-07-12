@@ -98,10 +98,9 @@ export const BusinessPhotosSection = () => {
 
   const handleDelete = async (photo: BusinessPhoto) => {
     try {
-      // Extract path from URL
-      const urlParts = photo.photo_url.split('/business-photos/');
-      if (urlParts[1]) {
-        await supabase.storage.from('business-photos').remove([urlParts[1]]);
+      const path = extractStoragePath(photo.photo_url);
+      if (path) {
+        await supabase.storage.from('business-photos').remove([path]);
       }
       await supabase.from('business_photos').delete().eq('id', photo.id);
       setPhotos(prev => prev.filter(p => p.id !== photo.id));
