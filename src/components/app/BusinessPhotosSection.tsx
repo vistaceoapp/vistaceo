@@ -12,7 +12,19 @@ interface BusinessPhoto {
   category: string;
   caption: string | null;
   created_at: string;
+  signed_url?: string;
 }
+
+// Extract storage path from either a stored path or a legacy public URL
+const extractStoragePath = (photoUrl: string): string | null => {
+  if (!photoUrl) return null;
+  const marker = '/business-photos/';
+  const idx = photoUrl.indexOf(marker);
+  if (idx >= 0) return photoUrl.substring(idx + marker.length);
+  // Assume it's already a plain path
+  if (!/^https?:\/\//i.test(photoUrl)) return photoUrl;
+  return null;
+};
 
 export const BusinessPhotosSection = () => {
   const { currentBusiness } = useBusiness();
@@ -31,8 +43,21 @@ export const BusinessPhotosSection = () => {
       .select('*')
       .eq('business_id', currentBusiness.id)
       .order('created_at', { ascending: false });
-    
-    if (data) setPhotos(data);
+
+    if (!data) return;
+
+    // Generate signed URLs for private bucket display
+    const withSigned = await Promise.all(
+      data.map(async (p) => {
+        const path = extractStoragePath(p.photo_url);
+        if (!path) return { ...p, signed_url: undefined };
+        const { data: signed } = await supabase.storage
+          .from('business-photos')
+          .createSignedUrl(path, 60 * 60); // 1 hour
+        return { ...p, signed_url: signed?.signedUrl };
+      })
+    );
+    setPhotos(withSigned);
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
