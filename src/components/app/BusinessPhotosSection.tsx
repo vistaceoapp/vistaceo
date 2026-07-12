@@ -76,14 +76,11 @@ export const BusinessPhotosSection = () => {
           .upload(path, file, { upsert: true });
         
         if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('business-photos')
-          .getPublicUrl(path);
-        
+
+        // Store storage path (not a public URL — bucket is private, we sign at read time)
         await supabase.from('business_photos').insert({
           business_id: currentBusiness.id,
-          photo_url: publicUrl,
+          photo_url: path,
           category: 'general',
         });
       }
