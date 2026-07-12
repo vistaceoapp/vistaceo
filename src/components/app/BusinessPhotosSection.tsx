@@ -159,8 +159,8 @@ export const BusinessPhotosSection = () => {
         <div className="grid grid-cols-3 gap-2">
           {photos.map(photo => (
             <div key={photo.id} className="relative group aspect-square rounded-xl overflow-hidden">
-              <img 
-                src={photo.photo_url} 
+              <img
+                src={photo.signed_url || photo.photo_url}
                 alt="Foto del negocio"
                 className="w-full h-full object-cover"
                 loading="lazy"
