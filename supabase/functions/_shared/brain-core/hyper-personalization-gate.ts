@@ -143,3 +143,56 @@ export function contextStrengthScore(a: HyperAnchors, signalCount = 0): number {
   for (const [, w, present] of weights) if (present) s += w;
   return Math.min(1, s);
 }
+
+/**
+ * Extrae HyperAnchors desde formas heterogéneas (row de `businesses`,
+ * row de `business_brains`, o un `context` con { business, brain }).
+ * Cero-hardcode: solo devuelve lo que existe en los datos.
+ */
+export function buildHyperAnchors(input: {
+  business?: any;
+  brain?: any;
+  context?: any;
+}): HyperAnchors {
+  const b = input.business ?? input.context?.business ?? {};
+  const br = input.brain ?? input.context?.brain ?? {};
+  const fm = br?.factual_memory ?? br?.confirmed ?? {};
+  const op = br?.offer_profile ?? {};
+  const cp = br?.customer_profile ?? {};
+
+  const pick = (...vals: any[]): string | null => {
+    for (const v of vals) {
+      if (v == null) continue;
+      if (typeof v === "string" && v.trim()) return v.trim();
+      if (typeof v === "object" && typeof v?.value === "string" && v.value.trim()) return v.value.trim();
+    }
+    return null;
+  };
+
+  const offers: string[] = [];
+  if (Array.isArray(op?.offers)) for (const o of op.offers) if (typeof o?.name === "string") offers.push(o.name);
+  if (typeof op?.main_offer === "string") offers.push(op.main_offer);
+
+  const competitors: string[] = [];
+  const cSrc = br?.competitors ?? fm?.competitors ?? [];
+  if (Array.isArray(cSrc)) for (const c of cSrc.slice(0, 5)) {
+    if (typeof c === "string") competitors.push(c);
+    else if (typeof c?.name === "string") competitors.push(c.name);
+  }
+
+  return {
+    businessName: pick(b?.name, b?.business_name, fm?.business_name),
+    sector: pick(b?.sector, br?.primary_business_type, fm?.sector),
+    subSector: pick(b?.sub_sector, b?.subSector, fm?.sub_sector, fm?.niche),
+    country: pick(b?.country, fm?.country),
+    city: pick(b?.city, fm?.city),
+    customer: pick(cp?.description, cp?.segment, fm?.customer, fm?.target_customer),
+    channel: pick(b?.main_channel, fm?.channel, fm?.main_channel),
+    offer: offers[0] ?? pick(op?.description, fm?.offer, fm?.main_offer),
+    mainFriction: pick(fm?.main_friction, fm?.main_challenge, br?.main_friction),
+    mainGoal: pick(fm?.main_goal, fm?.goal_90d, br?.main_goal),
+    competitors,
+    currency: pick(b?.currency, fm?.currency),
+  };
+}
+

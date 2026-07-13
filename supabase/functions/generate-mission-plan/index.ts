@@ -749,11 +749,13 @@ serve(async (req) => {
       // Quality Gate: Check for generic phrases + runtime title gate
       const genericPhrases = checkForGenericPhrases(planData);
       const { runtimeOutputGate, safeFallback } = await import("../_shared/brain-core/runtime-output-gate.ts");
+      const { buildHyperAnchors } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
       const titleGate = runtimeOutputGate({
         text: `${planData?.planTitle ?? ""}\n${planData?.planDescription ?? ""}`,
         kind: "mission",
         hasBrainEvidence: !!(context?.brain),
         hasConcreteAction: Array.isArray(planData?.steps) && planData.steps.length > 0,
+        anchors: buildHyperAnchors({ context }),
       });
       const passed = genericPhrases.length === 0 && titleGate.ok;
 

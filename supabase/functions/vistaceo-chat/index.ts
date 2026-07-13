@@ -1467,11 +1467,18 @@ MESSAGE_JSON:
       hasBrainEvidence: !!(businessContext?.id),
       hasConcreteAction: concreteActionRx.test(parsed.userReply),
     });
+    const { buildHyperAnchors } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
+    const chatAnchors = buildHyperAnchors({
+      business: { name: businessContext?.name, country: businessContext?.country, sector: businessContext?.category },
+      brain: memoryContext?.brain ?? contextPack?.brainSummary ?? null,
+      context: contextPack ?? null,
+    });
     const chatGate = (await import("../_shared/brain-core/runtime-output-gate.ts")).runtimeOutputGate({
       text: parsed.userReply,
       kind: "chat",
       hasBrainEvidence: !!(businessContext?.id),
       hasConcreteAction: concreteActionRx.test(parsed.userReply),
+      anchors: chatAnchors,
     });
     if (!extreme.ok || !chatGate.ok) {
       console.warn("chat gate flagged (soft):", [...extreme.reasons, ...chatGate.reasons].join(" | "));

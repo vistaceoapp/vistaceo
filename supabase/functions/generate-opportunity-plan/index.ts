@@ -506,11 +506,13 @@ Esta es la versión ${version} del plan. El usuario pidió un enfoque DIFERENTE.
 
     // Runtime gate: bloquear oportunidades genéricas / leaks técnicos
     const { runtimeOutputGate, safeFallback } = await import("../_shared/brain-core/runtime-output-gate.ts");
+    const { buildHyperAnchors } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
     const oppGate = runtimeOutputGate({
       text: `${plan?.planSummary ?? ""}\n${plan?.expectedResult ?? ""}`,
       kind: "opportunity",
       hasBrainEvidence: !!(context?.brain),
       hasConcreteAction: Array.isArray(plan?.steps) && plan.steps.length > 0,
+      anchors: buildHyperAnchors({ context }),
     });
     if (!oppGate.ok) {
       console.warn("[runtime-output-gate:opportunity] flagged:", oppGate.reasons);

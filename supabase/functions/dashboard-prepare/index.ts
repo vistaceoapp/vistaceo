@@ -99,6 +99,7 @@ serve(async (req) => {
 
     // Runtime gate: bloquear narrativa de dashboard con frases genéricas/leaks
     const { runtimeOutputGate, safeFallback } = await import("../_shared/brain-core/runtime-output-gate.ts");
+    const { buildHyperAnchors } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
     const narrativeText = [seed.headline, seed.summary, seed.focus_justification, seed.next_step]
       .filter((x) => typeof x === "string").join("\n");
     if (narrativeText) {
@@ -107,6 +108,7 @@ serve(async (req) => {
         kind: "dashboard",
         hasBrainEvidence: !!(brainRow.factual_memory || brainRow.offer_profile),
         hasConcreteAction: true,
+        anchors: buildHyperAnchors({ business, brain: brainRow }),
       });
       if (!dashGate.ok) {
         console.warn("[runtime-output-gate:dashboard] flagged:", dashGate.reasons);
