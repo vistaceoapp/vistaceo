@@ -677,9 +677,11 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
 
     // Runtime gate: filtrar predicciones genéricas / con leaks
     const { runtimeOutputGate } = await import("../_shared/brain-core/runtime-output-gate.ts");
+    const { buildHyperAnchors } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
+    const predAnchors = buildHyperAnchors({ business, brain });
     const filteredPredictions = predictions.filter((p: any) => {
       const text = `${p.title ?? ""}\n${p.summary ?? ""}`;
-      const g = runtimeOutputGate({ text, kind: "prediction", hasBrainEvidence: !!brain, hasConcreteAction: true });
+      const g = runtimeOutputGate({ text, kind: "prediction", hasBrainEvidence: !!brain, hasConcreteAction: true, anchors: predAnchors });
       if (!g.ok) {
         console.warn(`[runtime-output-gate:prediction] dropped: "${p.title}" -> ${g.reasons.join(", ")}`);
         return false;

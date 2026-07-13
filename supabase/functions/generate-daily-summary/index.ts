@@ -149,11 +149,13 @@ REGLAS:
 
     // Runtime gate sobre el headline + texto del resumen diario
     const { runtimeOutputGate, safeFallback } = await import("../_shared/brain-core/runtime-output-gate.ts");
+    const { buildHyperAnchors } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
     const dailyGate = runtimeOutputGate({
       text: `${summary.headline ?? ""}\n${summary.summary_text ?? ""}`,
       kind: "dashboard",
       hasBrainEvidence: !!brain,
       hasConcreteAction: Array.isArray(summary.priorities) && summary.priorities.length > 0,
+      anchors: buildHyperAnchors({ business, brain }),
     });
     if (!dailyGate.ok) {
       console.warn("[runtime-output-gate:daily-summary] flagged:", dailyGate.reasons);

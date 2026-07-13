@@ -350,11 +350,13 @@ serve(async (req) => {
     // Quality Gate check (legacy + nuevo runtimeOutputGate)
     const genericPhrases = checkForGenericPhrases(actionData);
     const combinedText = `${actionData?.title ?? ""}\n${actionData?.description ?? ""}`;
+    const { buildHyperAnchors } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
     const gate = runtimeOutputGate({
       text: combinedText,
       kind: "action",
       hasBrainEvidence: !!(context?.brain?.factual_memory),
       hasConcreteAction: true,
+      anchors: buildHyperAnchors({ context }),
     });
     const passed = genericPhrases.length === 0 && gate.ok;
 
