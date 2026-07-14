@@ -10,11 +10,24 @@ export interface HyperAnchors {
   businessName?: string | null;
   sector?: string | null;
   subSector?: string | null;
+  niche?: string | null;
+  businessModel?: string | null;
+  stage?: string | null;
   country?: string | null;
   city?: string | null;
+  region?: string | null;
+  geoScope?: string | null;
   customer?: string | null;
+  customerSegment?: string | null;
   channel?: string | null;
   offer?: string | null;
+  valueProp?: string | null;
+  differentiator?: string | null;
+  priceRange?: string | null;
+  ticketSize?: string | null;
+  salesCycle?: string | null;
+  seasonality?: string | null;
+  teamSize?: string | null;
   mainFriction?: string | null;
   mainGoal?: string | null;
   competitors?: string[];
@@ -75,11 +88,24 @@ export function hyperPersonalizationCheck(input: HyperCheckInput): HyperCheckRes
     { key: "businessName", kws: tokens(a.businessName), specific: true },
     { key: "sector", kws: tokens(a.sector), specific: !!a.sector && !GENERIC_SECTORS.has(norm(a.sector)) },
     { key: "subSector", kws: tokens(a.subSector), specific: true },
+    { key: "niche", kws: tokens(a.niche), specific: true },
+    { key: "businessModel", kws: tokens(a.businessModel), specific: true },
+    { key: "stage", kws: tokens(a.stage), specific: false },
     { key: "country", kws: tokens(a.country), specific: true },
     { key: "city", kws: tokens(a.city), specific: true },
+    { key: "region", kws: tokens(a.region), specific: true },
+    { key: "geoScope", kws: tokens(a.geoScope), specific: false },
     { key: "customer", kws: tokens(a.customer), specific: true },
+    { key: "customerSegment", kws: tokens(a.customerSegment), specific: true },
     { key: "channel", kws: tokens(a.channel), specific: false },
     { key: "offer", kws: tokens(a.offer), specific: true },
+    { key: "valueProp", kws: tokens(a.valueProp), specific: true },
+    { key: "differentiator", kws: tokens(a.differentiator), specific: true },
+    { key: "priceRange", kws: tokens(a.priceRange), specific: false },
+    { key: "ticketSize", kws: tokens(a.ticketSize), specific: false },
+    { key: "salesCycle", kws: tokens(a.salesCycle), specific: false },
+    { key: "seasonality", kws: tokens(a.seasonality), specific: false },
+    { key: "teamSize", kws: tokens(a.teamSize), specific: false },
     { key: "mainFriction", kws: tokens(a.mainFriction), specific: true },
     { key: "mainGoal", kws: tokens(a.mainGoal), specific: false },
     ...(a.competitors ?? []).slice(0, 3).map((c) => ({
@@ -128,16 +154,24 @@ export function hyperPersonalizationCheck(input: HyperCheckInput): HyperCheckRes
  * generar contenido o si conviene primero pedirle 1 dato al usuario.
  */
 export function contextStrengthScore(a: HyperAnchors, signalCount = 0): number {
-  const weights: Array<[keyof HyperAnchors | "signals", number, boolean]> = [
-    ["sector", 0.15, !!a.sector],
-    ["subSector", 0.12, !!a.subSector],
-    ["country", 0.08, !!a.country],
-    ["customer", 0.18, !!a.customer],
-    ["offer", 0.15, !!a.offer],
-    ["mainFriction", 0.14, !!a.mainFriction],
-    ["mainGoal", 0.08, !!a.mainGoal],
-    ["channel", 0.05, !!a.channel],
-    ["signals", 0.05, signalCount >= 3],
+  const weights: Array<[string, number, boolean]> = [
+    ["sector", 0.10, !!a.sector],
+    ["subSector", 0.09, !!a.subSector],
+    ["niche", 0.06, !!a.niche],
+    ["businessModel", 0.06, !!a.businessModel],
+    ["stage", 0.03, !!a.stage],
+    ["country", 0.05, !!a.country],
+    ["city", 0.03, !!a.city],
+    ["customer", 0.12, !!a.customer],
+    ["customerSegment", 0.05, !!a.customerSegment],
+    ["offer", 0.10, !!a.offer],
+    ["valueProp", 0.06, !!a.valueProp],
+    ["differentiator", 0.04, !!a.differentiator],
+    ["priceRange", 0.03, !!a.priceRange || !!a.ticketSize],
+    ["mainFriction", 0.09, !!a.mainFriction],
+    ["mainGoal", 0.05, !!a.mainGoal],
+    ["channel", 0.03, !!a.channel],
+    ["signals", 0.03, signalCount >= 3],
   ];
   let s = 0;
   for (const [, w, present] of weights) if (present) s += w;
@@ -183,12 +217,25 @@ export function buildHyperAnchors(input: {
   return {
     businessName: pick(b?.name, b?.business_name, fm?.business_name),
     sector: pick(b?.sector, br?.primary_business_type, fm?.sector),
-    subSector: pick(b?.sub_sector, b?.subSector, fm?.sub_sector, fm?.niche),
+    subSector: pick(b?.sub_sector, b?.subSector, fm?.sub_sector),
+    niche: pick(fm?.niche, fm?.nicho, br?.niche, b?.niche),
+    businessModel: pick(b?.business_model, b?.model, fm?.business_model, fm?.model, br?.business_model),
+    stage: pick(b?.stage, b?.lifecycle_stage, fm?.stage, fm?.etapa),
     country: pick(b?.country, fm?.country),
     city: pick(b?.city, fm?.city),
+    region: pick(b?.region, b?.province, b?.state, fm?.region, fm?.provincia),
+    geoScope: pick(b?.geo_scope, fm?.geo_scope, fm?.alcance_geografico),
     customer: pick(cp?.description, cp?.segment, fm?.customer, fm?.target_customer),
+    customerSegment: pick(cp?.segment, cp?.type, fm?.customer_segment, fm?.segmento),
     channel: pick(b?.main_channel, fm?.channel, fm?.main_channel),
     offer: offers[0] ?? pick(op?.description, fm?.offer, fm?.main_offer),
+    valueProp: pick(op?.value_prop, br?.value_prop, fm?.value_prop, fm?.propuesta_valor),
+    differentiator: pick(op?.differentiator, br?.differentiator, fm?.differentiator, fm?.diferencial),
+    priceRange: pick(op?.price_range, b?.price_range, fm?.price_range, fm?.rango_precio),
+    ticketSize: pick(op?.ticket_size, fm?.ticket_size, fm?.ticket_promedio, fm?.avg_ticket),
+    salesCycle: pick(op?.sales_cycle, fm?.sales_cycle, fm?.ciclo_venta),
+    seasonality: pick(fm?.seasonality, fm?.estacionalidad, br?.seasonality),
+    teamSize: pick(b?.team_size, b?.employees, fm?.team_size, fm?.empleados),
     mainFriction: pick(fm?.main_friction, fm?.main_challenge, br?.main_friction),
     mainGoal: pick(fm?.main_goal, fm?.goal_90d, br?.main_goal),
     competitors,
