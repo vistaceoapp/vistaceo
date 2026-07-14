@@ -10,6 +10,7 @@ import {
 } from "./prompt2-rules.ts";
 import {
   hyperPersonalizationCheck,
+  contextStrengthScore,
   type HyperAnchors,
 } from "./hyper-personalization-gate.ts";
 
@@ -117,13 +118,20 @@ export function runtimeOutputGate(input: GateInput): GateResult {
   }
 
   // 3) hyper-personalization: si el caller pasa anchors, exigir presencia
+  //    adaptativa según fuerza de contexto del brain.
   if (input.anchors) {
-    const min = input.minAnchors ?? DEFAULT_MIN_ANCHORS[input.kind] ?? 1;
+    const strength = contextStrengthScore(input.anchors);
+    const baseMin = input.minAnchors ?? DEFAULT_MIN_ANCHORS[input.kind] ?? 1;
+    // Contexto pobre (<0.35): pedir 1 sola ancla — evita bloquear a usuarios nuevos.
+    // Contexto fuerte (>=0.7): exigir 1 más — fuerza personalización más profunda.
+    const min = strength < 0.35 ? 1 : strength >= 0.7 ? baseMin + 1 : baseMin;
+    const requireSpecific = strength >= 0.5 &&
+      (input.kind === "mission" || input.kind === "opportunity");
     const hp = hyperPersonalizationCheck({
       text: t,
       anchors: input.anchors,
       minAnchors: min,
-      requireSpecific: input.kind === "mission" || input.kind === "opportunity",
+      requireSpecific,
     });
     if (!hp.ok) reasons.push(...hp.reasons);
   }
