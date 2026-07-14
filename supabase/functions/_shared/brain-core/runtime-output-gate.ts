@@ -10,6 +10,7 @@ import {
 } from "./prompt2-rules.ts";
 import {
   hyperPersonalizationCheck,
+  contextStrengthScore,
   type HyperAnchors,
 } from "./hyper-personalization-gate.ts";
 
