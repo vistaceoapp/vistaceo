@@ -154,16 +154,24 @@ export function hyperPersonalizationCheck(input: HyperCheckInput): HyperCheckRes
  * generar contenido o si conviene primero pedirle 1 dato al usuario.
  */
 export function contextStrengthScore(a: HyperAnchors, signalCount = 0): number {
-  const weights: Array<[keyof HyperAnchors | "signals", number, boolean]> = [
-    ["sector", 0.15, !!a.sector],
-    ["subSector", 0.12, !!a.subSector],
-    ["country", 0.08, !!a.country],
-    ["customer", 0.18, !!a.customer],
-    ["offer", 0.15, !!a.offer],
-    ["mainFriction", 0.14, !!a.mainFriction],
-    ["mainGoal", 0.08, !!a.mainGoal],
-    ["channel", 0.05, !!a.channel],
-    ["signals", 0.05, signalCount >= 3],
+  const weights: Array<[string, number, boolean]> = [
+    ["sector", 0.10, !!a.sector],
+    ["subSector", 0.09, !!a.subSector],
+    ["niche", 0.06, !!a.niche],
+    ["businessModel", 0.06, !!a.businessModel],
+    ["stage", 0.03, !!a.stage],
+    ["country", 0.05, !!a.country],
+    ["city", 0.03, !!a.city],
+    ["customer", 0.12, !!a.customer],
+    ["customerSegment", 0.05, !!a.customerSegment],
+    ["offer", 0.10, !!a.offer],
+    ["valueProp", 0.06, !!a.valueProp],
+    ["differentiator", 0.04, !!a.differentiator],
+    ["priceRange", 0.03, !!a.priceRange || !!a.ticketSize],
+    ["mainFriction", 0.09, !!a.mainFriction],
+    ["mainGoal", 0.05, !!a.mainGoal],
+    ["channel", 0.03, !!a.channel],
+    ["signals", 0.03, signalCount >= 3],
   ];
   let s = 0;
   for (const [, w, present] of weights) if (present) s += w;
