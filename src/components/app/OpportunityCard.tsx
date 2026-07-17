@@ -231,6 +231,46 @@ export const OpportunityCard = ({
         </div>
       </div>
       
+      {/* Evidencia — "por qué te lo digo" */}
+      {(() => {
+        const ev = (opportunity.evidence ?? {}) as Record<string, unknown>;
+        const trigger = typeof ev.trigger === "string" ? ev.trigger : "";
+        const reason = typeof ev.recommendation_reason === "string" ? ev.recommendation_reason : "";
+        const rawSignals = Array.isArray(ev.signals) ? (ev.signals as unknown[]) : [];
+        const signals = rawSignals
+          .map((s) => (typeof s === "string" ? s : ""))
+          .filter((s) => s && !/^undefined_/i.test(s))
+          .slice(0, 3);
+        if (!trigger && !reason && signals.length === 0) return null;
+        return (
+          <div className="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/10">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Sparkles className="w-3 h-3 text-primary" />
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">Por qué te lo digo</span>
+            </div>
+            {trigger && (
+              <p className="text-xs text-foreground/80 leading-relaxed line-clamp-3">
+                {sanitizeAIOutput(trigger)}
+              </p>
+            )}
+            {reason && reason !== trigger && (
+              <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed line-clamp-2">
+                {sanitizeAIOutput(reason)}
+              </p>
+            )}
+            {signals.length > 0 && (
+              <div className="flex gap-1 flex-wrap mt-2">
+                {signals.map((s, i) => (
+                  <Badge key={i} variant="outline" className="text-[9px] bg-background/60 border-primary/20 font-normal">
+                    {sanitizeAIOutput(s).replace(/_/g, " ")}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+      
       {/* Drivers */}
       {drivers.length > 0 && (
         <div className="flex items-start gap-2 mb-4 flex-wrap">
@@ -244,6 +284,7 @@ export const OpportunityCard = ({
           </div>
         </div>
       )}
+
       
       {/* Actions */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
