@@ -28,6 +28,8 @@ import { cn } from '@/lib/utils';
 interface DashboardCardsGridProps {
   countryCode: CountryCode;
   availableData: string[];
+  /** Categorías priorizadas por el brain (ej. weakest dimensions o focus activo). */
+  priorityCategories?: string[];
 }
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
