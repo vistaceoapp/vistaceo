@@ -28,6 +28,8 @@ import { cn } from '@/lib/utils';
 interface DashboardCardsGridProps {
   countryCode: CountryCode;
   availableData: string[];
+  /** Categorías priorizadas por el brain (ej. weakest dimensions o focus activo). */
+  priorityCategories?: string[];
 }
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -139,7 +141,7 @@ const DashboardCardItem = ({ card, availableData, onClick }: CardItemProps) => {
   );
 };
 
-export const DashboardCardsGrid = ({ countryCode, availableData }: DashboardCardsGridProps) => {
+export const DashboardCardsGrid = ({ countryCode, availableData, priorityCategories }: DashboardCardsGridProps) => {
   const [selectedCard, setSelectedCard] = useState<DashboardCard | null>(null);
   const [auditOpen, setAuditOpen] = useState(false);
 
@@ -154,7 +156,11 @@ export const DashboardCardsGrid = ({ countryCode, availableData }: DashboardCard
     return acc;
   }, {} as Record<string, DashboardCard[]>);
 
-  const categoryOrder = ['radar', 'economics', 'pricing', 'market', 'operations', 'reputation'];
+  const defaultOrder = ['radar', 'economics', 'pricing', 'market', 'operations', 'reputation'];
+  // Adaptive: prioridad del brain primero, resto en orden default, sin duplicar.
+  const categoryOrder = priorityCategories && priorityCategories.length
+    ? [...new Set([...priorityCategories.filter(c => defaultOrder.includes(c)), ...defaultOrder])]
+    : defaultOrder;
   const categoryLabels: Record<string, string> = {
     radar: 'Radar',
     economics: 'Economía',
