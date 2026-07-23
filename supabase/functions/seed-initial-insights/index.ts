@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    const { businessId, contextPack } = await req.json();
+    const { businessId, contextPack, force: forceFlag } = await req.json();
     if (!businessId) {
       return new Response(JSON.stringify({ error: "businessId required" }), {
         status: 400,
