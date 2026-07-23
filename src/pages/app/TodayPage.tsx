@@ -111,27 +111,50 @@ const TodayPage = () => {
   const sidebarVisible = useMemo(() => getVisibleWidgets("sidebar"), [getVisibleWidgets]);
 
   if (dashboardLoading || widgetsLoading) {
-    return (
-      <div className={cn("space-y-6", !isMobile && "grid grid-cols-3 gap-6")}>
-        {!isMobile ? (
-          <>
-            <div className="col-span-2 space-y-6">
-              <div className="h-10 bg-card rounded-xl animate-pulse w-2/3" />
-              <div className="h-48 bg-card rounded-xl animate-pulse" />
-            </div>
-            <div className="space-y-6">
-              <div className="h-24 bg-card rounded-xl animate-pulse" />
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="h-10 bg-card/50 rounded-xl animate-pulse w-2/3" />
-            <GlassCard className="h-48 animate-pulse" />
-          </>
+    const Shimmer = ({ className }: { className?: string }) => (
+      <div
+        className={cn(
+          "relative overflow-hidden rounded-2xl bg-card/60 border border-border/40",
+          "before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.6s_infinite]",
+          "before:bg-gradient-to-r before:from-transparent before:via-foreground/[0.04] before:to-transparent",
+          className
         )}
+      />
+    );
+
+    if (isMobile) {
+      return (
+        <div className="space-y-5">
+          <Shimmer className="h-9 w-3/4" />
+          <Shimmer className="h-40" />
+          <Shimmer className="h-56" />
+          <Shimmer className="h-48" />
+          <Shimmer className="h-32" />
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+          <div className="space-y-6 min-w-0">
+            <Shimmer className="h-10 w-2/3" />
+            <Shimmer className="h-44" />
+            <Shimmer className="h-64" />
+            <Shimmer className="h-56" />
+            <Shimmer className="h-48" />
+          </div>
+          <aside className="space-y-5">
+            <Shimmer className="h-40" />
+            <Shimmer className="h-32" />
+            <Shimmer className="h-48" />
+            <Shimmer className="h-28" />
+          </aside>
+        </div>
       </div>
     );
   }
+
 
   if (!currentBusiness) {
     return (
