@@ -240,14 +240,31 @@ async function createSubscription(
 ) {
   console.log(`[Webhook] Creating subscription for user ${userId}, plan ${planId}`);
 
+  // Idempotency guard: si el payment_id ya activó una suscripción, no duplicamos.
+  // Los webhooks (MP/PayPal) reintentan y sin este guard generamos filas dobles.
+  if (paymentInfo.paymentId) {
+    const { data: existing } = await supabase
+      .from("subscriptions")
+      .select("id, business_id")
+      .eq("payment_id", paymentInfo.paymentId)
+      .eq("payment_provider", paymentInfo.provider)
+      .limit(1)
+      .maybeSingle();
+    if (existing) {
+      console.log(`[Webhook] payment_id ${paymentInfo.paymentId} ya procesado (sub ${existing.id}), skip`);
+      return;
+    }
+  }
+
   const now = new Date();
   const expiresAt = new Date(now);
-  
+
   if (planId === "pro_yearly") {
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
   } else {
     expiresAt.setMonth(expiresAt.getMonth() + 1);
   }
+
 
   // If no business yet, find user's business
   let targetBusinessId = businessId;

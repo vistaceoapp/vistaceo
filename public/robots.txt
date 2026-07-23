@@ -1,8 +1,7 @@
 # VISTACEO - Robots.txt
 # Canonical domain: https://www.vistaceo.com
-# Last updated: 2026-05-17
 
-# ===== MAIN CRAWLERS (full access to public surface) =====
+# ===== MAIN SEARCH CRAWLERS =====
 
 User-agent: Googlebot
 Allow: /
@@ -44,10 +43,6 @@ Disallow: /reset-password
 Disallow: /unsubscribe
 Disallow: /bienvenido-pro
 Disallow: /welcome-pro
-Disallow: /v2
-Disallow: /v3
-Disallow: /ultra
-Disallow: /minimalista
 
 User-agent: YandexBot
 Allow: /
@@ -73,7 +68,96 @@ Disallow: /checkout
 Disallow: /admin/
 Disallow: /api/
 
-# ===== SOCIAL MEDIA BOTS (allow crawling for previews) =====
+# ===== AI SEARCH CRAWLERS (permitidos: fuente masiva de tráfico) =====
+# ChatGPT Search, Claude, Perplexity, Gemini, You.com, etc.
+# Bloquearlos = invisibilidad en respuestas de IA. Los dejamos entrar.
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /setup
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /setup
+
+User-agent: GPTBot
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /setup
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /setup
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /setup
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /setup
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+
+User-agent: Meta-ExternalAgent
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+
+User-agent: cohere-ai
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+
+User-agent: YouBot
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+
+User-agent: Diffbot
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+
+User-agent: CCBot
+Allow: /
+Disallow: /app/
+Disallow: /admin/
+
+# ===== SOCIAL / LINK-PREVIEW BOTS =====
 
 User-agent: Twitterbot
 Allow: /
@@ -96,7 +180,7 @@ Allow: /
 User-agent: Discordbot
 Allow: /
 
-# ===== BLOCK AGGRESSIVE / SCRAPER BOTS =====
+# ===== SCRAPERS AGRESIVOS (bloqueados) =====
 
 User-agent: AhrefsBot
 Disallow: /
@@ -119,22 +203,7 @@ Disallow: /
 User-agent: Bytespider
 Disallow: /
 
-User-agent: GPTBot
-Disallow: /
-
-User-agent: CCBot
-Disallow: /
-
-User-agent: ClaudeBot
-Disallow: /
-
-User-agent: anthropic-ai
-Disallow: /
-
-User-agent: Google-Extended
-Disallow: /
-
-# ===== ALL OTHER BOTS =====
+# ===== FALLBACK =====
 
 User-agent: *
 Allow: /
