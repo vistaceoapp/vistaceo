@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    const { businessId, contextPack } = await req.json();
+    const { businessId, contextPack, force: forceFlag } = await req.json();
     if (!businessId) {
       return new Response(JSON.stringify({ error: "businessId required" }), {
         status: 400,
@@ -120,13 +120,25 @@ Deno.serve(async (req) => {
       const startedAt = typeof settings.seeding_started_at === "string" ? Date.parse(settings.seeding_started_at) : 0;
       const completedAt = typeof settings.seeding_completed_at === "string" ? Date.parse(settings.seeding_completed_at) : 0;
       const now = Date.now();
-      if (completedAt && now - completedAt < 24 * 60 * 60 * 1000) {
+      const force = forceFlag === true;
+      // Verificar si el seed anterior efectivamente produjo contenido.
+      // Si marcamos completed pero no hay opps/research (caso: outage de créditos IA),
+      // permitir re-ejecutar aunque el flag esté seteado.
+      let hasRealContent = true;
+      if (completedAt && !force) {
+        const [{ count: oppCount }, { count: liCount }] = await Promise.all([
+          supabase.from("opportunities").select("id", { count: "exact", head: true }).eq("business_id", businessId),
+          supabase.from("learning_items").select("id", { count: "exact", head: true }).eq("business_id", businessId),
+        ]);
+        hasRealContent = (oppCount ?? 0) > 0 || (liCount ?? 0) > 0;
+      }
+      if (completedAt && now - completedAt < 24 * 60 * 60 * 1000 && hasRealContent && !force) {
         console.log("[seed-initial-insights] already completed recently, skipping");
         return new Response(JSON.stringify({ ok: true, skipped: "already_completed" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (startedAt && now - startedAt < 60 * 1000) {
+      if (startedAt && now - startedAt < 60 * 1000 && !force) {
         console.log("[seed-initial-insights] another run in progress, skipping");
         return new Response(JSON.stringify({ ok: true, skipped: "in_progress" }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
