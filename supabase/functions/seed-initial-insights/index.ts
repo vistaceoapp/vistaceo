@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
       const startedAt = typeof settings.seeding_started_at === "string" ? Date.parse(settings.seeding_started_at) : 0;
       const completedAt = typeof settings.seeding_completed_at === "string" ? Date.parse(settings.seeding_completed_at) : 0;
       const now = Date.now();
-      const force = (body as { force?: boolean })?.force === true;
+      const force = forceFlag === true;
       // Verificar si el seed anterior efectivamente produjo contenido.
       // Si marcamos completed pero no hay opps/research (caso: outage de créditos IA),
       // permitir re-ejecutar aunque el flag esté seteado.
