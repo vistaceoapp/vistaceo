@@ -271,6 +271,42 @@ export const OpportunityCard = ({
         );
       })()}
       
+      {/* Simulación de impacto — proyección numérica personalizada */}
+      {(() => {
+        const ev = (opportunity.evidence ?? {}) as Record<string, unknown>;
+        const proj = (ev.projected_impact ?? ev.impact_projection ?? {}) as Record<string, unknown>;
+        const revenue = typeof proj.revenue === "string" || typeof proj.revenue === "number" ? String(proj.revenue) : "";
+        const timeline = typeof proj.timeline === "string" ? proj.timeline : "";
+        const risk = typeof proj.risk === "string" ? proj.risk : "";
+        const kpi = typeof proj.kpi === "string" ? proj.kpi : "";
+        if (!revenue && !timeline && !risk && !kpi) return null;
+        return (
+          <div className="mb-4 p-3 rounded-lg bg-gradient-to-br from-primary/5 to-transparent border border-primary/10">
+            <div className="flex items-center gap-1.5 mb-2">
+              <TrendingUp className="w-3 h-3 text-primary" />
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">Proyección de impacto</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              {revenue && (
+                <div><span className="text-muted-foreground">Ingresos:</span> <span className="font-semibold text-foreground">{sanitizeAIOutput(revenue)}</span></div>
+              )}
+              {timeline && (
+                <div><span className="text-muted-foreground">Plazo:</span> <span className="font-semibold text-foreground">{sanitizeAIOutput(timeline)}</span></div>
+              )}
+              {kpi && (
+                <div className="col-span-2"><span className="text-muted-foreground">KPI:</span> <span className="font-semibold text-foreground">{sanitizeAIOutput(kpi)}</span></div>
+              )}
+              {risk && (
+                <div className="col-span-2 flex items-start gap-1 text-amber-600 dark:text-amber-400">
+                  <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />
+                  <span>{sanitizeAIOutput(risk)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+      
       {/* Drivers */}
       {drivers.length > 0 && (
         <div className="flex items-start gap-2 mb-4 flex-wrap">
