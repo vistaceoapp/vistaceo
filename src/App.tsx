@@ -81,31 +81,26 @@ const queryClient = new QueryClient({
 
 // Idle-time prefetch: warm up the most likely next routes once the landing has painted.
 // This makes the first navigation feel instant — no PageLoader flash.
+import { prefetchRoutesIdle } from "@/lib/route-prefetch";
 const prefetchRoutes = () => {
-  const idle = (window as any).requestIdleCallback || ((cb: any) => setTimeout(cb, 200));
-  idle(() => {
-    // Critical post-landing destinations
-    import("./pages/Auth").catch(() => {});
-    import("./pages/CheckoutPage").catch(() => {});
-  });
-  idle(() => {
-    import("./layouts/AppLayout").catch(() => {});
-    import("./pages/app/TodayPage").catch(() => {});
-  });
-  // Warm up el resto de las rutas internas en background — al entrar a la app
-  // el primer paso por Misiones/Radar/Chat se siente instantáneo.
-  idle(() => {
-    import("./pages/app/MissionsPage").catch(() => {});
-    import("./pages/app/RadarPage").catch(() => {});
-    import("./pages/app/ChatPage").catch(() => {});
-  });
-
+  prefetchRoutesIdle([
+    "/auth",
+    "/checkout",
+    "/app",
+    "/app/chat",
+    "/app/missions",
+    "/app/radar",
+    "/app/analytics",
+    "/app/predictions",
+    "/app/more",
+  ]);
 };
 if (typeof window !== "undefined") {
   // Defer until after first paint
   if (document.readyState === "complete") prefetchRoutes();
   else window.addEventListener("load", prefetchRoutes, { once: true });
 }
+
 
 // Loading skeleton with branding — eliminates blank screen during lazy load
 const PageLoader = () => (
