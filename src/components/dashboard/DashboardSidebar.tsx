@@ -170,6 +170,9 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
             const SettingsItem = (
               <NavLink
                 to="/app/more"
+                onMouseEnter={() => prefetchRoute("/app/more")}
+                onFocus={() => prefetchRoute("/app/more")}
+                onTouchStart={() => prefetchRoute("/app/more")}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200",
                   collapsed ? "justify-center" : "justify-start",
