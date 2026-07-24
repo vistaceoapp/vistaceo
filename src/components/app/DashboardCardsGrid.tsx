@@ -157,10 +157,19 @@ export const DashboardCardsGrid = ({ countryCode, availableData, priorityCategor
   }, {} as Record<string, DashboardCard[]>);
 
   const defaultOrder = ['radar', 'economics', 'pricing', 'market', 'operations', 'reputation'];
-  // Adaptive: prioridad del brain primero, resto en orden default, sin duplicar.
-  const categoryOrder = priorityCategories && priorityCategories.length
-    ? [...new Set([...priorityCategories.filter(c => defaultOrder.includes(c)), ...defaultOrder])]
-    : defaultOrder;
+  // Time-of-day boost: adapta el orden a la franja horaria del usuario
+  const hour = new Date().getHours();
+  const timeBoost: string[] =
+    hour >= 5 && hour < 12 ? ['operations', 'economics']       // mañana: operar + números
+    : hour >= 12 && hour < 18 ? ['reputation', 'market']       // tarde: reputación + mercado
+    : hour >= 18 && hour < 23 ? ['radar', 'pricing']           // noche: exploración + precios
+    : ['radar'];                                                // madrugada: solo radar
+  // Adaptive: prioridad del brain > time-of-day > default, sin duplicar.
+  const categoryOrder = [...new Set([
+    ...(priorityCategories || []).filter(c => defaultOrder.includes(c)),
+    ...timeBoost.filter(c => defaultOrder.includes(c)),
+    ...defaultOrder,
+  ])];
   const categoryLabels: Record<string, string> = {
     radar: 'Radar',
     economics: 'Economía',
