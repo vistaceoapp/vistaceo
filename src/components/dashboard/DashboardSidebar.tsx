@@ -89,6 +89,9 @@ export const DashboardSidebar = ({ collapsed, onToggle }: DashboardSidebarProps)
               <NavLink
                 key={item.path}
                 to={item.path}
+                onMouseEnter={() => prefetchRoute(item.path)}
+                onFocus={() => prefetchRoute(item.path)}
+                onTouchStart={() => prefetchRoute(item.path)}
                 className={cn(
                   "group flex items-center gap-3 px-3 rounded-xl transition-all duration-200",
                   collapsed ? "justify-center py-2" : "justify-start py-2.5",
