@@ -268,6 +268,23 @@ function buildStateJson(memory: MemoryContext): Record<string, unknown> {
       source: s.source,
       text: (s.raw_text || "").slice(0, 220),
     })),
+    // Memoria episódica: decisiones y promesas concretas que el chat puede citar
+    episodic_memory: {
+      recently_completed: memory.recentActions
+        .filter(a => a.status === "completed")
+        .slice(0, 5)
+        .map(a => ({ title: a.title, completed_at: a.completed_at })),
+      in_flight_missions: memory.activeMissions.slice(0, 5).map(m => ({
+        title: m.title,
+        step: m.current_step,
+        status: m.status,
+      })),
+      last_checkin_pattern: memory.recentCheckins.slice(0, 3).map(c => ({
+        slot: c.slot,
+        traffic: c.traffic_level,
+        at: c.created_at,
+      })),
+    },
   };
 }
 
