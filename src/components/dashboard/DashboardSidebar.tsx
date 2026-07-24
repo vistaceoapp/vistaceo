@@ -13,6 +13,7 @@ import {
   Orbit
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { prefetchRoute } from "@/lib/route-prefetch";
 import { VistaceoLogo } from "@/components/ui/VistaceoLogo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/button";
