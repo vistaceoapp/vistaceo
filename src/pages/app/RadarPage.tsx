@@ -456,13 +456,9 @@ const RadarPage = () => {
       console.error("Error generating research:", error);
       toast({
         title: "I+D sigue rastreando en segundo plano",
-        description: "Una fuente externa tardó más de lo normal. Probá de nuevo en un momento.",
-        action: (
-          <Button size="sm" variant="ghost" onClick={() => generateResearchItems()}>
-            Reintentar
-          </Button>
-        ) as any,
+        description: "No perdiste nada. Cuando termine el rastreo aparecen los insights automáticamente.",
       });
+      setTimeout(() => { fetchData().catch(() => {}); }, 20_000);
     } finally {
       setGeneratingResearch(false);
     }
