@@ -256,7 +256,11 @@ export const MissionDetailEnhanced = ({
           enhanceExisting: true,
           regenerate,
         },
-        { signal: abortControllerRef.current.signal }
+        {
+          signal: abortControllerRef.current.signal,
+          // Resumible: si el usuario sale y vuelve, reenganchamos el mismo job.
+          resumeKey: `mission:${businessId}:${mission.id}`,
+        }
       );
 
       // Check if aborted
