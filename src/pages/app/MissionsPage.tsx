@@ -266,16 +266,19 @@ const MissionsPage = () => {
 
     try {
       const contextPack = await buildContextPack('missions', currentBusiness.id).catch(() => null);
-      const data = await requestMissionPlan({
-        businessId: currentBusiness.id,
-        module: 'missions',
-        contextPack,
-        outputContract: 'mission_plan_v1',
-        missionTitle: suggestion.title,
-        missionDescription: suggestion.description,
-        missionArea: suggestion.area,
-        regenerate,
-      });
+      const data = await requestMissionPlan(
+        {
+          businessId: currentBusiness.id,
+          module: 'missions',
+          contextPack,
+          outputContract: 'mission_plan_v1',
+          missionTitle: suggestion.title,
+          missionDescription: suggestion.description,
+          missionArea: suggestion.area,
+          regenerate,
+        },
+        { resumeKey: `suggestion:${currentBusiness.id}:${suggestion.title}` }
+      );
 
       // Free-limit reached: edge function returns 402 with structured payload
       if (data?.error === "free_limit_reached") {

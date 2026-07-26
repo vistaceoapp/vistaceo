@@ -378,15 +378,14 @@ const RadarPage = () => {
       fetchData();
     } catch (error) {
       console.error("Error generating opportunities:", error);
+      // Info silenciosa: la generación sigue corriendo en segundo plano en el edge.
+      // Sin variante destructiva, sin botón alarmante — cuando termine, aparece solo.
       toast({
-        title: "Seguimos analizando en segundo plano",
-        description: "Hubo una pausa de conexión. Si querés, reintentá en unos segundos.",
-        action: (
-          <Button size="sm" variant="ghost" onClick={() => generateOpportunities()}>
-            Reintentar
-          </Button>
-        ) as any,
+        title: "Sigo trabajando en segundo plano",
+        description: "No perdiste nada. Las oportunidades aparecen apenas terminen de procesarse.",
       });
+      // Refresh silencioso a los 20s por si el job terminó en background.
+      setTimeout(() => { fetchData().catch(() => {}); }, 20_000);
     } finally {
       setGeneratingOpportunities(false);
     }
@@ -457,13 +456,9 @@ const RadarPage = () => {
       console.error("Error generating research:", error);
       toast({
         title: "I+D sigue rastreando en segundo plano",
-        description: "Una fuente externa tardó más de lo normal. Probá de nuevo en un momento.",
-        action: (
-          <Button size="sm" variant="ghost" onClick={() => generateResearchItems()}>
-            Reintentar
-          </Button>
-        ) as any,
+        description: "No perdiste nada. Cuando termine el rastreo aparecen los insights automáticamente.",
       });
+      setTimeout(() => { fetchData().catch(() => {}); }, 20_000);
     } finally {
       setGeneratingResearch(false);
     }

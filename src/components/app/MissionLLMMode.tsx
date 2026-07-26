@@ -365,7 +365,10 @@ export const MissionLLMMode = ({
           enhanceExisting: true,
           regenerate,
         },
-        { signal: abortControllerRef.current.signal }
+        {
+          signal: abortControllerRef.current.signal,
+          resumeKey: `mission:${businessId}:${mission.id}`,
+        }
       );
 
       if (abortControllerRef.current?.signal.aborted) return;
