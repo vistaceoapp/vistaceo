@@ -770,9 +770,9 @@ const CheckoutPage = () => {
           mainButtonRef={mainPaymentRef}
           isLoading={loading}
           onClick={handleCheckout}
-          buttonText={isYearly ? "Pagar Pro anual" : "Pagar Pro mensual"}
-          priceText={formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}
-          currency={country.currency}
+          buttonText={promo?.valid ? "Activar promo" : (isYearly ? "Pagar Pro anual" : "Pagar Pro mensual")}
+          priceText={promo?.valid ? (promo.localDisplay || "").replace(/\s?[A-Z]{3}$/, "").trim() : formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}
+          currency={promo?.valid ? (promo.currency || country.currency) : country.currency}
           isYearly={isYearly}
           provider="mercadopago"
         />
