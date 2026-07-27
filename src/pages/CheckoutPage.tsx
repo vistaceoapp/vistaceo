@@ -43,7 +43,7 @@ const proFeatures = [
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, loading: authLoading, signIn, signUp, signInWithGoogle, signOut } = useAuth();
   const queryClient = useQueryClient();
   
   // Get country override from URL (from setup) or localStorage
@@ -80,6 +80,7 @@ const CheckoutPage = () => {
     reason?: string;
     country?: CountryCode;
     currency?: string;
+    recipientEmail?: string;
   } | null>(null);
   const [promoLoading, setPromoLoading] = useState<boolean>(!!promoToken);
 
@@ -135,6 +136,7 @@ const CheckoutPage = () => {
             expiresAt: o.expiresAt,
             country: o.country as CountryCode,
             currency: o.currency,
+            recipientEmail: o.recipientEmail,
           });
           // Lock country to the offer's country so nothing mixes (e.g. CLP price with ARS "antes").
           if (o.country) {
@@ -237,6 +239,13 @@ const CheckoutPage = () => {
       toast.error(promoLoading ? "Estamos validando la oferta. Intentá nuevamente en un instante." : "Esta oferta ya no está disponible.");
       return;
     }
+
+    const signedInEmail = user.email?.trim().toLowerCase();
+    const recipientEmail = promo?.recipientEmail?.trim().toLowerCase();
+    if (promo?.valid && recipientEmail && signedInEmail !== recipientEmail) {
+      toast.error("Esta oferta está asociada a otro email. Ingresá con la cuenta que recibió el correo.");
+      return;
+    }
     
     setLoading(true);
     
@@ -258,8 +267,13 @@ const CheckoutPage = () => {
       if (error) {
         // Make errors visible while keeping a friendly message.
         console.error("Checkout invoke error:", error);
-        const details = (error as any)?.context?.response ? await (error as any).context.response.text().catch(() => "") : "";
-        throw new Error(details || (error as any)?.message || "Error desconocido");
+        const context = (error as { context?: unknown })?.context;
+        let details = "";
+        if (context instanceof Response) {
+          const payload = await context.clone().json().catch(() => null) as { error?: string; message?: string } | null;
+          details = payload?.error || payload?.message || await context.text().catch(() => "");
+        }
+        throw new Error(details || (error as Error)?.message || "Error desconocido");
       }
 
       if (data?.checkoutUrl) {
@@ -277,6 +291,24 @@ const CheckoutPage = () => {
       setLoading(false);
     }
   };
+
+  const handlePromoAccountSwitch = async () => {
+    if (!promoToken) return;
+    const checkoutPath = `/checkout?promo=${encodeURIComponent(promoToken)}`;
+    safeLocalStorage.setItem("pendingCheckoutPath", checkoutPath);
+    await signOut(checkoutPath);
+  };
+
+  const promoIdentityMismatch = Boolean(
+    user?.email
+    && promo?.valid
+    && promo.recipientEmail
+    && user.email.trim().toLowerCase() !== promo.recipientEmail.trim().toLowerCase()
+  );
+
+  const maskedPromoEmail = promo?.recipientEmail
+    ? promo.recipientEmail.replace(/^(.{2}).*(@.*)$/, "$1••••$2")
+    : "el email que recibió la oferta";
 
   if (authLoading || isDetecting) {
     return (
@@ -715,6 +747,20 @@ const CheckoutPage = () => {
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Validando oferta...
                   </Button>
+                ) : promoIdentityMismatch ? (
+                  <Card className="border-warning/40 bg-warning/5">
+                    <CardContent className="p-5 space-y-4 text-center">
+                      <div>
+                        <h3 className="font-semibold text-foreground">Ingresaste con otro email</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Esta oferta está reservada para {maskedPromoEmail}. Cambiá de cuenta para mantener el precio promocional.
+                        </p>
+                      </div>
+                      <Button className="w-full" onClick={handlePromoAccountSwitch}>
+                        Ingresar con el email correcto
+                      </Button>
+                    </CardContent>
+                  </Card>
                 ) : (isArgentina || promo?.valid) ? (
                   <Button 
                     size="xl" 
