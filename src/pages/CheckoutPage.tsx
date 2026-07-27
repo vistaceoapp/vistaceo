@@ -504,18 +504,20 @@ const CheckoutPage = () => {
                   <span className="text-sm font-medium text-foreground">
                     {isDetecting ? "Detectando país..." : `País detectado: ${country.name}`}
                   </span>
-                  <select
-                    aria-label="Cambiar país de precios"
-                    value={country.code === "DEFAULT" ? "AR" : country.code}
-                    onChange={(e) => setCountryOverride(e.target.value as CountryCode)}
-                    className="h-9 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none"
-                  >
-                    {countryOptions.map(([code, info]) => (
-                      <option key={code} value={code}>
-                        {info.flag} {info.name}
-                      </option>
-                    ))}
-                  </select>
+                  {!promo?.valid && (
+                    <select
+                      aria-label="Cambiar país de precios"
+                      value={country.code === "DEFAULT" ? "AR" : country.code}
+                      onChange={(e) => setCountryOverride(e.target.value as CountryCode)}
+                      className="h-9 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none"
+                    >
+                      {countryOptions.map(([code, info]) => (
+                        <option key={code} value={code}>
+                          {info.flag} {info.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 {/* Price display */}
