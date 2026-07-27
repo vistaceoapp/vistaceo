@@ -456,38 +456,40 @@ const CheckoutPage = () => {
                   <h1 className="text-3xl font-bold text-foreground">VISTACEO Pro</h1>
                 </div>
 
-                {/* Billing Toggle */}
-                <div className="flex justify-center mb-6">
-                  <div className="inline-flex items-center gap-4 p-2 bg-secondary/50 border border-border rounded-2xl">
-                    <button
-                      onClick={() => setIsYearly(false)}
-                      className={cn(
-                        "px-5 py-2.5 rounded-xl text-sm font-medium transition-all",
-                        !isYearly 
-                          ? "bg-card text-foreground shadow-md" 
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      Mensual
-                    </button>
-                    <button
-                      onClick={() => setIsYearly(true)}
-                      className={cn(
-                        "px-5 py-2.5 rounded-xl text-sm font-medium transition-all relative",
-                        isYearly 
-                          ? "bg-card text-foreground shadow-md" 
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      Anual
-                      {!isYearly && (
-                        <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-success text-white text-xs font-semibold rounded-full">
-                          -{savings.percentage}%
-                        </span>
-                      )}
-                    </button>
+                {/* Billing Toggle - hidden during promo (locked to monthly) */}
+                {!promo?.valid && (
+                  <div className="flex justify-center mb-6">
+                    <div className="inline-flex items-center gap-4 p-2 bg-secondary/50 border border-border rounded-2xl">
+                      <button
+                        onClick={() => setIsYearly(false)}
+                        className={cn(
+                          "px-5 py-2.5 rounded-xl text-sm font-medium transition-all",
+                          !isYearly 
+                            ? "bg-card text-foreground shadow-md" 
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        Mensual
+                      </button>
+                      <button
+                        onClick={() => setIsYearly(true)}
+                        className={cn(
+                          "px-5 py-2.5 rounded-xl text-sm font-medium transition-all relative",
+                          isYearly 
+                            ? "bg-card text-foreground shadow-md" 
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        Anual
+                        {!isYearly && (
+                          <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-success text-white text-xs font-semibold rounded-full">
+                            -{savings.percentage}%
+                          </span>
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="mb-5 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-border bg-background/70 px-3 py-2.5">
                   <span className="text-sm">{country.flag}</span>
@@ -509,35 +511,52 @@ const CheckoutPage = () => {
                 </div>
 
                 {/* Price display */}
-                <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-5xl lg:text-6xl font-bold text-foreground">
-                    {formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}
-                  </span>
-                  <span className="text-lg text-muted-foreground">{country.currency}/mes</span>
-                </div>
-
-                {isYearly && (
-                  <div className="mt-3 space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                      Anual: {formatCurrencyShort(yearlyPrice)} {country.currency}/año
+                {promo?.valid ? (
+                  <div className="text-center">
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-5xl lg:text-6xl font-bold text-foreground">{promo.localDisplay}</span>
+                      <span className="text-lg text-muted-foreground">primer mes</span>
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground line-through">
+                      Antes {formatCurrencyShort(monthlyPrice)} {country.currency}/mes
                     </p>
-                      <Badge variant="secondary" className="bg-success/10 text-success border-success/30">
-                       {savings.percentage}% de ahorro vs. mensual
-                    </Badge>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Después $49 USD/mes · cancelás cuando quieras
+                    </p>
                   </div>
-                )}
-
-                {/* USD conversion notice for non-Argentina countries */}
-                {!isArgentina && (
-                  <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                    <p className="text-xs text-muted-foreground text-center">
-                       Te mostramos los precios en <strong>{country.currency}</strong>, pero siempre abonarás en <strong>USD ${isYearly ? 290 : 49}</strong>.
-                      <br />
-                      <span className="text-muted-foreground/80">
-                        Puedes pagar con tarjeta de débito/crédito o con tu cuenta PayPal.
+                ) : (
+                  <>
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-5xl lg:text-6xl font-bold text-foreground">
+                        {formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}
                       </span>
-                    </p>
-                  </div>
+                      <span className="text-lg text-muted-foreground">{country.currency}/mes</span>
+                    </div>
+
+                    {isYearly && (
+                      <div className="mt-3 space-y-1">
+                        <p className="text-sm text-muted-foreground">
+                          Anual: {formatCurrencyShort(yearlyPrice)} {country.currency}/año
+                        </p>
+                          <Badge variant="secondary" className="bg-success/10 text-success border-success/30">
+                           {savings.percentage}% de ahorro vs. mensual
+                        </Badge>
+                      </div>
+                    )}
+
+                    {/* USD conversion notice for non-Argentina countries */}
+                    {!isArgentina && (
+                      <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                        <p className="text-xs text-muted-foreground text-center">
+                           Te mostramos los precios en <strong>{country.currency}</strong>, pero siempre abonarás en <strong>USD ${isYearly ? 290 : 49}</strong>.
+                          <br />
+                          <span className="text-muted-foreground/80">
+                            Puedes pagar con tarjeta de débito/crédito o con tu cuenta PayPal.
+                          </span>
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
