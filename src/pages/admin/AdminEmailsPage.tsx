@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, Send, AlertCircle, Eye, MousePointerClick, RefreshCw, Search, Users } from "lucide-react";
+import { Mail, Send, AlertCircle, Eye, MousePointerClick, RefreshCw, Search, Users, Sparkles, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface Row {
   id: string;
@@ -123,6 +124,9 @@ export default function AdminEmailsPage() {
         <StatCard icon={Mail} label="Plantillas activas" value={templates.length} />
       </div>
 
+      {/* Promo Campaign Launcher */}
+      <PromoLauncher />
+
       {/* By template */}
       <Card className="p-4 md:p-5 mb-6">
         <h3 className="text-sm font-semibold text-foreground mb-3">Por plantilla</h3>
@@ -232,6 +236,132 @@ export default function AdminEmailsPage() {
         )}
       </Card>
     </div>
+  );
+}
+
+function PromoLauncher() {
+  const [campaignName, setCampaignName] = useState("Promo primer mes $1 USD (24h)");
+  const [usd, setUsd] = useState(1);
+  const [ars, setArs] = useState(1200);
+  const [hours, setHours] = useState(24);
+  const [testEmail, setTestEmail] = useState("");
+  const [segments, setSegments] = useState<string[]>(["free_setup_complete"]);
+  const [maxRecipients, setMaxRecipients] = useState(500);
+  const [busy, setBusy] = useState<"idle" | "test" | "dry" | "send">("idle");
+  const [lastResult, setLastResult] = useState<any>(null);
+
+  const toggleSeg = (s: string) => setSegments((prev) => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+
+  const run = async (mode: "test" | "dry" | "send") => {
+    setBusy(mode);
+    setLastResult(null);
+    try {
+      const body: any = {
+        createCampaign: { name: campaignName, usdAmount: usd, arsAmount: ars, windowHours: hours },
+      };
+      if (mode === "test") {
+        if (!testEmail.trim()) { toast.error("Ingresá un email de prueba"); setBusy("idle"); return; }
+        body.testEmail = testEmail.trim();
+      } else {
+        body.segments = segments;
+        body.maxRecipients = maxRecipients;
+        if (mode === "dry") body.dryRun = true;
+      }
+      const { data, error } = await supabase.functions.invoke("dispatch-promo-campaign", { body });
+      if (error) throw error;
+      setLastResult(data);
+      if (mode === "send") toast.success(`Enviados: ${data?.sent ?? 0}/${data?.planned ?? 0}`);
+      if (mode === "test") toast.success(`Email de prueba enviado a ${testEmail}`);
+      if (mode === "dry") toast.success(`Simulación: ${data?.planned ?? 0} destinatarios`);
+    } catch (e: any) {
+      const msg = e?.context?.text ? await e.context.text() : (e?.message || "Error");
+      toast.error(`Falló: ${msg}`);
+    } finally {
+      setBusy("idle");
+    }
+  };
+
+  const SEG = [
+    { id: "free_setup_complete", label: "Free · setup completo" },
+    { id: "free_setup_stuck_14d", label: "Setup incompleto (<14d)" },
+    { id: "free_active_60d", label: "Activos últimos 60d" },
+  ];
+
+  return (
+    <Card className="p-4 md:p-5 mb-6 border-primary/30 bg-primary/5">
+      <div className="flex items-center gap-2 mb-3">
+        <Sparkles className="w-4 h-4 text-primary" />
+        <h3 className="text-sm font-semibold text-foreground">Campaña Promo · Primer mes 24hs</h3>
+      </div>
+      <p className="text-xs text-muted-foreground mb-4">
+        Genera token único por usuario y link mágico <code>/checkout?promo=...</code>. Sin códigos, sin trucos.
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+        <div>
+          <label className="text-[11px] text-muted-foreground uppercase tracking-wide">Nombre</label>
+          <Input value={campaignName} onChange={(e) => setCampaignName(e.target.value)} />
+        </div>
+        <div>
+          <label className="text-[11px] text-muted-foreground uppercase tracking-wide">Precio USD (PayPal)</label>
+          <Input type="number" step="0.01" value={usd} onChange={(e) => setUsd(parseFloat(e.target.value) || 1)} />
+        </div>
+        <div>
+          <label className="text-[11px] text-muted-foreground uppercase tracking-wide">Precio ARS (MP)</label>
+          <Input type="number" value={ars} onChange={(e) => setArs(parseInt(e.target.value) || 1200)} />
+        </div>
+        <div>
+          <label className="text-[11px] text-muted-foreground uppercase tracking-wide">Ventana (horas)</label>
+          <Input type="number" value={hours} onChange={(e) => setHours(parseInt(e.target.value) || 24)} />
+        </div>
+      </div>
+
+      <div className="border-t border-border pt-4 mb-4">
+        <div className="text-xs font-semibold text-foreground mb-2">1) Prueba primero (recomendado)</div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Input placeholder="tu@email.com" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} className="max-w-xs" />
+          <Button size="sm" variant="outline" onClick={() => run("test")} disabled={busy !== "idle"}>
+            {busy === "test" ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+            Enviar email de prueba
+          </Button>
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-1">Genera oferta real, envía a esa dirección y crea un checkout funcional para probar el link mágico.</p>
+      </div>
+
+      <div className="border-t border-border pt-4">
+        <div className="text-xs font-semibold text-foreground mb-2">2) Lanzamiento masivo</div>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {SEG.map(s => (
+            <button key={s.id} onClick={() => toggleSeg(s.id)}
+              className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
+                segments.includes(s.id) ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border text-muted-foreground"
+              }`}>
+              {s.label}
+            </button>
+          ))}
+          <div className="ml-auto flex items-center gap-2">
+            <label className="text-[11px] text-muted-foreground">Máx:</label>
+            <Input type="number" className="w-24 h-8" value={maxRecipients} onChange={(e) => setMaxRecipients(parseInt(e.target.value) || 500)} />
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={() => run("dry")} disabled={busy !== "idle" || segments.length === 0}>
+            {busy === "dry" ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Users className="w-4 h-4 mr-1" />}
+            Simular (dry run)
+          </Button>
+          <Button size="sm" className="gradient-primary text-white" onClick={() => run("send")} disabled={busy !== "idle" || segments.length === 0}>
+            {busy === "send" ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+            Lanzar campaña real
+          </Button>
+        </div>
+      </div>
+
+      {lastResult && (
+        <pre className="mt-4 text-[11px] bg-background/60 border border-border rounded p-3 max-h-40 overflow-auto">
+{JSON.stringify(lastResult, null, 2)}
+        </pre>
+      )}
+    </Card>
   );
 }
 

@@ -14,6 +14,7 @@ interface CheckoutRequest {
   email?: string;
   localAmount?: number;
   localCurrency?: string;
+  promoToken?: string;
 }
 
 // USD base prices (what we actually charge internationally)
@@ -47,9 +48,9 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, userId, planId, country, email, localAmount, localCurrency } = await req.json() as CheckoutRequest;
+    const { businessId, userId, planId, country, email, localAmount, localCurrency, promoToken } = await req.json() as CheckoutRequest;
 
-    console.log(`[Checkout] Starting for user: ${userId}, plan: ${planId}, country: ${country}`);
+    console.log(`[Checkout] Starting for user: ${userId}, plan: ${planId}, country: ${country}${promoToken ? ", promo=YES" : ""}`);
 
     if (!userId || !planId) {
       return new Response(
@@ -62,6 +63,35 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Promo validation: only valid for pro_monthly, unused, non-expired,
+    // and belonging to this user.
+    let promoOfferId: string | null = null;
+    let promoUsdOverride: number | null = null;
+    let promoArsOverride: number | null = null;
+    if (promoToken) {
+      const { data: offer } = await supabase
+        .from("promo_offers")
+        .select("id, user_id, plan_id, usd_amount, local_amount, currency, expires_at, used_at, country")
+        .eq("token", promoToken)
+        .maybeSingle();
+      const now = Date.now();
+      const valid = offer
+        && offer.user_id === userId
+        && offer.plan_id === planId
+        && !offer.used_at
+        && new Date(offer.expires_at).getTime() > now;
+      if (valid) {
+        promoOfferId = offer.id;
+        promoUsdOverride = Number(offer.usd_amount);
+        if (offer.currency === "ARS" && offer.local_amount) {
+          promoArsOverride = Number(offer.local_amount);
+        }
+        console.log(`[Checkout] Promo applied: usd=${promoUsdOverride} ars=${promoArsOverride}`);
+      } else {
+        console.log(`[Checkout] Promo rejected (found=${!!offer}, used=${offer?.used_at}, expired=${offer && new Date(offer.expires_at).getTime() <= now}, planMatch=${offer?.plan_id === planId})`);
+      }
+    }
 
     let targetBusinessId = businessId || null;
 
@@ -126,10 +156,14 @@ serve(async (req) => {
         );
       }
 
-      const amount = ARS_PRICES[planId];
-      const description = planId === "pro_yearly" 
-        ? "VistaCEO Pro - Anual (2 meses gratis)" 
-        : "VistaCEO Pro - Mensual";
+      const basePrice = ARS_PRICES[planId];
+      const amount = promoArsOverride ?? basePrice;
+      const isPromo = promoOfferId !== null;
+      const description = isPromo
+        ? "VISTACEO Pro - Primer mes (Promo 24hs)"
+        : planId === "pro_yearly" 
+          ? "VistaCEO Pro - Anual (2 meses gratis)" 
+          : "VistaCEO Pro - Mensual";
 
       const preferenceData = {
         items: [{
@@ -153,6 +187,7 @@ serve(async (req) => {
           planId,
           localAmount: amount,
           localCurrency: "ARS",
+          promoOfferId,
         }),
         notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook?provider=mercadopago`,
       };
@@ -209,11 +244,13 @@ serve(async (req) => {
       }
 
       // Always charge in USD for international
-      const usdAmount = USD_PRICES[planId];
-      // Descripción en español
-      const description = planId === "pro_yearly" 
-        ? "VistaCEO Pro - Suscripción Anual (2 meses gratis)" 
-        : "VistaCEO Pro - Suscripción Mensual";
+      const usdAmount = promoUsdOverride ?? USD_PRICES[planId];
+      const isPromo = promoOfferId !== null;
+      const description = isPromo
+        ? "VISTACEO Pro - Primer mes (Promo 24hs)"
+        : planId === "pro_yearly" 
+          ? "VistaCEO Pro - Suscripción Anual (2 meses gratis)" 
+          : "VistaCEO Pro - Suscripción Mensual";
 
       console.log(`[Checkout] Getting PayPal access token from ${PAYPAL_API_URL}...`);
 
@@ -256,6 +293,7 @@ serve(async (req) => {
             localAmount: localAmount || null,
             localCurrency: localCurrency || null,
             country,
+            promoOfferId,
           }),
           amount: {
             currency_code: "USD",
