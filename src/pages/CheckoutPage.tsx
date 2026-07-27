@@ -83,6 +83,13 @@ const CheckoutPage = () => {
   } | null>(null);
   const [promoLoading, setPromoLoading] = useState<boolean>(!!promoToken);
 
+  // Keep the complete magic-link destination through Google OAuth and email confirmation.
+  useEffect(() => {
+    if (promoToken) {
+      safeLocalStorage.setItem("pendingCheckoutPath", `/checkout?promo=${encodeURIComponent(promoToken)}`);
+    }
+  }, [promoToken]);
+
   // Ref for observing when main payment button leaves viewport
   const mainPaymentRef = useRef<HTMLDivElement>(null);
 
@@ -150,6 +157,7 @@ const CheckoutPage = () => {
       setStatus("success");
       safeLocalStorage.removeItem("pendingPlan");
       safeLocalStorage.removeItem("pendingPlanTimestamp");
+      safeLocalStorage.removeItem("pendingCheckoutPath");
       // Invalidate subscription cache so Pro status is reflected immediately
       queryClient.invalidateQueries({ queryKey: ["subscription"] });
       // Redirect to app if user already has a business, otherwise to setup
@@ -219,7 +227,16 @@ const CheckoutPage = () => {
   };
 
   const handleCheckout = async () => {
-    if (!user) return;
+    if (!user) {
+      mainPaymentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      toast.info("Ingresá con la cuenta que recibió la oferta para continuar.");
+      return;
+    }
+
+    if (promoToken && (promoLoading || !promo?.valid)) {
+      toast.error(promoLoading ? "Estamos validando la oferta. Intentá nuevamente en un instante." : "Esta oferta ya no está disponible.");
+      return;
+    }
     
     setLoading(true);
     
@@ -770,7 +787,7 @@ const CheckoutPage = () => {
       </main>
 
       {/* Sticky Payment Button - appears when main button scrolls out of view */}
-      {status === "idle" && isArgentina && (
+      {status === "idle" && isArgentina && user && (
         <StickyPaymentButton
           mainButtonRef={mainPaymentRef}
           isLoading={loading}

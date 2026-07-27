@@ -174,7 +174,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, fullName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const pendingCheckoutPath = safeLocalStorage.getItem("pendingCheckoutPath");
+    const redirectUrl = pendingCheckoutPath?.startsWith("/checkout?")
+      ? `${window.location.origin}${pendingCheckoutPath}`
+      : `${window.location.origin}/`;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -193,9 +196,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithGoogle = useCallback(async () => {
     const pendingPlan = safeLocalStorage.getItem("pendingPlan");
-    const redirectUrl = (pendingPlan === "pro_monthly" || pendingPlan === "pro_yearly")
-      ? `${window.location.origin}/checkout?plan=${pendingPlan}`
-      : `${window.location.origin}/auth`;
+    const pendingCheckoutPath = safeLocalStorage.getItem("pendingCheckoutPath");
+    const redirectUrl = pendingCheckoutPath?.startsWith("/checkout?")
+      ? `${window.location.origin}${pendingCheckoutPath}`
+      : (pendingPlan === "pro_monthly" || pendingPlan === "pro_yearly")
+        ? `${window.location.origin}/checkout?plan=${pendingPlan}`
+        : `${window.location.origin}/auth`;
 
     const hostname = window.location.hostname;
     const isCustomDomain =
@@ -249,6 +255,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem('has_logged_in');
         localStorage.removeItem('pendingPlan');
         localStorage.removeItem('pendingPlanTimestamp');
+        localStorage.removeItem('pendingCheckoutPath');
       } catch { /* noop */ }
       welcomeEmailSentRef.current = false;
       initializedRef.current = true;

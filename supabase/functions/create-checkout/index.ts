@@ -8,7 +8,7 @@ const corsHeaders = {
 
 interface CheckoutRequest {
   businessId?: string;
-  userId: string;
+  userId?: string;
   planId: "pro_monthly" | "pro_yearly";
   country: string;
   email?: string;
@@ -48,21 +48,42 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, userId, planId, country, email, localAmount, localCurrency, promoToken } = await req.json() as CheckoutRequest;
+    const { businessId, planId, country, localAmount, localCurrency, promoToken } = await req.json() as CheckoutRequest;
 
-    console.log(`[Checkout] Starting for user: ${userId}, plan: ${planId}, country: ${country}${promoToken ? ", promo=YES" : ""}`);
-
-    if (!userId || !planId) {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const authHeader = req.headers.get("Authorization") || "";
+    const jwt = authHeader.replace(/^Bearer\s+/i, "");
+    if (!jwt) {
       return new Response(
-        JSON.stringify({ error: "userId and planId are required" }),
+        JSON.stringify({ error: "Necesitás iniciar sesión para pagar" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const authClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "", {
+      global: { headers: { Authorization: `Bearer ${jwt}` } },
+    });
+    const { data: { user: authenticatedUser }, error: authError } = await authClient.auth.getUser();
+    if (authError || !authenticatedUser) {
+      return new Response(
+        JSON.stringify({ error: "La sesión venció. Volvé a ingresar para continuar" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const userId = authenticatedUser.id;
+    const email = authenticatedUser.email || undefined;
+    console.log(`[Checkout] Starting for authenticated user: ${userId}, plan: ${planId}, country: ${country}${promoToken ? ", promo=YES" : ""}`);
+
+    if (!planId || !country || !["pro_monthly", "pro_yearly"].includes(planId)) {
+      return new Response(
+        JSON.stringify({ error: "Datos de pago incompletos" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabase = createClient(supabaseUrl, serviceKey);
 
     // Promo validation: only valid for pro_monthly, unused, non-expired,
     // and belonging to this user.
@@ -72,12 +93,16 @@ serve(async (req) => {
     if (promoToken) {
       const { data: offer } = await supabase
         .from("promo_offers")
-        .select("id, user_id, plan_id, usd_amount, local_amount, currency, expires_at, used_at, country")
+        .select("id, user_id, recipient_email, plan_id, usd_amount, local_amount, currency, expires_at, used_at, country")
         .eq("token", promoToken)
         .maybeSingle();
       const now = Date.now();
+      const recipientMatches = Boolean(
+        offer && email && offer.recipient_email
+        && offer.recipient_email.trim().toLowerCase() === email.trim().toLowerCase()
+      );
       const valid = offer
-        && offer.user_id === userId
+        && (offer.user_id === userId || recipientMatches)
         && offer.plan_id === planId
         && !offer.used_at
         && new Date(offer.expires_at).getTime() > now;
@@ -89,7 +114,11 @@ serve(async (req) => {
         }
         console.log(`[Checkout] Promo applied: usd=${promoUsdOverride} ars=${promoArsOverride}`);
       } else {
-        console.log(`[Checkout] Promo rejected (found=${!!offer}, used=${offer?.used_at}, expired=${offer && new Date(offer.expires_at).getTime() <= now}, planMatch=${offer?.plan_id === planId})`);
+        console.log(`[Checkout] Promo rejected (found=${!!offer}, identityMatch=${offer?.user_id === userId || recipientMatches}, used=${offer?.used_at}, expired=${offer && new Date(offer.expires_at).getTime() <= now}, planMatch=${offer?.plan_id === planId})`);
+        return new Response(
+          JSON.stringify({ error: "Ingresá con el mismo email que recibió esta oferta" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
     }
 
@@ -136,7 +165,7 @@ serve(async (req) => {
       }
     }
 
-    const APP_URL = Deno.env.get("APP_URL") || "https://vistaceo.lovable.app";
+    const APP_URL = Deno.env.get("SITE_URL") || Deno.env.get("APP_URL") || "https://www.vistaceo.com";
 
     // ARGENTINA = MercadoPago in ARS
     // ALL OTHER COUNTRIES = PayPal in USD
