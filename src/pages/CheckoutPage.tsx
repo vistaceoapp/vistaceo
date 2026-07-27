@@ -61,6 +61,7 @@ const CheckoutPage = () => {
   } = useCountryDetection(urlCountry);
   
   const [loading, setLoading] = useState(false);
+  const [checkoutFallbackUrl, setCheckoutFallbackUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "success" | "failure" | "pending">("idle");
   const [isYearly, setIsYearly] = useState(true);
   const [authMode, setAuthMode] = useState<"signup" | "login">("signup");
