@@ -11,7 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null; requiresEmailConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
-  signOut: () => Promise<void>;
+  signOut: (redirectTo?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -239,7 +239,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   }, []);
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (redirectTo?: string) => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.signOut({ scope: 'global' });
@@ -255,14 +255,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem('has_logged_in');
         localStorage.removeItem('pendingPlan');
         localStorage.removeItem('pendingPlanTimestamp');
-        localStorage.removeItem('pendingCheckoutPath');
+        if (!redirectTo?.startsWith('/checkout?promo=')) {
+          localStorage.removeItem('pendingCheckoutPath');
+        }
       } catch { /* noop */ }
       welcomeEmailSentRef.current = false;
       initializedRef.current = true;
       setLoading(false);
       // Hard reload to make 100% seguro que no queda estado en memoria.
       try {
-        window.location.replace('/auth?mode=login');
+        window.location.replace(redirectTo || '/auth?mode=login');
       } catch { /* noop */ }
     }
   }, [clearClientAuthState]);
