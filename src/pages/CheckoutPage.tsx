@@ -78,6 +78,8 @@ const CheckoutPage = () => {
     usdDisplay?: string;
     expiresAt?: string;
     reason?: string;
+    country?: CountryCode;
+    currency?: string;
   } | null>(null);
   const [promoLoading, setPromoLoading] = useState<boolean>(!!promoToken);
 
@@ -124,7 +126,13 @@ const CheckoutPage = () => {
             localDisplay: o.currency === "USD" ? usdDisplay : `$${localDisplay}`,
             usdDisplay,
             expiresAt: o.expiresAt,
+            country: o.country as CountryCode,
+            currency: o.currency,
           });
+          // Lock country to the offer's country so nothing mixes (e.g. CLP price with ARS "antes").
+          if (o.country) {
+            setCountryOverride(o.country as CountryCode);
+          }
         }
       } catch (e) {
         if (!cancelled) setPromo({ valid: false, reason: "network" });
@@ -496,18 +504,20 @@ const CheckoutPage = () => {
                   <span className="text-sm font-medium text-foreground">
                     {isDetecting ? "Detectando país..." : `País detectado: ${country.name}`}
                   </span>
-                  <select
-                    aria-label="Cambiar país de precios"
-                    value={country.code === "DEFAULT" ? "AR" : country.code}
-                    onChange={(e) => setCountryOverride(e.target.value as CountryCode)}
-                    className="h-9 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none"
-                  >
-                    {countryOptions.map(([code, info]) => (
-                      <option key={code} value={code}>
-                        {info.flag} {info.name}
-                      </option>
-                    ))}
-                  </select>
+                  {!promo?.valid && (
+                    <select
+                      aria-label="Cambiar país de precios"
+                      value={country.code === "DEFAULT" ? "AR" : country.code}
+                      onChange={(e) => setCountryOverride(e.target.value as CountryCode)}
+                      className="h-9 rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none"
+                    >
+                      {countryOptions.map(([code, info]) => (
+                        <option key={code} value={code}>
+                          {info.flag} {info.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 {/* Price display */}
@@ -760,9 +770,9 @@ const CheckoutPage = () => {
           mainButtonRef={mainPaymentRef}
           isLoading={loading}
           onClick={handleCheckout}
-          buttonText={isYearly ? "Pagar Pro anual" : "Pagar Pro mensual"}
-          priceText={formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}
-          currency={country.currency}
+          buttonText={promo?.valid ? "Activar promo" : (isYearly ? "Pagar Pro anual" : "Pagar Pro mensual")}
+          priceText={promo?.valid ? (promo.localDisplay || "").replace(/\s?[A-Z]{3}$/, "").trim() : formatCurrencyShort(isYearly ? monthlyEquivalent : monthlyPrice)}
+          currency={promo?.valid ? (promo.currency || country.currency) : country.currency}
           isYearly={isYearly}
           provider="mercadopago"
         />
