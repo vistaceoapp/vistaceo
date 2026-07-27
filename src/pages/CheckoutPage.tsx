@@ -126,7 +126,13 @@ const CheckoutPage = () => {
             localDisplay: o.currency === "USD" ? usdDisplay : `$${localDisplay}`,
             usdDisplay,
             expiresAt: o.expiresAt,
+            country: o.country as CountryCode,
+            currency: o.currency,
           });
+          // Lock country to the offer's country so nothing mixes (e.g. CLP price with ARS "antes").
+          if (o.country) {
+            setCountryOverride(o.country as CountryCode);
+          }
         }
       } catch (e) {
         if (!cancelled) setPromo({ valid: false, reason: "network" });
