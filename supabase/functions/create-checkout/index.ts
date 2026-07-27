@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { z } from "npm:zod@3.23.8";
 
 interface CheckoutRequest {
   businessId?: string;
@@ -16,6 +13,17 @@ interface CheckoutRequest {
   localCurrency?: string;
   promoToken?: string;
 }
+
+const CheckoutSchema = z.object({
+  businessId: z.string().uuid().optional(),
+  userId: z.string().uuid().optional(),
+  planId: z.enum(["pro_monthly", "pro_yearly"]),
+  country: z.string().min(2).max(3),
+  email: z.string().email().optional(),
+  localAmount: z.number().positive().optional(),
+  localCurrency: z.string().min(3).max(3).optional(),
+  promoToken: z.string().min(12).max(512).optional(),
+});
 
 // USD base prices (what we actually charge internationally)
 const USD_PRICES = {
@@ -48,7 +56,14 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, planId, country, localAmount, localCurrency, promoToken } = await req.json() as CheckoutRequest;
+    const parsedBody = CheckoutSchema.safeParse(await req.json().catch(() => null));
+    if (!parsedBody.success) {
+      return new Response(
+        JSON.stringify({ error: "Datos de pago incompletos" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    const { businessId, planId, country, localAmount, localCurrency, promoToken } = parsedBody.data as CheckoutRequest;
     let checkoutCountry = country;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -255,6 +270,7 @@ serve(async (req) => {
           currency: "ARS",
           displayAmount: amount,
           displayCurrency: "ARS",
+          promoApplied: isPromo,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -402,6 +418,7 @@ serve(async (req) => {
           currency: "USD",
           displayAmount: localAmount || usdAmount,
           displayCurrency: localCurrency || "USD",
+          promoApplied: isPromo,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

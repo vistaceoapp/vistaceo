@@ -72,7 +72,10 @@ const CheckoutPage = () => {
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
 
   // ---- Promo (24h magic link) ----
-  const promoToken = searchParams.get("promo") || null;
+  const urlPromoToken = searchParams.get("promo") || null;
+  const [resumedPromoToken, setResumedPromoToken] = useState<string | null>(null);
+  const [promoResumeChecked, setPromoResumeChecked] = useState(false);
+  const promoToken = urlPromoToken || resumedPromoToken;
   const [promo, setPromo] = useState<{
     valid: boolean;
     localDisplay?: string;
@@ -82,15 +85,45 @@ const CheckoutPage = () => {
     country?: CountryCode;
     currency?: string;
     recipientEmail?: string;
+    usdAmount?: number;
+    localAmount?: number | null;
   } | null>(null);
   const [promoLoading, setPromoLoading] = useState<boolean>(!!promoToken);
 
   // Keep the complete magic-link destination through Google OAuth and email confirmation.
   useEffect(() => {
-    if (promoToken) {
-      safeLocalStorage.setItem("pendingCheckoutPath", `/checkout?promo=${encodeURIComponent(promoToken)}`);
+    if (urlPromoToken) {
+      safeLocalStorage.setItem("pendingCheckoutPath", `/checkout?promo=${encodeURIComponent(urlPromoToken)}`);
+      setPromoResumeChecked(true);
     }
-  }, [promoToken]);
+  }, [urlPromoToken]);
+
+  // If an auth provider returns without the query string, recover the active
+  // offer from the authenticated identity instead of ever showing full price.
+  useEffect(() => {
+    if (authLoading || !user || promoToken || promoResumeChecked) return;
+    let cancelled = false;
+    setPromoLoading(true);
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("promo-redeem", {
+          body: { resumeActive: true },
+        });
+        const recoveredToken = data?.valid ? data?.offer?.token : null;
+        if (!cancelled && !error && typeof recoveredToken === "string") {
+          setResumedPromoToken(recoveredToken);
+          safeLocalStorage.setItem("pendingCheckoutPath", `/checkout?promo=${encodeURIComponent(recoveredToken)}`);
+          return;
+        }
+      } finally {
+        if (!cancelled) {
+          setPromoResumeChecked(true);
+          setPromoLoading(false);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [authLoading, user, promoToken, promoResumeChecked]);
 
   // Ref for observing when main payment button leaves viewport
   const mainPaymentRef = useRef<HTMLDivElement>(null);
@@ -116,6 +149,7 @@ const CheckoutPage = () => {
   useEffect(() => {
     if (!promoToken) return;
     let cancelled = false;
+    setPromoLoading(true);
     (async () => {
       try {
         const { data, error } = await supabase.functions.invoke("promo-redeem", {
@@ -138,6 +172,8 @@ const CheckoutPage = () => {
             country: o.country as CountryCode,
             currency: o.currency,
             recipientEmail: o.recipientEmail,
+            usdAmount: Number(o.usdAmount),
+            localAmount: o.localAmount == null ? null : Number(o.localAmount),
           });
           // Lock country to the offer's country so nothing mixes (e.g. CLP price with ARS "antes").
           if (o.country) {
@@ -278,6 +314,13 @@ const CheckoutPage = () => {
       }
 
       if (data?.checkoutUrl) {
+        if (promo?.valid) {
+          const expectedAmount = promo.country === "AR" ? promo.localAmount : promo.usdAmount;
+          const chargedAmount = Number(data.amount);
+          if (data.promoApplied !== true || expectedAmount == null || chargedAmount !== Number(expectedAmount)) {
+            throw new Error("El pago no confirmó el precio promocional. No se realizó ninguna redirección.");
+          }
+        }
         const url = data.checkoutUrl as string;
         // Redirección robusta: algunos navegadores móviles bloquean
         // window.location.href desde un handler async. Guardamos el URL
