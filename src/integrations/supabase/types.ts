@@ -3932,6 +3932,116 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_campaigns: {
+        Row: {
+          ars_amount: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          plan_id: string
+          status: string
+          updated_at: string
+          usd_amount: number
+          window_hours: number
+        }
+        Insert: {
+          ars_amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          plan_id?: string
+          status?: string
+          updated_at?: string
+          usd_amount?: number
+          window_hours?: number
+        }
+        Update: {
+          ars_amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          plan_id?: string
+          status?: string
+          updated_at?: string
+          usd_amount?: number
+          window_hours?: number
+        }
+        Relationships: []
+      }
+      promo_offers: {
+        Row: {
+          campaign_id: string
+          country: string | null
+          created_at: string
+          currency: string | null
+          expires_at: string
+          id: string
+          local_amount: number | null
+          metadata: Json
+          plan_id: string
+          recipient_email: string
+          redeemed_at: string | null
+          sent_at: string | null
+          token: string
+          usd_amount: number
+          used_at: string | null
+          used_order_id: string | null
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          expires_at: string
+          id?: string
+          local_amount?: number | null
+          metadata?: Json
+          plan_id?: string
+          recipient_email: string
+          redeemed_at?: string | null
+          sent_at?: string | null
+          token: string
+          usd_amount: number
+          used_at?: string | null
+          used_order_id?: string | null
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          expires_at?: string
+          id?: string
+          local_amount?: number | null
+          metadata?: Json
+          plan_id?: string
+          recipient_email?: string
+          redeemed_at?: string | null
+          sent_at?: string | null
+          token?: string
+          usd_amount?: number
+          used_at?: string | null
+          used_order_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_offers_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "promo_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pulse_blueprints: {
         Row: {
           adaptacion_por_brain: string | null
