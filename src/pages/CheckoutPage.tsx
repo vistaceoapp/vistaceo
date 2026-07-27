@@ -623,12 +623,77 @@ const CheckoutPage = () => {
 
               {/* CTA Button - wrapped in ref for sticky observation */}
               <div ref={mainPaymentRef}>
-                {isArgentina || promo?.valid ? (
+                {!user ? (
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardContent className="p-5 sm:p-6 space-y-4">
+                      <div className="text-center space-y-1">
+                        <h3 className="text-lg font-semibold text-foreground">
+                          {promo?.valid ? "Creá tu cuenta para activar la oferta" : "Entrá o crea tu cuenta para pagar"}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {promo?.valid
+                            ? `Es solo un paso: al confirmar, se aplica ${promo.localDisplay} el primer mes.`
+                            : "El plan Pro quedará asociado automáticamente a tu perfil y a tu negocio, incluso si completás el setup después."}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 rounded-xl bg-secondary/50 p-1">
+                        <button
+                          onClick={() => setAuthMode("signup")}
+                          className={cn("rounded-lg px-3 py-2 text-sm font-medium transition-all", authMode === "signup" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}
+                        >
+                          Crear cuenta
+                        </button>
+                        <button
+                          onClick={() => setAuthMode("login")}
+                          className={cn("rounded-lg px-3 py-2 text-sm font-medium transition-all", authMode === "login" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}
+                        >
+                          Ya tengo cuenta
+                        </button>
+                      </div>
+
+                      <Button variant="outline" className="w-full" onClick={handleGoogleInlineAuth} disabled={googleSubmitting}>
+                        {googleSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        Continuar con Google
+                      </Button>
+
+                      <div className="grid gap-3">
+                        {authMode === "signup" ? (
+                          <input
+                            value={authFullName}
+                            onChange={(e) => setAuthFullName(e.target.value)}
+                            placeholder="Tu nombre"
+                            className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
+                          />
+                        ) : null}
+                        <input
+                          type="email"
+                          value={authEmail}
+                          onChange={(e) => setAuthEmail(e.target.value)}
+                          placeholder="Email"
+                          className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
+                        />
+                        <input
+                          type="password"
+                          value={authPassword}
+                          onChange={(e) => setAuthPassword(e.target.value)}
+                          placeholder="Contraseña"
+                          className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
+                        />
+                      </div>
+
+                      <Button className="w-full" onClick={handleInlineAuth} disabled={authSubmitting || !authEmail || !authPassword || (authMode === "signup" && !authFullName.trim())}>
+                        {authSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        {authMode === "signup" ? "Crear cuenta y continuar al pago" : "Entrar y continuar al pago"}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (isArgentina || promo?.valid) ? (
                   <Button 
                     size="xl" 
                     className="w-full h-14 text-lg font-semibold gradient-primary shadow-lg group"
                     onClick={handleCheckout}
-                    disabled={loading || !user}
+                    disabled={loading}
                   >
                     {loading ? (
                       <>
@@ -644,78 +709,18 @@ const CheckoutPage = () => {
                     )}
                   </Button>
                 ) : (
-                  user ? (
-                    <PayPalSmartButtons
-                      userId={user.id}
-                      userEmail={user.email}
-                      planId={isYearly ? "pro_yearly" : "pro_monthly"}
-                      country={country.code}
-                      localAmount={isYearly ? yearlyPrice : monthlyPrice}
-                      localCurrency={country.currency}
-                      onSuccessRedirectUrl={`${window.location.origin}/checkout?status=success&provider=paypal`}
-                    />
-                  ) : (
-                    <Card className="border-primary/20 bg-primary/5">
-                      <CardContent className="p-5 sm:p-6 space-y-4">
-                        <div className="text-center space-y-1">
-                          <h3 className="text-lg font-semibold text-foreground">Entrá o crea tu cuenta para pagar</h3>
-                          <p className="text-sm text-muted-foreground">El plan Pro quedará asociado automáticamente a tu perfil y a tu negocio, incluso si completás el setup después.</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 rounded-xl bg-secondary/50 p-1">
-                          <button
-                            onClick={() => setAuthMode("signup")}
-                            className={cn("rounded-lg px-3 py-2 text-sm font-medium transition-all", authMode === "signup" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}
-                          >
-                            Crear cuenta
-                          </button>
-                          <button
-                            onClick={() => setAuthMode("login")}
-                            className={cn("rounded-lg px-3 py-2 text-sm font-medium transition-all", authMode === "login" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}
-                          >
-                            Ya tengo cuenta
-                          </button>
-                        </div>
-
-                        <Button variant="outline" className="w-full" onClick={handleGoogleInlineAuth} disabled={googleSubmitting}>
-                          {googleSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                          Continuar con Google
-                        </Button>
-
-                        <div className="grid gap-3">
-                          {authMode === "signup" ? (
-                            <input
-                              value={authFullName}
-                              onChange={(e) => setAuthFullName(e.target.value)}
-                              placeholder="Tu nombre"
-                              className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                            />
-                          ) : null}
-                          <input
-                            type="email"
-                            value={authEmail}
-                            onChange={(e) => setAuthEmail(e.target.value)}
-                            placeholder="Email"
-                            className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                          />
-                          <input
-                            type="password"
-                            value={authPassword}
-                            onChange={(e) => setAuthPassword(e.target.value)}
-                            placeholder="Contraseña"
-                            className="h-11 rounded-xl border border-border bg-background px-3 text-sm"
-                          />
-                        </div>
-
-                        <Button className="w-full" onClick={handleInlineAuth} disabled={authSubmitting || !authEmail || !authPassword || (authMode === "signup" && !authFullName.trim())}>
-                          {authSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                          {authMode === "signup" ? "Crear cuenta y continuar al pago" : "Entrar y continuar al pago"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  )
+                  <PayPalSmartButtons
+                    userId={user.id}
+                    userEmail={user.email}
+                    planId={isYearly ? "pro_yearly" : "pro_monthly"}
+                    country={country.code}
+                    localAmount={isYearly ? yearlyPrice : monthlyPrice}
+                    localCurrency={country.currency}
+                    onSuccessRedirectUrl={`${window.location.origin}/checkout?status=success&provider=paypal`}
+                  />
                 )}
               </div>
+
 
               {/* Guarantee Card */}
               <Card className="border-success/30 bg-success/5">
