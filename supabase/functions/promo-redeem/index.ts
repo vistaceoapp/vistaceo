@@ -1,10 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { z } from "npm:zod@3.23.8";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const RequestSchema = z.object({
+  token: z.string().min(12).max(512).optional(),
+  resumeActive: z.boolean().optional(),
+});
 
 // Validates a promo token. PUBLIC endpoint (no auth) so the checkout landing
 // can pre-show the deal before the user signs in. Returns only non-sensitive
@@ -16,11 +18,15 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     let token = url.searchParams.get("token");
+    let resumeActive = false;
     if (!token && req.method === "POST") {
       const body = await req.json().catch(() => ({}));
-      token = body?.token || null;
+      const parsed = RequestSchema.safeParse(body);
+      if (!parsed.success) return json({ valid: false, reason: "invalid_request" }, 400);
+      token = parsed.data.token || null;
+      resumeActive = parsed.data.resumeActive === true;
     }
-    if (!token || token.length < 12) {
+    if ((!token || token.length < 12) && !resumeActive) {
       return json({ valid: false, reason: "missing_token" }, 400);
     }
 
@@ -29,11 +35,47 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: offer, error } = await admin
-      .from("promo_offers")
-      .select("id, campaign_id, user_id, recipient_email, plan_id, country, currency, usd_amount, local_amount, expires_at, used_at, redeemed_at")
-      .eq("token", token)
-      .maybeSingle();
+    const offerFields = "id, campaign_id, user_id, recipient_email, token, plan_id, country, currency, usd_amount, local_amount, expires_at, used_at, redeemed_at";
+    let offer = null;
+    let error = null;
+
+    if (resumeActive) {
+      const authHeader = req.headers.get("Authorization") || "";
+      const jwt = authHeader.replace(/^Bearer\s+/i, "");
+      if (!jwt) return json({ valid: false, reason: "authentication_required" }, 401);
+
+      const authClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "",
+        { global: { headers: { Authorization: `Bearer ${jwt}` } } },
+      );
+      const { data: { user }, error: authError } = await authClient.auth.getUser();
+      if (authError || !user) return json({ valid: false, reason: "authentication_required" }, 401);
+
+      const baseQuery = () => admin
+        .from("promo_offers")
+        .select(offerFields)
+        .is("used_at", null)
+        .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      let result = await baseQuery().eq("user_id", user.id).maybeSingle();
+      if (!result.data && user.email) {
+        result = await baseQuery().ilike("recipient_email", user.email.trim()).maybeSingle();
+      }
+      offer = result.data;
+      error = result.error;
+      token = offer?.token || null;
+    } else {
+      const result = await admin
+        .from("promo_offers")
+        .select(offerFields)
+        .eq("token", token)
+        .maybeSingle();
+      offer = result.data;
+      error = result.error;
+    }
 
     if (error) {
       console.error("[promo-redeem] db error:", error);
@@ -56,6 +98,7 @@ serve(async (req) => {
     return json({
       valid: true,
       offer: {
+        token: resumeActive ? token : undefined,
         planId: offer.plan_id,
         country: offer.country,
         currency: offer.currency,
