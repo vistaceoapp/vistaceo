@@ -391,6 +391,43 @@ const CheckoutPage = () => {
           </div>
         </motion.div>
 
+        {/* Promo Banner (24h magic link) */}
+        {promoToken && (
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+            {promoLoading ? (
+              <div className="rounded-2xl border border-primary/30 bg-primary/5 px-5 py-4 flex items-center gap-3">
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground">Validando tu oferta privada...</span>
+              </div>
+            ) : promo?.valid ? (
+              <div className="rounded-2xl border-2 border-primary/40 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 px-5 py-4">
+                <div className="flex flex-wrap items-center gap-3 justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wide text-primary">Oferta privada · 24 horas</div>
+                      <div className="text-base font-semibold text-foreground">
+                        Primer mes Pro por {promo.localDisplay}
+                      </div>
+                    </div>
+                  </div>
+                  {promo.expiresAt && (
+                    <div className="text-xs text-muted-foreground">
+                      Vence: {new Date(promo.expiresAt).toLocaleString("es-AR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-5 py-4 text-sm text-destructive">
+                Esta oferta ya no está disponible ({promo?.reason || "no válida"}). Podés seguir con el plan estándar.
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {/* Main Card - Pro Plan */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
