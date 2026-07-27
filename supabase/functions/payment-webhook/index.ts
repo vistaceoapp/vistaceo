@@ -59,7 +59,7 @@ serve(async (req) => {
 
         if (payment.status === "approved") {
           const refData = JSON.parse(payment.external_reference || "{}");
-          const { businessId, userId, planId, localAmount, localCurrency } = refData;
+          const { businessId, userId, planId, localAmount, localCurrency, promoOfferId } = refData;
 
           const paymentInfo = {
             provider: "mercadopago" as const,
@@ -68,6 +68,7 @@ serve(async (req) => {
             currency: payment.currency_id || "ARS",
             localAmount: localAmount || payment.transaction_amount,
             localCurrency: localCurrency || "ARS",
+            promoOfferId: promoOfferId || null,
           };
 
           await createSubscription(supabase, businessId, userId, planId, paymentInfo);
@@ -91,7 +92,7 @@ serve(async (req) => {
         const resource = body.resource;
         const customId = resource.custom_id || resource.purchase_units?.[0]?.custom_id || "{}";
         const customData = JSON.parse(customId);
-        const { businessId, userId, planId, localAmount, localCurrency } = customData;
+        const { businessId, userId, planId, localAmount, localCurrency, promoOfferId } = customData;
 
         const amount = resource.amount?.value 
           || resource.purchase_units?.[0]?.amount?.value 
@@ -107,6 +108,7 @@ serve(async (req) => {
           currency: currency,
           localAmount: localAmount || null,
           localCurrency: localCurrency || null,
+          promoOfferId: promoOfferId || null,
         };
 
         await createSubscription(supabase, businessId, userId, planId, paymentInfo);
@@ -229,6 +231,7 @@ interface PaymentInfo {
   currency: string;
   localAmount?: number | null;
   localCurrency?: string | null;
+  promoOfferId?: string | null;
 }
 
 async function createSubscription(
@@ -252,8 +255,26 @@ async function createSubscription(
       .maybeSingle();
     if (existing) {
       console.log(`[Webhook] payment_id ${paymentInfo.paymentId} ya procesado (sub ${existing.id}), skip`);
+      // Even if already processed, keep the promo offer marked as used
+      if (paymentInfo.promoOfferId) {
+        await supabase
+          .from("promo_offers")
+          .update({ used_at: new Date().toISOString(), used_order_id: paymentInfo.paymentId })
+          .eq("id", paymentInfo.promoOfferId)
+          .is("used_at", null);
+      }
       return;
     }
+  }
+
+  // Mark promo offer as used (best-effort; only if provided and not already used)
+  if (paymentInfo.promoOfferId) {
+    const { error: promoErr } = await supabase
+      .from("promo_offers")
+      .update({ used_at: new Date().toISOString(), used_order_id: paymentInfo.paymentId })
+      .eq("id", paymentInfo.promoOfferId)
+      .is("used_at", null);
+    if (promoErr) console.warn("[Webhook] mark promo used failed:", promoErr.message);
   }
 
   const now = new Date();
