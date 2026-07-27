@@ -61,6 +61,7 @@ const CheckoutPage = () => {
   } = useCountryDetection(urlCountry);
   
   const [loading, setLoading] = useState(false);
+  const [checkoutFallbackUrl, setCheckoutFallbackUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "success" | "failure" | "pending">("idle");
   const [isYearly, setIsYearly] = useState(true);
   const [authMode, setAuthMode] = useState<"signup" | "login">("signup");
@@ -277,7 +278,20 @@ const CheckoutPage = () => {
       }
 
       if (data?.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+        const url = data.checkoutUrl as string;
+        // Redirección robusta: algunos navegadores móviles bloquean
+        // window.location.href desde un handler async. Guardamos el URL
+        // para mostrar un enlace manual si el navegador no redirige en 6s.
+        setCheckoutFallbackUrl(url);
+        try {
+          window.location.assign(url);
+        } catch {
+          window.location.href = url;
+        }
+        // Reset del estado por si el navegador nunca navega (ej. bloqueado).
+        setTimeout(() => {
+          setLoading(false);
+        }, 6000);
         return;
       }
 
@@ -793,6 +807,23 @@ const CheckoutPage = () => {
                   />
                 )}
               </div>
+
+              {/* Fallback manual link si el navegador móvil bloquea el redirect */}
+              {checkoutFallbackUrl && (
+                <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-center space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    ¿No se abrió la página de pago automáticamente?
+                  </p>
+                  <a
+                    href={checkoutFallbackUrl}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary underline"
+                  >
+                    Abrir pago seguro manualmente
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
+              )}
+
 
 
               {/* Guarantee Card */}
