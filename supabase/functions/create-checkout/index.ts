@@ -156,10 +156,14 @@ serve(async (req) => {
         );
       }
 
-      const amount = ARS_PRICES[planId];
-      const description = planId === "pro_yearly" 
-        ? "VistaCEO Pro - Anual (2 meses gratis)" 
-        : "VistaCEO Pro - Mensual";
+      const basePrice = ARS_PRICES[planId];
+      const amount = promoArsOverride ?? basePrice;
+      const isPromo = promoOfferId !== null;
+      const description = isPromo
+        ? "VISTACEO Pro - Primer mes (Promo 24hs)"
+        : planId === "pro_yearly" 
+          ? "VistaCEO Pro - Anual (2 meses gratis)" 
+          : "VistaCEO Pro - Mensual";
 
       const preferenceData = {
         items: [{
@@ -183,6 +187,7 @@ serve(async (req) => {
           planId,
           localAmount: amount,
           localCurrency: "ARS",
+          promoOfferId,
         }),
         notification_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/payment-webhook?provider=mercadopago`,
       };
@@ -239,11 +244,13 @@ serve(async (req) => {
       }
 
       // Always charge in USD for international
-      const usdAmount = USD_PRICES[planId];
-      // Descripción en español
-      const description = planId === "pro_yearly" 
-        ? "VistaCEO Pro - Suscripción Anual (2 meses gratis)" 
-        : "VistaCEO Pro - Suscripción Mensual";
+      const usdAmount = promoUsdOverride ?? USD_PRICES[planId];
+      const isPromo = promoOfferId !== null;
+      const description = isPromo
+        ? "VISTACEO Pro - Primer mes (Promo 24hs)"
+        : planId === "pro_yearly" 
+          ? "VistaCEO Pro - Suscripción Anual (2 meses gratis)" 
+          : "VistaCEO Pro - Suscripción Mensual";
 
       console.log(`[Checkout] Getting PayPal access token from ${PAYPAL_API_URL}...`);
 
@@ -286,6 +293,7 @@ serve(async (req) => {
             localAmount: localAmount || null,
             localCurrency: localCurrency || null,
             country,
+            promoOfferId,
           }),
           amount: {
             currency_code: "USD",
