@@ -277,7 +277,20 @@ const CheckoutPage = () => {
       }
 
       if (data?.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+        const url = data.checkoutUrl as string;
+        // Redirección robusta: algunos navegadores móviles bloquean
+        // window.location.href desde un handler async. Guardamos el URL
+        // para mostrar un enlace manual si el navegador no redirige en 6s.
+        setCheckoutFallbackUrl(url);
+        try {
+          window.location.assign(url);
+        } catch {
+          window.location.href = url;
+        }
+        // Reset del estado por si el navegador nunca navega (ej. bloqueado).
+        setTimeout(() => {
+          setLoading(false);
+        }, 6000);
         return;
       }
 
