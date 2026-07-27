@@ -216,7 +216,7 @@ const CheckoutPage = () => {
     setLoading(true);
     
     try {
-      const currentPlanId = isYearly ? "pro_yearly" : "pro_monthly";
+      const currentPlanId = promo?.valid ? "pro_monthly" : (isYearly ? "pro_yearly" : "pro_monthly");
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           userId: user.id,
@@ -226,6 +226,7 @@ const CheckoutPage = () => {
           // Pass local pricing info for tracking
           localAmount: isYearly ? yearlyPrice : monthlyPrice,
           localCurrency: country.currency,
+          promoToken: promo?.valid ? promoToken : undefined,
         },
       });
 
