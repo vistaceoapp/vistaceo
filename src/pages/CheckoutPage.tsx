@@ -78,6 +78,8 @@ const CheckoutPage = () => {
     usdDisplay?: string;
     expiresAt?: string;
     reason?: string;
+    country?: CountryCode;
+    currency?: string;
   } | null>(null);
   const [promoLoading, setPromoLoading] = useState<boolean>(!!promoToken);
 
