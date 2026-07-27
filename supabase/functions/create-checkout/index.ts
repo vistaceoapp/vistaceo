@@ -49,6 +49,7 @@ serve(async (req) => {
 
   try {
     const { businessId, planId, country, localAmount, localCurrency, promoToken } = await req.json() as CheckoutRequest;
+    let checkoutCountry = country;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -74,7 +75,7 @@ serve(async (req) => {
 
     const userId = authenticatedUser.id;
     const email = authenticatedUser.email || undefined;
-    console.log(`[Checkout] Starting for authenticated user: ${userId}, plan: ${planId}, country: ${country}${promoToken ? ", promo=YES" : ""}`);
+    console.log(`[Checkout] Starting for authenticated user: ${userId}, plan: ${planId}, country: ${checkoutCountry}${promoToken ? ", promo=YES" : ""}`);
 
     if (!planId || !country || !["pro_monthly", "pro_yearly"].includes(planId)) {
       return new Response(
@@ -109,6 +110,7 @@ serve(async (req) => {
       if (valid) {
         promoOfferId = offer.id;
         promoUsdOverride = Number(offer.usd_amount);
+        checkoutCountry = offer.country || checkoutCountry;
         if (offer.currency === "ARS" && offer.local_amount) {
           promoArsOverride = Number(offer.local_amount);
         }
@@ -142,8 +144,8 @@ serve(async (req) => {
           .insert({
             name: placeholderName,
             owner_id: userId,
-            country,
-            currency: country === "AR" ? "ARS" : "USD",
+            country: checkoutCountry,
+            currency: checkoutCountry === "AR" ? "ARS" : "USD",
             setup_completed: false,
             settings: {
               pre_checkout_created: true,
@@ -169,7 +171,7 @@ serve(async (req) => {
 
     // ARGENTINA = MercadoPago in ARS
     // ALL OTHER COUNTRIES = PayPal in USD
-    const isArgentina = country === "AR";
+    const isArgentina = checkoutCountry === "AR";
 
     if (isArgentina) {
       // =====================
@@ -321,7 +323,7 @@ serve(async (req) => {
             planId,
             localAmount: localAmount || null,
             localCurrency: localCurrency || null,
-            country,
+            country: checkoutCountry,
             promoOfferId,
           }),
           amount: {
@@ -337,7 +339,7 @@ serve(async (req) => {
               landing_page: "NO_PREFERENCE",
               user_action: "PAY_NOW",
               // Locale válido para PayPal (BCP-47 con región de 2 letras)
-              locale: getPayPalLocale(country),
+              locale: getPayPalLocale(checkoutCountry),
               shipping_preference: "NO_SHIPPING",
               return_url: `${APP_URL}/checkout?status=success&provider=paypal`,
               cancel_url: `${APP_URL}/checkout?status=cancelled`,

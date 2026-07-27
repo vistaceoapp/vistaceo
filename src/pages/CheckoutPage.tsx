@@ -614,7 +614,12 @@ const CheckoutPage = () => {
               </div>
 
               {/* Payment Provider */}
-              {isArgentina ? (
+              {promoLoading ? (
+                <div className="rounded-xl border border-border/50 bg-secondary/30 p-5 text-center">
+                  <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">Validando tu precio promocional...</p>
+                </div>
+              ) : isArgentina ? (
                 <div className="rounded-xl border border-border/50 bg-secondary/30 p-4">
                   <p className="text-xs text-muted-foreground text-center mb-3">
                     Procesado de forma segura por
@@ -705,6 +710,11 @@ const CheckoutPage = () => {
                       </Button>
                     </CardContent>
                   </Card>
+                ) : promoLoading ? (
+                  <Button size="xl" className="w-full h-14 text-lg" disabled>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Validando oferta...
+                  </Button>
                 ) : (isArgentina || promo?.valid) ? (
                   <Button 
                     size="xl" 
@@ -787,7 +797,7 @@ const CheckoutPage = () => {
       </main>
 
       {/* Sticky Payment Button - appears when main button scrolls out of view */}
-      {status === "idle" && isArgentina && user && (
+      {status === "idle" && !promoLoading && isArgentina && user && (
         <StickyPaymentButton
           mainButtonRef={mainPaymentRef}
           isLoading={loading}
@@ -801,7 +811,7 @@ const CheckoutPage = () => {
       )}
 
       {/* Sticky PayPal Button - for non-Argentina countries */}
-      {status === "idle" && !isArgentina && (
+      {status === "idle" && !promoLoading && !promoToken && !isArgentina && (
           <StickyPayPalButton
           mainButtonRef={mainPaymentRef}
           priceText={isYearly ? "290" : "49"}
