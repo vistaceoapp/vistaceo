@@ -83,6 +83,13 @@ const CheckoutPage = () => {
   } | null>(null);
   const [promoLoading, setPromoLoading] = useState<boolean>(!!promoToken);
 
+  // Keep the complete magic-link destination through Google OAuth and email confirmation.
+  useEffect(() => {
+    if (promoToken) {
+      safeLocalStorage.setItem("pendingCheckoutPath", `/checkout?promo=${encodeURIComponent(promoToken)}`);
+    }
+  }, [promoToken]);
+
   // Ref for observing when main payment button leaves viewport
   const mainPaymentRef = useRef<HTMLDivElement>(null);
 
@@ -150,6 +157,7 @@ const CheckoutPage = () => {
       setStatus("success");
       safeLocalStorage.removeItem("pendingPlan");
       safeLocalStorage.removeItem("pendingPlanTimestamp");
+      safeLocalStorage.removeItem("pendingCheckoutPath");
       // Invalidate subscription cache so Pro status is reflected immediately
       queryClient.invalidateQueries({ queryKey: ["subscription"] });
       // Redirect to app if user already has a business, otherwise to setup
@@ -219,7 +227,16 @@ const CheckoutPage = () => {
   };
 
   const handleCheckout = async () => {
-    if (!user) return;
+    if (!user) {
+      mainPaymentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      toast.info("Ingresá con la cuenta que recibió la oferta para continuar.");
+      return;
+    }
+
+    if (promoToken && (promoLoading || !promo?.valid)) {
+      toast.error(promoLoading ? "Estamos validando la oferta. Intentá nuevamente en un instante." : "Esta oferta ya no está disponible.");
+      return;
+    }
     
     setLoading(true);
     
@@ -597,7 +614,12 @@ const CheckoutPage = () => {
               </div>
 
               {/* Payment Provider */}
-              {isArgentina ? (
+              {promoLoading ? (
+                <div className="rounded-xl border border-border/50 bg-secondary/30 p-5 text-center">
+                  <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">Validando tu precio promocional...</p>
+                </div>
+              ) : isArgentina ? (
                 <div className="rounded-xl border border-border/50 bg-secondary/30 p-4">
                   <p className="text-xs text-muted-foreground text-center mb-3">
                     Procesado de forma segura por
@@ -688,6 +710,11 @@ const CheckoutPage = () => {
                       </Button>
                     </CardContent>
                   </Card>
+                ) : promoLoading ? (
+                  <Button size="xl" className="w-full h-14 text-lg" disabled>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Validando oferta...
+                  </Button>
                 ) : (isArgentina || promo?.valid) ? (
                   <Button 
                     size="xl" 
@@ -770,7 +797,7 @@ const CheckoutPage = () => {
       </main>
 
       {/* Sticky Payment Button - appears when main button scrolls out of view */}
-      {status === "idle" && isArgentina && (
+      {status === "idle" && !promoLoading && isArgentina && user && (
         <StickyPaymentButton
           mainButtonRef={mainPaymentRef}
           isLoading={loading}
@@ -784,7 +811,7 @@ const CheckoutPage = () => {
       )}
 
       {/* Sticky PayPal Button - for non-Argentina countries */}
-      {status === "idle" && !isArgentina && (
+      {status === "idle" && !promoLoading && !promoToken && !isArgentina && (
           <StickyPayPalButton
           mainButtonRef={mainPaymentRef}
           priceText={isYearly ? "290" : "49"}
