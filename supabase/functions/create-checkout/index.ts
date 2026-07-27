@@ -14,6 +14,7 @@ interface CheckoutRequest {
   email?: string;
   localAmount?: number;
   localCurrency?: string;
+  promoToken?: string;
 }
 
 // USD base prices (what we actually charge internationally)
@@ -47,9 +48,9 @@ serve(async (req) => {
   }
 
   try {
-    const { businessId, userId, planId, country, email, localAmount, localCurrency } = await req.json() as CheckoutRequest;
+    const { businessId, userId, planId, country, email, localAmount, localCurrency, promoToken } = await req.json() as CheckoutRequest;
 
-    console.log(`[Checkout] Starting for user: ${userId}, plan: ${planId}, country: ${country}`);
+    console.log(`[Checkout] Starting for user: ${userId}, plan: ${planId}, country: ${country}${promoToken ? ", promo=YES" : ""}`);
 
     if (!userId || !planId) {
       return new Response(
@@ -62,6 +63,35 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Promo validation: only valid for pro_monthly, unused, non-expired,
+    // and belonging to this user.
+    let promoOfferId: string | null = null;
+    let promoUsdOverride: number | null = null;
+    let promoArsOverride: number | null = null;
+    if (promoToken) {
+      const { data: offer } = await supabase
+        .from("promo_offers")
+        .select("id, user_id, plan_id, usd_amount, local_amount, currency, expires_at, used_at, country")
+        .eq("token", promoToken)
+        .maybeSingle();
+      const now = Date.now();
+      const valid = offer
+        && offer.user_id === userId
+        && offer.plan_id === planId
+        && !offer.used_at
+        && new Date(offer.expires_at).getTime() > now;
+      if (valid) {
+        promoOfferId = offer.id;
+        promoUsdOverride = Number(offer.usd_amount);
+        if (offer.currency === "ARS" && offer.local_amount) {
+          promoArsOverride = Number(offer.local_amount);
+        }
+        console.log(`[Checkout] Promo applied: usd=${promoUsdOverride} ars=${promoArsOverride}`);
+      } else {
+        console.log(`[Checkout] Promo rejected (found=${!!offer}, used=${offer?.used_at}, expired=${offer && new Date(offer.expires_at).getTime() <= now}, planMatch=${offer?.plan_id === planId})`);
+      }
+    }
 
     let targetBusinessId = businessId || null;
 
