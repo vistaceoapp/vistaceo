@@ -808,6 +808,23 @@ const CheckoutPage = () => {
                 )}
               </div>
 
+              {/* Fallback manual link si el navegador móvil bloquea el redirect */}
+              {checkoutFallbackUrl && (
+                <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-center space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    ¿No se abrió la página de pago automáticamente?
+                  </p>
+                  <a
+                    href={checkoutFallbackUrl}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-primary underline"
+                  >
+                    Abrir pago seguro manualmente
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
+              )}
+
+
 
               {/* Guarantee Card */}
               <Card className="border-success/30 bg-success/5">
