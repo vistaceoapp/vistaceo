@@ -69,7 +69,18 @@ const CheckoutPage = () => {
   const [authFullName, setAuthFullName] = useState("");
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
-  
+
+  // ---- Promo (24h magic link) ----
+  const promoToken = searchParams.get("promo") || null;
+  const [promo, setPromo] = useState<{
+    valid: boolean;
+    localDisplay?: string;
+    usdDisplay?: string;
+    expiresAt?: string;
+    reason?: string;
+  } | null>(null);
+  const [promoLoading, setPromoLoading] = useState<boolean>(!!promoToken);
+
   // Ref for observing when main payment button leaves viewport
   const mainPaymentRef = useRef<HTMLDivElement>(null);
 
@@ -80,15 +91,49 @@ const CheckoutPage = () => {
     }
   }, [urlCountry, country.code, setCountryOverride]);
 
-  // Get plan from URL or localStorage
+  // Get plan from URL or localStorage — promo forces pro_monthly
   const urlPlan = searchParams.get("plan");
   const storedPlan = safeLocalStorage.getItem("pendingPlan");
-  const planId = urlPlan || storedPlan || "pro_yearly";
+  const planId = promoToken ? "pro_monthly" : (urlPlan || storedPlan || "pro_yearly");
 
   // Sync isYearly with planId
   useEffect(() => {
     setIsYearly(planId === "pro_yearly");
   }, [planId]);
+
+  // Validate promo token server-side
+  useEffect(() => {
+    if (!promoToken) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("promo-redeem", {
+          body: { token: promoToken },
+        });
+        if (cancelled) return;
+        if (error || !data?.valid) {
+          setPromo({ valid: false, reason: data?.reason || "invalid" });
+        } else {
+          const o = data.offer;
+          const usdDisplay = `$${o.usdAmount % 1 === 0 ? o.usdAmount : o.usdAmount.toFixed(2)} USD`;
+          const localDisplay = o.currency && o.localAmount
+            ? new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(o.localAmount) + " " + o.currency
+            : usdDisplay;
+          setPromo({
+            valid: true,
+            localDisplay: o.currency === "USD" ? usdDisplay : `$${localDisplay}`,
+            usdDisplay,
+            expiresAt: o.expiresAt,
+          });
+        }
+      } catch (e) {
+        if (!cancelled) setPromo({ valid: false, reason: "network" });
+      } finally {
+        if (!cancelled) setPromoLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [promoToken]);
 
   // Check payment status from URL
   useEffect(() => {
