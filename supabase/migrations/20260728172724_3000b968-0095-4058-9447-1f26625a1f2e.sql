@@ -1,0 +1,1 @@
+UPDATE public.promo_campaigns SET window_hours = 72 WHERE id='c7d82b51-aafa-4755-9c87-2d77c572ec0a'; UPDATE public.promo_offers SET expires_at = NOW() + INTERVAL '48 hours' WHERE campaign_id='c7d82b51-aafa-4755-9c87-2d77c572ec0a' AND used_at IS NULL;
