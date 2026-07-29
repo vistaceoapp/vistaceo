@@ -201,7 +201,7 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
     }
   };
 
-  const handleSubmit = async (clarificationAnswer?: string) => {
+  const handleSubmit = async (clarificationAnswer?: string, attempt = 0) => {
     if (text.trim().length < 3) return;
     setState('thinking');
     setThinkingProgress(0);
@@ -223,9 +223,15 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
 
       if (error) {
         console.error('suggest-profiles error:', error, data);
+        // Reintento silencioso: la mayoría de las fallas son transitorias
+        if (attempt < 1) {
+          setTimeout(() => handleSubmit(clarificationAnswer, attempt + 1), 900);
+          return;
+        }
         setState('error');
         return;
       }
+
 
       // Handle clarification response
       if (data?.needs_clarification && data?.clarification_question && !clarificationAnswer) {
@@ -242,9 +248,14 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
 
       if (!data?.options || data.options.length !== 3) {
         console.error('suggest-profiles invalid data:', data);
+        if (attempt < 1) {
+          setTimeout(() => handleSubmit(clarificationAnswer, attempt + 1), 900);
+          return;
+        }
         setState('error');
         return;
       }
+
 
       // Auto-select if the AI is 100% confident on option 1
       if (data.auto_select === true && data.options[0]?.confidence === 'alta') {
@@ -263,9 +274,14 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
     } catch (err) {
       clearInterval(progressInterval);
       console.error('suggest-profiles exception:', err);
+      if (attempt < 1) {
+        setTimeout(() => handleSubmit(clarificationAnswer, attempt + 1), 900);
+        return;
+      }
       setState('error');
     }
   };
+
 
   const handleClarificationSelect = (optionLabel: string) => {
     handleSubmit(optionLabel);
