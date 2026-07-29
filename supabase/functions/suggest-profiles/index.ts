@@ -413,18 +413,32 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
       ? `Texto original del usuario: "${raw_text.trim()}"\n\nPregunta de clarificación: "${clarification_context?.question || ''}"\nRespuesta elegida: "${clarification_answer}"\n\nAhora generá las 3 opciones basándote en esta clarificación.`
       : `Analizar esta actividad y devolver 3 opciones (o pedir clarificación si hay ambigüedad real):\n\n"${raw_text.trim()}"`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
-        ],
-        temperature: 0.3,
-      }),
-    });
+    // Timeout duro: si la IA tarda demasiado, devolvemos catálogo en vez de
+    // dejar al usuario mirando el spinner (principal causa de abandono en setup).
+    const aiController = new AbortController();
+    const aiTimeout = setTimeout(() => aiController.abort(), 18000);
+
+    let response: Response;
+    try {
+      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        signal: aiController.signal,
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userContent },
+          ],
+          temperature: 0.3,
+        }),
+      });
+    } catch (timeoutErr) {
+      console.error("AI gateway timeout/abort:", timeoutErr);
+      return new Response(JSON.stringify(buildFallbackOptions(raw_text)), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    } finally {
+      clearTimeout(aiTimeout);
+    }
 
     if (!response.ok) {
       const errText = await response.text();
@@ -437,6 +451,7 @@ Devolver SOLO un JSON válido (sin markdown, sin backticks) con esta estructura:
       }
       return new Response(JSON.stringify(buildFallbackOptions(raw_text)), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
 
     const aiData = await response.json();
     const content = aiData.choices?.[0]?.message?.content || "";

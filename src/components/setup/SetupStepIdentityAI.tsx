@@ -201,7 +201,7 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
     }
   };
 
-  const handleSubmit = async (clarificationAnswer?: string) => {
+  const handleSubmit = async (clarificationAnswer?: string, attempt = 0) => {
     if (text.trim().length < 3) return;
     setState('thinking');
     setThinkingProgress(0);
@@ -223,9 +223,15 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
 
       if (error) {
         console.error('suggest-profiles error:', error, data);
+        // Reintento silencioso: la mayoría de las fallas son transitorias
+        if (attempt < 1) {
+          setTimeout(() => handleSubmit(clarificationAnswer, attempt + 1), 900);
+          return;
+        }
         setState('error');
         return;
       }
+
 
       // Handle clarification response
       if (data?.needs_clarification && data?.clarification_question && !clarificationAnswer) {
