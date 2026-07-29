@@ -248,9 +248,14 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
 
       if (!data?.options || data.options.length !== 3) {
         console.error('suggest-profiles invalid data:', data);
+        if (attempt < 1) {
+          setTimeout(() => handleSubmit(clarificationAnswer, attempt + 1), 900);
+          return;
+        }
         setState('error');
         return;
       }
+
 
       // Auto-select if the AI is 100% confident on option 1
       if (data.auto_select === true && data.options[0]?.confidence === 'alta') {
@@ -269,9 +274,14 @@ export const SetupStepIdentityAI = ({ onSelect, onSwitchToManual, countryCode }:
     } catch (err) {
       clearInterval(progressInterval);
       console.error('suggest-profiles exception:', err);
+      if (attempt < 1) {
+        setTimeout(() => handleSubmit(clarificationAnswer, attempt + 1), 900);
+        return;
+      }
       setState('error');
     }
   };
+
 
   const handleClarificationSelect = (optionLabel: string) => {
     handleSubmit(optionLabel);
