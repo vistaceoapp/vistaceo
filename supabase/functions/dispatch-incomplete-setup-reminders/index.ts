@@ -53,9 +53,13 @@ Deno.serve(async (req) => {
   const day3Min = new Date(now.getTime() - 96 * 3600 * 1000).toISOString()
   const day3Max = new Date(now.getTime() - 70 * 3600 * 1000).toISOString()
 
-  const summary = { day1: { sent: 0, skipped: 0, errors: 0 }, day3: { sent: 0, skipped: 0, errors: 0 } }
+  // day7: barrido de rezagados (5 a 45 días) que nunca completaron el setup
+  const day7Min = new Date(now.getTime() - 45 * 24 * 3600 * 1000).toISOString()
+  const day7Max = new Date(now.getTime() - 5 * 24 * 3600 * 1000).toISOString()
 
-  async function runStage(stage: 'day1' | 'day3', minIso: string, maxIso: string) {
+  const summary = { day1: { sent: 0, skipped: 0, errors: 0 }, day3: { sent: 0, skipped: 0, errors: 0 }, day7: { sent: 0, skipped: 0, errors: 0 } }
+
+  async function runStage(stage: 'day1' | 'day3' | 'day7', minIso: string, maxIso: string) {
     // En fin de semana NO mandamos day1 (lo enviamos el lunes hábil).
     if (stage === 'day1' && isWeekend) {
       return
@@ -184,6 +188,7 @@ Deno.serve(async (req) => {
 
   await runStage('day1', day1Min, day1Max)
   await runStage('day3', day3Min, day3Max)
+  await runStage('day7', day7Min, day7Max)
 
   return new Response(JSON.stringify({ ok: true, ranAt: now.toISOString(), summary }), {
     status: 200,
