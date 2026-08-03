@@ -97,17 +97,25 @@ const PreparingDashboardPage = () => {
           return;
         }
 
-        // Lanzar seed con timeout (no bloquea si tarda)
-        const seedPromise = supabase.functions.invoke("seed-initial-insights", {
+        // El seed corre en background en el servidor: devuelve 202 al instante.
+        await supabase.functions.invoke("seed-initial-insights", {
           body: { businessId },
         });
-        const timeoutPromise = new Promise((resolve) =>
-          setTimeout(() => resolve({ error: { message: "timeout" } }), TIMEOUT_MS),
-        );
-        await Promise.race([seedPromise, timeoutPromise]);
+
+        // Esperamos (con tope) a que aparezca contenido real antes de entrar.
+        const deadline = Date.now() + TIMEOUT_MS;
+        while (Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 3000));
+          const [{ count: opps }, { count: miss }] = await Promise.all([
+            supabase.from("opportunities").select("id", { count: "exact", head: true }).eq("business_id", businessId),
+            supabase.from("missions").select("id", { count: "exact", head: true }).eq("business_id", businessId),
+          ]);
+          if ((opps ?? 0) >= 1 && (miss ?? 0) >= 1) break;
+        }
       } catch (err) {
         console.warn("[PreparingDashboard] seed failed (non-blocking):", err);
       }
+
       await goToDashboard();
     })();
   }, [businessLoading, currentBusiness?.id, navigate]);
