@@ -31,19 +31,31 @@ export interface BlogPost {
   secondary_keywords: string[] | null;
 }
 
+// Cache en memoria para el proceso de build: Astro llama estas funciones una
+// vez por página generada. Sin caché, cada build dispara cientos de SELECT *
+// (con content_md completo) sobre blog_posts. Con caché: una sola consulta.
+const buildCache = new Map<string, Promise<unknown>>();
+
+function memo<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  if (!buildCache.has(key)) buildCache.set(key, fn());
+  return buildCache.get(key) as Promise<T>;
+}
+
 export async function getAllPublishedPosts(): Promise<BlogPost[]> {
-  const { data, error } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('status', 'published')
-    .order('publish_at', { ascending: false });
+  return memo('all-published', async () => {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('status', 'published')
+      .order('publish_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching posts:', error);
-    return [];
-  }
+    if (error) {
+      console.error('Error fetching posts:', error);
+      return [] as BlogPost[];
+    }
 
-  return data || [];
+    return (data || []) as BlogPost[];
+  });
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
