@@ -59,73 +59,44 @@ export async function getAllPublishedPosts(): Promise<BlogPost[]> {
 }
 
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
+  // Derivado del listado cacheado: evita una consulta por página.
+  const all = await getAllPublishedPosts();
+  const hit = all.find((p) => p.slug === slug);
+  if (hit) return hit;
+
   const { data, error } = await supabase
     .from('blog_posts')
     .select('*')
     .eq('slug', slug)
     .eq('status', 'published')
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching post:', error);
     return null;
   }
 
-  return data;
+  return (data as BlogPost) || null;
 }
 
 export async function getPostsByCluster(cluster: string): Promise<BlogPost[]> {
   // Use category field (12-cluster system)
-  const { data, error } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('status', 'published')
-    .eq('category', cluster)
-    .order('publish_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching posts by cluster:', error);
-    return [];
-  }
-
-  return data || [];
+  const all = await getAllPublishedPosts();
+  return all.filter((p) => p.category === cluster);
 }
 
 export async function getRelatedPosts(currentSlug: string, category: string | null, limit = 3): Promise<BlogPost[]> {
   if (!category) return [];
 
-  // Use category (12-cluster system) for related posts
-  const { data, error } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('status', 'published')
-    .eq('category', category)
-    .neq('slug', currentSlug)
-    .order('publish_at', { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    console.error('Error fetching related posts:', error);
-    return [];
-  }
-
-  return data || [];
+  const all = await getAllPublishedPosts();
+  return all
+    .filter((p) => p.category === category && p.slug !== currentSlug)
+    .slice(0, limit);
 }
 
 export async function getLatestPosts(limit = 20): Promise<BlogPost[]> {
-  const { data, error } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('status', 'published')
-    .order('publish_at', { ascending: false })
-    .limit(limit);
-
-  if (error) {
-    console.error('Error fetching latest posts:', error);
-    return [];
-  }
-
-  return data || [];
+  const all = await getAllPublishedPosts();
+  return all.slice(0, limit);
 }
 
 // Blog redirects (301-equivalent for static hosting)
@@ -136,37 +107,28 @@ export interface BlogRedirect {
 }
 
 export async function getAllRedirects(): Promise<BlogRedirect[]> {
-  const { data, error } = await supabase
-    .from('blog_redirects')
-    .select('from_slug, to_slug, reason');
+  return memo('all-redirects', async () => {
+    const { data, error } = await supabase
+      .from('blog_redirects')
+      .select('from_slug, to_slug, reason');
 
-  if (error) {
-    console.error('Error fetching redirects:', error);
-    return [];
-  }
+    if (error) {
+      console.error('Error fetching redirects:', error);
+      return [] as BlogRedirect[];
+    }
 
-  return data || [];
+    return (data || []) as BlogRedirect[];
+  });
 }
 
 // Get cluster stats for displaying post counts
 export async function getClusterStats(): Promise<Record<string, number>> {
-  const { data, error } = await supabase
-    .from('blog_posts')
-    .select('category')
-    .eq('status', 'published')
-    .not('category', 'is', null);
-
-  if (error) {
-    console.error('Error fetching cluster stats:', error);
-    return {};
-  }
-
+  const all = await getAllPublishedPosts();
   const counts: Record<string, number> = {};
-  (data || []).forEach(post => {
+  all.forEach((post) => {
     if (post.category) {
       counts[post.category] = (counts[post.category] || 0) + 1;
     }
   });
-
   return counts;
 }
