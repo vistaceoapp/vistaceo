@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, Target, Radar, MessageCircle, Camera, Brain, TrendingUp, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Target, Radar, MessageCircle, Camera, Brain, TrendingUp, Check, X, ChevronDown } from 'lucide-react';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { safeStorage } from '@/lib/safe-storage';
 
 interface NextStep {
   id: string;
