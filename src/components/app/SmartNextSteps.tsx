@@ -143,7 +143,7 @@ export const SmartNextSteps = () => {
     setLoading(false);
   };
 
-  if (loading || steps.length === 0) return null;
+  if (loading || steps.length === 0 || dismissed) return null;
 
   const doneCount = steps.filter((s) => s.done).length;
   const pending = steps.filter((s) => !s.done);
