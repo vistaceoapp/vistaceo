@@ -293,6 +293,10 @@ export const SmartNextSteps = () => {
           ))}
         </div>
       )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
