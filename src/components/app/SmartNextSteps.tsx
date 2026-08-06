@@ -5,7 +5,7 @@ import { useBusiness } from '@/contexts/BusinessContext';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { safeStorage } from '@/lib/safe-storage';
+import { safeLocalStorage } from '@/lib/safe-storage';
 
 interface NextStep {
   id: string;
