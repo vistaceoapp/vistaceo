@@ -24,6 +24,7 @@ import { FocusWidget } from "@/components/app/FocusWidget";
 import { ReputationWidget } from "@/components/app/ReputationWidget";
 import { useWidgetConfig } from "@/hooks/use-widget-config";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { SmartNextSteps } from "@/components/app/SmartNextSteps";
 import { useHealthSync } from "@/hooks/use-health-sync";
 
 const TodayPage = () => {
@@ -228,6 +229,7 @@ const TodayPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
           <div className="space-y-6 min-w-0">
+            <SmartNextSteps />
             {renderMain()}
             {!isPro && <ProUpgradeBanner variant="compact" />}
           </div>
@@ -245,6 +247,7 @@ const TodayPage = () => {
   return (
     <div className="space-y-5">
       {setupBanner}
+      <SmartNextSteps />
       {renderMain()}
       {renderSidebar()}
       {!isPro && <ProUpgradeBanner variant="compact" />}
