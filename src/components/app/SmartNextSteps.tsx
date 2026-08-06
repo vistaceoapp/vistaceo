@@ -175,16 +175,38 @@ export const SmartNextSteps = () => {
   const [hero, ...rest] = pending;
 
   return (
-    <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-4">
-      {/* Encabezado con progreso */}
+    <div className="rounded-2xl border border-border/50 bg-card p-4">
+      {/* Encabezado con progreso y controles */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-xs font-semibold text-muted-foreground tracking-widest uppercase">
-            Cómo empezar
-          </h3>
-          <span className="text-[11px] font-medium text-muted-foreground tabular-nums">
-            {doneCount}/{steps.length}
-          </span>
+        <div className="flex items-center justify-between gap-2">
+          <button
+            onClick={toggleCollapsed}
+            className="flex items-center gap-2 min-w-0 group"
+            aria-expanded={!collapsed}
+          >
+            <h3 className="text-xs font-semibold text-muted-foreground tracking-widest uppercase group-hover:text-foreground transition-colors">
+              Cómo empezar
+            </h3>
+            <ChevronDown
+              className={cn(
+                'w-3.5 h-3.5 text-muted-foreground/60 transition-transform',
+                collapsed && '-rotate-90'
+              )}
+            />
+          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[11px] font-medium text-muted-foreground tabular-nums">
+              {doneCount}/{steps.length}
+            </span>
+            <button
+              onClick={handleDismiss}
+              aria-label="Ocultar guía"
+              title="Ocultar guía"
+              className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground/50 hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
         <div className="h-1.5 rounded-full bg-muted overflow-hidden">
           <motion.div
@@ -195,6 +217,19 @@ export const SmartNextSteps = () => {
           />
         </div>
       </div>
+
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.div
+            key="guide-body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="overflow-hidden"
+          >
+            <div className="pt-4 space-y-4">
+
 
       {/* Paso destacado */}
       <motion.button
