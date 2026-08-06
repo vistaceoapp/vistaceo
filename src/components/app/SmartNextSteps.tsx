@@ -24,6 +24,26 @@ export const SmartNextSteps = () => {
   const navigate = useNavigate();
   const [steps, setSteps] = useState<NextStep[]>([]);
   const [loading, setLoading] = useState(true);
+  const storageKey = `vc_onboarding_guide_${currentBusiness?.id ?? 'anon'}`;
+  const [dismissed, setDismissed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    const state = safeLocalStorage.getItem(storageKey);
+    setDismissed(state === 'dismissed');
+    setCollapsed(state === 'collapsed');
+  }, [storageKey]);
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    safeLocalStorage.setItem(storageKey, 'dismissed');
+  };
+
+  const toggleCollapsed = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    safeLocalStorage.setItem(storageKey, next ? 'collapsed' : 'open');
+  };
 
   useEffect(() => {
     if (currentBusiness) computeSteps();
