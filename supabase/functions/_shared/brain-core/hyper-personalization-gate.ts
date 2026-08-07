@@ -125,12 +125,19 @@ export function hyperPersonalizationCheck(input: HyperCheckInput): HyperCheckRes
   const min = Math.max(1, input.minAnchors ?? 2);
   const missingCritical: string[] = [];
 
-  if (matched.length < min) {
+  // Un ancla ESPECÍFICA (nombre del negocio, nicho, oferta, cliente,
+  // competidor…) vale doble: es prueba real de personalización. Sin esto,
+  // negocios con brain todavía fino quedaban con radar vacío — peor experiencia
+  // que una recomendación bien anclada pero con una sola variable.
+  const weightedMatches = matched.length + specificMatches.length;
+
+  if (weightedMatches < min) {
     reasons.push(`personalización insuficiente: ${matched.length}/${min} anclas presentes`);
     if (!a.sector) missingCritical.push("sector");
     if (!a.customer) missingCritical.push("cliente");
     if (!a.country) missingCritical.push("país");
   }
+
 
   if (input.requireSpecific && specificMatches.length === 0) {
     reasons.push("sin ancla específica del negocio (solo genéricas)");
