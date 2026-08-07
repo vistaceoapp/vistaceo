@@ -1108,21 +1108,25 @@ ${analysisContext}
           continue;
         }
 
-        // Resolve source URL
+        // Resolve source URL (siempre limpia y publicable; si no hay fuente
+        // real usable, caemos al link del RSS ya normalizado).
         const sources = Array.isArray(it?.sources) ? it.sources : [];
         const firstSource = sources.find((s: any) => s?.url?.startsWith("http"));
-        let resolvedUrl = firstSource?.url || "";
-        let sourcePublisher = firstSource?.publisher || "Fuente";
-
-        if (resolvedUrl.includes('news.google.com')) {
-          try {
-            resolvedUrl = await resolveGoogleNewsUrl(resolvedUrl);
-            const urlObj = new URL(resolvedUrl);
-            sourcePublisher = urlObj.hostname.replace('www.', '');
-          } catch { /* keep original */ }
+        let resolvedUrl = normalizeArticleUrl(firstSource?.url || "");
+        if (!resolvedUrl) {
+          const fallbackItem = allRssItems.find((r) => !!r.link);
+          resolvedUrl = fallbackItem?.link || "";
         }
+        if (!resolvedUrl) {
+          console.log(`Filtered: sin fuente externa válida - "${title}"`);
+          learningFiltered++;
+          continue;
+        }
+        let sourcePublisher = firstSource?.publisher || "Fuente";
+        try { sourcePublisher = new URL(resolvedUrl).hostname.replace("www.", ""); } catch { /* keep */ }
 
-        const enrichedContent = `${content}\n\n**Por qué aplica a tu negocio:** ${it.why_applies || "Relevante para tu sector."}\n\n**Fuente:** [${firstSource?.title || sourcePublisher}](${resolvedUrl || "#"})`;
+        const enrichedContent = `${content}\n\n**Por qué aplica a tu negocio:** ${it.why_applies || "Relevante para tu sector."}\n\nFuente: [${firstSource?.title || sourcePublisher}](${resolvedUrl})`;
+
 
         // PROMPT 4 — validateBeforeStore para research/learning_items.
         const audit = validateBeforeStore({
