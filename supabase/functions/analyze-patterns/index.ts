@@ -284,20 +284,48 @@ function countryToGoogleNewsLocale(country: string | null | undefined): { hl: st
 const BROWSER_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 
+// Normaliza la URL de un artículo a un enlace limpio y publicable.
+// Devuelve "" si no se puede obtener un enlace real (redirectores opacos,
+// páginas de búsqueda o URLs gigantes que el gate de calidad rechaza).
+function normalizeArticleUrl(rawUrl: string): string {
+  let url = (rawUrl || "").trim();
+  if (!url.startsWith("http")) return "";
+  try {
+    // Bing apiclick lleva la URL real dentro del parámetro `url`.
+    if (url.includes("bing.com/news/apiclick")) {
+      const inner = new URL(url).searchParams.get("url");
+      url = inner ? decodeURIComponent(inner) : "";
+    }
+    if (!url.startsWith("http")) return "";
+    const u = new URL(url);
+    if (u.hostname.includes("news.google.com")) return "";
+    if (u.pathname.includes("/news/search") || u.pathname === "/") return "";
+    // Sin tracking params y sin URLs kilométricas.
+    const clean = `${u.origin}${u.pathname}`.replace(/\/$/, "");
+    if (clean.length > 118) return u.origin;
+    return clean;
+  } catch {
+    return "";
+  }
+}
+
 function parseRssXml(xml: string, limit = 8): RssItem[] {
   const items: RssItem[] = [];
   const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
   for (const raw of itemMatches.slice(0, limit)) {
     const title = (raw.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1] || raw.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "")
       .replace(/&amp;/g, "&").trim();
-    const link = (raw.match(/<link><!\[CDATA\[([\s\S]*?)\]\]><\/link>/)?.[1] || raw.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "")
+    const rawLink = (raw.match(/<link><!\[CDATA\[([\s\S]*?)\]\]><\/link>/)?.[1] || raw.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "")
       .replace(/&amp;/g, "&").trim();
+    const link = normalizeArticleUrl(rawLink);
     const pubDate = (raw.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || "").trim();
-    const source = (raw.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] || "").trim();
+    let source = (raw.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] || "").trim();
+    if (!source && link) { try { source = new URL(link).hostname.replace("www.", ""); } catch { /* noop */ } }
     if (title && link) items.push({ title, link, publishedAt: pubDate || undefined, source: source || undefined });
   }
   return items;
 }
+
 
 async function tryFetchRss(url: string): Promise<RssItem[]> {
   try {
