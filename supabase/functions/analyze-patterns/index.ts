@@ -281,29 +281,60 @@ function countryToGoogleNewsLocale(country: string | null | undefined): { hl: st
   }
 }
 
-async function fetchGoogleNewsRss(query: string, locale: { hl: string; gl: string }): Promise<RssItem[]> {
-  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=${locale.hl}&gl=${locale.gl}&ceid=${locale.gl}:${locale.hl}`;
-  try {
-    const res = await fetch(url, { headers: { "User-Agent": "lovable-cloud" } });
-    if (!res.ok) return [];
+const BROWSER_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 
-    const xml = await res.text();
-    const items: RssItem[] = [];
-    const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
-    
-    for (const raw of itemMatches.slice(0, 8)) {
-      const title = (raw.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1] || raw.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "").trim();
-      const link = (raw.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "").trim();
-      const pubDate = (raw.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || "").trim();
-      const source = (raw.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] || "").trim();
-      if (title && link) items.push({ title, link, publishedAt: pubDate || undefined, source: source || undefined });
+function parseRssXml(xml: string, limit = 8): RssItem[] {
+  const items: RssItem[] = [];
+  const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
+  for (const raw of itemMatches.slice(0, limit)) {
+    const title = (raw.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1] || raw.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "")
+      .replace(/&amp;/g, "&").trim();
+    const link = (raw.match(/<link><!\[CDATA\[([\s\S]*?)\]\]><\/link>/)?.[1] || raw.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "")
+      .replace(/&amp;/g, "&").trim();
+    const pubDate = (raw.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || "").trim();
+    const source = (raw.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] || "").trim();
+    if (title && link) items.push({ title, link, publishedAt: pubDate || undefined, source: source || undefined });
+  }
+  return items;
+}
+
+async function tryFetchRss(url: string): Promise<RssItem[]> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": BROWSER_UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
+    });
+    if (!res.ok) {
+      console.warn(`[rss] ${res.status} for ${url}`);
+      return [];
     }
-    return items;
+    const xml = await res.text();
+    if (!xml.includes("<item")) return [];
+    return parseRssXml(xml);
   } catch (e) {
-    console.warn(`RSS fetch failed for query "${query}":`, e);
+    console.warn(`[rss] fetch failed ${url}:`, e);
     return [];
   }
 }
+
+// Multi-fuente resiliente: Google News suele bloquear IPs de datacenter,
+// así que caemos a Bing News RSS (y una variante global) antes de rendirnos.
+// Sin fuentes reales no hay I+D, y el usuario ve el módulo vacío.
+async function fetchGoogleNewsRss(query: string, locale: { hl: string; gl: string }): Promise<RssItem[]> {
+  const q = encodeURIComponent(query);
+  const mkt = locale.gl === "BR" ? "pt-BR" : `es-${locale.gl}`;
+  const candidates = [
+    `https://news.google.com/rss/search?q=${q}&hl=${locale.hl}&gl=${locale.gl}&ceid=${locale.gl}:${locale.hl}`,
+    `https://www.bing.com/news/search?q=${q}&format=RSS&setmkt=${mkt}`,
+    `https://www.bing.com/news/search?q=${q}&format=RSS&setmkt=es-ES`,
+  ];
+  for (const url of candidates) {
+    const items = await tryFetchRss(url);
+    if (items.length > 0) return items;
+  }
+  return [];
+}
+
 
 async function resolveGoogleNewsUrl(googleNewsUrl: string): Promise<string> {
   if (!googleNewsUrl.includes('news.google.com')) return googleNewsUrl;
