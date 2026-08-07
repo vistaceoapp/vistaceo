@@ -281,29 +281,88 @@ function countryToGoogleNewsLocale(country: string | null | undefined): { hl: st
   }
 }
 
-async function fetchGoogleNewsRss(query: string, locale: { hl: string; gl: string }): Promise<RssItem[]> {
-  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=${locale.hl}&gl=${locale.gl}&ceid=${locale.gl}:${locale.hl}`;
-  try {
-    const res = await fetch(url, { headers: { "User-Agent": "lovable-cloud" } });
-    if (!res.ok) return [];
+const BROWSER_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 
-    const xml = await res.text();
-    const items: RssItem[] = [];
-    const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
-    
-    for (const raw of itemMatches.slice(0, 8)) {
-      const title = (raw.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1] || raw.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "").trim();
-      const link = (raw.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "").trim();
-      const pubDate = (raw.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || "").trim();
-      const source = (raw.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] || "").trim();
-      if (title && link) items.push({ title, link, publishedAt: pubDate || undefined, source: source || undefined });
+// Normaliza la URL de un artículo a un enlace limpio y publicable.
+// Devuelve "" si no se puede obtener un enlace real (redirectores opacos,
+// páginas de búsqueda o URLs gigantes que el gate de calidad rechaza).
+function normalizeArticleUrl(rawUrl: string): string {
+  let url = (rawUrl || "").trim();
+  if (!url.startsWith("http")) return "";
+  try {
+    // Bing apiclick lleva la URL real dentro del parámetro `url`.
+    if (url.includes("bing.com/news/apiclick")) {
+      const inner = new URL(url).searchParams.get("url");
+      url = inner ? decodeURIComponent(inner) : "";
     }
-    return items;
+    if (!url.startsWith("http")) return "";
+    const u = new URL(url);
+    if (u.hostname.includes("news.google.com")) return "";
+    if (u.pathname.includes("/news/search") || u.pathname === "/") return "";
+    // Sin tracking params y sin URLs kilométricas.
+    const clean = `${u.origin}${u.pathname}`.replace(/\/$/, "");
+    if (clean.length > 118) return u.origin;
+    return clean;
+  } catch {
+    return "";
+  }
+}
+
+function parseRssXml(xml: string, limit = 8): RssItem[] {
+  const items: RssItem[] = [];
+  const itemMatches = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
+  for (const raw of itemMatches.slice(0, limit)) {
+    const title = (raw.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/)?.[1] || raw.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "")
+      .replace(/&amp;/g, "&").trim();
+    const rawLink = (raw.match(/<link><!\[CDATA\[([\s\S]*?)\]\]><\/link>/)?.[1] || raw.match(/<link>([\s\S]*?)<\/link>/)?.[1] || "")
+      .replace(/&amp;/g, "&").trim();
+    const link = normalizeArticleUrl(rawLink);
+    const pubDate = (raw.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || "").trim();
+    let source = (raw.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] || "").trim();
+    if (!source && link) { try { source = new URL(link).hostname.replace("www.", ""); } catch { /* noop */ } }
+    if (title && link) items.push({ title, link, publishedAt: pubDate || undefined, source: source || undefined });
+  }
+  return items;
+}
+
+
+async function tryFetchRss(url: string): Promise<RssItem[]> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": BROWSER_UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
+    });
+    if (!res.ok) {
+      console.warn(`[rss] ${res.status} for ${url}`);
+      return [];
+    }
+    const xml = await res.text();
+    if (!xml.includes("<item")) return [];
+    return parseRssXml(xml);
   } catch (e) {
-    console.warn(`RSS fetch failed for query "${query}":`, e);
+    console.warn(`[rss] fetch failed ${url}:`, e);
     return [];
   }
 }
+
+// Multi-fuente resiliente: Google News suele bloquear IPs de datacenter,
+// así que caemos a Bing News RSS (y una variante global) antes de rendirnos.
+// Sin fuentes reales no hay I+D, y el usuario ve el módulo vacío.
+async function fetchGoogleNewsRss(query: string, locale: { hl: string; gl: string }): Promise<RssItem[]> {
+  const q = encodeURIComponent(query);
+  const mkt = locale.gl === "BR" ? "pt-BR" : `es-${locale.gl}`;
+  const candidates = [
+    `https://news.google.com/rss/search?q=${q}&hl=${locale.hl}&gl=${locale.gl}&ceid=${locale.gl}:${locale.hl}`,
+    `https://www.bing.com/news/search?q=${q}&format=RSS&setmkt=${mkt}`,
+    `https://www.bing.com/news/search?q=${q}&format=RSS&setmkt=es-ES`,
+  ];
+  for (const url of candidates) {
+    const items = await tryFetchRss(url);
+    if (items.length > 0) return items;
+  }
+  return [];
+}
+
 
 async function resolveGoogleNewsUrl(googleNewsUrl: string): Promise<string> {
   if (!googleNewsUrl.includes('news.google.com')) return googleNewsUrl;
@@ -1049,21 +1108,25 @@ ${analysisContext}
           continue;
         }
 
-        // Resolve source URL
+        // Resolve source URL (siempre limpia y publicable; si no hay fuente
+        // real usable, caemos al link del RSS ya normalizado).
         const sources = Array.isArray(it?.sources) ? it.sources : [];
         const firstSource = sources.find((s: any) => s?.url?.startsWith("http"));
-        let resolvedUrl = firstSource?.url || "";
-        let sourcePublisher = firstSource?.publisher || "Fuente";
-
-        if (resolvedUrl.includes('news.google.com')) {
-          try {
-            resolvedUrl = await resolveGoogleNewsUrl(resolvedUrl);
-            const urlObj = new URL(resolvedUrl);
-            sourcePublisher = urlObj.hostname.replace('www.', '');
-          } catch { /* keep original */ }
+        let resolvedUrl = normalizeArticleUrl(firstSource?.url || "");
+        if (!resolvedUrl) {
+          const fallbackItem = allRssItems.find((r) => !!r.link);
+          resolvedUrl = fallbackItem?.link || "";
         }
+        if (!resolvedUrl) {
+          console.log(`Filtered: sin fuente externa válida - "${title}"`);
+          learningFiltered++;
+          continue;
+        }
+        let sourcePublisher = firstSource?.publisher || "Fuente";
+        try { sourcePublisher = new URL(resolvedUrl).hostname.replace("www.", ""); } catch { /* keep */ }
 
-        const enrichedContent = `${content}\n\n**Por qué aplica a tu negocio:** ${it.why_applies || "Relevante para tu sector."}\n\n**Fuente:** [${firstSource?.title || sourcePublisher}](${resolvedUrl || "#"})`;
+        const enrichedContent = `${content}\n\n**Por qué aplica a tu negocio:** ${it.why_applies || "Relevante para tu sector."}\n\nFuente: [${firstSource?.title || sourcePublisher}](${resolvedUrl})`;
+
 
         // PROMPT 4 — validateBeforeStore para research/learning_items.
         const audit = validateBeforeStore({
