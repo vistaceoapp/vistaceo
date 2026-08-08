@@ -1840,6 +1840,71 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 4.b PRE-FLIGHT DURO (anti-bloqueo de triggers SEO)
+    // La BD rechaza slugs duplicados/fechados y keywords ya publicadas.
+    // Descartamos esos temas ANTES de gastar IA, así el cron nunca queda en 0.
+    const { data: allPublished } = await supabase
+      .from('blog_posts')
+      .select('slug, primary_keyword')
+      .eq('status', 'published')
+      .limit(3000);
+
+    const publishedIndex = (allPublished || []) as Array<{ slug: string; primary_keyword: string | null }>;
+
+    const topicIsBlocked = (t: { slug?: string; title_base?: string }) => {
+      const baseSlug = (t.slug || '').toLowerCase();
+      const kw = (t.title_base || '').toLowerCase().slice(0, 50);
+      if (!baseSlug && !kw) return true;
+      return publishedIndex.some((p) => {
+        const ps = (p.slug || '').toLowerCase();
+        const pk = (p.primary_keyword || '').toLowerCase();
+        return ps === baseSlug || ps.startsWith(`${baseSlug}-20`) || (!!kw && pk === kw);
+      });
+    };
+
+    if (!forceRun && topicIsBlocked(selectedTopic)) {
+      console.log('[generate-blog-post] Tema bloqueado por duplicado/keyword ya publicada:', selectedTopic.slug);
+
+      await supabase
+        .from('blog_topics')
+        .update({ last_used_at: new Date().toISOString() })
+        .eq('id', selectedTopic.id);
+
+      if (selectedPlan) {
+        await supabase
+          .from('blog_plan')
+          .update({ status: 'skipped', skip_reason: 'duplicate_slug_or_keyword' })
+          .eq('id', selectedPlan.id);
+        selectedPlan = null;
+      }
+
+      const { data: freshTopics } = await supabase
+        .from('blog_topics')
+        .select('*')
+        .neq('id', selectedTopic.id)
+        .order('last_used_at', { ascending: true, nullsFirst: true })
+        .order('priority_score', { ascending: false })
+        .limit(60);
+
+      const nextTopic = (freshTopics || []).find((t: any) => !topicIsBlocked(t));
+
+      if (!nextTopic) {
+        await supabase.from('blog_runs').insert({
+          result: 'failed',
+          skip_reason: 'all_topics_duplicated',
+          notes: 'Todos los temas disponibles ya tienen post publicado (slug o keyword).',
+          quality_gate_report: { error: 'all_topics_duplicated' },
+        });
+        return new Response(JSON.stringify({ success: false, reason: 'all_topics_duplicated' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      selectedTopic = nextTopic;
+      console.log('[generate-blog-post] Tema alternativo limpio:', selectedTopic.slug);
+    }
+
+
+
     // 5. Get existing posts for internal linking
     const { data: relatedPosts } = await supabase
       .from('blog_posts')
@@ -2401,19 +2466,22 @@ TAMBIÉN:
       "articleSection": BLOG_CLUSTERS[selectedCategory]?.label || 'Tendencias'
     };
 
-    // 9. Check for slug collision and generate unique slug
-    let postSlug = selectedTopic.slug;
+    // 9. Slug definitivo: nunca fechado (el trigger SEO bloquea duplicados fechados)
+    const postSlug = selectedTopic.slug;
     const { data: existingSlug } = await supabase
       .from('blog_posts')
       .select('id')
       .eq('slug', postSlug)
       .maybeSingle();
-    
+
     if (existingSlug) {
-      // Add date suffix to make unique
-      const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      postSlug = `${selectedTopic.slug}-${dateSuffix}`;
-      console.log(`[generate-blog-post] Slug collision detected, using: ${postSlug}`);
+      await supabase
+        .from('blog_topics')
+        .update({ last_used_at: new Date().toISOString() })
+        .eq('id', selectedTopic.id);
+
+      return new Response(JSON.stringify({ success: false, reason: 'slug_already_published', slug: postSlug }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Insert blog post
