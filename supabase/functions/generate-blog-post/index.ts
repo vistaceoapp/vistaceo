@@ -2466,19 +2466,22 @@ TAMBIÉN:
       "articleSection": BLOG_CLUSTERS[selectedCategory]?.label || 'Tendencias'
     };
 
-    // 9. Check for slug collision and generate unique slug
-    let postSlug = selectedTopic.slug;
+    // 9. Slug definitivo: nunca fechado (el trigger SEO bloquea duplicados fechados)
+    const postSlug = selectedTopic.slug;
     const { data: existingSlug } = await supabase
       .from('blog_posts')
       .select('id')
       .eq('slug', postSlug)
       .maybeSingle();
-    
+
     if (existingSlug) {
-      // Add date suffix to make unique
-      const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      postSlug = `${selectedTopic.slug}-${dateSuffix}`;
-      console.log(`[generate-blog-post] Slug collision detected, using: ${postSlug}`);
+      await supabase
+        .from('blog_topics')
+        .update({ last_used_at: new Date().toISOString() })
+        .eq('id', selectedTopic.id);
+
+      return new Response(JSON.stringify({ success: false, reason: 'slug_already_published', slug: postSlug }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Insert blog post
