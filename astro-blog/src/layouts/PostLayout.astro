@@ -27,6 +27,11 @@ const ogImage = getOgImage(post);
 const headings = extractHeadings(post.content_md);
 // Parse markdown to beautiful HTML
 const processedContent = parseMarkdown(post.content_md);
+// CTA con atribución: permite medir qué nota genera ingresos
+const ctaBase = `utm_source=blog&utm_medium=article&utm_campaign=${encodeURIComponent(post.slug)}`;
+const CTA_TOP = `${MAIN_SITE}/promo?${ctaBase}&utm_content=top`;
+const CTA_FOOT = `${MAIN_SITE}/promo?${ctaBase}&utm_content=footer`;
+
 
 // Auto-detect FAQs already embedded by autoheal → emit FAQPage JSON-LD for rich snippets
 const faqs = extractFAQs(post.content_md);
