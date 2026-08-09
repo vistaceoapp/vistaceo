@@ -55,13 +55,12 @@ function escapeXml(str) {
     .replace(/'/g, '&apos;');
 }
 
-function urlEntry({ loc, lastmod, changefreq, priority, hreflang }) {
+function urlEntry({ loc, changefreq, priority, hreflang }) {
   const alts = hreflang
     ? `\n    <xhtml:link rel="alternate" hreflang="es" href="${loc}" />\n    <xhtml:link rel="alternate" hreflang="es-419" href="${loc}" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="${loc}" />`
     : '';
   return `  <url>
     <loc>${loc}</loc>
-    <lastmod>${lastmod}</lastmod>
     <changefreq>${changefreq}</changefreq>
     <priority>${priority}</priority>${alts}
   </url>
@@ -89,7 +88,6 @@ function buildPagesSitemap(today) {
   for (const page of STATIC_PAGES) {
     xml += urlEntry({
       loc: `${CANONICAL_DOMAIN}${page.path}`,
-      lastmod: today,
       changefreq: page.changefreq,
       priority: page.priority,
       hreflang: page.hreflang,

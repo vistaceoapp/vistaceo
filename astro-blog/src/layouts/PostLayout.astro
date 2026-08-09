@@ -27,6 +27,11 @@ const ogImage = getOgImage(post);
 const headings = extractHeadings(post.content_md);
 // Parse markdown to beautiful HTML
 const processedContent = parseMarkdown(post.content_md);
+// CTA con atribución: permite medir qué nota genera ingresos
+const ctaBase = `utm_source=blog&utm_medium=article&utm_campaign=${encodeURIComponent(post.slug)}`;
+const CTA_TOP = `${MAIN_SITE}/promo?${ctaBase}&utm_content=top`;
+const CTA_FOOT = `${MAIN_SITE}/promo?${ctaBase}&utm_content=footer`;
+
 
 // Auto-detect FAQs already embedded by autoheal → emit FAQPage JSON-LD for rich snippets
 const faqs = extractFAQs(post.content_md);
@@ -110,7 +115,16 @@ const schemas = [
         <ToC headings={headings} />
       )}
       
+      <aside class="inline-cta">
+        <div class="inline-cta__text">
+          <strong>Aplicá esto a tu negocio en minutos</strong>
+          <span>VistaCEO analiza tu empresa y te da las acciones concretas de la semana.</span>
+        </div>
+        <a href={CTA_TOP} class="inline-cta__btn" rel="nofollow">Probar VistaCEO</a>
+      </aside>
+
       <div class="post-content" itemprop="articleBody" set:html={processedContent} />
+
       
       <footer class="post-footer">
         <!-- Author box -->
@@ -129,15 +143,16 @@ const schemas = [
         
         <!-- CTA -->
         <div class="post-cta">
-          <h3>¿Querés tomar mejores decisiones de negocio?</h3>
-          <p>VistaCEO es inteligencia ejecutiva que interpreta tu negocio y te guía con acciones concretas.</p>
-          <a href={`${MAIN_SITE}/auth`} class="cta-button">
-            Conocer VistaCEO
+          <h3>Dejá de decidir a ciegas en tu negocio</h3>
+          <p>VistaCEO interpreta tu empresa y te entrega misiones, oportunidades y alertas concretas cada semana. Empezá gratis y activá Pro cuando veas el valor.</p>
+          <a href={CTA_FOOT} class="cta-button" rel="nofollow">
+            Empezar ahora
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </a>
         </div>
+
         
         <!-- Share -->
         <div class="share-section">
@@ -734,7 +749,42 @@ const schemas = [
     }
   }
   
+  /* Inline CTA (arriba del contenido) */
+  .inline-cta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+    border: 1px solid rgba(38, 146, 220, 0.35);
+    border-radius: 0.75rem;
+    padding: 1rem 1.1rem;
+    margin: 1.25rem 0 1.75rem;
+    background: linear-gradient(135deg, rgba(38, 146, 220, 0.08), rgba(116, 108, 230, 0.08));
+  }
+  .inline-cta__text { display: flex; flex-direction: column; gap: 0.2rem; }
+  .inline-cta__text strong { font-size: 0.98rem; line-height: 1.3; }
+  .inline-cta__text span { font-size: 0.85rem; opacity: 0.8; line-height: 1.45; }
+  .inline-cta__btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(135deg, #2692DC, #746CE6);
+    color: #fff;
+    padding: 0.55rem 1.1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: transform 0.15s;
+  }
+  .inline-cta__btn:hover { transform: translateY(-1px); color: #fff; }
+
+  @media (min-width: 640px) {
+    .inline-cta { flex-direction: row; align-items: center; justify-content: space-between; }
+  }
+
   /* CTA - Ultra Responsive */
+
   .post-cta {
     background: linear-gradient(135deg, #2692DC, #746CE6);
     color: white;
