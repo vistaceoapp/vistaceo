@@ -441,6 +441,20 @@ const MorePage = () => {
                   </button>
 
                   <button
+                    onClick={() => navigate("/app/memoria")}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Brain className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-foreground text-sm">Lo que sé de tu negocio</p>
+                      <p className="text-xs text-muted-foreground">Toda la memoria aprendida del chat y del setup</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+
+                  <button
                     onClick={() => navigate("/app/audit")}
                     className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
                   >
