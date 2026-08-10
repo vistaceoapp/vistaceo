@@ -61,6 +61,7 @@ const RadarPage = lazy(() => import("./pages/app/RadarPage"));
 const MorePage = lazy(() => import("./pages/app/MorePage"));
 const AnalyticsPage = lazy(() => import("./pages/app/AnalyticsPage"));
 const AuditPage = lazy(() => import("./pages/app/AuditPage"));
+const MemoryPage = lazy(() => import("./pages/app/MemoryPage"));
 const DiagnosticPage = lazy(() => import("./pages/app/DiagnosticPage"));
 const UpgradePage = lazy(() => import("./pages/app/UpgradePage"));
 const PredictionsPage = lazy(() => import("./pages/app/PredictionsPage"));
