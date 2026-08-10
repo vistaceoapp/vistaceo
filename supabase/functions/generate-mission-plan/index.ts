@@ -650,7 +650,7 @@ serve(async (req) => {
           // La generación corre en SEGUNDO PLANO (job) — el cliente nunca espera con la conexión abierta.
           model: "google/gemini-2.5-pro",
           messages: [
-            { role: "system", content: `${SYSTEM_PROMPT}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("mission")}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
+            { role: "system", content: `${SYSTEM_PROMPT}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("mission")}\n\n${(await import("../_shared/brain-core/contextual-terminology.ts")).buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}\n\n${(await import("../_shared/brain-core/anchor-directive.ts")).buildAnchorDirective((await import("../_shared/brain-core/hyper-personalization-gate.ts")).buildHyperAnchors({ business, brain }), "mission")}` },
             { role: "user", content: contextPrompt },
           ],
           stream: false,

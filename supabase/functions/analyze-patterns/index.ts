@@ -1031,7 +1031,7 @@ ${analysisContext}
         body: JSON.stringify({
           model: "google/gemini-2.5-flash", // Cost-optimized: market RSS analysis tolera flash sin perder calidad (gates + validateBeforeStore filtran)
           messages: [
-            { role: "system", content: "Sos un analista de mercado experto. Generás insights de I+D basados en fuentes reales." },
+            { role: "system", content: `Sos un analista de mercado experto. Generás insights de I+D basados en fuentes reales.\n\n${(await import("../_shared/brain-core/anchor-directive.ts")).buildAnchorDirective((await import("../_shared/brain-core/hyper-personalization-gate.ts")).buildHyperAnchors({ business, brain }), "radar")}` },
             { role: "user", content: researchPrompt }
           ],
           temperature: 0.3,
@@ -1272,7 +1272,7 @@ ventas | marketing | operaciones | reputación | finanzas | equipo | producto | 
       body: JSON.stringify({
         model: "google/gemini-2.5-pro", // Downgraded from pro: flash handles opportunity analysis well
         messages: [
-          { role: "system", content: `Sos un asesor de negocios experto. ${locale.voice === "voseo" ? "Hablás de vos." : "Hablas de tú."}` },
+          { role: "system", content: `Sos un asesor de negocios experto. ${locale.voice === "voseo" ? "Hablás de vos." : "Hablas de tú."}\n\n${(await import("../_shared/brain-core/anchor-directive.ts")).buildAnchorDirective((await import("../_shared/brain-core/hyper-personalization-gate.ts")).buildHyperAnchors({ business, brain }), "opportunity")}` },
           { role: "user", content: opportunitiesPrompt }
         ],
         temperature: 0.25,
