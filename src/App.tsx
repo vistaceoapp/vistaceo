@@ -307,6 +307,7 @@ const AppRoutes = () => {
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="predictions" element={<PredictionsPage />} />
           <Route path="audit" element={<AuditPage />} />
+          <Route path="memoria" element={<MemoryPage />} />
           <Route path="more" element={<MorePage />} />
           <Route path="diagnostic" element={<DiagnosticPage />} />
           <Route path="upgrade" element={<UpgradePage />} />
