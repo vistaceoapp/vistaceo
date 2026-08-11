@@ -87,6 +87,11 @@ export default function MemoryPage() {
   const [learnings, setLearnings] = useState<Array<Record<string, unknown>>>([]);
   const [signals, setSignals] = useState<Array<Record<string, unknown>>>([]);
   const [prefs, setPrefs] = useState<Record<string, unknown> | null>(null);
+  const [chatMemory, setChatMemory] = useState<{
+    total: number;
+    firstAt: string | null;
+    openLoops: string[];
+  }>({ total: 0, firstAt: null, openLoops: [] });
 
   useEffect(() => {
     let cancelled = false;
