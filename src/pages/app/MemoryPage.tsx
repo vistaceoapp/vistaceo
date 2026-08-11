@@ -99,7 +99,7 @@ export default function MemoryPage() {
       if (!currentBusiness?.id) return;
       setLoading(true);
       try {
-        const [b, e, l, s, p] = await Promise.all([
+        const [b, e, l, s, p, c] = await Promise.all([
           supabase.from("business_brains").select("*").eq("business_id", currentBusiness.id).maybeSingle(),
           supabase
             .from("canonical_entities")
