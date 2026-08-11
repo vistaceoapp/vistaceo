@@ -87,6 +87,11 @@ export default function MemoryPage() {
   const [learnings, setLearnings] = useState<Array<Record<string, unknown>>>([]);
   const [signals, setSignals] = useState<Array<Record<string, unknown>>>([]);
   const [prefs, setPrefs] = useState<Record<string, unknown> | null>(null);
+  const [chatMemory, setChatMemory] = useState<{
+    total: number;
+    firstAt: string | null;
+    openLoops: string[];
+  }>({ total: 0, firstAt: null, openLoops: [] });
 
   useEffect(() => {
     let cancelled = false;
@@ -94,7 +99,7 @@ export default function MemoryPage() {
       if (!currentBusiness?.id) return;
       setLoading(true);
       try {
-        const [b, e, l, s, p] = await Promise.all([
+        const [b, e, l, s, p, c] = await Promise.all([
           supabase.from("business_brains").select("*").eq("business_id", currentBusiness.id).maybeSingle(),
           supabase
             .from("canonical_entities")
@@ -117,6 +122,12 @@ export default function MemoryPage() {
           user
             ? supabase.from("user_chat_preferences").select("*").eq("user_id", user.id).maybeSingle()
             : Promise.resolve({ data: null } as never),
+          supabase
+            .from("chat_messages")
+            .select("role, content, created_at")
+            .eq("business_id", currentBusiness.id)
+            .order("created_at", { ascending: false })
+            .limit(300),
         ]);
         if (cancelled) return;
         setBrain((b.data as Record<string, unknown>) ?? null);
@@ -124,6 +135,17 @@ export default function MemoryPage() {
         setLearnings((l.data as Array<Record<string, unknown>>) ?? []);
         setSignals((s.data as Array<Record<string, unknown>>) ?? []);
         setPrefs(((p as { data?: Record<string, unknown> })?.data) ?? null);
+        const rows = ((c as { data?: Array<{ role: string; content: string; created_at: string }> })?.data) ?? [];
+        const loopRx =
+          /(te (?:aviso|confirmo|paso|mando)|voy a (?:probar|hacer|implementar|lanzar|revisar)|quedamos en|pendiente de|todavía no (?:pude|hice|arranqué))/i;
+        setChatMemory({
+          total: rows.length,
+          firstAt: rows.length ? rows[rows.length - 1].created_at : null,
+          openLoops: rows
+            .filter((r) => r.role === "user" && loopRx.test(String(r.content ?? "")))
+            .slice(0, 4)
+            .map((r) => String(r.content).slice(0, 160)),
+        });
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -204,6 +226,38 @@ export default function MemoryPage() {
           </div>
         </CardContent>
       </Card>
+
+      {chatMemory.total > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MessageSquare className="w-4 h-4 text-primary" />
+              Memoria de tus conversaciones
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {chatMemory.total} mensajes recordados
+              {chatMemory.firstAt
+                ? ` desde el ${new Date(chatMemory.firstAt).toLocaleDateString("es-AR")}`
+                : ""}
+              . El chat recupera lo que hablaron antes, aunque haya pasado meses.
+            </p>
+            {chatMemory.openLoops.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Temas abiertos sin cerrar</p>
+                {chatMemory.openLoops.map((loop, i) => (
+                  <div key={i} className="rounded-lg border border-border/60 p-3 text-sm text-foreground">
+                    {loop}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+
 
       {isEmpty && (
         <Card>

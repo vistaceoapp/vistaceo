@@ -1281,7 +1281,7 @@ MESSAGE_JSON:
 
     // Prepare messages for AI (with multimodal support for images)
     // Cost-optimized: 12 messages of context preserve coherence while reducing tokens ~40%
-    const recentMessages = messages.slice(-12).map((m: { role: string; content: string }) => ({
+    const recentMessages = messages.slice(-16).map((m: { role: string; content: string }) => ({
       role: m.role,
       content: m.content,
     }));
@@ -1328,8 +1328,8 @@ MESSAGE_JSON:
     // Máxima inteligencia SIEMPRE para cualquier mensaje real.
     // Solo los saludos triviales usan el modelo liviano.
     let selectedModel: string;
-    if (isTrivial) selectedModel = "google/gemini-2.5-flash-lite";
-    else selectedModel = "google/gemini-3-flash-preview";
+    if (isTrivial) selectedModel = "google/gemini-3.1-flash-lite";
+    else selectedModel = "google/gemini-3.6-flash";
 
     // Cap de tokens — suficiente para cerrar oraciones (anti-truncación).
     // Máximo 2 párrafos enfocados. Mismo techo para free y pro.
@@ -1370,19 +1370,41 @@ MESSAGE_JSON:
       return `\n=== PREFERENCIAS PERSISTENTES DEL USUARIO (memoria cross-sesión) ===\n${lines.join("\n")}\nReglas: respetá estas preferencias en CADA respuesta sin mencionarlas. Si el usuario las contradice, la nueva orden gana y se actualiza.\n=== FIN PREFERENCIAS ===\n`;
     })();
 
+    // --- Memoria profunda: recall del historial COMPLETO relevante al turno actual ---
+    let deepRecallFragment = "";
+    if (supabase && businessContext?.id && !isTrivial) {
+      try {
+        const { buildDeepRecall } = await import("../_shared/brain-core/deep-recall.ts");
+        const recall = await buildDeepRecall(supabase, businessContext.id, lastText, {
+          excludeRecent: 16,
+          maxTurns: 6,
+        });
+        deepRecallFragment = recall.promptFragment;
+        console.log("[deep-recall]", {
+          total: recall.totalMessages,
+          hits: recall.relevantTurns.length,
+          loops: recall.openLoops.length,
+        });
+      } catch (e) {
+        console.warn("[deep-recall] failed:", (e as Error).message);
+      }
+    }
+
     const HYPER_RIGOR_PROMPT = `RIGOR MÁXIMO ANTES DE RESPONDER:
-1. Leé TODO el contexto: business config, brain, state, preferencias persistentes del usuario, últimos 12 mensajes.
+1. Leé TODO el contexto: business config, brain, state, memoria profunda de la relación, preferencias persistentes del usuario, últimos mensajes.
 2. Identificá qué sabés con certeza vs. qué estás asumiendo. No inventes datos.
-3. Conectá la respuesta con al menos un dato real del negocio (misión, fricción, métrica, oportunidad, evento reciente).
-4. Si la pregunta exige un dato que no está, pedilo en UNA línea o devolvé hipótesis explícita marcada como tal.
-5. Adaptá tono y formato a las preferencias persistentes del usuario, sin nombrarlas.
-6. Nunca repitas el mensaje del usuario. Nunca devuelvas JSON ni códigos internos. Español natural, ejecutivo.`;
+3. Conectá la respuesta con al menos un dato real del negocio (misión, fricción, métrica, oportunidad, evento reciente o algo que el usuario te contó antes).
+4. Si ya hablaron de este tema antes, retomá el hilo en vez de arrancar de cero.
+5. Si la pregunta exige un dato que no está, pedilo en UNA línea o devolvé hipótesis explícita marcada como tal.
+6. Adaptá tono y formato a las preferencias persistentes del usuario, sin nombrarlas.
+7. Nunca repitas el mensaje del usuario. Nunca devuelvas JSON ni códigos internos. Español natural, ejecutivo.`;
 
     const aiMessages = [
       { role: "system", content: CEO_SYSTEM_PROMPT },
       { role: "system", content: ANTI_GENERIC_SYSTEM },
       { role: "system", content: HYPER_RIGOR_PROMPT },
       { role: "system", content: terminology.promptFragment },
+      ...(deepRecallFragment ? [{ role: "system", content: deepRecallFragment }] : []),
       { role: "system", content: contextInjection + userPrefsBlock },
       ...recentMessages,
     ];
