@@ -1281,7 +1281,7 @@ MESSAGE_JSON:
 
     // Prepare messages for AI (with multimodal support for images)
     // Cost-optimized: 12 messages of context preserve coherence while reducing tokens ~40%
-    const recentMessages = messages.slice(-12).map((m: { role: string; content: string }) => ({
+    const recentMessages = messages.slice(-16).map((m: { role: string; content: string }) => ({
       role: m.role,
       content: m.content,
     }));
