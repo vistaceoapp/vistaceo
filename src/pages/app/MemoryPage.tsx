@@ -227,6 +227,38 @@ export default function MemoryPage() {
         </CardContent>
       </Card>
 
+      {chatMemory.total > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MessageSquare className="w-4 h-4 text-primary" />
+              Memoria de tus conversaciones
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {chatMemory.total} mensajes recordados
+              {chatMemory.firstAt
+                ? ` desde el ${new Date(chatMemory.firstAt).toLocaleDateString("es-AR")}`
+                : ""}
+              . El chat recupera lo que hablaron antes, aunque haya pasado meses.
+            </p>
+            {chatMemory.openLoops.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Temas abiertos sin cerrar</p>
+                {chatMemory.openLoops.map((loop, i) => (
+                  <div key={i} className="rounded-lg border border-border/60 p-3 text-sm text-foreground">
+                    {loop}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+
+
       {isEmpty && (
         <Card>
           <CardContent className="py-10 text-center space-y-3">
