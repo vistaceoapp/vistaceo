@@ -20,3 +20,4 @@ export * from "./prompt2-rules.ts";
 export * from "./runtime-output-gate.ts";
 export * from "./hyper-personalization-gate.ts";
 export * from "./email-quality-gate.ts";
+export * from "./deep-recall.ts";
