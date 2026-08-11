@@ -1328,8 +1328,8 @@ MESSAGE_JSON:
     // Máxima inteligencia SIEMPRE para cualquier mensaje real.
     // Solo los saludos triviales usan el modelo liviano.
     let selectedModel: string;
-    if (isTrivial) selectedModel = "google/gemini-2.5-flash-lite";
-    else selectedModel = "google/gemini-3-flash-preview";
+    if (isTrivial) selectedModel = "google/gemini-3.1-flash-lite";
+    else selectedModel = "google/gemini-3.6-flash";
 
     // Cap de tokens — suficiente para cerrar oraciones (anti-truncación).
     // Máximo 2 párrafos enfocados. Mismo techo para free y pro.
