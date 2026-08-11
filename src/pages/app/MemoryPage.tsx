@@ -122,6 +122,12 @@ export default function MemoryPage() {
           user
             ? supabase.from("user_chat_preferences").select("*").eq("user_id", user.id).maybeSingle()
             : Promise.resolve({ data: null } as never),
+          supabase
+            .from("chat_messages")
+            .select("role, content, created_at")
+            .eq("business_id", currentBusiness.id)
+            .order("created_at", { ascending: false })
+            .limit(300),
         ]);
         if (cancelled) return;
         setBrain((b.data as Record<string, unknown>) ?? null);
@@ -129,6 +135,17 @@ export default function MemoryPage() {
         setLearnings((l.data as Array<Record<string, unknown>>) ?? []);
         setSignals((s.data as Array<Record<string, unknown>>) ?? []);
         setPrefs(((p as { data?: Record<string, unknown> })?.data) ?? null);
+        const rows = ((c as { data?: Array<{ role: string; content: string; created_at: string }> })?.data) ?? [];
+        const loopRx =
+          /(te (?:aviso|confirmo|paso|mando)|voy a (?:probar|hacer|implementar|lanzar|revisar)|quedamos en|pendiente de|todavía no (?:pude|hice|arranqué))/i;
+        setChatMemory({
+          total: rows.length,
+          firstAt: rows.length ? rows[rows.length - 1].created_at : null,
+          openLoops: rows
+            .filter((r) => r.role === "user" && loopRx.test(String(r.content ?? "")))
+            .slice(0, 4)
+            .map((r) => String(r.content).slice(0, 160)),
+        });
       } finally {
         if (!cancelled) setLoading(false);
       }
