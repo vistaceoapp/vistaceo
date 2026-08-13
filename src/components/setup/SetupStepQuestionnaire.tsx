@@ -504,7 +504,11 @@ export const SetupStepQuestionnaire = ({
     let consecutiveFailures = 0;
     let batchIdx = 1;
 
-    while (questionsRef.current.length < max && consecutiveFailures < 3) {
+    // Si todavía no llegamos al mínimo, insistimos más (el fallo típico es
+    // saturación momentánea del motor, no un error real).
+    const failureBudget = () => (questionsRef.current.length < min ? 6 : 3);
+
+    while (questionsRef.current.length < max && consecutiveFailures < failureBudget()) {
       const missing = max - questionsRef.current.length;
       const ask = Math.min(cfg.perBatch, Math.max(3, missing));
       try {
@@ -538,7 +542,8 @@ export const SetupStepQuestionnaire = ({
       } catch (err) {
         consecutiveFailures += 1;
         console.warn(`[Setup] batch ${batchIdx} falló (fallo #${consecutiveFailures}):`, err);
-        await new Promise(r => setTimeout(r, 1200));
+        const wait = Math.min(1200 * consecutiveFailures, 6000);
+        await new Promise(r => setTimeout(r, wait));
       }
     }
 
@@ -547,11 +552,20 @@ export const SetupStepQuestionnaire = ({
     const total = questionsRef.current.length;
     if (total < min) {
       console.warn(`[Setup] Cerrando con ${total}/${min} preguntas (batches incompletos).`);
+      // Dejamos la puerta abierta a un reintento posterior (al responder o al volver).
+      backgroundFetchStarted.current = false;
+      allBatchesDone.current = total > 0;
+    } else {
+      allBatchesDone.current = true;
     }
-    allBatchesDone.current = true;
-    setCachedQuestions(questionsRef.current, businessTypeId, setupMode, contextHash, true);
+    setCachedQuestions(questionsRef.current, businessTypeId, setupMode, contextHash, allBatchesDone.current);
     setIsLoadingMore(false);
   }, [fetchQuestions, setupMode, businessTypeId, contextHash]);
+
+  useEffect(() => {
+    generateRemainingBatchesRef.current = generateRemainingBatches;
+  }, [generateRemainingBatches]);
+
 
   // Motor inteligente: si no hay cache válido, generar preguntas hiperpersonalizadas vía AI.
   // Tanto Rápido como Completo usan el MISMO motor (generate-questionnaire).
