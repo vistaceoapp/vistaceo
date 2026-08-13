@@ -210,41 +210,82 @@ const SetupPage = () => {
 
 
   // Save setup progress whenever it changes (for returning from checkout)
+  // El espejo al servidor va con debounce: evita una escritura por tecla y
+  // mantiene la app fluida sin perder nada (localStorage es inmediato).
+  const lastMirrorRef = useRef<string>('');
   useEffect(() => {
-    if (currentStep > 0 || data.areaId) {
-      const payload = {
-        step: currentStep,
-        data: data,
-        timestamp: Date.now(),
-      };
-      safeLocalStorage.setItem('setupProgress', JSON.stringify(payload));
-      // 🌩️ Mirror al servidor para sobrevivir cierre de sesión, cambio de dispositivo o limpieza de caché.
-      if (draftBusinessId) {
-        const livePrecision = calculatePrecision(data);
+    if (!(currentStep > 0 || data.areaId)) return;
+
+    const payload = {
+      step: currentStep,
+      data: data,
+      timestamp: Date.now(),
+    };
+    safeLocalStorage.setItem('setupProgress', JSON.stringify(payload));
+
+    if (!draftBusinessId) return;
+
+    const signature = `${currentStep}|${JSON.stringify(data)}`;
+    if (signature === lastMirrorRef.current) return;
+
+    const timer = setTimeout(() => {
+      lastMirrorRef.current = signature;
+      const livePrecision = calculatePrecision(data);
+      supabase
+        .from('business_setup_progress')
+        .upsert(
+          {
+            business_id: draftBusinessId,
+            current_step: String(currentStep),
+            setup_data: { ...(data as any), _localStep: currentStep } as any,
+            precision_score: livePrecision,
+          } as never,
+          { onConflict: 'business_id' }
+        )
+        .then(() => {/* noop */}, () => {/* silencioso */});
+      // Sincronizar nombre real del negocio en `businesses` (evita placeholder "Mi negocio" en admin).
+      const realName = (data.businessName || '').trim();
+      if (realName && realName.length >= 2) {
         supabase
-          .from('business_setup_progress')
-          .upsert(
-            {
-              business_id: draftBusinessId,
-              current_step: String(currentStep),
-              setup_data: { ...(data as any), _localStep: currentStep } as any,
-              precision_score: livePrecision,
-            } as never,
-            { onConflict: 'business_id' }
-          )
+          .from('businesses')
+          .update({ name: realName, precision_score: livePrecision } as never)
+          .eq('id', draftBusinessId)
           .then(() => {/* noop */}, () => {/* silencioso */});
-        // Sincronizar nombre real del negocio en `businesses` (evita placeholder "Mi negocio" en admin).
-        const realName = (data.businessName || '').trim();
-        if (realName && realName.length >= 2) {
-          supabase
-            .from('businesses')
-            .update({ name: realName, precision_score: livePrecision } as never)
-            .eq('id', draftBusinessId)
-            .then(() => {/* noop */}, () => {/* silencioso */});
-        }
       }
-    }
+    }, 1200);
+
+    return () => clearTimeout(timer);
   }, [currentStep, data, draftBusinessId]);
+
+  // Guardado de emergencia al cerrar/ocultar la pestaña: nada se pierde.
+  useEffect(() => {
+    const flush = () => {
+      if (!draftBusinessId) return;
+      const signature = `${currentStep}|${JSON.stringify(data)}`;
+      if (signature === lastMirrorRef.current) return;
+      lastMirrorRef.current = signature;
+      supabase
+        .from('business_setup_progress')
+        .upsert(
+          {
+            business_id: draftBusinessId,
+            current_step: String(currentStep),
+            setup_data: { ...(data as any), _localStep: currentStep } as any,
+            precision_score: calculatePrecision(data),
+          } as never,
+          { onConflict: 'business_id' }
+        )
+        .then(() => {/* noop */}, () => {/* silencioso */});
+    };
+    const onHide = () => { if (document.visibilityState === 'hidden') flush(); };
+    document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      document.removeEventListener('visibilitychange', onHide);
+      window.removeEventListener('pagehide', flush);
+    };
+  }, [currentStep, data, draftBusinessId]);
+
 
   // 🔁 Rehidratación desde servidor: si el usuario vuelve sin localStorage (otro
   // dispositivo, modo incógnito, caché limpia) y tiene un draft business
