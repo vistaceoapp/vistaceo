@@ -371,7 +371,9 @@ export const SetupStepQuestionnaire = ({
   const [generationError, setGenerationError] = useState(false);
   const [loadingElapsed, setLoadingElapsed] = useState(0);
   const retryCountRef = useRef(0);
-  const MAX_RETRIES = 2;
+  const generateRemainingBatchesRef = useRef<(() => void) | null>(null);
+  const MAX_RETRIES = 3;
+
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   // Empezamos en false: el motor AI DEBE correr salvo que el cache ya esté completo.
   const backgroundFetchStarted = useRef(false);
@@ -462,7 +464,9 @@ export const SetupStepQuestionnaire = ({
       console.warn('AI questionnaire first batch failed (attempt ' + attempt + '):', err);
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
-        setTimeout(() => generateFirstBatch(), 1200);
+        // Backoff progresivo: el fallo típico es saturación momentánea del motor.
+        const delay = [1200, 3000, 6000][retryCountRef.current - 1] ?? 6000;
+        setTimeout(() => generateFirstBatch(), delay);
         return;
       }
       // Último recurso: pregunta-pivote premium dinámica (NO lista fija). Su respuesta
@@ -476,7 +480,15 @@ export const SetupStepQuestionnaire = ({
       backgroundFetchStarted.current = false;
       setGenerationError(false);
       setIsLoadingFirst(false);
+      // Auto-recuperación: reintentar el motor en background aunque el usuario
+      // no haya respondido todavía (nunca queda con una sola pregunta).
+      setTimeout(() => {
+        if (!allBatchesDone.current && !backgroundFetchStarted.current) {
+          generateRemainingBatchesRef.current?.();
+        }
+      }, 9000);
     }
+
   }, [fetchQuestions, setupMode, questionIndex, businessTypeId, contextHash, pivotFallback]);
 
   // Generación PROGRESIVA en background: micro-batches secuenciales que se
@@ -492,7 +504,11 @@ export const SetupStepQuestionnaire = ({
     let consecutiveFailures = 0;
     let batchIdx = 1;
 
-    while (questionsRef.current.length < max && consecutiveFailures < 3) {
+    // Si todavía no llegamos al mínimo, insistimos más (el fallo típico es
+    // saturación momentánea del motor, no un error real).
+    const failureBudget = () => (questionsRef.current.length < min ? 6 : 3);
+
+    while (questionsRef.current.length < max && consecutiveFailures < failureBudget()) {
       const missing = max - questionsRef.current.length;
       const ask = Math.min(cfg.perBatch, Math.max(3, missing));
       try {
@@ -526,7 +542,8 @@ export const SetupStepQuestionnaire = ({
       } catch (err) {
         consecutiveFailures += 1;
         console.warn(`[Setup] batch ${batchIdx} falló (fallo #${consecutiveFailures}):`, err);
-        await new Promise(r => setTimeout(r, 1200));
+        const wait = Math.min(1200 * consecutiveFailures, 6000);
+        await new Promise(r => setTimeout(r, wait));
       }
     }
 
@@ -535,11 +552,20 @@ export const SetupStepQuestionnaire = ({
     const total = questionsRef.current.length;
     if (total < min) {
       console.warn(`[Setup] Cerrando con ${total}/${min} preguntas (batches incompletos).`);
+      // Dejamos la puerta abierta a un reintento posterior (al responder o al volver).
+      backgroundFetchStarted.current = false;
+      allBatchesDone.current = total > 0;
+    } else {
+      allBatchesDone.current = true;
     }
-    allBatchesDone.current = true;
-    setCachedQuestions(questionsRef.current, businessTypeId, setupMode, contextHash, true);
+    setCachedQuestions(questionsRef.current, businessTypeId, setupMode, contextHash, allBatchesDone.current);
     setIsLoadingMore(false);
   }, [fetchQuestions, setupMode, businessTypeId, contextHash]);
+
+  useEffect(() => {
+    generateRemainingBatchesRef.current = generateRemainingBatches;
+  }, [generateRemainingBatches]);
+
 
   // Motor inteligente: si no hay cache válido, generar preguntas hiperpersonalizadas vía AI.
   // Tanto Rápido como Completo usan el MISMO motor (generate-questionnaire).
