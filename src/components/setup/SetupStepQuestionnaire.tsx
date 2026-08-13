@@ -371,7 +371,9 @@ export const SetupStepQuestionnaire = ({
   const [generationError, setGenerationError] = useState(false);
   const [loadingElapsed, setLoadingElapsed] = useState(0);
   const retryCountRef = useRef(0);
-  const MAX_RETRIES = 2;
+  const generateRemainingBatchesRef = useRef<(() => void) | null>(null);
+  const MAX_RETRIES = 3;
+
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   // Empezamos en false: el motor AI DEBE correr salvo que el cache ya esté completo.
   const backgroundFetchStarted = useRef(false);
