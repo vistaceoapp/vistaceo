@@ -462,7 +462,9 @@ export const SetupStepQuestionnaire = ({
       console.warn('AI questionnaire first batch failed (attempt ' + attempt + '):', err);
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
-        setTimeout(() => generateFirstBatch(), 1200);
+        // Backoff progresivo: el fallo típico es saturación momentánea del motor.
+        const delay = [1200, 3000, 6000][retryCountRef.current - 1] ?? 6000;
+        setTimeout(() => generateFirstBatch(), delay);
         return;
       }
       // Último recurso: pregunta-pivote premium dinámica (NO lista fija). Su respuesta
@@ -476,7 +478,15 @@ export const SetupStepQuestionnaire = ({
       backgroundFetchStarted.current = false;
       setGenerationError(false);
       setIsLoadingFirst(false);
+      // Auto-recuperación: reintentar el motor en background aunque el usuario
+      // no haya respondido todavía (nunca queda con una sola pregunta).
+      setTimeout(() => {
+        if (!allBatchesDone.current && !backgroundFetchStarted.current) {
+          generateRemainingBatchesRef.current?.();
+        }
+      }, 9000);
     }
+
   }, [fetchQuestions, setupMode, questionIndex, businessTypeId, contextHash, pivotFallback]);
 
   // Generación PROGRESIVA en background: micro-batches secuenciales que se
