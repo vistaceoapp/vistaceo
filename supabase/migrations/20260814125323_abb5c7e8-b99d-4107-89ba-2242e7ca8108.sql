@@ -1,0 +1,1 @@
+select cron.alter_job(21, schedule => '15 3,9,15,21 * * *');
