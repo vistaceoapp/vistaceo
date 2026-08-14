@@ -1,0 +1,20 @@
+# VISTACEO
+
+> Plataforma de inteligencia artificial que funciona como un CEO digital: analiza tu empresa, negocio o servicio 24/7, detecta oportunidades y riesgos, y entrega acciones concretas para crecer.
+
+VISTACEO aprende del contexto real de cada negocio (rubro, etapa, cliente objetivo, ciudad, objetivos) y genera radar de señales, misiones accionables, predicciones e insights personalizados en español, para empresas de Latinoamérica y España.
+
+## Pages
+
+- [Inicio](/): Qué es VISTACEO, cómo funciona, precios y preguntas frecuentes.
+- [Promoción](/promo): Oferta vigente y planes.
+- [Políticas de privacidad](/politicas): Cómo se tratan los datos de cada negocio.
+- [Términos y condiciones](/condiciones): Condiciones de uso del servicio.
+
+## Blog
+
+- [Blog VISTACEO](https://blog.vistaceo.com/): Artículos sobre gestión, ventas, marketing, operaciones e inteligencia artificial aplicada a negocios.
+
+## Optional
+
+- [RSS del blog](https://blog.vistaceo.com/rss.xml): Feed de nuevas publicaciones.
