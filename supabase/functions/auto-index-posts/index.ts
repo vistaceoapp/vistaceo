@@ -5,20 +5,49 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const BLOG_URL = 'https://blog.vistaceo.com';
-const MAIN_URL = 'https://www.vistaceo.com';
+const BLOG_HOST = 'blog.vistaceo.com';
+const MAIN_HOST = 'www.vistaceo.com';
+const BLOG_URL = `https://${BLOG_HOST}`;
+const MAIN_URL = `https://${MAIN_HOST}`;
 const INDEXNOW_KEY = '8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d';
 
+const INDEXNOW_ENGINES = [
+  'https://api.indexnow.org/indexnow',
+  'https://www.bing.com/indexnow',
+  'https://yandex.com/indexnow',
+  'https://searchadvisor.naver.com/indexnow',
+  'https://search.seznam.cz/indexnow',
+];
+
+const MIN_POSTS_PER_CLUSTER = 3;
+
+async function submitBatch(host: string, keyLocation: string, urlList: string[]) {
+  const payload = { host, key: INDEXNOW_KEY, keyLocation, urlList };
+  const settled = await Promise.allSettled(
+    INDEXNOW_ENGINES.map(async (engine) => {
+      const resp = await fetch(engine, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        body: JSON.stringify(payload),
+      });
+      return { engine, status: resp.status, ok: resp.ok || resp.status === 202 };
+    })
+  );
+  return settled.map((r) => (r.status === 'fulfilled' ? r.value : { engine: 'unknown', status: 0, ok: false, error: String(r.reason) }));
+}
+
+async function submitAll(host: string, keyLocation: string, urls: string[]) {
+  const out: unknown[] = [];
+  for (let i = 0; i < urls.length; i += 100) {
+    out.push(...(await submitBatch(host, keyLocation, urls.slice(i, i + 100))));
+    if (i + 100 < urls.length) await new Promise((r) => setTimeout(r, 400));
+  }
+  return out;
+}
+
 /**
- * Auto-Index Posts Edge Function
- * 
- * Runs every 2-3 days via pg_cron. Finds posts published since last run
- * and submits them to:
- * 1. IndexNow (Bing, Yandex, Naver, Seznam) - instant indexing
- * 2. Google Ping (sitemap notification)
- * 3. Bing Webmaster ping
- * 
- * Also submits the main sitemap URLs to ensure crawlers pick up new content.
+ * Auto-Index Posts — submits every indexable URL (blog posts, clusters,
+ * categories and main-domain pages) to IndexNow across 5 engines.
  */
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -26,115 +55,84 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
 
     const { data: recentPosts, error: postsError } = await supabase
       .from('blog_posts')
-      .select('slug, title, publish_at, updated_at')
+      .select('slug, category, updated_at')
       .eq('status', 'published')
       .order('updated_at', { ascending: false })
-      .limit(1000);
+      .limit(2000);
 
     if (postsError) {
       console.error('[auto-index] Error fetching posts:', postsError);
       throw postsError;
     }
 
-    const postUrls = (recentPosts || []).map(p => `${BLOG_URL}/${p.slug}/`);
-    
-    // Also include key pages that should always be fresh.
-    // IMPORTANT: never submit sitemap.xml to IndexNow — the spec only accepts
-    // indexable page URLs and the entire batch can be silently rejected.
-    const staticUrls = [
-      `${BLOG_URL}/`,
+    const posts = recentPosts || [];
+    const postUrls = posts.map((p) => `${BLOG_URL}/${p.slug}/`);
+
+    // Only clusters with enough depth (thin hubs stay "crawled, not indexed")
+    const counts: Record<string, number> = {};
+    for (const p of posts) {
+      const c = (p as { category: string | null }).category;
+      if (c) counts[c] = (counts[c] || 0) + 1;
+    }
+    const clusterUrls = Object.entries(counts)
+      .filter(([, n]) => n >= MIN_POSTS_PER_CLUSTER)
+      .flatMap(([slug]) => [`${BLOG_URL}/tema/${slug}/`, `${BLOG_URL}/categoria/${slug}/`]);
+
+    const blogUrls = [...new Set([`${BLOG_URL}/`, ...clusterUrls, ...postUrls])];
+
+    // Main domain indexable pages
+    const mainUrls = [
       `${MAIN_URL}/`,
+      `${MAIN_URL}/promo`,
+      `${MAIN_URL}/politicas`,
+      `${MAIN_URL}/condiciones`,
     ];
 
-    const allUrls = [...new Set([...postUrls, ...staticUrls])];
+    console.log(`[auto-index] blog URLs: ${blogUrls.length} | main URLs: ${mainUrls.length}`);
 
-    console.log(`[auto-index] Found ${postUrls.length} recent posts to index`);
-    console.log(`[auto-index] Total URLs to submit: ${allUrls.length}`);
-
-    const results: Record<string, unknown> = {
-      posts_found: postUrls.length,
-      urls_submitted: allUrls.length,
-      indexnow: { success: false },
-      google_ping: { success: false },
-      bing_ping: { success: false },
-    };
-
-    // 1. IndexNow - Submit to Bing, Yandex, Naver, Seznam simultaneously
-    if (postUrls.length > 0) {
-      const indexNowPayload = {
-        host: 'blog.vistaceo.com',
-        key: INDEXNOW_KEY,
-        keyLocation: `${BLOG_URL}/indexnow-key.txt`,
-        urlList: postUrls.slice(0, 10000), // IndexNow supports up to 10k URLs
-      };
-
-      const indexNowEngines = [
-        'https://api.indexnow.org/indexnow',
-        'https://www.bing.com/indexnow',
-        'https://yandex.com/indexnow',
-      ];
-
-      const indexNowResults = await Promise.allSettled(
-        indexNowEngines.map(async (engine) => {
-          const resp = await fetch(engine, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json; charset=utf-8' },
-            body: JSON.stringify(indexNowPayload),
-          });
-          return { engine, status: resp.status, ok: resp.ok };
-        })
-      );
-
-      results.indexnow = {
-        success: true,
-        engines: indexNowResults.map(r => 
-          r.status === 'fulfilled' ? r.value : { error: String(r.reason) }
-        ),
-      };
-
-      console.log('[auto-index] IndexNow results:', JSON.stringify(results.indexnow));
-    }
-
-    // 2. Google ya no acepta /ping (deprecado jun-2023). En su lugar refrescamos
-    //    el sitemap haciendo HEAD para forzar la caché del CDN/Cloudflare y
-    //    permitir que Googlebot detecte cambios al próximo crawl natural.
-    const sitemapWarmup = await Promise.allSettled([
-      fetch(`${BLOG_URL}/sitemap.xml`, { method: 'GET', headers: { 'Cache-Control': 'no-cache' } }),
-      fetch(`${MAIN_URL}/sitemap.xml`, { method: 'GET', headers: { 'Cache-Control': 'no-cache' } }),
+    const [blogResults, mainResults] = await Promise.all([
+      submitAll(BLOG_HOST, `${BLOG_URL}/indexnow-key.txt`, blogUrls),
+      submitAll(MAIN_HOST, `${MAIN_URL}/${INDEXNOW_KEY}.txt`, mainUrls),
     ]);
-    results.sitemap_warmup = {
-      success: true,
-      results: sitemapWarmup.map(r => r.status === 'fulfilled' ? { status: r.value.status, ok: r.value.ok } : { error: String(r.reason) }),
+
+    // Warm sitemaps so CDN caches refresh before the next crawl
+    const sitemapWarmup = await Promise.allSettled([
+      fetch(`${BLOG_URL}/sitemap.xml`, { headers: { 'Cache-Control': 'no-cache' } }),
+      fetch(`${MAIN_URL}/sitemap.xml`, { headers: { 'Cache-Control': 'no-cache' } }),
+      fetch(`${MAIN_URL}/sitemap-pages.xml`, { headers: { 'Cache-Control': 'no-cache' } }),
+    ]);
+
+    const results = {
+      posts_found: postUrls.length,
+      clusters_submitted: clusterUrls.length,
+      blog_urls_submitted: blogUrls.length,
+      main_urls_submitted: mainUrls.length,
+      indexnow_blog: blogResults,
+      indexnow_main: mainResults,
+      sitemap_warmup: sitemapWarmup.map((r) =>
+        r.status === 'fulfilled' ? { status: r.value.status, ok: r.value.ok } : { error: String(r.reason) }
+      ),
     };
 
-    // 3. Bing también deprecó /ping. IndexNow ya cubre Bing, omitimos llamadas inútiles.
-    results.google_ping = { success: true, note: 'Deprecated by Google 2023 - using IndexNow instead' };
-    results.bing_ping = { success: true, note: 'Covered by IndexNow' };
-
-    // Log the run for auditing
     await supabase.from('blog_runs').insert({
       result: 'success',
       run_at: new Date().toISOString(),
-      notes: `Auto-index: ${postUrls.length} posts submitted to IndexNow + Google/Bing ping`,
-      quality_gate_report: results as Record<string, unknown>,
+      notes: `Auto-index: ${blogUrls.length} URLs blog + ${mainUrls.length} main a ${INDEXNOW_ENGINES.length} motores`,
+      quality_gate_report: results as unknown as Record<string, unknown>,
     });
 
-    console.log('[auto-index] ✅ Complete. Results:', JSON.stringify(results));
+    console.log('[auto-index] ✅ Complete');
 
-    return new Response(JSON.stringify({
-      success: true,
-      ...results,
-      timestamp: new Date().toISOString(),
-    }), {
+    return new Response(JSON.stringify({ success: true, ...results, timestamp: new Date().toISOString() }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
   } catch (error) {
     console.error('[auto-index] Fatal error:', error);
     return new Response(JSON.stringify({
