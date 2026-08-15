@@ -218,7 +218,8 @@ async function executeEdgeCall<T = unknown>(
       if (!successFlag || fallback) {
         // Treat HTTP-200 success:false as a failure — keep trying.
         lastError = d?.error ?? 'success_false';
-        if (attempt < retries) continue;
+        if (attempt < retries && !isTerminal(lastError)) continue;
+
 
         // Final attempt failed -> emit events + return safe fallback.
         if (options.businessId) {
