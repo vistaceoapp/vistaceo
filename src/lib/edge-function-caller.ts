@@ -200,7 +200,13 @@ async function executeEdgeCall<T = unknown>(
         timeoutMs,
       );
 
-      if (error) { lastError = error; continue; }
+      if (error) {
+        lastError = error;
+        // Errores terminales (validación/permiso): reintentar solo suma latencia.
+        if (isTerminal(error)) break;
+        continue;
+      }
+
 
       const d = data as Record<string, unknown> | null;
       const successFlag = d && 'success' in d ? Boolean(d.success) : true;
