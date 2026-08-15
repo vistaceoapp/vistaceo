@@ -21,6 +21,15 @@ export interface SafeEdgeOptions {
   timeoutMs?: number; // default 45_000
   outputContract?: string;
   fallbackText?: string;
+  /** TTL de caché en memoria para respuestas exitosas. 0 = sin caché (default). */
+  cacheTtlMs?: number;
+  /** Clave de caché/deduplicación explícita (por defecto se deriva del payload). */
+  cacheKey?: string;
+  /** Ignorar la caché y forzar una llamada nueva (igual refresca la caché). */
+  bypassCache?: boolean;
+  /** Coalescer llamadas idénticas en vuelo. Default: true. */
+  dedupe?: boolean;
+
 }
 
 export interface SafeEdgeResult<T = unknown> {
