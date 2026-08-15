@@ -9,7 +9,10 @@ export const routeLoaders: Record<string, () => Promise<unknown>> = {
   "/app/analytics": () => import("@/pages/app/AnalyticsPage"),
   "/app/predictions": () => import("@/pages/app/PredictionsPage"),
   "/app/more": () => import("@/pages/app/MorePage"),
+  "/app/memoria": () => import("@/pages/app/MemoryPage"),
+  "/app/audit": () => import("@/pages/app/AuditPage"),
   "/app/upgrade": () => import("@/pages/app/UpgradePage"),
+
   "/checkout": () => import("@/pages/CheckoutPage"),
   "/auth": () => import("@/pages/Auth"),
 };
