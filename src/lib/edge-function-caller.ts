@@ -254,7 +254,9 @@ async function executeEdgeCall<T = unknown>(
     } catch (e) {
       lastError = e;
       console.warn(`[edge-caller:${functionName}] attempt ${attempt + 1} failed:`, e);
+      if (isTerminal(e)) break;
     }
+
   }
 
   // All attempts threw.
