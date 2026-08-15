@@ -180,6 +180,7 @@ async function executeEdgeCall<T = unknown>(
 
   let lastError: unknown = null;
   for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) await sleep(backoffDelay(attempt - 1));
     try {
       // On retry, send a reduced ContextPack (drop heavy arrays) so payload is leaner.
       const body = attempt > 0 && contextPack
