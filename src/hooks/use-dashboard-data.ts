@@ -99,9 +99,14 @@ function calculateDataCompleteness(params: {
   return Math.round(Math.min(100, completeness));
 }
 
+// Cache en memoria por negocio: al volver al dashboard pinta al instante
+// y revalida en segundo plano (stale-while-revalidate).
+const dashboardCache = new Map<string, DashboardData>();
+
 export const useDashboardData = () => {
   const { currentBusiness } = useBusiness();
-  const [data, setData] = useState<DashboardData>({
+  const businessId = currentBusiness?.id;
+  const [data, setData] = useState<DashboardData>(() => (businessId && dashboardCache.get(businessId)) || {
     availableData: [],
     subScores: {},
     snapshotScore: null,
@@ -120,28 +125,36 @@ export const useDashboardData = () => {
     },
     gastroData: {},
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !(businessId && dashboardCache.has(businessId)));
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchDashboardData = async () => {
       if (!currentBusiness?.id) {
         setLoading(false);
         return;
       }
 
+      const cached = dashboardCache.get(currentBusiness.id);
+      if (cached) {
+        setData(cached);
+        setLoading(false);
+      }
+
       try {
         // Fetch setup progress, brain, integrations, signals and snapshots in parallel
-        // Use individual try/catch via .then to prevent one failure from killing all data
+        // Selects acotados: evitamos traer memorias jsonb pesadas del cerebro.
         const [setupRes, brainRes, menuRes, competitorsRes, snapshotRes, integrationsRes, signalsRes] = await Promise.all([
           supabase
             .from('business_setup_progress')
-            .select('*')
+            .select('setup_data, completed_at')
             .eq('business_id', currentBusiness.id)
             .maybeSingle()
             .then(r => r, () => ({ data: null, error: null, count: null })),
           supabase
             .from('business_brains')
-            .select('*')
+            .select('id, total_signals')
             .eq('business_id', currentBusiness.id)
             .maybeSingle()
             .then(r => r, () => ({ data: null, error: null, count: null })),
@@ -164,10 +177,11 @@ export const useDashboardData = () => {
             .then(r => r, () => ({ data: [], error: null, count: null })),
           supabase
             .from('business_integrations')
-            .select('*')
+            .select('id', { count: 'exact', head: true })
             .eq('business_id', currentBusiness.id)
             .eq('status', 'active')
-            .then(r => r, () => ({ data: [], error: null, count: null })),
+            .then(r => r, () => ({ data: null, error: null, count: 0 })),
+
           supabase
             .from('signals')
             .select('id', { count: 'exact', head: true })
@@ -223,7 +237,7 @@ export const useDashboardData = () => {
 
         // Brain and integrations data
         const hasBrain = !!brainRes.data?.id && (brainRes.data.total_signals || 0) > 0;
-        const integrationsCount = integrationsRes.data?.length || 0;
+        const integrationsCount = integrationsRes.count || 0;
         const signalsCount = signalsRes.count || 0;
 
         // Calculate data completeness
@@ -323,7 +337,7 @@ export const useDashboardData = () => {
           }
         }
 
-        setData({
+        const next: DashboardData = {
           availableData: available,
           subScores,
           snapshotScore,
@@ -334,16 +348,28 @@ export const useDashboardData = () => {
           precisionScore: currentBusiness.precision_score || 0,
           dataCompleteness: dataCompletenessResult,
           gastroData,
-        });
+        };
+
+        dashboardCache.set(currentBusiness.id, next);
+        if (!cancelled) setData(next);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [currentBusiness]);
+    return () => { cancelled = true; };
+    // Dependemos de campos estables: evita refetch en cada re-render del contexto.
+  }, [
+    currentBusiness?.id,
+    currentBusiness?.setup_completed,
+    currentBusiness?.precision_score,
+    currentBusiness?.avg_rating,
+    currentBusiness?.google_place_id,
+  ]);
+
 
   return { data, loading };
 };
