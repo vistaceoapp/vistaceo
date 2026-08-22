@@ -101,10 +101,6 @@ project_id = "nlewrgmcawzcdazhfiyy"
     verify_jwt = false
   [functions.google-sync-youtube]
     verify_jwt = false
-  [functions.handle-email-suppression]
-    verify_jwt = false
-  [functions.handle-email-unsubscribe]
-    verify_jwt = false
   [functions.indexnow-submit]
     verify_jwt = false
   [functions.linkedin-generate-copy]
@@ -131,8 +127,6 @@ project_id = "nlewrgmcawzcdazhfiyy"
     verify_jwt = false
   [functions.preview-transactional-email]
     verify_jwt = false
-  [functions.process-email-queue]
-    verify_jwt = true
   [functions.scrape-social-profile]
     verify_jwt = false
   [functions.seed-blog-topics]
@@ -142,8 +136,6 @@ project_id = "nlewrgmcawzcdazhfiyy"
   [functions.send-email-pro-activated]
     verify_jwt = false
   [functions.send-email-setup-reminder]
-    verify_jwt = false
-  [functions.send-transactional-email]
     verify_jwt = false
   [functions.send-welcome-email]
     verify_jwt = false
