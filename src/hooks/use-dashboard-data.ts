@@ -337,7 +337,7 @@ export const useDashboardData = () => {
           }
         }
 
-        setData({
+        const next: DashboardData = {
           availableData: available,
           subScores,
           snapshotScore,
@@ -348,16 +348,28 @@ export const useDashboardData = () => {
           precisionScore: currentBusiness.precision_score || 0,
           dataCompleteness: dataCompletenessResult,
           gastroData,
-        });
+        };
+
+        dashboardCache.set(currentBusiness.id, next);
+        if (!cancelled) setData(next);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [currentBusiness]);
+    return () => { cancelled = true; };
+    // Dependemos de campos estables: evita refetch en cada re-render del contexto.
+  }, [
+    currentBusiness?.id,
+    currentBusiness?.setup_completed,
+    currentBusiness?.precision_score,
+    currentBusiness?.avg_rating,
+    currentBusiness?.google_place_id,
+  ]);
+
 
   return { data, loading };
 };
