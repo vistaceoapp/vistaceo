@@ -125,8 +125,11 @@ project_id = "nlewrgmcawzcdazhfiyy"
     verify_jwt = false
   [functions.paypal-create-order]
     verify_jwt = false
+  [functions.handle-email-events]
+    verify_jwt = false
   [functions.preview-transactional-email]
     verify_jwt = false
+
   [functions.scrape-social-profile]
     verify_jwt = false
   [functions.seed-blog-topics]
