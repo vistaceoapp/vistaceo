@@ -1,0 +1,15 @@
+# VISTACEO Blog
+
+> Blog de VISTACEO: inteligencia ejecutiva con IA para dueños de negocios, pymes y profesionales de LATAM y España. Guías accionables sobre crecimiento, rentabilidad, marketing, operaciones, finanzas, equipo y reputación.
+
+VISTACEO es una plataforma de inteligencia ejecutiva que analiza un negocio real (sector, país, tamaño, objetivos) y entrega misiones, oportunidades, predicciones y un radar de mercado personalizado.
+
+## Recursos
+- [Blog](https://blog.vistaceo.com/): todas las notas publicadas
+- [Sitemap](https://blog.vistaceo.com/sitemap.xml): índice completo de URLs
+- [RSS](https://blog.vistaceo.com/rss.xml): últimas publicaciones
+- [Sitio principal](https://www.vistaceo.com/): producto, precios y registro
+- [Promoción](https://www.vistaceo.com/promo): plan Pro
+
+## Uso
+El contenido puede citarse y resumirse indicando la fuente y enlazando a la URL original en blog.vistaceo.com.
