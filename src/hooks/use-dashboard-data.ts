@@ -99,9 +99,14 @@ function calculateDataCompleteness(params: {
   return Math.round(Math.min(100, completeness));
 }
 
+// Cache en memoria por negocio: al volver al dashboard pinta al instante
+// y revalida en segundo plano (stale-while-revalidate).
+const dashboardCache = new Map<string, DashboardData>();
+
 export const useDashboardData = () => {
   const { currentBusiness } = useBusiness();
-  const [data, setData] = useState<DashboardData>({
+  const businessId = currentBusiness?.id;
+  const [data, setData] = useState<DashboardData>(() => (businessId && dashboardCache.get(businessId)) || {
     availableData: [],
     subScores: {},
     snapshotScore: null,
@@ -120,19 +125,28 @@ export const useDashboardData = () => {
     },
     gastroData: {},
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !(businessId && dashboardCache.has(businessId)));
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchDashboardData = async () => {
       if (!currentBusiness?.id) {
         setLoading(false);
         return;
       }
 
+      const cached = dashboardCache.get(currentBusiness.id);
+      if (cached) {
+        setData(cached);
+        setLoading(false);
+      }
+
       try {
         // Fetch setup progress, brain, integrations, signals and snapshots in parallel
-        // Use individual try/catch via .then to prevent one failure from killing all data
+        // Selects acotados: evitamos traer memorias jsonb pesadas del cerebro.
         const [setupRes, brainRes, menuRes, competitorsRes, snapshotRes, integrationsRes, signalsRes] = await Promise.all([
+
           supabase
             .from('business_setup_progress')
             .select('*')
