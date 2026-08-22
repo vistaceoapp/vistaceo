@@ -146,16 +146,15 @@ export const useDashboardData = () => {
         // Fetch setup progress, brain, integrations, signals and snapshots in parallel
         // Selects acotados: evitamos traer memorias jsonb pesadas del cerebro.
         const [setupRes, brainRes, menuRes, competitorsRes, snapshotRes, integrationsRes, signalsRes] = await Promise.all([
-
           supabase
             .from('business_setup_progress')
-            .select('*')
+            .select('setup_data, completed_at')
             .eq('business_id', currentBusiness.id)
             .maybeSingle()
             .then(r => r, () => ({ data: null, error: null, count: null })),
           supabase
             .from('business_brains')
-            .select('*')
+            .select('id, total_signals')
             .eq('business_id', currentBusiness.id)
             .maybeSingle()
             .then(r => r, () => ({ data: null, error: null, count: null })),
@@ -178,10 +177,11 @@ export const useDashboardData = () => {
             .then(r => r, () => ({ data: [], error: null, count: null })),
           supabase
             .from('business_integrations')
-            .select('*')
+            .select('id', { count: 'exact', head: true })
             .eq('business_id', currentBusiness.id)
             .eq('status', 'active')
-            .then(r => r, () => ({ data: [], error: null, count: null })),
+            .then(r => r, () => ({ data: null, error: null, count: 0 })),
+
           supabase
             .from('signals')
             .select('id', { count: 'exact', head: true })
