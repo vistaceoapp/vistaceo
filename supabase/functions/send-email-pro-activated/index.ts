@@ -1,5 +1,6 @@
-// send-email-pro-activated
-// Thin wrapper: forwards to send-transactional-email.
+// send-email-pro-activated — confirma activación Pro (template user-pro-activated).
+import { sendAppEmail } from "../_shared/transactional-email-templates/send-app-email.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -9,8 +10,6 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const APP_BASE_URL = Deno.env.get("APP_BASE_URL") || "https://www.vistaceo.com";
 
     const body = await req.json().catch(() => ({}));
@@ -27,35 +26,23 @@ Deno.serve(async (req) => {
 
     const firstName = fullName?.split(" ")[0] || email.split("@")[0];
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        apikey: SUPABASE_SERVICE_ROLE_KEY,
-      },
-      body: JSON.stringify({
-        templateName: "user-pro-activated",
+    const result = await sendAppEmail({
+      templateName: "user-pro-activated",
+      recipientEmail: email,
+      idempotencyKey: `user-pro-activated-${subscriptionId}`,
+      templateData: {
+        firstName,
+        planLabel,
+        dashboardUrl: `${APP_BASE_URL}/app`,
+        trackingId: `pro-${subscriptionId}`,
         recipientEmail: email,
-        idempotencyKey: `user-pro-activated-${subscriptionId}`,
-        templateData: {
-          firstName,
-          planLabel,
-          dashboardUrl: `${APP_BASE_URL}/app`,
-          trackingId: `pro-${subscriptionId}`,
-          recipientEmail: email,
-        },
-      }),
+      },
     });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      console.error("[send-email-pro-activated] forward failed", res.status, data);
-      throw new Error(`forward ${res.status}: ${JSON.stringify(data)}`);
-    }
+    if (!result.ok) throw new Error(result.reason || "send_failed");
 
-    console.log("[send-email-pro-activated] queued →", email);
-    return new Response(JSON.stringify({ ok: true, queued: true }), {
+    console.log("[send-email-pro-activated] processed →", email, result.sent);
+    return new Response(JSON.stringify({ ok: true, sent: result.sent, reason: result.reason }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err: any) {
