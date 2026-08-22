@@ -1,6 +1,6 @@
-// send-email-setup-reminder
-// Thin wrapper: forwards to send-transactional-email (Lovable Email queue with retry + logging).
-// We keep the same external API (email, fullName) so existing client callers don't change.
+// send-email-setup-reminder — recordatorio de setup (template user-welcome).
+import { sendAppEmail } from "../_shared/transactional-email-templates/send-app-email.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -10,8 +10,6 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const APP_BASE_URL = Deno.env.get("APP_BASE_URL") || "https://www.vistaceo.com";
 
     const body = await req.json().catch(() => ({}));
@@ -26,29 +24,17 @@ Deno.serve(async (req) => {
 
     const firstName = fullName?.split(" ")[0] || email.split("@")[0];
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        apikey: SUPABASE_SERVICE_ROLE_KEY,
-      },
-      body: JSON.stringify({
-        templateName: "user-welcome",
-        recipientEmail: email,
-        idempotencyKey: `user-welcome-${email}`,
-        templateData: { firstName, setupUrl: `${APP_BASE_URL}/setup` },
-      }),
+    const result = await sendAppEmail({
+      templateName: "user-welcome",
+      recipientEmail: email,
+      idempotencyKey: `user-welcome-${email}`,
+      templateData: { firstName, setupUrl: `${APP_BASE_URL}/setup` },
     });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      console.error("[send-email-setup-reminder] forward failed", res.status, data);
-      throw new Error(`forward ${res.status}: ${JSON.stringify(data)}`);
-    }
+    if (!result.ok) throw new Error(result.reason || "send_failed");
 
-    console.log("[send-email-setup-reminder] queued →", email);
-    return new Response(JSON.stringify({ ok: true, queued: true }), {
+    console.log("[send-email-setup-reminder] processed →", email, result.sent);
+    return new Response(JSON.stringify({ ok: true, sent: result.sent, reason: result.reason }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err: any) {
