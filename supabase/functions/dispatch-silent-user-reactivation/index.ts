@@ -1,3 +1,4 @@
+import { sendAppEmail } from '../_shared/transactional-email-templates/send-app-email.ts'
 // dispatch-silent-user-reactivation
 // Corre cada 6h. Envía UN email de reactivación a usuarios que:
 // - Completaron setup
@@ -102,32 +103,23 @@ Deno.serve(async (req) => {
         .insert({ user_id: p.id, recipient_email: email, stage, variant })
       if (reserveErr) { summary.skipped++; continue }
 
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${SERVICE_KEY}`,
-          apikey: SERVICE_KEY,
-        },
-        body: JSON.stringify({
-          templateName: 'user-silent-reactivation',
+      const result = await sendAppEmail({
+        templateName: 'user-silent-reactivation',
+        recipientEmail: email,
+        idempotencyKey: `silent-${stage}-${p.id}`,
+        templateData: {
+          firstName,
+          appUrl: `${APP_BASE_URL}/app`,
+          variant,
           recipientEmail: email,
-          idempotencyKey: `silent-${stage}-${p.id}`,
-          templateData: {
-            firstName,
-            appUrl: `${APP_BASE_URL}/app`,
-            variant,
-            recipientEmail: email,
-            trackingId: `${stage}-v${variant}-${p.id.slice(0, 8)}`,
-            businessName: completed.get(p.id)?.name || '',
-            daysSinceLastLogin: days,
-          },
-        }),
+          trackingId: `${stage}-v${variant}-${p.id.slice(0, 8)}`,
+          businessName: completed.get(p.id)?.name || '',
+          daysSinceLastLogin: days,
+        },
       })
 
-      if (!res.ok) {
-        const errText = await res.text().catch(() => '')
-        console.error('[silent-react] send failed', email, res.status, errText)
+      if (!result.ok) {
+        console.error('[silent-react] send failed', email, result.reason)
         await supabase.from('silent_reactivation_sends').delete().eq('user_id', p.id).eq('stage', stage)
         summary.errors++
         continue
