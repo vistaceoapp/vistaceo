@@ -237,7 +237,7 @@ export const useDashboardData = () => {
 
         // Brain and integrations data
         const hasBrain = !!brainRes.data?.id && (brainRes.data.total_signals || 0) > 0;
-        const integrationsCount = integrationsRes.data?.length || 0;
+        const integrationsCount = integrationsRes.count || 0;
         const signalsCount = signalsRes.count || 0;
 
         // Calculate data completeness
