@@ -1,3 +1,4 @@
+import { sendAppEmail } from "../_shared/transactional-email-templates/send-app-email.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -247,27 +248,25 @@ serve(async (req) => {
       const idempotencyKey = `promo-${campaignId}-${c.user_id}`;
       const firstName = c.full_name?.split(" ")[0] || c.email.split("@")[0];
 
-      const { error: emailErr } = await admin.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "user-promo-24h",
+      const emailResult = await sendAppEmail({
+        templateName: "user-promo-24h",
+        recipientEmail: c.email,
+        idempotencyKey,
+        templateData: {
+          firstName,
+          checkoutUrl,
+          localDisplay,
+          usdDisplay,
+          expiresAt: offer.expires_at,
+          businessName: c.business_name || undefined,
           recipientEmail: c.email,
-          idempotencyKey,
-          templateData: {
-            firstName,
-            checkoutUrl,
-            localDisplay,
-            usdDisplay,
-            expiresAt: offer.expires_at,
-            businessName: c.business_name || undefined,
-            recipientEmail: c.email,
-            trackingId: idempotencyKey,
-          },
+          trackingId: idempotencyKey,
         },
       });
 
-      if (emailErr) {
+      if (!emailResult.ok) {
         failed++;
-        errors.push(`${c.email}: ${emailErr.message}`);
+        errors.push(`${c.email}: ${emailResult.reason ?? "send_failed"}`);
       } else {
         sent++;
       }

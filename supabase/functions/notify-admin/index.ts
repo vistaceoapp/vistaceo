@@ -1,3 +1,5 @@
+import { sendAppEmail } from "../_shared/transactional-email-templates/send-app-email.ts";
+
 // notify-admin: delega al sistema transaccional oficial usando los templates
 // admin-user-signup y admin-setup-completed (React Email premium).
 const corsHeaders = {
@@ -23,9 +25,6 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
     const payload = (await req.json()) as Payload;
     if (!payload?.event) throw new Error("Missing event");
 
@@ -41,30 +40,21 @@ Deno.serve(async (req) => {
         ? `admin-signup-${payload.userId ?? payload.email ?? crypto.randomUUID()}`
         : `admin-setup-${payload.businessId ?? payload.userId ?? crypto.randomUUID()}`;
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        apikey: SUPABASE_SERVICE_ROLE_KEY,
-      },
-      body: JSON.stringify({
-        templateName,
-        recipientEmail: "info@vistaceo.com",
-        idempotencyKey,
-        templateData: { ...payload, timestamp },
-      }),
+    const result = await sendAppEmail({
+      templateName,
+      recipientEmail: "info@vistaceo.com",
+      idempotencyKey,
+      templateData: { ...payload, timestamp },
     });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      console.error("[notify-admin] send-transactional-email failed", res.status, data);
-      throw new Error(`send-transactional-email ${res.status}: ${JSON.stringify(data)}`);
+    if (!result.ok) {
+      console.error("[notify-admin] send failed", result.reason, result.details);
+      throw new Error(`send failed: ${result.reason ?? "unknown"}`);
     }
 
-    console.log("[notify-admin] queued", payload.event, "→ info@vistaceo.com", data);
+    console.log("[notify-admin] processed", payload.event, "→ info@vistaceo.com", result.sent);
 
-    return new Response(JSON.stringify({ ok: true, queued: true, data }), {
+    return new Response(JSON.stringify({ ok: true, sent: result.sent, reason: result.reason }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

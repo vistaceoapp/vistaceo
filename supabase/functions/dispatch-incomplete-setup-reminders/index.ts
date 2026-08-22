@@ -1,3 +1,4 @@
+import { sendAppEmail } from '../_shared/transactional-email-templates/send-app-email.ts'
 // dispatch-incomplete-setup-reminders
 // Corre cada hora vía pg_cron. Envía hasta 2 recordatorios por usuario sin
 // negocio completado:
@@ -141,32 +142,23 @@ Deno.serve(async (req) => {
           continue
         }
 
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${SERVICE_KEY}`,
-            apikey: SERVICE_KEY,
-          },
-          body: JSON.stringify({
-            templateName,
+        const result = await sendAppEmail({
+          templateName,
+          recipientEmail: email,
+          idempotencyKey: `incomplete-${stage}-${p.id}`,
+          templateData: {
+            firstName,
+            setupUrl: `${APP_BASE_URL}/setup`,
+            variant,
             recipientEmail: email,
-            idempotencyKey: `incomplete-${stage}-${p.id}`,
-            templateData: {
-              firstName,
-              setupUrl: `${APP_BASE_URL}/setup`,
-              variant,
-              recipientEmail: email,
-              trackingId: `${stage}-v${variant}-${p.id.slice(0, 8)}`,
-              businessName: bizByOwner.get(p.id)?.name || '',
-              businessCategory: bizByOwner.get(p.id)?.category || null,
-            },
-          }),
+            trackingId: `${stage}-v${variant}-${p.id.slice(0, 8)}`,
+            businessName: bizByOwner.get(p.id)?.name || '',
+            businessCategory: bizByOwner.get(p.id)?.category || null,
+          },
         })
 
-        if (!res.ok) {
-          const errText = await res.text().catch(() => '')
-          console.error('[reminder] send failed', stage, email, res.status, errText)
+        if (!result.ok) {
+          console.error('[reminder] send failed', stage, email, result.reason)
           // Rollback reserva para reintentar en próxima corrida
           await supabase
             .from('setup_reminder_sends')

@@ -35,7 +35,6 @@ const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
-const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
 const ProWelcomePage = lazy(() => import("./pages/ProWelcomePage"));
 
 // Admin pages - lazy loaded
@@ -204,7 +203,6 @@ const AppRoutes = () => {
         <Route path="/politicas" element={<PrivacyPolicyPage />} />
         <Route path="/condiciones" element={<TermsOfServicePage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/unsubscribe" element={<UnsubscribePage />} />
         <Route path="/bienvenido-pro" element={<ProWelcomePage />} />
         <Route path="/welcome-pro" element={<Navigate to="/bienvenido-pro" replace />} />
         

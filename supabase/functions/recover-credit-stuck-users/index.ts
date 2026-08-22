@@ -1,3 +1,4 @@
+import { sendAppEmail } from '../_shared/transactional-email-templates/send-app-email.ts'
 // recover-credit-stuck-users
 // One-shot endpoint: finds owners whose ONLY business(es) are empty placeholders
 // (setup_completed = false AND zero signals) — proxy for users who couldn't finish
@@ -127,31 +128,22 @@ Deno.serve(async (req) => {
         .insert({ user_id: p.id, recipient_email: email, stage: 'credit_recovery', variant: 0 })
       if (reserveErr) { summary.skipped++; continue }
 
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/send-transactional-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${SERVICE_KEY}`,
-          apikey: SERVICE_KEY,
-        },
-        body: JSON.stringify({
-          templateName: 'user-credit-recovery',
+      const result = await sendAppEmail({
+        templateName: 'user-credit-recovery',
+        recipientEmail: email,
+        idempotencyKey: `credit-recovery-${p.id}`,
+        templateData: {
+          firstName,
+          setupUrl: `${APP_BASE_URL}/setup`,
           recipientEmail: email,
-          idempotencyKey: `credit-recovery-${p.id}`,
-          templateData: {
-            firstName,
-            setupUrl: `${APP_BASE_URL}/setup`,
-            recipientEmail: email,
-            trackingId: `credit-recovery-${p.id.slice(0, 8)}`,
-            businessName: eligibleOwners.get(p.id)?.businessName || '',
-            businessCategory: eligibleOwners.get(p.id)?.businessCategory || null,
-          },
-        }),
+          trackingId: `credit-recovery-${p.id.slice(0, 8)}`,
+          businessName: eligibleOwners.get(p.id)?.businessName || '',
+          businessCategory: eligibleOwners.get(p.id)?.businessCategory || null,
+        },
       })
 
-      if (!res.ok) {
-        const errText = await res.text().catch(() => '')
-        console.error('[recover-credit] send failed', email, res.status, errText)
+      if (!result.ok) {
+        console.error('[recover-credit] send failed', email, result.reason)
         await supabase.from('setup_reminder_sends').delete()
           .eq('user_id', p.id).eq('stage', 'credit_recovery')
         summary.errors++
