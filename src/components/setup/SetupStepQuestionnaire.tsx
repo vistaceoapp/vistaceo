@@ -1263,6 +1263,12 @@ export const SetupStepQuestionnaire = ({
 
   const categoryLabel = getUniversalCategoryLabel(currentQuestion.category, lang);
 
+  // Cuántas preguntas respondió realmente (para habilitar la salida temprana).
+  const answeredCount = Object.values(answers || {}).filter((v) =>
+    Array.isArray(v) ? v.length > 0 : v !== null && v !== undefined && String(v).trim() !== ''
+  ).length;
+
+
   // Estimated total - always show a number within valid range
   const { min: limitMin, max: limitMax } = getQuestionLimits(setupMode);
   const estimatedTotal = setupMode === 'quick' ? 10 : 25;
@@ -1398,6 +1404,19 @@ export const SetupStepQuestionnaire = ({
           className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           {lang === 'pt-BR' ? 'Pular' : 'Omitir'}
+        </button>
+      )}
+
+      {/* Salida temprana: con 5+ respuestas ya hay contexto suficiente para activar el tablero.
+          Evita el abandono en el paso más largo del setup. */}
+      {answeredCount >= 5 && !isWaitingForMore && (
+        <button
+          onClick={onComplete}
+          className="w-full text-center text-xs text-muted-foreground/70 hover:text-primary transition-colors"
+        >
+          {lang === 'pt-BR'
+            ? `Já respondi ${answeredCount} — ativar meu painel agora`
+            : `Ya respondí ${answeredCount} — activar mi tablero ahora`}
         </button>
       )}
     </div>
