@@ -195,6 +195,14 @@ const AppRoutes = () => {
         <Route path="/minimalista" element={<Navigate to="/" replace />} />
         <Route path="/promo" element={<PromoLanding />} />
         <Route path="/auth" element={<Auth />} />
+
+        {/* Páginas de captación orgánica (rubro, país, comparativa, herramientas) */}
+        {SEO_LANDINGS.map((l) => (
+          <Route key={l.path} path={l.path} element={<SeoLandingPage />} />
+        ))}
+        <Route path="/herramientas/calculadora-de-margen" element={<MargenToolPage />} />
+        <Route path="/herramientas/punto-de-equilibrio" element={<EquilibrioToolPage />} />
+
         
         {/* Blog routes - Redirect to subdomain blog.vistaceo.com */}
         <Route path="/blog" element={<BlogRedirect />} />
