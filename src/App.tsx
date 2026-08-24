@@ -26,6 +26,10 @@ const LandingV2 = lazy(() => import("./pages/LandingV2"));
 const LandingUltra = lazy(() => import("./pages/LandingUltra"));
 const LandingV3 = lazy(() => import("./pages/LandingV3"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const SeoLandingPage = lazy(() => import("./pages/seo/SeoLandingPage"));
+const MargenToolPage = lazy(() => import("./pages/seo/MargenToolPage"));
+const EquilibrioToolPage = lazy(() => import("./pages/seo/EquilibrioToolPage"));
+
 const SetupPage = lazy(() => import("./pages/SetupPage"));
 const SetupCompletePage = lazy(() => import("./pages/SetupCompletePage"));
 const SetupEnrichPage = lazy(() => import("./pages/SetupEnrichPage"));
