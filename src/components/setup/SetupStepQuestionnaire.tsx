@@ -1400,6 +1400,23 @@ export const SetupStepQuestionnaire = ({
           {lang === 'pt-BR' ? 'Pular' : 'Omitir'}
         </button>
       )}
+
+      {/* Salida temprana: con 5+ respuestas ya hay contexto suficiente para activar el tablero.
+          Evita el abandono en el paso más largo del setup. */}
+      {answeredCount >= 5 && !isWaitingForMore && (
+        <button
+          onClick={onComplete}
+          className="w-full text-center text-xs text-muted-foreground/70 hover:text-primary transition-colors"
+        >
+          {lang === 'pt-BR'
+            ? `Já respondi ${answeredCount} — ativar meu painel agora`
+            : `Ya respondí ${answeredCount} — activar mi tablero ahora`}
+        </button>
+      )}
+    </div>
+  );
+};
+
     </div>
   );
 };
