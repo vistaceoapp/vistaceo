@@ -1263,6 +1263,12 @@ export const SetupStepQuestionnaire = ({
 
   const categoryLabel = getUniversalCategoryLabel(currentQuestion.category, lang);
 
+  // Cuántas preguntas respondió realmente (para habilitar la salida temprana).
+  const answeredCount = Object.values(answers || {}).filter((v) =>
+    Array.isArray(v) ? v.length > 0 : v !== null && v !== undefined && String(v).trim() !== ''
+  ).length;
+
+
   // Estimated total - always show a number within valid range
   const { min: limitMin, max: limitMax } = getQuestionLimits(setupMode);
   const estimatedTotal = setupMode === 'quick' ? 10 : 25;
