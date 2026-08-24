@@ -1416,7 +1416,3 @@ export const SetupStepQuestionnaire = ({
     </div>
   );
 };
-
-    </div>
-  );
-};
