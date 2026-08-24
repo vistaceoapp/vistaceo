@@ -2040,9 +2040,29 @@ const PremiumFooter = memo(forwardRef<HTMLElement>((_props, _ref) => {
             <p className="text-[11px] font-semibold text-[#999] uppercase tracking-[0.12em] mb-4">Recursos</p>
             <ul className="space-y-2.5">
               <li><a href="https://blog.vistaceo.com" target="_blank" rel="noopener noreferrer" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Blog</a></li>
+              <li><a href="/herramientas/calculadora-de-margen" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Calculadora de margen</a></li>
+              <li><a href="/herramientas/punto-de-equilibrio" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Punto de equilibrio</a></li>
               <li><button onClick={() => scrollTo("#faq")} className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors bg-transparent">Preguntas frecuentes</button></li>
             </ul>
           </div>
+
+          {/* Soluciones por rubro y país — descubrimiento orgánico */}
+          <div>
+            <p className="text-[11px] font-semibold text-[#999] uppercase tracking-[0.12em] mb-4">Soluciones</p>
+            <ul className="space-y-2.5">
+              <li><a href="/para/cafeterias" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Cafeterías y bares</a></li>
+              <li><a href="/para/restaurantes" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Restaurantes</a></li>
+              <li><a href="/para/ecommerce" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Ecommerce</a></li>
+              <li><a href="/para/servicios-profesionales" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Servicios profesionales</a></li>
+              <li><a href="/para/agencias" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Agencias y freelancers</a></li>
+              <li><a href="/argentina" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Argentina</a></li>
+              <li><a href="/mexico" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">México</a></li>
+              <li><a href="/chile" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Chile</a></li>
+              <li><a href="/vs/consultoria-de-negocios" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">VISTACEO o consultoría</a></li>
+              <li><a href="/vs/cfo-externo" className="text-[12.5px] text-[#bbb] hover:text-[#666] transition-colors">Alternativa a un CFO externo</a></li>
+            </ul>
+          </div>
+
 
           {/* Soporte */}
           <div>
