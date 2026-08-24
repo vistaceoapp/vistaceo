@@ -135,9 +135,20 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
 
   }, [user, authLoading]);
 
-  const setCurrentBusiness = useCallback((business: Business) => {
-    setCurrentBusinessState(business);
-  }, []);
+  const setCurrentBusiness = useCallback(
+    (business: Business) => {
+      setCurrentBusinessState(business);
+      if (user?.id) {
+        writeCache({
+          userId: user.id,
+          businesses: memoryCache?.businesses?.length ? memoryCache.businesses : [business],
+          currentId: business.id,
+        });
+      }
+    },
+    [user?.id]
+  );
+
 
   // Backfill: si el negocio activo está completado pero nunca se sembró el Brain,
   // disparar el seed sectorial una sola vez (idempotente del lado del edge function).
