@@ -29,6 +29,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const SeoLandingPage = lazy(() => import("./pages/seo/SeoLandingPage"));
 const MargenToolPage = lazy(() => import("./pages/seo/MargenToolPage"));
 const EquilibrioToolPage = lazy(() => import("./pages/seo/EquilibrioToolPage"));
+import { SEO_LANDINGS } from "@/data/seo-landings";
+
 
 const SetupPage = lazy(() => import("./pages/SetupPage"));
 const SetupCompletePage = lazy(() => import("./pages/SetupCompletePage"));
