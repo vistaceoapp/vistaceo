@@ -826,11 +826,27 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
     let validatedPredictions = predictionsToInsert;
     try {
       const { validateBeforeStore } = await import("../_shared/validate-before-store.ts");
+      // Las señales pueden venir como texto o como objeto: normalizamos a frases
+      // legibles para que la auditoría evalúe evidencia real y no "[object Object]".
+      const asPhrase = (v: any): string => {
+        if (!v) return '';
+        if (typeof v === 'string') return v;
+        if (typeof v === 'object') {
+          return [v.label, v.title, v.signal, v.text, v.detail, v.description, v.summary]
+            .filter((x: any) => typeof x === 'string' && x.trim()).join(' — ');
+        }
+        return '';
+      };
       validatedPredictions = predictionsToInsert.filter((p: any) => {
+        const ev = [
+          ...(p.evidence?.signals_internal_top ?? []),
+          ...(p.evidence?.signals_external_top ?? []),
+          ...(p.evidence?.assumptions ?? []),
+        ].map(asPhrase).filter(Boolean).join('; ');
         const audit = validateBeforeStore({
           module: 'prediction',
           title: p.title,
-          baseEvidence: (p.evidence?.signals_internal_top ?? []).concat(p.evidence?.signals_external_top ?? []).join('; ') || p.summary,
+          baseEvidence: [ev, p.summary].filter(Boolean).join(' · '),
         });
         if (!audit.passed) console.warn('[generate-predictions] dropped prediction:', audit.reasons, p.title);
         return audit.passed;
