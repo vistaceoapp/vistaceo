@@ -47,10 +47,38 @@ export const BusinessContext = createContext<BusinessContextType | undefined>(un
 const BUSINESS_FIELDS =
   "id, name, category, country, currency, owner_id, avg_ticket, avg_rating, created_at, setup_completed, precision_score, service_model, channel_mix, monthly_revenue_range, avg_ticket_range, daily_transactions_range, food_cost_range, active_dayparts, delivery_platforms, reservation_platforms, competitive_radius_km, google_place_id, address, settings";
 
+// Caché por usuario: el provider se remonta al navegar entre /setup, /app/preparing y /app.
+// Sin caché, cada remonte volvía a bloquear la pantalla con "Cargando..." y podía
+// rebotar al usuario a /setup por un instante. Con caché pinta al instante y revalida detrás.
+const CACHE_KEY = "vc_business_cache_v1";
+type BusinessCache = { userId: string; businesses: Business[]; currentId: string | null };
+
+let memoryCache: BusinessCache | null = null;
+
+function readCache(userId: string | undefined): BusinessCache | null {
+  if (!userId) return null;
+  if (memoryCache?.userId === userId) return memoryCache;
+  const stored = safeSessionStorage.getJSON<BusinessCache | null>(CACHE_KEY, null);
+  if (stored && stored.userId === userId && Array.isArray(stored.businesses)) {
+    memoryCache = stored;
+    return stored;
+  }
+  return null;
+}
+
+function writeCache(next: BusinessCache) {
+  memoryCache = next;
+  safeSessionStorage.setJSON(CACHE_KEY, next);
+}
+
 export const BusinessProvider = ({ children }: { children: ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
-  const [currentBusiness, setCurrentBusinessState] = useState<Business | null>(null);
-  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const initial = readCache(user?.id);
+  const [currentBusiness, setCurrentBusinessState] = useState<Business | null>(() => {
+    if (!initial) return null;
+    return initial.businesses.find((b) => b.id === initial.currentId) ?? initial.businesses[0] ?? null;
+  });
+  const [businesses, setBusinesses] = useState<Business[]>(() => initial?.businesses ?? []);
   const [loading, setLoading] = useState(false);
   const fetchedForUserRef = useRef<string | null>(null);
 
@@ -60,10 +88,14 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
       setCurrentBusinessState(null);
       setLoading(false);
       fetchedForUserRef.current = null;
+      memoryCache = null;
+      safeSessionStorage.removeItem(CACHE_KEY);
       return;
     }
 
-    setLoading(true);
+    // Solo bloqueamos la UI si no tenemos nada que mostrar todavía.
+    const hasCached = (readCache(user.id)?.businesses.length ?? 0) > 0;
+    if (!hasCached) setLoading(true);
     try {
       const { data, error } = await supabase
         .from("businesses")
@@ -76,7 +108,14 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
 
       const businessList = data || [];
       setBusinesses(businessList);
-      setCurrentBusinessState((prev) => prev ?? businessList[0] ?? null);
+      let nextCurrentId: string | null = null;
+      setCurrentBusinessState((prev) => {
+        const next =
+          (prev ? businessList.find((b) => b.id === prev.id) : null) ?? businessList[0] ?? null;
+        nextCurrentId = next?.id ?? null;
+        return next;
+      });
+      writeCache({ userId: user.id, businesses: businessList, currentId: nextCurrentId });
       fetchedForUserRef.current = user.id;
     } catch (error) {
       console.error("Error fetching businesses:", error);
@@ -93,6 +132,7 @@ export const BusinessProvider = ({ children }: { children: ReactNode }) => {
     }
     refreshBusinesses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [user, authLoading]);
 
   const setCurrentBusiness = useCallback((business: Business) => {
