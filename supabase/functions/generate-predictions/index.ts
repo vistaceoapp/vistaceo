@@ -254,6 +254,44 @@ function getLocaleVoice(country: string): { voice: string; examples: string[] } 
   return voiceMap[country] || voiceMap.AR;
 }
 
+/**
+ * Rescata objetos de predicción completos de un JSON truncado (corte por tokens).
+ * Recorre el array "predictions" con balance de llaves y parsea cada objeto cerrado.
+ */
+function salvagePredictions(content: string): any[] {
+  try {
+    const key = content.indexOf('"predictions"');
+    if (key === -1) return [];
+    const arrStart = content.indexOf('[', key);
+    if (arrStart === -1) return [];
+    const out: any[] = [];
+    let depth = 0, start = -1, inStr = false, esc = false;
+    for (let i = arrStart + 1; i < content.length; i++) {
+      const ch = content[i];
+      if (inStr) {
+        if (esc) esc = false;
+        else if (ch === '\\') esc = true;
+        else if (ch === '"') inStr = false;
+        continue;
+      }
+      if (ch === '"') { inStr = true; continue; }
+      if (ch === '{') { if (depth === 0) start = i; depth++; continue; }
+      if (ch === '}') {
+        depth--;
+        if (depth === 0 && start !== -1) {
+          try { out.push(JSON.parse(content.substring(start, i + 1))); } catch { /* objeto inválido */ }
+          start = -1;
+        }
+        continue;
+      }
+      if (ch === ']' && depth === 0) break;
+    }
+    return out.filter((p) => p && typeof p.title === 'string' && typeof p.domain === 'string');
+  } catch {
+    return [];
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -288,7 +326,7 @@ serve(async (req) => {
     console.log(`[generate-predictions] Starting for business ${business_id}`);
 
     // Fetch comprehensive business context
-    const [businessRes, brainRes, blueprintRes, setupRes, actionsRes, opportunitiesRes, checkinsRes, snapshotsRes] = await Promise.all([
+    const [businessRes, brainRes, blueprintRes, setupRes, actionsRes, opportunitiesRes, checkinsRes, snapshotsRes, signalsRes, missionsRes] = await Promise.all([
       fetch(`${SUPABASE_URL}/rest/v1/businesses?id=eq.${business_id}&select=*`, {
         headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
       }),
@@ -313,9 +351,17 @@ serve(async (req) => {
       fetch(`${SUPABASE_URL}/rest/v1/snapshots?business_id=eq.${business_id}&select=*&order=created_at.desc&limit=3`, {
         headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
       }),
+      // Evidencia viva: señales del Radar (I+D) para anclar predicciones a hechos reales
+      fetch(`${SUPABASE_URL}/rest/v1/signals?business_id=eq.${business_id}&select=content,raw_text,signal_type,importance,created_at&order=created_at.desc&limit=12`, {
+        headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+      }),
+      // Misiones en curso: las predicciones deben dialogar con lo que el usuario ya está ejecutando
+      fetch(`${SUPABASE_URL}/rest/v1/missions?business_id=eq.${business_id}&select=title,description,status,current_step&order=created_at.desc&limit=6`, {
+        headers: { 'apikey': SUPABASE_SERVICE_ROLE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` },
+      }),
     ]);
 
-    const [businesses, brains, blueprints, setupProgress, actions, opportunities, checkins, snapshots] = await Promise.all([
+    const [businesses, brains, blueprints, setupProgress, actions, opportunities, checkins, snapshots, recentSignals, recentMissions] = await Promise.all([
       businessRes.json(),
       brainRes.json(),
       blueprintRes.json(),
@@ -324,6 +370,8 @@ serve(async (req) => {
       opportunitiesRes.json(),
       checkinsRes.json(),
       snapshotsRes.json(),
+      signalsRes.json().catch(() => []),
+      missionsRes.json().catch(() => []),
     ]);
 
     const business = businesses?.[0];
@@ -591,11 +639,42 @@ IMPORTANTE: Genera exactamente 3-4 predicciones CONCISAS (no más). Incluye 1-2 
       domains: domains.slice(0, 4),
     };
 
+    // --- Evidencia viva cruzada (Radar + Misiones + Memoria factual del Chat) ---
+    const liveSignals = (Array.isArray(recentSignals) ? recentSignals : [])
+      .map((s: any) => `${s.signal_type ?? 'señal'}: ${String(s.content ?? s.raw_text ?? '').slice(0, 160)}`)
+      .filter((t: string) => t.length > 12)
+      .slice(0, 8);
+    const liveMissions = (Array.isArray(recentMissions) ? recentMissions : [])
+      .map((m: any) => `${m.title} (${m.status}${m.current_step != null ? `, paso ${m.current_step}` : ''})`)
+      .slice(0, 5);
+    const factual = (brain?.factual_memory ?? {}) as Record<string, unknown>;
+    const factualLines = Object.entries(factual)
+      .filter(([, v]) => typeof v === 'string' && (v as string).trim().length > 2)
+      .slice(0, 14)
+      .map(([k, v]) => `- ${k}: ${String(v).slice(0, 160)}`);
+
+    const liveEvidenceBlock = [
+      liveSignals.length ? `SEÑALES REALES DEL RADAR (usalas como base causal):\n${liveSignals.map((t) => `- ${t}`).join('\n')}` : '',
+      liveMissions.length ? `MISIONES EN CURSO (no las repitas: predecí su resultado o el próximo cuello de botella):\n${liveMissions.map((t) => `- ${t}`).join('\n')}` : '',
+      factualLines.length ? `HECHOS CONFIRMADOS POR EL DUEÑO (verdad absoluta):\n${factualLines.join('\n')}` : '',
+    ].filter(Boolean).join('\n\n');
+
+    // Directiva de anclajes obligatoria (misma que Radar/Misiones)
+    let anchorDirective = '';
+    try {
+      const { buildHyperAnchors } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
+      const { buildAnchorDirective } = await import("../_shared/brain-core/anchor-directive.ts");
+      anchorDirective = buildAnchorDirective(buildHyperAnchors({ business, brain }), 'radar');
+    } catch (e) { console.error('[generate-predictions] anchor directive failed', e); }
+
     const userPrompt = `Negocio: "${business.name}" (${businessType} en ${business.country})
 Contexto: ${JSON.stringify(simplifiedContext)}
 
+${liveEvidenceBlock || 'Sin evidencia viva todavía: predecí en modo hipótesis explícita y pedí el dato faltante.'}
+
 Genera 3-4 predicciones para horizontes ${horizons.slice(0, 3).join(', ')} cubriendo ${domains.slice(0, 4).join(', ')}.
 Usa ${localeVoice.voice} y moneda ${business.currency || 'USD'}.
+OBLIGATORIO: cada predicción debe citar en evidence.signals_internal_top o signals_external_top al menos un hecho o señal de la evidencia viva de arriba (texto literal, no inventado), y su causal_chain debe partir de ese hecho.
 RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
 
     console.log(`[generate-predictions] Calling AI with ${dataQuality.overallScore}/100 data quality`);
@@ -610,11 +689,11 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
       body: JSON.stringify({
         model: 'google/gemini-2.5-pro', // Cost-optimized: prediction generation with structured output
         messages: [
-          { role: 'system', content: `${systemPrompt}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("prediction")}\n\n${buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
+          { role: 'system', content: `${systemPrompt}\n\n${anchorDirective}\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("prediction")}\n\n${buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.3,
-        max_tokens: 6000,
+        max_tokens: 14000,
       }),
     });
 
@@ -663,10 +742,17 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
           }
         }
       } catch (innerError) {
-        console.error('[generate-predictions] Parse error. Content preview:', content.substring(0, 800));
-        // Return empty predictions instead of failing completely
-        parsedContent = { predictions: [], calibration_events: [] };
-        console.log('[generate-predictions] Using fallback empty response');
+        // Strategy 4: RESCATE — la respuesta quedó truncada por límite de tokens.
+        // Extraemos los objetos de predicción completos en lugar de perder todo.
+        const salvaged = salvagePredictions(content);
+        if (salvaged.length > 0) {
+          console.warn(`[generate-predictions] salvaged ${salvaged.length} predictions from truncated JSON`);
+          parsedContent = { predictions: salvaged, calibration_events: [] };
+        } else {
+          console.error('[generate-predictions] Parse error. Content preview:', content.substring(0, 800));
+          parsedContent = { predictions: [], calibration_events: [] };
+          console.log('[generate-predictions] Using fallback empty response');
+        }
       }
     }
 
@@ -677,11 +763,25 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
 
     // Runtime gate: filtrar predicciones genéricas / con leaks
     const { runtimeOutputGate } = await import("../_shared/brain-core/runtime-output-gate.ts");
-    const { buildHyperAnchors } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
+    const { buildHyperAnchors, hyperPersonalizationCheck, contextStrengthScore } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
     const predAnchors = buildHyperAnchors({ business, brain });
     const filteredPredictions = predictions.filter((p: any) => {
-      const text = `${p.title ?? ""}\n${p.summary ?? ""}`;
-      const g = runtimeOutputGate({ text, kind: "prediction", hasBrainEvidence: !!brain, hasConcreteAction: true, anchors: predAnchors });
+      // Dos capas: el texto VISIBLE se audita por leaks/genericidad, y los anclajes
+      // se buscan en TODO el payload (evidencia, cadena causal y acciones), donde
+      // realmente viven los datos concretos del negocio.
+      const visibleText = `${p.title ?? ""}\n${p.summary ?? ""}`;
+      const fullText = [
+        visibleText,
+        JSON.stringify(p.evidence ?? {}),
+        JSON.stringify(p.causal_chain ?? {}),
+        JSON.stringify(p.recommended_actions ?? []),
+        JSON.stringify(p.available_actions ?? {}),
+      ].join("\n");
+
+      const gVisible = runtimeOutputGate({ text: visibleText, kind: "prediction", hasBrainEvidence: !!brain, hasConcreteAction: true });
+      const minAnchors = contextStrengthScore(predAnchors) >= 0.7 ? 2 : 1;
+      const gAnchors = hyperPersonalizationCheck({ text: fullText, anchors: predAnchors, minAnchors });
+      const g = { ok: gVisible.ok && gAnchors.ok, reasons: [...gVisible.reasons, ...gAnchors.reasons] };
       if (!g.ok) {
         console.warn(`[runtime-output-gate:prediction] dropped: "${p.title}" -> ${g.reasons.join(", ")}`);
         return false;
