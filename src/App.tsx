@@ -72,8 +72,10 @@ const queryClient = new QueryClient({
       gcTime: 30 * 60 * 1000,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
-      refetchOnReconnect: false,
-      retry: 1,
+      refetchOnReconnect: true, // al volver la conexión, refresca en silencio en vez de dejar datos viejos
+      retry: 2,
+      retryDelay: (attempt) => Math.min(1200 * 2 ** attempt, 6000),
+
       networkMode: "online",
     },
   },
