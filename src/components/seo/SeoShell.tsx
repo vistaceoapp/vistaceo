@@ -23,7 +23,6 @@ export function SeoShell({ breadcrumb, related = [], children }: SeoShellProps) 
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
           <Link to="/" className="flex items-center gap-2" aria-label="Ir al inicio de VISTACEO">
             <VistaceoLogo size={34} variant="compact" />
-            <span className="text-sm font-semibold tracking-tight">VISTACEO</span>
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <a
