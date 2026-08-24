@@ -5248,11 +5248,6 @@ export type Database = {
         Args: { _signal_count: number }
         Returns: number
       }
-      delete_email: {
-        Args: { message_id: number; queue_name: string }
-        Returns: boolean
-      }
-      email_queue_dispatch: { Args: never; Returns: undefined }
       enforce_free_limit: {
         Args: {
           _business_id: string
@@ -5272,10 +5267,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      enqueue_email: {
-        Args: { payload: Json; queue_name: string }
-        Returns: number
-      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -5284,23 +5275,6 @@ export type Database = {
         Returns: boolean
       }
       is_business_pro: { Args: { _business_id: string }; Returns: boolean }
-      move_to_dlq: {
-        Args: {
-          dlq_name: string
-          message_id: number
-          payload: Json
-          source_queue: string
-        }
-        Returns: number
-      }
-      read_email_batch: {
-        Args: { batch_size: number; queue_name: string; vt: number }
-        Returns: {
-          message: Json
-          msg_id: number
-          read_ct: number
-        }[]
-      }
       recalculate_brain_signal_counters: {
         Args: { _business_id: string }
         Returns: undefined
