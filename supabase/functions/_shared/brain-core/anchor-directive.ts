@@ -37,7 +37,7 @@ const LABELS: Array<[keyof HyperAnchors, string]> = [
  */
 export function buildAnchorDirective(
   anchors: HyperAnchors,
-  kind: "radar" | "opportunity" | "mission" = "mission",
+  kind: "radar" | "opportunity" | "mission" | "chat" | "prediction" = "mission",
 ): string {
   const rows: string[] = [];
   for (const [key, label] of LABELS) {
@@ -59,7 +59,11 @@ No hay anclajes confirmados todavía. Reglas:
 - Priorizá acciones de descubrimiento que generen datos verificables.`;
   }
 
-  const kindRule = kind === "radar"
+  const kindRule = kind === "chat"
+    ? `Cada respuesta debe apoyarse en al menos 2 anclajes reales de arriba y evitar consejos que servirían para cualquier negocio.`
+    : kind === "prediction"
+    ? `Cada escenario debe derivarse causalmente de al menos 2 anclajes reales y de la evidencia entregada, con ventana temporal y acción concreta.`
+    : kind === "radar"
     ? `Cada insight debe explicar el vínculo causal con al menos 2 anclajes distintos y descartar lo que no aplique a este caso.`
     : kind === "opportunity"
     ? `Cada oportunidad debe nombrar el canal, el cliente y la oferta reales de arriba, y explicar por qué NO es genérica.`

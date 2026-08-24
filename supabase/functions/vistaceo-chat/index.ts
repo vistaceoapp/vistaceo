@@ -1399,8 +1399,22 @@ MESSAGE_JSON:
 6. Adaptá tono y formato a las preferencias persistentes del usuario, sin nombrarlas.
 7. Nunca repitas el mensaje del usuario. Nunca devuelvas JSON ni códigos internos. Español natural, ejecutivo.`;
 
+    // Anclajes reales del negocio: fuerza respuestas no intercambiables.
+    let chatAnchorDirective = "";
+    try {
+      const { buildHyperAnchors } = await import("../_shared/brain-core/hyper-personalization-gate.ts");
+      const { buildAnchorDirective } = await import("../_shared/brain-core/anchor-directive.ts");
+      chatAnchorDirective = buildAnchorDirective(
+        buildHyperAnchors({ business: businessContext, brain: memoryContext.brain, context: contextPack }),
+        "chat",
+      );
+    } catch (e) {
+      console.warn("[chat] anchor directive falló:", (e as Error).message);
+    }
+
     const aiMessages = [
       { role: "system", content: CEO_SYSTEM_PROMPT },
+      ...(chatAnchorDirective ? [{ role: "system", content: chatAnchorDirective }] : []),
       { role: "system", content: ANTI_GENERIC_SYSTEM },
       { role: "system", content: HYPER_RIGOR_PROMPT },
       { role: "system", content: terminology.promptFragment },
