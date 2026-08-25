@@ -1023,7 +1023,9 @@ const SetupPage = () => {
             areaId={data.areaId}
             currentName={data.businessName}
             currentPlaceId={data.googlePlaceId}
+            onSubmit={() => { if (canProceed()) handleNext(); }}
             onUpdate={(update) => setData(d => ({
+
               ...d,
               businessName: update.businessName,
               googlePlaceId: update.googlePlaceId,

@@ -33,6 +33,7 @@ interface SetupStepBusinessProps {
     websiteUrl?: string;
     sourcePreference?: 'google' | 'linkedin' | 'website' | 'manual';
   }) => void;
+  onSubmit?: () => void;
 }
 
 interface PlacePrediction {
@@ -75,6 +76,7 @@ export const SetupStepBusiness = ({
   currentName,
   currentPlaceId,
   onUpdate,
+  onSubmit,
 }: SetupStepBusinessProps) => {
   const isService = useMemo(() => (areaId ? SERVICE_AREAS.has(areaId) : false), [areaId]);
   const lang = countryCode === 'BR' ? 'pt' : 'es';
@@ -82,6 +84,7 @@ export const SetupStepBusiness = ({
   const [manualName, setManualName] = useState(currentName || '');
   const [googleQuery, setGoogleQuery] = useState(currentPlaceId ? currentName : '');
   const [webOrLinkedin, setWebOrLinkedin] = useState('');
+  const [showExtras, setShowExtras] = useState(!!currentPlaceId);
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<PlacePrediction[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlaceData | null>(null);
@@ -395,11 +398,11 @@ export const SetupStepBusiness = ({
           {copy.title}
         </h2>
         <p className="text-sm text-muted-foreground">
-          {copy.subtitle}
+          {copy.reassurance}
         </p>
       </div>
 
-      {/* Nombre — obligatorio para servicio/profesión */}
+      {/* Nombre — único campo requerido */}
       <div className="space-y-2">
         <label className="text-xs font-medium text-foreground/80 flex items-center gap-2">
           {copy.nameLabel}
@@ -410,31 +413,44 @@ export const SetupStepBusiness = ({
           placeholder={copy.namePlaceholder}
           value={manualName}
           onChange={(e) => handleManualName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (manualName.trim().length >= 2)) {
+              e.preventDefault();
+              onSubmit?.();
+            }
+          }}
           className="h-14 text-base bg-secondary/40"
           autoFocus
         />
       </div>
 
-      {/* Bloques: físico → Google primero; servicio → Web/LinkedIn primero */}
-      <div className="space-y-5">
-        {isService ? (
-          <>
-            {externalBlock}
-            {googleBlock}
-          </>
-        ) : (
-          <>
-            {googleBlock}
-            {externalBlock}
-          </>
-        )}
-      </div>
-
-      <div className="rounded-xl bg-primary/5 border border-primary/15 px-4 py-3">
-        <p className="text-[12px] text-center text-muted-foreground leading-relaxed">
-          {copy.reassurance}
-        </p>
-      </div>
+      {/* Extras opcionales — ocultos por defecto para no frenar el avance */}
+      {!showExtras ? (
+        <button
+          type="button"
+          onClick={() => setShowExtras(true)}
+          className="w-full text-center text-xs text-primary hover:underline"
+        >
+          {isService
+            ? 'Agregar web, LinkedIn o ficha de Google (opcional)'
+            : 'Vincular ficha de Google Maps o web (opcional)'}
+        </button>
+      ) : (
+        <div className="space-y-5">
+          {isService ? (
+            <>
+              {externalBlock}
+              {googleBlock}
+            </>
+          ) : (
+            <>
+              {googleBlock}
+              {externalBlock}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };
+
