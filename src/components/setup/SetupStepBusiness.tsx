@@ -33,6 +33,7 @@ interface SetupStepBusinessProps {
     websiteUrl?: string;
     sourcePreference?: 'google' | 'linkedin' | 'website' | 'manual';
   }) => void;
+  onSubmit?: () => void;
 }
 
 interface PlacePrediction {
