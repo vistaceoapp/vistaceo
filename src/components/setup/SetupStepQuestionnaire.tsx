@@ -20,6 +20,7 @@ import {
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 import type { GenerateQuestionnaireResponse } from '@/lib/edge-function-response-types';
 import { notifyBrainLearned } from '@/components/feedback/BrainLearningPulse';
+import { SetupComprehension } from '@/components/setup/SetupComprehension';
 
 interface SetupStepQuestionnaireProps {
   countryCode: CountryCode;
@@ -1305,6 +1306,16 @@ export const SetupStepQuestionnaire = ({
           />
         </div>
       </div>
+
+      {/* Prueba de comprensión: sólo con datos reales ya respondidos */}
+      <SetupComprehension
+        businessName={businessName}
+        questions={questions as any}
+        answers={answers as Record<string, unknown>}
+        lang={lang === 'pt-BR' ? 'pt-BR' : 'es'}
+      />
+
+
 
       <AnimatePresence mode="wait">
         {isWaitingForMore ? (
