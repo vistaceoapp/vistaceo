@@ -76,6 +76,7 @@ export const SetupStepBusiness = ({
   currentName,
   currentPlaceId,
   onUpdate,
+  onSubmit,
 }: SetupStepBusinessProps) => {
   const isService = useMemo(() => (areaId ? SERVICE_AREAS.has(areaId) : false), [areaId]);
   const lang = countryCode === 'BR' ? 'pt' : 'es';
@@ -83,6 +84,7 @@ export const SetupStepBusiness = ({
   const [manualName, setManualName] = useState(currentName || '');
   const [googleQuery, setGoogleQuery] = useState(currentPlaceId ? currentName : '');
   const [webOrLinkedin, setWebOrLinkedin] = useState('');
+  const [showExtras, setShowExtras] = useState(!!currentPlaceId);
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<PlacePrediction[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlaceData | null>(null);
