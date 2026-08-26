@@ -563,7 +563,16 @@ export const SetupStepQuestionnaire = ({
     // saturación momentánea del motor, no un error real).
     const failureBudget = () => (questionsRef.current.length < min ? 6 : 3);
 
-    while (questionsRef.current.length < max && consecutiveFailures < failureBudget()) {
+    // ADAPTATIVO: si la persona ya mostró que no tiene claridad (varios "No sé"),
+    // acortamos el cuestionario. Nunca por debajo del mínimo útil para el brain.
+    const effectiveMax = () => {
+      const kp = buildKnowledgeProfile(latestAnswersRef.current);
+      if (kp.answered >= 4 && kp.level === 'bajo') return Math.max(min, max - 4);
+      if (kp.answered >= 4 && kp.level === 'medio' && kp.unknownRatio >= 0.2) return Math.max(min, max - 2);
+      return max;
+    };
+
+    while (questionsRef.current.length < effectiveMax() && consecutiveFailures < failureBudget()) {
       const missing = max - questionsRef.current.length;
       const ask = Math.min(cfg.perBatch, Math.max(3, missing));
       try {
