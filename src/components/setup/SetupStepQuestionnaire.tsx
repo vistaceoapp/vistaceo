@@ -599,7 +599,7 @@ export const SetupStepQuestionnaire = ({
         const merged = capQuestions([...prev, ...fresh], setupMode);
         questionsRef.current = merged;
         setQuestions(merged);
-        setCachedQuestions(merged, businessTypeId, setupMode, contextHash, merged.length >= max);
+        setCachedQuestions(merged, businessTypeId, setupMode, contextHash, merged.length >= effectiveMax());
 
         // Si la IA sólo devolvió repetidas, contarlo como fallo para no loopear infinito.
         if (fresh.length === 0) consecutiveFailures += 1;
