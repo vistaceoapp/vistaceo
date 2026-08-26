@@ -66,6 +66,8 @@ serve(async (req) => {
       questionCount: questionCountOverride, // Override from progressive loading
       batchIndex = 0, // Which batch (0 = first)
       existingTitles, // Titles already generated in earlier batches (anti-repetición)
+      knowledgeProfile, // { level: 'bajo'|'medio'|'alto', unknownRatio, answered, ... }
+      askIntent, // true en el primer batch: incluir pregunta de intención
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
