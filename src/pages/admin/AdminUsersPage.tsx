@@ -432,7 +432,7 @@ export default function AdminUsersPage() {
           <span className="w-32 hidden md:block">Negocio</span>
           <span className="w-14 hidden lg:block text-center">Google</span>
           <span className="w-16 hidden lg:block text-center">Logins</span>
-          <span className="w-20 hidden lg:block text-center">Eventos 7d</span>
+          <span className="w-20 hidden lg:block text-center">Setup 7d</span>
           <span className="w-24 hidden lg:block text-center">Estado</span>
           <span className="w-24 hidden md:block text-right">Registro</span>
           <span className="w-32 text-right">Última actividad</span>
@@ -454,13 +454,15 @@ export default function AdminUsersPage() {
               const biz = user.businesses?.[0];
               const setupDone = !!user.setup_completed;
               const events7d = user.activity_events_7d || 0;
+              const setupEvents7d = user.setup_events_7d || 0;
               const postSetup = user.post_setup_events_7d || 0;
               const churned = user.churned_after_setup;
               const lastActivityAt = user.last_event_at || user.last_active_at;
               // Derive estado label
               let estado: { label: string; cls: string } = { label: 'Nuevo', cls: 'bg-muted text-muted-foreground' };
-              if (!setupDone && events7d > 0) estado = { label: 'En setup', cls: 'bg-blue-50 text-blue-700 border-blue-200' };
-              else if (!setupDone && events7d === 0) estado = { label: 'Sin entrar', cls: 'bg-muted text-muted-foreground' };
+              if (!setupDone && setupEvents7d > 0) estado = { label: 'En setup', cls: 'bg-blue-50 text-blue-700 border-blue-200' };
+              else if (!setupDone && events7d > 0) estado = { label: 'Entró, no inició', cls: 'bg-amber-50 text-amber-700 border-amber-200' };
+              else if (!setupDone) estado = { label: user.login_count > 0 ? 'Setup abandonado' : 'Sin entrar', cls: 'bg-muted text-muted-foreground' };
               else if (setupDone && postSetup >= 5) estado = { label: 'Activo', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
               else if (setupDone && postSetup > 0) estado = { label: 'Tibio', cls: 'bg-amber-50 text-amber-700 border-amber-200' };
               else if (churned) estado = { label: 'Se fue', cls: 'bg-rose-50 text-rose-700 border-rose-200' };
@@ -511,7 +513,7 @@ export default function AdminUsersPage() {
                     {user.login_count || 0}
                   </span>
                   <span className="w-20 hidden lg:block text-center text-[12px] text-foreground tabular-nums">
-                    {events7d}
+                    {setupEvents7d}
                     {postSetup > 0 && (
                       <span className="text-[9px] text-muted-foreground ml-1">·{postSetup}</span>
                     )}

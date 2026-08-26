@@ -133,7 +133,10 @@ async function auditSingleUser(
   const { data: businesses } = await supabase
     .from('businesses')
     .select('id, name, setup_completed, settings, created_at')
-    .eq('owner_id', userId);
+    .eq('owner_id', userId)
+    .order('setup_completed', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1);
 
   const business = businesses?.[0];
 
