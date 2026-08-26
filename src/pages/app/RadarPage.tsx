@@ -475,6 +475,8 @@ const RadarPage = () => {
             </Button>
           ) as any : undefined,
         });
+        endBackgroundTask(taskKey);
+        setGeneratingResearch(false);
         return;
       }
 
