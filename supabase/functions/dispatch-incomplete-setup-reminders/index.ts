@@ -154,6 +154,7 @@ Deno.serve(async (req) => {
             trackingId: `${stage}-v${variant}-${p.id.slice(0, 8)}`,
             businessName: bizByOwner.get(p.id)?.name || '',
             businessCategory: bizByOwner.get(p.id)?.category || null,
+            qualityGateMinAnchors: 0,
           },
         })
 

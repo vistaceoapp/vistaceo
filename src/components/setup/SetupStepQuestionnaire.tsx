@@ -65,9 +65,9 @@ const BATCH_CONFIG = {
   },
   complete: {
     firstBatch: 3,
-    perBatch: 5, // 3 + 5+5+5+4+3 = 25 — alta calidad, baja fatiga
-    totalMin: 23,
-    totalMax: 25,
+    perBatch: 4,
+    totalMin: 12,
+    totalMax: 15,
   },
 };
 
@@ -86,7 +86,7 @@ function capQuestions(questions: UniversalQuestion[], mode: 'quick' | 'complete'
 }
 
 // Cache keys for persisting questions across navigation
-const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v5_context_aware';
+const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v6_short_personalized';
 const QUESTIONS_META_KEY = 'setupQuestionsMeta';
 
 interface QuestionsCacheData {
@@ -1420,7 +1420,7 @@ export const SetupStepQuestionnaire = ({
 
       {/* Salida temprana: con 5+ respuestas ya hay contexto suficiente para activar el tablero.
           Evita el abandono en el paso más largo del setup. */}
-      {answeredCount >= 5 && !isWaitingForMore && (
+      {answeredCount >= 4 && !isWaitingForMore && (
         <button
           onClick={onComplete}
           className="w-full text-center text-xs text-muted-foreground/70 hover:text-primary transition-colors"

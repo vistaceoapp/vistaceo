@@ -45,7 +45,7 @@ interface PlacePrediction {
 
 // Áreas de servicio/profesión — el nombre del profesional o servicio es lo principal
 const SERVICE_AREAS = new Set([
-  'A5_TECH', 'A6_B2B', 'A7_HOGAR_SERV', 'A11_FINANZAS', 'A12_LEGAL',
+  'A5_EDUCACION', 'A6_B2B', 'A7_HOGAR_SERV', 'A11_FINANZAS', 'A12_LEGAL',
   'A13_CREATIVO', 'A14_TURISMO', 'A19_SOCIAL', 'A20_FREELANCE',
 ]);
 
@@ -414,7 +414,7 @@ export const SetupStepBusiness = ({
           value={manualName}
           onChange={(e) => handleManualName(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && (manualName.trim().length >= 2)) {
+            if (e.key === 'Enter' && (e.currentTarget.value.trim().length >= 2)) {
               e.preventDefault();
               onSubmit?.();
             }

@@ -124,7 +124,9 @@ export async function sendAppEmail(
         body: plainText,
         anchors,
         kind: 'reactivation',
-        minAnchors: 1,
+        // El recordatorio de setup también debe llegar a quien abandonó antes de
+        // crear un negocio; en ese caso no existe todavía un ancla empresarial.
+        minAnchors: Number(templateData?.qualityGateMinAnchors ?? 1),
       })
       if (!gate.ok) {
         console.warn('[send-app-email] blocked by quality gate', {

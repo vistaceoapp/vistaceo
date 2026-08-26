@@ -63,7 +63,9 @@ Deno.serve(async (req) => {
     if (userId) {
       const [profileRes, businessRes, subscriptionRes, activityRes, metricsRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
-        supabase.from("businesses").select("*").eq("owner_id", userId),
+        supabase.from("businesses").select("*").eq("owner_id", userId)
+          .order("setup_completed", { ascending: false })
+          .order("created_at", { ascending: false }),
         supabase.from("subscriptions").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
         supabase.from("user_activity_logs").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
         supabase.from("user_daily_metrics").select("*").eq("user_id", userId).order("metric_date", { ascending: false }).limit(30),
@@ -230,7 +232,10 @@ Deno.serve(async (req) => {
       const act = activityByUser[profile.id] || { events7d: 0, postSetupEvents7d: 0, lastEventAt: null, lastEventType: null };
       const businessesForUser = businessesRes.data?.filter(b => b.owner_id === profile.id) || [];
       const setupDone = businessesForUser.some(b => b.setup_completed);
-      const primaryBusiness = businessesForUser[0];
+       const primaryBusiness = [...businessesForUser].sort((a: any, b: any) => {
+         if (!!a.setup_completed !== !!b.setup_completed) return a.setup_completed ? -1 : 1;
+         return String(b.created_at || '').localeCompare(String(a.created_at || ''));
+       })[0];
       const brain = primaryBusiness ? brainByBusiness[primaryBusiness.id] : null;
       const googleConnected = !!primaryBusiness?.google_place_id || !!brain?.has_google;
       const answersSummary = brain?.answers ? buildAnswersSummary(brain.answers) : "";
