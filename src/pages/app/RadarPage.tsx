@@ -426,12 +426,15 @@ const RadarPage = () => {
         title: "Sigo trabajando en segundo plano",
         description: "No perdiste nada. Las oportunidades aparecen apenas terminen de procesarse.",
       });
-      // Refresh silencioso a los 20s por si el job terminó en background.
-      setTimeout(() => { fetchData().catch(() => {}); }, 20_000);
-    } finally {
+      // El trabajo sigue vivo en el servidor: dejamos la marca para reengancharse
+      // aunque el usuario salga de la pantalla.
       setGeneratingOpportunities(false);
+      resumeWatch(taskKey, setGeneratingOpportunities);
+      return;
     }
-  }, [currentBusiness, generatingOpportunities, fetchData, navigate, isPro]);
+    endBackgroundTask(taskKey);
+    setGeneratingOpportunities(false);
+  }, [currentBusiness, generatingOpportunities, fetchData, navigate, isPro, resumeWatch]);
   
   // Generate research items proactively
   const generateResearchItems = useCallback(async () => {
