@@ -244,7 +244,7 @@ FORMATO:
 - weight: 1-10 (importancia para su dimensión)
 - required: true para preguntas estratégicas clave, false para complementarias
 - mode: "${isQuick ? 'quick' : 'complete'}" o "both"
-${stagePromptRules}${learningContext}${dedupeContext}`;
+${stagePromptRules}${adaptiveRules}${intentRule}${learningContext}${dedupeContext}`;
 
     const userPrompt = isBackgroundBatch
       ? `Genera EXACTAMENTE ${questionCount} preguntas NUEVAS (no repitas temas ya cubiertos) para este negocio:
