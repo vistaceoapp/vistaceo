@@ -356,15 +356,19 @@ const RadarPage = () => {
       }
     } catch (error) {
       console.error("Error fetching data:", error);
-      toast({
-        title: "Error al cargar datos",
-        description: "No se pudieron cargar las oportunidades",
-        variant: "destructive",
-      });
+      if (!opts?.silent) {
+        toast({
+          title: "Error al cargar datos",
+          description: "No se pudieron cargar las oportunidades",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
     }
   };
+  fetchDataRef.current = fetchData;
+
   
   // Generate new opportunities proactively
   const generateOpportunities = useCallback(async () => {
