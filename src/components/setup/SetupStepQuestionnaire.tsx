@@ -480,6 +480,10 @@ export const SetupStepQuestionnaire = ({
         batchIndex,
         previousAnswers: previousAnswersCtx,
         existingTitles,
+        // Adaptación en vivo: nivel de claridad que la persona tiene sobre su negocio.
+        knowledgeProfile: buildKnowledgeProfile(previousAnswersCtx || latestAnswersRef.current),
+        // El primer batch debe incluir la pregunta de intención (para qué le sirve el sistema).
+        askIntent: batchIndex === 0,
       },
     });
 
