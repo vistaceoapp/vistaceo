@@ -443,6 +443,12 @@ const RadarPage = () => {
   // Generate research items proactively
   const generateResearchItems = useCallback(async () => {
     if (!currentBusiness || generatingResearch) return;
+    const taskKey = `radar-research:${currentBusiness.id}`;
+    if (isBackgroundTaskRunning(taskKey)) {
+      resumeWatch(taskKey, setGeneratingResearch);
+      return;
+    }
+    beginBackgroundTask(taskKey);
     setGeneratingResearch(true);
 
     try {
