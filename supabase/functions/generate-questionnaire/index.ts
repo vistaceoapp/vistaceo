@@ -66,6 +66,8 @@ serve(async (req) => {
       questionCount: questionCountOverride, // Override from progressive loading
       batchIndex = 0, // Which batch (0 = first)
       existingTitles, // Titles already generated in earlier batches (anti-repetición)
+      knowledgeProfile, // { level: 'bajo'|'medio'|'alto', unknownRatio, answered, ... }
+      askIntent, // true en el primer batch: incluir pregunta de intención
     } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -126,6 +128,38 @@ serve(async (req) => {
       ? `\n\nPREGUNTAS YA GENERADAS EN BATCHES ANTERIORES (PROHIBIDO repetir estos temas o variantes cercanas):\n- ${existingTitles.slice(0, 40).join('\n- ')}`
       : '';
 
+    // ── ADAPTACIÓN AL NIVEL DE CLARIDAD DEL USUARIO ────────────────────────
+    // El setup TANTEA. Si la persona respondió "No sé" varias veces, no la
+    // matamos con preguntas técnicas: pasamos a preguntas observables del día
+    // a día, con opciones concretas y cero jerga.
+    const kLevel = String(knowledgeProfile?.level || '').toLowerCase();
+    const kUnknown = Number(knowledgeProfile?.unknown || 0);
+    const adaptiveRules = kLevel === 'bajo'
+      ? `\n\nNIVEL DE CLARIDAD DEL USUARIO: BAJO (respondió "No sé" ${kUnknown} vez/veces).
+REGLAS DE DIFICULTAD (OBLIGATORIAS):
+- PROHIBIDO preguntar números, porcentajes, márgenes, ticket promedio, conversión, flujo de caja, costos fijos, capital de trabajo, CAC, recompra medida ni ninguna métrica que requiera cálculo o registros.
+- PROHIBIDOS los tipos "number", "slider" y "money". Usá SOLO "single" (y "multi" si suma).
+- Preguntá SOLO cosas que la persona ve u observa: qué hace, cómo llegan los clientes, qué le cuesta más, qué le gustaría mejorar, cómo cobra, quién le ayuda, cómo es un día normal.
+- Lenguaje coloquial y corto. Cada opción tiene que ser una situación reconocible, no un concepto.
+- Igual tienen que aportar señal real al brain: opciones que revelen modelo, canal, dolor y prioridad.`
+      : kLevel === 'alto'
+        ? `\n\nNIVEL DE CLARIDAD DEL USUARIO: ALTO (respuestas detalladas y consistentes).
+REGLAS: podés profundizar con preguntas más finas (unidad económica, canales concretos, cuellos de botella, prioridades de inversión). Igual máximo 12 palabras por pregunta y cero jerga en inglés. Como máximo 1 pregunta numérica por batch.`
+        : `\n\nNIVEL DE CLARIDAD DEL USUARIO: MEDIO.
+REGLAS: prioridad a preguntas fáciles y observables. Como máximo 1 pregunta con número/rango por batch, y siempre con rangos amplios (nunca pedir un valor exacto). Si un concepto puede no ser obvio, completá "help" con una frase simple.`;
+
+    // ── INTENCIÓN DEL USUARIO ──────────────────────────────────────────────
+    // Entender PARA QUÉ quiere el sistema orienta misiones, radar y predicciones.
+    const intentRule = askIntent
+      ? `\n\nPREGUNTA DE INTENCIÓN (OBLIGATORIA, debe ser la PRIMERA del batch):
+- id: "USER_INTENT", category: "goals", dimension: "growth", type: "single".
+- Título en ${lang === 'pt-BR' ? 'portugués brasileño' : 'español'}, máximo 12 palabras, del estilo "¿Para qué querés que te sirva el sistema?" adaptado a la voz ${voiceStyle}.
+- 6 opciones concretas y adaptadas a "${businessTypeLabel || businessTypeId}": vender más, ordenar la operación, ganar más por venta, tener claridad para decidir, conseguir clientes nuevos, sostener/estabilizar el negocio (redactadas en lenguaje del rubro, máx 4 palabras cada una).
+- Es una pregunta fácil, sin números y sin jerga.`
+      : '';
+
+
+
     const dimDist = questionCountOverride 
       ? { min: Math.max(1, Math.floor(batchQuestionCount / 7) - 1), max: Math.ceil(batchQuestionCount / 7) + 1 }
       : DIMENSION_DISTRIBUTION[isQuick ? 'quick' : 'complete'];
@@ -153,7 +187,7 @@ REGLAS ABSOLUTAS:
 6. Para concepto difícil (flujo de caja, margen, ticket, conversión, recompra, capital de trabajo, etc.): completá "help" con UNA frase ≤120 chars que lo explique.
 7. Datos accionables. Rangos realistas. Gramática perfecta.
 8. NO repitas temas que ya están en el CONTEXTO DE APRENDIZAJE ni en PREGUNTAS YA GENERADAS. Profundizá en lo NO cubierto.
-${stagePromptRules}${learningContext}${dedupeContext}
+${stagePromptRules}${adaptiveRules}${intentRule}${learningContext}${dedupeContext}
 
 Responde con generate_questions.`
       : `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
@@ -210,7 +244,7 @@ FORMATO:
 - weight: 1-10 (importancia para su dimensión)
 - required: true para preguntas estratégicas clave, false para complementarias
 - mode: "${isQuick ? 'quick' : 'complete'}" o "both"
-${stagePromptRules}${learningContext}${dedupeContext}`;
+${stagePromptRules}${adaptiveRules}${intentRule}${learningContext}${dedupeContext}`;
 
     const userPrompt = isBackgroundBatch
       ? `Genera EXACTAMENTE ${questionCount} preguntas NUEVAS (no repitas temas ya cubiertos) para este negocio:

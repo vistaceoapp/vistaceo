@@ -86,8 +86,58 @@ function capQuestions(questions: UniversalQuestion[], mode: 'quick' | 'complete'
 }
 
 // Cache keys for persisting questions across navigation
-const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v6_short_personalized';
+const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_adaptive_v7';
 const QUESTIONS_META_KEY = 'setupQuestionsMeta';
+
+// ============================================================================
+// PERFIL DE CONOCIMIENTO DEL USUARIO (adaptación en vivo)
+// El setup "tantea": si la persona responde "No sé" o deja respuestas vagas,
+// bajamos la dificultad (preguntas observables, sin métricas ni jerga) y
+// acortamos el cuestionario. Si responde con detalle, profundizamos.
+// ============================================================================
+export type KnowledgeLevel = 'bajo' | 'medio' | 'alto';
+
+export interface KnowledgeProfile {
+  answered: number;
+  unknown: number;
+  clarifications: number;
+  richAnswers: number;
+  unknownRatio: number;
+  level: KnowledgeLevel;
+}
+
+export function buildKnowledgeProfile(answers: Record<string, any> | undefined | null): KnowledgeProfile {
+  let answered = 0, unknown = 0, rich = 0, clarify = 0;
+  for (const v of Object.values(answers || {})) {
+    if (v === undefined || v === null || v === '') continue;
+    answered += 1;
+    if (v === '__NOT_SURE__' || v === '__NONE__') { unknown += 1; continue; }
+    if (typeof v === 'object' && !Array.isArray(v) && (v as any).type) {
+      const t = (v as any).type;
+      if (t === '__NO_SE__' || t === '__CLARIFY_PENDING__' || t === '__NONE__') unknown += 1;
+      else if (t === '__CLARIFY__' || t === '__CUSTOM__') {
+        clarify += 1;
+        if (String((v as any).text || '').trim().length >= 25) rich += 1;
+      }
+      continue;
+    }
+    if (typeof v === 'string' && v.trim().length >= 25) rich += 1;
+  }
+  const unknownRatio = answered > 0 ? unknown / answered : 0;
+  const level: KnowledgeLevel =
+    answered < 2 ? 'medio'
+      : unknownRatio >= 0.34 ? 'bajo'
+        : (rich + clarify >= 2 && unknownRatio <= 0.1) ? 'alto'
+          : 'medio';
+  return {
+    answered,
+    unknown,
+    clarifications: clarify,
+    richAnswers: rich,
+    unknownRatio: Math.round(unknownRatio * 100) / 100,
+    level,
+  };
+}
 
 interface QuestionsCacheData {
   questions: UniversalQuestion[];
@@ -430,6 +480,10 @@ export const SetupStepQuestionnaire = ({
         batchIndex,
         previousAnswers: previousAnswersCtx,
         existingTitles,
+        // Adaptación en vivo: nivel de claridad que la persona tiene sobre su negocio.
+        knowledgeProfile: buildKnowledgeProfile(previousAnswersCtx || latestAnswersRef.current),
+        // El primer batch debe incluir la pregunta de intención (para qué le sirve el sistema).
+        askIntent: batchIndex === 0,
       },
     });
 
@@ -509,8 +563,17 @@ export const SetupStepQuestionnaire = ({
     // saturación momentánea del motor, no un error real).
     const failureBudget = () => (questionsRef.current.length < min ? 6 : 3);
 
-    while (questionsRef.current.length < max && consecutiveFailures < failureBudget()) {
-      const missing = max - questionsRef.current.length;
+    // ADAPTATIVO: si la persona ya mostró que no tiene claridad (varios "No sé"),
+    // acortamos el cuestionario. Nunca por debajo del mínimo útil para el brain.
+    const effectiveMax = () => {
+      const kp = buildKnowledgeProfile(latestAnswersRef.current);
+      if (kp.answered >= 4 && kp.level === 'bajo') return Math.max(min, max - 4);
+      if (kp.answered >= 4 && kp.level === 'medio' && kp.unknownRatio >= 0.2) return Math.max(min, max - 2);
+      return max;
+    };
+
+    while (questionsRef.current.length < effectiveMax() && consecutiveFailures < failureBudget()) {
+      const missing = effectiveMax() - questionsRef.current.length;
       const ask = Math.min(cfg.perBatch, Math.max(3, missing));
       try {
         const existingTitles = questionsRef.current
@@ -536,7 +599,7 @@ export const SetupStepQuestionnaire = ({
         const merged = capQuestions([...prev, ...fresh], setupMode);
         questionsRef.current = merged;
         setQuestions(merged);
-        setCachedQuestions(merged, businessTypeId, setupMode, contextHash, merged.length >= max);
+        setCachedQuestions(merged, businessTypeId, setupMode, contextHash, merged.length >= effectiveMax());
 
         // Si la IA sólo devolvió repetidas, contarlo como fallo para no loopear infinito.
         if (fresh.length === 0) consecutiveFailures += 1;

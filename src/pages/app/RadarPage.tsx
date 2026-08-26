@@ -59,6 +59,7 @@ import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 import { invokeEdgeFunctionSafe } from '@/lib/edge-function-caller';
 import type { AnalyzePatternsResponse } from '@/lib/edge-function-response-types';
 import { SectionErrorBoundary } from "@/components/app/SectionErrorBoundary";
+import { beginBackgroundTask, endBackgroundTask, isBackgroundTaskRunning } from "@/lib/background-task-registry";
 
 // Estandarización de títulos: primera letra mayúscula + sanitizado
 const fmtTitle = (t: string | null | undefined) => sanitizeAIOutput(t || "");
@@ -195,14 +196,48 @@ const RadarPage = () => {
   const [oldestOpportunityAge, setOldestOpportunityAge] = useState<number>(0);
   const autoScanDoneRef = useRef(false);
 
+  // ── Trabajos resumibles ────────────────────────────────────────────────
+  // Si el usuario dispara un escaneo y se va de la pantalla, el trabajo sigue
+  // en el servidor. Al volver NO se reinicia desde cero: se reengancha.
+  const oppTaskKey = currentBusiness ? `radar-opps:${currentBusiness.id}` : '';
+  const researchTaskKey = currentBusiness ? `radar-research:${currentBusiness.id}` : '';
+  const resumePollRef = useRef<number | null>(null);
+
+  const resumeWatch = useCallback((taskKey: string, setBusy: (v: boolean) => void) => {
+    if (!taskKey) return;
+    setBusy(true);
+    const started = Date.now();
+    const tick = async () => {
+      if (!isBackgroundTaskRunning(taskKey) || Date.now() - started > 4 * 60 * 1000) {
+        endBackgroundTask(taskKey);
+        setBusy(false);
+        await fetchData().catch(() => {});
+        return;
+      }
+      await fetchData().catch(() => {});
+      resumePollRef.current = window.setTimeout(tick, 8000);
+    };
+    resumePollRef.current = window.setTimeout(tick, 6000);
+  }, []);
+
+  useEffect(() => () => {
+    if (resumePollRef.current) window.clearTimeout(resumePollRef.current);
+  }, []);
+
   // Fetch data
   useEffect(() => {
     if (currentBusiness) {
       fetchData();
+      // Reengancharse a trabajos que quedaron corriendo en segundo plano.
+      if (isBackgroundTaskRunning(`radar-opps:${currentBusiness.id}`)) {
+        resumeWatch(`radar-opps:${currentBusiness.id}`, setGeneratingOpportunities);
+      } else if (isBackgroundTaskRunning(`radar-research:${currentBusiness.id}`)) {
+        resumeWatch(`radar-research:${currentBusiness.id}`, setGeneratingResearch);
+      }
     } else {
       setLoading(false);
     }
-  }, [currentBusiness]);
+  }, [currentBusiness, resumeWatch]);
 
   // Open item from deep-link (?opportunity=<id> or ?item=<id>) — used by Dashboard widgets
   useEffect(() => {
@@ -329,6 +364,13 @@ const RadarPage = () => {
   // Generate new opportunities proactively
   const generateOpportunities = useCallback(async () => {
     if (!currentBusiness || generatingOpportunities) return;
+    const taskKey = `radar-opps:${currentBusiness.id}`;
+    if (isBackgroundTaskRunning(taskKey)) {
+      // Ya hay un escaneo en curso (posiblemente iniciado antes de salir).
+      resumeWatch(taskKey, setGeneratingOpportunities);
+      return;
+    }
+    beginBackgroundTask(taskKey);
     setGeneratingOpportunities(true);
     
     try {
@@ -349,6 +391,8 @@ const RadarPage = () => {
             </Button>
           ) as any : undefined,
         });
+        endBackgroundTask(taskKey);
+        setGeneratingOpportunities(false);
         return;
       }
 
@@ -365,6 +409,8 @@ const RadarPage = () => {
             </Button>
           ) as any : undefined,
         });
+        endBackgroundTask(taskKey);
+        setGeneratingOpportunities(false);
         return;
       }
 
@@ -384,16 +430,25 @@ const RadarPage = () => {
         title: "Sigo trabajando en segundo plano",
         description: "No perdiste nada. Las oportunidades aparecen apenas terminen de procesarse.",
       });
-      // Refresh silencioso a los 20s por si el job terminó en background.
-      setTimeout(() => { fetchData().catch(() => {}); }, 20_000);
-    } finally {
+      // El trabajo sigue vivo en el servidor: dejamos la marca para reengancharse
+      // aunque el usuario salga de la pantalla.
       setGeneratingOpportunities(false);
+      resumeWatch(taskKey, setGeneratingOpportunities);
+      return;
     }
-  }, [currentBusiness, generatingOpportunities, fetchData, navigate, isPro]);
+    endBackgroundTask(taskKey);
+    setGeneratingOpportunities(false);
+  }, [currentBusiness, generatingOpportunities, fetchData, navigate, isPro, resumeWatch]);
   
   // Generate research items proactively
   const generateResearchItems = useCallback(async () => {
     if (!currentBusiness || generatingResearch) return;
+    const taskKey = `radar-research:${currentBusiness.id}`;
+    if (isBackgroundTaskRunning(taskKey)) {
+      resumeWatch(taskKey, setGeneratingResearch);
+      return;
+    }
+    beginBackgroundTask(taskKey);
     setGeneratingResearch(true);
 
     try {
@@ -420,6 +475,8 @@ const RadarPage = () => {
             </Button>
           ) as any : undefined,
         });
+        endBackgroundTask(taskKey);
+        setGeneratingResearch(false);
         return;
       }
 
@@ -436,6 +493,8 @@ const RadarPage = () => {
             </Button>
           ) as any : undefined,
         });
+        endBackgroundTask(taskKey);
+        setGeneratingResearch(false);
         return;
       }
 
@@ -458,11 +517,14 @@ const RadarPage = () => {
         title: "I+D sigue rastreando en segundo plano",
         description: "No perdiste nada. Cuando termine el rastreo aparecen los insights automáticamente.",
       });
-      setTimeout(() => { fetchData().catch(() => {}); }, 20_000);
-    } finally {
+      // Sigue vivo en el servidor: reengancharse en vez de reiniciar desde cero.
       setGeneratingResearch(false);
+      resumeWatch(taskKey, setGeneratingResearch);
+      return;
     }
-  }, [currentBusiness, brain, generatingResearch, fetchData, navigate, isPro]);
+    endBackgroundTask(taskKey);
+    setGeneratingResearch(false);
+  }, [currentBusiness, brain, generatingResearch, fetchData, navigate, isPro, resumeWatch]);
 
   // Auto-scan effect: triggers ONLY if daily debounce in fetchData allowed it
   useEffect(() => {
