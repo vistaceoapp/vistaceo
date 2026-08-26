@@ -391,6 +391,8 @@ const RadarPage = () => {
             </Button>
           ) as any : undefined,
         });
+        endBackgroundTask(taskKey);
+        setGeneratingOpportunities(false);
         return;
       }
 
