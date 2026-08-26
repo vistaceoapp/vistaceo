@@ -195,14 +195,48 @@ const RadarPage = () => {
   const [oldestOpportunityAge, setOldestOpportunityAge] = useState<number>(0);
   const autoScanDoneRef = useRef(false);
 
+  // ── Trabajos resumibles ────────────────────────────────────────────────
+  // Si el usuario dispara un escaneo y se va de la pantalla, el trabajo sigue
+  // en el servidor. Al volver NO se reinicia desde cero: se reengancha.
+  const oppTaskKey = currentBusiness ? `radar-opps:${currentBusiness.id}` : '';
+  const researchTaskKey = currentBusiness ? `radar-research:${currentBusiness.id}` : '';
+  const resumePollRef = useRef<number | null>(null);
+
+  const resumeWatch = useCallback((taskKey: string, setBusy: (v: boolean) => void) => {
+    if (!taskKey) return;
+    setBusy(true);
+    const started = Date.now();
+    const tick = async () => {
+      if (!isBackgroundTaskRunning(taskKey) || Date.now() - started > 4 * 60 * 1000) {
+        endBackgroundTask(taskKey);
+        setBusy(false);
+        await fetchData().catch(() => {});
+        return;
+      }
+      await fetchData().catch(() => {});
+      resumePollRef.current = window.setTimeout(tick, 8000);
+    };
+    resumePollRef.current = window.setTimeout(tick, 6000);
+  }, []);
+
+  useEffect(() => () => {
+    if (resumePollRef.current) window.clearTimeout(resumePollRef.current);
+  }, []);
+
   // Fetch data
   useEffect(() => {
     if (currentBusiness) {
       fetchData();
+      // Reengancharse a trabajos que quedaron corriendo en segundo plano.
+      if (isBackgroundTaskRunning(`radar-opps:${currentBusiness.id}`)) {
+        resumeWatch(`radar-opps:${currentBusiness.id}`, setGeneratingOpportunities);
+      } else if (isBackgroundTaskRunning(`radar-research:${currentBusiness.id}`)) {
+        resumeWatch(`radar-research:${currentBusiness.id}`, setGeneratingResearch);
+      }
     } else {
       setLoading(false);
     }
-  }, [currentBusiness]);
+  }, [currentBusiness, resumeWatch]);
 
   // Open item from deep-link (?opportunity=<id> or ?item=<id>) — used by Dashboard widgets
   useEffect(() => {
