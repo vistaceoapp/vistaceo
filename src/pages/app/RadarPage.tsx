@@ -202,6 +202,9 @@ const RadarPage = () => {
   const oppTaskKey = currentBusiness ? `radar-opps:${currentBusiness.id}` : '';
   const researchTaskKey = currentBusiness ? `radar-research:${currentBusiness.id}` : '';
   const resumePollRef = useRef<number | null>(null);
+  // Ref siempre apuntando al fetchData del render actual (evita closures viejos
+  // con currentBusiness = null durante el polling de reenganche).
+  const fetchDataRef = useRef<(opts?: { silent?: boolean }) => Promise<void>>(async () => {});
 
   const resumeWatch = useCallback((taskKey: string, setBusy: (v: boolean) => void) => {
     if (!taskKey) return;
@@ -211,14 +214,15 @@ const RadarPage = () => {
       if (!isBackgroundTaskRunning(taskKey) || Date.now() - started > 4 * 60 * 1000) {
         endBackgroundTask(taskKey);
         setBusy(false);
-        await fetchData().catch(() => {});
+        await fetchDataRef.current({ silent: true }).catch(() => {});
         return;
       }
-      await fetchData().catch(() => {});
+      await fetchDataRef.current({ silent: true }).catch(() => {});
       resumePollRef.current = window.setTimeout(tick, 8000);
     };
     resumePollRef.current = window.setTimeout(tick, 6000);
   }, []);
+
 
   useEffect(() => () => {
     if (resumePollRef.current) window.clearTimeout(resumePollRef.current);
