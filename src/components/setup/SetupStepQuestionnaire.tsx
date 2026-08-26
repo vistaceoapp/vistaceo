@@ -573,7 +573,7 @@ export const SetupStepQuestionnaire = ({
     };
 
     while (questionsRef.current.length < effectiveMax() && consecutiveFailures < failureBudget()) {
-      const missing = max - questionsRef.current.length;
+      const missing = effectiveMax() - questionsRef.current.length;
       const ask = Math.min(cfg.perBatch, Math.max(3, missing));
       try {
         const existingTitles = questionsRef.current
