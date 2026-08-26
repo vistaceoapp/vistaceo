@@ -195,8 +195,12 @@ Deno.serve(async (req) => {
       "login", "page_view", "chat_message", "mission_start",
       "mission_complete", "radar_view", "checkin", "feature_use",
     ]);
+    const SETUP_EVENTS = new Set([
+      "setup_started", "setup_step_viewed", "setup_wow_shown", "setup_completed",
+    ]);
     const activityByUser: Record<string, {
       events7d: number;
+      setupEvents7d: number;
       postSetupEvents7d: number;
       lastEventAt: string | null;
       lastEventType: string | null;
@@ -205,9 +209,12 @@ Deno.serve(async (req) => {
       const u = row.user_id;
       if (!u) return;
       if (!activityByUser[u]) {
-        activityByUser[u] = { events7d: 0, postSetupEvents7d: 0, lastEventAt: null, lastEventType: null };
+        activityByUser[u] = { events7d: 0, setupEvents7d: 0, postSetupEvents7d: 0, lastEventAt: null, lastEventType: null };
       }
       activityByUser[u].events7d += 1;
+      if (SETUP_EVENTS.has(row.event_type)) {
+        activityByUser[u].setupEvents7d += 1;
+      }
       if (POST_SETUP_EVENTS.has(row.event_type)) {
         activityByUser[u].postSetupEvents7d += 1;
       }
@@ -229,26 +236,30 @@ Deno.serve(async (req) => {
     };
 
     const users = profiles?.map(profile => {
-      const act = activityByUser[profile.id] || { events7d: 0, postSetupEvents7d: 0, lastEventAt: null, lastEventType: null };
+      const act = activityByUser[profile.id] || { events7d: 0, setupEvents7d: 0, postSetupEvents7d: 0, lastEventAt: null, lastEventType: null };
       const businessesForUser = businessesRes.data?.filter(b => b.owner_id === profile.id) || [];
       const setupDone = businessesForUser.some(b => b.setup_completed);
-       const primaryBusiness = [...businessesForUser].sort((a: any, b: any) => {
+       const sortedBusinesses = [...businessesForUser].sort((a: any, b: any) => {
          if (!!a.setup_completed !== !!b.setup_completed) return a.setup_completed ? -1 : 1;
          return String(b.created_at || '').localeCompare(String(a.created_at || ''));
-       })[0];
+       });
+       const primaryBusiness = sortedBusinesses[0];
       const brain = primaryBusiness ? brainByBusiness[primaryBusiness.id] : null;
       const googleConnected = !!primaryBusiness?.google_place_id || !!brain?.has_google;
       const answersSummary = brain?.answers ? buildAnswersSummary(brain.answers) : "";
       return {
         ...profile,
-        businesses: businessesForUser,
+        businesses: sortedBusinesses,
         subscriptions: subscriptionsRes.data?.filter(s => s.user_id === profile.id) || [],
         activity_events_7d: act.events7d,
+        setup_events_7d: act.setupEvents7d,
         post_setup_events_7d: act.postSetupEvents7d,
         last_event_at: act.lastEventAt,
         last_event_type: act.lastEventType,
         setup_completed: setupDone,
-        churned_after_setup: setupDone && act.postSetupEvents7d === 0,
+        churned_after_setup: setupDone
+          && act.postSetupEvents7d === 0
+          && Date.now() - new Date(profile.last_active_at || profile.created_at).getTime() > 7 * 24 * 60 * 60 * 1000,
         // Nuevos campos para columnas "Google conectado" y "Detalle"
         google_connected: googleConnected,
         answers_count: brain?.answers ? Object.keys(brain.answers).length : 0,
