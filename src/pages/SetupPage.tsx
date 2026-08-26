@@ -140,6 +140,7 @@ const SetupPage = () => {
   const { refreshBusinesses, setCurrentBusiness, businesses } = useBusiness();
   const { trackSetupStarted, trackSetupStepViewed, trackSetupCompleted } = useActivityTracker();
   const [creatingBusiness, setCreatingBusiness] = useState(false);
+  const creatingBusinessRef = useRef(false);
   const [createProgress, setCreateProgress] = useState(0);
   const [draftBusinessId, setDraftBusinessId] = useState<string | null>(null);
   const ensuringDraftRef = useRef(false);
@@ -547,7 +548,8 @@ const SetupPage = () => {
   };
 
   const createBusiness = async () => {
-    if (!user) return;
+    if (!user || creatingBusinessRef.current) return;
+    creatingBusinessRef.current = true;
     const finalName = deriveBusinessName();
     
     setCreatingBusiness(true);
@@ -934,6 +936,7 @@ const SetupPage = () => {
       toast.error(lang === 'pt' ? 'Erro ao criar negócio' : 'Error al crear el negocio');
     } finally {
       setCreatingBusiness(false);
+      creatingBusinessRef.current = false;
     }
   };
 
