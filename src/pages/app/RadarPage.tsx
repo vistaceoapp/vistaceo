@@ -364,6 +364,13 @@ const RadarPage = () => {
   // Generate new opportunities proactively
   const generateOpportunities = useCallback(async () => {
     if (!currentBusiness || generatingOpportunities) return;
+    const taskKey = `radar-opps:${currentBusiness.id}`;
+    if (isBackgroundTaskRunning(taskKey)) {
+      // Ya hay un escaneo en curso (posiblemente iniciado antes de salir).
+      resumeWatch(taskKey, setGeneratingOpportunities);
+      return;
+    }
+    beginBackgroundTask(taskKey);
     setGeneratingOpportunities(true);
     
     try {
