@@ -296,9 +296,10 @@ const RadarPage = () => {
   }, [selectedOpportunity?.id]);
 
 
-  const fetchData = async () => {
+  const fetchData = async (opts?: { silent?: boolean }) => {
     if (!currentBusiness) return;
-    setLoading(true);
+    if (!opts?.silent) setLoading(true);
+
 
     try {
       const [oppsRes, learningRes] = await Promise.all([
