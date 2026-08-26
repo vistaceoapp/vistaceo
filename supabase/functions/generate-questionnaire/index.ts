@@ -187,7 +187,7 @@ REGLAS ABSOLUTAS:
 6. Para concepto difícil (flujo de caja, margen, ticket, conversión, recompra, capital de trabajo, etc.): completá "help" con UNA frase ≤120 chars que lo explique.
 7. Datos accionables. Rangos realistas. Gramática perfecta.
 8. NO repitas temas que ya están en el CONTEXTO DE APRENDIZAJE ni en PREGUNTAS YA GENERADAS. Profundizá en lo NO cubierto.
-${stagePromptRules}${learningContext}${dedupeContext}
+${stagePromptRules}${adaptiveRules}${intentRule}${learningContext}${dedupeContext}
 
 Responde con generate_questions.`
       : `Eres el motor de diagnóstico empresarial más avanzado del mundo. Tu tarea es generar un cuestionario de EXACTAMENTE ${questionCount} preguntas ULTRA-PERSONALIZADAS para evaluar la salud integral de un negocio/servicio/profesión.
