@@ -493,6 +493,8 @@ const RadarPage = () => {
             </Button>
           ) as any : undefined,
         });
+        endBackgroundTask(taskKey);
+        setGeneratingResearch(false);
         return;
       }
 
@@ -515,11 +517,14 @@ const RadarPage = () => {
         title: "I+D sigue rastreando en segundo plano",
         description: "No perdiste nada. Cuando termine el rastreo aparecen los insights automáticamente.",
       });
-      setTimeout(() => { fetchData().catch(() => {}); }, 20_000);
-    } finally {
+      // Sigue vivo en el servidor: reengancharse en vez de reiniciar desde cero.
       setGeneratingResearch(false);
+      resumeWatch(taskKey, setGeneratingResearch);
+      return;
     }
-  }, [currentBusiness, brain, generatingResearch, fetchData, navigate, isPro]);
+    endBackgroundTask(taskKey);
+    setGeneratingResearch(false);
+  }, [currentBusiness, brain, generatingResearch, fetchData, navigate, isPro, resumeWatch]);
 
   // Auto-scan effect: triggers ONLY if daily debounce in fetchData allowed it
   useEffect(() => {
