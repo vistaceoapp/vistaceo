@@ -86,8 +86,58 @@ function capQuestions(questions: UniversalQuestion[], mode: 'quick' | 'complete'
 }
 
 // Cache keys for persisting questions across navigation
-const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_easy_v6_short_personalized';
+const QUESTIONS_CACHE_KEY = 'setupQuestionsCache_adaptive_v7';
 const QUESTIONS_META_KEY = 'setupQuestionsMeta';
+
+// ============================================================================
+// PERFIL DE CONOCIMIENTO DEL USUARIO (adaptación en vivo)
+// El setup "tantea": si la persona responde "No sé" o deja respuestas vagas,
+// bajamos la dificultad (preguntas observables, sin métricas ni jerga) y
+// acortamos el cuestionario. Si responde con detalle, profundizamos.
+// ============================================================================
+export type KnowledgeLevel = 'bajo' | 'medio' | 'alto';
+
+export interface KnowledgeProfile {
+  answered: number;
+  unknown: number;
+  clarifications: number;
+  richAnswers: number;
+  unknownRatio: number;
+  level: KnowledgeLevel;
+}
+
+export function buildKnowledgeProfile(answers: Record<string, any> | undefined | null): KnowledgeProfile {
+  let answered = 0, unknown = 0, rich = 0, clarify = 0;
+  for (const v of Object.values(answers || {})) {
+    if (v === undefined || v === null || v === '') continue;
+    answered += 1;
+    if (v === '__NOT_SURE__' || v === '__NONE__') { unknown += 1; continue; }
+    if (typeof v === 'object' && !Array.isArray(v) && (v as any).type) {
+      const t = (v as any).type;
+      if (t === '__NO_SE__' || t === '__CLARIFY_PENDING__' || t === '__NONE__') unknown += 1;
+      else if (t === '__CLARIFY__' || t === '__CUSTOM__') {
+        clarify += 1;
+        if (String((v as any).text || '').trim().length >= 25) rich += 1;
+      }
+      continue;
+    }
+    if (typeof v === 'string' && v.trim().length >= 25) rich += 1;
+  }
+  const unknownRatio = answered > 0 ? unknown / answered : 0;
+  const level: KnowledgeLevel =
+    answered < 2 ? 'medio'
+      : unknownRatio >= 0.34 ? 'bajo'
+        : (rich + clarify >= 2 && unknownRatio <= 0.1) ? 'alto'
+          : 'medio';
+  return {
+    answered,
+    unknown,
+    clarifications: clarify,
+    richAnswers: rich,
+    unknownRatio: Math.round(unknownRatio * 100) / 100,
+    level,
+  };
+}
 
 interface QuestionsCacheData {
   questions: UniversalQuestion[];
