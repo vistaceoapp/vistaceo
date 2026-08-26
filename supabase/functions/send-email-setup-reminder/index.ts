@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     const result = await sendAppEmail({
       templateName: "user-welcome",
       recipientEmail: email,
-      idempotencyKey: `user-welcome-${email}`,
+      idempotencyKey: `setup-reminder-${email}`,
       templateData: { firstName, setupUrl: `${APP_BASE_URL}/setup` },
     });
 

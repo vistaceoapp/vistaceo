@@ -79,11 +79,13 @@ export async function sendAppEmail(
   const messageId = options.idempotencyKey || crypto.randomUUID()
   const supabase = admin()
 
-  // Dedupe: same idempotency key already handled → do not send again.
+  // Dedupe: same idempotency key ya entregado (o suprimido) → no reenviar.
+  // Los intentos con status 'failed' SÍ se pueden reintentar.
   const { data: existingSend } = await supabase
     .from('email_send_log')
     .select('id, status')
     .eq('message_id', messageId)
+    .in('status', ['sent', 'suppressed'])
     .limit(1)
     .maybeSingle()
 
