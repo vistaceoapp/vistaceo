@@ -1066,6 +1066,9 @@ serve(async (req) => {
     const contextPack = reqBody.contextPack ?? null;
     const module = typeof reqBody.module === "string" ? reqBody.module : "chat";
 
+    // User ID del dueño del negocio (para preferencias cross-sesión).
+    let ownerUserId: string | null = null;
+
     if (!businessId) {
       return new Response(
         JSON.stringify({ message: "Falta el identificador del negocio. Recargá la página y probá de nuevo." }),
