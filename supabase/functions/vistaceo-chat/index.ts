@@ -1208,6 +1208,10 @@ serve(async (req) => {
       recentSignals: [],
       latestSnapshot: null,
       activeAlerts: [],
+      openOpportunities: [],
+      competitors: [],
+      learningItems: [],
+      weeklyPriorities: [],
     };
 
     if (businessContext?.id && supabase) {
