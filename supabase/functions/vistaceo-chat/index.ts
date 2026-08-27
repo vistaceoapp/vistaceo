@@ -8,6 +8,10 @@ import {
   safeRateLimitMessage,
   safeCreditMessage,
 } from "../_shared/brain-core/index.ts";
+import {
+  buildChatContextSummary,
+  renderChatContextSummary,
+} from "../_shared/brain-core/chat-context-summary.ts";
 
 
 const corsHeaders = {
@@ -29,9 +33,11 @@ Prompt Maestro v3.0 (consolidado, sin contradicciones)
 ROL
 Sos el CEO virtual del negocio del usuario. No sos asistente genérico: sos mentor ejecutivo de élite, claro, humano, estratégico, con criterio. Hablás como alguien que conoce el negocio en detalle (nombre, rubro, país, métricas, misiones, oportunidades, fricciones, decisiones previas).
 
-PRIORIDAD ABSOLUTA — RESPONDER EL ÚLTIMO MENSAJE
-- Respondé exactamente lo que se preguntó en el último mensaje del usuario. No mezcles temas previos, no cambies el eje, no repitas literal lo que escribió.
-- Conectá con el negocio SOLO cuando aporte valor real. Usá nombre, rubro, ciudad/país y datos reales del Brain cuando existan. Si la conexión es débil, decilo breve y seguí.
+PRIORIDAD ABSOLUTA — RESPONDER EXACTAMENTE EL ÚLTIMO MENSAJE
+- Tu respuesta visible (USER_REPLY) debe ser una respuesta directa, completa y específica al ÚLTIMO mensaje del usuario. Nada más.
+- NO des contexto previo salvo que sea imprescindible para entender ESTA respuesta. NO mezcles temas de mensajes anteriores.
+- Si el último mensaje cambia de tema, olvidate del tema anterior y respondé el nuevo. No intentes forzar una conexión con lo que se habló antes.
+- Conectá con el negocio SOLO cuando aporte valor real a ESTA pregunta. Usá nombre, rubro, ciudad/país y datos reales del Brain cuando existan. Si la conexión es débil, no la fuerces.
 - Anti-invención: nunca inventes métricas, clientes ni resultados. Si no tenés el dato, planteá hipótesis explícita ("lo más probable es...") y seguí adelante. Nunca te plantes en "necesito que me confirmes" sin antes dar una respuesta sustancial.
 
 MULTI-PREGUNTA
@@ -772,7 +778,8 @@ async function processLearningExtract(
   supabase: any,
   businessId: string,
   learningExtract: Record<string, unknown>,
-  messageId: string
+  messageId: string,
+  ownerUserId: string | null
 ): Promise<void> {
   if (!learningExtract || Object.keys(learningExtract).length === 0) {
     return;
@@ -1049,7 +1056,27 @@ serve(async (req) => {
 
   try {
     const reqBody = await req.json();
-    const { messages, inputType = "text", messageId, personalityPrompt, attachments = [], contextPack, businessId, module } = reqBody;
+
+    // Validación mínima del body para evitar llamadas rotas o malformadas.
+    const messages = Array.isArray(reqBody.messages) ? reqBody.messages : [];
+    const businessId = typeof reqBody.businessId === "string" ? reqBody.businessId : "";
+    const inputType = typeof reqBody.inputType === "string" ? reqBody.inputType : "text";
+    const messageId = typeof reqBody.messageId === "string" ? reqBody.messageId : `msg-${Date.now()}`;
+    const personalityPrompt = typeof reqBody.personalityPrompt === "string" ? reqBody.personalityPrompt : "";
+    const attachments = Array.isArray(reqBody.attachments) ? reqBody.attachments : [];
+    const contextPack = reqBody.contextPack ?? null;
+    const module = typeof reqBody.module === "string" ? reqBody.module : "chat";
+
+    // User ID del dueño del negocio (para preferencias cross-sesión).
+    let ownerUserId: string | null = null;
+
+    if (!businessId) {
+      return new Response(
+        JSON.stringify({ message: "Falta el identificador del negocio. Recargá la página y probá de nuevo." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Backwards-compatible: prefer ContextPack businessSummary; fall back to raw businessContext if old client still sends it.
     const businessContext = reqBody.businessContext ?? (contextPack ? {
       id: contextPack.businessId ?? businessId,
@@ -1057,7 +1084,7 @@ serve(async (req) => {
       category: contextPack.businessSummary?.sector ?? contextPack.businessSummary?.activity,
       country: contextPack.businessSummary?.country,
     } : { id: businessId });
-    console.log('[vistaceo-chat] module=', module ?? 'chat', 'hasContextPack=', !!contextPack);
+    console.log('[vistaceo-chat] module=', module ?? 'chat', 'hasContextPack=', !!contextPack, 'turnId=', messageId);
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -1182,6 +1209,10 @@ serve(async (req) => {
       recentSignals: [],
       latestSnapshot: null,
       activeAlerts: [],
+      openOpportunities: [],
+      competitors: [],
+      learningItems: [],
+      weeklyPriorities: [],
     };
 
     if (businessContext?.id && supabase) {
@@ -1193,7 +1224,6 @@ serve(async (req) => {
     // Personalización persistente del CEO virtual: tono, formato,
     // foco, formalidad, temas a evitar. Aprende en cada turno.
     // ============================================================
-    let ownerUserId: string | null = null;
     let userPrefs: Record<string, unknown> | null = null;
     if (supabase && businessContext?.id) {
       try {
@@ -1254,34 +1284,10 @@ ${parts.join("\n")}
       }
     }
 
-    // Build context injection message
-    const contextInjection = `
-${personalityInjection}${userPrefsInjection}
-=== CONTEXTO DEL NEGOCIO (JSON) ===
-
-CONFIG_JSON:
-${JSON.stringify(configJson, null, 2)}
-
-BRAIN_JSON:
-${JSON.stringify(brainJson, null, 2)}
-
-STATE_JSON:
-${JSON.stringify(stateJson, null, 2)}
-
-MESSAGE_JSON:
-{
-  "message_id": "${messageId || `msg-${Date.now()}`}",
-  "input_type": "${inputType}",
-  "timestamp": "${new Date().toISOString()}"
-}
-
-=== FIN CONTEXTO ===
-`;
-
-
     // Prepare messages for AI (with multimodal support for images)
-    // Cost-optimized: 12 messages of context preserve coherence while reducing tokens ~40%
-    const recentMessages = messages.slice(-16).map((m: { role: string; content: string }) => ({
+    // Limitamos a los últimos 10 turnos para mantener foco en el contexto reciente
+    // y evitar que el modelo se pierda en conversaciones antiguas.
+    const recentMessages = messages.slice(-20).map((m: { role: string; content: string }) => ({
       role: m.role,
       content: m.content,
     }));
@@ -1306,13 +1312,40 @@ MESSAGE_JSON:
       }
     }
 
-    // ---------- EFICIENCIA IA: selector dinámico de modelo ----------
-    // Mensajes simples → Flash Lite (~4x más barato). Complejos/multimodales → Flash.
+    // ---------- ÚLTIMO MENSAJE DEL USUARIO ----------
+    // Lo extraemos explícitamente para pasarlo como instrucción separada al modelo.
+    // Esto reduce drásticamente la probabilidad de que responda a un mensaje anterior.
     const lastUserMsg = [...recentMessages].reverse().find((m: any) => m.role === "user");
     const lastText = typeof lastUserMsg?.content === "string"
       ? lastUserMsg.content
       : (lastUserMsg?.content?.[0]?.text || "");
     const isShort = lastText.length < 220;
+
+    // Build chat-friendly business context summary (no JSON crudo).
+    const chatContextSummary = buildChatContextSummary(
+      businessContext,
+      memoryContext.brain as Record<string, unknown> | undefined,
+      {
+        activeMissions: memoryContext.activeMissions,
+        openOpportunities: memoryContext.openOpportunities,
+        latestSnapshot: memoryContext.latestSnapshot,
+        businessInsights: memoryContext.businessInsights,
+      }
+    );
+
+    // Build context injection message
+    const contextInjection = `
+${personalityInjection}${userPrefsInjection}
+${renderChatContextSummary(chatContextSummary, lastText || "")}
+
+=== ESTADO ACTUAL DEL NEGOCIO ===
+- Salud general: ${memoryContext.latestSnapshot?.total_score ?? "sin datos"}
+- Misiones activas: ${memoryContext.activeMissions.length}
+- Oportunidades abiertas: ${memoryContext.openOpportunities.length}
+- Señales recientes: ${memoryContext.recentSignals.length}
+
+=== FIN CONTEXTO ===
+`;
     const hasImages = imageAttachments.length > 0;
     const complexHints = /(crisis|urgente|estrategia|plan|análisis|analiza|presupuesto|forecast|expansión|despido|legal|pricing|precio|margen|caja|equipo|conflict)/i;
     const specificDataHints = /\b(cuál(?:es)?|qué|cuánto|cuántos|cuántas|top|ranking|listame|dame|mejor(?:es)?|peor(?:es)?|más vendid|menos vendid|productos?|servicios?|clientes?|competidores?|precios?|métricas?)\b/i;
@@ -1375,7 +1408,7 @@ MESSAGE_JSON:
     if (supabase && businessContext?.id && !isTrivial) {
       try {
         const { buildDeepRecall } = await import("../_shared/brain-core/deep-recall.ts");
-        const recall = await buildDeepRecall(supabase, businessContext.id, lastText, {
+        const recall = await buildDeepRecall(supabase as any, businessContext.id, lastText, {
           excludeRecent: 16,
           maxTurns: 6,
         });
@@ -1412,6 +1445,15 @@ MESSAGE_JSON:
       console.warn("[chat] anchor directive falló:", (e as Error).message);
     }
 
+    // Guarda de último mensaje: instrucción explícita para evitar cruces.
+    const lastMessageGuard = lastText
+      ? `=== ÚLTIMO MENSAJE DEL USUARIO (respondé ESTO y solo ESTO) ===\n"""${lastText}"""\n=== FIN ÚLTIMO MENSAJE ===`
+      : "";
+
+    // Historial previo: todo excepto el último mensaje del usuario, para que
+    // el modelo tenga contexto sin confundir cuál es la pregunta activa.
+    const historyMessages = recentMessages.slice(0, -1);
+
     const aiMessages = [
       { role: "system", content: CEO_SYSTEM_PROMPT },
       ...(chatAnchorDirective ? [{ role: "system", content: chatAnchorDirective }] : []),
@@ -1420,7 +1462,11 @@ MESSAGE_JSON:
       { role: "system", content: terminology.promptFragment },
       ...(deepRecallFragment ? [{ role: "system", content: deepRecallFragment }] : []),
       { role: "system", content: contextInjection + userPrefsBlock },
-      ...recentMessages,
+      ...historyMessages,
+      // El último mensaje se repite como instrucción system + como user message
+      // para maximizar la atención del modelo sobre la pregunta actual.
+      ...(lastMessageGuard ? [{ role: "system", content: lastMessageGuard }] : []),
+      ...(lastUserMsg ? [lastUserMsg as any] : []),
     ];
 
     console.log("Calling VistaCEO AI:", {
@@ -1598,7 +1644,7 @@ MESSAGE_JSON:
 
     // Process learning extract asynchronously
     if (supabase && businessContext?.id && Object.keys(parsed.learningExtract).length > 0) {
-      processLearningExtract(supabase, businessContext.id, parsed.learningExtract, messageId || `msg-${Date.now()}`)
+      processLearningExtract(supabase, businessContext.id, parsed.learningExtract, messageId || `msg-${Date.now()}`, ownerUserId)
         .catch(err => console.error("Error processing learning:", err));
     }
 
