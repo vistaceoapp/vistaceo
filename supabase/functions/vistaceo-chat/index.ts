@@ -1277,26 +1277,28 @@ ${parts.join("\n")}
       }
     }
 
+    // Build chat-friendly business context summary (no JSON crudo).
+    const chatContextSummary = buildChatContextSummary(
+      businessContext,
+      memoryContext.brain as Record<string, unknown> | undefined,
+      {
+        activeMissions: memoryContext.activeMissions,
+        openOpportunities: memoryContext.openOpportunities,
+        latestSnapshot: memoryContext.latestSnapshot,
+        businessInsights: memoryContext.businessInsights,
+      }
+    );
+
     // Build context injection message
     const contextInjection = `
 ${personalityInjection}${userPrefsInjection}
-=== CONTEXTO DEL NEGOCIO (JSON) ===
+${renderChatContextSummary(chatContextSummary, lastText || "")}
 
-CONFIG_JSON:
-${JSON.stringify(configJson, null, 2)}
-
-BRAIN_JSON:
-${JSON.stringify(brainJson, null, 2)}
-
-STATE_JSON:
-${JSON.stringify(stateJson, null, 2)}
-
-MESSAGE_JSON:
-{
-  "message_id": "${messageId || `msg-${Date.now()}`}",
-  "input_type": "${inputType}",
-  "timestamp": "${new Date().toISOString()}"
-}
+=== ESTADO ACTUAL DEL NEGOCIO ===
+- Salud general: ${memoryContext.latestSnapshot?.total_score ?? "sin datos"}
+- Misiones activas: ${memoryContext.activeMissions.length}
+- Oportunidades abiertas: ${memoryContext.openOpportunities.length}
+- Señales recientes: ${memoryContext.recentSignals.length}
 
 === FIN CONTEXTO ===
 `;
