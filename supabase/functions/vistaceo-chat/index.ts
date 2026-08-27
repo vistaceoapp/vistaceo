@@ -1407,7 +1407,7 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
     if (supabase && businessContext?.id && !isTrivial) {
       try {
         const { buildDeepRecall } = await import("../_shared/brain-core/deep-recall.ts");
-        const recall = await buildDeepRecall(supabase, businessContext.id, lastText, {
+        const recall = await buildDeepRecall(supabase as any, businessContext.id, lastText, {
           excludeRecent: 16,
           maxTurns: 6,
         });
