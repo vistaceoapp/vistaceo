@@ -1,36 +1,58 @@
-# Plan — Inteligencia + Personalización 100000%
+# Plan: Chat VISTACEO al extremo
 
-Objetivo: elevar a nivel executive el nivel de personalización y coherencia en **todos** los generadores (oportunidades, chat, radar, predicciones, análisis, emails), y arreglar bugs de setup (CLARIFY que no recalcula, businessType incorrecto, 0% precisión).
+## Objetivo
+Transformar el chat para que nunca cruce mensajes, siempre responda exactamente la última pregunta, y se sienta como hablar con el experto número uno del negocio y sector del usuario. Conectarlo con misiones, radar y oportunidades.
 
-## Fase 1 — Hyper-Personalization Gate en generadores ✅ (en curso)
+## Hallazgos iniciales
+1. **Riesgo de cruce en `ChatPage.tsx`**: `messagesForAI` usa el cierre de `messages` en vez de leer el estado actual; `setMessages(prev => [...prev.slice(0,-1), ...])` asume que el último mensaje es siempre el temporal.
+2. **Respuesta genérica / desviada**: el system prompt pide responder el último mensaje, pero el contexto inyectado es enorme (BRAIN_JSON, STATE_JSON, deep recall, preferencias, anclajes) y puede confundir al modelo.
+3. **No hay streaming**: la llamada es síncrona (`stream: false`), el usuario espera sin feedback de tokens.
+4. **Conexión con acciones**: las misiones sugeridas existen pero son opcionales y no siempre se generan.
 
-- [x] `analyze-patterns` (oportunidades): insertar solo si la oportunidad ancla ≥2 variables reales del brain (sector, ciudad, cliente, oferta, canal, fricción, nombre negocio). Si no, se descarta.
-- [ ] `generate-predictions`: aplicar mismo gate al output antes de persistir.
-- [ ] `vistaceo-chat`: aplicar gate a respuestas del asistente antes de emitirlas (con regeneración).
-- [ ] `weekly-insight-scan` / radar: mismo gate.
-- [ ] `send-transactional-email` / templates de re-engagement: aplicar `emailQualityGate` + hyper anchors.
+## Cambios propuestos
 
-## Fase 2 — CLARIFY que recalcula setup ✅
+### 1. Estado del chat a prueba de carreras
+- Usar una cola de turnos en el frontend: encolar cada mensaje del usuario y procesar uno a la vez.
+- Generar IDs estables (`crypto.randomUUID`) para cada turno y asociar la respuesta al turno correcto.
+- Nunca usar `messages` del cierre para armar el payload; usar el estado funcional más reciente.
 
-- [x] Nuevo edge fn `setup-reinterpret` que consume la respuesta CLARIFY + businessTypeId/areaId actuales, llama a Gemini y devuelve `{ areaId, businessTypeId, subSector, confidence, invalidatesPrior }`.
-- [x] Persiste histórico en `businesses.settings.reinterpretations` (últimos 10).
-- [x] Hook en `SetupStepQuestionnaire.handleCustomSubmit`: dispara reinterpret cuando `trimmed.length >= 20` (fire-and-forget).
+### 2. Backend: responder SIEMPRE al último mensaje
+- Añadir validación estructurada del body con Zod.
+- Antes de llamar al modelo, extraer el último mensaje del usuario y pasarlo como instrucción explícita separada del historial.
+- Limitar el historial a los últimos 10 turnos y resumir turns antiguos si hay más de 10.
+- Reforzar el system prompt: "Tu respuesta visible debe ser una respuesta directa y completa al ÚLTIMO mensaje del usuario. No des contexto previo salvo que ayude a responder ESTE mensaje."
 
-## Fase 3 — Setups atascados (0% precisión, businessType incorrecto) ✅ (base)
+### 3. Contexto del negocio sin saturar al modelo
+- Crear `buildChatContextSummary`: solo los 8-12 datos más relevantes del negocio para la pregunta actual.
+- Usar el último mensaje para rankear qué datos son relevantes (ej: si pregunta de ventas, priorizar funnel; si pregunta de equipos, priorizar staff).
+- Eliminar JSON crudo del prompt; usar bullets en español.
 
-- [x] Nuevo edge fn `admin-reset-setup`: valida rol admin, limpia `businesses.setup_completed/precision_score/settings.setup_reset_at` y `business_setup_progress` (setup_data, current_step='type', precision=0).
-- [x] Botón "Resetear setup" en cada card de `AdminSetupAnswersPage` con confirmación.
-- [x] Detector cliente-side `use-stuck-setup-detector`: dispara CTA "esto no me representa" + `admin-reset-setup` cuando precisión = 0% en pasos iniciales > 5 min.
+### 4. Streaming de respuestas
+- Cambiar el edge function a `stream: true` y devolver SSE.
+- Adaptar el frontend para renderizar tokens progresivamente con `DefaultChatTransport` / `useChat` del AI SDK, o con fetch manual si el refactor es menor.
 
-## Fase 4 — Loop Chat→Brain→Generadores hyperconectado ✅ (base)
+### 5. Conexión chat → misiones / radar / oportunidades
+- En cada respuesta, el modelo debe evaluar si la conversación reveló una acción concreta. Si es así, devolver `missions_suggested` con título, descripción, prioridad y pasos.
+- En el frontend, mostrar la tarjeta de misión sugerida de forma prominente y permitir activarla con un click.
+- Si el usuario describe una tendencia o competidor, disparar señal para radar.
 
-- [x] Nueva edge fn `invalidate-stale-opportunities`: marca oportunidades activas cuyo título/descr matchea keywords del hecho como `repair_status='stale'` con `evidence.staleReason`.
-- [x] `enrich-brain-from-text` invoca la invalidación fire-and-forget con las keywords/campos de cada `learned_fact`.
-- [ ] Extender a `vistaceo-chat` (LearnedFact directo desde el mensaje) y a `onboarding-ingest` (confirmed_fact de alta confianza).
-- [ ] Trigger DB opcional: cuando `signals.kind='confirmed_fact'` con conf ≥ 0.8, disparar la invalidación server-side.
+### 6. Métricas y guardas
+- Loguear en `chat_messages` el `turn_id` y el `parent_turn_id` para poder auditar cruces.
+- Añadir un health check en el edge function: si la respuesta parseada no contiene palabras clave del último mensaje, reintentar una vez.
 
-## Fase 5 — Emails ultra-personalizados ✅ (base)
+## Archivos a tocar
+- `src/pages/app/ChatPage.tsx`
+- `supabase/functions/vistaceo-chat/index.ts`
+- `src/components/chat/ChatMessage.tsx` (render de streaming)
+- `src/lib/context-pack-builder.ts` (resumen chat-friendly)
+- Posible nuevo: `supabase/functions/_shared/brain-core/chat-context-summary.ts`
 
-- [x] `send-transactional-email` aplica `emailQualityCheck` antes de encolar. Bloquea envíos genéricos/spammy para templates de reactivación/recovery (detección por nombre). Los transaccionales puros no requieren anchors.
-- [x] Log en `email_send_log` con `status='failed'` + `error_message` cuando el gate bloquea.
-- [ ] Extender a todos los generadores server-side (reactivation, silent, incomplete setup) para pasar `templateData` con businessName, sector, city.
+## Costo estimado
+- Build: 4-6 créditos (refactor grande de frontend + edge function).
+- AI testing: 1-2 créditos de gateway para validar respuestas.
+
+## Validación
+1. Enviar 3 mensajes seguidos rápido y verificar que cada respuesta corresponde a su pregunta.
+2. Preguntar algo específico del negocio y verificar que la respuesta menciona datos reales del brain.
+3. Pedir "hacé una misión para eso" y verificar que se crea la misión.
+4. Verificar que no hay fugas de JSON ni códigos internos.
