@@ -293,6 +293,9 @@ const ChatPage = () => {
     }
 
     const messageAttachments = [...attachedFiles];
+    const turnId = typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `turn-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     
     setInput("");
     setAttachedFiles([]);
@@ -308,7 +311,7 @@ const ChatPage = () => {
     }
 
     const tempUserMsg: Message = {
-      id: `temp-${Date.now()}`,
+      id: `temp-${turnId}`,
       role: "user",
       content: fullContent,
       created_at: new Date().toISOString(),
@@ -336,16 +339,17 @@ const ChatPage = () => {
         supabase.functions.invoke('track-user-activity', {
           body: {
             event_type: 'chat_message',
-            event_data: { inputType, hasAttachments },
+            event_data: { inputType, hasAttachments, turnId },
             business_id: currentBusiness.id,
             page_path: '/app/chat',
           },
         }).catch(() => {});
       } catch {}
 
-
-
-      const messagesForAI = [...messages, tempUserMsg].map((m) => ({
+      // Usamos el ref del estado para evitar el cierre stale de React.
+      // Esto garantiza que el historial enviado al modelo sea el más actual posible.
+      const currentMessages = [...messagesRef.current, tempUserMsg];
+      const messagesForAI = currentMessages.map((m) => ({
         role: m.role,
         content: m.content,
       }));
@@ -362,7 +366,7 @@ const ChatPage = () => {
           contextPack,
           outputContract: 'chat_response_v1',
           inputType: hasAttachments ? "multimodal" : inputType,
-          messageId: `msg-${Date.now()}`,
+          messageId: turnId,
           personalityPrompt: personalityPrompt,
           attachments: messageAttachments.map(f => ({
             name: f.file.name,
