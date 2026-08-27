@@ -778,7 +778,8 @@ async function processLearningExtract(
   supabase: any,
   businessId: string,
   learningExtract: Record<string, unknown>,
-  messageId: string
+  messageId: string,
+  ownerUserId: string | null
 ): Promise<void> {
   if (!learningExtract || Object.keys(learningExtract).length === 0) {
     return;
