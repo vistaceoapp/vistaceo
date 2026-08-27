@@ -1644,7 +1644,7 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
 
     // Process learning extract asynchronously
     if (supabase && businessContext?.id && Object.keys(parsed.learningExtract).length > 0) {
-      processLearningExtract(supabase, businessContext.id, parsed.learningExtract, messageId || `msg-${Date.now()}`)
+      processLearningExtract(supabase, businessContext.id, parsed.learningExtract, messageId || `msg-${Date.now()}`, ownerUserId)
         .catch(err => console.error("Error processing learning:", err));
     }
 
