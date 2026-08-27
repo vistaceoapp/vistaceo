@@ -1219,7 +1219,6 @@ serve(async (req) => {
     // Personalización persistente del CEO virtual: tono, formato,
     // foco, formalidad, temas a evitar. Aprende en cada turno.
     // ============================================================
-    let ownerUserId: string | null = null;
     let userPrefs: Record<string, unknown> | null = null;
     if (supabase && businessContext?.id) {
       try {
