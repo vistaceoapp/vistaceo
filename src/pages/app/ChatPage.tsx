@@ -490,7 +490,7 @@ const ChatPage = () => {
       }
 
       const newAssistantMsg: Message = {
-        id: `assistant-${Date.now()}`,
+        id: `assistant-${turnId}`,
         role: "assistant",
         content: aiResponse,
         created_at: new Date().toISOString(),
@@ -500,11 +500,17 @@ const ChatPage = () => {
         isNew: true,
       };
 
-      setMessages((prev) => [
-        ...prev.slice(0, -1).map(m => ({ ...m, isNew: false })),
-        { ...tempUserMsg, id: `user-${Date.now()}`, isNew: false },
-        newAssistantMsg,
-      ]);
+      // Reemplazamos el mensaje temporal por su versión final + la respuesta del asistente.
+      // Usamos el ID del temporal en vez de asumir que es el último elemento, lo que evita
+      // pérdidas si hubo actualizaciones concurrentes del estado.
+      setMessages((prev) => {
+        const withoutTemp = prev.filter((m) => m.id !== tempUserMsg.id);
+        return [
+          ...withoutTemp.map(m => ({ ...m, isNew: false })),
+          { ...tempUserMsg, id: `user-${turnId}`, isNew: false },
+          newAssistantMsg,
+        ];
+      });
 
       // Voz del CEO desactivada — el chat es 100% texto. Sólo se admite envío de audio del usuario.
 
