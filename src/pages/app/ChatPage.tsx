@@ -57,11 +57,18 @@ const ChatPage = () => {
   const { canCreate, remaining, isPro, usage, refresh: refreshLimits } = useFreeLimits();
   const [searchParams, setSearchParams] = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
+  const messagesRef = useRef<Message[]>(messages);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [initialPromptSent, setInitialPromptSent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  // Cola de turnos: asegura que cada mensaje del usuario se procese en orden
+  // y que la respuesta se asocie al turno correcto, incluso si el usuario envía
+  // mensajes rápidos o hay latencia en la red.
+  const pendingTurnRef = useRef<{ text: string; inputType: string; attachments: AttachedFile[]; turnId: string } | null>(null);
 
   // Personality state - "balanceada" is default
   const [personality, setPersonality] = useState<CEOPersonality>("balanceada");
