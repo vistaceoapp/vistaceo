@@ -1439,6 +1439,15 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
       console.warn("[chat] anchor directive falló:", (e as Error).message);
     }
 
+    // Guarda de último mensaje: instrucción explícita para evitar cruces.
+    const lastMessageGuard = lastText
+      ? `=== ÚLTIMO MENSAJE DEL USUARIO (respondé ESTO y solo ESTO) ===\n"""${lastText}"""\n=== FIN ÚLTIMO MENSAJE ===`
+      : "";
+
+    // Historial previo: todo excepto el último mensaje del usuario, para que
+    // el modelo tenga contexto sin confundir cuál es la pregunta activa.
+    const historyMessages = recentMessages.slice(0, -1);
+
     const aiMessages = [
       { role: "system", content: CEO_SYSTEM_PROMPT },
       ...(chatAnchorDirective ? [{ role: "system", content: chatAnchorDirective }] : []),
@@ -1447,7 +1456,11 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
       { role: "system", content: terminology.promptFragment },
       ...(deepRecallFragment ? [{ role: "system", content: deepRecallFragment }] : []),
       { role: "system", content: contextInjection + userPrefsBlock },
-      ...recentMessages,
+      ...historyMessages,
+      // El último mensaje se repite como instrucción system + como user message
+      // para maximizar la atención del modelo sobre la pregunta actual.
+      ...(lastMessageGuard ? [{ role: "system", content: lastMessageGuard }] : []),
+      ...(lastUserMsg ? [lastUserMsg as any] : []),
     ];
 
     console.log("Calling VistaCEO AI:", {
