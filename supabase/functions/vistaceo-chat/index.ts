@@ -1049,7 +1049,24 @@ serve(async (req) => {
 
   try {
     const reqBody = await req.json();
-    const { messages, inputType = "text", messageId, personalityPrompt, attachments = [], contextPack, businessId, module } = reqBody;
+
+    // Validación mínima del body para evitar llamadas rotas o malformadas.
+    const messages = Array.isArray(reqBody.messages) ? reqBody.messages : [];
+    const businessId = typeof reqBody.businessId === "string" ? reqBody.businessId : "";
+    const inputType = typeof reqBody.inputType === "string" ? reqBody.inputType : "text";
+    const messageId = typeof reqBody.messageId === "string" ? reqBody.messageId : `msg-${Date.now()}`;
+    const personalityPrompt = typeof reqBody.personalityPrompt === "string" ? reqBody.personalityPrompt : "";
+    const attachments = Array.isArray(reqBody.attachments) ? reqBody.attachments : [];
+    const contextPack = reqBody.contextPack ?? null;
+    const module = typeof reqBody.module === "string" ? reqBody.module : "chat";
+
+    if (!businessId) {
+      return new Response(
+        JSON.stringify({ message: "Falta el identificador del negocio. Recargá la página y probá de nuevo." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Backwards-compatible: prefer ContextPack businessSummary; fall back to raw businessContext if old client still sends it.
     const businessContext = reqBody.businessContext ?? (contextPack ? {
       id: contextPack.businessId ?? businessId,
@@ -1057,7 +1074,7 @@ serve(async (req) => {
       category: contextPack.businessSummary?.sector ?? contextPack.businessSummary?.activity,
       country: contextPack.businessSummary?.country,
     } : { id: businessId });
-    console.log('[vistaceo-chat] module=', module ?? 'chat', 'hasContextPack=', !!contextPack);
+    console.log('[vistaceo-chat] module=', module ?? 'chat', 'hasContextPack=', !!contextPack, 'turnId=', messageId);
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
