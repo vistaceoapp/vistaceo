@@ -1305,8 +1305,9 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
 
 
     // Prepare messages for AI (with multimodal support for images)
-    // Cost-optimized: 12 messages of context preserve coherence while reducing tokens ~40%
-    const recentMessages = messages.slice(-16).map((m: { role: string; content: string }) => ({
+    // Limitamos a los últimos 10 turnos para mantener foco en el contexto reciente
+    // y evitar que el modelo se pierda en conversaciones antiguas.
+    const recentMessages = messages.slice(-20).map((m: { role: string; content: string }) => ({
       role: m.role,
       content: m.content,
     }));
@@ -1331,8 +1332,9 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
       }
     }
 
-    // ---------- EFICIENCIA IA: selector dinámico de modelo ----------
-    // Mensajes simples → Flash Lite (~4x más barato). Complejos/multimodales → Flash.
+    // ---------- ÚLTIMO MENSAJE DEL USUARIO ----------
+    // Lo extraemos explícitamente para pasarlo como instrucción separada al modelo.
+    // Esto reduce drásticamente la probabilidad de que responda a un mensaje anterior.
     const lastUserMsg = [...recentMessages].reverse().find((m: any) => m.role === "user");
     const lastText = typeof lastUserMsg?.content === "string"
       ? lastUserMsg.content
