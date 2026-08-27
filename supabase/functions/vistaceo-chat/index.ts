@@ -8,6 +8,10 @@ import {
   safeRateLimitMessage,
   safeCreditMessage,
 } from "../_shared/brain-core/index.ts";
+import {
+  buildChatContextSummary,
+  renderChatContextSummary,
+} from "../_shared/brain-core/chat-context-summary.ts";
 
 
 const corsHeaders = {
