@@ -1277,33 +1277,6 @@ ${parts.join("\n")}
       }
     }
 
-    // Build chat-friendly business context summary (no JSON crudo).
-    const chatContextSummary = buildChatContextSummary(
-      businessContext,
-      memoryContext.brain as Record<string, unknown> | undefined,
-      {
-        activeMissions: memoryContext.activeMissions,
-        openOpportunities: memoryContext.openOpportunities,
-        latestSnapshot: memoryContext.latestSnapshot,
-        businessInsights: memoryContext.businessInsights,
-      }
-    );
-
-    // Build context injection message
-    const contextInjection = `
-${personalityInjection}${userPrefsInjection}
-${renderChatContextSummary(chatContextSummary, lastText || "")}
-
-=== ESTADO ACTUAL DEL NEGOCIO ===
-- Salud general: ${memoryContext.latestSnapshot?.total_score ?? "sin datos"}
-- Misiones activas: ${memoryContext.activeMissions.length}
-- Oportunidades abiertas: ${memoryContext.openOpportunities.length}
-- Señales recientes: ${memoryContext.recentSignals.length}
-
-=== FIN CONTEXTO ===
-`;
-
-
     // Prepare messages for AI (with multimodal support for images)
     // Limitamos a los últimos 10 turnos para mantener foco en el contexto reciente
     // y evitar que el modelo se pierda en conversaciones antiguas.
@@ -1340,6 +1313,32 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
       ? lastUserMsg.content
       : (lastUserMsg?.content?.[0]?.text || "");
     const isShort = lastText.length < 220;
+
+    // Build chat-friendly business context summary (no JSON crudo).
+    const chatContextSummary = buildChatContextSummary(
+      businessContext,
+      memoryContext.brain as Record<string, unknown> | undefined,
+      {
+        activeMissions: memoryContext.activeMissions,
+        openOpportunities: memoryContext.openOpportunities,
+        latestSnapshot: memoryContext.latestSnapshot,
+        businessInsights: memoryContext.businessInsights,
+      }
+    );
+
+    // Build context injection message
+    const contextInjection = `
+${personalityInjection}${userPrefsInjection}
+${renderChatContextSummary(chatContextSummary, lastText || "")}
+
+=== ESTADO ACTUAL DEL NEGOCIO ===
+- Salud general: ${memoryContext.latestSnapshot?.total_score ?? "sin datos"}
+- Misiones activas: ${memoryContext.activeMissions.length}
+- Oportunidades abiertas: ${memoryContext.openOpportunities.length}
+- Señales recientes: ${memoryContext.recentSignals.length}
+
+=== FIN CONTEXTO ===
+`;
     const hasImages = imageAttachments.length > 0;
     const complexHints = /(crisis|urgente|estrategia|plan|análisis|analiza|presupuesto|forecast|expansión|despido|legal|pricing|precio|margen|caja|equipo|conflict)/i;
     const specificDataHints = /\b(cuál(?:es)?|qué|cuánto|cuántos|cuántas|top|ranking|listame|dame|mejor(?:es)?|peor(?:es)?|más vendid|menos vendid|productos?|servicios?|clientes?|competidores?|precios?|métricas?)\b/i;
