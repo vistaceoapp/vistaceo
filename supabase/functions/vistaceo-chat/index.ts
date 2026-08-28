@@ -1612,6 +1612,16 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
     // Sanitiza la salida visible (Parte 3 §8): remueve snake_case, JSON, inglés técnico
     parsed.userReply = sanitizeVisibleString(parsed.userReply || "");
 
+    // Coherencia: si prometió una misión pero no la adjuntó, quitamos la promesa.
+    const suggestedMissions = (parsed.learningExtract as Record<string, unknown> | undefined)?.missions_suggested
+      ?? (parsed.learningExtract as Record<string, unknown> | undefined)?.missions_to_create;
+    if (!Array.isArray(suggestedMissions) || suggestedMissions.length === 0) {
+      parsed.userReply = parsed.userReply
+        .replace(/\s*(Te dejo|Dejo|Te armé|Te dejé)\s+la\s+misi[óo]n[^.]*\.\s*/gi, " ")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
     // Quality gate extremo (Parte 3 §7) + runtime gate por tipo "chat"
     const concreteActionRx = /\b(haz|hacé|hacer|prob[áa]|revis[áa]|cre[áa]|defin[íi]|envi[áa]|mid[ée]|llam[áa]|escrib[íi]|ofrec[ée]|publica|prepara|ajusta|ordena|mape[áa]|ubica|detect[áa])\b/i;
     const extreme = extremeQualityCheck({
