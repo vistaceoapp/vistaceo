@@ -415,7 +415,11 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
             sub_scores: ((snapshotRes.data as any).dimensions_json ?? {}) as Record<string, number>,
           }
         : null,
-      activeAlerts: alertsRes.data || [],
+      activeAlerts: (alertsRes.data || []).map((a: any) => ({
+        title: a.text_content || a.alert_type || "",
+        severity: a.alert_type || "info",
+        category: a.category || "",
+      })),
       openOpportunities: opportunitiesRes.data || [],
       competitors: competitorsRes.data || [],
       learningItems: learningRes.data || [],
