@@ -1705,6 +1705,7 @@ ${envBlock}
 
     const data = await response.json();
     const rawResponse = data.choices?.[0]?.message?.content;
+    const finishReason = data.choices?.[0]?.finish_reason;
 
     if (!rawResponse) {
       throw new Error("No response from AI");
@@ -1712,6 +1713,48 @@ ${envBlock}
 
     // Parse the structured response (pasamos texto de usuario para anti-eco)
     let parsed = parseCEOResponse(rawResponse, lastText);
+
+    // ===== CONTINUACIÓN: el modelo se quedó sin tokens → cerramos la idea =====
+    // Nunca mostramos un texto cortado: pedimos UNA continuación que termine
+    // exactamente donde quedó, sin repetir nada.
+    if (finishReason === "length" || looksTruncated(parsed.userReply)) {
+      console.warn("[chat] respuesta cortada, disparando cierre", { finishReason });
+      try {
+        const tailForModel = (parsed.userReply || "").slice(-700);
+        const contResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: selectedModel,
+            messages: [
+              {
+                role: "system",
+                content: `Sos el CEO virtual del negocio del usuario. Tu respuesta anterior quedó cortada. Vas a escribir SOLO la continuación exacta desde donde quedó, cerrando la idea en pocas frases y terminando con punto final. Reglas: no repitas nada de lo ya escrito, no saludes, no resumas, no abras temas nuevos, no uses asteriscos ni JSON, español natural y ejecutivo. Empezá exactamente donde termina el fragmento (si quedó a mitad de palabra u oración, completala).`,
+              },
+              {
+                role: "user",
+                content: `Pregunta original del usuario: """${lastText}"""\n\nFragmento ya escrito (termina cortado):\n"""${tailForModel}"""\n\nEscribí únicamente la continuación que cierra la idea.`,
+              },
+            ],
+            stream: false,
+            temperature: 0.4,
+            max_tokens: 500,
+          }),
+        });
+        if (contResp.ok) {
+          const contData = await contResp.json();
+          const contText = String(contData.choices?.[0]?.message?.content || "").trim();
+          if (contText) {
+            const base = (parsed.userReply || "").trimEnd();
+            const needsSpace = /[a-zA-ZáéíóúñÁÉÍÓÚÑ0-9,;:]$/.test(base);
+            parsed.userReply = `${base}${needsSpace ? " " : ""}${contText}`.trim();
+            console.log("[chat] cierre aplicado", { added: contText.length });
+          }
+        }
+      } catch (e) {
+        console.error("[chat] cierre falló:", (e as Error).message);
+      }
+    }
 
     // ===== QUALITY GATE: auto-retry si la respuesta es de baja calidad o no responde la pregunta =====
     const lowQuality = isLowQualityReply(parsed.userReply);
