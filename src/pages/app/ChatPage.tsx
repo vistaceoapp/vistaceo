@@ -89,6 +89,22 @@ const ChatPage = () => {
 
   // File attachments
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+  // Documentos ya leídos en esta conversación (se mantienen como contexto vivo)
+  const sessionDocsRef = useRef<ExtractedDocument[]>([]);
+
+  const handleAttachBlocked = useCallback(() => {
+    toast({
+      title: "Adjuntar archivos es parte de Pro",
+      description:
+        "Con Pro subís planillas, PDFs y fotos y tu CEO virtual los analiza con los números reales de tu negocio.",
+      action: (
+        <ToastAction altText="Ver Pro" onClick={() => navigate("/checkout")}>
+          Ver Pro
+        </ToastAction>
+      ),
+    });
+  }, [navigate]);
+
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
