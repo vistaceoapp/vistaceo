@@ -421,7 +421,11 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         category: a.category || "",
       })),
       openOpportunities: opportunitiesRes.data || [],
-      competitors: competitorsRes.data || [],
+      competitors: (competitorsRes.data || []).map((c: any) => ({
+        name: c.name,
+        strengths: c.rating ? `rating ${c.rating} (${c.review_count ?? 0} reseñas)` : null,
+        weaknesses: null,
+      })),
       learningItems: learningRes.data || [],
       weeklyPriorities: prioritiesRes.data || [],
     };
