@@ -350,7 +350,7 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .limit(15),
       supabase
         .from("snapshots")
-        .select("total_score, sub_scores")
+        .select("total_score, dimensions_json")
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(1)
@@ -363,9 +363,9 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .limit(5),
       supabase
         .from("opportunities")
-        .select("title, impact, status")
+        .select("title, impact_score, effort_score")
         .eq("business_id", businessId)
-        .neq("status", "dismissed")
+        .is("dismissed_at", null)
         .order("created_at", { ascending: false })
         .limit(6),
       supabase
@@ -375,15 +375,15 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .limit(5),
       supabase
         .from("learning_items")
-        .select("title, category, status")
+        .select("title, item_type")
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(5),
       supabase
         .from("weekly_priorities")
-        .select("title, priority, status")
+        .select("title, status")
         .eq("business_id", businessId)
-        .order("priority", { ascending: true })
+        .order("created_at", { ascending: false })
         .limit(5),
     ]);
 
