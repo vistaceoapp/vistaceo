@@ -11,6 +11,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
 import { emitBrainEvent } from "@/lib/brain-event-ledger";
 import { buildContextPack } from "@/lib/context-pack-builder";
+import { extractDocumentContent, renderDocumentContext, type ExtractedDocument } from "@/lib/chat-document-extract";
+
 
 
 // Chat components
