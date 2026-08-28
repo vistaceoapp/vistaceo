@@ -357,9 +357,9 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .maybeSingle(),
       supabase
         .from("alerts")
-        .select("title, severity, category")
+        .select("alert_type, category, text_content")
         .eq("business_id", businessId)
-        .eq("status", "active")
+        .order("created_at", { ascending: false })
         .limit(5),
       supabase
         .from("opportunities")
@@ -370,7 +370,7 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .limit(6),
       supabase
         .from("business_competitors")
-        .select("name, strengths, weaknesses")
+        .select("name, rating, review_count")
         .eq("business_id", businessId)
         .limit(5),
       supabase
