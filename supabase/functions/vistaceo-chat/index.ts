@@ -409,7 +409,12 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       businessInsights: insights,
       brain: brainRes.data,
       recentSignals: signalsRes.data || [],
-      latestSnapshot: snapshotRes.data,
+      latestSnapshot: snapshotRes.data
+        ? {
+            total_score: (snapshotRes.data as any).total_score ?? 0,
+            sub_scores: ((snapshotRes.data as any).dimensions_json ?? {}) as Record<string, number>,
+          }
+        : null,
       activeAlerts: alertsRes.data || [],
       openOpportunities: opportunitiesRes.data || [],
       competitors: competitorsRes.data || [],
