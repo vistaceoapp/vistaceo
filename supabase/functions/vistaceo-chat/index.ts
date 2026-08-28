@@ -444,6 +444,33 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       })),
       learningItems: learningRes.data || [],
       weeklyPriorities: prioritiesRes.data || [],
+      competitorDetail: (competitorsRes.data || []).map((c: any) => ({
+        name: c.name,
+        rating: c.rating ?? null,
+        reviews: c.review_count ?? null,
+        distanceKm: c.distance_km ?? null,
+        priceLevel: c.price_level ?? null,
+      })),
+      ownMetrics: (metricsRes?.data || []).map((m: any) => ({
+        name: m.metric_name,
+        value: Number(m.value),
+        source: m.metric_source ?? null,
+        at: m.period_end ?? null,
+      })),
+      externalData: (externalRes?.data || []).map((e: any) => {
+        const c = e.content;
+        let summary = "";
+        if (typeof c === "string") summary = c;
+        else if (c && typeof c === "object") {
+          summary = String((c as any).text ?? (c as any).summary ?? (c as any).title ?? "");
+        }
+        return {
+          type: e.data_type || "dato",
+          summary: summary.slice(0, 220),
+          sentiment: e.sentiment_score ?? null,
+          at: e.created_at ?? null,
+        };
+      }).filter((e: any) => e.summary),
     };
   } catch (error) {
     console.error("Error fetching memory context:", error);
