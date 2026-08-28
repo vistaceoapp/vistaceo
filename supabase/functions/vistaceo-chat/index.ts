@@ -1565,8 +1565,10 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
     // Parse the structured response (pasamos texto de usuario para anti-eco)
     let parsed = parseCEOResponse(rawResponse, lastText);
 
-    // ===== QUALITY GATE: auto-retry si la respuesta es de baja calidad =====
-    const quality = isLowQualityReply(parsed.userReply);
+    // ===== QUALITY GATE: auto-retry si la respuesta es de baja calidad o no responde la pregunta =====
+    const lowQuality = isLowQualityReply(parsed.userReply);
+    const offTopic = lowQuality.bad ? { bad: false } : isOffTopicReply(parsed.userReply, lastText);
+    const quality = lowQuality.bad ? lowQuality : offTopic;
     if (quality.bad) {
       console.warn("Quality gate failed, retrying:", quality.reason);
       try {
