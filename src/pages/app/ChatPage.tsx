@@ -348,7 +348,12 @@ const ChatPage = () => {
 
       // Usamos el ref del estado para evitar el cierre stale de React.
       // Esto garantiza que el historial enviado al modelo sea el más actual posible.
-      const currentMessages = [...messagesRef.current, tempUserMsg];
+      // Ojo: React ya pudo commitear el setMessages de arriba, así que el ref
+      // puede contener tempUserMsg. Evitamos duplicarlo en el historial.
+      const snapshot = messagesRef.current;
+      const currentMessages = snapshot.some((m) => m.id === tempUserMsg.id)
+        ? snapshot
+        : [...snapshot, tempUserMsg];
       const messagesForAI = currentMessages.map((m) => ({
         role: m.role,
         content: m.content,
