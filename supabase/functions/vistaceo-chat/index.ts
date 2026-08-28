@@ -1198,6 +1198,10 @@ serve(async (req) => {
     const messageId = typeof reqBody.messageId === "string" ? reqBody.messageId : `msg-${Date.now()}`;
     const personalityPrompt = typeof reqBody.personalityPrompt === "string" ? reqBody.personalityPrompt : "";
     const attachments = Array.isArray(reqBody.attachments) ? reqBody.attachments : [];
+    const documentContext = typeof reqBody.documentContext === "string"
+      ? reqBody.documentContext.slice(0, 40000)
+      : "";
+
     const contextPack = reqBody.contextPack ?? null;
     const module = typeof reqBody.module === "string" ? reqBody.module : "chat";
 
