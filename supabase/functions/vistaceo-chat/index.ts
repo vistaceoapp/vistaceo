@@ -1596,7 +1596,9 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
           const retryRaw = retryData.choices?.[0]?.message?.content;
           if (retryRaw) {
             const retryParsed = parseCEOResponse(retryRaw, lastText);
-            if (!isLowQualityReply(retryParsed.userReply).bad) {
+            const retryOk = !isLowQualityReply(retryParsed.userReply).bad &&
+              !isOffTopicReply(retryParsed.userReply, lastText).bad;
+            if (retryOk) {
               parsed = retryParsed;
               console.log("Quality retry succeeded");
             }
