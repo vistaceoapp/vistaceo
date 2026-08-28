@@ -29,6 +29,9 @@ interface ChatInputProps {
   attachedFiles?: AttachedFile[];
   onAttachFiles?: (files: AttachedFile[]) => void;
   onRemoveFile?: (id: string) => void;
+  /** Adjuntar archivos es exclusivo de Pro. */
+  canAttach?: boolean;
+  onAttachBlocked?: () => void;
 }
 
 export const ChatInput = ({
@@ -44,7 +47,10 @@ export const ChatInput = ({
   attachedFiles = [],
   onAttachFiles,
   onRemoveFile,
+  canAttach = true,
+  onAttachBlocked,
 }: ChatInputProps) => {
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
@@ -149,8 +155,19 @@ export const ChatInput = ({
       )}
 
       <div className="flex items-end gap-1 p-2.5">
-        {/* Attachment */}
-        {onAttachFiles && (
+        {/* Attachment — exclusivo de Pro */}
+        {onAttachFiles && !canAttach && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onAttachBlocked}
+            aria-label="Adjuntar archivos (Pro)"
+            className="flex-shrink-0 h-9 w-9 rounded-xl text-muted-foreground/60 hover:text-primary hover:bg-primary/8"
+          >
+            <Paperclip className="w-[18px] h-[18px]" />
+          </Button>
+        )}
+        {onAttachFiles && canAttach && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="flex-shrink-0 h-9 w-9 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/8">
@@ -169,6 +186,7 @@ export const ChatInput = ({
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+
 
         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple />
 

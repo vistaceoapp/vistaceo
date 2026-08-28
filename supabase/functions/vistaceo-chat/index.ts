@@ -1198,6 +1198,10 @@ serve(async (req) => {
     const messageId = typeof reqBody.messageId === "string" ? reqBody.messageId : `msg-${Date.now()}`;
     const personalityPrompt = typeof reqBody.personalityPrompt === "string" ? reqBody.personalityPrompt : "";
     const attachments = Array.isArray(reqBody.attachments) ? reqBody.attachments : [];
+    const documentContext = typeof reqBody.documentContext === "string"
+      ? reqBody.documentContext.slice(0, 40000)
+      : "";
+
     const contextPack = reqBody.contextPack ?? null;
     const module = typeof reqBody.module === "string" ? reqBody.module : "chat";
 
@@ -1429,25 +1433,41 @@ ${parts.join("\n")}
       content: m.content,
     }));
 
-    // Inject image attachments into the last user message as multimodal content
-    const imageAttachments = (attachments || []).filter((a: any) => a?.type === "image" && a?.dataUrl);
-    if (imageAttachments.length > 0 && recentMessages.length > 0) {
+    // Adjuntos = exclusivo Pro. En plan gratis se ignoran por completo.
+    const allowedAttachments = isProPlan ? (attachments || []) : [];
+    const docText = isProPlan ? documentContext : "";
+
+    // Inject image + PDF attachments into the last user message as multimodal content
+    const imageAttachments = allowedAttachments.filter((a: any) => a?.type === "image" && a?.dataUrl);
+    const pdfAttachments = allowedAttachments.filter(
+      (a: any) => a?.type === "document" && a?.dataUrl && a?.mimeType === "application/pdf",
+    );
+    if ((imageAttachments.length > 0 || pdfAttachments.length > 0 || docText) && recentMessages.length > 0) {
       const lastIdx = recentMessages.length - 1;
       const last = recentMessages[lastIdx];
       if (last.role === "user") {
         const textPart = typeof last.content === "string" ? last.content : "";
+        const baseText = textPart || "Analizá este archivo con los datos reales de mi negocio.";
+        const withDocs = docText
+          ? `${baseText}\n\n${docText}\n\nUsá estos datos reales del archivo: citá cifras concretas, detectá patrones y sacá conclusiones. Nunca respondas en genérico si hay datos.`
+          : baseText;
         recentMessages[lastIdx] = {
           role: "user",
           content: [
-            { type: "text", text: textPart || "Analizá esta imagen en el contexto de mi negocio." },
+            { type: "text", text: withDocs },
             ...imageAttachments.map((a: any) => ({
               type: "image_url",
               image_url: { url: a.dataUrl },
+            })),
+            ...pdfAttachments.map((a: any) => ({
+              type: "file",
+              file: { filename: a.name || "documento.pdf", file_data: a.dataUrl },
             })),
           ] as any,
         };
       }
     }
+
 
     // ---------- ÚLTIMO MENSAJE DEL USUARIO ----------
     // Lo extraemos explícitamente para pasarlo como instrucción separada al modelo.

@@ -11,6 +11,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useFreeLimits, FREE_LIMITS } from "@/hooks/use-free-limits";
 import { emitBrainEvent } from "@/lib/brain-event-ledger";
 import { buildContextPack } from "@/lib/context-pack-builder";
+import { extractDocumentContent, renderDocumentContext, type ExtractedDocument } from "@/lib/chat-document-extract";
+
 
 
 // Chat components
@@ -87,6 +89,22 @@ const ChatPage = () => {
 
   // File attachments
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+  // Documentos ya leídos en esta conversación (se mantienen como contexto vivo)
+  const sessionDocsRef = useRef<ExtractedDocument[]>([]);
+
+  const handleAttachBlocked = useCallback(() => {
+    toast({
+      title: "Adjuntar archivos es parte de Pro",
+      description:
+        "Con Pro subís planillas, PDFs y fotos y tu CEO virtual los analiza con los números reales de tu negocio.",
+      action: (
+        <ToastAction altText="Ver Pro" onClick={() => navigate("/checkout")}>
+          Ver Pro
+        </ToastAction>
+      ),
+    });
+  }, [navigate]);
+
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -293,6 +311,13 @@ const ChatPage = () => {
     }
 
     const messageAttachments = [...attachedFiles];
+
+    if (!isPro && messageAttachments.length > 0) {
+      setAttachedFiles([]);
+      handleAttachBlocked();
+      return;
+    }
+
     const turnId = typeof crypto !== "undefined" && crypto.randomUUID
       ? crypto.randomUUID()
       : `turn-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -302,6 +327,26 @@ const ChatPage = () => {
     setLoading(true);
     setLearningIndicator(false);
 
+    // Leemos el contenido real de los documentos adjuntos (planillas, PDFs, docs).
+    const docs: ExtractedDocument[] = [];
+    for (const f of messageAttachments) {
+      if (f.type !== "document") continue;
+      const extracted = await extractDocumentContent(f.file);
+      docs.push(extracted);
+    }
+    const unreadable = docs.filter((d) => d.error);
+    if (unreadable.length > 0) {
+      toast({
+        title: unreadable.length === 1 ? "No pude leer un archivo" : "No pude leer algunos archivos",
+        description: unreadable.map((d) => `${d.name}: ${d.error}`).join(" · "),
+      });
+    }
+    const readableDocs = docs.filter((d) => d.text);
+    if (readableDocs.length > 0) {
+      sessionDocsRef.current = [...sessionDocsRef.current, ...readableDocs].slice(-4);
+    }
+    const documentContext = renderDocumentContext(sessionDocsRef.current);
+
     let fullContent = textToSend;
     if (hasAttachments) {
       const attachmentDescriptions = messageAttachments.map(f => 
@@ -309,6 +354,7 @@ const ChatPage = () => {
       ).join(" ");
       fullContent = fullContent ? `${fullContent}\n\n${attachmentDescriptions}` : attachmentDescriptions;
     }
+
 
     const tempUserMsg: Message = {
       id: `temp-${turnId}`,
@@ -373,12 +419,18 @@ const ChatPage = () => {
           inputType: hasAttachments ? "multimodal" : inputType,
           messageId: turnId,
           personalityPrompt: personalityPrompt,
-          attachments: messageAttachments.map(f => ({
-            name: f.file.name,
-            type: f.type,
-            size: f.file.size,
-            dataUrl: f.type === "image" ? f.preview : undefined,
-          })),
+          documentContext: documentContext || undefined,
+          attachments: messageAttachments.map(f => {
+            const doc = f.type === "document" ? docs.find(d => d.name === f.file.name) : undefined;
+            return {
+              name: f.file.name,
+              type: f.type,
+              size: f.file.size,
+              dataUrl: f.type === "image" ? f.preview : doc?.dataUrl,
+              mimeType: f.type === "image" ? f.file.type : doc?.mimeType,
+            };
+          }),
+
         },
       });
 
@@ -738,7 +790,10 @@ const ChatPage = () => {
             attachedFiles={attachedFiles}
             onAttachFiles={setAttachedFiles}
             onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}
+            canAttach={isPro}
+            onAttachBlocked={handleAttachBlocked}
             isMobile={isMobile}
+
           />
         </div>
       </div>
