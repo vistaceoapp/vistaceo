@@ -554,6 +554,50 @@ export function isLowQualityReply(reply: string): { bad: boolean; reason?: strin
   return { bad: false };
 }
 
+const RELEVANCE_STOPWORDS = new Set([
+  "sobre", "porque", "cuando", "donde", "quien", "quienes", "cuanto", "cuanta", "cuantos", "cuantas",
+  "puedo", "puedes", "podes", "debo", "deberia", "quiero", "quisiera", "necesito", "hacer", "tengo",
+  "tiene", "tienen", "estar", "estoy", "estan", "seria", "serian", "mismo", "misma", "algun", "alguna",
+  "todos", "todas", "ahora", "tambien", "entonces", "aunque", "desde", "hasta", "entre", "para", "esto",
+  "esta", "estas", "estos", "negocio", "empresa", "cliente", "clientes",
+]);
+
+function relevanceTokens(text: string): string[] {
+  return (text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 5 && !RELEVANCE_STOPWORDS.has(w));
+}
+
+/**
+ * Detecta respuestas que no tienen relación con la última pregunta (cruce de conversaciones).
+ * Conservador: solo marca cuando la pregunta es suficientemente larga, tiene al menos
+ * 3 términos con contenido y la respuesta no comparte ninguno (ni números clave).
+ */
+export function isOffTopicReply(reply: string, lastUserText: string): { bad: boolean; reason?: string } {
+  const question = (lastUserText || "").trim();
+  if (question.length < 45) return { bad: false };
+  const qTokens = Array.from(new Set(relevanceTokens(question)));
+  if (qTokens.length < 3) return { bad: false };
+
+  const replyNorm = (reply || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  const overlap = qTokens.filter((t) => replyNorm.includes(t.slice(0, Math.max(5, t.length - 2))));
+  if (overlap.length > 0) return { bad: false };
+
+  // Números presentes en la pregunta que aparecen en la respuesta también cuentan
+  const qNums = question.match(/\d+/g) || [];
+  if (qNums.some((n) => replyNorm.includes(n))) return { bad: false };
+
+  return { bad: true, reason: "off_topic" };
+}
+
 /** Aplica todas las reparaciones de calidad al userReply. */
 function qualityRepairReply(reply: string, userText: string): string {
   if (!reply) return reply;
