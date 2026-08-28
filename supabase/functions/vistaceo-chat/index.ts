@@ -605,12 +605,43 @@ export function isLowQualityReply(reply: string): { bad: boolean; reason?: strin
   if (/^[\s]*[*\-•]\s+\S/m.test(reply) && (reply.match(/^[\s]*[*\-•]\s+/gm) || []).length >= 3) {
     return { bad: true, reason: "bullet_symbols" };
   }
-  // Truncación obvia: termina sin signo de cierre y la última palabra es conjunción
-  const tail = reply.trim().split(/\s+/).slice(-1)[0] || "";
-  if (!/[.!?…"')\]]$/.test(reply.trim()) && /^(y|o|de|en|con|para|el|la|los|las|un|una|que|del|al|si|pero|por|sin|sobre|entre)$/i.test(tail)) {
+  // Truncación (detector endurecido)
+  if (looksTruncated(reply)) {
     return { bad: true, reason: "truncated_tail" };
   }
   return { bad: false };
+}
+
+/**
+ * Detecta si un texto quedó cortado a mitad de idea.
+ * Mucho más estricto que el detector viejo (que solo miraba conjunciones).
+ */
+export function looksTruncated(reply: string): boolean {
+  const t = (reply || "").trim();
+  if (!t) return false;
+  // Termina con puntuación de cierre real → está cerrado.
+  const closed = /[.!?…]["')\]]?$/.test(t);
+  if (closed) return false;
+  // Termina con coma, dos puntos, punto y coma, guion o paréntesis abierto → cortado.
+  if (/[,;:\-–—(«"]$/.test(t)) return true;
+  // Última palabra es conjunción / preposición / artículo → cortado.
+  const tail = t.split(/\s+/).slice(-1)[0] || "";
+  if (/^(y|e|o|u|de|del|al|en|con|para|por|sin|sobre|entre|el|la|los|las|un|una|unos|unas|que|si|pero|como|cuando|donde|desde|hasta|más|menos|muy|ya|lo|su|sus|tu|tus|mi|mis)$/i.test(tail)) return true;
+  // Lista numerada abierta: última línea empieza con "3." o "3)" y tiene menos de 12 caracteres útiles.
+  const lastLine = t.split("\n").slice(-1)[0].trim();
+  if (/^\d+[.)]\s*\S{0,10}$/.test(lastLine)) return true;
+  // Sin puntuación final y con longitud considerable → asumimos corte.
+  if (t.length > 60) return true;
+  return false;
+}
+
+/** Recorta hasta la última oración completa. Última red anti-texto cortado. */
+export function trimToLastSentence(reply: string): string {
+  const t = (reply || "").trim();
+  if (!t || !looksTruncated(t)) return t;
+  const idx = Math.max(t.lastIndexOf("."), t.lastIndexOf("!"), t.lastIndexOf("?"), t.lastIndexOf("…"));
+  if (idx > 40) return t.slice(0, idx + 1).trim();
+  return t;
 }
 
 const RELEVANCE_STOPWORDS = new Set([
