@@ -307,6 +307,7 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       actionsRes, missionsRes, checkinsRes, lessonsRes, insightsRes,
       brainRes, signalsRes, snapshotRes, alertsRes,
       opportunitiesRes, competitorsRes, learningRes, prioritiesRes,
+      metricsRes, externalRes,
     ] = await Promise.all([
       supabase
         .from("daily_actions")
