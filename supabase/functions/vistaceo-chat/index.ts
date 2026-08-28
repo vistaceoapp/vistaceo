@@ -554,6 +554,50 @@ export function isLowQualityReply(reply: string): { bad: boolean; reason?: strin
   return { bad: false };
 }
 
+const RELEVANCE_STOPWORDS = new Set([
+  "sobre", "porque", "cuando", "donde", "quien", "quienes", "cuanto", "cuanta", "cuantos", "cuantas",
+  "puedo", "puedes", "podes", "debo", "deberia", "quiero", "quisiera", "necesito", "hacer", "tengo",
+  "tiene", "tienen", "estar", "estoy", "estan", "seria", "serian", "mismo", "misma", "algun", "alguna",
+  "todos", "todas", "ahora", "tambien", "entonces", "aunque", "desde", "hasta", "entre", "para", "esto",
+  "esta", "estas", "estos", "negocio", "empresa", "cliente", "clientes",
+]);
+
+function relevanceTokens(text: string): string[] {
+  return (text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 5 && !RELEVANCE_STOPWORDS.has(w));
+}
+
+/**
+ * Detecta respuestas que no tienen relación con la última pregunta (cruce de conversaciones).
+ * Conservador: solo marca cuando la pregunta es suficientemente larga, tiene al menos
+ * 3 términos con contenido y la respuesta no comparte ninguno (ni números clave).
+ */
+export function isOffTopicReply(reply: string, lastUserText: string): { bad: boolean; reason?: string } {
+  const question = (lastUserText || "").trim();
+  if (question.length < 45) return { bad: false };
+  const qTokens = Array.from(new Set(relevanceTokens(question)));
+  if (qTokens.length < 3) return { bad: false };
+
+  const replyNorm = (reply || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  const overlap = qTokens.filter((t) => replyNorm.includes(t.slice(0, Math.max(5, t.length - 2))));
+  if (overlap.length > 0) return { bad: false };
+
+  // Números presentes en la pregunta que aparecen en la respuesta también cuentan
+  const qNums = question.match(/\d+/g) || [];
+  if (qNums.some((n) => replyNorm.includes(n))) return { bad: false };
+
+  return { bad: true, reason: "off_topic" };
+}
+
 /** Aplica todas las reparaciones de calidad al userReply. */
 function qualityRepairReply(reply: string, userText: string): string {
   if (!reply) return reply;
@@ -1521,8 +1565,10 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
     // Parse the structured response (pasamos texto de usuario para anti-eco)
     let parsed = parseCEOResponse(rawResponse, lastText);
 
-    // ===== QUALITY GATE: auto-retry si la respuesta es de baja calidad =====
-    const quality = isLowQualityReply(parsed.userReply);
+    // ===== QUALITY GATE: auto-retry si la respuesta es de baja calidad o no responde la pregunta =====
+    const lowQuality = isLowQualityReply(parsed.userReply);
+    const offTopic = lowQuality.bad ? { bad: false } : isOffTopicReply(parsed.userReply, lastText);
+    const quality = lowQuality.bad ? lowQuality : offTopic;
     if (quality.bad) {
       console.warn("Quality gate failed, retrying:", quality.reason);
       try {
@@ -1533,7 +1579,12 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
             model: selectedModel,
             messages: [
               ...aiMessages,
-              { role: "system", content: `RETRY: tu respuesta anterior falló el control de calidad (${quality.reason}). Devolvé el contrato XML exacto con <USER_REPLY>...</USER_REPLY> en markdown limpio, sin JSON, sin códigos internos, sin cortar oraciones, sin repetir el mensaje del usuario.` },
+              {
+                role: "system",
+                content: quality.reason === "off_topic"
+                  ? `RETRY: tu respuesta anterior NO respondía el último mensaje del usuario. El último mensaje fue: """${lastText}""". Respondé EXACTAMENTE eso, con el contrato XML <USER_REPLY>...</USER_REPLY>, sin retomar temas de mensajes anteriores.`
+                  : `RETRY: tu respuesta anterior falló el control de calidad (${quality.reason}). Devolvé el contrato XML exacto con <USER_REPLY>...</USER_REPLY> en markdown limpio, sin JSON, sin códigos internos, sin cortar oraciones, sin repetir el mensaje del usuario.`,
+              },
             ],
             stream: false,
             temperature: 0.4,
@@ -1545,7 +1596,9 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
           const retryRaw = retryData.choices?.[0]?.message?.content;
           if (retryRaw) {
             const retryParsed = parseCEOResponse(retryRaw, lastText);
-            if (!isLowQualityReply(retryParsed.userReply).bad) {
+            const retryOk = !isLowQualityReply(retryParsed.userReply).bad &&
+              !isOffTopicReply(retryParsed.userReply, lastText).bad;
+            if (retryOk) {
               parsed = retryParsed;
               console.log("Quality retry succeeded");
             }
@@ -1558,6 +1611,16 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
 
     // Sanitiza la salida visible (Parte 3 §8): remueve snake_case, JSON, inglés técnico
     parsed.userReply = sanitizeVisibleString(parsed.userReply || "");
+
+    // Coherencia: si prometió una misión pero no la adjuntó, quitamos la promesa.
+    const suggestedMissions = (parsed.learningExtract as Record<string, unknown> | undefined)?.missions_suggested
+      ?? (parsed.learningExtract as Record<string, unknown> | undefined)?.missions_to_create;
+    if (!Array.isArray(suggestedMissions) || suggestedMissions.length === 0) {
+      parsed.userReply = parsed.userReply
+        .replace(/\s*(Te dejo|Dejo|Te armé|Te dejé)\s+la\s+misi[óo]n[^.]*\.\s*/gi, " ")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
 
     // Quality gate extremo (Parte 3 §7) + runtime gate por tipo "chat"
     const concreteActionRx = /\b(haz|hacé|hacer|prob[áa]|revis[áa]|cre[áa]|defin[íi]|envi[áa]|mid[ée]|llam[áa]|escrib[íi]|ofrec[ée]|publica|prepara|ajusta|ordena|mape[áa]|ubica|detect[áa])\b/i;
