@@ -311,6 +311,13 @@ const ChatPage = () => {
     }
 
     const messageAttachments = [...attachedFiles];
+
+    if (!isPro && messageAttachments.length > 0) {
+      setAttachedFiles([]);
+      handleAttachBlocked();
+      return;
+    }
+
     const turnId = typeof crypto !== "undefined" && crypto.randomUUID
       ? crypto.randomUUID()
       : `turn-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -320,6 +327,26 @@ const ChatPage = () => {
     setLoading(true);
     setLearningIndicator(false);
 
+    // Leemos el contenido real de los documentos adjuntos (planillas, PDFs, docs).
+    const docs: ExtractedDocument[] = [];
+    for (const f of messageAttachments) {
+      if (f.type !== "document") continue;
+      const extracted = await extractDocumentContent(f.file);
+      docs.push(extracted);
+    }
+    const unreadable = docs.filter((d) => d.error);
+    if (unreadable.length > 0) {
+      toast({
+        title: unreadable.length === 1 ? "No pude leer un archivo" : "No pude leer algunos archivos",
+        description: unreadable.map((d) => `${d.name}: ${d.error}`).join(" · "),
+      });
+    }
+    const readableDocs = docs.filter((d) => d.text);
+    if (readableDocs.length > 0) {
+      sessionDocsRef.current = [...sessionDocsRef.current, ...readableDocs].slice(-4);
+    }
+    const documentContext = renderDocumentContext(sessionDocsRef.current);
+
     let fullContent = textToSend;
     if (hasAttachments) {
       const attachmentDescriptions = messageAttachments.map(f => 
@@ -327,6 +354,7 @@ const ChatPage = () => {
       ).join(" ");
       fullContent = fullContent ? `${fullContent}\n\n${attachmentDescriptions}` : attachmentDescriptions;
     }
+
 
     const tempUserMsg: Message = {
       id: `temp-${turnId}`,
