@@ -488,6 +488,9 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       competitors: [],
       learningItems: [],
       weeklyPriorities: [],
+      competitorDetail: [],
+      ownMetrics: [],
+      externalData: [],
     };
   }
 }
@@ -1313,6 +1316,9 @@ serve(async (req) => {
       competitors: [],
       learningItems: [],
       weeklyPriorities: [],
+      competitorDetail: [],
+      ownMetrics: [],
+      externalData: [],
     };
 
     if (businessContext?.id && supabase) {
