@@ -29,6 +29,9 @@ interface ChatInputProps {
   attachedFiles?: AttachedFile[];
   onAttachFiles?: (files: AttachedFile[]) => void;
   onRemoveFile?: (id: string) => void;
+  /** Adjuntar archivos es exclusivo de Pro. */
+  canAttach?: boolean;
+  onAttachBlocked?: () => void;
 }
 
 export const ChatInput = ({
@@ -44,7 +47,10 @@ export const ChatInput = ({
   attachedFiles = [],
   onAttachFiles,
   onRemoveFile,
+  canAttach = true,
+  onAttachBlocked,
 }: ChatInputProps) => {
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
