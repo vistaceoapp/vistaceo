@@ -158,6 +158,9 @@ interface MemoryContext {
   competitors: Array<{ name: string; strengths: unknown; weaknesses: unknown }>;
   learningItems: Array<{ title: string; category: string; status: string }>;
   weeklyPriorities: Array<{ title: string; priority: number; status: string }>;
+  competitorDetail: Array<{ name: string; rating: number | null; reviews: number | null; distanceKm: number | null; priceLevel: number | null }>;
+  ownMetrics: Array<{ name: string; value: number; source: string | null; at: string | null }>;
+  externalData: Array<{ type: string; summary: string; sentiment: number | null; at: string | null }>;
 }
 
 function buildConfigJson(business: BusinessContext, brain: BrainData | null): Record<string, unknown> {
