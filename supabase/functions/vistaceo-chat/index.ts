@@ -1579,7 +1579,12 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
             model: selectedModel,
             messages: [
               ...aiMessages,
-              { role: "system", content: `RETRY: tu respuesta anterior falló el control de calidad (${quality.reason}). Devolvé el contrato XML exacto con <USER_REPLY>...</USER_REPLY> en markdown limpio, sin JSON, sin códigos internos, sin cortar oraciones, sin repetir el mensaje del usuario.` },
+              {
+                role: "system",
+                content: quality.reason === "off_topic"
+                  ? `RETRY: tu respuesta anterior NO respondía el último mensaje del usuario. El último mensaje fue: """${lastText}""". Respondé EXACTAMENTE eso, con el contrato XML <USER_REPLY>...</USER_REPLY>, sin retomar temas de mensajes anteriores.`
+                  : `RETRY: tu respuesta anterior falló el control de calidad (${quality.reason}). Devolvé el contrato XML exacto con <USER_REPLY>...</USER_REPLY> en markdown limpio, sin JSON, sin códigos internos, sin cortar oraciones, sin repetir el mensaje del usuario.`,
+              },
             ],
             stream: false,
             temperature: 0.4,
