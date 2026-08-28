@@ -1439,11 +1439,64 @@ ${parts.join("\n")}
       }
     );
 
+    // === ENTORNO: competencia real, señales vivas, métricas propias, datos externos ===
+    const envBlock = (() => {
+      const lines: string[] = [];
+      const comps = memoryContext.competitorDetail || [];
+      if (comps.length) {
+        lines.push("=== ENTORNO COMPETITIVO REAL (cerca del negocio) ===");
+        for (const c of comps.slice(0, 6)) {
+          const bits: string[] = [];
+          if (c.rating != null) bits.push(`reputación ${c.rating}`);
+          if (c.reviews != null) bits.push(`${c.reviews} reseñas`);
+          if (c.distanceKm != null) bits.push(`a ${Number(c.distanceKm).toFixed(1)} km`);
+          if (c.priceLevel != null) bits.push(`nivel de precio ${c.priceLevel}/4`);
+          lines.push(`- ${c.name}${bits.length ? `: ${bits.join(", ")}` : ""}`);
+        }
+        const rated = comps.filter(c => typeof c.rating === "number");
+        if (rated.length >= 2) {
+          const avg = rated.reduce((a, c) => a + Number(c.rating), 0) / rated.length;
+          const avgRev = rated.reduce((a, c) => a + Number(c.reviews ?? 0), 0) / rated.length;
+          lines.push(`- Promedio de la zona: reputación ${avg.toFixed(2)}, ${Math.round(avgRev)} reseñas por competidor.`);
+        }
+      }
+
+      const metrics = memoryContext.ownMetrics || [];
+      if (metrics.length) {
+        lines.push("=== MÉTRICAS PROPIAS MEDIDAS ===");
+        for (const m of metrics.slice(0, 8)) {
+          const when = m.at ? new Date(m.at).toISOString().slice(0, 10) : "";
+          lines.push(`- ${m.name}: ${m.value}${when ? ` (al ${when})` : ""}${m.source ? ` — fuente ${m.source}` : ""}`);
+        }
+      }
+
+      const ext = memoryContext.externalData || [];
+      if (ext.length) {
+        lines.push("=== DATOS EXTERNOS CONECTADOS ===");
+        for (const e of ext.slice(0, 5)) {
+          const when = e.at ? new Date(e.at).toISOString().slice(0, 10) : "";
+          lines.push(`- [${e.type}${when ? ` ${when}` : ""}] ${e.summary}`);
+        }
+      }
+
+      const sigs = (memoryContext.recentSignals || []).slice(0, 8);
+      if (sigs.length) {
+        lines.push("=== SEÑALES VIVAS DEL SECTOR Y DEL NEGOCIO ===");
+        for (const s of sigs) {
+          const when = (s as any).created_at ? new Date((s as any).created_at).toISOString().slice(0, 10) : "";
+          const txt = (s.raw_text || "").slice(0, 180);
+          if (txt) lines.push(`- [${s.signal_type}${when ? ` ${when}` : ""}] ${txt}`);
+        }
+      }
+
+      return lines.length ? `\n${lines.join("\n")}\n` : "";
+    })();
+
     // Build context injection message
     const contextInjection = `
 ${personalityInjection}${userPrefsInjection}
 ${renderChatContextSummary(chatContextSummary, lastText || "")}
-
+${envBlock}
 === ESTADO ACTUAL DEL NEGOCIO ===
 - Salud general: ${memoryContext.latestSnapshot?.total_score ?? "sin datos"}
 - Misiones activas: ${memoryContext.activeMissions.length}
@@ -1468,13 +1521,15 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
     // Solo los saludos triviales usan el modelo liviano.
     let selectedModel: string;
     if (isTrivial) selectedModel = "google/gemini-3.1-flash-lite";
+    else if (isComplex) selectedModel = "google/gemini-3.7-flash";
     else selectedModel = "google/gemini-3.6-flash";
 
-    // Cap de tokens — suficiente para cerrar oraciones (anti-truncación).
-    // Máximo 2 párrafos enfocados. Mismo techo para free y pro.
+    // Cap de tokens — margen real para CERRAR la idea (anti-truncación).
+    // Si el modelo llega al techo, se dispara una llamada de cierre (ver abajo).
     let maxTokens: number;
-    if (isTrivial) maxTokens = 220;
-    else maxTokens = isComplex ? 1100 : 800;
+    if (isTrivial) maxTokens = 400;
+    else maxTokens = isComplex ? 2200 : 1400;
+
 
     // Capa de terminología profesional contextual por país y actividad
     const { buildTerminologyContext } = await import("../_shared/brain-core/contextual-terminology.ts");
