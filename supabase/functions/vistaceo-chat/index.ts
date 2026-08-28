@@ -350,40 +350,40 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .limit(15),
       supabase
         .from("snapshots")
-        .select("total_score, sub_scores")
+        .select("total_score, dimensions_json")
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
       supabase
         .from("alerts")
-        .select("title, severity, category")
+        .select("alert_type, category, text_content")
         .eq("business_id", businessId)
-        .eq("status", "active")
+        .order("created_at", { ascending: false })
         .limit(5),
       supabase
         .from("opportunities")
-        .select("title, impact, status")
+        .select("title, impact_score, effort_score")
         .eq("business_id", businessId)
-        .neq("status", "dismissed")
+        .is("dismissed_at", null)
         .order("created_at", { ascending: false })
         .limit(6),
       supabase
         .from("business_competitors")
-        .select("name, strengths, weaknesses")
+        .select("name, rating, review_count")
         .eq("business_id", businessId)
         .limit(5),
       supabase
         .from("learning_items")
-        .select("title, category, status")
+        .select("title, item_type")
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(5),
       supabase
         .from("weekly_priorities")
-        .select("title, priority, status")
+        .select("title, status")
         .eq("business_id", businessId)
-        .order("priority", { ascending: true })
+        .order("created_at", { ascending: false })
         .limit(5),
     ]);
 
@@ -409,10 +409,23 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       businessInsights: insights,
       brain: brainRes.data,
       recentSignals: signalsRes.data || [],
-      latestSnapshot: snapshotRes.data,
-      activeAlerts: alertsRes.data || [],
+      latestSnapshot: snapshotRes.data
+        ? {
+            total_score: (snapshotRes.data as any).total_score ?? 0,
+            sub_scores: ((snapshotRes.data as any).dimensions_json ?? {}) as Record<string, number>,
+          }
+        : null,
+      activeAlerts: (alertsRes.data || []).map((a: any) => ({
+        title: a.text_content || a.alert_type || "",
+        severity: a.alert_type || "info",
+        category: a.category || "",
+      })),
       openOpportunities: opportunitiesRes.data || [],
-      competitors: competitorsRes.data || [],
+      competitors: (competitorsRes.data || []).map((c: any) => ({
+        name: c.name,
+        strengths: c.rating ? `rating ${c.rating} (${c.review_count ?? 0} reseñas)` : null,
+        weaknesses: null,
+      })),
       learningItems: learningRes.data || [],
       weeklyPriorities: prioritiesRes.data || [],
     };

@@ -113,13 +113,16 @@ export function emailQualityCheck(input: EmailQualityInput): EmailQualityResult 
   if (suspicious) { bodyOk = false; reasons.push("link acortado sospechoso"); }
 
   // ---- Personalización ----
+  // minAnchors <= 0 = el llamador declara explícitamente que este email puede ir
+  // sin anclas de negocio (ej: recordatorio a alguien que aún no creó su negocio).
+  const requestedMinAnchors = input.minAnchors ?? 1;
   const hp = hyperPersonalizationCheck({
     text: subject + "\n" + body,
     anchors: input.anchors,
-    minAnchors: input.minAnchors ?? 1,
+    minAnchors: Math.max(1, requestedMinAnchors),
     requireSpecific: false,
   });
-  if (!hp.ok) {
+  if (!hp.ok && requestedMinAnchors > 0) {
     bodyOk = false;
     reasons.push(...hp.reasons.map((r) => `email/${r}`));
   }
