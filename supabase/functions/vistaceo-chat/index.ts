@@ -158,6 +158,9 @@ interface MemoryContext {
   competitors: Array<{ name: string; strengths: unknown; weaknesses: unknown }>;
   learningItems: Array<{ title: string; category: string; status: string }>;
   weeklyPriorities: Array<{ title: string; priority: number; status: string }>;
+  competitorDetail: Array<{ name: string; rating: number | null; reviews: number | null; distanceKm: number | null; priceLevel: number | null }>;
+  ownMetrics: Array<{ name: string; value: number; source: string | null; at: string | null }>;
+  externalData: Array<{ type: string; summary: string; sentiment: number | null; at: string | null }>;
 }
 
 function buildConfigJson(business: BusinessContext, brain: BrainData | null): Record<string, unknown> {
@@ -304,6 +307,7 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       actionsRes, missionsRes, checkinsRes, lessonsRes, insightsRes,
       brainRes, signalsRes, snapshotRes, alertsRes,
       opportunitiesRes, competitorsRes, learningRes, prioritiesRes,
+      metricsRes, externalRes,
     ] = await Promise.all([
       supabase
         .from("daily_actions")
@@ -370,9 +374,9 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .limit(6),
       supabase
         .from("business_competitors")
-        .select("name, rating, review_count")
+        .select("name, rating, review_count, distance_km, price_level")
         .eq("business_id", businessId)
-        .limit(5),
+        .limit(8),
       supabase
         .from("learning_items")
         .select("title, item_type")
@@ -385,6 +389,18 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(5),
+      supabase
+        .from("metrics_timeseries")
+        .select("metric_name, metric_source, value, period_end")
+        .eq("business_id", businessId)
+        .order("period_end", { ascending: false })
+        .limit(10),
+      supabase
+        .from("external_data")
+        .select("data_type, content, sentiment_score, created_at")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(6),
     ]);
 
     const lessons: string[] = [];
@@ -428,6 +444,33 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       })),
       learningItems: learningRes.data || [],
       weeklyPriorities: prioritiesRes.data || [],
+      competitorDetail: (competitorsRes.data || []).map((c: any) => ({
+        name: c.name,
+        rating: c.rating ?? null,
+        reviews: c.review_count ?? null,
+        distanceKm: c.distance_km ?? null,
+        priceLevel: c.price_level ?? null,
+      })),
+      ownMetrics: (metricsRes?.data || []).map((m: any) => ({
+        name: m.metric_name,
+        value: Number(m.value),
+        source: m.metric_source ?? null,
+        at: m.period_end ?? null,
+      })),
+      externalData: (externalRes?.data || []).map((e: any) => {
+        const c = e.content;
+        let summary = "";
+        if (typeof c === "string") summary = c;
+        else if (c && typeof c === "object") {
+          summary = String((c as any).text ?? (c as any).summary ?? (c as any).title ?? "");
+        }
+        return {
+          type: e.data_type || "dato",
+          summary: summary.slice(0, 220),
+          sentiment: e.sentiment_score ?? null,
+          at: e.created_at ?? null,
+        };
+      }).filter((e: any) => e.summary),
     };
   } catch (error) {
     console.error("Error fetching memory context:", error);
@@ -445,6 +488,9 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
       competitors: [],
       learningItems: [],
       weeklyPriorities: [],
+      competitorDetail: [],
+      ownMetrics: [],
+      externalData: [],
     };
   }
 }
@@ -559,12 +605,43 @@ export function isLowQualityReply(reply: string): { bad: boolean; reason?: strin
   if (/^[\s]*[*\-•]\s+\S/m.test(reply) && (reply.match(/^[\s]*[*\-•]\s+/gm) || []).length >= 3) {
     return { bad: true, reason: "bullet_symbols" };
   }
-  // Truncación obvia: termina sin signo de cierre y la última palabra es conjunción
-  const tail = reply.trim().split(/\s+/).slice(-1)[0] || "";
-  if (!/[.!?…"')\]]$/.test(reply.trim()) && /^(y|o|de|en|con|para|el|la|los|las|un|una|que|del|al|si|pero|por|sin|sobre|entre)$/i.test(tail)) {
+  // Truncación (detector endurecido)
+  if (looksTruncated(reply)) {
     return { bad: true, reason: "truncated_tail" };
   }
   return { bad: false };
+}
+
+/**
+ * Detecta si un texto quedó cortado a mitad de idea.
+ * Mucho más estricto que el detector viejo (que solo miraba conjunciones).
+ */
+export function looksTruncated(reply: string): boolean {
+  const t = (reply || "").trim();
+  if (!t) return false;
+  // Termina con puntuación de cierre real → está cerrado.
+  const closed = /[.!?…]["')\]]?$/.test(t);
+  if (closed) return false;
+  // Termina con coma, dos puntos, punto y coma, guion o paréntesis abierto → cortado.
+  if (/[,;:\-–—(«"]$/.test(t)) return true;
+  // Última palabra es conjunción / preposición / artículo → cortado.
+  const tail = t.split(/\s+/).slice(-1)[0] || "";
+  if (/^(y|e|o|u|de|del|al|en|con|para|por|sin|sobre|entre|el|la|los|las|un|una|unos|unas|que|si|pero|como|cuando|donde|desde|hasta|más|menos|muy|ya|lo|su|sus|tu|tus|mi|mis)$/i.test(tail)) return true;
+  // Lista numerada abierta: última línea empieza con "3." o "3)" y tiene menos de 12 caracteres útiles.
+  const lastLine = t.split("\n").slice(-1)[0].trim();
+  if (/^\d+[.)]\s*\S{0,10}$/.test(lastLine)) return true;
+  // Sin puntuación final y con longitud considerable → asumimos corte.
+  if (t.length > 60) return true;
+  return false;
+}
+
+/** Recorta hasta la última oración completa. Última red anti-texto cortado. */
+export function trimToLastSentence(reply: string): string {
+  const t = (reply || "").trim();
+  if (!t || !looksTruncated(t)) return t;
+  const idx = Math.max(t.lastIndexOf("."), t.lastIndexOf("!"), t.lastIndexOf("?"), t.lastIndexOf("…"));
+  if (idx > 40) return t.slice(0, idx + 1).trim();
+  return t;
 }
 
 const RELEVANCE_STOPWORDS = new Set([
@@ -1270,6 +1347,9 @@ serve(async (req) => {
       competitors: [],
       learningItems: [],
       weeklyPriorities: [],
+      competitorDetail: [],
+      ownMetrics: [],
+      externalData: [],
     };
 
     if (businessContext?.id && supabase) {
@@ -1390,11 +1470,64 @@ ${parts.join("\n")}
       }
     );
 
+    // === ENTORNO: competencia real, señales vivas, métricas propias, datos externos ===
+    const envBlock = (() => {
+      const lines: string[] = [];
+      const comps = memoryContext.competitorDetail || [];
+      if (comps.length) {
+        lines.push("=== ENTORNO COMPETITIVO REAL (cerca del negocio) ===");
+        for (const c of comps.slice(0, 6)) {
+          const bits: string[] = [];
+          if (c.rating != null) bits.push(`reputación ${c.rating}`);
+          if (c.reviews != null) bits.push(`${c.reviews} reseñas`);
+          if (c.distanceKm != null) bits.push(`a ${Number(c.distanceKm).toFixed(1)} km`);
+          if (c.priceLevel != null) bits.push(`nivel de precio ${c.priceLevel}/4`);
+          lines.push(`- ${c.name}${bits.length ? `: ${bits.join(", ")}` : ""}`);
+        }
+        const rated = comps.filter(c => typeof c.rating === "number");
+        if (rated.length >= 2) {
+          const avg = rated.reduce((a, c) => a + Number(c.rating), 0) / rated.length;
+          const avgRev = rated.reduce((a, c) => a + Number(c.reviews ?? 0), 0) / rated.length;
+          lines.push(`- Promedio de la zona: reputación ${avg.toFixed(2)}, ${Math.round(avgRev)} reseñas por competidor.`);
+        }
+      }
+
+      const metrics = memoryContext.ownMetrics || [];
+      if (metrics.length) {
+        lines.push("=== MÉTRICAS PROPIAS MEDIDAS ===");
+        for (const m of metrics.slice(0, 8)) {
+          const when = m.at ? new Date(m.at).toISOString().slice(0, 10) : "";
+          lines.push(`- ${m.name}: ${m.value}${when ? ` (al ${when})` : ""}${m.source ? ` — fuente ${m.source}` : ""}`);
+        }
+      }
+
+      const ext = memoryContext.externalData || [];
+      if (ext.length) {
+        lines.push("=== DATOS EXTERNOS CONECTADOS ===");
+        for (const e of ext.slice(0, 5)) {
+          const when = e.at ? new Date(e.at).toISOString().slice(0, 10) : "";
+          lines.push(`- [${e.type}${when ? ` ${when}` : ""}] ${e.summary}`);
+        }
+      }
+
+      const sigs = (memoryContext.recentSignals || []).slice(0, 8);
+      if (sigs.length) {
+        lines.push("=== SEÑALES VIVAS DEL SECTOR Y DEL NEGOCIO ===");
+        for (const s of sigs) {
+          const when = (s as any).created_at ? new Date((s as any).created_at).toISOString().slice(0, 10) : "";
+          const txt = (s.raw_text || "").slice(0, 180);
+          if (txt) lines.push(`- [${s.signal_type}${when ? ` ${when}` : ""}] ${txt}`);
+        }
+      }
+
+      return lines.length ? `\n${lines.join("\n")}\n` : "";
+    })();
+
     // Build context injection message
     const contextInjection = `
 ${personalityInjection}${userPrefsInjection}
 ${renderChatContextSummary(chatContextSummary, lastText || "")}
-
+${envBlock}
 === ESTADO ACTUAL DEL NEGOCIO ===
 - Salud general: ${memoryContext.latestSnapshot?.total_score ?? "sin datos"}
 - Misiones activas: ${memoryContext.activeMissions.length}
@@ -1419,13 +1552,15 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
     // Solo los saludos triviales usan el modelo liviano.
     let selectedModel: string;
     if (isTrivial) selectedModel = "google/gemini-3.1-flash-lite";
+    else if (isComplex) selectedModel = "google/gemini-3.7-flash";
     else selectedModel = "google/gemini-3.6-flash";
 
-    // Cap de tokens — suficiente para cerrar oraciones (anti-truncación).
-    // Máximo 2 párrafos enfocados. Mismo techo para free y pro.
+    // Cap de tokens — margen real para CERRAR la idea (anti-truncación).
+    // Si el modelo llega al techo, se dispara una llamada de cierre (ver abajo).
     let maxTokens: number;
-    if (isTrivial) maxTokens = 220;
-    else maxTokens = isComplex ? 1100 : 800;
+    if (isTrivial) maxTokens = 400;
+    else maxTokens = isComplex ? 2200 : 1400;
+
 
     // Capa de terminología profesional contextual por país y actividad
     const { buildTerminologyContext } = await import("../_shared/brain-core/contextual-terminology.ts");
@@ -1487,7 +1622,18 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
 4. Si ya hablaron de este tema antes, retomá el hilo en vez de arrancar de cero.
 5. Si la pregunta exige un dato que no está, pedilo en UNA línea o devolvé hipótesis explícita marcada como tal.
 6. Adaptá tono y formato a las preferencias persistentes del usuario, sin nombrarlas.
-7. Nunca repitas el mensaje del usuario. Nunca devuelvas JSON ni códigos internos. Español natural, ejecutivo.`;
+7. Nunca repitas el mensaje del usuario. Nunca devuelvas JSON ni códigos internos. Español natural, ejecutivo.
+
+CRUCE DE FUENTES (esto es lo que te vuelve irremplazable):
+8. Antes de escribir, cruzá al menos DOS fuentes distintas del contexto: un dato propio del negocio (métrica, ticket, fricción, misión, dato confirmado) con una referencia del entorno (competidor cercano y su reputación, señal reciente del sector, dato externo conectado, patrón de la zona o del rubro).
+9. De ese cruce sacá UNA conclusión no obvia: algo que el dueño probablemente no pensó solo. No repitas lo que ya sabe. Si es una inferencia, decilo con franqueza ("mi lectura, con lo que tengo, es que...").
+10. Cuando cites un número, decí de dónde sale (una métrica medida, una reseña, lo que el usuario contó). Nunca inventes cifras ni promedios de industria que no estén en el contexto.
+11. Si el contexto no alcanza para una conclusión de ese calibre, decilo en una línea y ofrecé la mejor lectura posible igual. Nunca rellenes con generalidades.
+
+LARGO CON CRITERIO (regla dura):
+12. Cerrá SIEMPRE la idea. Está terminantemente prohibido dejar una oración, una enumeración o un párrafo a medias.
+13. Extensión objetivo: 1 o 2 párrafos cortos para preguntas simples; 3 a 6 párrafos cortos para análisis. No estires ni agregues relleno para parecer más completo.
+14. No abras un tema nuevo sobre el final: si sentís que te queda poco margen, terminá bien lo que ya empezaste y cerrá con la acción concreta.`;
 
     // Anclajes reales del negocio: fuerza respuestas no intercambiables.
     let chatAnchorDirective = "";
@@ -1570,6 +1716,7 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
 
     const data = await response.json();
     const rawResponse = data.choices?.[0]?.message?.content;
+    const finishReason = data.choices?.[0]?.finish_reason;
 
     if (!rawResponse) {
       throw new Error("No response from AI");
@@ -1577,6 +1724,48 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
 
     // Parse the structured response (pasamos texto de usuario para anti-eco)
     let parsed = parseCEOResponse(rawResponse, lastText);
+
+    // ===== CONTINUACIÓN: el modelo se quedó sin tokens → cerramos la idea =====
+    // Nunca mostramos un texto cortado: pedimos UNA continuación que termine
+    // exactamente donde quedó, sin repetir nada.
+    if (finishReason === "length" || looksTruncated(parsed.userReply)) {
+      console.warn("[chat] respuesta cortada, disparando cierre", { finishReason });
+      try {
+        const tailForModel = (parsed.userReply || "").slice(-700);
+        const contResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: selectedModel,
+            messages: [
+              {
+                role: "system",
+                content: `Sos el CEO virtual del negocio del usuario. Tu respuesta anterior quedó cortada. Vas a escribir SOLO la continuación exacta desde donde quedó, cerrando la idea en pocas frases y terminando con punto final. Reglas: no repitas nada de lo ya escrito, no saludes, no resumas, no abras temas nuevos, no uses asteriscos ni JSON, español natural y ejecutivo. Empezá exactamente donde termina el fragmento (si quedó a mitad de palabra u oración, completala).`,
+              },
+              {
+                role: "user",
+                content: `Pregunta original del usuario: """${lastText}"""\n\nFragmento ya escrito (termina cortado):\n"""${tailForModel}"""\n\nEscribí únicamente la continuación que cierra la idea.`,
+              },
+            ],
+            stream: false,
+            temperature: 0.4,
+            max_tokens: 500,
+          }),
+        });
+        if (contResp.ok) {
+          const contData = await contResp.json();
+          const contText = String(contData.choices?.[0]?.message?.content || "").trim();
+          if (contText) {
+            const base = (parsed.userReply || "").trimEnd();
+            const needsSpace = /[a-zA-ZáéíóúñÁÉÍÓÚÑ0-9,;:]$/.test(base);
+            parsed.userReply = `${base}${needsSpace ? " " : ""}${contText}`.trim();
+            console.log("[chat] cierre aplicado", { added: contText.length });
+          }
+        }
+      } catch (e) {
+        console.error("[chat] cierre falló:", (e as Error).message);
+      }
+    }
 
     // ===== QUALITY GATE: auto-retry si la respuesta es de baja calidad o no responde la pregunta =====
     const lowQuality = isLowQualityReply(parsed.userReply);
@@ -1707,6 +1896,16 @@ ${renderChatContextSummary(chatContextSummary, lastText || "")}
     // Último fallback seguro (Parte 3 §12)
     if (!parsed.userReply || parsed.userReply.trim().length < 8) {
       parsed.userReply = safeUserFacingError(lastText);
+    }
+
+    // ÚLTIMA RED ANTI-TEXTO CORTADO: si aún quedó una frase abierta, recortamos
+    // hasta la última oración completa. Nunca mostramos una idea colgada.
+    if (looksTruncated(parsed.userReply)) {
+      const trimmed = trimToLastSentence(parsed.userReply);
+      if (trimmed && trimmed.length >= 40) {
+        console.warn("[chat] recorte final a última oración completa");
+        parsed.userReply = trimmed;
+      }
     }
 
     console.log("VistaCEO response parsed:", {
