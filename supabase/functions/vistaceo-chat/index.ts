@@ -1887,6 +1887,16 @@ ${envBlock}
       parsed.userReply = safeUserFacingError(lastText);
     }
 
+    // ÚLTIMA RED ANTI-TEXTO CORTADO: si aún quedó una frase abierta, recortamos
+    // hasta la última oración completa. Nunca mostramos una idea colgada.
+    if (looksTruncated(parsed.userReply)) {
+      const trimmed = trimToLastSentence(parsed.userReply);
+      if (trimmed && trimmed.length >= 40) {
+        console.warn("[chat] recorte final a última oración completa");
+        parsed.userReply = trimmed;
+      }
+    }
+
     console.log("VistaCEO response parsed:", {
       hasUserReply: !!parsed.userReply,
       hasAudioScript: !!parsed.audioScript,
