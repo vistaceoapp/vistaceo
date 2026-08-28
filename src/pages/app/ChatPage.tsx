@@ -790,7 +790,10 @@ const ChatPage = () => {
             attachedFiles={attachedFiles}
             onAttachFiles={setAttachedFiles}
             onRemoveFile={(id) => setAttachedFiles(prev => prev.filter(f => f.id !== id))}
+            canAttach={isPro}
+            onAttachBlocked={handleAttachBlocked}
             isMobile={isMobile}
+
           />
         </div>
       </div>
