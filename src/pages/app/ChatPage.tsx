@@ -419,12 +419,18 @@ const ChatPage = () => {
           inputType: hasAttachments ? "multimodal" : inputType,
           messageId: turnId,
           personalityPrompt: personalityPrompt,
-          attachments: messageAttachments.map(f => ({
-            name: f.file.name,
-            type: f.type,
-            size: f.file.size,
-            dataUrl: f.type === "image" ? f.preview : undefined,
-          })),
+          documentContext: documentContext || undefined,
+          attachments: messageAttachments.map(f => {
+            const doc = f.type === "document" ? docs.find(d => d.name === f.file.name) : undefined;
+            return {
+              name: f.file.name,
+              type: f.type,
+              size: f.file.size,
+              dataUrl: f.type === "image" ? f.preview : doc?.dataUrl,
+              mimeType: f.type === "image" ? f.file.type : doc?.mimeType,
+            };
+          }),
+
         },
       });
 
