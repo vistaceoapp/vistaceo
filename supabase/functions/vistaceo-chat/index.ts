@@ -374,9 +374,9 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .limit(6),
       supabase
         .from("business_competitors")
-        .select("name, rating, review_count")
+        .select("name, rating, review_count, distance_km, price_level")
         .eq("business_id", businessId)
-        .limit(5),
+        .limit(8),
       supabase
         .from("learning_items")
         .select("title, item_type")
@@ -389,6 +389,18 @@ async function fetchMemoryContext(supabase: any, businessId: string): Promise<Me
         .eq("business_id", businessId)
         .order("created_at", { ascending: false })
         .limit(5),
+      supabase
+        .from("metrics_timeseries")
+        .select("metric_name, metric_source, value, period_end")
+        .eq("business_id", businessId)
+        .order("period_end", { ascending: false })
+        .limit(10),
+      supabase
+        .from("external_data")
+        .select("data_type, content, sentiment_score, created_at")
+        .eq("business_id", businessId)
+        .order("created_at", { ascending: false })
+        .limit(6),
     ]);
 
     const lessons: string[] = [];
