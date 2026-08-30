@@ -90,7 +90,9 @@ const ChatPage = () => {
   // File attachments
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   // Documentos ya leídos en esta conversación (se mantienen como contexto vivo)
-  const sessionDocsRef = useRef<ExtractedDocument[]>([]);
+  const sessionDocsRef = useRef<{ doc: ExtractedDocument; turn: number }[]>([]);
+  const sessionTurnRef = useRef(0);
+
 
   const handleAttachBlocked = useCallback(() => {
     toast({
