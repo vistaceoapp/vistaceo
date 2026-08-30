@@ -611,6 +611,9 @@ const ChatPage = () => {
     try {
       await supabase.from("chat_messages").delete().eq("business_id", currentBusiness.id);
       setMessages([]);
+      sessionDocsRef.current = [];
+      sessionTurnRef.current = 0;
+
       toast({ title: "Nueva conversación iniciada" });
     } catch (error) {
       console.error("Error clearing chat:", error);
