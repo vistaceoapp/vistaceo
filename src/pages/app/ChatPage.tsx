@@ -342,10 +342,20 @@ const ChatPage = () => {
       });
     }
     const readableDocs = docs.filter((d) => d.text);
+    sessionTurnRef.current += 1;
     if (readableDocs.length > 0) {
-      sessionDocsRef.current = [...sessionDocsRef.current, ...readableDocs].slice(-4);
+      sessionDocsRef.current = [
+        ...sessionDocsRef.current,
+        ...readableDocs.map((d) => ({ doc: d, turn: sessionTurnRef.current })),
+      ].slice(-4);
     }
-    const documentContext = renderDocumentContext(sessionDocsRef.current);
+    // Los archivos solo acompañan los turnos inmediatamente siguientes a su carga:
+    // así una pregunta no relacionada no arrastra los números de un archivo viejo.
+    sessionDocsRef.current = sessionDocsRef.current.filter(
+      (d) => sessionTurnRef.current - d.turn <= DOC_CONTEXT_TURNS
+    );
+    const documentContext = renderDocumentContext(sessionDocsRef.current.map((d) => d.doc));
+
 
     let fullContent = textToSend;
     if (hasAttachments) {
