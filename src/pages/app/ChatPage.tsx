@@ -90,7 +90,12 @@ const ChatPage = () => {
   // File attachments
   const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
   // Documentos ya leídos en esta conversación (se mantienen como contexto vivo)
-  const sessionDocsRef = useRef<ExtractedDocument[]>([]);
+  const sessionDocsRef = useRef<{ doc: ExtractedDocument; turn: number }[]>([]);
+  const sessionTurnRef = useRef(0);
+  /** Cuántos turnos sigue vigente un archivo adjunto después de subirlo. */
+  const DOC_CONTEXT_TURNS = 3;
+
+
 
   const handleAttachBlocked = useCallback(() => {
     toast({
@@ -342,10 +347,20 @@ const ChatPage = () => {
       });
     }
     const readableDocs = docs.filter((d) => d.text);
+    sessionTurnRef.current += 1;
     if (readableDocs.length > 0) {
-      sessionDocsRef.current = [...sessionDocsRef.current, ...readableDocs].slice(-4);
+      sessionDocsRef.current = [
+        ...sessionDocsRef.current,
+        ...readableDocs.map((d) => ({ doc: d, turn: sessionTurnRef.current })),
+      ].slice(-4);
     }
-    const documentContext = renderDocumentContext(sessionDocsRef.current);
+    // Los archivos solo acompañan los turnos inmediatamente siguientes a su carga:
+    // así una pregunta no relacionada no arrastra los números de un archivo viejo.
+    sessionDocsRef.current = sessionDocsRef.current.filter(
+      (d) => sessionTurnRef.current - d.turn <= DOC_CONTEXT_TURNS
+    );
+    const documentContext = renderDocumentContext(sessionDocsRef.current.map((d) => d.doc));
+
 
     let fullContent = textToSend;
     if (hasAttachments) {
@@ -596,6 +611,9 @@ const ChatPage = () => {
     try {
       await supabase.from("chat_messages").delete().eq("business_id", currentBusiness.id);
       setMessages([]);
+      sessionDocsRef.current = [];
+      sessionTurnRef.current = 0;
+
       toast({ title: "Nueva conversación iniciada" });
     } catch (error) {
       console.error("Error clearing chat:", error);
