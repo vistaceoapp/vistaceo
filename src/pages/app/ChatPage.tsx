@@ -92,6 +92,9 @@ const ChatPage = () => {
   // Documentos ya leídos en esta conversación (se mantienen como contexto vivo)
   const sessionDocsRef = useRef<{ doc: ExtractedDocument; turn: number }[]>([]);
   const sessionTurnRef = useRef(0);
+  /** Cuántos turnos sigue vigente un archivo adjunto después de subirlo. */
+  const DOC_CONTEXT_TURNS = 3;
+
 
 
   const handleAttachBlocked = useCallback(() => {
