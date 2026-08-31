@@ -33,6 +33,8 @@ interface ChatMessageProps {
   attachments?: AttachedFile[];
   missionSuggestions?: MissionSuggestion[];
   isNew?: boolean;
+  onAction?: (action: "mission" | "deepen", content: string) => void;
+
 }
 
 /** Typing reveal effect for assistant messages */
