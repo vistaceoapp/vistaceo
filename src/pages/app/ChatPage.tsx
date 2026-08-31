@@ -741,6 +741,19 @@ const ChatPage = () => {
                   attachments={message.attachments}
                   missionSuggestions={message.missionSuggestions}
                   isNew={message.isNew}
+                  onAction={(action, text) => {
+                    const excerpt = text.slice(0, 700);
+                    if (action === "mission") {
+                      sendMessage(
+                        `Convertí esto en una misión concreta para mi negocio, con pasos accionables y un KPI medible:\n\n"${excerpt}"`
+                      );
+                    } else {
+                      sendMessage(
+                        `Profundizá en esto: dame el detalle fino, los números que debería mirar y qué haría un experto de mi sector distinto:\n\n"${excerpt}"`
+                      );
+                    }
+                  }}
+
                 />
               ))}
 

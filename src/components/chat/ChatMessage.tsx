@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Brain, Check, CheckCheck, FileText } from "lucide-react";
+import { Brain, Check, CheckCheck, FileText, Target, Layers, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CEOAvatar } from "./CEOAvatar";
 import { cn } from "@/lib/utils";
@@ -33,6 +33,8 @@ interface ChatMessageProps {
   attachments?: AttachedFile[];
   missionSuggestions?: MissionSuggestion[];
   isNew?: boolean;
+  onAction?: (action: "mission" | "deepen", content: string) => void;
+
 }
 
 /** Typing reveal effect for assistant messages */
@@ -80,13 +82,27 @@ export const ChatMessage = ({
   attachments,
   missionSuggestions,
   isNew = false,
+  onAction,
 }: ChatMessageProps) => {
   const isUser = role === "user";
   const isRecent = Date.now() - new Date(timestamp).getTime() < 5000;
+  const [copied, setCopied] = useState(false);
   // Sanitize assistant content (strip internal codes, fix capitalization, spacing).
   // User messages are shown as-is.
   const safeContent = isUser ? content : sanitizeAIOutput(content);
   const displayContent = useTypingReveal(safeContent, isNew, role);
+  const isTyping = displayContent.length < safeContent.length;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(safeContent);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard no disponible */
+    }
+  };
+
 
   return (
     <div
@@ -163,6 +179,38 @@ export const ChatMessage = ({
         {missionSuggestions && missionSuggestions.length > 0 && !isUser && (
           <MissionActionCard businessId={businessId} suggestions={missionSuggestions} />
         )}
+
+        {/* Acciones rápidas sobre la respuesta */}
+        {!isUser && !isTyping && displayContent.length > 160 && (
+          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            {(!missionSuggestions || missionSuggestions.length === 0) && onAction && (
+              <button
+                onClick={() => onAction("mission", content)}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-primary/8 text-primary border border-primary/20 hover:bg-primary/15 transition-colors"
+              >
+                <Target className="w-3 h-3" />
+                Convertir en misión
+              </button>
+            )}
+            {onAction && (
+              <button
+                onClick={() => onAction("deepen", content)}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground border border-border/50 hover:text-foreground transition-colors"
+              >
+                <Layers className="w-3 h-3" />
+                Profundizar
+              </button>
+            )}
+            <button
+              onClick={handleCopy}
+              className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground border border-border/50 hover:text-foreground transition-colors"
+            >
+              {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+              {copied ? "Copiado" : "Copiar"}
+            </button>
+          </div>
+        )}
+
 
         {/* Meta info bar */}
         <div className={cn("flex items-center gap-2 mt-1 px-1", isUser ? "justify-end" : "justify-start")}>
