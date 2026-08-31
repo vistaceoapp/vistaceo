@@ -97,7 +97,11 @@ export async function sendAppEmail(
   // Email Quality Gate — bloquea emails genéricos, spammy o sin personalización
   // mínima. Solo aplica a emails de reactivación/recovery; los transaccionales
   // puros no requieren personalización profunda.
-  const isRecoveryLike = /reactiv|recovery|reminder|silent|reengagement/i.test(templateName)
+  // `qualityGateMode: 'off'` = plantilla estática escrita a mano y revisada:
+  // el gate existe para texto generado por IA, no para copy fijo.
+  const gateDisabled = String(templateData?.qualityGateMode ?? '') === 'off'
+  const isRecoveryLike =
+    !gateDisabled && /reactiv|recovery|reminder|silent|reengagement/i.test(templateName)
   const resolvedSubject =
     typeof template.subject === 'function' ? template.subject(templateData) : template.subject
 
