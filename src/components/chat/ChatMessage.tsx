@@ -164,6 +164,38 @@ export const ChatMessage = ({
           <MissionActionCard businessId={businessId} suggestions={missionSuggestions} />
         )}
 
+        {/* Acciones rápidas sobre la respuesta */}
+        {!isUser && !isTyping && displayContent.length > 160 && (
+          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            {(!missionSuggestions || missionSuggestions.length === 0) && onAction && (
+              <button
+                onClick={() => onAction("mission", content)}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-primary/8 text-primary border border-primary/20 hover:bg-primary/15 transition-colors"
+              >
+                <Target className="w-3 h-3" />
+                Convertir en misión
+              </button>
+            )}
+            {onAction && (
+              <button
+                onClick={() => onAction("deepen", content)}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground border border-border/50 hover:text-foreground transition-colors"
+              >
+                <Layers className="w-3 h-3" />
+                Profundizar
+              </button>
+            )}
+            <button
+              onClick={handleCopy}
+              className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground border border-border/50 hover:text-foreground transition-colors"
+            >
+              {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+              {copied ? "Copiado" : "Copiar"}
+            </button>
+          </div>
+        )}
+
+
         {/* Meta info bar */}
         <div className={cn("flex items-center gap-2 mt-1 px-1", isUser ? "justify-end" : "justify-start")}>
           <span className="text-[10px] text-muted-foreground/50 font-medium tabular-nums">
