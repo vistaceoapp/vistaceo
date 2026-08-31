@@ -139,8 +139,10 @@ Deno.serve(async (req) => {
           trackingId: `credit-recovery-${p.id.slice(0, 8)}`,
           businessName: eligibleOwners.get(p.id)?.businessName || '',
           businessCategory: eligibleOwners.get(p.id)?.businessCategory || null,
-          // Sin negocio cargado no hay anclas posibles: no bloquear el envío.
-          qualityGateMinAnchors: eligibleOwners.get(p.id)?.businessName ? 1 : 0,
+          sector: eligibleOwners.get(p.id)?.businessCategory || null,
+          // Plantilla estática escrita a mano: el gate de calidad (pensado para
+          // texto generado por IA) no aplica y bloqueaba el envío de disculpas.
+          qualityGateMode: 'off',
         },
       })
 
