@@ -113,7 +113,7 @@ export async function sendAppEmail(
       )
       const anchors = {
         businessName: (templateData?.businessName as string) ?? (templateData?.name as string) ?? null,
-        sector: (templateData?.sector as string) ?? null,
+        sector: (templateData?.sector as string) ?? (templateData?.businessCategory as string) ?? null,
         subSector: (templateData?.subSector as string) ?? null,
         country: (templateData?.countryCode as string) ?? (templateData?.country as string) ?? null,
         city: (templateData?.city as string) ?? null,
