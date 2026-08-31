@@ -80,13 +80,27 @@ export const ChatMessage = ({
   attachments,
   missionSuggestions,
   isNew = false,
+  onAction,
 }: ChatMessageProps) => {
   const isUser = role === "user";
   const isRecent = Date.now() - new Date(timestamp).getTime() < 5000;
+  const [copied, setCopied] = useState(false);
   // Sanitize assistant content (strip internal codes, fix capitalization, spacing).
   // User messages are shown as-is.
   const safeContent = isUser ? content : sanitizeAIOutput(content);
   const displayContent = useTypingReveal(safeContent, isNew, role);
+  const isTyping = displayContent.length < safeContent.length;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(safeContent);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard no disponible */
+    }
+  };
+
 
   return (
     <div
