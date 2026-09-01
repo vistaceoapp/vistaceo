@@ -155,7 +155,7 @@ export function sanitizeAIOutput(
     re.lastIndex = 0;
     result = result.replace(re, '');
   }
-  result = result.replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ');
+  result = result.replace(/\(\s*\)/g, '').replace(/[^\S\n]{2,}/g, ' ');
 
   // ===== CAPA 0: STRIP INTERNAL XML/TAG BLOCKS (P0 ZERO LEAKAGE) =====
   const INTERNAL_BLOCKS = [
