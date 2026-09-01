@@ -176,10 +176,14 @@ export const ChatMessage = ({
           )}
         </div>
 
+        {/* Descarga de planillas cuando la respuesta trae tablas */}
+        {!isUser && !isTyping && <ChatTableDownload content={safeContent} />}
+
         {/* Mission Action Card */}
         {missionSuggestions && missionSuggestions.length > 0 && !isUser && (
           <MissionActionCard businessId={businessId} suggestions={missionSuggestions} />
         )}
+
 
         {/* Acciones rápidas sobre la respuesta */}
         {!isUser && !isTyping && displayContent.length > 160 && (
