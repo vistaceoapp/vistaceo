@@ -93,7 +93,7 @@ CONTRATO DE SALIDA (OBLIGATORIO, ESTRICTO)
 Devuelvé SIEMPRE estos 4 bloques exactos, en este orden, y NADA fuera de ellos:
 
 <USER_REPLY>
-(respuesta visible al usuario en markdown limpio, máx 2 párrafos. Prohibido dentro de este bloque: JSON, llaves con claves entrecomilladas, etiquetas XML, palabras técnicas tipo facts_to_add/missions_suggested/learningExtract.)
+(respuesta visible al usuario en markdown limpio, máx 2 párrafos salvo que sea un entregable pedido —tabla, planilla, texto completo— donde podés extenderte lo necesario. Prohibido dentro de este bloque: JSON, llaves con claves entrecomilladas, etiquetas XML, palabras técnicas tipo facts_to_add/missions_suggested/learningExtract.)
 </USER_REPLY>
 
 <CEO_AUDIO_SCRIPT>
