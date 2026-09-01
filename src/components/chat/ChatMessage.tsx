@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CEOAvatar } from "./CEOAvatar";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { AttachedFile } from "./ChatInput";
 import { MissionActionCard } from "./MissionActionCard";
 import { ChatTableDownload } from "./ChatTableDownload";
