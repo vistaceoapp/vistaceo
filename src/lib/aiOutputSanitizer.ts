@@ -155,7 +155,7 @@ export function sanitizeAIOutput(
     re.lastIndex = 0;
     result = result.replace(re, '');
   }
-  result = result.replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ');
+  result = result.replace(/\(\s*\)/g, '').replace(/[^\S\n]{2,}/g, ' ');
 
   // ===== CAPA 0: STRIP INTERNAL XML/TAG BLOCKS (P0 ZERO LEAKAGE) =====
   const INTERNAL_BLOCKS = [
@@ -225,8 +225,8 @@ export function sanitizeAIOutput(
   result = result.replace(/^\s*:\s*/gm, '');
   result = result.replace(/\s+:\s*$/gm, '');
   
-  // Remove double spaces
-  result = result.replace(/\s{2,}/g, ' ');
+  // Remove double spaces (sin tocar saltos de línea: rompen tablas y párrafos)
+  result = result.replace(/[^\S\n]{2,}/g, ' ');
   
   // Remove lines that are just whitespace
   result = result.replace(/^\s+$/gm, '');
@@ -272,7 +272,7 @@ function closeDanglingSentence(text: string): string {
   const t = text.trimEnd();
   if (!t) return t;
   // Si ya termina en signo de cierre, ok
-  if (/[.!?…:"'»\)\]]$/.test(t)) return t;
+  if (/[.!?…:"'»\)\]\|]$/.test(t)) return t;
   // Si la última "palabra" es muy corta o termina en conjunción, cerrar con elipsis
   const lastWord = t.split(/\s+/).pop() || "";
   const danglers = /^(y|o|u|e|de|en|con|por|para|el|la|los|las|un|una|que|del|al|si|pero|ni|sin|sobre|entre|hacia|tras|según)$/i;

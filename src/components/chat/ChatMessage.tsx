@@ -4,8 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { CEOAvatar } from "./CEOAvatar";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { AttachedFile } from "./ChatInput";
 import { MissionActionCard } from "./MissionActionCard";
+import { ChatTableDownload } from "./ChatTableDownload";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 
 interface MissionSuggestion {
@@ -154,8 +156,22 @@ export const ChatMessage = ({
           ) : (
             <div className="prose prose-sm dark:prose-invert max-w-none">
               <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
                 components={{
+                  table: ({ children }) => (
+                    <div className="my-2 w-full overflow-x-auto rounded-lg border border-border/50">
+                      <table className="w-full text-[12px] border-collapse">{children}</table>
+                    </div>
+                  ),
+                  thead: ({ children }) => <thead className="bg-muted/40">{children}</thead>,
+                  th: ({ children }) => (
+                    <th className="text-left font-semibold px-2.5 py-1.5 border-b border-border/50 whitespace-nowrap">{children}</th>
+                  ),
+                  td: ({ children }) => (
+                    <td className="px-2.5 py-1.5 border-b border-border/30 align-top">{children}</td>
+                  ),
                   p: ({ children }) => <p className="text-[13px] leading-relaxed mb-3 last:mb-0 text-foreground">{children}</p>,
+
                   strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
                   ul: ({ children }) => <ul className="list-disc list-outside ml-4 my-2 space-y-1">{children}</ul>,
                   ol: ({ children }) => <ol className="list-decimal list-outside ml-4 my-2 space-y-1">{children}</ol>,
@@ -175,10 +191,14 @@ export const ChatMessage = ({
           )}
         </div>
 
+        {/* Descarga de planillas cuando la respuesta trae tablas */}
+        {!isUser && !isTyping && <ChatTableDownload content={safeContent} />}
+
         {/* Mission Action Card */}
         {missionSuggestions && missionSuggestions.length > 0 && !isUser && (
           <MissionActionCard businessId={businessId} suggestions={missionSuggestions} />
         )}
+
 
         {/* Acciones rápidas sobre la respuesta */}
         {!isUser && !isTyping && displayContent.length > 160 && (
