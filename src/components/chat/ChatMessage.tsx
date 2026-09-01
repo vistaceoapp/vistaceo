@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { AttachedFile } from "./ChatInput";
 import { MissionActionCard } from "./MissionActionCard";
+import { ChatTableDownload } from "./ChatTableDownload";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 
 interface MissionSuggestion {
