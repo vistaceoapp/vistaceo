@@ -225,8 +225,8 @@ export function sanitizeAIOutput(
   result = result.replace(/^\s*:\s*/gm, '');
   result = result.replace(/\s+:\s*$/gm, '');
   
-  // Remove double spaces
-  result = result.replace(/\s{2,}/g, ' ');
+  // Remove double spaces (sin tocar saltos de línea: rompen tablas y párrafos)
+  result = result.replace(/[^\S\n]{2,}/g, ' ');
   
   // Remove lines that are just whitespace
   result = result.replace(/^\s+$/gm, '');
