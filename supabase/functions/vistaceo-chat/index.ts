@@ -535,11 +535,24 @@ const LEAK_PATTERNS_HARD: RegExp[] = [
   /^\s*\{[\s\S]*"[a-zA-Z_]+"\s*:/m,
 ];
 
+/** Detecta si el texto termina en una fila de tabla markdown (entregable válido). */
+function endsWithTableRow(text: string): boolean {
+  const lines = (text || "").trim().split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const ln = lines[i].trim();
+    if (!ln) continue;
+    return /^\|.*\|$/.test(ln);
+  }
+  return false;
+}
+
 /** Recorta el texto a la última oración completa (evita cortes a mitad). */
 function trimToCompleteSentence(text: string): string {
   if (!text) return text;
   const t = text.trim();
   if (/[.!?…"'»\)\]]$/.test(t)) return t;
+  // Una tabla markdown cerrada es una salida válida: no recortar.
+  if (endsWithTableRow(t)) return t;
   // Buscar último cierre de oración fuerte
   const lastEnd = Math.max(
     t.lastIndexOf("."),
@@ -554,6 +567,7 @@ function trimToCompleteSentence(text: string): string {
   // Si no hay buen punto, cerrar con punto suspensivo de forma elegante
   return t.replace(/[,;:\-—\s]+$/, "") + "…";
 }
+
 
 /** Quita la primera oración si es un eco textual del mensaje del usuario. */
 function removeEcho(reply: string, userText: string): string {
