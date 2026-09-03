@@ -641,9 +641,12 @@ export function isLowQualityReply(reply: string): { bad: boolean; reason?: strin
 export function looksTruncated(reply: string): boolean {
   const t = (reply || "").trim();
   if (!t) return false;
+  // Termina en una fila de tabla markdown completa → entregable cerrado, no cortado.
+  if (endsWithTableRow(t)) return false;
   // Termina con puntuación de cierre real → está cerrado.
   const closed = /[.!?…]["')\]]?$/.test(t);
   if (closed) return false;
+
   // Termina con coma, dos puntos, punto y coma, guion o paréntesis abierto → cortado.
   if (/[,;:\-–—(«"]$/.test(t)) return true;
   // Última palabra es conjunción / preposición / artículo → cortado.
