@@ -2401,7 +2401,7 @@ TAMBIÉN:
       ? baseMetaTitle.slice(0, maxTitleLen - 3) + '...'
       : baseMetaTitle;
     const metaTitle = trimmedTitle;
-    const metaDescription = ((headlineLab.meta_description as string) || excerpt).slice(0, 155) + ((((headlineLab.meta_description as string) || excerpt).length > 155) ? '...' : '');
+    let metaDescription = ((headlineLab.meta_description as string) || excerpt).slice(0, 155) + ((((headlineLab.meta_description as string) || excerpt).length > 155) ? '...' : '');
 
     // Calculate reading time
     const wordCountTotal = contentMd.split(/\s+/).length;
