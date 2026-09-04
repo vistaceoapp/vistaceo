@@ -2401,7 +2401,7 @@ TAMBIÉN:
       ? baseMetaTitle.slice(0, maxTitleLen - 3) + '...'
       : baseMetaTitle;
     const metaTitle = trimmedTitle;
-    const metaDescription = ((headlineLab.meta_description as string) || excerpt).slice(0, 155) + ((((headlineLab.meta_description as string) || excerpt).length > 155) ? '...' : '');
+    let metaDescription = ((headlineLab.meta_description as string) || excerpt).slice(0, 155) + ((((headlineLab.meta_description as string) || excerpt).length > 155) ? '...' : '');
 
     // Calculate reading time
     const wordCountTotal = contentMd.split(/\s+/).length;
@@ -2484,10 +2484,33 @@ TAMBIÉN:
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Ensure meta_description is unique among published posts (DB trigger blocks duplicates)
+    const uniquifyMeta = (base: string, attempt: number): string => {
+      const suffixes = [
+        ` Guía práctica para ${selectedTopic.title_base}.`,
+        ` Claves y pasos concretos: ${selectedTopic.pillar}.`,
+        ` Análisis VISTACEO ${new Date().getFullYear()} (${postSlug.slice(0, 24)}).`,
+      ];
+      const suffix = suffixes[Math.min(attempt, suffixes.length - 1)];
+      const room = 158 - suffix.length;
+      return `${base.replace(/\.\.\.$/, '').slice(0, Math.max(40, room)).trim()}${suffix}`.slice(0, 158);
+    };
+
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { data: dupe } = await supabase
+        .from('blog_posts')
+        .select('id')
+        .eq('status', 'published')
+        .ilike('meta_description', metaDescription.trim())
+        .limit(1);
+      if (!dupe || dupe.length === 0) break;
+      console.log('[generate-blog-post] meta_description duplicada, regenerando (intento', attempt + 1, ')');
+      metaDescription = uniquifyMeta(metaDescription, attempt);
+    }
+
     // Insert blog post
-    const { data: newPost, error: insertError } = await supabase
-      .from('blog_posts')
-      .insert({
+    const postPayload: Record<string, unknown> = {
+
         topic_id: selectedTopic.id,
         plan_id: selectedPlan?.id,
         status: 'published',
@@ -2515,13 +2538,25 @@ TAMBIÉN:
         canonical_url: `${BLOG_DOMAIN}/${postSlug}/`,
         secondary_keywords: selectedTopic.secondary_keywords || [],
         tags: selectedTopic.required_subtopics || [],
-      })
-      .select()
-      .single();
+    };
+
+    let newPost: any = null;
+    let insertError: any = null;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const res = await supabase.from('blog_posts').insert(postPayload).select().single();
+      newPost = res.data;
+      insertError = res.error;
+      if (!insertError) break;
+      if (!String(insertError.message || '').includes('SEO_BLOCK_META_DUPLICATE')) break;
+      metaDescription = uniquifyMeta(metaDescription, attempt);
+      postPayload.meta_description = metaDescription;
+      console.log('[generate-blog-post] Insert bloqueado por meta duplicada, reintentando con descripción única');
+    }
 
     if (insertError) {
       throw new Error(`Insert error: ${insertError.message}`);
     }
+
 
     console.log('[generate-blog-post] Post created:', newPost.id);
 
