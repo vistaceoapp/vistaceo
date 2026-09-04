@@ -2509,11 +2509,8 @@ TAMBIÉN:
     }
 
     // Insert blog post
-    const { data: newPost, error: insertError } = await supabase
-      .from('blog_posts')
+    const postPayload: Record<string, unknown> = {
 
-
-      .insert({
         topic_id: selectedTopic.id,
         plan_id: selectedPlan?.id,
         status: 'published',
