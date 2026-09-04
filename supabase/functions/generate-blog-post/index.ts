@@ -2484,9 +2484,33 @@ TAMBIÉN:
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Ensure meta_description is unique among published posts (DB trigger blocks duplicates)
+    const uniquifyMeta = (base: string, attempt: number): string => {
+      const suffixes = [
+        ` Guía práctica para ${selectedTopic.title_base}.`,
+        ` Claves y pasos concretos: ${selectedTopic.pillar}.`,
+        ` Análisis VISTACEO ${new Date().getFullYear()} (${postSlug.slice(0, 24)}).`,
+      ];
+      const suffix = suffixes[Math.min(attempt, suffixes.length - 1)];
+      const room = 158 - suffix.length;
+      return `${base.replace(/\.\.\.$/, '').slice(0, Math.max(40, room)).trim()}${suffix}`.slice(0, 158);
+    };
+
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { data: dupe } = await supabase
+        .from('blog_posts')
+        .select('id')
+        .eq('status', 'published')
+        .ilike('meta_description', metaDescription.trim())
+        .limit(1);
+      if (!dupe || dupe.length === 0) break;
+      console.log('[generate-blog-post] meta_description duplicada, regenerando (intento', attempt + 1, ')');
+      metaDescription = uniquifyMeta(metaDescription, attempt);
+    }
+
     // Insert blog post
     const { data: newPost, error: insertError } = await supabase
-      .from('blog_posts')
+
       .insert({
         topic_id: selectedTopic.id,
         plan_id: selectedPlan?.id,
