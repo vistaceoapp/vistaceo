@@ -2538,13 +2538,25 @@ TAMBIÉN:
         canonical_url: `${BLOG_DOMAIN}/${postSlug}/`,
         secondary_keywords: selectedTopic.secondary_keywords || [],
         tags: selectedTopic.required_subtopics || [],
-      })
-      .select()
-      .single();
+    };
+
+    let newPost: any = null;
+    let insertError: any = null;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const res = await supabase.from('blog_posts').insert(postPayload).select().single();
+      newPost = res.data;
+      insertError = res.error;
+      if (!insertError) break;
+      if (!String(insertError.message || '').includes('SEO_BLOCK_META_DUPLICATE')) break;
+      metaDescription = uniquifyMeta(metaDescription, attempt);
+      postPayload.meta_description = metaDescription;
+      console.log('[generate-blog-post] Insert bloqueado por meta duplicada, reintentando con descripción única');
+    }
 
     if (insertError) {
       throw new Error(`Insert error: ${insertError.message}`);
     }
+
 
     console.log('[generate-blog-post] Post created:', newPost.id);
 
