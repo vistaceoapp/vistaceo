@@ -266,6 +266,10 @@ function runQualityGates(
 
 type RssItem = { title: string; link: string; publishedAt?: string; source?: string };
 
+// Noticias compartidas por sector+país+foco (mismas para todos los negocios iguales).
+const RSS_SHARED_TTL_MS = 3 * 60 * 60 * 1000;
+const RSS_SHARED_CACHE = new Map<string, { at: number; items: RssItem[] }>();
+
 function countryToGoogleNewsLocale(country: string | null | undefined): { hl: string; gl: string } {
   const c = (country || "AR").toUpperCase();
   switch (c) {
@@ -965,11 +969,24 @@ serve(async (req) => {
       const focusHint = brain?.current_focus || "ventas";
       const queries = getSectorQueries(sectorType, focusHint);
 
-      // Fetch RSS feeds in parallel
-      const rssResults = await Promise.all(
-        queries.map(q => fetchGoogleNewsRss(q, newsLocale))
-      );
-      const allRssItems = rssResults.flat().slice(0, 20);
+      // Las noticias del sector+país son las mismas para todos los negocios
+      // iguales: se traen una vez cada 3 horas y se comparten. El análisis
+      // personalizado por negocio sigue siendo individual e intacto.
+      const feedKey = `${sectorType}|${newsLocale}|${focusHint}`;
+      const cachedFeed = RSS_SHARED_CACHE.get(feedKey);
+      let allRssItems: any[];
+      if (cachedFeed && Date.now() - cachedFeed.at < RSS_SHARED_TTL_MS && cachedFeed.items.length > 0) {
+        allRssItems = cachedFeed.items;
+        console.log(`[analyze-patterns] rss_shared_hit ${feedKey} (${allRssItems.length} items)`);
+      } else {
+        const rssResults = await Promise.all(
+          queries.map(q => fetchGoogleNewsRss(q, newsLocale))
+        );
+        allRssItems = rssResults.flat().slice(0, 20);
+        if (allRssItems.length > 0) {
+          RSS_SHARED_CACHE.set(feedKey, { at: Date.now(), items: allRssItems });
+        }
+      }
 
       if (allRssItems.length === 0) {
         return new Response(
