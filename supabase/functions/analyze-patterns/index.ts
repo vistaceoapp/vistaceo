@@ -1089,6 +1089,12 @@ ${analysisContext}
         }
       }
 
+      // Solo se guarda para reutilizar si trajo contenido real.
+      return Array.isArray(analysis?.learning_items) && analysis.learning_items.length > 0 ? analysis : null;
+      }
+
+      const analysis = memoResearch.value ?? { learning_items: [] };
+
       let learningInserted = 0;
       let learningFiltered = 0;
 
