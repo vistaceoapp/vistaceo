@@ -682,6 +682,8 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
     // Anti-duplicado: si ya se generaron predicciones con EXACTAMENTE el mismo
     // contexto en las últimas 12 horas, no se vuelve a pagar la generación.
     // Las predicciones vivas ya están en base y la UI las muestra igual.
+    let predSignature: string | null = null;
+    let predMemoClient: any = null;
     if (!force_refresh) {
       try {
         const { computeSignature } = await import("../_shared/artifact-memo.ts");
