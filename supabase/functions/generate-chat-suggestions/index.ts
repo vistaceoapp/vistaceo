@@ -148,15 +148,7 @@ async function produceSuggestions(system: string, userMsg: string): Promise<Sugg
         )
       : [];
 
-    const suggestions = clean.length >= 4 ? clean : FALLBACK;
-
-    return new Response(JSON.stringify({ suggestions }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    console.error("generate-chat-suggestions error", e);
-    return new Response(JSON.stringify({ suggestions: FALLBACK }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Solo se guarda si pasa el gate (>=4 sugerencias válidas).
+    return clean.length >= 4 ? clean : null;
   }
-});
+}
