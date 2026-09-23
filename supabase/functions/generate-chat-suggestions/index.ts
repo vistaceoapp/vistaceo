@@ -122,9 +122,7 @@ async function produceSuggestions(system: string, userMsg: string): Promise<Sugg
 
     if (!aiRes.ok) {
       console.error("AI error", aiRes.status, await aiRes.text());
-      return new Response(JSON.stringify({ suggestions: FALLBACK }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return null;
     }
     const aiJson = await aiRes.json();
     const raw = aiJson.choices?.[0]?.message?.content ?? "{}";
