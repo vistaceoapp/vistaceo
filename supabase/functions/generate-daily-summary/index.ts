@@ -110,42 +110,61 @@ REGLAS:
 - Si faltan datos, basate en patrones típicos del sector con cautela
 - Tono mentor ejecutivo, conciso, accionable, en español ${business.country === 'AR' || business.country === 'UY' ? 'rioplatense (vos)' : 'neutro (tú)'}`;
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
-        messages: [
-          { role: "system", content: `Sos un CEO mentor ultra-personalizado. Respondés SOLO en JSON válido. Nunca usás frases genéricas.\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("dashboard")}\n\n${buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}` },
-          { role: "user", content: prompt },
-        ],
-      }),
-    });
+    const systemPrompt = `Sos un CEO mentor ultra-personalizado. Respondés SOLO en JSON válido. Nunca usás frases genéricas.\n\n${ANTI_GENERIC_SYSTEM}\n\n${(await import("../_shared/brain-core/prompt2-rules.ts")).prompt2Rules("dashboard")}\n\n${buildTerminologyContext({ activity: brain?.primary_business_type || business?.category || null, country: business?.country || null, offer: (brain?.factual_memory as any)?.offer ?? null, customer: (brain?.factual_memory as any)?.customer ?? null, channel: (brain?.factual_memory as any)?.channel ?? null }).promptFragment}`;
 
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error("AI error:", aiResponse.status, errText);
-      throw new Error("AI gateway error");
-    }
+    // Producción real: mismo modelo, mismo prompt, misma salida.
+    const produceSummary = async (): Promise<any | null> => {
+      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${lovableKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: prompt },
+          ],
+        }),
+      });
 
-    const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content || "";
-
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    let summary: any = { summary_text: "", headline: "", priorities: [], mood: "neutral", confidence_note: "", signals: [] };
-
-    if (jsonMatch) {
-      try {
-        summary = JSON.parse(jsonMatch[0]);
-      } catch {
-        summary.summary_text = content.replace(/```json|```/g, "").trim();
+      if (!aiResponse.ok) {
+        const errText = await aiResponse.text();
+        console.error("AI error:", aiResponse.status, errText);
+        throw new Error("AI gateway error");
       }
-    } else {
-      summary.summary_text = content.trim();
-    }
+
+      const aiData = await aiResponse.json();
+      const content = aiData.choices?.[0]?.message?.content || "";
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      const out: any = { summary_text: "", headline: "", priorities: [], mood: "neutral", confidence_note: "", signals: [] };
+      if (jsonMatch) {
+        try {
+          return JSON.parse(jsonMatch[0]);
+        } catch {
+          out.summary_text = content.replace(/```json|```/g, "").trim();
+          return out;
+        }
+      }
+      out.summary_text = content.trim();
+      return out;
+    };
+
+    // Reutilización: mismo contexto en el mismo día = mismo resumen ya validado.
+    const { memoizeArtifact } = await import("../_shared/artifact-memo.ts");
+    const memoSummary = await memoizeArtifact<any>({
+      businessId,
+      artifactType: "daily_summary",
+      artifactKey: new Date().toISOString().split("T")[0],
+      signatureSource: prompt,
+      ttlMinutes: 60 * 12,
+      client: supabase,
+      produce: produceSummary,
+    });
+    console.log(`[generate-daily-summary] ${memoSummary.cached ? "cache_hit" : "generated"}`);
+
+    let summary: any = memoSummary.value ?? { summary_text: "", headline: "", priorities: [], mood: "neutral", confidence_note: "", signals: [] };
 
     // Runtime gate sobre el headline + texto del resumen diario
     const { runtimeOutputGate, safeFallback } = await import("../_shared/brain-core/runtime-output-gate.ts");
