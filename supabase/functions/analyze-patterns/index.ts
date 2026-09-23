@@ -266,6 +266,10 @@ function runQualityGates(
 
 type RssItem = { title: string; link: string; publishedAt?: string; source?: string };
 
+// Noticias compartidas por sector+país+foco (mismas para todos los negocios iguales).
+const RSS_SHARED_TTL_MS = 3 * 60 * 60 * 1000;
+const RSS_SHARED_CACHE = new Map<string, { at: number; items: RssItem[] }>();
+
 function countryToGoogleNewsLocale(country: string | null | undefined): { hl: string; gl: string } {
   const c = (country || "AR").toUpperCase();
   switch (c) {
