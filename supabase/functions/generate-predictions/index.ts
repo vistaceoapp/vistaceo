@@ -679,6 +679,41 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
 
     console.log(`[generate-predictions] Calling AI with ${dataQuality.overallScore}/100 data quality`);
 
+    // Anti-duplicado: si ya se generaron predicciones con EXACTAMENTE el mismo
+    // contexto en las últimas 12 horas, no se vuelve a pagar la generación.
+    // Las predicciones vivas ya están en base y la UI las muestra igual.
+    if (!force_refresh) {
+      try {
+        const { computeSignature } = await import("../_shared/artifact-memo.ts");
+        const sig = await computeSignature({ userPrompt, horizons, domains });
+        const { createClient: createSupa } = await import("npm:@supabase/supabase-js@2");
+        const supaMemo = createSupa(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        });
+        const { data: prevRun } = await supaMemo
+          .from("ai_artifacts_cache")
+          .select("payload, brain_signature, generated_at")
+          .eq("business_id", business_id_eff)
+          .eq("artifact_type", "prediction")
+          .eq("artifact_key", "run_signature")
+          .maybeSingle();
+        const fresh = prevRun?.generated_at
+          ? Date.now() - new Date(prevRun.generated_at).getTime() < 12 * 60 * 60 * 1000
+          : false;
+        if (prevRun && prevRun.brain_signature === sig && fresh) {
+          console.log("[generate-predictions] cache_hit: contexto idéntico, se reutiliza la corrida previa");
+          return new Response(JSON.stringify({
+            ...(prevRun.payload as Record<string, unknown>),
+            reused: true,
+          }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+        (globalThis as any).__vc_pred_signature = sig;
+        (globalThis as any).__vc_pred_client = supaMemo;
+      } catch (e) {
+        console.warn("[generate-predictions] memo check failed", e);
+      }
+    }
+
     // Call Lovable AI with flash model for faster, more reliable responses
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
