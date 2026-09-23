@@ -987,7 +987,7 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
       });
     } catch (e) { console.warn('[generate-predictions] signal insert failed', e); }
 
-    return new Response(JSON.stringify({
+    const finalPayload = {
       success: true,
       predictions_count: predictions.length,
       calibrations_count: calibrationEvents.length,
@@ -996,7 +996,26 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
       sector_context_used: true,
       quality: { passed: true },
       fallbackUsed: false,
-    }), {
+    };
+
+    // Registrar la firma de esta corrida para no repetir el mismo trabajo en 12 h.
+    if (predSignature && predMemoClient) {
+      try {
+        await predMemoClient.from("ai_artifacts_cache").upsert({
+          business_id: business_id_eff,
+          artifact_type: "prediction",
+          artifact_key: "run_signature",
+          brain_signature: predSignature,
+          payload: finalPayload,
+          model_used: "google/gemini-2.5-pro",
+          generated_at: new Date().toISOString(),
+        }, { onConflict: "business_id,artifact_type,artifact_key" });
+      } catch (e) {
+        console.warn("[generate-predictions] memo save failed", e);
+      }
+    }
+
+    return new Response(JSON.stringify(finalPayload), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
