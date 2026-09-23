@@ -76,6 +76,35 @@ Reglas estrictas:
 
     const userMsg = `Contexto del negocio:\n${JSON.stringify(context, null, 2)}\n\nGenerá las 6 preguntas ahora.`;
 
+    // Reutilización: mismo contexto = mismas sugerencias validadas, sin nueva llamada paga.
+    const { memoizeArtifact } = await import("../_shared/artifact-memo.ts");
+    const memo = await memoizeArtifact<Suggestion[]>({
+      businessId,
+      artifactType: "chat_suggestion",
+      artifactKey: "default",
+      signatureSource: context,
+      ttlMinutes: 60 * 6,
+      client: supabase,
+      produce: () => produceSuggestions(system, userMsg),
+    });
+
+    const suggestions = memo.value && memo.value.length >= 4 ? memo.value : FALLBACK;
+    console.log(`[generate-chat-suggestions] ${memo.cached ? "cache_hit" : "generated"}`);
+
+    return new Response(JSON.stringify({ suggestions }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.error("generate-chat-suggestions error", e);
+    return new Response(JSON.stringify({ suggestions: FALLBACK }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
+
+// Generación real: mismo modelo, mismo prompt y mismos gates de calidad de siempre.
+async function produceSuggestions(system: string, userMsg: string): Promise<Suggestion[] | null> {
+  {
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
