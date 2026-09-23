@@ -709,8 +709,8 @@ RESPONDE SOLO CON JSON VÁLIDO (sin markdown).`;
             reused: true,
           }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
-        (globalThis as any).__vc_pred_signature = sig;
-        (globalThis as any).__vc_pred_client = supaMemo;
+        predSignature = sig;
+        predMemoClient = supaMemo;
       } catch (e) {
         console.warn("[generate-predictions] memo check failed", e);
       }
