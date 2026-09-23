@@ -1022,6 +1022,21 @@ ${analysisContext}
 
       console.log(`[analyze-patterns] Research mode: ${allRssItems.length} RSS items`);
 
+      // Reutilización: si el mismo negocio pide I+D con las mismas noticias y el
+      // mismo contexto dentro del día, se devuelve el análisis ya generado.
+      const { memoizeArtifact } = await import("../_shared/artifact-memo.ts");
+      const memoResearch = await memoizeArtifact<any>({
+        businessId,
+        artifactType: "research",
+        artifactKey: "radar_research",
+        signatureSource: { rssContext, analysisContext, focusHint, sectorType },
+        ttlMinutes: 60 * 20,
+        client: supabase,
+        produce: () => runResearchAnalysis(),
+      });
+      console.log(`[analyze-patterns] research ${memoResearch.cached ? "cache_hit" : "generated"}`);
+
+      async function runResearchAnalysis(): Promise<any> {
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -1073,6 +1088,12 @@ ${analysisContext}
           analysis = { learning_items: [] };
         }
       }
+
+      // Solo se guarda para reutilizar si trajo contenido real.
+      return Array.isArray(analysis?.learning_items) && analysis.learning_items.length > 0 ? analysis : null;
+      }
+
+      const analysis = memoResearch.value ?? { learning_items: [] };
 
       let learningInserted = 0;
       let learningFiltered = 0;

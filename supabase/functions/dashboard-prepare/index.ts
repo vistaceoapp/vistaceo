@@ -81,7 +81,20 @@ serve(async (req) => {
 
     const contextBlock = buildContextBlock(business, brainRow, insights.data ?? [], signals.data ?? [], tone);
 
-    const seed = await generateSeed(LOVABLE_API_KEY, contextBlock);
+    // Reutilización: si el contexto del brain no cambió, se devuelve el mismo
+    // resultado ya generado y validado (misma calidad, sin nueva llamada paga).
+    const { memoizeArtifact } = await import("../_shared/artifact-memo.ts");
+    const memo = await memoizeArtifact<Record<string, unknown>>({
+      businessId,
+      artifactType: "analytics",
+      artifactKey: "dashboard_seed",
+      signatureSource: contextBlock,
+      ttlMinutes: 60 * 24,
+      client: supabase,
+      produce: () => generateSeed(LOVABLE_API_KEY, contextBlock),
+    });
+    const seed = memo.value ?? (await generateSeed(LOVABLE_API_KEY, contextBlock));
+    console.log(`[dashboard-prepare] ${memo.cached ? "cache_hit" : "generated"} sig=${memo.signature}`);
 
     // Validación visible
     const ctx: BrainContext = {
