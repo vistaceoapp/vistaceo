@@ -747,6 +747,10 @@ const ChatPage = () => {
                       sendMessage(
                         `Convertí esto en una misión concreta para mi negocio, con pasos accionables y un KPI medible:\n\n"${excerpt}"`
                       );
+                    } else if (action === "correct") {
+                      sendMessage(
+                        `Corregí este borrador: hacelo más corto, más directo y más natural para mi cliente. Devolvelo listo para enviar, con "Asunto:" si es correo y el texto en un bloque citado:\n\n"${excerpt}"`
+                      );
                     } else {
                       sendMessage(
                         `Profundizá en esto: dame el detalle fino, los números que debería mirar y qué haría un experto de mi sector distinto:\n\n"${excerpt}"`
