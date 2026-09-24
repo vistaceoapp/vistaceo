@@ -15,6 +15,7 @@ type Task = {
   id: string; title: string; status: string; recipient: string | null; subject: string | null; body: string | null;
   provenance: Record<string, unknown>; events: Array<{ at: string; type: string; note?: string }>;
   approved_at: string | null; created_at: string; lead_id: string | null;
+  follow_up_at?: string | null; last_checked_at?: string | null; executed_at?: string | null;
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -61,6 +62,19 @@ const AgentWorkPage = () => {
   }, []);
   useEffect(() => { loadGmail(); }, [loadGmail]);
 
+  const [checking, setChecking] = useState(false);
+  const checkReplies = useCallback(async (silent = false) => {
+    setChecking(true);
+    const { data, error } = await supabase.functions.invoke("gmail-connector", { body: { action: "check_replies" } });
+    setChecking(false);
+    if (error) { if (!silent) toast({ title: "No se pudieron revisar las respuestas", variant: "destructive" }); return; }
+    if (data?.needsConnect) { loadGmail(); return; }
+    if (data?.replied > 0) toast({ title: `${data.replied} contacto(s) respondieron` });
+    else if (!silent) toast({ title: `Revisé ${data?.checked ?? 0} envío(s): sin respuestas nuevas` });
+    load();
+  }, [load, loadGmail, toast]);
+  useEffect(() => { if (gmail.connected) checkReplies(true); }, [gmail.connected, checkReplies]);
+
   const addLead = async () => {
     if (!currentBusiness || !user || !form.name.trim()) return;
     const email = form.email.trim();
@@ -77,9 +91,9 @@ const AgentWorkPage = () => {
     load();
   };
 
-  const draftFor = async (lead: Lead) => {
+  const draftFor = async (lead: Lead, goalOverride?: string) => {
     setBusyLead(lead.id);
-    const { data, error } = await supabase.functions.invoke("agent-draft-followup", { body: { leadId: lead.id, goal } });
+    const { data, error } = await supabase.functions.invoke("agent-draft-followup", { body: { leadId: lead.id, goal: goalOverride ?? goal } });
     setBusyLead(null);
     if (error) {
       const d = error instanceof FunctionsHttpError ? await error.context.json().catch(() => ({})) : {};
@@ -232,7 +246,15 @@ const AgentWorkPage = () => {
       </GlassCard>
 
       <div className="space-y-3">
-        <h2 className="font-semibold text-foreground">Tareas</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-foreground">Tareas</h2>
+          {gmail.connected && (
+            <Button size="sm" variant="ghost" onClick={() => checkReplies(false)} disabled={checking}>
+              {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : "Revisar respuestas"}
+            </Button>
+          )}
+        </div>
+        {gmail.connected && <p className="text-xs text-muted-foreground">Las respuestas se revisan en tu Gmail cada vez que abrís esta bandeja o tocás "Revisar respuestas".</p>}
         {tasks.length === 0 && !loading && <p className="text-sm text-muted-foreground">Sin tareas todavía.</p>}
         {tasks.map((t) => {
           const e = edits[t.id];
@@ -240,7 +262,9 @@ const AgentWorkPage = () => {
             <GlassCard key={t.id} className="p-5 space-y-3" data-testid="agent-task">
               <div className="flex items-center justify-between gap-2">
                 <p className="font-medium text-foreground text-sm">{t.title}</p>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{STATUS_LABEL[t.status] ?? t.status}</span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  {t.status === "sent_confirmed" && t.follow_up_at && Date.parse(t.follow_up_at) < Date.now() ? "Enviado — sin respuesta, toca seguimiento" : STATUS_LABEL[t.status] ?? t.status}
+                </span>
               </div>
               {e ? (
                 <div className="space-y-2">
@@ -276,6 +300,14 @@ const AgentWorkPage = () => {
                 {["approved", "opened_in_client"].includes(t.status) && (
                   <Button size="sm" variant={gmail.connected ? "outline" : "default"} onClick={() => openInClient(t)}><ExternalLink className="w-4 h-4 mr-1" /> Abrir borrador en mi correo</Button>
                 )}
+                {t.status === "sent_confirmed" && t.follow_up_at && Date.parse(t.follow_up_at) < Date.now() && (() => {
+                  const lead = leads.find((l) => l.id === t.lead_id);
+                  return lead ? (
+                    <Button size="sm" variant="outline" disabled={busyLead === lead.id} onClick={() => draftFor(lead, "Segundo seguimiento: no respondió al correo anterior. Breve y amable.")}>
+                      <Mail className="w-4 h-4 mr-1" /> Preparar segundo seguimiento
+                    </Button>
+                  ) : null;
+                })()}
                 <Button size="sm" variant="ghost" onClick={() => download(t)}><Download className="w-4 h-4 mr-1" /> Descargar</Button>
               </div>
             </GlassCard>
