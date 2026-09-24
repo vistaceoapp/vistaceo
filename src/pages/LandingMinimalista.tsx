@@ -338,7 +338,7 @@ const HeroSection = () => {
                 }}
               >
                 <span className="text-[#10b981]">✦</span>
-                CEO digital con IA · Gratis para empezar
+                Tu primer empleado digital · Gratis para empezar
               </span>
             </Reveal>
 
@@ -351,9 +351,9 @@ const HeroSection = () => {
                   lineHeight: 1.04,
                 }}
               >
-                Saber qué hacer{" "}
+                No te dice qué hacer.{" "}
                 <span className="hero-light-grad" style={{ paddingBottom: "0.08em" }}>
-                  hoy para crecer
+                  Lo hace por vos
                 </span>
                 .
               </h1>
@@ -370,8 +370,9 @@ const HeroSection = () => {
 
             <Reveal delay={180} distance={18}>
               <p className="max-w-[560px] text-[17px] sm:text-[19px] leading-[1.55] text-[#3a3a3a]" style={{ marginTop: 16 }}>
-                Plataforma con IA que detecta oportunidades en tu negocio y te dice
-                exactamente <span className="font-semibold text-[#0a0a0a]">qué hacer hoy</span> para crecer.
+                Un empleado con IA que aprende tu negocio, redacta, responde, sigue clientes y
+                te deja el trabajo <span className="font-semibold text-[#0a0a0a]">hecho y listo para aprobar</span>.
+                Siempre busca la vía gratis; si algo tiene costo, te pregunta antes.
               </p>
             </Reveal>
 
@@ -389,7 +390,7 @@ const HeroSection = () => {
                     boxShadow: "0 14px 36px -8px rgba(116,108,230,0.55), 0 4px 20px rgba(0,0,0,0.18)",
                   }}
                 >
-                  Crear cuenta gratis
+                  Contratar a mi empleado gratis
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                 </button>
 
@@ -408,7 +409,7 @@ const HeroSection = () => {
 
             <Reveal delay={320} distance={14}>
               <p className="text-[13px] text-[#777]" style={{ marginTop: 20 }}>
-                Sin tarjeta · En minutos · Negocio, servicio o profesión
+                Sin tarjeta · Listo en 2 minutos · Con o sin web, local, emprendimiento o empresa
               </p>
             </Reveal>
 
