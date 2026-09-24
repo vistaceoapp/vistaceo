@@ -35,6 +35,8 @@ import { SEO_LANDINGS } from "@/data/seo-landings";
 const SetupPage = lazy(() => import("./pages/SetupPage"));
 const SetupCompletePage = lazy(() => import("./pages/SetupCompletePage"));
 const SetupEnrichPage = lazy(() => import("./pages/SetupEnrichPage"));
+const AgentHiringPage = lazy(() => import("./pages/setup/AgentHiringPage"));
+
 
 const PreparingDashboardPage = lazy(() => import("./pages/app/PreparingDashboardPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
