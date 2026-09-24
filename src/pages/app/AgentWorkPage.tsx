@@ -254,7 +254,7 @@ const AgentWorkPage = () => {
             </Button>
           )}
         </div>
-        {gmail.connected && <p className="text-xs text-muted-foreground">Las respuestas se revisan en tu Gmail cada vez que abrís esta bandeja o tocás "Revisar respuestas".</p>}
+        {gmail.connected && <p className="text-xs text-muted-foreground">Tu empleado revisa las respuestas en tu Gmail cada 2 horas, y también cuando abrís esta bandeja.</p>}
         {tasks.length === 0 && !loading && <p className="text-sm text-muted-foreground">Sin tareas todavía.</p>}
         {tasks.map((t) => {
           const e = edits[t.id];

@@ -20,9 +20,72 @@ const b64 = (s: string) => btoa(Array.from(new TextEncoder().encode(s), (b) => S
 const hdr = (v: string) => (/^[\x00-\x7F]*$/.test(v) ? v : `=?UTF-8?B?${b64(v)}?=`);
 const EMAIL_RE = /^[^\s@<>,]+@[^\s@<>,]+\.[^\s@<>,]+$/;
 
+type Conn = { key: string; email: string | null; reconnectRequired: boolean };
+type Hdr = { name: string; value: string };
+type Msg = { internalDate?: string; payload?: { headers?: Hdr[] } };
+
+async function checkRepliesForUser(userId: string, conn: Conn) {
+  const db = adminClient();
+  const { data: sentTasks } = await db.from("agent_tasks")
+    .select("id, events, external_thread_id, executed_at")
+    .eq("user_id", userId).eq("status", "sent_confirmed").not("external_thread_id", "is", null)
+    .order("executed_at", { ascending: false }).limit(25);
+  const own = (conn.email ?? "").toLowerCase();
+  let checked = 0, replied = 0;
+  for (const t of sentTasks ?? []) {
+    const res = await callAsAppUser({
+      gatewayBaseUrl: GATEWAY, connectionAPIKey: conn.key, connectorId: CONNECTOR, requiredScopes: SCOPES,
+      path: `/gmail/v1/users/me/threads/${encodeURIComponent(t.external_thread_id!)}?format=metadata&metadataHeaders=From&metadataHeaders=Date`,
+    });
+    if (await appUserReconnectRequired(res)) {
+      await setReconnectRequired(userId, CONNECTOR);
+      return { checked, replied, needsConnect: true };
+    }
+    if (!res.ok) { console.error(`Thread read failed [${res.status}]: ${await res.text()}`); continue; }
+    checked++;
+    const thread = await res.json();
+    const sentAt = t.executed_at ? Date.parse(t.executed_at) : 0;
+    const fromOf = (m: Msg) => (m.payload?.headers ?? []).find((h) => h.name.toLowerCase() === "from")?.value ?? "";
+    const reply = ((thread.messages ?? []) as Msg[]).find((m) => {
+      const from = fromOf(m).toLowerCase();
+      return Number(m.internalDate ?? 0) > sentAt && !!from && (!own || !from.includes(own));
+    });
+    const now = new Date().toISOString();
+    if (reply) {
+      const from = fromOf(reply) || "el contacto";
+      const at = new Date(Number(reply.internalDate)).toISOString();
+      const events = Array.isArray(t.events) ? t.events : [];
+      events.push({ at: now, type: "replied", note: `Respuesta detectada en Gmail de ${from} (${at}).` });
+      await db.from("agent_tasks").update({ status: "replied", events, last_checked_at: now, result_notes: `Respondió ${from} el ${at}.` }).eq("id", t.id).eq("user_id", userId);
+      replied++;
+    } else {
+      await db.from("agent_tasks").update({ last_checked_at: now }).eq("id", t.id).eq("user_id", userId);
+    }
+  }
+  return { checked, replied };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
+    const workerToken = req.headers.get("x-worker-token");
+    if (workerToken) {
+      const { data: tok } = await adminClient().from("internal_cron_tokens").select("token").eq("name", "gmail_reply_worker").maybeSingle();
+      if (!tok || tok.token !== workerToken) return json({ error: "No autorizado" }, 401);
+      const { data: rows } = await adminClient().from("app_user_connections").select("user_id").eq("connector_id", CONNECTOR).eq("reconnect_required", false).limit(200);
+      let users = 0, checked = 0, replied = 0;
+      for (const r of rows ?? []) {
+        try {
+          const conn = await getConnectionForUser(r.user_id, CONNECTOR);
+          if (!conn || conn.reconnectRequired) continue;
+          const out = await checkRepliesForUser(r.user_id, conn);
+          users++; checked += out.checked; replied += out.replied;
+        } catch (e) { console.error("worker user failed", r.user_id, e); }
+      }
+      console.log(`gmail reply worker: users=${users} checked=${checked} replied=${replied}`);
+      return json({ users, checked, replied });
+    }
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "Iniciá sesión" }, 401);
     const userClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -143,42 +206,7 @@ Deno.serve(async (req) => {
     if (action === "check_replies") {
       const conn = await getConnectionForUser(user.id, CONNECTOR);
       if (!conn || conn.reconnectRequired) return json({ checked: 0, replied: 0, needsConnect: true });
-      const { data: sentTasks } = await userClient.from("agent_tasks")
-        .select("id, events, recipient, external_thread_id, executed_at")
-        .eq("status", "sent_confirmed").not("external_thread_id", "is", null)
-        .order("executed_at", { ascending: false }).limit(25);
-      const own = (conn.email ?? "").toLowerCase();
-      let checked = 0, replied = 0;
-      for (const t of sentTasks ?? []) {
-        const res = await callAsAppUser({
-          gatewayBaseUrl: GATEWAY, connectionAPIKey: conn.key, connectorId: CONNECTOR, requiredScopes: SCOPES,
-          path: `/gmail/v1/users/me/threads/${encodeURIComponent(t.external_thread_id!)}?format=metadata&metadataHeaders=From&metadataHeaders=Date`,
-        });
-        if (await appUserReconnectRequired(res)) {
-          await setReconnectRequired(user.id, CONNECTOR);
-          return json({ checked, replied, needsConnect: true });
-        }
-        if (!res.ok) { console.error(`Thread read failed [${res.status}]: ${await res.text()}`); continue; }
-        checked++;
-        const thread = await res.json();
-        const sentAt = t.executed_at ? Date.parse(t.executed_at) : 0;
-        const reply = (thread.messages ?? []).find((m: { internalDate?: string; payload?: { headers?: { name: string; value: string }[] } }) => {
-          const from = (m.payload?.headers ?? []).find((h) => h.name.toLowerCase() === "from")?.value?.toLowerCase() ?? "";
-          return Number(m.internalDate ?? 0) > sentAt && !!from && (!own || !from.includes(own));
-        });
-        const now = new Date().toISOString();
-        if (reply) {
-          const from = (reply.payload?.headers ?? []).find((h: { name: string }) => h.name.toLowerCase() === "from")?.value ?? "el contacto";
-          const at = new Date(Number(reply.internalDate)).toISOString();
-          const events = Array.isArray(t.events) ? t.events : [];
-          events.push({ at: now, type: "replied", note: `Respuesta detectada en Gmail de ${from} (${at}).` });
-          await adminClient().from("agent_tasks").update({ status: "replied", events, last_checked_at: now, result_notes: `Respondió ${from} el ${at}.` }).eq("id", t.id).eq("user_id", user.id);
-          replied++;
-        } else {
-          await adminClient().from("agent_tasks").update({ last_checked_at: now }).eq("id", t.id).eq("user_id", user.id);
-        }
-      }
-      return json({ checked, replied });
+      return json(await checkRepliesForUser(user.id, conn));
     }
 
     return json({ error: "Acción desconocida" }, 400);
