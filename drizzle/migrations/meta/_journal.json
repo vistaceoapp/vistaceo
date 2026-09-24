@@ -15,6 +15,13 @@
       "when": 1790277271708,
       "tag": "0001_app_user_connections",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790277538111,
+      "tag": "0002_agent_tasks_thread",
+      "breakpoints": true
     }
   ]
 }

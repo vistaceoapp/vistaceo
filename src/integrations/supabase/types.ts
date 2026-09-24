@@ -104,10 +104,12 @@ export type Database = {
           executed_at: string | null
           execution_channel: string | null
           external_message_id: string | null
+          external_thread_id: string | null
           follow_up_at: string | null
           id: string
           idempotency_key: string | null
           kind: string
+          last_checked_at: string | null
           lead_id: string | null
           origin: string
           provenance: Json
@@ -129,10 +131,12 @@ export type Database = {
           executed_at?: string | null
           execution_channel?: string | null
           external_message_id?: string | null
+          external_thread_id?: string | null
           follow_up_at?: string | null
           id?: string
           idempotency_key?: string | null
           kind?: string
+          last_checked_at?: string | null
           lead_id?: string | null
           origin?: string
           provenance?: Json
@@ -154,10 +158,12 @@ export type Database = {
           executed_at?: string | null
           execution_channel?: string | null
           external_message_id?: string | null
+          external_thread_id?: string | null
           follow_up_at?: string | null
           id?: string
           idempotency_key?: string | null
           kind?: string
+          last_checked_at?: string | null
           lead_id?: string | null
           origin?: string
           provenance?: Json
