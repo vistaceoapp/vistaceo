@@ -42,12 +42,12 @@ export const AgentOfficeCard = () => {
       <div className="flex items-center gap-3">
         <div className="relative w-11 h-11 rounded-2xl gradient-primary flex items-center justify-center shadow-lg">
           <Briefcase className="w-5 h-5 text-primary-foreground" />
-          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary border-2 border-background animate-pulse" />
+          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary border-2 border-background" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-foreground leading-tight truncate">
             {agent.name}
-            <span className="ml-2 text-xs font-medium text-primary">· Trabajando</span>
+            <span className="ml-2 text-xs font-medium text-primary">· Disponible</span>
           </p>
           <p className="text-xs text-muted-foreground truncate">
             {agent.role || "Empleado digital"} en {currentBusiness.name}
@@ -56,8 +56,7 @@ export const AgentOfficeCard = () => {
       </div>
 
       <p className="text-sm text-muted-foreground mt-4 leading-relaxed">
-        Pedime lo que necesites como a un empleado: lo preparo, lo dejo listo y vos solo aprobás.
-        Siempre uso la vía gratis; si algo tiene costo, te pregunto antes.
+        Pedime lo que necesites: preparo el trabajo y vos aprobás. No envío nada a terceros sin tu aprobación.
       </p>
 
       <form
@@ -80,6 +79,13 @@ export const AgentOfficeCard = () => {
           <ArrowUp className="w-4 h-4 text-primary-foreground" />
         </button>
       </form>
+
+      <button
+        onClick={() => navigate("/app/trabajo")}
+        className="mt-3 text-xs font-semibold text-primary hover:underline"
+      >
+        Ver bandeja de trabajo →
+      </button>
 
       <div className="mt-3 flex flex-wrap gap-2">
         {QUICK_ORDERS.map(({ icon: Icon, label }) => (

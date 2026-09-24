@@ -41,17 +41,17 @@ export const ApproveSendBar = ({ content, onCorrect }: { content: string; onCorr
   return (
     <div className="mt-2 rounded-2xl border border-primary/20 bg-primary/5 p-3">
       <p className="text-[11px] text-muted-foreground mb-2">
-        Borrador listo. Se envía desde tu propia cuenta, sin costo.
+        Borrador listo. Se abre en tu propia aplicación; el envío lo hacés vos y no queda confirmado acá.
       </p>
       <div className="flex flex-wrap gap-1.5">
         {draft.isEmail && (
           <a href={mailto} className={`${btn} gradient-primary text-primary-foreground`}>
-            <Mail className="w-3.5 h-3.5" /> Aprobar y enviar correo
+            <Mail className="w-3.5 h-3.5" /> Abrir borrador en mi correo
           </a>
         )}
         {draft.isWhatsapp && (
           <a href={wa} target="_blank" rel="noopener noreferrer" className={`${btn} gradient-primary text-primary-foreground`}>
-            <MessageCircle className="w-3.5 h-3.5" /> Aprobar y enviar por WhatsApp
+            <MessageCircle className="w-3.5 h-3.5" /> Abrir borrador en WhatsApp
           </a>
         )}
         {onCorrect && (

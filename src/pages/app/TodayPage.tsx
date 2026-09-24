@@ -231,7 +231,6 @@ const TodayPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
           <div className="space-y-6 min-w-0">
             <AgentOfficeCard />
-            <AgentOfficeCard />
       <SmartNextSteps />
             {renderMain()}
             {!isPro && <ProUpgradeBanner variant="compact" />}
@@ -250,6 +249,7 @@ const TodayPage = () => {
   return (
     <div className="space-y-5">
       {setupBanner}
+      <AgentOfficeCard />
       <SmartNextSteps />
       {renderMain()}
       {renderSidebar()}

@@ -64,6 +64,7 @@ const AppLayout = lazy(() => import("./layouts/AppLayout"));
 const TodayPage = lazy(() => import("./pages/app/TodayPage"));
 const ChatPage = lazy(() => import("./pages/app/ChatPage"));
 const MissionsPage = lazy(() => import("./pages/app/MissionsPage"));
+const AgentWorkPage = lazy(() => import("./pages/app/AgentWorkPage"));
 const RadarPage = lazy(() => import("./pages/app/RadarPage"));
 const MorePage = lazy(() => import("./pages/app/MorePage"));
 const AnalyticsPage = lazy(() => import("./pages/app/AnalyticsPage"));
@@ -334,6 +335,7 @@ const AppRoutes = () => {
           <Route path="dashboard" element={<Navigate to="/app" replace />} />
           <Route path="chat" element={<ChatPage />} />
           <Route path="missions" element={<MissionsPage />} />
+          <Route path="trabajo" element={<AgentWorkPage />} />
           <Route path="radar" element={<RadarPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="predictions" element={<PredictionsPage />} />

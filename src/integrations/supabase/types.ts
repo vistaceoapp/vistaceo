@@ -44,6 +44,149 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_leads: {
+        Row: {
+          business_id: string
+          company: string | null
+          context: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          source: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          company?: string | null
+          context?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          source?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          company?: string | null
+          context?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          source?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_leads_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_tasks: {
+        Row: {
+          approved_at: string | null
+          body: string | null
+          business_id: string
+          created_at: string
+          events: Json
+          executed_at: string | null
+          execution_channel: string | null
+          external_message_id: string | null
+          follow_up_at: string | null
+          id: string
+          idempotency_key: string | null
+          kind: string
+          lead_id: string | null
+          origin: string
+          provenance: Json
+          recipient: string | null
+          requires_approval: boolean
+          result_notes: string | null
+          status: string
+          subject: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          body?: string | null
+          business_id: string
+          created_at?: string
+          events?: Json
+          executed_at?: string | null
+          execution_channel?: string | null
+          external_message_id?: string | null
+          follow_up_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          kind?: string
+          lead_id?: string | null
+          origin?: string
+          provenance?: Json
+          recipient?: string | null
+          requires_approval?: boolean
+          result_notes?: string | null
+          status?: string
+          subject?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          body?: string | null
+          business_id?: string
+          created_at?: string
+          events?: Json
+          executed_at?: string | null
+          execution_channel?: string | null
+          external_message_id?: string | null
+          follow_up_at?: string | null
+          id?: string
+          idempotency_key?: string | null
+          kind?: string
+          lead_id?: string | null
+          origin?: string
+          provenance?: Json
+          recipient?: string | null
+          requires_approval?: boolean
+          result_notes?: string | null
+          status?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_tasks_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "agent_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_artifacts_cache: {
         Row: {
           artifact_key: string
