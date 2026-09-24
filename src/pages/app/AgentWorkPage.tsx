@@ -110,7 +110,9 @@ const AgentWorkPage = () => {
     setImporting(true);
     try {
       const XLSX = await import("xlsx");
-      const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+      const wb = /\.csv$/i.test(file.name)
+        ? XLSX.read(await file.text(), { type: "string" })
+        : XLSX.read(await file.arrayBuffer(), { type: "array" });
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[wb.SheetNames[0]], { defval: "" });
       const pick = (r: Record<string, unknown>, keys: string[]) => {
         const k = Object.keys(r).find((x) => keys.some((w) => x.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(w)));
