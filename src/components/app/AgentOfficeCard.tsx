@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { ArrowUp, Briefcase, Mail, MessageSquare, Target } from "lucide-react";
 import { useBusiness } from "@/contexts/BusinessContext";
@@ -28,6 +29,18 @@ export const AgentOfficeCard = () => {
     const a = (s.agent as AgentSettings | undefined) ?? {};
     return { ...a, name: a.name || safeLocalStorage.getItem("vc_agent_name") || "Tu empleado" };
   }, [currentBusiness?.settings]);
+
+  const [counts, setCounts] = useState<{ drafts: number; replied: number; overdue: number } | null>(null);
+  useEffect(() => {
+    if (!currentBusiness) return;
+    const bid = currentBusiness.id;
+    const now = new Date().toISOString();
+    Promise.all([
+      supabase.from("agent_tasks").select("id", { count: "exact", head: true }).eq("business_id", bid).eq("status", "draft"),
+      supabase.from("agent_tasks").select("id", { count: "exact", head: true }).eq("business_id", bid).eq("status", "replied"),
+      supabase.from("agent_tasks").select("id", { count: "exact", head: true }).eq("business_id", bid).eq("status", "sent_confirmed").lt("follow_up_at", now),
+    ]).then(([d, r, o]) => setCounts({ drafts: d.count ?? 0, replied: r.count ?? 0, overdue: o.count ?? 0 }));
+  }, [currentBusiness]);
 
   const send = (text: string) => {
     const t = text.trim();
@@ -79,6 +92,21 @@ export const AgentOfficeCard = () => {
           <ArrowUp className="w-4 h-4 text-primary-foreground" />
         </button>
       </form>
+
+      {counts && (counts.drafts + counts.replied + counts.overdue > 0) && (
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {[
+            { n: counts.drafts, l: "por aprobar" },
+            { n: counts.replied, l: "respondieron" },
+            { n: counts.overdue, l: "toca seguimiento" },
+          ].map((c) => (
+            <button key={c.l} onClick={() => navigate("/app/trabajo")} className="rounded-xl border border-border bg-background/40 px-3 py-2 text-left hover:border-primary/40">
+              <p className="text-lg font-semibold text-foreground leading-none">{c.n}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{c.l}</p>
+            </button>
+          ))}
+        </div>
+      )}
 
       <button
         onClick={() => navigate("/app/trabajo")}

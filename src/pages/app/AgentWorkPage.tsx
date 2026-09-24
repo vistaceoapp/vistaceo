@@ -103,6 +103,57 @@ const AgentWorkPage = () => {
     if (data?.task) load();
   };
 
+  const [importing, setImporting] = useState(false);
+  const importFile = async (file: File) => {
+    if (!currentBusiness || !user) return;
+    if (file.size > 5 * 1024 * 1024) { toast({ title: "El archivo supera 5 MB", variant: "destructive" }); return; }
+    setImporting(true);
+    try {
+      const XLSX = await import("xlsx");
+      const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[wb.SheetNames[0]], { defval: "" });
+      const pick = (r: Record<string, unknown>, keys: string[]) => {
+        const k = Object.keys(r).find((x) => keys.some((w) => x.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(w)));
+        return k ? String(r[k] ?? "").trim() : "";
+      };
+      const existing = new Set(leads.map((l) => (l.email || "").toLowerCase()).filter(Boolean));
+      const toInsert = rows.slice(0, 500).map((r) => {
+        const email = pick(r, ["mail", "correo"]).toLowerCase();
+        return {
+          business_id: currentBusiness.id, user_id: user.id, source: "import",
+          name: pick(r, ["nombre", "name", "cliente", "contacto"]).slice(0, 120),
+          email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : null,
+          phone: pick(r, ["tel", "phone", "celular", "whatsapp"]).slice(0, 40) || null,
+          company: pick(r, ["empresa", "company", "negocio"]).slice(0, 120) || null,
+          context: pick(r, ["nota", "context", "comentario", "detalle", "observ"]).slice(0, 600) || null,
+        };
+      }).filter((r) => r.name && !(r.email && existing.has(r.email)));
+      if (toInsert.length === 0) { toast({ title: "No encontré contactos nuevos (necesito al menos una columna Nombre)" }); return; }
+      const { error } = await supabase.from("agent_leads").insert(toInsert);
+      if (error) throw error;
+      toast({ title: `${toInsert.length} contacto(s) importados` });
+      load();
+    } catch {
+      toast({ title: "No se pudo leer el archivo", variant: "destructive" });
+    } finally { setImporting(false); }
+  };
+
+  const [batching, setBatching] = useState(false);
+  const draftBatch = async () => {
+    const withTask = new Set(tasks.map((t) => t.lead_id));
+    const pending = leads.filter((l) => l.email && !withTask.has(l.id)).slice(0, 5);
+    if (pending.length === 0) { toast({ title: "Todos tus contactos con correo ya tienen una tarea" }); return; }
+    setBatching(true);
+    let ok = 0;
+    for (const l of pending) {
+      const { error } = await supabase.functions.invoke("agent-draft-followup", { body: { leadId: l.id, goal } });
+      if (!error) ok++;
+    }
+    setBatching(false);
+    toast({ title: `Preparé ${ok} borrador(es). Revisalos y aprobá los que quieras.` });
+    load();
+  };
+
   const pushEvent = (t: Task, type: string, note: string) => [...(t.events || []), { at: new Date().toISOString(), type, note }];
 
   const saveEdit = async (t: Task) => {
@@ -224,11 +275,23 @@ const AgentWorkPage = () => {
           <Input placeholder="Empresa" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
           <Input placeholder="Qué pasó con este contacto" value={form.context} onChange={(e) => setForm({ ...form, context: e.target.value })} />
         </div>
-        <Button onClick={addLead} disabled={!form.name.trim()}>Guardar contacto</Button>
+        <div className="flex flex-wrap gap-2 items-center">
+          <Button onClick={addLead} disabled={!form.name.trim()}>Guardar contacto</Button>
+          <label className="inline-flex">
+            <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) importFile(f); e.target.value = ""; }} />
+            <span className="inline-flex items-center h-10 px-4 rounded-md border border-input text-sm cursor-pointer hover:bg-muted">
+              {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Importar desde Excel o CSV"}
+            </span>
+          </label>
+        </div>
+        <p className="text-xs text-muted-foreground">Columnas que reconozco: Nombre, Correo, Teléfono, Empresa, Notas.</p>
       </GlassCard>
 
       <GlassCard className="p-5 space-y-3">
         <h2 className="font-semibold text-foreground">Contactos</h2>
+        <Button size="sm" variant="outline" onClick={draftBatch} disabled={batching || leads.length === 0}>
+          {batching ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Mail className="w-4 h-4 mr-1" />} Preparar seguimientos pendientes (hasta 5)
+        </Button>
         <Input placeholder="Objetivo del seguimiento (opcional): ej. retomar el presupuesto enviado" value={goal} onChange={(e) => setGoal(e.target.value)} />
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : leads.length === 0 ? (
           <p className="text-sm text-muted-foreground">Todavía no cargaste contactos.</p>
