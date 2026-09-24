@@ -65,6 +65,7 @@ const TodayPage = lazy(() => import("./pages/app/TodayPage"));
 const ChatPage = lazy(() => import("./pages/app/ChatPage"));
 const MissionsPage = lazy(() => import("./pages/app/MissionsPage"));
 const AgentWorkPage = lazy(() => import("./pages/app/AgentWorkPage"));
+const GmailReturn = lazy(() => import("./pages/oauth/GmailReturn"));
 const RadarPage = lazy(() => import("./pages/app/RadarPage"));
 const MorePage = lazy(() => import("./pages/app/MorePage"));
 const AnalyticsPage = lazy(() => import("./pages/app/AnalyticsPage"));
@@ -274,6 +275,8 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/oauth/gmail/return" element={<Suspense fallback={null}><GmailReturn /></Suspense>} />
 
         {/* Ficha de contratación del empleado digital */}
         <Route

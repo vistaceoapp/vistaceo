@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { GlassCard } from "@/components/app/GlassCard";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, UserPlus, Check, ExternalLink, Download, Lock } from "lucide-react";
+import { Loader2, Mail, UserPlus, Check, ExternalLink, Download, Lock, Send } from "lucide-react";
 
 type Lead = { id: string; name: string; email: string | null; company: string | null; context: string | null };
 type Task = {
@@ -52,6 +52,14 @@ const AgentWorkPage = () => {
   }, [currentBusiness]);
 
   useEffect(() => { load(); }, [load]);
+
+  const [gmail, setGmail] = useState<{ loading: boolean; connected: boolean; reconnectRequired?: boolean; email?: string | null }>({ loading: true, connected: false });
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const loadGmail = useCallback(async () => {
+    const { data, error } = await supabase.functions.invoke("gmail-connector", { body: { action: "status" } });
+    setGmail(error ? { loading: false, connected: false } : { loading: false, ...data });
+  }, []);
+  useEffect(() => { loadGmail(); }, [loadGmail]);
 
   const addLead = async () => {
     if (!currentBusiness || !user || !form.name.trim()) return;
@@ -111,6 +119,55 @@ const AgentWorkPage = () => {
     load();
   };
 
+  const errMsg = async (error: unknown, fallback: string) => {
+    const d = error instanceof FunctionsHttpError ? await error.context.json().catch(() => ({})) : {};
+    return (d as { error?: string }).error || fallback;
+  };
+
+  const sendViaGmail = async (t: Task) => {
+    if (!window.confirm(`¿Enviar este correo a ${t.recipient} desde tu Gmail?`)) return;
+    setSendingId(t.id);
+    const { error } = await supabase.functions.invoke("gmail-connector", { body: { action: "send", taskId: t.id } });
+    setSendingId(null);
+    if (error) { toast({ title: await errMsg(error, "No se pudo enviar"), variant: "destructive" }); loadGmail(); return; }
+    toast({ title: "Enviado — Gmail confirmó el envío" });
+    load();
+  };
+
+  const connectGmail = async () => {
+    const popup = window.open("", "vc-gmail-oauth", "width=600,height=720");
+    if (!popup) { toast({ title: "Permití las ventanas emergentes e intentá de nuevo", variant: "destructive" }); return; }
+    try {
+      const { data, error } = await supabase.functions.invoke("gmail-connector", { body: { action: "start", origin: window.location.origin } });
+      if (error) throw new Error(await errMsg(error, "No se pudo iniciar la conexión"));
+      const done = new Promise<void>((resolve, reject) => {
+        const poll = window.setInterval(() => { if (popup.closed) { cleanup(); reject(new Error("Se cerró la ventana antes de terminar")); } }, 500);
+        const onMsg = (ev: MessageEvent) => {
+          if (ev.origin !== window.location.origin || ev.source !== popup || ev.data?.connectorId !== "google_mail") return;
+          cleanup();
+          if (ev.data?.type === "appUserConnectorOAuthComplete") resolve();
+          else reject(new Error(ev.data?.reason || "No se pudo conectar Gmail"));
+        };
+        const cleanup = () => { window.removeEventListener("message", onMsg); window.clearInterval(poll); };
+        window.addEventListener("message", onMsg);
+      });
+      popup.location.href = data.authorizationUrl;
+      await done;
+      toast({ title: "Gmail conectado" });
+      loadGmail();
+    } catch (e) {
+      popup.close();
+      toast({ title: e instanceof Error ? e.message : "No se pudo conectar Gmail", variant: "destructive" });
+    }
+  };
+
+  const disconnectGmail = async () => {
+    if (!window.confirm("¿Desconectar tu Gmail?")) return;
+    const { error } = await supabase.functions.invoke("gmail-connector", { body: { action: "disconnect" } });
+    if (error) toast({ title: "No se pudo desconectar", variant: "destructive" });
+    loadGmail();
+  };
+
   const download = (t: Task) => {
     const txt = `Para: ${t.recipient || "(sin destinatario)"}\nAsunto: ${t.subject}\n\n${t.body}\n`;
     const url = URL.createObjectURL(new Blob([txt], { type: "text/plain;charset=utf-8" }));
@@ -129,12 +186,20 @@ const AgentWorkPage = () => {
         </p>
       </div>
 
-      <GlassCard className="p-4 flex gap-3 items-start border-border">
-        <Lock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-        <p className="text-xs text-muted-foreground">
-          Envío automático y seguimiento de respuestas: pendientes hasta conectar tu correo. Mientras tanto, abrís el
-          borrador en tu propio correo y lo enviás vos; acá queda como "envío no confirmado".
-        </p>
+      <GlassCard className="p-4 flex gap-3 items-start justify-between border-border">
+        <div className="flex gap-3 items-start">
+          <Lock className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            {gmail.loading ? "Revisando tu correo…" : gmail.connected
+              ? `Gmail conectado (${gmail.email ?? "tu cuenta"}). Los borradores aprobados se envían desde tu cuenta solo cuando tocás "Enviar", y quedan confirmados con el comprobante de Gmail.`
+              : gmail.reconnectRequired
+                ? "Tu acceso a Gmail necesita renovarse."
+                : "Conectá tu Gmail para enviar los borradores aprobados desde tu propia cuenta. Sin conexión, los abrís en tu correo y quedan como \"envío no confirmado\"."}
+          </p>
+        </div>
+        {!gmail.loading && (gmail.connected
+          ? <Button size="sm" variant="ghost" onClick={disconnectGmail}>Desconectar</Button>
+          : <Button size="sm" onClick={connectGmail}>{gmail.reconnectRequired ? "Reconectar Gmail" : "Conectar Gmail"}</Button>)}
       </GlassCard>
 
       <GlassCard className="p-5 space-y-3">
@@ -203,8 +268,13 @@ const AgentWorkPage = () => {
                   <Button size="sm" variant="outline" onClick={() => setEdits({ ...edits, [t.id]: { subject: t.subject || "", body: t.body || "", recipient: t.recipient || "" } })}>Editar</Button>
                 )}
                 {t.status === "draft" && <Button size="sm" onClick={() => approve(t)}><Check className="w-4 h-4 mr-1" /> Aprobar</Button>}
+                {["approved", "opened_in_client"].includes(t.status) && gmail.connected && (
+                  <Button size="sm" onClick={() => sendViaGmail(t)} disabled={sendingId === t.id}>
+                    {sendingId === t.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Send className="w-4 h-4 mr-1" /> Enviar desde mi Gmail</>}
+                  </Button>
+                )}
                 {["approved", "opened_in_client"].includes(t.status) && (
-                  <Button size="sm" onClick={() => openInClient(t)}><ExternalLink className="w-4 h-4 mr-1" /> Abrir borrador en mi correo</Button>
+                  <Button size="sm" variant={gmail.connected ? "outline" : "default"} onClick={() => openInClient(t)}><ExternalLink className="w-4 h-4 mr-1" /> Abrir borrador en mi correo</Button>
                 )}
                 <Button size="sm" variant="ghost" onClick={() => download(t)}><Download className="w-4 h-4 mr-1" /> Descargar</Button>
               </div>
