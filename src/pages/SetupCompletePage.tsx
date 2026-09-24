@@ -101,13 +101,13 @@ const SetupCompletePage = () => {
       navigate("/checkout", { replace: true });
     } else {
       // Antes del dashboard: pantalla "Cuéntanos más" opcional que enriquece al brain.
-      navigate("/setup/enrich", { replace: true });
+      navigate("/setup/empleado", { replace: true });
     }
   };
 
   const handleGoToDashboard = () => {
     setCountdown(null);
-    navigate("/setup/enrich", { replace: true });
+    navigate("/setup/empleado", { replace: true });
   };
 
 
