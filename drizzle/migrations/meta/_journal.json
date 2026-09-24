@@ -8,6 +8,13 @@
       "when": 1790276208601,
       "tag": "0000_agent_work_tray",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790277271708,
+      "tag": "0001_app_user_connections",
+      "breakpoints": true
     }
   ]
 }
