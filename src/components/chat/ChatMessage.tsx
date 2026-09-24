@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import { AttachedFile } from "./ChatInput";
 import { MissionActionCard } from "./MissionActionCard";
 import { ChatTableDownload } from "./ChatTableDownload";
+import { ApproveSendBar } from "./ApproveSendBar";
 import { sanitizeAIOutput } from "@/lib/aiOutputSanitizer";
 
 interface MissionSuggestion {
@@ -35,7 +36,7 @@ interface ChatMessageProps {
   attachments?: AttachedFile[];
   missionSuggestions?: MissionSuggestion[];
   isNew?: boolean;
-  onAction?: (action: "mission" | "deepen", content: string) => void;
+  onAction?: (action: "mission" | "deepen" | "correct", content: string) => void;
 
 }
 
@@ -193,6 +194,10 @@ export const ChatMessage = ({
 
         {/* Descarga de planillas cuando la respuesta trae tablas */}
         {!isUser && !isTyping && <ChatTableDownload content={safeContent} />}
+
+        {!isUser && !isTyping && (
+          <ApproveSendBar content={safeContent} onCorrect={onAction ? () => onAction("correct", content) : undefined} />
+        )}
 
         {/* Mission Action Card */}
         {missionSuggestions && missionSuggestions.length > 0 && !isUser && (
