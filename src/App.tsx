@@ -272,7 +272,22 @@ const AppRoutes = () => {
           }
         />
 
+        {/* Ficha de contratación del empleado digital */}
+        <Route
+          path="/setup/empleado"
+          element={
+            <ProtectedRoute>
+              <BusinessProvider>
+                <Suspense fallback={null}>
+                  <AgentHiringPage />
+                </Suspense>
+              </BusinessProvider>
+            </ProtectedRoute>
+          }
+        />
+
         {/* Enrich brain (Cuéntanos más) — opcional antes del dashboard */}
+
         <Route
           path="/setup/enrich"
           element={
