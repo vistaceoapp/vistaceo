@@ -178,3 +178,6 @@ project_id = "nlewrgmcawzcdazhfiyy"
     verify_jwt = true
   [functions.agent-draft-followup]
     verify_jwt = true
+
+[functions.gmail-connector]
+  verify_jwt = true
