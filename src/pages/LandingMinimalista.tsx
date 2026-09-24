@@ -370,7 +370,7 @@ const HeroSection = () => {
 
             <Reveal delay={180} distance={18}>
               <p className="max-w-[560px] text-[17px] sm:text-[19px] leading-[1.55] text-[#3a3a3a]" style={{ marginTop: 16 }}>
-                Un empleado con IA que aprende tu negocio, redacta, responde, sigue clientes y
+                Un empleado con IA que aprende tu negocio, prepara correos y mensajes para tus clientes y
                 te deja el trabajo <span className="font-semibold text-[#0a0a0a]">hecho y listo para aprobar</span>.
                 Siempre busca la vía gratis; si algo tiene costo, te pregunta antes.
               </p>

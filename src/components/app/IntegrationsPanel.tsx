@@ -55,17 +55,6 @@ const AVAILABLE_INTEGRATIONS: Integration[] = [
     comingSoon: true,
   },
   {
-    id: "youtube",
-    type: "youtube",
-    name: "YouTube",
-    description: "Suscriptores, vistas y engagement de tu canal",
-    icon: Youtube,
-    category: "social",
-    status: "pending",
-    color: "text-destructive",
-    oauthEnabled: true, // Uses same Google OAuth
-  },
-  {
     id: "instagram",
     type: "instagram",
     name: "Instagram Business",
@@ -220,17 +209,21 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
           account_email?: string;
           google_location_id?: string;
           google_location_name?: string;
+          verified?: boolean;
         } | null;
+        // Solo se considera conectada si hubo verificación real de proveedor/token.
+        const reallyConnected =
+          existing?.status === "connected" && (metadata?.verified === true || !!metadata?.account_email);
         
         // Check if Google Reviews needs location selection
         const needsLocationSelection = 
           integration.type === "google_reviews" && 
-          existing?.status === "connected" && 
+          reallyConnected &&
           !metadata?.google_location_id;
 
         return {
           ...integration,
-          status: (existing?.status || "pending") as Integration["status"],
+          status: (reallyConnected ? "connected" : existing?.status === "connected" ? "pending" : existing?.status || "pending") as Integration["status"],
           accountEmail: metadata?.account_email,
           googleLocationName: metadata?.google_location_name,
           needsLocationSelection,
@@ -250,37 +243,12 @@ export const IntegrationsPanel = ({ variant = "full" }: IntegrationsPanelProps) 
     
     setConnecting(integration.type);
 
-    try {
-      // For other integrations (simulation for now)
-      const { error } = await supabase
-        .from("business_integrations")
-        .upsert({
-          business_id: currentBusiness.id,
-          integration_type: integration.type,
-          status: "connected",
-          metadata: { connected_at: new Date().toISOString() },
-        }, {
-          onConflict: "business_id,integration_type"
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: `✅ ${integration.name} conectado`,
-        description: "El sistema comenzará a sincronizar datos automáticamente.",
-      });
-
-      fetchIntegrations();
-    } catch (error) {
-      console.error("Error connecting:", error);
-      toast({
-        title: "Error de conexión",
-        description: "No se pudo conectar la integración. Verifica tu configuración.",
-        variant: "destructive",
-      });
-    } finally {
-      setConnecting(null);
-    }
+    // Sin conexión simulada: nunca se marca "conectado" sin verificación real del proveedor.
+    toast({
+      title: `${integration.name}: conexión todavía no disponible`,
+      description: "Esta conexión real aún no está habilitada. No se guardó ningún estado de conexión.",
+    });
+    setConnecting(null);
   };
 
   const handleDisconnect = async (integration: Integration) => {

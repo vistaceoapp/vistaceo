@@ -176,3 +176,5 @@ project_id = "nlewrgmcawzcdazhfiyy"
     verify_jwt = false
   [functions.recover-credit-stuck-users]
     verify_jwt = true
+  [functions.agent-draft-followup]
+    verify_jwt = true
