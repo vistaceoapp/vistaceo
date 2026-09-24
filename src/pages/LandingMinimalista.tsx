@@ -155,7 +155,7 @@ const Header = memo(() => {
           <button onClick={() => navigate("/auth?mode=signup")}
             className="text-[13.5px] text-white px-5 py-2.5 rounded-[10px] font-medium transition-all duration-300 flex items-center gap-1.5 hover:shadow-[0_4px_12px_rgba(38,146,220,0.25)] active:scale-[0.98]"
             style={{ background: ACCENT_GRADIENT }}>
-            Empezar gratis <ArrowRight className="w-3.5 h-3.5" />
+            Contratar gratis <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -878,13 +878,13 @@ const ProductShowcase = () => {
           <div className="text-center mb-4">
             <AccentLabel>PRODUCTO</AccentLabel>
             <h2 className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5">
-              Inteligencia que trabaja para vos
+              Un empleado que trabaja mientras vos atendés tu negocio
             </h2>
           </div>
         </Reveal>
         <Reveal delay={60}>
           <p className="text-center text-[15px] text-[#999] mt-4 mb-12 max-w-[480px] mx-auto leading-[1.7]">
-            Explorá cada módulo del sistema. Cambiá de negocio para ver cómo VISTACEO se adapta a cada industria.
+            Mirá cómo tu empleado digital se adapta a cualquier rubro: prepara, responde y te deja el trabajo listo.
           </p>
         </Reveal>
 
@@ -1748,7 +1748,7 @@ const PricingSection = () => {
           <div className="text-center mb-10 md:mb-14">
             <AccentLabel>PRECIOS</AccentLabel>
             <h2 className="text-[clamp(1.5rem,3vw,2.1rem)] font-semibold text-[#0a0a0a] tracking-[-0.025em] mt-5">
-              Empieza gratis. Crecé cuando lo necesites.
+              Probalo gratis. Pasalo a tiempo completo cuando quieras.
             </h2>
             <p className="text-[14.5px] text-[#999] mt-4 max-w-[400px] mx-auto leading-[1.7]">
               Sin compromisos. Sin tarjeta de crédito. Cancelá cuando quieras.
@@ -1974,15 +1974,15 @@ const FinalCTA = memo(forwardRef<HTMLElement>((_props, _ref) => {
       <Reveal>
         <div className="text-center relative z-10 max-w-[560px] mx-auto">
           <h2 className="text-[clamp(1.5rem,3vw,2.2rem)] font-semibold text-[#0a0a0a] tracking-[-0.02em] mb-4">
-            Tu negocio merece decisiones con más claridad
+            Dejá de hacerlo todo solo
           </h2>
           <p className="text-[15px] text-[#999] mb-8 leading-[1.7]">
-            Empieza gratis y descubrí cómo VISTACEO puede transformar la forma en que tomás decisiones.
+            Contratá gratis a tu empleado digital: aprende tu negocio en 2 minutos y empieza a trabajar para vos.
           </p>
           <button onClick={() => navigate("/auth?mode=signup")}
             className="text-white px-10 py-4 rounded-xl text-[14.5px] font-medium transition-all duration-300 inline-flex items-center gap-2.5 hover:shadow-[0_12px_32px_rgba(38,146,220,0.2)] active:scale-[0.98] hover:-translate-y-0.5"
             style={{ background: ACCENT_GRADIENT }}>
-            Empezar gratis <ArrowRight className="w-4 h-4" />
+            Contratar gratis <ArrowRight className="w-4 h-4" />
           </button>
           <p className="text-[12px] text-[#ccc] mt-5 flex items-center justify-center gap-4">
             <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Sin tarjeta de crédito</span>
